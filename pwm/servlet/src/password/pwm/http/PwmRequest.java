@@ -26,7 +26,6 @@ import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.h2.util.StringUtils;
-import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
@@ -35,6 +34,7 @@ import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -50,7 +50,6 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -93,12 +92,12 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     )
             throws PwmUnrecoverableException
     {
-        PwmRequest pwmRequest = (PwmRequest) request.getAttribute(PwmConstants.REQUEST_ATTR_PWM_REQUEST);
+        PwmRequest pwmRequest = (PwmRequest) request.getAttribute(PwmConstants.REQUEST_ATTR.PwmRequest.toString());
         if (pwmRequest == null) {
-            final PwmSession pwmSession = PwmSession.getPwmSession(request);
+            final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             pwmRequest = new PwmRequest(request, response, pwmApplication, pwmSession);
-            request.setAttribute(PwmConstants.REQUEST_ATTR_PWM_REQUEST, pwmRequest);
+            request.setAttribute(PwmConstants.REQUEST_ATTR.PwmRequest.toString(), pwmRequest);
         }
         return pwmRequest;
     }
@@ -206,46 +205,12 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             throws PwmUnrecoverableException, IOException
     {
         final String redirectURL = PwmConstants.URL_SERVLET_COMMAND + "?" + PwmConstants.PARAM_ACTION_REQUEST + "=continue&pwmFormID="
+                
                 + Helper.buildPwmFormID(pwmSession.getSessionStateBean());
+
         sendRedirect(redirectURL);
     }
 
-    public void recycleSessions()
-            throws IOException, ServletException
-    {
-        LOGGER.debug(pwmSession,"forcing new http session due to authentication");
-        final boolean recycleEnabled = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(
-                AppProperty.HTTP_SESSION_RECYCLE_AT_AUTH));
-        if (!recycleEnabled) {
-            return;
-        }
-
-        final HttpServletRequest req = this.getHttpServletRequest();
-
-        // read the old session data
-        final HttpSession oldSession = req.getSession(true);
-        final Map<String,Object> sessionAttributes = new HashMap<>();
-        final Enumeration oldSessionAttrNames = oldSession.getAttributeNames();
-        while (oldSessionAttrNames.hasMoreElements()) {
-            final String attrName = (String)oldSessionAttrNames.nextElement();
-            sessionAttributes.put(attrName, oldSession.getAttribute(attrName));
-        }
-
-        for (final String attrName : sessionAttributes.keySet()) {
-            oldSession.removeAttribute(attrName);
-        }
-
-        //invalidate the old session
-        oldSession.invalidate();
-
-        // make a new session
-        final HttpSession newSession = req.getSession(true);
-
-        // write back all the session data
-        for (final String attrName : sessionAttributes.keySet()) {
-            newSession.setAttribute(attrName, sessionAttributes.get(attrName));
-        }
-    }
 
     public void outputJsonResult(final RestResultBean restResultBean)
             throws IOException
@@ -341,7 +306,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     public void validatePwmFormID()
             throws PwmUnrecoverableException
     {
-        Validator.validatePwmFormID(getHttpServletRequest());
+        Validator.validatePwmFormID(this);
     }
 
     public boolean convertURLtokenCommand()
@@ -392,15 +357,15 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
 
     public void setResponseError(final ErrorInformation errorInformation) {
-        setAttribute(PwmConstants.REQUEST_ATTR_PWM_ERRORINFO, errorInformation);
+        setAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo, errorInformation);
     }
 
-    public void setAttribute(final String name, final Object value) {
-        this.getHttpServletRequest().setAttribute(name,value);
+    public void setAttribute(final PwmConstants.REQUEST_ATTR name, final Serializable value) {
+        this.getHttpServletRequest().setAttribute(name.toString(),value);
     }
 
-    public Object getAttribute(final String name) {
-        return this.getHttpServletRequest().getAttribute(name);
+    public Serializable getAttribute(final PwmConstants.REQUEST_ATTR name) {
+        return (Serializable)this.getHttpServletRequest().getAttribute(name.toString());
     }
 
     public PwmURL getURL() {
@@ -588,5 +553,33 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
                 + " " + this.getHttpServletRequest().getRequestURI();
         
     }
-    
+
+    public void addFormInfoToRequestAttr(
+            final PwmSetting formSetting,
+            final boolean readOnly,
+            final boolean showPasswordFields
+    ) {
+        final ArrayList<FormConfiguration> formConfiguration = new ArrayList<>(this.getConfig().readSettingAsForm(formSetting));
+        addFormInfoToRequestAttr(formConfiguration,null,readOnly,showPasswordFields);
+        
+    }
+    public void addFormInfoToRequestAttr(
+            final List<FormConfiguration> formConfiguration,
+            final Map<FormConfiguration, String> formDataMap,
+            final boolean readOnly,
+            final boolean showPasswordFields
+    ) {
+        final LinkedHashMap<FormConfiguration,String> formDataMapValue = formDataMap == null 
+                ? new LinkedHashMap<FormConfiguration,String>() 
+                : new LinkedHashMap<>(formDataMap);
+        
+        this.setAttribute(PwmConstants.REQUEST_ATTR.FormConfiguration, new ArrayList<>(formConfiguration));
+        this.setAttribute(PwmConstants.REQUEST_ATTR.FormData, formDataMapValue);
+        this.setAttribute(PwmConstants.REQUEST_ATTR.FormReadOnly, readOnly);
+        this.setAttribute(PwmConstants.REQUEST_ATTR.FormShowPasswordFields, showPasswordFields);
+    }
+
+    public void invalidateSession() {
+        this.getHttpServletRequest().getSession().invalidate();
+    }
 }

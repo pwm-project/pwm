@@ -25,10 +25,12 @@ package password.pwm.http.tag;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.option.ADPolicyComplexity;
+import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
-import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.servlet.NewUserServlet;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
@@ -36,6 +38,7 @@ import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
 import java.util.ArrayList;
@@ -333,15 +336,16 @@ public class PasswordRequirementsTag extends TagSupport {
     public int doEndTag()
             throws javax.servlet.jsp.JspTagException {
         try {
-            final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-            final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+            final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest)pageContext.getRequest(),(HttpServletResponse)pageContext.getResponse());
+            final PwmSession pwmSession = pwmRequest.getPwmSession();
+            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
             final Configuration config = pwmApplication.getConfig();
 
 
             final PwmPasswordPolicy passwordPolicy;
             if (getForm() != null && getForm().equalsIgnoreCase("newuser")) {
-                passwordPolicy = config.getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());
+                final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
+                passwordPolicy = newUserProfile.getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());
             } else {
                 passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
             }

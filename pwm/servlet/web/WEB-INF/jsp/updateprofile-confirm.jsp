@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -35,14 +35,10 @@
         <p><pwm:display key="Display_UpdateProfileConfirm"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
-              onsubmit="return false">
-            <% request.setAttribute("form",PwmSetting.UPDATE_PROFILE_FORM); %>
-            <% request.setAttribute("formData",PwmRequest.forRequest(request, response).getPwmSession().getUpdateProfileBean().getFormData()); %>
-            <% request.setAttribute("form-readonly","true"); %>
+        <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded">
             <jsp:include page="fragment/form.jsp"/>
         </form>
-        <div id="buttonbar">
+        <div class="buttonbar">
             <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <button id="confirmBtn" type="submit" class="btn" name="button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>

@@ -73,7 +73,7 @@ public abstract class RestServerHelper {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        ServletHelper.handleRequestInitialization(request, pwmApplication, pwmSession);
+        ServletHelper.handleRequestInitialization(pwmRequest, pwmApplication, pwmSession);
 
         if (servicePermissions.isAuthRequired()) {
             ServletHelper.handleRequestSecurityChecks(request, pwmApplication, pwmSession);
@@ -225,7 +225,8 @@ public abstract class RestServerHelper {
         final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(pwmApplication, PwmRequest.forRequest(request,response));
         if (basicAuthInfo != null) {
             try {
-                AuthenticationFilter.authUserUsingBasicHeader(request, basicAuthInfo);
+                final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
+                AuthenticationFilter.authUserUsingBasicHeader(pwmRequest, basicAuthInfo);
             } catch (PwmOperationalException e) {
                 throw new PwmUnrecoverableException(e.getErrorInformation());
             }

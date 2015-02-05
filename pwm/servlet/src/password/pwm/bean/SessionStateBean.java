@@ -26,7 +26,6 @@ import password.pwm.config.ShortcutItem;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.i18n.Message;
 import password.pwm.util.PwmRandom;
-import password.pwm.util.TimeDuration;
 
 import java.util.Date;
 import java.util.Locale;
@@ -77,7 +76,6 @@ public class SessionStateBean implements PwmSessionBean {
     private Date pageLeaveNoticeTime;
     private Date sessionCreationTime;
     private Date sessionLastAccessedTime;
-    private TimeDuration sessionMaximumTimeout;
 
     private boolean passwordModified;
     private boolean privateUrlAccessed;
@@ -90,6 +88,8 @@ public class SessionStateBean implements PwmSessionBean {
 
     private boolean skippedOtpSetup;
     private boolean skippedRequireNewPassword;
+    
+    private boolean sessionIdRecycleNeeded;
 
 
 
@@ -321,16 +321,6 @@ public class SessionStateBean implements PwmSessionBean {
         this.restClientKey = restClientKey;
     }
 
-    public TimeDuration getSessionMaximumTimeout()
-    {
-        return sessionMaximumTimeout;
-    }
-
-    public void setSessionMaximumTimeout(TimeDuration sessionMaximumTimeout)
-    {
-        this.sessionMaximumTimeout = sessionMaximumTimeout;
-    }
-
     public void regenerateSessionVerificationKey() {
         sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(sessionVerificationKeyLength) + Long.toHexString(System.currentTimeMillis());
         paramPrefixKey = PwmRandom.getInstance().alphaNumericString(10);
@@ -354,6 +344,14 @@ public class SessionStateBean implements PwmSessionBean {
     public void setSkippedRequirePassword(boolean skippedPasswordWarn)
     {
         this.skippedRequireNewPassword = skippedPasswordWarn;
+    }
+
+    public boolean isSessionIdRecycleNeeded() {
+        return sessionIdRecycleNeeded;
+    }
+
+    public void setSessionIdRecycleNeeded(boolean sessionIdRecycleNeeded) {
+        this.sessionIdRecycleNeeded = sessionIdRecycleNeeded;
     }
 }
 

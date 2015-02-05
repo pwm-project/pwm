@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 <%@ page import="password.pwm.bean.PasswordStatus" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PasswordStatus passwordStatus = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordState(); %>
+<% final PasswordStatus passwordStatus = JspUtility.getPwmSession(pageContext).getUserInfoBean().getPasswordState(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -40,16 +40,15 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" onreset="PWM_CHANGEPW.setInputFocus()" name="changePasswordForm" id="changePasswordForm">
-            <% if (PwmSession.getPwmSession(session).getChangePasswordBean().isCurrentPasswordRequired()) { %>
+            <% if (JspUtility.getPwmSession(pageContext).getChangePasswordBean().isCurrentPasswordRequired()) { %>
             <h1>
                 <label for="currentPassword"><pwm:display key="Field_CurrentPassword"/></label>
             </h1>
             <input id="currentPassword" type="<pwm:value name="passwordFieldType"/>" class="inputfield" name="currentPassword"/>
             <br/>
             <% } %>
-            <% request.setAttribute("form",PwmSetting.PASSWORD_REQUIRE_FORM); %>
             <jsp:include page="fragment/form.jsp"/>
-            <div id="buttonbar" style="width:100%">
+            <div class="buttonbar" style="width:100%">
                 <input type="hidden" name="processAction" value="form"/>
                 <button type="submit" name="change" class="btn" id="continue_button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
@@ -65,13 +64,6 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        document.forms.changePasswordForm.elements[0].focus();
-    });
-</script>
-</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

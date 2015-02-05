@@ -6,7 +6,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -111,7 +111,7 @@
                 <input type="hidden" name="recaptcha_response_field"
                        value="manual_challenge">
             </noscript>
-            <div id="buttonbar">
+            <div class="buttonbar">
                 <input type="hidden" name="processAction" value="doVerify"/>
                 <button type="submit" name="verify" class="btn" id="verify_button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>

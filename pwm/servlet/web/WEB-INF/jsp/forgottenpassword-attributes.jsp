@@ -55,10 +55,10 @@ this is handled this way so on browsers where hiding fields is not possible, the
             <h2><label for="attribute-<%= paramConfig.getName()%>"><%= paramConfig.getLabel(ssBean.getLocale()) %>
             </label></h2>
             <input type="<pwm:value name="responseFieldType"/>" name="<%= paramConfig.getName()%>" class="inputfield passwordfield" maxlength="255"
-                   id="attribute-<%= paramConfig.getName()%>" required="required" />
+                    <pwm:autofocus/> id="attribute-<%= paramConfig.getName()%>" required="required" />
             <% } %>
 
-            <div id="buttonbar">
+            <div class="buttonbar">
                 <input type="hidden" name="processAction" value="checkAttributes"/>
                 <button type="submit" name="checkAttributes" class="btn" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
@@ -86,7 +86,6 @@ this is handled this way so on browsers where hiding fields is not possible, the
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_RESPONSES.startupResponsesPage();
-        document.forms.responseForm.elements[0].focus();
     });
 
     function handleCancelClick() {

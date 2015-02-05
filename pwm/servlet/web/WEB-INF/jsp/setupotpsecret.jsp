@@ -80,7 +80,7 @@
                 </table>
             </div>
         </div>
-        <div id="buttonbar">
+        <div class="buttonbar">
             <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
                   enctype="application/x-www-form-urlencoded" id="setupOtpSecret" class="pwm-form">
                 <input type="hidden" name="processAction" value="toggleSeen"/>
@@ -127,7 +127,7 @@
         });
     </script>
 </pwm:script>
-<script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/responses.js'/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/responses.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -34,7 +34,6 @@
 <%@ page import="password.pwm.config.profile.HelpdeskProfile" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordRule" %>
 <%@ page import="password.pwm.event.UserAuditRecord" %>
-<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.bean.HelpdeskBean" %>
 <%@ page import="password.pwm.http.tag.PasswordRequirementsTag" %>
 <%@ page import="password.pwm.i18n.Display" %>
@@ -73,10 +72,11 @@
         <% if (displayName != null && !displayName.isEmpty()) { %>
         <h2 style="text-align: center"><%=displayName%></h2>
         <% } %>
+        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <table style="border:0">
             <tr>
                 <td style="border:0; width: 600px; max-width:600px; vertical-align: top">
-                    <div data-dojo-type="dijit.layout.TabContainer" style="max-width: 600px; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+                    <div data-dojo-type="dijit.layout.TabContainer" style="max-width: 600px; height: 100%;" data-dojo-props="doLayout: false, persist: true" >
                         <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Field_Profile"/>" class="tabContent">
                             <div style="max-height: 400px; overflow: auto;">
                                 <table class="nomargin">
@@ -102,9 +102,9 @@
                                         <pwm:display key="Field_UserDN"/>
                                     </td>
                                     <td>
-        <span style="word-wrap: break-word; word-break: break-all">
-        <%= StringUtil.escapeHtml(searchedUserInfo.getUserIdentity().getUserDN()) %>
-        </span>
+                                        <span style="word-wrap: break-word; word-break: break-all">
+                                        <%= StringUtil.escapeHtml(searchedUserInfo.getUserIdentity().getUserDN()) %>
+                                        </span>
                                     </td>
                                 </tr>
                                 <% if (pwmApplication.getConfig().getLdapProfiles().size() > 1) { %>
@@ -437,8 +437,6 @@
                                         <td>
                                             <%= searchedUserInfo.getPasswordPolicy().getIdentifier() == null
                                                     ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                                    : PwmConstants.DEFAULT_PASSWORD_PROFILE.equalsIgnoreCase(searchedUserInfo.getPasswordPolicy().getIdentifier())
-                                                    ? JspUtility.getMessage(pageContext,Display.Value_Default)
                                                     : searchedUserInfo.getPasswordPolicy().getIdentifier()
                                             %>
                                         </td>
@@ -500,6 +498,7 @@
                         </div>
                         <% } %>
                     </div>
+                    <br/>
                     <div class="footnote"><span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></span></div>
                 </td>
                 <td style="border:0; width: 200px; max-width:200px; text-align: left; vertical-align: top">
@@ -555,7 +554,7 @@
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) { %>
                         <% if (helpdeskBean.getUserInfoBean().getResponseInfoBean() != null) { %>
                         <button id="helpdesk_clearResponsesBtn" class="btn" style="width:150px">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
+                           <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
                             <pwm:display key="Button_ClearResponses"/>
                         </button>
                         <pwm:script>
@@ -569,7 +568,7 @@
                         </pwm:script>
                         <br/>
                         <% } else { %>
-                        <button id="helpdesk_clearResponsesBtn" class="btn" disabled="disabled" style="width:150px">>
+                        <button id="helpdesk_clearResponsesBtn" class="btn" disabled="disabled" style="width:150px">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
                             <pwm:display key="Button_ClearResponses"/>
                         </button>
@@ -588,7 +587,7 @@
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_OTP_BUTTON) &&
                                 pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) { %>
-                        <button id="helpdesk_clearOtpSecretBtn" class="btn" style="width:150px">>
+                        <button id="helpdesk_clearOtpSecretBtn" class="btn" style="width:150px">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
                             <pwm:display key="Button_HelpdeskClearOtpSecret"/>
                         </button>
@@ -596,7 +595,9 @@
                             <script type="text/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
                                     PWM_MAIN.addEventHandler('helpdesk_clearOtpSecretBtn','click',function(){
-                                        document.clearOtpSecretForm.submit();
+                                        PWM_MAIN.showConfirmDialog({text:PWM_MAIN.showString('Button_HelpdeskClearOtpSecret'),okAction:function() {
+                                            document.clearOtpSecretForm.submit();
+                                        }});
                                     });
                                 });
                             </script>
@@ -613,7 +614,9 @@
                             <script type="text/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
                                     PWM_MAIN.addEventHandler('helpdesk_unlockBtn','click',function(){
-                                        document.ldapUnlockForm.submit();
+                                        PWM_MAIN.showConfirmDialog({text:PWM_MAIN.showString('Button_Unlock'),okAction:function() {
+                                            document.ldapUnlockForm.submit();
+                                        }});
                                     });
                                 });
                             </script>
@@ -635,22 +638,6 @@
                                 });
                             </script>
                         </pwm:script>
-                        <% } %>
-                        <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_DELETE_USER_BUTTON)) { %>
-                        <button class="btn" id="helpdesk_deleteUserButton" style="width:150px">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-trash-o"></span></pwm:if>
-                            Delete User
-                        </button>
-                        <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('helpdesk_deleteUserButton','click',function(){
-                                        PWM_HELPDESK.deleteUser('<%=StringUtil.escapeHtml(obfuscatedDN)%>')
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
-                        <br/>
                         <% } %>
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_OTP_VERIFY)) { %>
@@ -687,6 +674,23 @@
                             </script>
                         </pwm:script>
                         <% } %>
+                        <br/>
+                        <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_DELETE_USER_BUTTON)) { %>
+                        <button class="btn" id="helpdesk_deleteUserButton" style="width:150px">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-user-times"></span></pwm:if>
+                            <pwm:display key="Button_Delete"/>
+                        </button>
+                        <pwm:script>
+                            <script type="text/javascript">
+                                PWM_GLOBAL['startupFunctions'].push(function(){
+                                    PWM_MAIN.addEventHandler('helpdesk_deleteUserButton','click',function(){
+                                        PWM_HELPDESK.deleteUser('<%=StringUtil.escapeHtml(obfuscatedDN)%>')
+                                    });
+                                });
+                            </script>
+                        </pwm:script>
+                        <br/>
+                        <% } %>
                         <% final List<ActionConfiguration> actions = helpdeskProfile.readSettingAsAction(PwmSetting.HELPDESK_ACTIONS); %>
                         <% for (final ActionConfiguration loopAction : actions) { %>
                         <button class="btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>">
@@ -711,7 +715,6 @@
                         <% } %>
                     </div>
                 </td>
-
             </tr>
         </table>
     </div>
@@ -755,8 +758,8 @@
         });
     </script>
 </pwm:script>
-<script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/helpdesk.js'/>"></script>
-<script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/helpdesk.js'/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>

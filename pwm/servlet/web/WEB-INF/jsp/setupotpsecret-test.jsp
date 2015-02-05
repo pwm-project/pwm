@@ -32,7 +32,8 @@ TODO: support HOTP
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupOtpBean otpBean = PwmSession.getPwmSession(session).getSetupOtpBean();%>
+<% final SetupOtpBean otpBean = JspUtility.getPwmSession(pageContext).getSetupOtpBean();%>
+<% final int otpTokenLength = PwmRequest.forRequest(request,response).getPwmApplication().getOtpService().getSettings().getOtpTokenLength(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -46,11 +47,11 @@ TODO: support HOTP
         <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
               enctype="application/x-www-form-urlencoded" id="setupOtpSecret" class="pwm-form">
             <div style="width:100%; text-align: center">
-                <input type="text" pattern="[0-9]*" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield" maxlength="<%= PwmConstants.OTP_TOKEN_LENGTH%>" type="text"
+                <input type="text" pattern="[0-9]*" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield" maxlength="<%=otpTokenLength%>" type="text"
                        id="<%= PwmConstants.PARAM_OTP_TOKEN%>" required="required" style="max-width: 100px"
                        autofocus/>
             </div>
-            <div id="buttonbar">
+            <div class="buttonbar">
                 <input type="hidden" name="processAction" value="testOtpSecret"/>
                 <button type="submit" name="testOtpSecret" class="btn" id="setotpsecret_button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span>&nbsp</pwm:if>
@@ -80,7 +81,7 @@ TODO: support HOTP
     });
 </script>
 </pwm:script>
-<script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/otpsecret.js'/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/otpsecret.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

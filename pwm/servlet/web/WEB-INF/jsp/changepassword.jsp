@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@
                             <div class="fa fa-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" ></div>
                             </pwm:if>
                         </div>
-                        <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" autofocus/>
+                        <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" <pwm:autofocus/>/>
                     </td>
                     <td style="border:0; width:15%">
                         <pwm:if test="showStrengthMeter">
@@ -97,7 +97,7 @@
                     <td style="border:0; width:10%">&nbsp;</td>
                 </tr>
             </table>
-            <div id="buttonbar" style="width:100%">
+            <div class="buttonbar" style="width:100%">
                 <input type="hidden" name="processAction" value="change"/>
                 <button type="submit" name="change" class="btn" id="password_button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>

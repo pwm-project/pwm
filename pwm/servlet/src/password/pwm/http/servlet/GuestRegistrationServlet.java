@@ -72,12 +72,19 @@ import java.util.*;
 public class GuestRegistrationServlet extends PwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(GuestRegistrationServlet.class);
 
-    private static final String HTTP_PARAM_EXPIRATION_DATE = "__expirationDate__";
+    public static final String HTTP_PARAM_EXPIRATION_DATE = "expirationDateFormInput";
+    
+    public enum Page {
+        create,
+        search
+        
+    }
 
     public enum GuestRegistrationAction implements PwmServlet.ProcessAction {
         create,
         search,
         update,
+        selectPage,
         ;
 
         public Collection<PwmServlet.HttpMethod> permittedMethods()
@@ -117,11 +124,6 @@ public class GuestRegistrationServlet extends PwmServlet {
             return;
         }
 
-        final String menuSelection = pwmRequest.readParameterAsString("menuSelect");
-        if (menuSelection != null && menuSelection.length() > 0) {
-            guestRegistrationBean.setMenumode(menuSelection);
-        }
-
         checkConfiguration(config);
 
         final GuestRegistrationAction action = readProcessAction(pwmRequest);
@@ -139,12 +141,32 @@ public class GuestRegistrationServlet extends PwmServlet {
                 case update:
                     handleUpdateRequest(pwmRequest);
                     return;
+                
+                case selectPage:
+                    handleSelectPageRequest(pwmRequest, guestRegistrationBean);
+                    return;
             }
         }
 
         this.forwardToJSP(pwmRequest, guestRegistrationBean);
     }
-
+    
+    protected void handleSelectPageRequest(
+            final PwmRequest pwmRequest,
+            final GuestRegistrationBean guestRegistrationBean
+    )
+            throws PwmUnrecoverableException, IOException, ServletException 
+    {
+        final String requestedPage = pwmRequest.readParameterAsString("page");
+        try {
+            guestRegistrationBean.setCurrentPage(Page.valueOf(requestedPage));
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(pwmRequest,"unknown page select request: " + requestedPage);
+        }
+        this.forwardToJSP(pwmRequest, guestRegistrationBean);
+    }
+    
+    
     protected void handleUpdateRequest(
             final PwmRequest pwmRequest
     )
@@ -240,7 +262,7 @@ public class GuestRegistrationServlet extends PwmServlet {
     )
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
-    	LOGGER.trace("Enter: handleSearchRequest(...)");
+        LOGGER.trace(pwmRequest, "Enter: handleSearchRequest(...)");
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider();
@@ -266,7 +288,7 @@ public class GuestRegistrationServlet extends PwmServlet {
                 final List<FormConfiguration> guestUpdateForm = config.readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);
                 final Set<String> involvedAttrs = new HashSet<>();
                 for (final FormConfiguration formItem : guestUpdateForm) {
-                    if (!formItem.getName().equalsIgnoreCase("__accountDuration__")) {
+                    if (!formItem.getName().equalsIgnoreCase(HTTP_PARAM_EXPIRATION_DATE)) {
                         involvedAttrs.add(formItem.getName());
                     }
                 }
@@ -446,7 +468,7 @@ public class GuestRegistrationServlet extends PwmServlet {
             expirationDate = new SimpleDateFormat("yyyy-MM-dd").parse(expirationDateStr);
         } catch (ParseException e) {
             final String errorMsg = "unable to read expiration date value: " + e.getMessage();
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED,errorMsg));
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED,errorMsg,new String[]{"expiration date"}));
         }
 
         if (expirationDate.before(new Date())) {
@@ -510,9 +532,11 @@ public class GuestRegistrationServlet extends PwmServlet {
             final GuestRegistrationBean guestRegistrationBean
     )
             throws IOException, ServletException, PwmUnrecoverableException {
-        if ("search".equalsIgnoreCase(guestRegistrationBean.getMenumode())) {
+        if (Page.search == guestRegistrationBean.getCurrentPage()) {
+            pwmRequest.addFormInfoToRequestAttr(PwmSetting.GUEST_UPDATE_FORM, false, false);
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.GUEST_UPDATE_SEARCH);
         } else {
+            pwmRequest.addFormInfoToRequestAttr(PwmSetting.GUEST_FORM, false, false);
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.GUEST_REGISTRATION);
         }
     }

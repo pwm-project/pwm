@@ -35,7 +35,7 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.ServletException;
 import java.io.IOException;
 
-public class ApplicationModeFilter extends PwmFilter {
+public class ApplicationModeFilter extends AbstractPwmFilter {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ApplicationModeFilter.class.getName());
 
@@ -47,7 +47,7 @@ public class ApplicationModeFilter extends PwmFilter {
             throws IOException, ServletException
     {
         // add request url to request attribute
-        pwmRequest.getHttpServletRequest().setAttribute(PwmConstants.REQUEST_ATTR_ORIGINAL_URI, pwmRequest.getHttpServletRequest().getRequestURI());
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.OriginalUri, pwmRequest.getHttpServletRequest().getRequestURI());
 
         // ignore if resource request
         final PwmURL pwmURL = pwmRequest.getURL();

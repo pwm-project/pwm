@@ -77,14 +77,14 @@
                         <span id="settingSearchIcon" class="fa fa-search"></span>
                     </td>
                     <td>
-                        <input type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" autofocus/>
+                        <input type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" <pwm:autofocus/>/>
                     </td>
                     <td>
                         <div style="margin-top:5px">
-                            <div id="searchIndicator" style="display: none">
+                            <div id="indicator-searching" style="display: none">
                                 <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
                             </div>
-                            <div id="noSearchResultsIndicator" style="display: none;">
+                            <div id="indicator-noResults" style="display: none;">
                                 <span style="color: #ffcd59;" class="fa fa-lg fa-ban"></span>
                             </div>
                         </div>
@@ -99,9 +99,10 @@
             <div id="navigationTree">
                 <%-- navtree goes here --%>
             </div>
-            <div id="navigationTreeTopMenu">
-                <span id="button-navigationExpandAll" class="fa fa-plus-square-o"></span>
-                <span id="button-navigationCollapseAll" class="fa fa-minus-square-o"></span>
+            <div id="navTreeExpanderButtons">
+                <span id="button-navigationExpandAll" class="fa fa-plus-square"></span>
+                &nbsp;&nbsp;
+                <span id="button-navigationCollapseAll" class="fa fa-minus-square"></span>
             </div>
         </div>
         <div id="settingsPanel">

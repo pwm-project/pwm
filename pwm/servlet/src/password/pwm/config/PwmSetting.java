@@ -539,6 +539,8 @@ public enum PwmSetting {
             "otp.secret.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.OTP),
     OTP_SECRET_IDENTIFIER(
             "otp.secret.identifier", PwmSettingSyntax.STRING, PwmSettingCategory.OTP),
+    OTP_RECOVERY_CODES(
+            "otp.secret.recoveryCodes", PwmSettingSyntax.NUMERIC, PwmSettingCategory.OTP),
 
     // logger settings
     EVENTS_JAVA_STDOUT_LEVEL(
@@ -688,27 +690,31 @@ public enum PwmSetting {
 
     // new user settings
     NEWUSER_ENABLE(
-            "newUser.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER),
+            "newUser.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_SETTINGS),
+    NEWUSER_PROFILE_LIST(
+            "newUser.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.NEWUSER_SETTINGS),
     NEWUSER_CONTEXT(
-            "newUser.createContext", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER),
+            "newUser.createContext", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_AGREEMENT_MESSAGE(
-            "display.newuser.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.NEWUSER),
+            "display.newuser.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_FORM(
-            "newUser.form", PwmSettingSyntax.FORM, PwmSettingCategory.NEWUSER),
+            "newUser.form", PwmSettingSyntax.FORM, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_WRITE_ATTRIBUTES(
-            "newUser.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.NEWUSER),
+            "newUser.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_DELETE_ON_FAIL(
-            "newUser.deleteOnFail", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER),
+            "newUser.deleteOnFail", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_USERNAME_DEFINITION(
-            "newUser.username.definition", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.NEWUSER),
+            "newUser.username.definition", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_EMAIL_VERIFICATION(
-            "newUser.email.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER),
+            "newUser.email.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_SMS_VERIFICATION(
-            "newUser.sms.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER),
+            "newUser.sms.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_PASSWORD_POLICY_USER(
-            "newUser.passwordPolicy.user", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER),
+            "newUser.passwordPolicy.user", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_MINIMUM_WAIT_TIME(
-            "newUser.minimumWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.NEWUSER),
+            "newUser.minimumWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.NEWUSER_PROFILE),
+    NEWUSER_PROFILE_DISPLAY_NAME(
+            "newUser.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.NEWUSER_PROFILE),
 
 
     // guest settings
@@ -717,7 +723,7 @@ public enum PwmSetting {
     GUEST_CONTEXT(
             "guest.createContext", PwmSettingSyntax.STRING, PwmSettingCategory.GUEST),
     GUEST_ADMIN_GROUP(
-            "guest.adminGroup", PwmSettingSyntax.STRING, PwmSettingCategory.GUEST),
+            "guest.adminGroup", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.GUEST),
     GUEST_FORM(
             "guest.form", PwmSettingSyntax.FORM, PwmSettingCategory.GUEST),
     GUEST_UPDATE_FORM(

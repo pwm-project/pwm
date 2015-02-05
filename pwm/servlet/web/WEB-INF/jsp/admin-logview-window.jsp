@@ -29,6 +29,8 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_REQ_COUNTER); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% final PwmRequest pwmRequest = PwmRequest.forRequest(request,response); %>
@@ -78,7 +80,6 @@
     <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(logEvent.getDate())%></span>, <%=StringUtil.escapeHtml(logEvent.toLogString(false)) %><%="\n"%>
     <% } %></pre>
 <% } %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 <script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <pwm:script>
@@ -91,9 +92,6 @@
             PWM_MAIN.showWaitDialog({loadFunction:function(){PWM_CONFIG.openLogViewer(level)}});
         };
         PWM_MAIN.addEventHandler('button-refresh','click',function(){
-            refreshFunction();
-        });
-        PWM_MAIN.addEventHandler('select-level','change',function(){
             refreshFunction();
         });
         document.title = "Log Viewer";

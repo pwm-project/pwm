@@ -27,9 +27,8 @@ import password.pwm.config.PwmSettingCategory;
 
 public enum ProfileType {
     Helpdesk            (true,  PwmSettingCategory.HELPDESK_PROFILE, PwmSetting.HELPDESK_PROFILE_QUERY_MATCH),
-    
     ForgottenPassword   (false, PwmSettingCategory.RECOVERY_PROFILE, PwmSetting.RECOVERY_PROFILE_QUERY_MATCH),
-    
+    NewUser             (false, PwmSettingCategory.NEWUSER_PROFILE, null),
     ;
     
     private final boolean authenticated;

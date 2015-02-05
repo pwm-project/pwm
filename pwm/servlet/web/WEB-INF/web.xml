@@ -142,6 +142,10 @@
         <filter-class>password.pwm.http.filter.GZIPFilter</filter-class>
     </filter>
     <filter>
+        <filter-name>RequestInitializationFilter</filter-name>
+        <filter-class>password.pwm.http.filter.RequestInitializationFilter</filter-class>
+    </filter>
+    <filter>
         <filter-name>ApplicationModeFilter</filter-name>
         <filter-class>password.pwm.http.filter.ApplicationModeFilter</filter-class>
     </filter>
@@ -173,6 +177,10 @@
         <url-pattern>/config/*</url-pattern>
         <url-pattern>/</url-pattern>
         <url-pattern>*.jsp</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>RequestInitializationFilter</filter-name>
+        <url-pattern>*</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>ApplicationModeFilter</filter-name>
@@ -214,10 +222,6 @@
     <servlet>
         <servlet-name>LoginServlet</servlet-name>
         <servlet-class>password.pwm.http.servlet.LoginServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>LoginActionServlet</servlet-name>
-        <servlet-class>password.pwm.http.servlet.LoginActionServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>OAuthConsumerServlet</servlet-name>
@@ -313,11 +317,6 @@
     <servlet-mapping>
         <servlet-name>LoginServlet</servlet-name>
         <url-pattern>/private/Login</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>LoginActionServlet</servlet-name>
-        <url-pattern>/private/LoginAction</url-pattern>
-        <url-pattern>/private/LoginAction/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>OAuthConsumerServlet</servlet-name>

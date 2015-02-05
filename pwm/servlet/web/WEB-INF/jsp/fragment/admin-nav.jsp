@@ -27,9 +27,6 @@
     final AdminBean adminBean = PwmRequest.forRequest(request,response).getPwmSession().getSessionBean(AdminBean.class);
     final AdminServlet.Page currentPage = adminBean.getCurrentPage();
 %>
-<div id="TopMenu" style="width: 600px">
-</div>
-<br/>
 <script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/admin.js'/>"></script>
 <pwm:script>
 <script type="text/javascript">
@@ -40,21 +37,10 @@
     });
 </script>
 </pwm:script>
-<style type="text/css">
-    .menubutton {
-        cursor: pointer;
-        display: inline;
-        font-weight: normal;
-    }
-
-    .menubutton.selected {
-        box-shadow: none;
-    }
-</style>
 <div style="text-align: center">
     <% boolean selected = currentPage == AdminServlet.Page.dashboard; %>
     <form action="Administration" method="post" enctype="application/x-www-form-urlencoded" id="dashboard" name="dashboard">
-        <button type="submit" class="menubutton<%=selected?" selected":""%>">
+        <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-dashboard"></span></pwm:if>
             Dashboard
         </button>
@@ -64,7 +50,7 @@
     </form>
     <% selected = currentPage == AdminServlet.Page.activity; %>
     <form action="Administration" method="post" enctype="application/x-www-form-urlencoded" id="activity" name="activity">
-        <button type="submit" class="menubutton<%=selected?" selected":""%>">
+        <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-users"></span></pwm:if>
             User Activity
         </button>
@@ -74,7 +60,7 @@
     </form>
     <% selected = currentPage == AdminServlet.Page.analysis; %>
     <form action="Administration" method="post" enctype="application/x-www-form-urlencoded">
-        <button type="submit" class="menubutton<%=selected?" selected":""%>">
+        <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-bar-chart-o"></span></pwm:if>
             Data Analysis
         </button>

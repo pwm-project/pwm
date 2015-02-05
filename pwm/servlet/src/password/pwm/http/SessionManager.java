@@ -83,7 +83,7 @@ public class SessionManager implements Serializable {
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         if (chaiProvider == null) {
-            throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,"ldap connection is not available for session"));
         }
         return chaiProvider;
     }

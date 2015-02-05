@@ -26,7 +26,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
-import password.pwm.bean.ConfigEditorCookie;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
@@ -42,7 +41,6 @@ import password.pwm.i18n.Config;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -138,22 +136,7 @@ public class ConfigEditorServlet extends PwmServlet {
             return null;
         }
     }
-
-    public static ConfigEditorCookie readConfigEditorCookie(final PwmRequest pwmRequest) {
-        ConfigEditorCookie cookie = null;
-        try {
-            final String jsonString = ServletHelper.readCookie(pwmRequest.getHttpServletRequest(), COOKIE_NAME_PREFERENCES);
-            cookie = JsonUtil.deserialize(jsonString, ConfigEditorCookie.class);
-        } catch (Exception e) {
-            LOGGER.warn("error parsing cookie preferences: " + e.getMessage());
-        }
-        if (cookie == null) {
-            cookie = new ConfigEditorCookie();
-        }
-
-        return cookie;
-    }
-
+    
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -172,7 +155,7 @@ public class ConfigEditorServlet extends PwmServlet {
         final ConfigEditorAction action = readProcessAction(pwmRequest);
 
         if (action != null) {
-            Validator.validatePwmFormID(pwmRequest.getHttpServletRequest());
+            Validator.validatePwmFormID(pwmRequest);
 
             switch (action) {
                 case readSetting:
@@ -259,7 +242,7 @@ public class ConfigEditorServlet extends PwmServlet {
         final Map<String, String> requestMap = JsonUtil.deserializeStringMap(bodyString);
         final PwmSetting pwmSetting = PwmSetting.forKey(requestMap.get("setting"));
         final String functionName = requestMap.get("function");
-        final String profileID = readConfigEditorCookie(pwmRequest).getProfile();
+        final String profileID = pwmSetting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString("profile") : null;
 
         try {
             Class implementingClass = Class.forName(functionName);
@@ -331,7 +314,7 @@ public class ConfigEditorServlet extends PwmServlet {
             pwmRequest.outputJsonResult(RestResultBean.fromError(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorStr)));
             return;
         } else {
-            final String profile = theSetting.getCategory().hasProfiles() ? readConfigEditorCookie(pwmRequest).getProfile() : null;
+            final String profile = theSetting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString("profile") : null;
             switch (theSetting.getSyntax()) {
                 case PASSWORD:
                     returnValue = Collections.singletonMap("isDefault", storedConfig.isDefaultValue(theSetting, profile));
@@ -378,7 +361,6 @@ public class ConfigEditorServlet extends PwmServlet {
             final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException {
-        final ConfigEditorCookie cookie = readConfigEditorCookie(pwmRequest);
         final StoredConfiguration storedConfig = configManagerBean.getStoredConfiguration();
         final String key = pwmRequest.readParameterAsString("key");
         final String bodyString = pwmRequest.readRequestBodyAsString();
@@ -400,7 +382,7 @@ public class ConfigEditorServlet extends PwmServlet {
             returnMap.put("isDefault", outputMap.isEmpty());
             returnMap.put("key", key);
         } else {
-            final String profileID = setting.getCategory().hasProfiles() ? cookie.getProfile() : null;
+            final String profileID = setting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString("profile") : null;
             try {
                 final StoredValue storedValue = ValueFactory.fromJson(setting, bodyString);
                 final List<String> errorMsgs = storedValue.validateValue(setting);
@@ -438,12 +420,8 @@ public class ConfigEditorServlet extends PwmServlet {
             final String keyName = st.nextToken();
             storedConfig.resetLocaleBundleMap(bundleName.getTheClass().getName(), keyName);
         } else {
-            if (setting.getCategory().hasProfiles()) {
-                final String profile = readConfigEditorCookie(pwmRequest).getProfile();
-                storedConfig.resetSetting(setting, profile, loggedInUser);
-            } else {
-                storedConfig.resetSetting(setting, loggedInUser);
-            }
+            final String profileID = setting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString("profile") : null;
+            storedConfig.resetSetting(setting, profileID, loggedInUser);
         }
 
         pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
@@ -609,8 +587,7 @@ public class ConfigEditorServlet extends PwmServlet {
     {
         final Date startTime = new Date();
         LOGGER.debug(pwmRequest, "beginning restLdapHealthCheck");
-        ConfigEditorCookie cookie = readConfigEditorCookie(pwmRequest);
-        final String profileID = cookie.getProfile();
+        final String profileID = pwmRequest.readParameterAsString("profile");
         final Configuration config = new Configuration(configManagerBean.getStoredConfiguration());
         final HealthData healthData = LDAPStatusChecker.healthForNewConfiguration(config, pwmRequest.getLocale(), profileID, true, true);
         final RestResultBean restResultBean = new RestResultBean();
@@ -796,7 +773,7 @@ public class ConfigEditorServlet extends PwmServlet {
         if (level >= 1) {
             for (final PwmConstants.PwmLocaleBundle localeBundle : PwmConstants.PwmLocaleBundle.values()) {
                 if (!localeBundle.isAdminOnly()) {
-                    final Set<String> modifiedKeys = new LinkedHashSet<>();
+                    final Set<String> modifiedKeys = new TreeSet<>();
                     if (modifiedSettingsOnly) {
                         modifiedKeys.addAll(NavTreeHelper.determineModifiedKeysSettings(localeBundle, pwmRequest.getConfig(), configManagerBean.getStoredConfiguration()));
                     }
@@ -832,7 +809,7 @@ public class ConfigEditorServlet extends PwmServlet {
                 final Configuration config,
                 final StoredConfiguration storedConfiguration
         ) {
-            final Set<String> modifiedKeys = new LinkedHashSet<>();
+            final Set<String> modifiedKeys = new TreeSet<>();
             for (final String key : bundle.getKeys()) {
                 final Map<String,String> storedBundle = storedConfiguration.readLocaleBundleMap(bundle.getTheClass().getName(),key);
                 if (!storedBundle.isEmpty()) {

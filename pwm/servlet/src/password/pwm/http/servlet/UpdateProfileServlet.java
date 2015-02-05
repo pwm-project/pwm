@@ -193,7 +193,7 @@ public class UpdateProfileServlet extends PwmServlet {
             if (!updateProfileBean.isAgreementPassed()) {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(updateProfileAgreementText);
-                pwmRequest.getHttpServletRequest().setAttribute(PwmConstants.REQUEST_ATTR_AGREEMENT_TEXT, expandedText);
+                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.AgreementText, expandedText);
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_AGREEMENT);
                 return;
             }
@@ -203,13 +203,13 @@ public class UpdateProfileServlet extends PwmServlet {
             final Map<FormConfiguration,String> formMap = updateProfileBean.getFormData();
             final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
             populateFormFromLdap(formFields, pwmSession, formMap, pwmSession.getSessionManager().getUserDataReader(pwmApplication));
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
+            forwardToForm(pwmRequest);
             return;
         }
 
         //make sure there is form data in the bean.
         if (updateProfileBean.getFormData() == null) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
+            forwardToForm(pwmRequest);
             return;
         }
 
@@ -220,13 +220,13 @@ public class UpdateProfileServlet extends PwmServlet {
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession, e.getMessage());
             pwmRequest.setResponseError(e.getErrorInformation());
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
+            forwardToForm(pwmRequest);
             return;
         }
 
         final boolean requireConfirmation = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_SHOW_CONFIRMATION);
         if (requireConfirmation && !updateProfileBean.isConfirmationPassed()) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_CONFIRM);
+            forwardToConfirmForm(pwmRequest);
             return;
         }
 
@@ -245,7 +245,7 @@ public class UpdateProfileServlet extends PwmServlet {
             pwmRequest.setResponseError(errorInformation);
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
+        forwardToForm(pwmRequest);
     }
 
     private void handleAgreeRequest(
@@ -444,6 +444,23 @@ public class UpdateProfileServlet extends PwmServlet {
                 pwmSession.getSessionManager().getMacroMachine(pwmApplication)
         );
     }
+    
+    protected void forwardToForm(final PwmRequest pwmRequest) 
+            throws ServletException, PwmUnrecoverableException, IOException 
+    {
+        final List<FormConfiguration> form = pwmRequest.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+        final Map<FormConfiguration, String> formData = pwmRequest.getPwmSession().getUpdateProfileBean().getFormData();
+        pwmRequest.addFormInfoToRequestAttr(form, formData, false, false);
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
+    }
 
+    protected void forwardToConfirmForm(final PwmRequest pwmRequest)
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final List<FormConfiguration> form = pwmRequest.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+        final Map<FormConfiguration, String> formData = pwmRequest.getPwmSession().getUpdateProfileBean().getFormData();
+        pwmRequest.addFormInfoToRequestAttr(form, formData, true, false);
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_CONFIRM);
+    }
 }
 

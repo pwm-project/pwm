@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,7 +108,7 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
             if (PWM_VAR['helpdesk_setting_clearResponses'] == 'ask') {
                 bodyText += '<span style="padding-left: 10px">&nbsp;</span>';
                 bodyText += '<button class="btn" id="button-clearResponses">';
-                bodyText += '<span class="btn-icon fa fa-trash-o"></span>' + PWM_MAIN.showString('Button_ClearResponses') + '</button>';
+                bodyText += '<span class="btn-icon fa fa-eraser"></span>' + PWM_MAIN.showString('Button_ClearResponses') + '</button>';
             }
             PWM_MAIN.closeWaitDialog();
             PWM_MAIN.showDialog({
@@ -215,11 +215,11 @@ PWM_HELPDESK.processHelpdeskSearch = function() {
     validationProps['ajaxTimeout'] = 120 * 1000;
     validationProps['usernameField'] = PWM_MAIN.getObject('username').value;
     validationProps['readDataFunction'] = function(){
-        PWM_MAIN.getObject('searchIndicator').style.visibility = 'visible';
+        PWM_MAIN.getObject('searchIndicator').style.display = 'inherit';
         return { username:PWM_MAIN.getObject('username').value }
     };
     validationProps['completeFunction'] = function() {
-        PWM_MAIN.getObject('searchIndicator').style.visibility = 'hidden';
+        PWM_MAIN.getObject('searchIndicator').style.display = 'none';
     };
     validationProps['processResultsFunction'] = function(data) {
         var grid = PWM_VAR['heldesk_search_grid'];
@@ -237,15 +237,15 @@ PWM_HELPDESK.processHelpdeskSearch = function() {
             });
             grid.set("sort",1);
             if (sizeExceeded) {
-                PWM_MAIN.getObject('maxResultsIndicator').style.visibility = 'visible';
+                PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
                 PWM_MAIN.showTooltip({id:'maxResultsIndicator',position:'below',text:PWM_MAIN.showString('Display_SearchResultsExceeded')})
             } else {
-                PWM_MAIN.getObject('maxResultsIndicator').style.visibility = 'hidden';
+                PWM_MAIN.getObject('maxResultsIndicator').style.display = 'none';
             }
         }
     };
     PWM_MAIN.pwmFormValidator(validationProps);
-    PWM_MAIN.getObject('maxResultsIndicator').style.visibility = 'hidden';
+    PWM_MAIN.getObject('maxResultsIndicator').style.display = 'none';
 };
 
 PWM_HELPDESK.makeSearchGrid = function(nextAction) {
@@ -257,7 +257,7 @@ PWM_HELPDESK.makeSearchGrid = function(nextAction) {
 
                 PWM_VAR['heldesk_search_grid'] = new CustomGrid({
                     columns: PWM_VAR['helpdesk_search_columns']
-                }, "grid");
+                }, "helpdesk-searchResultsGrid");
 
                 if (nextAction) {
                     nextAction();
@@ -268,18 +268,12 @@ PWM_HELPDESK.makeSearchGrid = function(nextAction) {
 
 PWM_HELPDESK.initHelpdeskSearchPage = function() {
     PWM_HELPDESK.makeSearchGrid(function(){
-        require(["dojo/dom-construct", "dojo/on"], function(domConstruct, on){
-            on(PWM_MAIN.getObject('username'), "input", function(){
-                PWM_HELPDESK.processHelpdeskSearch();
-            });
-
-            if (PWM_MAIN.getObject('username').value) {
-                PWM_MAIN.getObject('username').focus();
-                PWM_MAIN.getObject('username').select();
-            }
-
+        PWM_MAIN.addEventHandler('username', "keyup, input", function(){
             PWM_HELPDESK.processHelpdeskSearch();
         });
+        if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
+            PWM_HELPDESK.processHelpdeskSearch();
+        }
     });
 };
 

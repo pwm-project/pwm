@@ -305,7 +305,7 @@ public class UserSearchEngine {
                 multiSearchFilter.append(")");
                 searchFilter = multiSearchFilter.toString();
             } else {
-                searchFilter = input_searchFilter.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, inputQuery);
+                searchFilter = input_searchFilter.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, inputQuery.trim());
             }
         } else if (searchConfiguration.getGroupDN() != null) {
             final String groupAttr = ldapProfile.readSettingAsString(PwmSetting.LDAP_USER_GROUP_ATTRIBUTE);

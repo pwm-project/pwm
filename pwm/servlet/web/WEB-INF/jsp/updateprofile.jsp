@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -38,11 +38,9 @@
         <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfileForm" enctype="application/x-www-form-urlencoded"
               class="pwm-form" id="updateProfileForm">
 
-            <% request.setAttribute("form",PwmSetting.UPDATE_PROFILE_FORM); %>
-            <% request.setAttribute("formData",PwmRequest.forRequest(request,response).getPwmSession().getUpdateProfileBean().getFormData()); %>
             <jsp:include page="fragment/form.jsp"/>
 
-            <div id="buttonbar">
+            <div class="buttonbar">
                 <button id="submitBtn" type="submit" class="btn" name="button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:display key="Button_Update"/>
@@ -59,12 +57,11 @@
 <pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        document.forms.updateProfileForm.elements[0].focus();
         PWM_MAIN.addEventHandler('updateProfileForm','input',function(){PWM_UPDATE.validateForm()});
     });
 </script>
 </pwm:script>
-<script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/updateprofile.js'/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/updateprofile.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

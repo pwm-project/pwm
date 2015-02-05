@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.http.PwmSession;
+import password.pwm.http.PwmSessionWrapper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -59,7 +59,7 @@ public class LocaleOrientationTag extends PwmAbstractTag {
             if (locale != null && locale.length() > 1) {
                 userLocale = new Locale(locale);
             } else {
-                userLocale = PwmSession.getPwmSession(req).getSessionStateBean().getLocale();
+                userLocale = PwmSessionWrapper.readPwmSession(req).getSessionStateBean().getLocale();
             }
 
             if (userLocale != null) {

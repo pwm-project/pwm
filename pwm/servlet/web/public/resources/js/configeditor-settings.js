@@ -806,115 +806,151 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             bodyText += '</tr>';
         }
         bodyText += '</table>';
-        bodyText += '<br/>';
-        bodyText += '<button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\');FormTableHandler.redraw(\'' + keyName + '\')">OK</button>';
 
-        PWM_MAIN.clearDijitWidget('dialogPopup');
-        var theDialog = new dijit.Dialog({
-            id: 'dialogPopup',
-            title: 'Options for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
-            style: "width: 450px",
-            content: bodyText,
-            hide: function(){
-                PWM_MAIN.clearDijitWidget('dialogPopup');
+        var initDialogWidgets = function() {
+            PWM_MAIN.clearDijitWidget(inputID + "description");
+            new dijit.form.Textarea({
+                value: PWM_VAR['clientSettingCache'][keyName][iteration]['description'][''],
+                readonly: true,
+                onClick: function () {
+                    FormTableHandler.showDescriptionDialog(keyName, iteration);
+                },
+                onKeyPress: function () {
+                    FormTableHandler.showDescriptionDialog(keyName, iteration);
+                }
+            }, inputID + "description");
+
+            PWM_MAIN.clearDijitWidget(inputID + "required");
+            new dijit.form.CheckBox({
+                checked: PWM_VAR['clientSettingCache'][keyName][iteration]['required'],
+                onChange: function () {
+                    PWM_VAR['clientSettingCache'][keyName][iteration]['required'] = this.checked;
+                    FormTableHandler.writeFormSetting(keyName)
+                }
+            }, inputID + "required");
+
+            PWM_MAIN.clearDijitWidget(inputID + "confirmationRequired");
+            new dijit.form.CheckBox({
+                checked: PWM_VAR['clientSettingCache'][keyName][iteration]['confirmationRequired'],
+                onChange: function () {
+                    PWM_VAR['clientSettingCache'][keyName][iteration]['confirmationRequired'] = this.checked;
+                    FormTableHandler.writeFormSetting(keyName)
+                }
+            }, inputID + "confirmationRequired");
+
+            if (PWM_SETTINGS['settings'][keyName]['options']['readonly'] == 'show') {
+                PWM_MAIN.clearDijitWidget(inputID + "readonly");
+                new dijit.form.CheckBox({
+                    checked: PWM_VAR['clientSettingCache'][keyName][iteration]['readonly'],
+                    onChange: function () {
+                        PWM_VAR['clientSettingCache'][keyName][iteration]['readonly'] = this.checked;
+                        FormTableHandler.writeFormSetting(keyName)
+                    }
+                }, inputID + "readonly");
+            }
+
+            if (showUnique) {
+                PWM_MAIN.clearDijitWidget(inputID + "unique");
+                new dijit.form.CheckBox({
+                    checked: PWM_VAR['clientSettingCache'][keyName][iteration]['unique'],
+                    onChange: function () {
+                        PWM_VAR['clientSettingCache'][keyName][iteration]['unique'] = this.checked;
+                        FormTableHandler.writeFormSetting(keyName)
+                    }
+                }, inputID + "unique");
+            }
+
+            if (showSearchLike) {
+                PWM_MAIN.clearDijitWidget(inputID + "searchLike");
+                new dijit.form.CheckBox({
+                    checked: PWM_VAR['clientSettingCache'][keyName][iteration]['searchLike'],
+                    onChange: function () {
+                        PWM_VAR['clientSettingCache'][keyName][iteration]['searchLike'] = this.checked;
+                        FormTableHandler.writeFormSetting(keyName)
+                    }
+                }, inputID + "searchLike");
+            }
+
+            if (PWM_SETTINGS['settings'][keyName]['options']['unique'] == 'show') {
+                PWM_MAIN.clearDijitWidget(inputID + "unique");
+                new dijit.form.CheckBox({
+                    checked: PWM_VAR['clientSettingCache'][keyName][iteration]['unique'],
+                    onChange: function () {
+                        PWM_VAR['clientSettingCache'][keyName][iteration]['unique'] = this.checked;
+                        FormTableHandler.writeFormSetting(keyName)
+                    }
+                }, inputID + "unique");
+            }
+
+            PWM_MAIN.clearDijitWidget(inputID + "minimumLength");
+            new dijit.form.NumberSpinner({
+                value: PWM_VAR['clientSettingCache'][keyName][iteration]['minimumLength'],
+                onChange: function () {
+                    PWM_VAR['clientSettingCache'][keyName][iteration]['minimumLength'] = this.value;
+                    FormTableHandler.writeFormSetting(keyName)
+                },
+                constraints: {min: 0, max: 5000},
+                style: "width: 70px"
+            }, inputID + "minimumLength");
+
+            PWM_MAIN.clearDijitWidget(inputID + "maximumLength");
+            new dijit.form.NumberSpinner({
+                value: PWM_VAR['clientSettingCache'][keyName][iteration]['maximumLength'],
+                onChange: function () {
+                    PWM_VAR['clientSettingCache'][keyName][iteration]['maximumLength'] = this.value;
+                    FormTableHandler.writeFormSetting(keyName)
+                },
+                constraints: {min: 0, max: 5000},
+                style: "width: 70px"
+            }, inputID + "maximumLength");
+
+            PWM_MAIN.clearDijitWidget(inputID + "regex");
+            new dijit.form.Textarea({
+                value: PWM_VAR['clientSettingCache'][keyName][iteration]['regex'],
+                onChange: function () {
+                    PWM_VAR['clientSettingCache'][keyName][iteration]['regex'] = this.value;
+                    FormTableHandler.writeFormSetting(keyName)
+                }
+            }, inputID + "regex");
+
+            PWM_MAIN.clearDijitWidget(inputID + "regexErrors");
+            new dijit.form.Textarea({
+                value: PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors'][''],
+                readonly: true,
+                onClick: function () {
+                    FormTableHandler.showRegexErrorsDialog(keyName, iteration);
+                },
+                onKeyPress: function () {
+                    FormTableHandler.showRegexErrorsDialog(keyName, iteration);
+                }
+            }, inputID + "regexErrors");
+
+            PWM_MAIN.clearDijitWidget(inputID + "placeholder");
+            new dijit.form.Textarea({
+                value: PWM_VAR['clientSettingCache'][keyName][iteration]['placeholder'],
+                onChange: function () {
+                    PWM_VAR['clientSettingCache'][keyName][iteration]['placeholder'] = this.value;
+                    FormTableHandler.writeFormSetting(keyName)
+                }
+            }, inputID + "placeholder");
+
+            PWM_MAIN.clearDijitWidget(inputID + "javascript");
+            new dijit.form.Textarea({
+                value: PWM_VAR['clientSettingCache'][keyName][iteration]['javascript'],
+                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['javascript'] = this.value;FormTableHandler.writeFormSetting(keyName)}
+            },inputID + "javascript");
+        };
+
+        PWM_MAIN.showDialog({
+            title: PWM_SETTINGS['settings'][keyName]['label'] + ' - ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
+            text:bodyText,
+            allowMove:true,
+            loadFunction:initDialogWidgets,
+            okAction:function(){
                 FormTableHandler.redraw(keyName);
+                
             }
         });
-        theDialog.show();
-
-        PWM_MAIN.clearDijitWidget(inputID + "description");
-        new dijit.form.Textarea({
-            value: PWM_VAR['clientSettingCache'][keyName][iteration]['description'][''],
-            readonly: true,
-            onClick: function(){FormTableHandler.showDescriptionDialog(keyName,iteration);},
-            onKeyPress: function(){FormTableHandler.showDescriptionDialog(keyName,iteration);}
-        },inputID + "description");
-
-        PWM_MAIN.clearDijitWidget(inputID + "required");
-        new dijit.form.CheckBox({
-            checked: PWM_VAR['clientSettingCache'][keyName][iteration]['required'],
-            onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['required'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
-        },inputID + "required");
-
-        PWM_MAIN.clearDijitWidget(inputID + "confirmationRequired");
-        new dijit.form.CheckBox({
-            checked: PWM_VAR['clientSettingCache'][keyName][iteration]['confirmationRequired'],
-            onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['confirmationRequired'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
-        },inputID + "confirmationRequired");
-
-        if (PWM_SETTINGS['settings'][keyName]['options']['readonly'] == 'show') {
-            PWM_MAIN.clearDijitWidget(inputID + "readonly");
-            new dijit.form.CheckBox({
-                checked: PWM_VAR['clientSettingCache'][keyName][iteration]['readonly'],
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['readonly'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
-            },inputID + "readonly");
-        }
-
-        if (showUnique) {
-            PWM_MAIN.clearDijitWidget(inputID + "unique");
-            new dijit.form.CheckBox({
-                checked: PWM_VAR['clientSettingCache'][keyName][iteration]['unique'],
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['unique'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
-            },inputID + "unique");
-        }
-
-        if (showSearchLike) {
-            PWM_MAIN.clearDijitWidget(inputID + "searchLike");
-            new dijit.form.CheckBox({
-                checked: PWM_VAR['clientSettingCache'][keyName][iteration]['searchLike'],
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['searchLike'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
-            },inputID + "searchLike");
-        }
-
-        if (PWM_SETTINGS['settings'][keyName]['options']['unique'] == 'show') {
-            PWM_MAIN.clearDijitWidget(inputID + "unique");
-            new dijit.form.CheckBox({
-                checked: PWM_VAR['clientSettingCache'][keyName][iteration]['unique'],
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['unique'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
-            },inputID + "unique");
-        }
-
-        PWM_MAIN.clearDijitWidget(inputID + "minimumLength");
-        new dijit.form.NumberSpinner({
-            value: PWM_VAR['clientSettingCache'][keyName][iteration]['minimumLength'],
-            onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['minimumLength'] = this.value;FormTableHandler.writeFormSetting(keyName)},
-            constraints: { min:0, max:5000 },
-            style: "width: 70px"
-        },inputID + "minimumLength");
-
-        PWM_MAIN.clearDijitWidget(inputID + "maximumLength");
-        new dijit.form.NumberSpinner({
-            value: PWM_VAR['clientSettingCache'][keyName][iteration]['maximumLength'],
-            onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['maximumLength'] = this.value;FormTableHandler.writeFormSetting(keyName)},
-            constraints: { min:0, max:5000 },
-            style: "width: 70px"
-        },inputID + "maximumLength");
-
-        PWM_MAIN.clearDijitWidget(inputID + "regex");
-        new dijit.form.Textarea({
-            value: PWM_VAR['clientSettingCache'][keyName][iteration]['regex'],
-            onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['regex'] = this.value;FormTableHandler.writeFormSetting(keyName)}
-        },inputID + "regex");
-
-        PWM_MAIN.clearDijitWidget(inputID + "regexErrors");
-        new dijit.form.Textarea({
-            value: PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors'][''],
-            readonly: true,
-            onClick: function(){FormTableHandler.showRegexErrorsDialog(keyName,iteration);},
-            onKeyPress: function(){FormTableHandler.showRegexErrorsDialog(keyName,iteration);}
-        },inputID + "regexErrors");
-
-        PWM_MAIN.clearDijitWidget(inputID + "placeholder");
-        new dijit.form.Textarea({
-            value: PWM_VAR['clientSettingCache'][keyName][iteration]['placeholder'],
-            onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['placeholder'] = this.value;FormTableHandler.writeFormSetting(keyName)}
-        },inputID + "placeholder");
-
-        PWM_MAIN.clearDijitWidget(inputID + "javascript");
-        new dijit.form.Textarea({
-            value: PWM_VAR['clientSettingCache'][keyName][iteration]['javascript'],
-            onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['javascript'] = this.value;FormTableHandler.writeFormSetting(keyName)}
-        },inputID + "javascript");
     });
 };
 
@@ -2225,12 +2261,12 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
             dialogBody += '</table></div>';
             dialogBody += '<br/><br/><button type="button" data-dojo-type="dijit/form/Button"';
             dialogBody += ' onclick="ChallengeSettingHandler.addRow(\'' + keyName + '\',\'' + localeKey + '\')"';
-            dialogBody += '>Add Value</button>';
+            dialogBody += '><span class="btn-icon fa fa-plus-square"></span>Add Value</button>';
 
             if (localeKey != "") {
                 dialogBody += '<button type="button" data-dojo-type="dijit/form/Button"';
                 dialogBody += ' onclick="ChallengeSettingHandler.deleteLocale(\'' + keyName + '\',\'' + localeKey + '\')"';
-                dialogBody += '>Delete Locale ' + localeDisplay + '</button>';
+                dialogBody += '><span class="btn-icon fa fa-times"></span>Delete Locale ' + localeDisplay + '</button>';
             }
 
             var dialogTitle = PWM_SETTINGS['settings'][keyName]['label'] + ' - ' + localeDisplay;
@@ -2247,12 +2283,14 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
 
 ChallengeSettingHandler.deleteLocale = function(keyName,localeKey) {
     PWM_MAIN.showConfirmDialog({
-        id: 'confirmDeleteLocaleDialog',
         text: 'Are you sure you want to remove all the questions for the <i>' + localeKey + '</i> locale?',
         okAction:function(){
+            PWM_MAIN.showWaitDialog();
             delete PWM_VAR['clientSettingCache'][keyName][localeKey];
-            PWM_MAIN.closeWaitDialog();
-            ChallengeSettingHandler.draw(keyName);
+            PWM_CFGEDIT.writeSetting(keyName, PWM_VAR['clientSettingCache'][keyName],function(){
+                PWM_MAIN.closeWaitDialog();
+                ChallengeSettingHandler.init(keyName);
+            });
         }
     });
 };

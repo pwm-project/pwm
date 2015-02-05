@@ -100,8 +100,6 @@ public class AdminServlet extends PwmServlet {
         final AdminBean adminBean = pwmRequest.getPwmSession().getSessionBean(AdminBean.class);
         final AdminAction action = readProcessAction(pwmRequest);
         if (action != null) {
-            pwmRequest.validatePwmFormID();
-
             switch(action) {
                 case changePage:
                     handleChangePageRequest(pwmRequest, adminBean);

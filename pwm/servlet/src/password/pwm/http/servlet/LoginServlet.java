@@ -97,7 +97,7 @@ public class LoginServlet extends PwmServlet {
         final LoginServletAction action = readProcessAction(pwmRequest);
 
         if (action != null) {
-            Validator.validatePwmFormID(pwmRequest.getHttpServletRequest());
+            Validator.validatePwmFormID(pwmRequest);
 
             switch (action) {
                 case login:
@@ -193,7 +193,7 @@ public class LoginServlet extends PwmServlet {
         }
 
         // recycle the session to prevent session fixation attack.
-        pwmRequest.recycleSessions();
+        pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded(true);
     }
 
     private void forwardToJSP(

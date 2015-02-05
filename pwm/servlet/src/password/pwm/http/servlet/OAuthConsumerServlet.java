@@ -163,7 +163,7 @@ public class OAuthConsumerServlet extends PwmServlet {
             }
 
             // recycle the session to prevent session fixation attack.
-            pwmRequest.recycleSessions();
+            pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded(true);
 
             // see if there is a an original request url
             pwmRequest.sendRedirectToPreLoginUrl();

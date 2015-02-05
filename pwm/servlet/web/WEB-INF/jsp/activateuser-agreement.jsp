@@ -1,11 +1,10 @@
-<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.bean.ActivateUserBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -25,7 +24,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final ActivateUserBean activateUserBean = PwmSession.getPwmSession(session).getActivateUserBean(); %>
+<% final ActivateUserBean activateUserBean = JspUtility.getPwmSession(pageContext).getActivateUserBean(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -39,7 +38,7 @@
         <% final String expandedText = activateUserBean.getAgreementText(); %>
         <br/><br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
-        <div id="buttonbar">
+        <div class="buttonbar">
             <form action="<pwm:url url='ActivateUser'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" style="display: inline;">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
                 <label class="checkboxWrapper">

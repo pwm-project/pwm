@@ -34,6 +34,7 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.ForgottenPasswordProfile;
+import password.pwm.config.profile.NewUserProfile;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.health.HealthMessage;
@@ -437,8 +438,12 @@ public class TokenService implements PwmService {
     }
 
     private static boolean tokensAreUsedInConfig(final Configuration configuration) {
-        if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION) &&
-                configuration.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
+        if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
+            for (final NewUserProfile newUserProfile : configuration.getNewUserProfiles().values()) {
+                if (newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION)) {
+                    return true;
+                }
+            }
             return true;
         }
 

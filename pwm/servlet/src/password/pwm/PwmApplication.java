@@ -31,7 +31,6 @@ import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -360,7 +359,7 @@ public class PwmApplication {
         // detect if config has been modified since previous startup
         try {
             final String previousHash = readAppAttribute(AppAttribute.CONFIG_HASH);
-            final String currentHash = configuration.readProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_SETTING_CHECKSUM);
+            final String currentHash = configuration.configurationHash();
             if (previousHash == null || !previousHash.equals(currentHash)) {
                 writeAppAttribute(AppAttribute.CONFIG_HASH, currentHash);
                 LOGGER.warn("configuration has been modified since last startup");

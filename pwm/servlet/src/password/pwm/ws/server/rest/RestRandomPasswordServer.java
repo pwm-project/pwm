@@ -24,8 +24,8 @@ package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.error.ErrorInformation;
@@ -236,8 +236,9 @@ public class RestRandomPasswordServer extends AbstractRestServer {
                 randomConfig.setPasswordPolicy(restRequestBean.getPwmSession().getUserInfoBean().getPasswordPolicy());
             }
         } else {
-            randomConfig.setPasswordPolicy(restRequestBean.getPwmApplication().getConfig().getPasswordPolicy(
-                    PwmConstants.DEFAULT_PASSWORD_PROFILE,
+            final Configuration config  = restRequestBean.getPwmApplication().getConfig();
+            randomConfig.setPasswordPolicy(config.getPasswordPolicy(
+                    config.getPasswordProfileIDs().iterator().next(),
                     restRequestBean.getPwmSession().getSessionStateBean().getLocale()));
         }
 

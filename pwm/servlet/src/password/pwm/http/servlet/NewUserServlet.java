@@ -39,6 +39,7 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.profile.NewUserProfile;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.http.PwmRequest;
@@ -76,8 +77,15 @@ public class NewUserServlet extends PwmServlet {
 
     private static final String FIELD_PASSWORD1 = "password1";
     private static final String FIELD_PASSWORD2 = "password2";
+    private static final String TOKEN_PAYLOAD_ATTR = "_______profileID";
+    
+    public enum Page {
+        ProfileSelect,
+        Form,
+    }
 
     public enum NewUserAction implements PwmServlet.ProcessAction {
+        profileChoice(PwmServlet.HttpMethod.POST),
         checkProgress(PwmServlet.HttpMethod.GET),
         complete(PwmServlet.HttpMethod.GET),
         processForm(PwmServlet.HttpMethod.POST),
@@ -124,10 +132,7 @@ public class NewUserServlet extends PwmServlet {
             pwmRequest.respondWithError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
             return;
         }
-
-        // try to read the new user policy to make sure it's readable, that way an exception is thrown here instead of by the jsp
-        config.getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());
-
+        
         // convert a url command like /pwm/public/NewUserServlet/12321321 to redirect with a process action.
         if (action == null) {
             if (pwmRequest.convertURLtokenCommand()) {
@@ -155,8 +160,12 @@ public class NewUserServlet extends PwmServlet {
             }
 
             switch (action) {
+                case profileChoice:
+                    handleProfileChoiceRequest(pwmRequest, newUserBean);
+                    return;
+
                 case processForm:
-                    handleProcessFormRequest(pwmRequest);
+                    handleProcessFormRequest(pwmRequest, newUserBean);
                     return;
 
                 case validate:
@@ -169,10 +178,11 @@ public class NewUserServlet extends PwmServlet {
 
                 case reset:
                     pwmSession.clearSessionBean(NewUserBean.class);
+                    pwmRequest.sendRedirectToContinue();
                     break;
 
                 case agree:
-                    LOGGER.debug(pwmSession, "user accepted newuser agreement");
+                    LOGGER.debug(pwmSession, "user accepted new-user agreement");
                     newUserBean.setAgreementPassed(true);
                     break;
 
@@ -193,16 +203,38 @@ public class NewUserServlet extends PwmServlet {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final Configuration config = pwmApplication.getConfig();
+
+        if (newUserBean.getProfileID() == null) {
+            final Set<String> newUserProfileIDs = pwmApplication.getConfig().getNewUserProfiles().keySet();
+            if (newUserProfileIDs.isEmpty()) {
+                pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,"no new user profiles are defined"));
+                return;
+            }
+
+            if (newUserProfileIDs.size() == 1) {
+                final String singleID =  newUserProfileIDs.iterator().next();
+                LOGGER.trace(pwmRequest, "only one new user profile is defined, auto-selecting profile " + singleID);
+                newUserBean.setProfileID(singleID);
+            } else {
+                LOGGER.trace(pwmRequest, "new user profile not yet selected, redirecting to choice page");
+                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_PROFILE_CHOICE);
+                return;
+            }
+        }
+
+        final NewUserProfile newUserProfile = getNewUserProfile(pwmRequest);
+
+        // try to read the new user policy to make sure it's readable, that way an exception is thrown here instead of by the jsp
+        newUserProfile.getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());//
 
         if (newUserBean.getNewUserForm() == null) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER);
+            forwardToFormPage(pwmRequest);
             return;
         }
 
-        if (config.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION)) {
+        if (newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION)) {
             if (!newUserBean.isEmailTokenIssued()) {
-                initializeToken(pwmRequest, pwmApplication, NewUserBean.NewUserVerificationPhase.EMAIL);
+                initializeToken(pwmRequest, NewUserBean.NewUserVerificationPhase.EMAIL);
             }
 
             if (!newUserBean.isEmailTokenPassed()) {
@@ -211,9 +243,9 @@ public class NewUserServlet extends PwmServlet {
             }
         }
 
-        if (config.readSettingAsBoolean(PwmSetting.NEWUSER_SMS_VERIFICATION)) {
+        if (newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_SMS_VERIFICATION)) {
             if (!newUserBean.isSmsTokenIssued()) {
-                initializeToken(pwmRequest, pwmApplication, NewUserBean.NewUserVerificationPhase.EMAIL);
+                initializeToken(pwmRequest, NewUserBean.NewUserVerificationPhase.EMAIL);
             }
 
             if (!newUserBean.isSmsTokenPassed()) {
@@ -222,39 +254,40 @@ public class NewUserServlet extends PwmServlet {
             }
         }
 
-        final String newUserAgreementText = config.readSettingAsLocalizedString(PwmSetting.NEWUSER_AGREEMENT_MESSAGE,
+        final String newUserAgreementText = newUserProfile.readSettingAsLocalizedString(PwmSetting.NEWUSER_AGREEMENT_MESSAGE,
                 pwmSession.getSessionStateBean().getLocale());
         if (newUserAgreementText != null && !newUserAgreementText.isEmpty()) {
             if (!newUserBean.isAgreementPassed()) {
                 final MacroMachine macroMachine = createMacroMachineForNewUser(pwmApplication,
                         newUserBean.getNewUserForm());
                 final String expandedText = macroMachine.expandMacros(newUserAgreementText);
-                pwmRequest.getHttpServletRequest().setAttribute(PwmConstants.REQUEST_ATTR_AGREEMENT_TEXT, expandedText);
+                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.AgreementText, expandedText);
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_AGREEMENT);
                 return;
             }
         }
 
         if (!newUserBean.isFormPassed()) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER);
+            forwardToFormPage(pwmRequest);
         }
 
         // success so create the new user.
-        final String newUserDN = determineUserDN(pwmApplication, pwmSession, newUserBean.getNewUserForm());
+        final String newUserDN = determineUserDN(pwmRequest, newUserBean.getNewUserForm());
 
         try {
-            createUser(newUserBean.getNewUserForm(), pwmApplication, newUserDN, pwmSession);
+            createUser(newUserBean.getNewUserForm(), pwmRequest, newUserDN);
             newUserBean.setCreateStartTime(new Date());
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_WAIT);
         } catch (PwmOperationalException e) {
-            if (config.readSettingAsBoolean(PwmSetting.NEWUSER_DELETE_ON_FAIL)) {
+            if (newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_DELETE_ON_FAIL)) {
                 deleteUserAccount(newUserDN, pwmSession, pwmApplication);
             }
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
             pwmRequest.setResponseError(e.getErrorInformation());
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER);
+            forwardToFormPage(pwmRequest);
         }
     }
+
 
     protected static void restValidateForm(
             final PwmRequest pwmRequest
@@ -266,7 +299,7 @@ public class NewUserServlet extends PwmServlet {
 
         try {
             final NewUserBean.NewUserForm newUserForm = NewUserFormUtils.readFromJsonRequest(pwmRequest);
-            PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(pwmApplication, newUserForm, locale);
+            PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(pwmRequest, newUserForm);
             if (passwordCheckInfo.isPassed() && passwordCheckInfo.getMatch() == PasswordUtility.PasswordCheckInfo.MATCH_STATUS.MATCH) {
                 passwordCheckInfo = new PasswordUtility.PasswordCheckInfo(
                         Message.getLocalizedMessage(locale,
@@ -289,12 +322,13 @@ public class NewUserServlet extends PwmServlet {
     }
 
     static PasswordUtility.PasswordCheckInfo verifyForm(
-            final PwmApplication pwmApplication,
-            final NewUserBean.NewUserForm newUserForm,
-            final Locale locale
+            final PwmRequest pwmRequest,
+            final NewUserBean.NewUserForm newUserForm
     )
             throws PwmDataValidationException, PwmUnrecoverableException, ChaiUnavailableException
     {
+        final Locale locale = pwmRequest.getLocale();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         FormUtility.validateFormValues(pwmApplication.getConfig(), newUserForm.getFormData(), locale);
         FormUtility.validateFormValueUniqueness(
                 pwmApplication,
@@ -303,8 +337,9 @@ public class NewUserServlet extends PwmServlet {
                 Collections.<UserIdentity>emptyList()
         );
         final UserInfoBean uiBean = new UserInfoBean();
+        final NewUserProfile newUserProfile = getNewUserProfile(pwmRequest);
         uiBean.setCachedPasswordRuleAttributes(FormUtility.asStringMap(newUserForm.getFormData()));
-        uiBean.setPasswordPolicy(pwmApplication.getConfig().getNewUserPasswordPolicy(pwmApplication, locale));
+        uiBean.setPasswordPolicy(newUserProfile.getNewUserPasswordPolicy(pwmApplication, locale));
         return PasswordUtility.checkEnteredPassword(
                 pwmApplication,
                 locale,
@@ -350,7 +385,9 @@ public class NewUserServlet extends PwmServlet {
                     userEnteredCode
             );
             if (tokenPayload != null) {
-                final NewUserBean.NewUserForm newUserForm = NewUserFormUtils.fromTokenPayload(pwmRequest, tokenPayload);
+                final NewUserTokenData newUserTokenData = NewUserFormUtils.fromTokenPayload(pwmRequest, tokenPayload);
+                newUserBean.setProfileID(newUserTokenData.profileID);
+                final NewUserBean.NewUserForm newUserForm = newUserTokenData.formData;
                 if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.EMAIL) {
                     LOGGER.debug("Email token passed");
                     newUserBean.setEmailTokenPassed(true);
@@ -382,46 +419,60 @@ public class NewUserServlet extends PwmServlet {
     }
 
 
-    private void handleProcessFormRequest(final PwmRequest pwmRequest)
+    private void handleProfileChoiceRequest(final PwmRequest pwmRequest, final NewUserBean newUserBean)
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException 
+    {
+        final Set<String> profileIDs = pwmRequest.getConfig().getNewUserProfiles().keySet();
+        final String requestedProfileID = pwmRequest.readParameterAsString("profile");
+        
+        if ("-".equalsIgnoreCase(requestedProfileID)) {
+            newUserBean.setProfileID(null);
+        } if (profileIDs.contains(requestedProfileID)) {
+            newUserBean.setProfileID(requestedProfileID);
+        }
+        
+        this.advancedToNextStage(pwmRequest, newUserBean);
+    }
+
+    private void handleProcessFormRequest(final PwmRequest pwmRequest, final NewUserBean newUserBean)
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         pwmSession.clearSessionBean(NewUserBean.class);
-        final NewUserBean newUserBean = pwmSession.getNewUserBean();
 
         try {
             NewUserBean.NewUserForm newUserForm = NewUserFormUtils.readFromRequest(pwmRequest);
-            final PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(pwmApplication, newUserForm, pwmRequest.getLocale());
+            final PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(pwmRequest, newUserForm);
             passwordCheckInfoToException(passwordCheckInfo);
             newUserBean.setNewUserForm(newUserForm);
             newUserBean.setFormPassed(true);
             this.advancedToNextStage(pwmRequest, newUserBean);
         } catch (PwmOperationalException e) {
             pwmRequest.setResponseError(e.getErrorInformation());
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER);
+            forwardToFormPage(pwmRequest);
         }
     }
 
 
     private static void createUser(
             final NewUserBean.NewUserForm newUserForm,
-            final PwmApplication pwmApplication,
-            final String newUserDN,
-            final PwmSession pwmSession
+            final PwmRequest pwmRequest,
+            final String newUserDN
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+
         final long startTime = System.currentTimeMillis();
         LOGGER.debug(pwmSession, "beginning createUser process for " + newUserDN);
 
         // re-perform verification before proceeding
         {
             final PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(
-                    pwmApplication,
-                    newUserForm,
-                    pwmSession.getSessionStateBean().getLocale()
+                    pwmRequest,
+                    newUserForm
             );
             passwordCheckInfoToException(passwordCheckInfo);
         }
@@ -455,7 +506,8 @@ public class NewUserServlet extends PwmServlet {
         }
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(newUserDN, chaiProvider);
-        
+        final NewUserProfile newUserProfile = getNewUserProfile(pwmRequest);
+
         final boolean useTempPw;
         {
             final String settingValue = pwmApplication.getConfig().readAppProperty(AppProperty.NEWUSER_LDAP_USE_TEMP_PW);
@@ -471,11 +523,8 @@ public class NewUserServlet extends PwmServlet {
             final PasswordData temporaryPassword;
             {
                 final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = new RandomPasswordGenerator.RandomGeneratorConfig();
-                randomGeneratorConfig.setPasswordPolicy(
-                        pwmApplication.getConfig().getNewUserPasswordPolicy(pwmApplication,
-                                pwmSession.getSessionStateBean().getLocale()));
-                temporaryPassword = RandomPasswordGenerator.createRandomPassword(pwmSession.getLabel(),
-                        randomGeneratorConfig, pwmApplication);
+                randomGeneratorConfig.setPasswordPolicy(newUserProfile.getNewUserPasswordPolicy(pwmApplication, pwmRequest.getLocale()));
+                temporaryPassword = RandomPasswordGenerator.createRandomPassword(pwmSession.getLabel(), randomGeneratorConfig, pwmApplication);
             }
             final ChaiUser proxiedUser = ChaiFactory.createChaiUser(newUserDN, chaiProvider);
             try { //set password as admin
@@ -565,7 +614,7 @@ public class NewUserServlet extends PwmServlet {
         }
 
         // send user email
-        sendNewUserEmailConfirmation(pwmSession, pwmApplication);
+        sendNewUserEmailConfirmation(pwmRequest);
 
 
         // add audit record
@@ -597,23 +646,22 @@ public class NewUserServlet extends PwmServlet {
     }
 
     private static String determineUserDN(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final NewUserBean.NewUserForm formValues
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final MacroMachine macroMachine = createMacroMachineForNewUser(pwmApplication, formValues);
-        final Configuration config = pwmApplication.getConfig();
-        final List<String> configuredNames = config.readSettingAsStringArray(PwmSetting.NEWUSER_USERNAME_DEFINITION);
+        final MacroMachine macroMachine = createMacroMachineForNewUser(pwmRequest.getPwmApplication(), formValues);
+        final NewUserProfile newUserProfile = getNewUserProfile(pwmRequest);
+        final List<String> configuredNames = newUserProfile.readSettingAsStringArray(PwmSetting.NEWUSER_USERNAME_DEFINITION);
         final List<String> failedValues = new ArrayList<>();
 
-        final String configuredContext = config.readSettingAsString(PwmSetting.NEWUSER_CONTEXT);
+        final String configuredContext = newUserProfile.readSettingAsString(PwmSetting.NEWUSER_CONTEXT);
         final String expandedContext = macroMachine.expandMacros(configuredContext);
 
 
         if (configuredNames == null || configuredNames.isEmpty() || configuredNames.iterator().next().isEmpty()) {
-            final String namingAttribute = config.getDefaultLdapProfile().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+            final String namingAttribute = pwmRequest.getConfig().getDefaultLdapProfile().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
             String namingValue = null;
             for (final FormConfiguration formConfiguration : formValues.getFormData().keySet()) {
                 if (formConfiguration.getName().equals(namingAttribute)) {
@@ -626,7 +674,7 @@ public class NewUserServlet extends PwmServlet {
             }
             final String escapedName = StringUtil.escapeLdap(namingValue);
             final String generatedDN = namingAttribute + "=" + escapedName + "," + expandedContext;
-            LOGGER.debug(pwmSession, "generated dn for new user: " + generatedDN);
+            LOGGER.debug(pwmRequest, "generated dn for new user: " + generatedDN);
             return generatedDN;
         }
 
@@ -640,22 +688,22 @@ public class NewUserServlet extends PwmServlet {
                     expandedName = macroMachine.expandMacros(configuredName);
                 }
 
-                if (!testIfEntryNameExists(pwmApplication, pwmSession, expandedName)) {
-                    LOGGER.trace(pwmSession, "generated entry name for new user is unique: " + expandedName);
-                    final String namingAttribute = config.getDefaultLdapProfile().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+                if (!testIfEntryNameExists(pwmRequest, expandedName)) {
+                    LOGGER.trace(pwmRequest, "generated entry name for new user is unique: " + expandedName);
+                    final String namingAttribute = pwmRequest.getConfig().getDefaultLdapProfile().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
                     final String escapedName = StringUtil.escapeLdap(expandedName);
                     generatedDN = namingAttribute + "=" + escapedName + "," + expandedContext;
-                    LOGGER.debug(pwmSession, "generated dn for new user: " + generatedDN);
+                    LOGGER.debug(pwmRequest, "generated dn for new user: " + generatedDN);
                     return generatedDN;
                 } else {
                     failedValues.add(expandedName);
                 }
             }
 
-            LOGGER.debug(pwmSession, "generated entry name for new user is not unique, will try again");
+            LOGGER.debug(pwmRequest, "generated entry name for new user is not unique, will try again");
             attemptCount++;
         }
-        LOGGER.error(pwmSession,
+        LOGGER.error(pwmRequest,
                 "failed to generate new user DN after " + attemptCount + " attempts, failed values: " + JsonUtil.serializeCollection(
                         failedValues));
         throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,
@@ -663,13 +711,12 @@ public class NewUserServlet extends PwmServlet {
     }
 
     private static boolean testIfEntryNameExists(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final String rdnValue
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest);
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
         searchConfiguration.setUsername(rdnValue);
         try {
@@ -678,19 +725,19 @@ public class NewUserServlet extends PwmServlet {
             return results != null && !results.isEmpty();
         } catch (PwmOperationalException e) {
             final String msg = "ldap error while searching for duplicate entry names: " + e.getMessage();
-            LOGGER.error(pwmSession, msg);
+            LOGGER.error(pwmRequest, msg);
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE, msg));
         }
     }
 
     private static void sendNewUserEmailConfirmation(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
-        final Configuration config = pwmApplication.getConfig();
+        final Configuration config = pwmRequest.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_NEWUSER, locale);
 
@@ -700,22 +747,22 @@ public class NewUserServlet extends PwmServlet {
             return;
         }
 
-        pwmApplication.getEmailQueue().submitEmail(
+        pwmRequest.getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmSession.getUserInfoBean(),
-                pwmSession.getSessionManager().getMacroMachine(pwmApplication)
+                pwmSession.getSessionManager().getMacroMachine(pwmRequest.getPwmApplication())
         );
     }
 
     public void initializeToken(
             final PwmRequest pwmRequest,
-            final PwmApplication pwmApplication,
             final NewUserBean.NewUserVerificationPhase phase
     )
             throws PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        
         if (pwmApplication.getConfig().getTokenStorageMethod() == TokenStorageMethod.STORE_LDAP) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,
                     "cannot generate new user tokens when storage type is configured as STORE_LDAP."));
@@ -973,13 +1020,29 @@ public class NewUserServlet extends PwmServlet {
         }
     }
 
+    static List<FormConfiguration> getFormDefinition(PwmRequest pwmRequest) {
+        final NewUserProfile profile = getNewUserProfile(pwmRequest);
+        return profile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
+    }
+
+    public static class NewUserTokenData {
+        private String profileID;
+        private NewUserBean.NewUserForm formData;
+
+        public NewUserTokenData(String profileID, NewUserBean.NewUserForm formData) {
+            this.profileID = profileID;
+            this.formData = formData;
+        }
+    }
+    
     private static class NewUserFormUtils {
+        
+        
         static NewUserBean.NewUserForm readFromRequest(PwmRequest pwmRequest)
                 throws PwmDataValidationException, PwmUnrecoverableException
         {
             final Locale userLocale = pwmRequest.getLocale();
-            final List<FormConfiguration> newUserForm = pwmRequest.getConfig().readSettingAsForm(
-                    PwmSetting.NEWUSER_FORM);
+            final List<FormConfiguration> newUserForm = getFormDefinition(pwmRequest);
             final Map<FormConfiguration, String> userFormValues = FormUtility.readFormValuesFromRequest(pwmRequest,
                     newUserForm, userLocale);
             final PasswordData passwordData1 = pwmRequest.readParameterAsPassword(FIELD_PASSWORD1);
@@ -991,8 +1054,7 @@ public class NewUserServlet extends PwmServlet {
                 throws IOException, PwmUnrecoverableException, PwmDataValidationException
         {
             final Locale userLocale = pwmRequest.getLocale();
-            final List<FormConfiguration> newUserForm = pwmRequest.getConfig().readSettingAsForm(
-                    PwmSetting.NEWUSER_FORM);
+            final List<FormConfiguration> newUserForm = getFormDefinition(pwmRequest);
             final Map<String, String> jsonBodyMap = pwmRequest.readBodyAsJsonStringMap();
             final Map<FormConfiguration, String> userFormValues = FormUtility.readFormValuesFromMap(jsonBodyMap,
                     newUserForm, userLocale);
@@ -1007,19 +1069,21 @@ public class NewUserServlet extends PwmServlet {
             return new NewUserBean.NewUserForm(userFormValues, passwordData1, passwordData2);
         }
 
-        static NewUserBean.NewUserForm fromTokenPayload(
+        static NewUserTokenData fromTokenPayload(
                 final PwmRequest pwmRequest,
                 final TokenPayload tokenPayload
         )
                 throws PwmOperationalException, PwmUnrecoverableException
         {
             final Locale userLocale = pwmRequest.getLocale();
-            final List<FormConfiguration> newUserForm = pwmRequest.getConfig().readSettingAsForm(
-                    PwmSetting.NEWUSER_FORM);
+            final List<FormConfiguration> newUserFormDefinition = getFormDefinition(pwmRequest);
 
             final Map<String, String> payloadMap = tokenPayload.getData();
+            final String profileID = payloadMap.get(TOKEN_PAYLOAD_ATTR);
+            payloadMap.remove(TOKEN_PAYLOAD_ATTR);
+            
             final Map<FormConfiguration, String> userFormValues = FormUtility.readFormValuesFromMap(payloadMap,
-                    newUserForm, userLocale);
+                    newUserFormDefinition, userLocale);
             final PasswordData passwordData;
             if (payloadMap.containsKey(FIELD_PASSWORD1)) {
                 final String rawPassword = payloadMap.get(FIELD_PASSWORD1);
@@ -1029,7 +1093,8 @@ public class NewUserServlet extends PwmServlet {
             } else {
                 passwordData = null;
             }
-            return new NewUserBean.NewUserForm(userFormValues, passwordData, passwordData);
+            final NewUserBean.NewUserForm newUserForm = new NewUserBean.NewUserForm(userFormValues, passwordData, passwordData);
+            return new NewUserTokenData(profileID,newUserForm);
         }
 
         static Map<String, String> toTokenPayload(
@@ -1039,6 +1104,7 @@ public class NewUserServlet extends PwmServlet {
                 throws PwmUnrecoverableException
         {
             final Map<String, String> payloadMap = new LinkedHashMap<>();
+            payloadMap.put(TOKEN_PAYLOAD_ATTR, pwmRequest.getPwmSession().getNewUserBean().getProfileID());
             payloadMap.putAll(FormUtility.asStringMap(newUserForm.getFormData()));
             final String encryptedPassword = SecureHelper.encryptToString(
                     newUserForm.getNewUserPassword().getStringValue(),
@@ -1048,5 +1114,21 @@ public class NewUserServlet extends PwmServlet {
             payloadMap.put(FIELD_PASSWORD1, encryptedPassword);
             return payloadMap;
         }
+    }
+    
+    public static NewUserProfile getNewUserProfile(final PwmRequest pwmRequest) {
+        final String profileID = pwmRequest.getPwmSession().getNewUserBean().getProfileID();
+        if (profileID == null) {
+            throw new IllegalStateException("can not read new user profile until profile is selected");
+        }
+        return pwmRequest.getConfig().getNewUserProfiles().get(profileID);
+    }
+    
+    void forwardToFormPage(final PwmRequest pwmRequest) 
+            throws ServletException, PwmUnrecoverableException, IOException 
+    {
+        final List<FormConfiguration> formConfiguration = getFormDefinition(pwmRequest);
+        pwmRequest.addFormInfoToRequestAttr(formConfiguration, null, false, true);
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER);
     }
 }

@@ -42,7 +42,7 @@
                     includeHeader = true;
                     showOpenCloseButtons = false;
                 } else if (pwmRequest.isAuthenticated()) {
-                    if (adminUser) {
+                    if (adminUser && !pwmRequest.isForcedPageView()) {
                         includeHeader = true;
                         final String headerVisibilityCookie = pwmRequest.readCookie("headerVisibility");
                         if (headerVisibilityCookie != null) {
@@ -108,13 +108,13 @@
     </div>
     <% if (showOpenCloseButtons) { %>
     <div id="button-closeHeader">
-        <span class="fa fa-caret-up"></span>
+        <span class="fa fa-chevron-circle-up"></span>
     </div>
     <% } %>
 </div>
 <% if (showOpenCloseButtons) { %>
 <div id="button-openHeader" style="<%=headerVisibility?"display: none":""%>">
-    <span class="fa fa-caret-down"></span>
+    <span class="fa fa-chevron-circle-down"></span>
 </div>
 <% } %>
 <% } %>

@@ -162,7 +162,7 @@
         <% } %>
         <form id="tokenForm" action="admin-tokenlookup.jsp" method="post">
             <textarea name="token" id="token" style="width: 580px; height: 150px"></textarea>
-            <div id="buttonbar">
+            <div class="buttonbar">
                 <input name="submitBtn" class="btn" type="submit" value="Lookup Token"/>
             </div>
         </form>

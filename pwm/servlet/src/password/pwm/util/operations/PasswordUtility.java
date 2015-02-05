@@ -671,7 +671,8 @@ public class PasswordUtility {
             final UserIdentity userIdentity,
             final ChaiUser theUser,
             final Locale locale
-    ) throws ChaiUnavailableException
+    ) 
+    throws PwmUnrecoverableException
     {
         final long startTime = System.currentTimeMillis();
         final PasswordPolicySource ppSource = PasswordPolicySource.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_POLICY_SOURCE));
@@ -708,17 +709,13 @@ public class PasswordUtility {
             final SessionLabel pwmSession,
             final UserIdentity userIdentity,
             final Locale locale
-    ) {
-        final List<String> profiles = pwmApplication.getConfig().getPasswordProfiles();
+    ) throws PwmUnrecoverableException {
+        final List<String> profiles = pwmApplication.getConfig().getPasswordProfileIDs();
         if (profiles.isEmpty()) {
-            throw new IllegalStateException("no available configured password profiles");
-        } else if (profiles.size() == 1) {
-            LOGGER.trace(pwmSession, "only one password policy profile defined, returning default");
-            return pwmApplication.getConfig().getPasswordPolicy(PwmConstants.DEFAULT_PASSWORD_PROFILE,locale);
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NO_PROFILE_ASSIGNED,"no challenge profile is configured"));
         }
 
         for (final String profile : profiles) {
-            if (!PwmConstants.DEFAULT_PASSWORD_PROFILE.equalsIgnoreCase(profile)) {
                 final PwmPasswordPolicy loopPolicy = pwmApplication.getConfig().getPasswordPolicy(profile,locale);
                 final List<UserPermission> userPermissions = loopPolicy.getUserPermissions();
                 LOGGER.debug(pwmSession, "testing password policy profile '" + profile + "'");
@@ -730,20 +727,24 @@ public class PasswordUtility {
                 } catch (PwmUnrecoverableException e) {
                     LOGGER.error(pwmSession,"unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage());
                 }
-            }
         }
 
-        return pwmApplication.getConfig().getPasswordPolicy(PwmConstants.DEFAULT_PASSWORD_PROFILE,locale);
+        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NO_PROFILE_ASSIGNED,"no challenge profile is configured"));
     }
 
 
     public static PwmPasswordPolicy readLdapPasswordPolicy(
             final PwmApplication pwmApplication,
             final ChaiUser theUser)
-            throws ChaiUnavailableException {
+            throws PwmUnrecoverableException {
         try {
             final Map<String, String> ruleMap = new HashMap<>();
-            final ChaiPasswordPolicy chaiPolicy = theUser.getPasswordPolicy();
+            final ChaiPasswordPolicy chaiPolicy;
+            try {
+                chaiPolicy = theUser.getPasswordPolicy();
+            } catch (ChaiUnavailableException e) {
+                throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
+            }
             if (chaiPolicy != null) {
                 for (final String key : chaiPolicy.getKeys()) {
                     ruleMap.put(key, chaiPolicy.getValue(key));
@@ -791,15 +792,11 @@ public class PasswordUtility {
         } else {
             final CacheService cacheService = pwmApplication.getCacheService();
             final CacheKey cacheKey = user != null && userInfoBean.getUserIdentity() != null
-                    ? CacheKey.makeCacheKey(
-                    PasswordUtility.class,
-                    userInfoBean.getUserIdentity(),
-                    user.getEntryDN() + ":" + password
-            )
+                    ? CacheKey.makeCacheKey(PasswordUtility.class, userInfoBean.getUserIdentity(), user.getEntryDN() + ":" + password )
                     : null;
 
             try {
-                if (cacheService != null) {
+                if (cacheService != null && cacheKey != null) {
                     final String cachedValue = cacheService.get(cacheKey);
                     if (cachedValue != null) {
                         if (NEGATIVE_CACHE_HIT.equals(cachedValue)) {
@@ -824,7 +821,7 @@ public class PasswordUtility {
                 errorCode = e.getError().getErrorCode();
                 userMessage = e.getErrorInformation().toUserStr(locale, pwmApplication.getConfig());
                 pass = false;
-                if (cacheService != null) {
+                if (cacheService != null && cacheKey != null) {
                     final String jsonPayload = JsonUtil.serialize(e.getErrorInformation());
                     cacheService.put(cacheKey, cachePolicy, jsonPayload);
                 }

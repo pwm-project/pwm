@@ -6,7 +6,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -42,22 +42,13 @@
 </h2>
 <% } else { %>
 <label for="PwmResponse_Q_<%=indexKey%>"><pwm:display key="Field_User_Supplied_Question"/>:</label>&nbsp;
-<textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit/form/Textarea" style="width: 70%"
-          class="inputfield"></textarea>
-<pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parse","dijit/form/Select"],function(parser){
-            parser.parse(PWM_MAIN.getObject('PwmResponse_Q_<%=indexKey%>'));
-        });
-    });
-</script>
-</pwm:script>
+<textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" style="width: 70%"
+          <pwm:autofocus/> class="inputfield"></textarea>
 <% } %>
 <p>
     <span class="fa fa-chevron-circle-right"></span>
     <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_<%=indexKey%>" class="inputfield passwordfield" maxlength="255"
-           id="PwmResponse_R_<%=indexKey%>" required="required"/>
+           <pwm:autofocus/> id="PwmResponse_R_<%=indexKey%>" required="required"/>
 </p>
 <% } %>
 <% } %>
@@ -67,8 +58,9 @@
 <p><pwm:display key="Display_SetupRandomResponses" value1="<%= String.valueOf(setupData.getChallengeSet().getMinRandomRequired()) %>"/></p>
 <% for (int index = 0; index < setupData.getMinRandomSetup(); index++) { %>
 <h2>
-    <select name="PwmResponse_Q_Random_<%=index%>" id="PwmResponse_Q_Random_<%=index%>" data-dojo-type="dijit/form/Select" style="width:70%">
-        <option value="UNSELECTED">&nbsp;&nbsp;--- <pwm:display key="Display_SelectionIndicator"/> ---</option>
+    <select name="PwmResponse_Q_Random_<%=index%>" id="PwmResponse_Q_Random_<%=index%>" style="width:70%" <pwm:autofocus/> class="simpleModeResponseSelection"
+            data-response-id="PwmResponse_R_Random_<%=index%>">
+        <option value="UNSELECTED" data-unselected-option="true">&nbsp;&mdash;&nbsp;<pwm:display key="Display_SelectionIndicator"/>&nbsp;&mdash;&nbsp;</option>
         <%
             for (final String indexKey : setupData.getIndexedChallenges().keySet()) {
                 final Challenge challenge = setupData.getIndexedChallenges().get(indexKey);
@@ -80,21 +72,11 @@
         <% } %>
         <% } %>
     </select>
-    <pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_VAR['simpleRandomSelectElements']['PwmResponse_Q_Random_<%=index%>'] = 'PwmResponse_R_Random_<%=index%>'
-            require(["dijit/registry","dojo/parser","dijit/form/Select"],function(registry,parser){
-                parser.parse();
-            });
-        });
-    </script>
-    </pwm:script>
 </h2>
 <p>
     <span class="fa fa-chevron-circle-right"></span>
     <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_Random_<%=index%>" class="inputfield passwordfield" maxlength="255" type="text"
-           id="PwmResponse_R_Random_<%=index%>" required="required"/>
+            <pwm:autofocus/> id="PwmResponse_R_Random_<%=index%>" required="required"/>
 </p>
 <% } %>
 <pwm:script>
@@ -109,14 +91,6 @@
     });
     <% } %>
     <% } %>
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/parser","dijit/form/Select"],function(parser){
-                parser.parse();
-                PWM_RESPONSES.makeSelectOptionsDistinct();
-            });
-        });
-    });
 </script>
 </pwm:script>
 <% } else { %>
@@ -134,7 +108,7 @@
 </h2>
 <% } else { %>
 <label for="PwmResponse_Q_<%=indexKey%>"><pwm:display key="Field_User_Supplied_Question"/>:</label>&nbsp;
-<textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit.form.Textarea" style="width: 70%"
+<textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" style="width: 70%" <pwm:autofocus/>
           class="inputfield"></textarea>
 <% } %>
 <p>

@@ -26,7 +26,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupOtpBean otpBean = PwmSession.getPwmSession(session).getSetupOtpBean();%>
+<% final SetupOtpBean otpBean = JspUtility.getPwmSession(pageContext).getSetupOtpBean();%>
 <%
     final OTPUserRecord otpUserRecord = otpBean.getOtpUserRecord();
     final String ident = otpUserRecord.getIdentifier();
@@ -34,7 +34,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/responses.js'/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/responses.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
@@ -62,10 +62,10 @@
                 </td>
             </tr>
         </table>
-        <div id="buttonbar">
+        <div class="buttonbar">
             <form action="<pwm:url url='SetupOtp'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
-                <% try { PwmSession.getPwmSession(session).getSessionStateBean().setSessionSuccess(null,null); } catch (Exception e) {} %>
-                <div id="buttonbar">
+                <% try { JspUtility.getPwmSession(pageContext).getSessionStateBean().setSessionSuccess(null,null); } catch (Exception e) {} %>
+                <div class="buttonbar">
                     <input type="hidden" name="processAction" value="complete"/>
                     <button type="submit" name="button" class="btn" id="submitBtn">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>

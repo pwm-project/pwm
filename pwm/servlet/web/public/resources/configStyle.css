@@ -64,7 +64,9 @@
 }
 
 .setting_body.modified {
+    /*
     background-color: #efefef;;
+    */
 }
 
 .icon_button {
@@ -244,7 +246,7 @@ table {
 #navigationTreeWrapper {
     border: 1px solid #bfbfbf;
     border-radius: 3px 3px 5px 5px;
-    box-shadow: 1px 1px 0px 0px #bfbfbf;
+    box-shadow: 1px 1px 0px 0px #dfdfdf;
     float: left;
     margin-right: 5px;
     background-color: white;
@@ -252,16 +254,16 @@ table {
     height: 85vh;
     width: 192px;
     position: fixed;
-    animation: fadein 2.5s;
-    -moz-animation: fadein 2.5s; /* Firefox */
-    -webkit-animation: fadein 2.5s; /* Safari and Chrome */
+    animation: fadein 1.5s;
+    -moz-animation: fadein 1.5s; /* Firefox */
+    -webkit-animation: fadein 1.5s; /* Safari and Chrome */
 }
 
 #navigationTree {
     height: 100%;
 }
 
-#navigationTreeTopMenu {
+#navTreeExpanderButtons {
     text-align: center;
     width: 100%;
     cursor: pointer;

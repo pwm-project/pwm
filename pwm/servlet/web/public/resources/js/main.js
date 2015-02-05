@@ -121,6 +121,12 @@ PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
 
 PWM_MAIN.initPage = function() {
     PWM_MAIN.applyFormAttributes();
+    
+    try {
+        PWM_MAIN.autofocusSupportExtension();
+    } catch(e) {
+        console.log('error during autofocus support extension: ' + e);
+    }
 
     require(["dojo", "dojo/on"], function (dojo, on) {
         on(document, "keypress", function (event) {
@@ -132,7 +138,7 @@ PWM_MAIN.initPage = function() {
             for (var i = 0; i < results.length; i++) {
                 (function(formIter){
                     var element = results[formIter];
-                    on(element, "click", function(event){ window.print(); });
+                    on(element, "click", function(){ window.print(); });
                 })(i);
             }
         });
@@ -377,13 +383,6 @@ PWM_MAIN.goto = function(url,options) {
     }
 };
 
-PWM_MAIN.postDynamicForm = function(actionUrl, formData) {
-        var bodyElement = document.getElementsByTagName("body")[0];
-        var formElement = document.createElement('form');
-        formElement.id = 'dynamicSubmitForm';
-        formElement.action = 'post';
-        formElement
-};
 
 PWM_MAIN.handleFormCancel = function() {
     PWM_MAIN.showWaitDialog({loadFunction:function() {
@@ -394,7 +393,7 @@ PWM_MAIN.handleFormCancel = function() {
 
 PWM_MAIN.handleLoginFormSubmit = function(form, event) {
     require(["dojo","dojo/dom-form"], function(dojo, domForm) {
-        event.preventDefault();
+        try { event.preventDefault(); } catch (e) {};
         PWM_MAIN.showWaitDialog({loadFunction: function () {
             var options = {};
             options['content'] = domForm.toObject(form);
@@ -772,7 +771,7 @@ PWM_MAIN.showDialog = function(options) {
         if ('okAction' in options) {
             options['okAction']();
         } else {
-            console.log('no-dialog-okaction')
+            console.log('dialog okAction is empty')
         }
     };
     var cancelAction = 'cancelAction' in options ? options['cancelAction'] : function(){
@@ -1663,12 +1662,11 @@ PWM_MAIN.addParamToUrl = function(url,paramName,paramValue) {
         return '';
     }
 
-    if (url.indexOf(paramName) > 0) {
-        return url;
-    }
+    var encodedName = encodeURIComponent(paramName);
+    var encodedValue = encodeURIComponent(paramValue);
 
     url += url.indexOf('?') > 0 ? '&' : '?';
-    url += paramName + "=" + paramValue;
+    url += encodedName + "=" + encodedValue;
     return url;
 };
 
@@ -1798,9 +1796,13 @@ PWM_MAIN.convertSecondsToDisplayTimeDuration = function(amount, fullLength) {
 };
 
 PWM_MAIN.setStyle = function(elementID, property, value) {
-    var element = PWM_MAIN.getObject(elementID);
-    if (element) {
-        element.style.setProperty(property, value, null);
+    try {
+        var element = PWM_MAIN.getObject(elementID);
+        if (element) {
+            element.style.setProperty(property, value, null);
+        }
+    } catch (e) {
+        console.error('error while setting style, elementID=' + elementID + ", property=" + property + ", value=" + value + ", error: " + e);
     }
 };
 
@@ -1817,6 +1819,28 @@ PWM_MAIN.newWindowOpen=function(windowUrl,windowName) {
     var viewLog = window.open(windowUrl,windowName,windowParams).focus();
 };
 
+PWM_MAIN.autofocusSupportExtension = function() {
+    var supportAutofocus = 'autofocus' in (document.createElement('input'));
+    if (!supportAutofocus) {
+        console.log("no browser support for autofocus, implementing manual dom check for focused item");
+        require(["dojo/query"], function(query){
+            var found = false;
+            var results = query('form *');
+            for (var i = 0; i < results.length; i++) {
+                if (found) {
+                    break
+                }
+                (function (itemIterator) {
+                    var element = results[itemIterator];
+                    if (element.hasAttribute('autofocus')) {
+                        element.focus();
+                        found = true;
+                    }
+                })(i);
+            }
+        });
+    }
+};
 
 PWM_MAIN.pageLoadHandler();
 

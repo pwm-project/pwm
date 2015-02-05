@@ -164,7 +164,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
         }
 
         if (processAction != null) {
-            Validator.validatePwmFormID(pwmRequest.getHttpServletRequest());
+            Validator.validatePwmFormID(pwmRequest);
 
             switch (processAction) {
                 case search:
@@ -249,8 +249,8 @@ public class ForgottenPasswordServlet extends PwmServlet {
     {
         final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
         final String requestedChoiceStr = pwmRequest.readParameterAsString("choice");
-        final Set<RecoveryVerificationMethod> remainingAvailableOptionalMethods = figureRemainingAvailableOptionalAuthMethods(forgottenPasswordBean);
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR_AVAILABLE_AUTH_METHODS,remainingAvailableOptionalMethods);
+        final LinkedHashSet<RecoveryVerificationMethod> remainingAvailableOptionalMethods = new LinkedHashSet<>(figureRemainingAvailableOptionalAuthMethods(forgottenPasswordBean));
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.AvailableAuthMethods,remainingAvailableOptionalMethods);
 
         RecoveryVerificationMethod requestedChoice = null;
         if (requestedChoiceStr != null && !requestedChoiceStr.isEmpty()) {
@@ -333,7 +333,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
                 pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
                 pwmRequest.setResponseError(PwmError.ERROR_CANT_MATCH_USER.toInfo());
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
+                forwardToSearchPage(pwmRequest);
                 return;
             }
 
@@ -349,7 +349,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
 
             LOGGER.debug(pwmSession,errorInfo.toDebugStr());
             pwmRequest.setResponseError(errorInfo);
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
+            forwardToSearchPage(pwmRequest);
         }
     }
 
@@ -547,7 +547,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
 
         // check for identified user;
         if (forgottenPasswordBean.getUserInfo() == null) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
+            forwardToSearchPage(pwmRequest);
             return;
         }
         
@@ -1360,6 +1360,13 @@ public class ForgottenPasswordServlet extends PwmServlet {
             LOGGER.error(pwmRequest, "unexpected error while examining cookie auth record: " + e.getMessage());
         }
         return false;
+    }
+    
+    protected void forwardToSearchPage(final PwmRequest pwmRequest) 
+            throws ServletException, PwmUnrecoverableException, IOException 
+    {
+        pwmRequest.addFormInfoToRequestAttr(PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM,false,false);
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
     }
 }
 

@@ -28,11 +28,10 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,15 +53,15 @@ public class Validator {
 // -------------------------- STATIC METHODS --------------------------
 
 
-    public static void validatePwmFormID(final HttpServletRequest req)
+    public static void validatePwmFormID(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String pwmFormID = ssBean.getSessionVerificationKey();
 
-        final String submittedPwmFormID = req.getParameter(PwmConstants.PARAM_FORM_ID);
+        final String submittedPwmFormID = pwmRequest.readParameterAsString(PwmConstants.PARAM_FORM_ID);
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_ENABLE_FORM_NONCE)) {
             if (submittedPwmFormID == null || submittedPwmFormID.length() < pwmFormID.length()) {
@@ -75,27 +74,27 @@ public class Validator {
         }
     }
 
-    public static void validatePwmRequestCounter(final HttpServletRequest req)
+    public static void validatePwmRequestCounter(final PwmRequest pwmRequest)
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String sessionVerificationKey = ssBean.getSessionVerificationKey();
         final String requestVerificationKey = ssBean.getRequestVerificationKey();
 
-        final String submittedPwmFormID = req.getParameter(PwmConstants.PARAM_FORM_ID);
+        final String submittedPwmFormID = pwmRequest.readParameterAsString(PwmConstants.PARAM_FORM_ID);
         if (submittedPwmFormID == null || submittedPwmFormID.isEmpty()) {
             return;
         }
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_ENABLE_REQUEST_SEQUENCE)) {
             try {
-                final String submittedReqestVerificationKey = submittedPwmFormID.substring(sessionVerificationKey.length(),submittedPwmFormID.length());
-                if (requestVerificationKey != null && !requestVerificationKey.equals(submittedReqestVerificationKey)) {
+                final String submittedRequestVerificationKey = submittedPwmFormID.substring(sessionVerificationKey.length(),submittedPwmFormID.length());
+                if (requestVerificationKey != null && !requestVerificationKey.equals(submittedRequestVerificationKey)) {
                     final String debugMsg = "expectedPageID=" + requestVerificationKey
-                            + ", submittedPageID=" + submittedReqestVerificationKey
-                            +  ", url=" + req.getRequestURI();
+                            + ", submittedPageID=" + submittedRequestVerificationKey
+                            +  ", url=" + pwmRequest.getURL().toString();
 
                     throw new PwmOperationalException(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE, debugMsg);
                 }

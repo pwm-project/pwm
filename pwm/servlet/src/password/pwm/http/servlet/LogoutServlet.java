@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,20 +35,43 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 
 public class LogoutServlet extends PwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LogoutServlet.class);
 
-    @Override
-    protected ProcessAction readProcessAction(PwmRequest request)
+    public enum LogoutAction implements PwmServlet.ProcessAction {
+        showLogout,
+        ;
+
+        public Collection<HttpMethod> permittedMethods()
+        {
+            return Collections.singletonList(PwmServlet.HttpMethod.GET);
+        }
+    }
+
+    protected LogoutAction readProcessAction(final PwmRequest request)
             throws PwmUnrecoverableException
     {
-        return null;
+        try {
+            return LogoutAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
+
+
+        LogoutAction logoutAction = readProcessAction(pwmRequest);
+        if (logoutAction == LogoutAction.showLogout) {
+            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.LOGOUT);
+            return;
+        }
+
         final StringBuilder debugMsg = new StringBuilder();
         debugMsg.append("processing logout request from user");
         final boolean logoutDueToIdle = Boolean.parseBoolean(pwmRequest.readParameterAsString("idle"));
@@ -67,7 +90,7 @@ public class LogoutServlet extends PwmServlet {
             if (sessionLogoutURL != null && sessionLogoutURL.length() > 0) {
                 LOGGER.trace(pwmSession, "redirecting user to session parameter set logout url: " + sessionLogoutURL );
                 pwmRequest.sendRedirect(sessionLogoutURL);
-                pwmSession.invalidate();
+                pwmRequest.invalidateSession();
                 return;
             }
         }
@@ -94,13 +117,13 @@ public class LogoutServlet extends PwmServlet {
 
                 LOGGER.trace(pwmSession, "redirecting user to configured logout url:" + logoutURL.toString());
                 pwmRequest.sendRedirect(logoutURL.toString());
-                pwmSession.invalidate();
+                pwmRequest.invalidateSession();
                 return;
             }
         }
 
         // if we didn't go anywhere yet, then show the pwm logout jsp
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.LOGOUT);
-        pwmSession.invalidate();
+        pwmRequest.sendRedirect("Logout?processAction=showLogout");
+        pwmRequest.invalidateSession();
     }
 }

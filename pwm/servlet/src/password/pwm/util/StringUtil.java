@@ -22,6 +22,7 @@
 
 package password.pwm.util;
 
+import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.lang3.StringEscapeUtils;
 import password.pwm.PwmConstants;
 import password.pwm.util.logging.PwmLogger;
@@ -155,6 +156,13 @@ public abstract class StringUtil {
             throws IOException
     {
         return Base64Util.decode(input);
+    }
+
+    public static String base32Encode(final byte[] input)
+            throws IOException
+    {
+        final Base32 base32 = new Base32();
+        return new String(base32.encode(input));
     }
 
     public static byte[] base64Decode(final String input, final StringUtil.Base64Options... options)

@@ -1,10 +1,12 @@
 <%@ page import="password.pwm.error.ErrorInformation" %>
+<%@ page import="password.pwm.http.JspUtility" %>
+
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -26,14 +28,14 @@
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <div id="message_wrapper">
-<% final ErrorInformation requestError = (ErrorInformation)request.getAttribute(PwmConstants.REQUEST_ATTR_PWM_ERRORINFO); %>
+<% final ErrorInformation requestError = (ErrorInformation)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.PwmErrorInfo); %>
 <% if (requestError != null) { %>
     <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
     <span id="errorCode" style="display: none"><%=requestError.getError().getErrorCode()%></span>
     <span id="errorName" style="display: none"><%=requestError.getError().toString()%></span>
-<% } else if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionSuccess() != null) { %>
+<% } else if (JspUtility.getPwmSession(pageContext).getSessionStateBean().getSessionSuccess() != null) { %>
     <span id="message" class="message message-success"><pwm:SuccessMessage/></span>
-<% PwmSession.getPwmSession(session).getSessionStateBean().setSessionSuccess(null,null); %>
+<% JspUtility.getPwmSession(pageContext).getSessionStateBean().setSessionSuccess(null,null); %>
 <% } else { %>
     <span style="display:none" id="message" class="message">&nbsp;</span>
 <% } %>

@@ -460,8 +460,14 @@ PWM_CONFIG.uploadFile = function(options) {
 
 
 PWM_CONFIG.heartbeatCheck = function() {
+    var heartbeatFrequency = 10 * 1000;
     if (PWM_VAR['cancelHeartbeatCheck']) {
         console.log('heartbeat check cancelled');
+        return;
+    }
+    if (typeof document['hidden'] !== "undefined" && document['hidden']) {
+        console.log('skipping heartbeat check because page is not currently visible');
+        setTimeout(PWM_CONFIG.heartbeatCheck,heartbeatFrequency);
         return;
     }
 
@@ -483,7 +489,7 @@ PWM_CONFIG.heartbeatCheck = function() {
                 var message = "Application appears to have be restarted.";
                 handleErrorFunction(message);
             } else {
-                setTimeout(PWM_CONFIG.heartbeatCheck,5000);
+                setTimeout(PWM_CONFIG.heartbeatCheck,heartbeatFrequency);
             }
         } catch (e) {
             handleErrorFunction('Error reading server status.');

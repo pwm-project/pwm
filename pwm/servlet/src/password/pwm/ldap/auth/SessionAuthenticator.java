@@ -281,7 +281,7 @@ public class SessionAuthenticator {
         }
 
         //clear permission cache - needs rechecking after login
-        LOGGER.debug("Clearing permission cache");
+        LOGGER.debug(pwmSession,"clearing permission cache");
         pwmSession.getLoginInfoBean().clearPermissions();
 
     }

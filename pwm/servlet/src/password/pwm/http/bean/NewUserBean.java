@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.Map;
 
 public class NewUserBean implements PwmSessionBean {
+    private String profileID;
     private NewUserForm newUserForm;
 
     private String tokenDisplayText;
@@ -42,6 +43,7 @@ public class NewUserBean implements PwmSessionBean {
     private boolean formPassed;
     private NewUserVerificationPhase verificationPhase = NewUserVerificationPhase.NONE;
     private Date createStartTime;
+    private NewUserServlet.Page currentPage;
 
     public static class NewUserForm {
         private Map<FormConfiguration,String> formData;
@@ -73,6 +75,14 @@ public class NewUserBean implements PwmSessionBean {
         {
             return confirmPassword;
         }
+    }
+
+    public String getProfileID() {
+        return profileID;
+    }
+
+    public void setProfileID(String profileID) {
+        this.profileID = profileID;
     }
 
     public boolean isEmailTokenIssued() {
@@ -171,5 +181,13 @@ public class NewUserBean implements PwmSessionBean {
     public void setNewUserForm(NewUserForm newUserForm)
     {
         this.newUserForm = newUserForm;
+    }
+
+    public NewUserServlet.Page getCurrentPage() {
+        return currentPage;
+    }
+
+    public void setCurrentPage(NewUserServlet.Page currentPage) {
+        this.currentPage = currentPage;
     }
 }

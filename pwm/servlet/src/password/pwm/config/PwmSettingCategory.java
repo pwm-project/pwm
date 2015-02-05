@@ -46,9 +46,6 @@ public enum PwmSettingCategory {
     UI_FEATURES                 (USER_INTERFACE),
     UI_WEB                      (USER_INTERFACE),
 
-    PASSWORD_GLOBAL             (SETTINGS),
-    CHALLENGE                   (SETTINGS),
-
     EMAIL                       (SETTINGS),
     EMAIL_SETTINGS              (EMAIL),
     EMAIL_TEMPLATES             (EMAIL),
@@ -87,7 +84,9 @@ public enum PwmSettingCategory {
     REST_SERVER                 (WEB_SERVICES),
     REST_CLIENT                 (WEB_SERVICES),
 
+    PASSWORD_GLOBAL             (PROFILES),
     PASSWORD_POLICY             (PROFILES),
+    CHALLENGE                   (PROFILES),
     CHALLENGE_POLICY            (PROFILES),
 
     CHANGE_PASSWORD             (MODULES),
@@ -98,7 +97,11 @@ public enum PwmSettingCategory {
 
     
     FORGOTTEN_USERNAME          (MODULES),
+    
     NEWUSER                     (MODULES),
+    NEWUSER_SETTINGS            (NEWUSER),
+    NEWUSER_PROFILE             (NEWUSER),
+    
     GUEST                       (MODULES),
     ACTIVATION                  (MODULES),
     UPDATE                      (MODULES),
@@ -241,6 +244,7 @@ public enum PwmSettingCategory {
         }
 
         if (profileID != null) {
+            sb.append(SEPARATOR);
             sb.append(profileID);
         }
 

@@ -30,8 +30,10 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.Profile;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -190,7 +192,18 @@ public class ConfigurationChecker implements HealthChecker {
             }
         }
         */
-
+        
+        
+        if (config.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
+            for (final NewUserProfile newUserProfile : config.getNewUserProfiles().values()) {
+                try {
+                    newUserProfile.getNewUserPasswordPolicy(pwmApplication, PwmConstants.DEFAULT_LOCALE);
+                } catch (PwmUnrecoverableException e) {
+                    records.add(new HealthRecord(HealthStatus.WARN,HealthTopic.Configuration,e.getMessage()));
+                }
+            }
+        }
+        
 
         if (!config.hasDbConfigured()) {
             if (config.helper().shouldHaveDbConfigured()) {

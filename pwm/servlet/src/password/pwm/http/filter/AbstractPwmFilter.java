@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,9 @@
 package password.pwm.http.filter;
 
 
-import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmException;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmURL;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.*;
@@ -34,8 +33,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public abstract class PwmFilter implements Filter {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmFilter.class);
+public abstract class AbstractPwmFilter implements Filter {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(AbstractPwmFilter.class);
 
     @Override
     public void init(FilterConfig filterConfig)
@@ -55,29 +54,16 @@ public abstract class PwmFilter implements Filter {
         final HttpServletResponse resp = (HttpServletResponse)servletResponse;
 
         final PwmFilterChain pwmFilterChain = new PwmFilterChain(servletRequest, servletResponse, filterChain);
-
-        // check if app is available.
-        final PwmRequest pwmRequest;
+        
+        SessionLabel sessionLabel = null;
         try {
-            pwmRequest = PwmRequest.forRequest(req, resp);
-            pwmRequest.getPwmApplication();
-        } catch (Throwable e) {
-            LOGGER.error("can't load application: " + e.getMessage());
-            if (!(new PwmURL(req).isResourceURL())) {
-                final String url = PwmConstants.JSP_URL.APP_UNAVAILABLE.getPath();
-                servletRequest.getServletContext().getRequestDispatcher(url).forward(req, resp);
-            } else {
-                pwmFilterChain.doFilter();
-            }
-            return;
-        }
-
-        try {
+            final PwmRequest pwmRequest = PwmRequest.forRequest(req,resp);
+            sessionLabel = pwmRequest.getSessionLabel();
             processFilter(pwmRequest, pwmFilterChain);
         } catch (PwmException e) {
-            LOGGER.error(pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e);
+            LOGGER.error(sessionLabel, "unexpected error processing filter chain: " + e.getMessage(), e);
         } catch (IOException e) {
-            LOGGER.debug(pwmRequest, "i/o error processing request: " + e.getMessage());
+            LOGGER.debug(sessionLabel, "i/o error processing request: " + e.getMessage());
         }
     }
 

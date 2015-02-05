@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean(); %>
+<% final SetupResponsesBean responseBean = JspUtility.getPwmSession(pageContext).getSetupResponseBean(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -35,14 +35,14 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:display key="Display_SetupResponses"/></p>
-        <form action="<pwm:url url='SetupResponses'/>" method="post" name="setupResponses"
-              enctype="application/x-www-form-urlencoded" id="setupResponses" class="pwm-form">
+        <form action="<pwm:url url='SetupResponses'/>" method="post" name="form-setupResponses"
+              enctype="application/x-www-form-urlencoded" id="form-setupResponses" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
             <% request.setAttribute("setupData",responseBean.getResponseData()); %>
             <jsp:include page="fragment/setupresponses-form.jsp"/>
-            <div id="buttonbar">
+            <div class="buttonbar">
                 <input type="hidden" name="processAction" value="setResponses"/>
-                <button type="submit" name="setResponses" class="btn" id="setresponses_button">
+                <button type="submit" name="setResponses" class="btn" id="button-setResponses">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:display key="Button_SetResponses"/>
                 </button>
@@ -59,14 +59,10 @@
         PWM_GLOBAL['responseMode'] = "user";
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_RESPONSES.startupResponsesPage();
-
-
-
-            document.forms[0].elements[0].focus();
         });
     </script>
 </pwm:script>
-<script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/responses.js'/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/responses.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

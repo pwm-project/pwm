@@ -159,11 +159,11 @@ public class RestAppDataServer extends AbstractRestServer {
         }
 
         final ContextManager theManager = ContextManager.getContextManager(request.getSession().getServletContext());
-        final Set<PwmSession> activeSessions = new LinkedHashSet<>(theManager.getPwmSessions());
+        final Set<PwmSession> activeSessions = new LinkedHashSet<>(theManager.getPwmSessions().values());
         final ArrayList<Map<String,Object>> gridData = new ArrayList<>();
         for (Iterator<PwmSession> iterator = activeSessions.iterator(); iterator.hasNext() && gridData.size() <= maximum;) {
             final PwmSession loopSession = iterator.next();
-            if (loopSession != null && loopSession.isValid()) {
+            if (loopSession != null) {
                 try {
                     final SessionStateBean loopSsBean = loopSession.getSessionStateBean();
                     final UserInfoBean loopUiBean = loopSession.getUserInfoBean();
@@ -247,7 +247,7 @@ public class RestAppDataServer extends AbstractRestServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        final String eTagValue = makeClientEtag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession());
+        final String eTagValue = makeClientEtag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), request);
 
         // check the incoming header;
         final String ifNoneMatchValue = request.getHeader("If-None-Match");
@@ -282,7 +282,7 @@ public class RestAppDataServer extends AbstractRestServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        final String eTagValue = makeClientEtag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession());
+        final String eTagValue = makeClientEtag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), request);
         response.setHeader("ETag",eTagValue);
         response.setDateHeader("Expires", System.currentTimeMillis() + (maxCacheAgeSeconds * 1000));
         response.setHeader("Cache-Control","public, max-age=" + maxCacheAgeSeconds);
@@ -359,10 +359,7 @@ public class RestAppDataServer extends AbstractRestServer {
         settingMap.put("setting-displayEula",PwmConstants.ENABLE_EULA_DISPLAY);
         settingMap.put("setting-showStrengthMeter",config.readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER));
 
-        settingMap.put("MaxInactiveInterval",(pwmSession.getSessionStateBean().getSessionMaximumTimeout() == null) ?
-                        request.getSession().getMaxInactiveInterval() :
-                        pwmSession.getSessionStateBean().getSessionMaximumTimeout().getTotalSeconds()
-        );
+        settingMap.put("MaxInactiveInterval",request.getSession().getMaxInactiveInterval());
         settingMap.put("paramName.locale", config.readAppProperty(AppProperty.HTTP_PARAM_NAME_LOCALE));
         settingMap.put("startupTime",pwmApplication.getStartupTime());
         settingMap.put("applicationMode",pwmApplication.getApplicationMode());
@@ -449,16 +446,20 @@ public class RestAppDataServer extends AbstractRestServer {
     public static String makeClientEtag(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException
     {
-        return makeClientEtag(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
+        return makeClientEtag(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), pwmRequest.getHttpServletRequest());
     }
 
-    public static String makeClientEtag(final PwmApplication pwmApplication, final PwmSession pwmSession)
+    public static String makeClientEtag(
+            final PwmApplication pwmApplication, 
+            final PwmSession pwmSession,
+            final HttpServletRequest httpServletRequest
+    )
             throws PwmUnrecoverableException
     {
         final StringBuilder inputString = new StringBuilder();
         inputString.append(PwmConstants.BUILD_NUMBER);
         inputString.append(pwmApplication.getStartupTime().getTime());
-        inputString.append(pwmSession.getSessionStateBean().getSessionMaximumTimeout().getTotalMilliseconds());
+        inputString.append(httpServletRequest.getSession().getMaxInactiveInterval());
         inputString.append(pwmApplication.getInstanceNonce());
 
         if (pwmSession.getSessionStateBean().getLocale() != null) {

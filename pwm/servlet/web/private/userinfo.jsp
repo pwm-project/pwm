@@ -370,7 +370,7 @@
 <% } %>
 <% } %>
 </div>
-<div id="buttonbar">
+<div class="buttonbar">
     <form action="<pwm:context/>/public/<pwm:url url='CommandServlet'/>" method="post" enctype="application/x-www-form-urlencoded">
         <input type="hidden" name="processAction" value="continue"/>
         <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

@@ -34,6 +34,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.ResourceFileServlet;
 import password.pwm.util.Helper;
+import password.pwm.util.PwmRandom;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletContext;
@@ -59,8 +60,9 @@ public class ContextManager implements Serializable {
 
     private volatile boolean restartRequestedFlag = false;
     private int restartCount = 0;
+    private final String instanceGuid;
 
-    private final transient Set<PwmSession> activeSessions = Collections.newSetFromMap(new ConcurrentHashMap<PwmSession, Boolean>());
+    private final transient Set<HttpSession> activeSessions = Collections.newSetFromMap(new ConcurrentHashMap<HttpSession, Boolean>());
 
     private enum ContextParameter {
         applicationPath,
@@ -69,6 +71,7 @@ public class ContextManager implements Serializable {
 
     public ContextManager(ServletContext servletContext) {
         this.servletContext = servletContext;
+        this.instanceGuid = PwmRandom.getInstance().randomUUID().toString();
     }
 
     // -------------------------- STATIC METHODS --------------------------
@@ -125,7 +128,6 @@ public class ContextManager implements Serializable {
 // -------------------------- OTHER METHODS --------------------------
 
     public void initialize() {
-
         try {
             Locale.setDefault(PwmConstants.DEFAULT_LOCALE);
         } catch (Exception e) {
@@ -176,7 +178,7 @@ public class ContextManager implements Serializable {
 
         final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
         taskMaster = new Timer(threadName, true);
-        taskMaster.schedule(new SessionWatcherTask(), 5031, 5031);
+        taskMaster.schedule(new RestartFlagWatcher(), 1031, 1031);
 
         final boolean reloadOnChange = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_RELOAD_ON_CHANGE));
         if (reloadOnChange) {
@@ -218,8 +220,6 @@ public class ContextManager implements Serializable {
         }
     }
 
-
-
     private void handleStartupError(final String msgPrefix, final Throwable throwable) {
         final String errorMsg;
         if (throwable instanceof OutOfMemoryError) {
@@ -252,20 +252,12 @@ public class ContextManager implements Serializable {
         }
         taskMaster.cancel();
 
-        try {
-            for (final PwmSession pwmSession : this.getPwmSessions()) {
-                pwmSession.getSessionManager().closeConnections();
-            }
-        } catch (Exception e) {
-            LOGGER.error("unexpected error attempting to close ldap connections: " + e.getMessage());
-        }
-
 
         this.pwmApplication = null;
         startupErrorInformation = null;
     }
 
-    public void reinitializePwmApplication() {
+    public void requestPwmApplicationRestart() {
         restartRequestedFlag = true;
         try {
             taskMaster.schedule(new ConfigFileWatcher(),0);
@@ -274,46 +266,41 @@ public class ContextManager implements Serializable {
         }
     }
 
-    public Set<PwmSession> getPwmSessions() {
+    public Set<HttpSession> getHttpSessions() {
         return Collections.unmodifiableSet(activeSessions);
     }
 
-    public void addPwmSession(final PwmSession pwmSession) {
+    public Map<HttpSession,PwmSession> getPwmSessions() {
+        final Collection<HttpSession> copiedSet = getHttpSessions();
+        final Map<HttpSession,PwmSession> returnSet = new HashMap<>();
+        for (final HttpSession httpSession : copiedSet) {
+            try {
+                returnSet.put(httpSession, PwmSessionWrapper.readPwmSession(httpSession));
+            } catch (PwmUnrecoverableException e) {
+                /* */
+            }
+        }
+        return returnSet;
+    }
+
+    public void addHttpSession(final HttpSession httpSession) {
         try {
-            activeSessions.add(pwmSession);
+            activeSessions.add(httpSession);
         } catch (Exception e) {
             LOGGER.trace("error adding new session to list of known sessions: " + e.getMessage());
         }
     }
 
-    public ConfigurationReader getConfigReader() {
-        return configReader;
+    public void removeHttpSession(final HttpSession pwmSession) {
+        try {
+            activeSessions.remove(pwmSession);
+        } catch (Exception e) {
+            LOGGER.trace("error adding removing session from list of known sessions: " + e.getMessage());
+        }
     }
 
-    // -------------------------- INNER CLASSES --------------------------
-
-    public class SessionWatcherTask extends TimerTask {
-        public void run() {
-            final Set<PwmSession> copiedMap = new HashSet<>();
-
-            try {
-                copiedMap.addAll(activeSessions);
-
-                final Set<PwmSession> deadSessions = new HashSet<>();
-
-                for (final PwmSession pwmSession : copiedMap) {
-                    if (!pwmSession.isValid()) {
-                        deadSessions.add(pwmSession);
-                    }
-                }
-
-                if (!deadSessions.isEmpty()) {
-                    activeSessions.removeAll(deadSessions);
-                }
-            } catch (Throwable e) {
-                LOGGER.error("error clearing sessions during restart: " + e.getMessage());
-            }
-        }
+    public ConfigurationReader getConfigReader() {
+        return configReader;
     }
 
     private class ConfigFileWatcher extends TimerTask {
@@ -325,7 +312,12 @@ public class ContextManager implements Serializable {
                     restartRequestedFlag = true;
                 }
             }
+        }
+    }
 
+    private class RestartFlagWatcher extends TimerTask {
+
+        public void run() {
             if (restartRequestedFlag) {
                 doReinitialize();
             }
@@ -385,12 +377,12 @@ public class ContextManager implements Serializable {
 
     public Map<DebugKey, String> getDebugData() {
         try {
-            final Set<PwmSession> sessionCopy = new HashSet<>(this.getPwmSessions());
+            final Collection<PwmSession> sessionCopy = this.getPwmSessions().values();
             int sessionCounter = 0;
             long sizeTotal = 0;
-            for (final PwmSession loopSession : sessionCopy) {
+            for (final PwmSession pwmSession : sessionCopy) {
                 try {
-                    sizeTotal += loopSession.size();
+                    sizeTotal += pwmSession.size();
                     sessionCounter++;
                 } catch (Exception e) {
                     LOGGER.error("error during session size calculation: " + e.getMessage());
@@ -477,7 +469,7 @@ public class ContextManager implements Serializable {
             try {
                 return new File(new URL(newString).toURI());
             } catch (Exception e) {
-                outputError("unable to determine application path using classloader: " + e.getMessage());
+                outputError("unable to determine application path using class loader: " + e.getMessage());
             }
         }
 
@@ -488,5 +480,9 @@ public class ContextManager implements Serializable {
         final String msg = PwmConstants.PWM_APP_NAME + " " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()) + " " + outputText;
         System.out.println(msg);
         System.out.println(msg);
+    }
+
+    public String getInstanceGuid() {
+        return instanceGuid;
     }
 }

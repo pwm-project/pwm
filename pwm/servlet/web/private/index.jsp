@@ -85,7 +85,7 @@
                     </tr>
                 </pwm:if>
             </pwm:if>
-            <pwm:if test="profileUpdateEnabled">
+            <pwm:if test="updateProfileEnabled">
                 <pwm:if test="permission" arg1="PROFILE_UPDATE">
                     <tr style="border:0">
                         <td class="menubutton_key">
@@ -158,7 +158,10 @@
             <pwm:if test="permission" arg1="GUEST_REGISTRATION">
                 <tr style="border:0">
                     <td class="menubutton_key">
-                        <a class="menubutton" href="<pwm:url url='GuestRegistration'/>"><pwm:display key="Title_GuestRegistration"/></a>
+                        <a class="menubutton" href="<pwm:url url='GuestRegistration'/>">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-group"></span></pwm:if>
+                            <pwm:display key="Title_GuestRegistration"/>
+                        </a>
                     </td>
                     <td style="border: 0">
                         <p><pwm:display key="Long_Title_GuestRegistration"/></p>

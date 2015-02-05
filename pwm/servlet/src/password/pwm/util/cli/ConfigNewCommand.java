@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,11 +22,7 @@
 
 package password.pwm.util.cli;
 
-import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
-import password.pwm.config.value.PasswordValue;
-import password.pwm.util.PasswordData;
-import password.pwm.util.PwmRandom;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -36,17 +32,12 @@ public class ConfigNewCommand extends AbstractCliCommand {
     public void doCommand()
             throws Exception
     {
-        final StoredConfiguration storedConfiguration = StoredConfiguration.getDefaultConfiguration();
+        final StoredConfiguration storedConfiguration = StoredConfiguration.newStoredConfiguration();
+        storedConfiguration.initNewRandomSecurityKey();
         storedConfiguration.writeConfigProperty(
                 StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, Boolean.toString(true));
         storedConfiguration.writeConfigProperty(
                 StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_EPOCH, String.valueOf(0));
-        storedConfiguration.writeSetting(
-                PwmSetting.PWM_SECURITY_KEY, new PasswordValue(new PasswordData(PwmRandom.getInstance().alphaNumericString(
-                512))), null);
-
-        storedConfiguration.writeConfigProperty(
-                StoredConfiguration.ConfigProperty.PROPERTY_KEY_SETTING_CHECKSUM, storedConfiguration.settingChecksum());
 
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_FILE.getName());
         storedConfiguration.toXml(new FileOutputStream(outputFile, false));

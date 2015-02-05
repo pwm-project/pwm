@@ -23,26 +23,22 @@
 package password.pwm.config.profile;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.config.StoredValue;
 
-import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
 public class HelpdeskProfile extends AbstractProfile implements Profile {
+
+    private static final ProfileType PROFILE_TYPE = ProfileType.Helpdesk;
 
     protected HelpdeskProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);
     }
 
     public static HelpdeskProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
-        final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<>();
-        for (final PwmSetting setting : PwmSettingCategory.HELPDESK_PROFILE.getSettings()) {
-            final StoredValue value = storedConfiguration.readSetting(setting, identifier);
-            valueMap.put(setting, value);
-        }
+        final Map<PwmSetting,StoredValue> valueMap = makeValueMap(storedConfiguration, identifier, PROFILE_TYPE.getCategory());
         return new HelpdeskProfile(identifier, valueMap);
 
     }
@@ -55,6 +51,6 @@ public class HelpdeskProfile extends AbstractProfile implements Profile {
 
     @Override
     public ProfileType profileType() {
-        return ProfileType.Helpdesk;
+        return PROFILE_TYPE;
     }
 }

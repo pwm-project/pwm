@@ -25,17 +25,18 @@ package password.pwm.http.filter;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
-import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.servlet.OAuthConsumerServlet;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
+import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.util.BasicAuthInfo;
@@ -61,7 +62,7 @@ import java.util.Map;
  *
  * @author Jason D. Rivard
  */
-public class AuthenticationFilter extends PwmFilter {
+public class AuthenticationFilter extends AbstractPwmFilter {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(AuthenticationFilter.class.getName());
@@ -225,7 +226,7 @@ public class AuthenticationFilter extends PwmFilter {
             final BasicAuthInfo authInfo = BasicAuthInfo.parseAuthHeader(pwmApplication, pwmRequest);
             if (authInfo != null) {
                 try {
-                    authUserUsingBasicHeader(pwmRequest.getHttpServletRequest(), authInfo);
+                    authUserUsingBasicHeader(pwmRequest, authInfo);
                 } catch (ChaiUnavailableException e) {
                     StatisticsManager.incrementStat(pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT);
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage());
@@ -266,7 +267,7 @@ public class AuthenticationFilter extends PwmFilter {
 
         // handle if authenticated during filter process.
         if (pwmSession.getSessionStateBean().isAuthenticated()) {
-            pwmRequest.recycleSessions();
+            pwmSession.getSessionStateBean().setSessionIdRecycleNeeded(true);
             LOGGER.debug(pwmSession,"session authenticated during request, issuing redirect to originally requested url: " + originalRequestedUrl);
             pwmRequest.sendRedirect(originalRequestedUrl);
             return;
@@ -290,13 +291,13 @@ public class AuthenticationFilter extends PwmFilter {
     }
 
     public static void authUserUsingBasicHeader(
-            final HttpServletRequest req,
+            final PwmRequest pwmRequest,
             final BasicAuthInfo basicAuthInfo
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         //make sure user session isn't already authenticated
@@ -308,11 +309,12 @@ public class AuthenticationFilter extends PwmFilter {
             return;
         }
 
-        //user isn't already authed and has an auth header, so try to auth them.
+        //user isn't already authenticated and has an auth header, so try to auth them.
         LOGGER.debug(pwmSession, "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.getUsername() + ")");
-        SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
-        sessionAuthenticator.authUserWithUnknownPassword(basicAuthInfo.getUsername(),AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
-
+        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
+        final UserIdentity userIdentity = userSearchEngine.resolveUsername(basicAuthInfo.getUsername(), null, null);
+        sessionAuthenticator.authenticateUser(userIdentity, basicAuthInfo.getPassword());
         pwmSession.getLoginInfoBean().setOriginalBasicAuthInfo(basicAuthInfo);
     }
 

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@ package password.pwm.http;
 
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletContextEvent;
@@ -52,19 +51,32 @@ public class HttpEventManager implements
 
     public void sessionCreated(final HttpSessionEvent httpSessionEvent)
     {
+        final HttpSession httpSession = httpSessionEvent.getSession();
         try {
-            // force an PwmSession object creation
-            PwmSession.getPwmSession(httpSessionEvent.getSession());
+            final ContextManager contextManager = ContextManager.getContextManager(httpSession);
+            contextManager.addHttpSession(httpSessionEvent.getSession());
+            httpSession.setAttribute(PwmConstants.SESSION_ATTR_CONTEXT_GUID,contextManager.getInstanceGuid());
+            LOGGER.trace("new http session created");
         } catch (PwmUnrecoverableException e) {
-            LOGGER.warn("error during PwmSession object creation: " + e.getMessage(),e);
+            LOGGER.warn("error during sessionCreated event: " + e.getMessage());
         }
-
     }
 
     public void sessionDestroyed(final HttpSessionEvent httpSessionEvent)
     {
         final HttpSession httpSession = httpSessionEvent.getSession();
-        httpSession.removeAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION);
+        try {
+            final ContextManager contextManager = ContextManager.getContextManager(httpSession);
+            contextManager.removeHttpSession(httpSession);
+            if (httpSession.getAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION) != null) {
+                final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(httpSession);
+                LOGGER.trace(pwmSession, "destroyed session");
+            } else {
+                LOGGER.trace("invalidated uninitialized session");
+            }
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.warn("error during httpSessionDestroyed: " + e.getMessage());
+        }
     }
 
 
@@ -103,9 +115,8 @@ public class HttpEventManager implements
     public void sessionWillPassivate(final HttpSessionEvent event)
     {
         try {
-            final PwmSession pwmSession = PwmSession.getPwmSession(event.getSession());
-            LOGGER.trace(pwmSession.getLabel(),"passivating session");
-            Helper.pause(10000);
+            final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(event.getSession());
+            LOGGER.trace(pwmSession.getLabel(), "passivating session");
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unable to passivate session: " + e.getMessage());
         }
@@ -114,9 +125,9 @@ public class HttpEventManager implements
     public void sessionDidActivate(final HttpSessionEvent event)
     {
         try {
-            final PwmSession pwmSession = PwmSession.getPwmSession(event.getSession());
+            final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(event.getSession());
             LOGGER.trace(pwmSession.getLabel(),"activating (de-passivating) session");
-            ContextManager.getContextManager(event.getSession()).addPwmSession(pwmSession);
+            ContextManager.getContextManager(event.getSession()).addHttpSession(event.getSession());
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unable to activate (de-passivate) session: " + e.getMessage());
         }

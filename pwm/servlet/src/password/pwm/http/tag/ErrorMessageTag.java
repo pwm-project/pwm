@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,13 +29,14 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
-import password.pwm.http.PwmSession;
+import password.pwm.http.PwmRequest;
 import password.pwm.util.Helper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspTagException;
 
 /**
@@ -54,21 +55,14 @@ public class ErrorMessageTag extends PwmAbstractTag {
     public int doEndTag()
             throws javax.servlet.jsp.JspTagException
     {
-        final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-
-
         try {
+            final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest)pageContext.getRequest(), (HttpServletResponse)pageContext.getResponse());
             PwmApplication pwmApplication = null;
             try {
                 pwmApplication = ContextManager.getPwmApplication(pageContext.getSession());
             } catch (PwmException e) { /* noop */ }
-            PwmSession pwmSession = null;
-            try {
-                pwmSession = PwmSession.getPwmSession(pageContext.getSession());
-            } catch (PwmException e) { /* noop */ }
 
-
-            final ErrorInformation error = (ErrorInformation)req.getAttribute(PwmConstants.REQUEST_ATTR_PWM_ERRORINFO);
+            final ErrorInformation error = (ErrorInformation)pwmRequest.getAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo);
 
             if (error != null) {
                 final boolean showErrorDetail = Helper.determineIfDetailErrorMsgShown(pwmApplication);
@@ -76,9 +70,9 @@ public class ErrorMessageTag extends PwmAbstractTag {
                 String outputMsg;
                 if (showErrorDetail) {
                     final String errorDetail = error.toDebugStr() == null ? "" : " { " + error.toDebugStr() + " }";
-                    outputMsg = error.toUserStr(pwmSession, pwmApplication) + errorDetail;
+                    outputMsg = error.toUserStr(pwmRequest.getPwmSession(), pwmApplication) + errorDetail;
                 }  else {
-                    outputMsg = error.toUserStr(pwmSession, pwmApplication);
+                    outputMsg = error.toUserStr(pwmRequest.getPwmSession(), pwmApplication);
                 }
 
                 final boolean allowHtml = pwmApplication != null && Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
@@ -86,8 +80,8 @@ public class ErrorMessageTag extends PwmAbstractTag {
                     outputMsg = StringUtil.escapeHtml(outputMsg);
                 }
 
-                if (pwmSession != null && pwmApplication != null) {
-                    final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
+                if (pwmRequest != null) {
+                    final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmApplication);
                     outputMsg = macroMachine.expandMacros(outputMsg);
                 }
 

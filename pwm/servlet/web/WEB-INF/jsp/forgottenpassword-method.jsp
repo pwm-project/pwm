@@ -28,7 +28,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-    final Set<password.pwm.config.option.RecoveryVerificationMethod> methods = new HashSet<password.pwm.config.option.RecoveryVerificationMethod>((Set<password.pwm.config.option.RecoveryVerificationMethod>)pwmRequest.getAttribute(PwmConstants.REQUEST_ATTR_AVAILABLE_AUTH_METHODS));
+    final Set<password.pwm.config.option.RecoveryVerificationMethod> methods = new HashSet<password.pwm.config.option.RecoveryVerificationMethod>((Set<password.pwm.config.option.RecoveryVerificationMethod>) JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.AvailableAuthMethods));
 %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -82,13 +82,6 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.getObject('username').focus();
-        });
-    </script>
-</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

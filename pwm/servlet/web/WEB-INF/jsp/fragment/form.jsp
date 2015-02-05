@@ -1,14 +1,15 @@
 <%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.bean.SessionStateBean" %>
+<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.http.ContextManager" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.PwmSession" %>
+<%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
 
 <%--
@@ -34,100 +35,98 @@
   --%>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% // read parameters from calling jsp;
-    final PwmSetting formSetting = (PwmSetting)request.getAttribute("form");
-    final boolean forceReadOnly = "true".equalsIgnoreCase((String)request.getAttribute("form-readonly"));
-    final boolean showPasswordFields = "true".equalsIgnoreCase((String)request.getAttribute("form_showPasswordFields"));
-    final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)request.getAttribute("formData");
-%>
 <%
-    boolean focusSet = false;
-    final PwmSession pwmSession = PwmSession.getPwmSession(session);
-    final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-    final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-    final List<FormConfiguration> formConfigurationList = pwmApplication.getConfig().readSettingAsForm(formSetting);
+    final PwmRequest formPwmRequest = PwmRequest.forRequest(request,response);
+    final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.FormConfiguration);
+%>
+<% if (formConfigurationList == null) { %>
+[ form definition is not available ]
+<% } else if (formConfigurationList.isEmpty()) { %>
+[ form containes no items ]
+<% } else { %>
+<%
+    final boolean forceReadOnly = (Boolean)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.FormReadOnly);
+    final boolean showPasswordFields = (Boolean)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.FormShowPasswordFields);
+    final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.FormData);
+
+    final PwmApplication pwmApplication = formPwmRequest.getPwmApplication();
+    final Locale formLocale = formPwmRequest.getLocale();
     for (FormConfiguration loopConfiguration : formConfigurationList) {
         String currentValue = formDataMap != null ? formDataMap.get(loopConfiguration) : "";
         currentValue = currentValue == null ? "" : currentValue;
         currentValue = StringUtil.escapeHtml(currentValue);
 
 %>
-<% if (loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
-<input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="hidden" class="inputfield"
-       name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
-<% } else if (loopConfiguration.getType().equals(FormConfiguration.Type.checkbox)) { %>
-<br/>
-<label class="checkboxWrapper">
-    <input id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" type="checkbox" <% if (!focusSet) { %> autofocus<% }; focusSet = true; %>/>
-    <%=loopConfiguration.getLabel(ssBean.getLocale())%>
-</label>
-<% } else { %>
-<h2>
-    <label for="<%=loopConfiguration.getName()%>"><%= loopConfiguration.getLabel(ssBean.getLocale()) %>
-        <%if(loopConfiguration.isRequired()){%>
-        <span style="font-style: italic; font-size: smaller" id="label_required_<%=loopConfiguration.getName()%>">*&nbsp;</span>
-        <pwm:script>
-        <script type="text/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                PWM_MAIN.showTooltip({
-                    id: "label_required_<%=loopConfiguration.getName()%>",
-                    text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(ssBean.getLocale(),pwmApplication.getConfig(),new String[]{loopConfiguration.getLabel(ssBean.getLocale())})%>',
-                    position: ['above']
-                });
-            });
-        </script>
-        </pwm:script>
-        <%}%>
+<div class="formFieldWrapper">
+    <% if (loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
+    <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="hidden" class="inputfield"
+           name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
+    <% } else if (loopConfiguration.getType().equals(FormConfiguration.Type.checkbox)) { %>
+    <label class="checkboxWrapper">
+        <input id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" type="checkbox" <pwm:autofocus/>/>
+        <%=loopConfiguration.getLabel(formLocale)%>
     </label>
-</h2>
-<% if (loopConfiguration.getDescription(ssBean.getLocale()) != null && loopConfiguration.getDescription(ssBean.getLocale()).length() > 0) { %>
-<p><%=loopConfiguration.getDescription(ssBean.getLocale())%></p>
-<% } %>
-<% boolean readonly = loopConfiguration.isReadonly() || forceReadOnly; %>
-<% if (readonly) { %>
-<span id="<%=loopConfiguration.getName()%>">
-        <span class="fa fa-chevron-circle-right"></span>
-    <%= currentValue %>
-</span>
-<% } else if (loopConfiguration.getType() == FormConfiguration.Type.select) { %>
-<select id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" style="width:20%;margin-left: 5px"<% if (!focusSet) { %> autofocus<% }; focusSet = true; %>>
-    <% for (final String optionName : loopConfiguration.getSelectOptions().keySet()) {%>
-    <option value="<%=optionName%>" <%if(optionName.equals(currentValue)){%>selected="selected"<%}%>>
-        <%=loopConfiguration.getSelectOptions().get(optionName)%>
-    </option>
+    <% } else { %>
+    <label for="<%=loopConfiguration.getName()%>">
+        <div class="formFieldLabel">
+            <%= loopConfiguration.getLabel(formLocale) %>
+            <%if(loopConfiguration.isRequired()){%>
+            <span style="font-style: italic; font-size: smaller" id="label_required_<%=loopConfiguration.getName()%>">*&nbsp;</span>
+            <%}%>
+        </div>
+    </label>
+    <% if (loopConfiguration.getDescription(formLocale) != null && loopConfiguration.getDescription(formLocale).length() > 0) { %>
+    <p><%=loopConfiguration.getDescription(formLocale)%></p>
     <% } %>
-</select>
-<% } else { %>
-<input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="<%=loopConfiguration.getType()%>" class="inputfield"
-       name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
+    <% boolean readonly = loopConfiguration.isReadonly() || forceReadOnly; %>
+    <% if (readonly) { %>
+        <span id="<%=loopConfiguration.getName()%>">
+        <span class="fa fa-chevron-circle-right"></span>
+        <%= currentValue %>
+        </span>
+    <% } else if (loopConfiguration.getType() == FormConfiguration.Type.select) { %>
+    <select id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" style="width:20%;margin-left: 5px" <pwm:autofocus/> >
+        <% for (final String optionName : loopConfiguration.getSelectOptions().keySet()) {%>
+        <option value="<%=optionName%>" <%if(optionName.equals(currentValue)){%>selected="selected"<%}%>>
+            <%=loopConfiguration.getSelectOptions().get(optionName)%>
+        </option>
+        <% } %>
+    </select>
+    <% } else { %>
+    <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="<%=loopConfiguration.getType()%>" class="inputfield"
+           name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
         <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
         <%if(loopConfiguration.isConfirmationRequired()) { %> onkeypress="PWM_MAIN.getObject('<%=loopConfiguration.getName()%>_confirm').value=''"<% } %>
-       maxlength="<%=loopConfiguration.getMaximumLength()%>"<% if (!focusSet) { %> autofocus<% }; focusSet = true; %>/>
-<% if (loopConfiguration.isConfirmationRequired() && !forceReadOnly && !loopConfiguration.isReadonly() && loopConfiguration.getType() != FormConfiguration.Type.hidden && loopConfiguration.getType() != FormConfiguration.Type.select) { %>
-<h2>
-    <label for="<%=loopConfiguration.getName()%>_confirm"><pwm:display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(ssBean.getLocale()) %><%if(loopConfiguration.isRequired()){%>*<%}%></label>
-</h2>
-<input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
-       name="<%=loopConfiguration.getName()%>_confirm"
-        <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
-        <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
-        <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>
-       maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
-<% } %>
-<% } %>
-<% } %>
-<% if (loopConfiguration.getJavascript() != null && loopConfiguration.getJavascript().length() > 0) { %>
-<pwm:script>
-<script type="text/javascript">
-    try {
-        <%=loopConfiguration.getJavascript()%>
-    } catch (e) {
-        console.log('error executing custom javascript for form field \'' + <%=loopConfiguration.getName()%> + '\', error: ' + e)
-    }
-</script>
-</pwm:script>
-<% } %>
+    <pwm:autofocus/> maxlength="<%=loopConfiguration.getMaximumLength()%>">
+    <% if (loopConfiguration.isConfirmationRequired() && !forceReadOnly && !loopConfiguration.isReadonly() && loopConfiguration.getType() != FormConfiguration.Type.hidden && loopConfiguration.getType() != FormConfiguration.Type.select) { %>
+    <label for="<%=loopConfiguration.getName()%>_confirm">
+        <div class="formFieldLabel">
+            <pwm:display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(formLocale) %>
+            <%if(loopConfiguration.isRequired()){%>*<%}%>
+        </div>
+    </label>
+    <input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
+           name="<%=loopConfiguration.getName()%>_confirm"
+            <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
+            <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
+            <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>
+           maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
+    <% } %>
+    <% } %>
+    <% } %>
+    <% if (loopConfiguration.getJavascript() != null && loopConfiguration.getJavascript().length() > 0) { %>
+    <pwm:script>
+        <script type="text/javascript">
+            try {
+                <%=loopConfiguration.getJavascript()%>
+            } catch (e) {
+                console.log('error executing custom javascript for form field \'' + <%=loopConfiguration.getName()%> + '\', error: ' + e)
+            }
+        </script>
+    </pwm:script>
+    <% } %>
+</div>
 <% } %>
 
 <% if (showPasswordFields) { %>
@@ -135,15 +134,15 @@
     <label for="password1"><pwm:display key="Field_NewPassword"/>
         <span style="font-style: italic;font-size:smaller" id="label_required_password">*&nbsp;</span>
         <pwm:script>
-        <script type="text/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                PWM_MAIN.showTooltip({
-                    id: "label_required_password",
-                    text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(ssBean.getLocale(),pwmApplication.getConfig(),new String[]{JspUtility.getMessage(pageContext,Display.Field_NewPassword)})%>',
-                    position: ['above']
+            <script type="text/javascript">
+                PWM_GLOBAL['startupFunctions'].push(function(){
+                    PWM_MAIN.showTooltip({
+                        id: "label_required_password",
+                        text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmApplication.getConfig(),new String[]{JspUtility.getMessage(pageContext,Display.Field_NewPassword)})%>',
+                        position: ['above']
+                    });
                 });
-            });
-        </script>
+            </script>
         </pwm:script>
     </label>
 </h2>
@@ -168,15 +167,15 @@
                 </div>
             </div>
             <pwm:script>
-            <script type="text/javascript">
-                PWM_GLOBAL['startupFunctions'].push(function(){
-                    PWM_MAIN.showTooltip({
-                        id: ["strengthBox"],
-                        text: PWM_MAIN.showString('Tooltip_PasswordStrength'),
-                        width: 350
+                <script type="text/javascript">
+                    PWM_GLOBAL['startupFunctions'].push(function(){
+                        PWM_MAIN.showTooltip({
+                            id: ["strengthBox"],
+                            text: PWM_MAIN.showString('Tooltip_PasswordStrength'),
+                            width: 350
+                        });
                     });
-                });
-            </script>
+                </script>
             </pwm:script>
             <% } %>
         </td>
@@ -199,3 +198,18 @@
     </tr>
 </table>
 <% } %>
+<% } %>
+
+<%--
+<pwm:script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.showTooltip({
+                id: "label_required_<%=loopConfiguration.getName()%>",
+                text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmApplication.getConfig(),new String[]{loopConfiguration.getLabel(formLocale)})%>',
+                position: ['above']
+            });
+        });
+    </script>
+</pwm:script>
+--%>

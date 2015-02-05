@@ -71,14 +71,16 @@
                             <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/>
                         </div>
                     </div>
-                    <form action="<pwm:url url="Administration"/>" method="post">
-                        <button type="submit" class="btn" id="button-downloadUserSummaryCsv">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
-                            <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
-                        </button>
-                        <input type="hidden" name="processAction" value="downloadUserSummaryCsv"/>
-                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                    </form>
+                    <div style="text-align: center">
+                        <form action="<pwm:url url="Administration"/>" method="post">
+                            <button type="submit" class="btn" id="button-downloadUserSummaryCsv">
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
+                                <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
+                            </button>
+                            <input type="hidden" name="processAction" value="downloadUserSummaryCsv"/>
+                            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                        </form>
+                    </div>
                 </div>
                 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_DataViewer" bundle="Admin"/>" class="tabContent">
                     <div id="grid">
@@ -122,10 +124,10 @@
                     </pwm:script>
                 </div>
                 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_ReportEngineStatus" bundle="Admin"/>" class="tabContent">
-                    <table style="width:400px" id="statusTable">
+                    <table style="width:450px" id="statusTable">
                         <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
                     </table>
-                    <table style="width:400px;">
+                    <table style="width:450px;">
                         <tr><td style="text-align: center; text-decoration: no-underline; cursor: pointer">
                             <button id="reportStartButton" class="btn">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-play">&nbsp;</span></pwm:if>
@@ -221,9 +223,9 @@
                     </div>
 
                 </div>
+            </div>
         </div>
     </div>
-</div>
 </div>
 <div class="push">
 </div>

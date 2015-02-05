@@ -32,7 +32,6 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ForceSetupPolicy;
-import password.pwm.config.option.OTPStorageFormat;
 import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -396,13 +395,9 @@ public class SetupOtpServlet extends PwmServlet {
                 final String identifierConfigValue = config.readSettingAsString(PwmSetting.OTP_SECRET_IDENTIFIER);
                 final String identifier = pwmSession.getSessionManager().getMacroMachine(pwmApplication).expandMacros(identifierConfigValue);
                 final OTPUserRecord otpUserRecord = new OTPUserRecord();
-                final OTPStorageFormat format = config.readSettingAsEnum(PwmSetting.OTP_SECRET_STORAGEFORMAT,OTPStorageFormat.class);
-                final List<String> rawRecoveryCodes = OtpService.initializeUserRecord(
+                final List<String> rawRecoveryCodes = pwmApplication.getOtpService().initializeUserRecord(
                         otpUserRecord,
-                        identifier,
-                        OTPUserRecord.Type.TOTP,
-                        format,
-                        PwmConstants.OTP_RECOVERY_TOKEN_COUNT
+                        identifier
                 );
                 otpBean.setOtpUserRecord(otpUserRecord);
                 otpBean.setRecoveryCodes(rawRecoveryCodes);

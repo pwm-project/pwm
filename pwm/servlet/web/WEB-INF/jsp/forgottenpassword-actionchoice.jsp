@@ -4,7 +4,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -96,13 +96,6 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.getObject('username').focus();
-    });
-</script>
-</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

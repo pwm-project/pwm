@@ -64,7 +64,7 @@ public abstract class PwmConstants {
                 ? MISSING_VERSION_STRING
                 : servletVersion;
     }
-    
+
     public static final String CHAI_API_VERSION = com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION + " (" + com.novell.ldapchai.ChaiConstant.CHAI_API_BUILD_INFO + ")";
 
     public static final String DEFAULT_CONFIG_FILE_FILENAME = readPwmConstantsBundle("defaultConfigFilename");
@@ -101,7 +101,7 @@ public abstract class PwmConstants {
 
     public static final String RECAPTCHA_VALIDATE_URL = readPwmConstantsBundle("recaptchaValidateUrl");
 
-    private static final String SESSION_LABEL_SESSION_ID = "-";
+    private static final String SESSION_LABEL_SESSION_ID = "#";
     public static final SessionLabel REPORTING_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"reporting",null,null);
     public static final SessionLabel HEALTH_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"health",null,null);
     public static final SessionLabel CLI_SESSION_LABEL= new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"cli",null,null);
@@ -110,8 +110,6 @@ public abstract class PwmConstants {
 
     public static final String LDAP_AD_PASSWORD_POLICY_CONTROL_ASN = "1.2.840.113556.1.4.2066";
     public static final String PROFILE_ID_ALL = "all";
-    public static final String DEFAULT_PASSWORD_PROFILE = "";
-    public static final String DEFAULT_CHALLENGE_PROFILE = "";
 
     public static final String TOKEN_KEY_PWD_CHG_DATE = "lastPwdChange";
     public static final String UNCONFIGURED_URL_VALUE = "[UNCONFIGURED_URL]";
@@ -128,14 +126,24 @@ public abstract class PwmConstants {
     public static final String CONTEXT_ATTR_RESOURCE_HIT_AVG = "ResourceFileServlet-HitAvg";
 
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
+    public static final String SESSION_ATTR_CONTEXT_GUID = "ContextInstanceGUID";
 
-    public static final String REQUEST_ATTR_PWM_ERRORINFO = "PwmErrorInfo";
-    public static final String REQUEST_ATTR_PWM_REQUEST = "PwmRequest";
-    public static final String REQUEST_ATTR_ORIGINAL_URI = "OriginalUri";
-    public static final String REQUEST_ATTR_AGREEMENT_TEXT = "AgreementText";
-    public static final String REQUEST_ATTR_COMPLETE_TEXT = "CompleteText";
-    public static final String REQUEST_ATTR_AVAILABLE_AUTH_METHODS = "AvailableAuthMethods";
-    
+    public static enum REQUEST_ATTR {
+        PwmErrorInfo,
+        PwmRequest,
+        OriginalUri,
+        AgreementText,
+        CompleteText,
+        AvailableAuthMethods,
+        ConfigurationSummaryOutput,
+
+        FormConfiguration,
+        FormReadOnly,
+        FormShowPasswordFields,
+        FormData,
+    }
+
+
     public static final String DOWNLOAD_FILENAME_STATISTICS_CSV = "Statistics.csv";
     public static final String DOWNLOAD_FILENAME_USER_REPORT_SUMMARY_CSV = "UserReportSummary.csv";
     public static final String DOWNLOAD_FILENAME_USER_REPORT_RECORDS_CSV = "UserReportRecords.csv";
@@ -193,6 +201,7 @@ public abstract class PwmConstants {
         NEW_USER("newuser.jsp"),
         NEW_USER_ENTER_CODE("newuser-entercode.jsp"),
         NEW_USER_WAIT("newuser-wait.jsp"),
+        NEW_USER_PROFILE_CHOICE("newuser-profilechoice.jsp"),
         NEW_USER_AGREEMENT("newuser-agreement.jsp"),
         GUEST_REGISTRATION("guest-create.jsp"),
         GUEST_UPDATE("guest-update.jsp"),
@@ -305,14 +314,6 @@ public abstract class PwmConstants {
 
     };
 
-    public final static int TOTP_PAST_INTERVALS = 1;    // Allows one older TOTP token - compensate for clock out of sync
-    public final static int TOTP_FUTURE_INTERVALS = 1;  // Allows one newer TOTP token - compensate for clock out of sync
-    public final static int TOTP_INTERVAL = 30;         // 30 second interval
-    public final static int OTP_TOKEN_LENGTH = 6;
-    public final static int OTP_RECOVERY_TOKEN_LENGTH = 8;
-    public final static int OTP_RECOVERY_TOKEN_COUNT = 5;
-    public final static int OTP_RECOVERY_HASH_COUNT = 1000;
-    public final static String OTP_RECOVERY_HASH_METHOD = "SHA1";
 
     private static String readPwmConstantsBundle(final String key) {
         return  ResourceBundle.getBundle(PwmConstants.class.getName()).getString(key);
@@ -346,7 +347,7 @@ public abstract class PwmConstants {
         private final Class theClass;
         private final boolean adminOnly;
         private Set<String> keys = null;
-        
+
         PwmLocaleBundle(final Class theClass, final boolean adminOnly) {
             this.theClass = theClass;
             this.adminOnly = adminOnly;

@@ -59,7 +59,7 @@ import java.util.*;
  *
  * @author Jason D. Rivard
  */
-public class SessionFilter extends PwmFilter {
+public class SessionFilter extends AbstractPwmFilter {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(SessionFilter.class);
@@ -68,15 +68,14 @@ public class SessionFilter extends PwmFilter {
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
     )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmRequest.getConfig();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final PwmResponse resp = pwmRequest.getPwmResponse();
 
-        ServletHelper.handleRequestInitialization(pwmRequest.getHttpServletRequest(), pwmApplication, pwmSession);
+        ServletHelper.handleRequestInitialization(pwmRequest, pwmApplication, pwmSession);
 
         try {
             ServletHelper.handleRequestSecurityChecks(pwmRequest.getHttpServletRequest(), pwmApplication, pwmSession);
@@ -84,7 +83,7 @@ public class SessionFilter extends PwmFilter {
             LOGGER.error(pwmRequest, e.getErrorInformation());
             pwmRequest.respondWithError(e.getErrorInformation());
             if (PwmError.ERROR_INTRUDER_SESSION != e.getError()) {
-                pwmSession.invalidate();
+                pwmRequest.invalidateSession();
             }
             return;
         }
@@ -109,7 +108,7 @@ public class SessionFilter extends PwmFilter {
         // check the page leave notice
         if (checkPageLeaveNotice(pwmSession, config)) {
             LOGGER.warn("invalidating session due to dirty page leave time greater then configured timeout");
-            pwmSession.invalidate();
+            pwmRequest.invalidateSession();
             resp.sendRedirect(pwmRequest.getHttpServletRequest().getRequestURI());
             return;
         }
@@ -219,8 +218,7 @@ public class SessionFilter extends PwmFilter {
             final PwmRequest pwmRequest,
             final SessionVerificationMode mode
     )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final PwmResponse pwmResponse = pwmRequest.getPwmResponse();
@@ -240,7 +238,7 @@ public class SessionFilter extends PwmFilter {
 
             pwmResponse.setHeader(PwmConstants.HttpHeader.Connection, "close");  // better chance of detecting un-sticky sessions this way
             if (mode == SessionVerificationMode.VERIFY_AND_CACHE) {
-                req.setAttribute("Location",returnURL);
+                req.setAttribute("Location", returnURL);
                 pwmResponse.forwardToJsp(PwmConstants.JSP_URL.INIT);
             } else {
                 pwmResponse.sendRedirect(returnURL);
@@ -261,7 +259,7 @@ public class SessionFilter extends PwmFilter {
 
         // user's session is messed up.  send to error page.
         final String errorMsg = "client unable to reply with session key";
-        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION,errorMsg);
+        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION, errorMsg);
         LOGGER.error(pwmRequest, errorInformation);
         pwmRequest.respondWithError(errorInformation, true);
         return true;
@@ -274,7 +272,7 @@ public class SessionFilter extends PwmFilter {
             sb.append("?");
         }
         for (final Enumeration paramEnum = req.getParameterNames(); paramEnum.hasMoreElements(); ) {
-            final String paramName = (String)paramEnum.nextElement();
+            final String paramName = (String) paramEnum.nextElement();
 
             // check to make sure param is in query string
             if (req.getQueryString() != null && req.getQueryString().contains(StringUtil.urlDecode(paramName))) {
@@ -329,15 +327,14 @@ public class SessionFilter extends PwmFilter {
     private static void handleLocaleParam(
             final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException
-    {
+            throws PwmUnrecoverableException {
         final Configuration config = pwmRequest.getConfig();
         final String localeParamName = config.readAppProperty(AppProperty.HTTP_PARAM_NAME_LOCALE);
         final String localeCookieName = config.readAppProperty(AppProperty.HTTP_COOKIE_LOCALE_NAME);
         final String requestedLocale = pwmRequest.readParameterAsString(localeParamName);
-        final int cookieAgeSeconds = (int)pwmRequest.getConfig().readSettingAsLong(PwmSetting.LOCALE_COOKIE_MAX_AGE);
+        final int cookieAgeSeconds = (int) pwmRequest.getConfig().readSettingAsLong(PwmSetting.LOCALE_COOKIE_MAX_AGE);
         if (requestedLocale != null && requestedLocale.length() > 0) {
-            LOGGER.debug(pwmRequest, "detected locale request parameter " + localeParamName+ " with value " + requestedLocale);
+            LOGGER.debug(pwmRequest, "detected locale request parameter " + localeParamName + " with value " + requestedLocale);
             if (pwmRequest.getPwmSession().setLocale(pwmRequest.getPwmApplication(), requestedLocale)) {
                 if (cookieAgeSeconds > 0) {
                     final Cookie newCookie = new Cookie(localeCookieName, requestedLocale);
@@ -352,8 +349,7 @@ public class SessionFilter extends PwmFilter {
     private static void handleThemeParam(
             final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException
-    {
+            throws PwmUnrecoverableException {
         final Configuration config = pwmRequest.getConfig();
         final String themeParameterName = config.readAppProperty(AppProperty.HTTP_PARAM_NAME_THEME);
         final String themeReqParameter = pwmRequest.readParameterAsString(themeParameterName);

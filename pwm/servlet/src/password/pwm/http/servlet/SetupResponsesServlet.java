@@ -152,7 +152,7 @@ public class SetupResponsesServlet extends PwmServlet {
         final SetupResponsesAction action = readProcessAction(pwmRequest);
 
         if (action != null) {
-            Validator.validatePwmFormID(pwmRequest.getHttpServletRequest());
+            Validator.validatePwmFormID(pwmRequest);
 
             switch (action) {
                 case validateResponses:

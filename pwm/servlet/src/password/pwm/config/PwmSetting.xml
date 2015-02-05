@@ -673,9 +673,6 @@
         <default>
             <value>true</value>
         </default>
-        <options>
-            <option value="HideForDefaultProfile">true</option>
-        </options>
     </setting>
     <setting key="ldap.username.attr" level="2">
         <label>Attribute to use for Username</label>
@@ -1091,12 +1088,9 @@
     <setting key="password.policy.queryMatch" level="1">
         <label>Password Policy Profile Match</label>
         <description><![CDATA[Settings here are used to determine if this password policy applies to a given user.  During login, if a previous policy has not yet been assigned to the user, the matches here are considered and if positive, the user will then be assigned this policy.]]></description>
-        <default>
-            <value><![CDATA[]]></value>
+        <default syntaxVersion="2">
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
-        <options>
-            <option value="HideForDefaultProfile">true</option>
-        </options>
     </setting>
     <setting key="password.policy.source" level="1" required="true">
         <label>Password Policy Source</label>
@@ -2008,6 +2002,13 @@
             <value><![CDATA[@User:Email@]]></value>
         </default>
     </setting>
+    <setting key="otp.secret.recoveryCodes" level="2" required="true">
+        <label>OTP Recovery Codes</label>
+        <description><![CDATA[Number of OTP recovery codes to supply to user.  Recovery codes can be used one time each to authenticate and are intended for occasions when the user looses access to their OTP device.  Set to zero to disable recovery codes.  Not all storage formats support recovery codes.]]></description>
+        <default>
+            <value>5</value>
+        </default>
+    </setting>
     <setting key="events.java.stdoutLevel" level="1">
         <label>Java StdOut Log Level</label>
         <description><![CDATA[Default Log level for stdout.  Most servlet containers will redirect stdout to a log file.  For example, tomcat logs stdout output to the <i>tomcat/logs/catalina.out</i> file by default.]]></description>
@@ -2296,12 +2297,9 @@
     <setting key="challenge.policy.queryMatch" level="1">
         <label>Challenge Profile Match</label>
         <description><![CDATA[Challenge Profile Match]]></description>
-        <default>
-            <value><![CDATA[]]></value>
+        <default syntaxVersion="2">
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
-        <options>
-            <option value="HideForDefaultProfile">true</option>
-        </options>
     </setting>
     <setting key="recovery.enable" level="1">
         <label>Enable Forgotten Password</label>
@@ -2310,10 +2308,6 @@
             <value>true</value>
         </default>
     </setting>
-
-
-
-
     <setting key="recovery.form" level="1" required="true">
         <label>Forgotten Password User Search Form</label>
         <description><![CDATA[Form fields for activate user module.  Each attribute will be required to be entered by the user.  Ideally, the user will be required to enter some personal data that is not publicly known.]]></description>
@@ -2391,7 +2385,7 @@
         <label>Responses Storage Hashing Method</label>
         <description><![CDATA[<p>The method of Hashing used to store responses.  Storing the responses as plaintext may facilitate synchronization or migration to other systems.</p><p>This setting only controls the writing of the responses.  Stored responses in other formats can always be read.]]></description>
         <default>
-            <value>SHA1_SALT</value>
+            <value>PBKDF2</value>
         </default>
         <options>
             <option value="TEXT">None (Plaintext)</option>
@@ -2525,6 +2519,14 @@
             <value>false</value>
         </default>
     </setting>
+    <setting key="newUser.profile.list" level="1" hidden="true">
+        <label>NewUser Profile</label>
+        <description><![CDATA[Forgotten Password Profile List]]></description>
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
     <setting key="newUser.createContext" level="1" required="true">
         <label>Creation Context</label>
         <description><![CDATA[LDAP context for new users to be created in.  Macros are permitted in this setting.  The Default LDAP profile will always be used for new user creation.]]></description>
@@ -2593,7 +2595,7 @@
         </default>
     </setting>
     <setting key="newUser.passwordPolicy.user" level="1" required="true">
-        <label>1assword Policy Template</label>
+        <label>Password Policy Template</label>
         <description><![CDATA[User to use as template for password policy.  The user specified here will be used as a 'template' for the new user password policy.  If the value is <i>TESTUSER</i>, the configured test user's password policy will be used.]]></description>
         <default>
             <value><![CDATA[TESTUSER]]></value>
@@ -2604,6 +2606,13 @@
         <description><![CDATA[During a new user creation, the user will be delayed for at least this amount of time before forwarding the user to the next activity.  <br/><br/>Value is specified in seconds.]]></description>
         <default>
             <value>10</value>
+        </default>
+    </setting>
+    <setting key="newUser.profile.displayName" level="1">
+        <label>Profile Display Name</label>
+        <description><![CDATA[[Publicly viewable display name of this profile.]]></description>
+        <default>
+            <value></value>
         </default>
     </setting>
     <setting key="guest.enable" level="1" required="true">
@@ -2623,8 +2632,8 @@
     <setting key="guest.adminGroup" level="1" required="true">
         <label>Guest Admin Query String</label>
         <description><![CDATA[Query string used to detect if a user is a guest administrator. An LDAP query is performed during login against the logged in user to determine if the user is a guest administrator. If the user matches the query, then the user is considered a guest administrator.]]></description>
-        <default>
-            <value><![CDATA[(groupMembership=cn=useradmins,ou=groups,o=example)]]></value>
+        <default syntaxVersion="2">
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=GuestAdministrators,ou=groups,o=example"}]]></value>
         </default>
     </setting>
     <setting key="guest.form" level="1" required="true">
@@ -3190,6 +3199,10 @@
         <default>
             <value>500</value>
         </default>
+        <options>
+            <option value="min">1</option>
+            <option value="max">10000</option>
+        </options>
     </setting>
     <setting key="helpdesk.setPassword.mode" level="1">
         <label>Set Password UI Mode</label>
@@ -3479,19 +3492,20 @@
             <value><![CDATA[NONE]]></value>
         </default>
         <options>
+            <option value="NONE">None - Token verification will not be available</option>
             <option value="EMAILONLY">Email Only - Send to email address</option>
             <option value="SMSONLY">SMS Only - Send via SMS</option>
             <option value="BOTH">Both - Send token to both email and SMS</option>
             <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
-            <option value="CHOICE_SMS_EMAIL">User Choice - If both SMS and email address is available, user decides</option>
+            <option value="CHOICE_SMS_EMAIL">Operator Choice - If both SMS and email address is available, helpdesk operator decides</option>
         </options>
     </setting>
     <setting key="helpdesk.otp.verify" level="1">
-        <label>Enable OTP Verification</label>
+        <label>Enable OTP Verification Button</label>
         <description><![CDATA[Enable OTP Verificaton.]]></description>
         <default>
-            <value>true</value>
+            <value>false</value>
         </default>
     </setting>
     <setting key="pwmDb.location" level="2" required="true">
@@ -4203,7 +4217,6 @@
         <label>Settings</label>
         <description><![CDATA[Policies for forgotten password configuration.]]></description>
     </category>
-
     <category key="RECOVERY_PROFILE" profiles="true" hidden="false">
         <label>Profiles</label>
         <description><![CDATA[Policies for forgotten password configuration.]]></description>
@@ -4216,6 +4229,15 @@
     <category key="NEWUSER">
         <label>New User Registration</label>
         <description><![CDATA[New user self registration settings.  The new user registration module requires that the proxy user has sufficient permissions to create users and, if so configured, to check for duplicate values.  New users are created in the default LDAP directory profile.]]></description>
+    </category>
+    <category key="NEWUSER_SETTINGS">
+        <label>Settings</label>
+        <description><![CDATA[New user self registration settings.  The new user registration module requires that the proxy user has sufficient permissions to create users and, if so configured, to check for duplicate values.  New users are created in the default LDAP directory profile.]]></description>
+    </category>
+    <category key="NEWUSER_PROFILE" profiles="true">
+        <label>Profiles</label>
+        <description><![CDATA[New user self registration settings.  The new user registration module requires that the proxy user has sufficient permissions to create users and, if so configured, to check for duplicate values.  New users are created in the default LDAP directory profile.]]></description>
+        <profile setting="newUser.profile.list"/>
     </category>
     <category key="GUEST" hidden="false">
         <label>Guest Registration</label>
@@ -4239,7 +4261,7 @@
     </category>
     <category key="HELPDESK_PROFILE">
         <label>Helpdesk Profile</label>
-        <description><![CDATA[Profile for helpdesk activities..]]></description>
+        <description><![CDATA[Profile for helpdesk activities.]]></description>
         <profile setting="helpdesk.profile.list"/>
     </category>
     <template key="NOVL">

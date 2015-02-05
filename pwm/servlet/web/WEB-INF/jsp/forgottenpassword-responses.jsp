@@ -53,9 +53,9 @@ this is handled this way so on browsers where hiding fields is not possible, the
             <h2><label for="PwmResponse_R_<%=counter%>"><%= loopChallenge.getChallengeText() %>
             </label></h2>
             <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_<%= counter %>" class="inputfield passwordfield" maxlength="255"
-                   id="PwmResponse_R_<%=counter%>" required="required"/>
+                   <pwm:autofocus/> id="PwmResponse_R_<%=counter%>" required="required"/>
             <% } %>
-            <div id="buttonbar">
+            <div class="buttonbar">
                 <input type="hidden" name="processAction" value="checkResponses"/>
                 <button type="submit" name="checkResponses" class="btn" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
@@ -83,7 +83,6 @@ this is handled this way so on browsers where hiding fields is not possible, the
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_RESPONSES.startupResponsesPage();
-        document.forms.responseForm.elements[0].focus();
     });
 
     function handleCancelClick() {

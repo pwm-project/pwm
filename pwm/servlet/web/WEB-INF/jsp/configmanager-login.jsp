@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -46,8 +45,8 @@
               class="pwm-form">
             <h1>Configuration Password</h1>
             <br class="clear"/>
-            <input type="<pwm:value name="passwordFieldType"/>" class="inputfield passwordfield" name="password" id="password" autofocus/>
-            <div id="buttonbar">
+            <input type="<pwm:value name="passwordFieldType"/>" class="inputfield passwordfield" name="password" id="password" <pwm:autofocus/>/>
+            <div class="buttonbar">
                 <label class="checkboxWrapper">
                     <input type="checkbox" id="remember" name="remember"/>
                     Remember Password for 1 Hour
@@ -64,13 +63,6 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.getObject('password').focus();
-    });
-</script>
-</pwm:script>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE);%>
 <%@ include file="fragment/footer.jsp" %>
 </body>

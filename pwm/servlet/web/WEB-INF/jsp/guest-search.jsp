@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -31,22 +31,20 @@
         <jsp:param name="pwm.PageName" value="Title_GuestUpdate"/>
     </jsp:include>
     <div id="centerbody">
-        <p id="registration-menu-bar" style="text-align:center;">
-            <a class="menubutton" href="GuestRegistration?menuSelect=create&pwmFormID=<pwm:FormID/>"><pwm:display key="Title_GuestRegistration"/></a>
-            &nbsp;&nbsp;&nbsp;
-            <a class="menubutton" href="GuestRegistration?menuSelect=search&pwmFormID=<pwm:FormID/>"><pwm:display key="Title_GuestUpdate"/></a>
-        </p>
-        <br/>
+        <%@ include file="fragment/guest-nav.jsp"%>
         <p><pwm:display key="Display_GuestUpdate"/></p>
-                                                                                      co
+                                                                                      
         <form action="<pwm:url url='GuestRegistration'/>" method="post" enctype="application/x-www-form-urlencoded" name="searchForm" class="pwm-form" id="searchForm">
             <%@ include file="fragment/message.jsp" %>
             <h2><label for="username"><pwm:display key="Field_Username"/></label></h2>
             <input type="text" id="username" name="username" class="inputfield"/>
 
-            <div id="buttonbar">
+            <div class="buttonbar">
                 <input type="hidden" name="processAction" value="search"/>
-                <input type="submit" class="btn" name="search" value="<pwm:display key="Button_Search"/>" id="submitBtn"/>
+                <button type="submit" class="btn" name="search" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-search"></span></pwm:if>
+                    <pwm:display key="Button_Search"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
     </jsp:include>
     <div id="centerbody">
         <%
-            final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
+            final ForgottenPasswordBean fpb = JspUtility.getPwmSession(pageContext).getForgottenPasswordBean();
             OTPUserRecord otp = fpb.getUserInfo().getOtpUserRecord();
             String identifier = otp.getIdentifier();
 
@@ -48,7 +48,7 @@
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>
             <input type="text" pattern="[0-9]*" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield" required="required" autofocus/>
-            <div id="buttonbar">
+            <div class="buttonbar">
                 <button type="submit" class="btn" name="search" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
                     <pwm:display key="Button_CheckCode"/>
@@ -62,13 +62,6 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function() {
-        PWM_MAIN.getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();
-    });
-</script>
-</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

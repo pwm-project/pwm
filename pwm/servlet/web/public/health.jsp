@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.PwmSessionWrapper" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -31,10 +32,10 @@
 <html dir="<pwm:LocaleOrientation/>">
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% try { PwmSession.getPwmSession(session).unauthenticateUser(); } catch (Exception e) { }%>
+<% try { JspUtility.getPwmSession(pageContext).unauthenticateUser(); } catch (Exception e) { }%>
 <%
     if (!ContextManager.getPwmApplication(request).getConfig().readSettingAsBoolean(PwmSetting.ENABLE_EXTERNAL_WEBSERVICES)) {
-        final Locale locale = PwmSession.getPwmSession(request).getSessionStateBean().getLocale();
+        final Locale locale = PwmSessionWrapper.readPwmSession(request).getSessionStateBean().getLocale();
         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,
                 "Configuration setting " + PwmSetting.ENABLE_EXTERNAL_WEBSERVICES.toMenuLocationDebug(null,locale) + " must be enabled for this page to function.");
         PwmRequest.forRequest(request,response).respondWithError(errorInformation);

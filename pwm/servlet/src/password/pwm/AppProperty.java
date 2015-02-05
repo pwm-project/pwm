@@ -113,6 +113,7 @@ public enum AppProperty {
     HEALTH_LDAP_CAUTION_DURATION_MS                 ("health.ldap.cautionDurationMS"),
     HEALTH_JAVA_MAX_THREADS                         ("health.java.maxThreads"),
     HEALTH_JAVA_MIN_HEAP_BYTES                      ("health.java.minHeapBytes"),
+    HELPDESK_TOKEN_VALUE                            ("helpdesk.token.value"),
     LDAP_CHAI_SETTINGS                              ("ldap.chaiSettings"),
     LDAP_CONNECTION_TIMEOUT                         ("ldap.connection.timeoutMS"),
     LDAP_PROFILE_RETRY_DELAY                        ("ldap.profile.retryDelayMS"),
@@ -135,6 +136,18 @@ public enum AppProperty {
     OAUTH_ID_ACCESS_GRANT_TYPE                      ("oauth.id.accessGrantType"),
     OAUTH_ID_REFRESH_GRANT_TYPE                     ("oauth.id.refreshGrantType"),
     OAUTH_ENABLE_TOKEN_REFRESH                      ("oauth.enableTokenRefresh"),
+
+    /* Allows one older TOTP token - compensate for clock out of sync */
+    TOTP_PAST_INTERVALS                             ("otp.totp.pastIntervals"),
+    
+    /* Allows one newer TOTP token - compensate for clock out of sync */
+    TOTP_FUTURE_INTERVALS                           ("otp.totp.futureIntervals"),
+    
+    TOTP_INTERVAL                                   ("otp.totp.intervalSeconds"),
+    OTP_TOKEN_LENGTH                                ("otp.token.length"),
+    OTP_RECOVERY_TOKEN_MACRO                        ("otp.recovery.macro"),
+    OTP_RECOVERY_HASH_COUNT                         ("otp.recoveryHash.iterations"),
+    OTP_RECOVERY_HASH_METHOD                        ("otp.recoveryHash.method"),
     PASSWORD_RANDOMGEN_MAX_ATTEMPTS                 ("password.randomGenerator.maxAttempts"),
     PASSWORD_RANDOMGEN_MAX_LENGTH                   ("password.randomGenerator.maxLength"),
     PASSWORD_RANDOMGEN_JITTER_COUNT                 ("password.randomGenerator.jitter.count"),

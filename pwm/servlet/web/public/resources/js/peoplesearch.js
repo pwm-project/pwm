@@ -34,11 +34,11 @@ PWM_PS.processPeopleSearch = function() {
     validationProps['ajaxTimeout'] = 120 * 1000;
     validationProps['usernameField'] = PWM_MAIN.getObject('username').value;
     validationProps['readDataFunction'] = function(){
-        PWM_MAIN.getObject('searchIndicator').style.visibility = 'visible';
+        PWM_MAIN.getObject('searchIndicator').style.display = 'inherit';
         return { username:PWM_MAIN.getObject('username').value }
     };
     validationProps['completeFunction'] = function() {
-        PWM_MAIN.getObject('searchIndicator').style.visibility = 'hidden';
+        PWM_MAIN.getObject('searchIndicator').style.display = 'none';
     };
     validationProps['processResultsFunction'] = function(data) {
         var grid = PWM_VAR['peoplesearch_search_grid'];
@@ -46,6 +46,7 @@ PWM_PS.processPeopleSearch = function() {
             PWM_MAIN.showError("error: " + data['errorMessage']);
             grid.refresh();
         } else {
+
             var gridData = data['data']['searchResults'];
             var sizeExceeded = data['data']['sizeExceeded'];
             grid.refresh();
@@ -61,10 +62,17 @@ PWM_PS.processPeopleSearch = function() {
                     console.log('ignoring dupe detail request event');
                 }
             });
+
+            if (sizeExceeded) {
+                PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
+                PWM_MAIN.showTooltip({id:'maxResultsIndicator',position:'below',text:PWM_MAIN.showString('Display_SearchResultsExceeded')})
+            } else {
+                PWM_MAIN.getObject('maxResultsIndicator').style.display = 'none';
+            }
         }
     };
     PWM_MAIN.pwmFormValidator(validationProps);
-    PWM_MAIN.getObject('maxResultsIndicator').style.visibility = 'hidden';
+    PWM_MAIN.getObject('maxResultsIndicator').style.display = 'none';
 };
 
 PWM_PS.convertDetailResultToHtml = function(data) {
@@ -210,7 +218,6 @@ PWM_PS.initPeopleSearchPage = function() {
         PWM_MAIN.addEventHandler('username', "keyup, input", function(){
             PWM_PS.processPeopleSearch();
         });
-        PWM_MAIN.getObject('username').focus();
         if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
             PWM_PS.processPeopleSearch();
         }

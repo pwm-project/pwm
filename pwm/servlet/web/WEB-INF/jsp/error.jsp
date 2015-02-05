@@ -34,9 +34,8 @@
     } catch (PwmException e) {
         /* noop */
     }
-    final ErrorInformation errorInfo = (ErrorInformation)request.getAttribute(PwmConstants.REQUEST_ATTR_PWM_ERRORINFO);
-
 %>
+<% final ErrorInformation errorInformation = (ErrorInformation)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.PwmErrorInfo); %>
 <html dir="<pwm:LocaleOrientation/>">
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
@@ -49,15 +48,15 @@
     </jsp:include>
     <div id="centerbody">
         <br/>
-        <h2><%=PwmConstants.PWM_APP_NAME%>&nbsp;<%=errorInfo == null ? "" : errorInfo.getError().getErrorCode()%></h2>
+        <h2><%=PwmConstants.PWM_APP_NAME%>&nbsp;<%=errorInformation == null ? "" : errorInformation.getError().getErrorCode()%></h2>
         <br/>
         <br/>
         <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
         <br/>
         <br/>
         <pwm:if test="showErrorDetail">
-        <% if (errorInfo != null && !errorInfo.getError().isErrorIsPermanent()) { %>
-        <div id="buttonbar">
+        <% if (errorInformation != null && !errorInformation.getError().isErrorIsPermanent()) { %>
+        <div class="buttonbar">
             <form action="<pwm:context/>/public/<pwm:url url='CommandServlet'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <input type="hidden" name="processAction" value="continue"/>

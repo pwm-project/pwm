@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -54,25 +54,20 @@
         <jsp:param name="pwm.PageName" value="Title_PeopleSearch"/>
     </jsp:include>
     <div id="centerbody" class="wide">
-        <div id="searchControlPanel" style="position: relative; margin-left: auto; margin-right: auto; width: 100%; text-align: center">
+        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+
+        <div id="searchControlPanel" style="position: relative; margin-left: auto; margin-right: auto; width: 100%; text-align: center;">
             <br/>
-            <table class="noborder" style="; margin-left: auto; margin-right: auto; width:100px" >
+            <table class="noborder" style="margin-left: auto; margin-right: auto; width:100px; table-layout: fixed" >
                 <tr>
-                    <td colspan="10">
-                        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+                    <td style="width:400px">
+                        <input type="search" id="username" name="username" class="peoplesearch-input-username" <pwm:autofocus/> autocomplete="off"/>
                     </td>
-                </tr>
-                <tr>
-                    <td>
-                        <input type="search" id="username" name="username" class="peoplesearch-input-username" autofocus autocomplete="off"/>
-                    </td>
-                    <td style="width:100px">
-                        <div id="searchIndicator" style="visibility: hidden">
+                    <td style="width:20px">
+                        <div id="searchIndicator" style="display: none">
                             <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
                         </div>
-                    </td>
-                    <td>
-                        <div id="maxResultsIndicator" style="visibility: hidden;">
+                        <div id="maxResultsIndicator" style="display: none;">
                             <span style="color: #ffcd59;" class="fa fa-lg fa-exclamation-circle"></span>
                         </div>
                     </td>
@@ -98,7 +93,7 @@
         });
     </script>
 </pwm:script>
-<script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/peoplesearch.js'/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/peoplesearch.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

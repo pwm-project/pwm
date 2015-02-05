@@ -75,14 +75,10 @@ public class ConfigurationReader {
         }
 
         if (storedConfiguration == null) {
-            this.storedConfiguration = StoredConfiguration.getDefaultConfiguration();
+            this.storedConfiguration = StoredConfiguration.newStoredConfiguration();
         }
 
         LOGGER.debug("configuration mode: " + configMode);
-
-        if (modifiedSinceSave()) {
-            LOGGER.warn("configuration settings have been modified since the file was saved using the Configuration Editor");
-        }
     }
 
     public PwmApplication.MODE getConfigMode() {
@@ -95,7 +91,7 @@ public class ConfigurationReader {
 
     public Configuration getConfiguration() {
         if (configuration == null) {
-            configuration = new Configuration(this.storedConfiguration == null ? StoredConfiguration.getDefaultConfiguration() : this.storedConfiguration);
+            configuration = new Configuration(this.storedConfiguration == null ? StoredConfiguration.newStoredConfiguration() : this.storedConfiguration);
             storedConfiguration.lock();
         }
         return configuration;
@@ -192,7 +188,7 @@ public class ConfigurationReader {
             saveInProgress = true;
 
             storedConfiguration.toXml(new FileOutputStream(configFile, false));
-            LOGGER.info("saved configuration " + storedConfiguration.toString());
+            LOGGER.info("saved configuration " + storedConfiguration.toString(true));
             if (pwmApplication != null) {
                 final String actualChecksum = storedConfiguration.settingChecksum();
                 pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.CONFIG_HASH, actualChecksum);
@@ -225,21 +221,6 @@ public class ConfigurationReader {
     public boolean modifiedSinceLoad() {
         final String currentChecksum = readFileChecksum(configFile);
         return !currentChecksum.equals(configFileChecksum);
-    }
-
-    public boolean modifiedSinceSave() {
-        if (this.getConfigMode() == PwmApplication.MODE.NEW) {
-            return false;
-        }
-
-        try {
-            final String storedChecksum = storedConfiguration.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_SETTING_CHECKSUM);
-            final String actualChecksum = storedConfiguration.settingChecksum();
-            return !actualChecksum.equals(storedChecksum);
-        } catch (Exception e) {
-            LOGGER.warn("unable to evaluate hash file: " + e.getMessage());
-        }
-        return true;
     }
 
     private static String readFileChecksum(final File file) {

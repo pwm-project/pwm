@@ -4,7 +4,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -1587,7 +1587,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
-            <td><a href="<pwm:context/>/public/rest/verifyotp"><pwm:context/>/public/rest/verifyresponses</a></td>
+            <td><a href="<pwm:context/>/public/rest/verifyotp"><pwm:context/>/public/rest/verifyotp</a></td>
         </tr>
         <tr>
         </tr>
@@ -1724,7 +1724,10 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                             challenges=[list of challenges]
                             <br/>
                             <i>List of challenge objects including answers with an answerText property.  Retrieve challenge objects using
-                                the challenges service to discover the proper object formatting.</i>
+                                the challenges service to discover the proper object formatting.  The question object data must match
+                                precisely the question object received from the challenges service so that the answer can be applied to
+                                the correct corresponding question.  This includes each parameter of the question object.
+                            </i>
                         </td>
                     </tr>
                 </table>

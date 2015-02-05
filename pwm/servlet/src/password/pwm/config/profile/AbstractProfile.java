@@ -26,10 +26,7 @@ import password.pwm.config.*;
 import password.pwm.util.PasswordData;
 
 import java.security.cert.X509Certificate;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public abstract class AbstractProfile implements Profile, SettingReader {
 
@@ -78,7 +75,7 @@ public abstract class AbstractProfile implements Profile, SettingReader {
     public List<ActionConfiguration> readSettingAsAction(final PwmSetting setting) {
         return Configuration.JavaTypeConverter.valueToAction(setting, storedValueMap.get(setting));
     }
-    
+
     @Override
     public X509Certificate[] readSettingAsCertificate(final PwmSetting setting) {
         if (PwmSettingSyntax.X509CERT != setting.getSyntax()) {
@@ -113,5 +110,18 @@ public abstract class AbstractProfile implements Profile, SettingReader {
     @Override
     public List<UserPermission> getPermissionMatches() {
         return readSettingAsUserPermission(profileType().getQueryMatch());
+    }
+
+    static Map<PwmSetting,StoredValue> makeValueMap(
+            final StoredConfiguration storedConfiguration,
+            final String identifier,
+            final PwmSettingCategory pwmSettingCategory
+    ) {
+        final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<>();
+        for (final PwmSetting setting : pwmSettingCategory.getSettings()) {
+            final StoredValue value = storedConfiguration.readSetting(setting, identifier);
+            valueMap.put(setting, value);
+        }
+        return valueMap;
     }
 }

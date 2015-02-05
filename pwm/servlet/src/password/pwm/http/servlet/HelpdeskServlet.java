@@ -28,6 +28,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
@@ -53,7 +54,6 @@ import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
-import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
 import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
@@ -66,7 +66,6 @@ import password.pwm.util.operations.OtpService;
 import password.pwm.util.otp.OTPUserRecord;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
-import password.pwm.ws.client.rest.RestTokenDataClient;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -673,48 +672,31 @@ public class HelpdeskServlet extends PwmServlet {
         }
 
 
-
         final UserInfoBean userInfoBean = helpdeskBean.getUserInfoBean();
         final UserIdentity userIdentity = userInfoBean.getUserIdentity();
-        final Map<String,String> tokenMapData = new HashMap<>();
+        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmRequest.getPwmApplication());
+        final String configuredTokenString = config.readAppProperty(AppProperty.HELPDESK_TOKEN_VALUE);
+        final String tokenKey = macroMachine.expandMacros(configuredTokenString);
 
-        final RestTokenDataClient.TokenDestinationData inputDestinationData = new RestTokenDataClient.TokenDestinationData(
-                userInfoBean.getUserEmailAddress(),
-                userInfoBean.getUserSmsNumber(),
-                null
-        );
-
-        final RestTokenDataClient restTokenDataClient = new RestTokenDataClient(pwmRequest.getPwmApplication());
-        final RestTokenDataClient.TokenDestinationData outputDestrestTokenDataClient = restTokenDataClient.figureDestTokenDisplayString(
-                pwmRequest.getSessionLabel(),
-                inputDestinationData,
-                userIdentity,
-                pwmRequest.getLocale());
-
-        final String tokenDestinationAddress = outputDestrestTokenDataClient.getDisplayValue();
-        final Set<String> destinationValues = new HashSet<>();
-        if (outputDestrestTokenDataClient.getEmail() != null) {
-            destinationValues.add(outputDestrestTokenDataClient.getEmail());
+        final StringBuilder destDisplayString = new StringBuilder();
+        if (userInfoBean.getUserEmailAddress() != null && !userInfoBean.getUserEmailAddress().isEmpty()) {
+            if (tokenSendMethod == MessageSendMethod.BOTH || tokenSendMethod == MessageSendMethod.EMAILFIRST || tokenSendMethod == MessageSendMethod.EMAILONLY) {
+                destDisplayString.append(userInfoBean.getUserEmailAddress());
+            }
         }
-        if (outputDestrestTokenDataClient.getSms() != null) {
-            destinationValues.add(outputDestrestTokenDataClient.getSms());
-        }
-
-        final String tokenKey;
-        TokenPayload tokenPayload;
-        try {
-            tokenPayload = pwmRequest.getPwmApplication().getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, destinationValues);
-            tokenKey = pwmRequest.getPwmApplication().getTokenService().generateNewToken(tokenPayload, pwmRequest.getSessionLabel());
-        } catch (PwmOperationalException e) {
-            throw new PwmUnrecoverableException(e.getErrorInformation());
+        if (userInfoBean.getUserSmsNumber() != null && !userInfoBean.getUserSmsNumber().isEmpty()) {
+            if (tokenSendMethod == MessageSendMethod.BOTH || tokenSendMethod == MessageSendMethod.SMSFIRST || tokenSendMethod == MessageSendMethod.SMSONLY) {
+                if (destDisplayString.length() > 0) {
+                    destDisplayString.append(", ");
+                }
+                destDisplayString.append(userInfoBean.getUserSmsNumber());
+            }
         }
 
         LOGGER.debug(pwmRequest, "generated token code for " + userIdentity.toDelimitedKey());
 
         final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_HELPDESK_TOKEN, pwmRequest.getLocale());
         final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_HELPDESK_TOKEN_TEXT, pwmRequest.getLocale());
-
-        final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest, userIdentity);
 
         try {
             TokenService.TokenSender.sendToken(
@@ -723,8 +705,8 @@ public class HelpdeskServlet extends PwmServlet {
                     macroMachine,
                     emailItemBean,
                     tokenSendMethod,
-                    outputDestrestTokenDataClient.getEmail(),
-                    outputDestrestTokenDataClient.getSms(),
+                    userInfoBean.getUserEmailAddress(),
+                    userInfoBean.getUserSmsNumber(),
                     smsMessage,
                     tokenKey
             );
@@ -736,7 +718,7 @@ public class HelpdeskServlet extends PwmServlet {
 
         StatisticsManager.incrementStat(pwmRequest,Statistic.HELPDESK_TOKENS_SENT);
         final HashMap<String,String> output = new HashMap<>();
-        output.put("destination",tokenDestinationAddress);
+        output.put("destination",destDisplayString.toString());
         output.put("token",tokenKey);
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(output);

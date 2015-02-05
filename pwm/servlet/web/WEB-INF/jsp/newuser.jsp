@@ -1,9 +1,10 @@
+<%@ page import="password.pwm.http.servlet.NewUserServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -25,6 +26,9 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<%
+    final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
+%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -37,30 +41,52 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='NewUser'/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded"
-              id="newUserForm" onkeyup="PWM_NEWUSER.validateNewUserForm()" class="pwm-form">
-            <% request.setAttribute("form",PwmSetting.NEWUSER_FORM); %>
-            <% request.setAttribute("form_showPasswordFields","true"); %>
+              id="newUserForm" class="pwm-form">
             <jsp:include page="fragment/form.jsp"/>
-            <div id="buttonbar">
+            <div class="buttonbar">
                 <input type="hidden" name="processAction" value="processForm"/>
                 <button type="submit" name="Create" class="btn" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
-                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
+        <div class="buttonbar">
+            <% if (pwmRequest.getConfig().getNewUserProfiles().keySet().size() > 1) { %>
+            <form action="<pwm:url url='NewUser'/>" method="post" name="form-goback" enctype="application/x-www-form-urlencoded"
+                  id="form-goback" class="pwm-form">
+                <button type="submit" name="Create" class="btn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                    <pwm:display key="Button_GoBack"/>
+                </button>
+                <input type="hidden" name="profile" value="-"/>
+                <input type="hidden" name="processAction" value="<%=NewUserServlet.NewUserAction.profileChoice%>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
+            <% } %>
+            <pwm:if test="showCancel">
+                <form action="<pwm:url url='NewUser'/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
+                    <button class="btn" type="submit" name="submitBtn">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
+                        <pwm:display key="Button_Cancel"/>
+                    </button>
+                    <input type="hidden" name="processAction" value="reset"/>
+                    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                </form>
+            </pwm:if>
+        </div>
+
     </div>
     <div class="push"></div>
 </div>
 <pwm:script>
-<script>
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        document.forms.newUser.elements[0].focus();
-    });
-</script>
+    <script>
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.addEventHandler('newUserForm','input',function(){PWM_NEWUSER.validateNewUserForm()})
+        });
+    </script>
 </pwm:script>
 <script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/newuser.js'/>"></script>
 <script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/changepassword.js'/>"></script>

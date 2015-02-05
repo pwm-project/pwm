@@ -447,7 +447,7 @@ public class ConfigManagerServlet extends PwmServlet {
         try {
             ContextManager contextManager = ContextManager.getContextManager(pwmRequest.getHttpServletRequest().getSession().getServletContext());
             contextManager.getConfigReader().saveConfiguration(storedConfiguration, contextManager.getPwmApplication(), pwmRequest.getSessionLabel());
-            contextManager.reinitializePwmApplication();
+            contextManager.requestPwmApplicationRestart();
         } catch (Exception e) {
             final String errorString = "error saving file: " + e.getMessage();
             LOGGER.error(pwmRequest, errorString);
@@ -689,8 +689,8 @@ public class ConfigManagerServlet extends PwmServlet {
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
-        final Map<String,Object> outputMap = storedConfiguration.toOutputMap(pwmRequest.getLocale());
-        pwmRequest.setAttribute("outputData",outputMap);
+        final LinkedHashMap<String,Object> outputMap = new LinkedHashMap<>(storedConfiguration.toOutputMap(pwmRequest.getLocale()));
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigurationSummaryOutput,outputMap);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_SUMMARY);
     }
 

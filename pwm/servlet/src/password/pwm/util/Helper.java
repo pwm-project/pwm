@@ -421,7 +421,7 @@ public class
                 }
             }
 
-            for (final PwmSession loopSession : contextManager.getPwmSessions()) {
+            for (final PwmSession loopSession : contextManager.getPwmSessions().values()) {
                 if (loopSession != null) {
                     if (loopSession.getSessionManager().hasActiveLdapConnection()) {
                         counter++;

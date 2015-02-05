@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 package password.pwm.http.bean;
 
 import password.pwm.bean.UserIdentity;
+import password.pwm.http.servlet.GuestRegistrationServlet;
 import password.pwm.util.FormMap;
 
 import java.util.Date;
@@ -36,7 +37,7 @@ public class GuestRegistrationBean implements PwmSessionBean {
     private UserIdentity updateUserIdentity;
     private Date updateUserExpirationDate;
     private FormMap formValues = new FormMap();
-    private String menumode;
+    private GuestRegistrationServlet.Page currentPage = GuestRegistrationServlet.Page.create;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -56,12 +57,12 @@ public class GuestRegistrationBean implements PwmSessionBean {
         this.updateUserExpirationDate = updateUserExpirationDate;
     }
 
-    public String getMenumode() {
-        return menumode;
+    public GuestRegistrationServlet.Page getCurrentPage() {
+        return currentPage;
     }
 
-    public void setMenumode(String menumode) {
-        this.menumode = menumode;
+    public void setCurrentPage(GuestRegistrationServlet.Page currentPage) {
+        this.currentPage = currentPage;
     }
 
     public FormMap getFormValues()

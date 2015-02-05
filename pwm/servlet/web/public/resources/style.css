@@ -234,7 +234,7 @@ input[type=password]::-ms-reveal{display: none;}
 }
 
 /* all forms use a buttonbar div containing the action buttons */
-#buttonbar {
+.buttonbar {
     margin-top: 30px;
     width: 100%;
     margin-bottom: 15px;
@@ -455,17 +455,7 @@ div.progress-container > div {
     background-color: #111111;
 }
 
-#TopMenu {
-    width:620px;
-    position: relative;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 0;
-    clear: both;
-}
-
 .agreementText {
-
     border: 0;
     background-color: #DDDDDD;
     border-radius: 7px;
@@ -675,6 +665,11 @@ img.qrcodeimage {
     height: 60vh;
 }
 
+#helpdesk-searchResultsGrid {
+    min-height: 400px;
+    height: 60vh;
+}
+
 .peoplesearch-input-username {
     width:400px;
 }
@@ -725,11 +720,37 @@ select {
 }
 
 #localeSelectionMenu {
-    white-space: nowrap; 
+    white-space: nowrap;
     cursor: pointer;
 }
 
 .login-wrapper {
- width:400px;
-    
+    width:400px;
+}
+
+input[type=search] {
+}
+
+.navbutton {
+    cursor: pointer;
+    display: inline;
+    font-weight: normal;
+}
+
+.navbutton.selected {
+    box-shadow: none;
+}
+
+.simpleModeResponseSelection {
+    font-size: 13px;
+}
+
+.formFieldLabel {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.formFieldWrapper {
+    padding-bottom: 10px;
+
 }

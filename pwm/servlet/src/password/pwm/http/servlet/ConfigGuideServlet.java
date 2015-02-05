@@ -43,7 +43,6 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.ldap.SchemaExtender;
 import password.pwm.util.PasswordData;
-import password.pwm.util.PwmRandom;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.X509Utils;
 import password.pwm.util.logging.PwmLogger;
@@ -516,7 +515,7 @@ public class ConfigGuideServlet extends PwmServlet {
             final HashMap<String,String> resultData = new HashMap<>();
             resultData.put("serverRestart","true");
             pwmRequest.outputJsonResult(new RestResultBean(resultData));
-            pwmRequest.getPwmSession().invalidate();
+            pwmRequest.invalidateSession();
         } else {
             configGuideBean.setStep(step);
             pwmRequest.outputJsonResult(new RestResultBean());
@@ -616,13 +615,12 @@ public class ConfigGuideServlet extends PwmServlet {
 
         try {
             // add a random security key
-            final PasswordValue newSecurityKey = new PasswordValue(new PasswordData(PwmRandom.getInstance().alphaNumericString(1024)));
-            storedConfiguration.writeSetting(PwmSetting.PWM_SECURITY_KEY, newSecurityKey, null);
+            storedConfiguration.initNewRandomSecurityKey();
 
             storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
             configReader.saveConfiguration(storedConfiguration, pwmApplication, null);
 
-            contextManager.reinitializePwmApplication();
+            contextManager.requestPwmApplicationRestart();
         } catch (PwmException e) {
             throw new PwmOperationalException(e.getErrorInformation());
         } catch (Exception e) {
@@ -639,7 +637,7 @@ public class ConfigGuideServlet extends PwmServlet {
     {
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final ServletContext servletContext = req.getSession().getServletContext();
-        final ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class);
+        final ConfigGuideBean configGuideBean = pwmRequest.getPwmSession().getSessionBean(ConfigGuideBean.class);
         String destURL = '/' + PwmConstants.URL_JSP_CONFIG_GUIDE;
         destURL = destURL.replace("%1%", configGuideBean.getStep().toString().toLowerCase());
         servletContext.getRequestDispatcher(destURL).forward(req, pwmRequest.getPwmResponse().getHttpServletResponse());

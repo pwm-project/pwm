@@ -29,9 +29,11 @@ import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.util.logging.PwmLogger;
 
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.PageContext;
+import java.io.Serializable;
 import java.util.Locale;
 
 public abstract class JspUtility {
@@ -39,14 +41,19 @@ public abstract class JspUtility {
     private static final PwmLogger LOGGER = PwmLogger.forClass(JspUtility.class);
 
     private static PwmRequest forRequest(
-            HttpServletRequest request
+            ServletRequest request
     )
     {
-        final PwmRequest pwmRequest = (PwmRequest)request.getAttribute(PwmConstants.REQUEST_ATTR_PWM_REQUEST);
+        final PwmRequest pwmRequest = (PwmRequest)request.getAttribute(PwmConstants.REQUEST_ATTR.PwmRequest.toString());
         if (pwmRequest == null) {
             LOGGER.warn("unable to load pwmRequest object during jsp execution");
         }
         return pwmRequest;
+    }
+
+    public static Serializable getAttribute(final PageContext pageContext, final PwmConstants.REQUEST_ATTR requestAttr) {
+        final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
+        return pwmRequest.getAttribute(requestAttr);
     }
 
     public static void setFlag(final PageContext pageContext, final PwmRequest.Flag flag) {
@@ -95,14 +102,23 @@ public abstract class JspUtility {
     }
 
     public static void logError(final PageContext pageContext, final String message) {
-        final PwmRequest pwmRequest = forRequest((HttpServletRequest)pageContext.getRequest());
+        final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
         final PwmLogger logger = PwmLogger.getLogger("jsp:" + pageContext.getPage().getClass());
         logger.error(pwmRequest, message);
     }
     
     public static String getMessage(final PageContext pageContext, final PwmDisplayBundle key) {
-        final PwmRequest pwmRequest = forRequest((HttpServletRequest)pageContext.getRequest());
+        final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
         return LocaleHelper.getLocalizedMessage(key,pwmRequest);
+    }
+    
+    public static PwmSession getPwmSession(final PageContext pageContext) {
+        final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
+        return pwmRequest.getPwmSession();
+    }
+
+    public static PwmRequest getPwmRequest(final PageContext pageContext) {
+        return forRequest(pageContext.getRequest());
     }
 }
 

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ import password.pwm.error.*;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.PwmSessionWrapper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
@@ -81,11 +82,11 @@ public abstract class PwmServlet extends HttpServlet {
 
             // check for duplicate form submit.
             try {
-                Validator.validatePwmRequestCounter(req);
+                Validator.validatePwmRequestCounter(pwmRequest);
             } catch (PwmOperationalException e) {
                 if (e.getError() == PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE) {
                     final ErrorInformation errorInformation = e.getErrorInformation();
-                    final PwmSession pwmSession = PwmSession.getPwmSession(req);
+                    final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(req);
                     LOGGER.error(pwmSession, errorInformation.toDebugStr());
                     pwmRequest.respondWithError(errorInformation);
                     return;
@@ -107,7 +108,7 @@ public abstract class PwmServlet extends HttpServlet {
             }
 
             if (method == HttpMethod.POST) {
-                Validator.validatePwmFormID(req);
+                Validator.validatePwmFormID(pwmRequest);
             }
 
             this.processAction(pwmRequest);
@@ -142,7 +143,7 @@ public abstract class PwmServlet extends HttpServlet {
 
             final PwmSession pwmSession;
             try {
-                pwmSession = PwmSession.getPwmSession(req);
+                pwmSession = PwmSessionWrapper.readPwmSession(req);
             } catch (Exception e2) {
                 try {
                     LOGGER.fatal(

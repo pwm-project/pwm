@@ -32,7 +32,6 @@ import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.impl.edir.NmasCrFactory;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
@@ -125,9 +124,9 @@ public class CrService implements PwmService {
                         LOGGER.debug(sessionLabel,"no nmas c/r policy found for user " + theUser.getEntryDN());
                     } else {
                         LOGGER.debug(sessionLabel,"using nmas c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
-                        
+
                         final String challengeID = "nmasPolicy-" + userIdentity.toDelimitedKey();
-                        
+
                         final ChallengeProfile challengeProfile = ChallengeProfile.createChallengeProfile(
                                 challengeID,
                                 locale,
@@ -139,7 +138,7 @@ public class CrService implements PwmService {
 
                         LOGGER.debug(sessionLabel,"using ldap c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
                         LOGGER.trace(sessionLabel,"readUserChallengeProfile completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
-                        
+
                         return challengeProfile;
                     }
                 }
@@ -163,34 +162,31 @@ public class CrService implements PwmService {
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final Locale locale
-    ) {
-        final List<String> profiles = pwmApplication.getConfig().getChallengeProfiles();
+    ) 
+            throws PwmUnrecoverableException 
+    {
+        final List<String> profiles = pwmApplication.getConfig().getChallengeProfileIDs();
         if (profiles.isEmpty()) {
-            throw new IllegalStateException("no available challenge profiles");
-        } else if (profiles.size() == 1) {
-            LOGGER.trace(sessionLabel, "only one challenge profile defined, returning default");
-            return "";
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NO_PROFILE_ASSIGNED,"no challenge profile is configured"));
         }
 
         for (final String profile : profiles) {
-            if (!PwmConstants.DEFAULT_CHALLENGE_PROFILE.equalsIgnoreCase(profile)) {
-                final ChallengeProfile loopPolicy = pwmApplication.getConfig().getChallengeProfile(profile, locale);
-                final List<UserPermission> queryMatch = loopPolicy.getUserPermissions();
-                if (queryMatch != null && !queryMatch.isEmpty()) {
-                    LOGGER.debug(sessionLabel, "testing challenge profiles '" + profile + "'");
-                    try {
-                        boolean match = LdapPermissionTester.testUserPermissions(pwmApplication,sessionLabel,userIdentity,queryMatch);
-                        if (match) {
-                            return profile;
-                        }
-                    } catch (PwmUnrecoverableException e) {
-                        LOGGER.error(sessionLabel, "unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage());
+            final ChallengeProfile loopPolicy = pwmApplication.getConfig().getChallengeProfile(profile, locale);
+            final List<UserPermission> queryMatch = loopPolicy.getUserPermissions();
+            if (queryMatch != null && !queryMatch.isEmpty()) {
+                LOGGER.debug(sessionLabel, "testing challenge profiles '" + profile + "'");
+                try {
+                    boolean match = LdapPermissionTester.testUserPermissions(pwmApplication,sessionLabel,userIdentity,queryMatch);
+                    if (match) {
+                        return profile;
                     }
+                } catch (PwmUnrecoverableException e) {
+                    LOGGER.error(sessionLabel, "unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage());
                 }
             }
         }
 
-        return PwmConstants.DEFAULT_CHALLENGE_PROFILE;
+        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NO_PROFILE_ASSIGNED,"no challenge profile is assigned"));
     }
 
     public void validateResponses(

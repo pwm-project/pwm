@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -36,9 +36,8 @@
         <form action="<pwm:url url='ActivateUser'/>" method="post" name="activateUser" enctype="application/x-www-form-urlencoded" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
-            <% request.setAttribute("form",PwmSetting.ACTIVATE_USER_FORM); %>
             <jsp:include page="fragment/form.jsp"/>
-            <div id="buttonbar">
+            <div class="buttonbar">
                 <button type="submit" name="button" class="btn" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:display key="Button_Activate"/>

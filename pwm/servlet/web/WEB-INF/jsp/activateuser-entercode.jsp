@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -34,13 +34,13 @@
     </jsp:include>
     <div id="centerbody">
         <%
-            final ActivateUserBean aub = PwmSession.getPwmSession(session).getActivateUserBean();
+            final ActivateUserBean aub = JspUtility.getPwmSession(pageContext).getActivateUserBean();
             String destination = aub.getTokenDisplayText();
         %>
         <p><pwm:display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>
-        <div id="buttonbar">
+        <div class="buttonbar">
             <form action="<pwm:url url='ActivateUser'/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" style="display: inline;">
                 <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput"></textarea>
                 <button type="submit" class="btn" name="search" id="submitBtn">

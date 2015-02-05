@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ import java.util.Map;
 public class ConfigGuideBean implements PwmSessionBean {
 
     private ConfigGuideServlet.STEP step = ConfigGuideServlet.STEP.START;
-    private StoredConfiguration storedConfiguration = StoredConfiguration.getDefaultConfiguration();
+    private StoredConfiguration storedConfiguration = StoredConfiguration.newStoredConfiguration();
     private PwmSetting.Template selectedTemplate = null;
     private Map<String,String> formData = new HashMap<>();
     private X509Certificate[] ldapCertificates;

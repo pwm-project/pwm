@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
 <%@ page import="password.pwm.ldap.SchemaExtender" %>
@@ -7,7 +6,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -30,7 +29,7 @@
          contentType="text/html; charset=UTF-8" %>
 <%
     final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-    ConfigGuideBean configGuideBean = (ConfigGuideBean) PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);
+    ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);
     boolean existingSchemaGood = false;
     String schemaActivityLog = "";
     try {
@@ -98,7 +97,7 @@
             </div>
         </form>
         <br/>
-        <div id="buttonbar">
+        <div class="buttonbar">
             <button class="btn" id="button_previous">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                 <pwm:display key="Button_Previous" bundle="Config"/>

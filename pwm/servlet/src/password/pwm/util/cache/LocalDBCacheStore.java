@@ -64,6 +64,7 @@ public class LocalDBCacheStore implements CacheStore {
             throws PwmUnrecoverableException
     {
         ticks++;
+        storeCount++;
         try {
             localDB.put(DB,cacheKey.getHash(),JsonUtil.serialize(new ValueWrapper(cacheKey, expirationDate, data)));
         } catch (LocalDBException e) {
@@ -79,6 +80,7 @@ public class LocalDBCacheStore implements CacheStore {
     public String read(CacheKey cacheKey)
             throws PwmUnrecoverableException 
     {
+        readCount++;
         final String hashKey = cacheKey.getHash();
         final String storedValue; 
         try {
@@ -92,6 +94,7 @@ public class LocalDBCacheStore implements CacheStore {
                 final ValueWrapper valueWrapper = JsonUtil.deserialize(storedValue, ValueWrapper.class);
                 if (cacheKey.equals(valueWrapper.getCacheKey())) {
                     if (valueWrapper.getExpirationDate().after(new Date())) {
+                        hitCount++;
                         return valueWrapper.getPayload();
                     }
                 }
@@ -104,6 +107,7 @@ public class LocalDBCacheStore implements CacheStore {
                 LOGGER.error("error while purging record from cache: " + e.getMessage());
             }
         }
+        missCount++;
         return null;
     }
 

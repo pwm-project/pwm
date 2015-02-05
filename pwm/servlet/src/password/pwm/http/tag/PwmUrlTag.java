@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,12 +27,14 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
-import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.servlet.ResourceFileServlet;
 import password.pwm.util.Helper;
 import password.pwm.util.ServletHelper;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.PageContext;
 import java.util.Collections;
@@ -68,21 +70,17 @@ public class PwmUrlTag extends PwmAbstractTag {
         String outputURL = url;
         //try {
         outputURL = url;
-        PwmApplication pwmApplication = null;
+        PwmRequest pwmRequest = null;
         try {
-            pwmApplication = ContextManager.getPwmApplication(pageContext.getSession());
-        } catch (PwmException e) { /* noop */ }
-        PwmSession pwmSession = null;
-        try {
-            pwmSession = PwmSession.getPwmSession(pageContext.getSession());
+            pwmRequest = PwmRequest.forRequest((HttpServletRequest)pageContext.getRequest(), (HttpServletResponse)pageContext.getResponse());
         } catch (PwmException e) { /* noop */ }
 
         String workingUrl;
         if (THEME_URL.equals(url)) {
-            workingUrl = figureThemeURL(pwmApplication, pwmSession, false);
+            workingUrl = figureThemeURL(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), false);
             workingUrl = insertContext(pageContext, workingUrl);
         } else if (MOBILE_THEME_URL.equals(url)) {
-            workingUrl = figureThemeURL(pwmApplication, pwmSession, true);
+            workingUrl = figureThemeURL(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), true);
             workingUrl = insertContext(pageContext, workingUrl);
         } else {
             workingUrl = url;
@@ -92,7 +90,7 @@ public class PwmUrlTag extends PwmAbstractTag {
         if (addContext) {
             workingUrl = insertContext(pageContext, workingUrl);
         }
-        workingUrl = insertResourceNonce(pwmApplication, workingUrl);
+        workingUrl = insertResourceNonce(pwmRequest.getPwmApplication(), workingUrl);
         //workingUrl = injectFormID(pwmSession, workingUrl);
         outputURL = workingUrl;
         //} catch (PwmUnrecoverableException e) {

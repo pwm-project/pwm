@@ -254,7 +254,7 @@ public class ChangePasswordServlet extends PwmServlet {
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getSessionLabel(),
-                    "NewUser"
+                    "ChangePassword"
             );
             pwmRequest.getPwmApplication().getAuditManager().submit(auditRecord);
         }
@@ -277,7 +277,7 @@ public class ChangePasswordServlet extends PwmServlet {
             if (currentPassword == null) {
                 LOGGER.debug(pwmRequest, "failed password validation check: currentPassword value is missing");
                 pwmRequest.setResponseError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_FORM);
+                forwardToFormPage(pwmRequest);
                 return;
             }
 
@@ -294,7 +294,7 @@ public class ChangePasswordServlet extends PwmServlet {
                         uiBean.getUserIdentity(), pwmRequest.getSessionLabel());
                 LOGGER.debug(pwmRequest, "failed password validation check: currentPassword value is incorrect");
                 pwmRequest.setResponseError(new ErrorInformation(PwmError.ERROR_BAD_CURRENT_PASSWORD));
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_FORM);
+                forwardToFormPage(pwmRequest);
                 return;
             }
             cpb.setCurrentPasswordPassed(true);
@@ -316,7 +316,7 @@ public class ChangePasswordServlet extends PwmServlet {
             pwmRequest.getPwmApplication().getIntruderManager().convenience().markUserIdentity(uiBean.getUserIdentity(), pwmRequest.getSessionLabel());
             LOGGER.debug(pwmRequest,e.getErrorInformation());
             pwmRequest.setResponseError(e.getErrorInformation());
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_FORM);
+            forwardToFormPage(pwmRequest);
             return;
         }
 
@@ -384,18 +384,18 @@ public class ChangePasswordServlet extends PwmServlet {
         if (agreementMsg != null && agreementMsg.length() > 0 && !changePasswordBean.isAgreementPassed()) {
             final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
             final String expandedText = macroMachine.expandMacros(agreementMsg);
-            pwmRequest.getHttpServletRequest().setAttribute(PwmConstants.REQUEST_ATTR_AGREEMENT_TEXT,expandedText);
+            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.AgreementText,expandedText);
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_AGREEMENT);
             return;
         }
 
         if (determineIfCurrentPasswordRequired(pwmApplication,pwmSession) && !changePasswordBean.isCurrentPasswordPassed()) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_FORM);
+            forwardToFormPage(pwmRequest);
             return;
         }
 
         if (!config.readSettingAsForm(PwmSetting.PASSWORD_REQUIRE_FORM).isEmpty() && !changePasswordBean.isFormPassed()) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_FORM);
+            forwardToFormPage(pwmRequest);
             return;
         }
 
@@ -626,7 +626,7 @@ public class ChangePasswordServlet extends PwmServlet {
             if (completeMessage != null && !completeMessage.isEmpty()) {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(completeMessage);
-                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR_COMPLETE_TEXT, expandedText);
+                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.CompleteText, expandedText);
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_COMPLETE);
             } else {
                 pwmRequest.getPwmSession().clearSessionBean(ChangePasswordBean.class);
@@ -635,5 +635,13 @@ public class ChangePasswordServlet extends PwmServlet {
         } else {
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);
         }
+    }
+    
+    protected void forwardToFormPage(final PwmRequest pwmRequest) 
+            throws ServletException, PwmUnrecoverableException, IOException 
+    {
+        pwmRequest.addFormInfoToRequestAttr(PwmSetting.PASSWORD_REQUIRE_FORM,false,false);
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_FORM);
+
     }
 }

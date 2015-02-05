@@ -34,6 +34,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestRequestBean;
@@ -46,12 +49,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.net.URISyntaxException;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 @Path("/verifyresponses")
 public class RestVerifyResponsesServer extends AbstractRestServer {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(RestVerifyResponsesServer.class);
+    
     public static class JsonPutChallengesInput implements Serializable {
         public List<ChallengeBean> challenges;
         public String username;
@@ -90,6 +96,7 @@ public class RestVerifyResponsesServer extends AbstractRestServer {
             final JsonPutChallengesInput jsonInput
     )
     {
+        final Date startTime = new Date();
         final RestRequestBean restRequestBean;
         try {
             final ServicePermissions servicePermissions = new ServicePermissions();
@@ -101,6 +108,9 @@ public class RestVerifyResponsesServer extends AbstractRestServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
+        LOGGER.debug(restRequestBean.getPwmSession(),"beginning /verifyresponses REST service against "
+                + (restRequestBean.getUserIdentity() == null ? "self" : restRequestBean.getUserIdentity().toDisplayString()));
+        
         try {
             if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.CHANGE_PASSWORD)) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
@@ -126,6 +136,7 @@ public class RestVerifyResponsesServer extends AbstractRestServer {
             resultBean.setError(false);
             resultBean.setData(verified);
             resultBean.setSuccessMessage(successMsg);
+            LOGGER.debug(restRequestBean.getPwmSession(),"completed /verifyresponses REST service in " + TimeDuration.fromCurrent(startTime).asCompactString() + ", response: " + JsonUtil.serialize(resultBean));
             return resultBean.asJsonResponse();
         } catch (PwmException e) {
             return RestResultBean.fromError(e.getErrorInformation(),restRequestBean).asJsonResponse();

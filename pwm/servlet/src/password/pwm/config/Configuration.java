@@ -22,15 +22,10 @@
 
 package password.pwm.config;
 
-import com.novell.ldapchai.ChaiFactory;
-import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.StringHelper;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
@@ -46,7 +41,6 @@ import password.pwm.util.SecureHelper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
 
 import javax.crypto.SecretKey;
 import java.io.Serializable;
@@ -64,7 +58,6 @@ public class Configuration implements Serializable, SettingReader {
 
     private final StoredConfiguration storedConfiguration;
 
-    private long newUserPasswordPolicyCacheTime = System.currentTimeMillis();
     private DataCache dataCache = new DataCache();
 
     // --------------------------- CONSTRUCTORS ---------------------------
@@ -354,12 +347,12 @@ public class Configuration implements Serializable, SettingReader {
         return PwmLogLevel.TRACE;
     }
 
-    public List<String> getChallengeProfiles() {
+    public List<String> getChallengeProfileIDs() {
         return storedConfiguration.profilesForSetting(PwmSetting.CHALLENGE_PROFILE_LIST);
     }
 
     public ChallengeProfile getChallengeProfile(final String profile, final Locale locale) {
-        if (!"".equals(profile) && !getChallengeProfiles().contains(profile)) {
+        if (!"".equals(profile) && !getChallengeProfileIDs().contains(profile)) {
             throw new IllegalArgumentException("unknown challenge profileID specified: " + profile);
         }
 
@@ -395,7 +388,7 @@ public class Configuration implements Serializable, SettingReader {
         return policy;
     }
 
-    public List<String> getPasswordProfiles() {
+    public List<String> getPasswordProfileIDs() {
         return storedConfiguration.profilesForSetting(PwmSetting.PASSWORD_PROFILE_LIST);
     }
 
@@ -447,7 +440,7 @@ public class Configuration implements Serializable, SettingReader {
         // set pwm-specific values
         final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(passwordPolicySettings);
         passwordPolicy.setProfileID(profile);
-        if (!PwmConstants.DEFAULT_PASSWORD_PROFILE.equalsIgnoreCase(profile)) {
+        {
             final List<UserPermission> queryMatch = (List<UserPermission>)storedConfiguration.readSetting(PwmSetting.PASSWORD_POLICY_QUERY_MATCH,profile).toNativeObject();
             passwordPolicy.setUserPermissions(queryMatch);
         }
@@ -572,48 +565,6 @@ public class Configuration implements Serializable, SettingReader {
         return getLdapProfiles().values().iterator().next();
     }
 
-    public PwmPasswordPolicy getNewUserPasswordPolicy(final PwmApplication pwmApplication, final Locale userLocale)
-            throws PwmUnrecoverableException, ChaiUnavailableException {
-
-        {
-            final long maxNewUserCacheMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_NEWUSER_PASSWORD_POLICY_CACHE_MS));
-            if ((System.currentTimeMillis() - newUserPasswordPolicyCacheTime) > maxNewUserCacheMS) {
-                dataCache.newUserPasswordPolicy.clear();
-            }
-
-            final PwmPasswordPolicy cachedPolicy = dataCache.newUserPasswordPolicy.get(userLocale);
-            if (cachedPolicy != null) {
-                return cachedPolicy;
-            }
-
-            final LdapProfile defaultLdapProfile = getDefaultLdapProfile();
-            final String configuredNewUserPasswordDN = readSettingAsString(PwmSetting.NEWUSER_PASSWORD_POLICY_USER);
-            if (configuredNewUserPasswordDN == null || configuredNewUserPasswordDN.length() < 1) {
-                final PwmPasswordPolicy thePolicy = getPasswordPolicy(PwmConstants.DEFAULT_PASSWORD_PROFILE, userLocale);
-                dataCache.newUserPasswordPolicy.put(userLocale,thePolicy);
-                return thePolicy;
-            } else {
-
-                final String lookupDN;
-                if (configuredNewUserPasswordDN.equalsIgnoreCase("TESTUSER") ) {
-                    lookupDN = defaultLdapProfile.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
-                } else {
-                    lookupDN = configuredNewUserPasswordDN;
-                }
-
-                final PwmPasswordPolicy thePolicy;
-                if (lookupDN == null || lookupDN.isEmpty()) {
-                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,"user ldap dn in setting " + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE) + " can not be resolved"));
-                } else {
-                    final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider(getDefaultLdapProfile().getIdentifier()));
-                    final UserIdentity userIdentity = new UserIdentity(lookupDN,getDefaultLdapProfile().getIdentifier());
-                    thePolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, null, userIdentity, chaiUser, userLocale);
-                }
-                dataCache.newUserPasswordPolicy.put(userLocale,thePolicy);
-                return thePolicy;
-            }
-        }
-    }
 
     public List<Locale> getKnownLocales() {
         if (dataCache.localeFlagMap == null) {
@@ -783,7 +734,6 @@ public class Configuration implements Serializable, SettingReader {
     private static class DataCache implements Serializable {
         private final Map<String,Map<Locale,PwmPasswordPolicy>> cachedPasswordPolicy = new HashMap<>();
         private final Map<String,Map<Locale,ChallengeProfile>> challengeProfile = new HashMap<>();
-        private final Map<Locale,PwmPasswordPolicy> newUserPasswordPolicy = new HashMap<>();
         private Map<Locale,String> localeFlagMap = null;
         private Map<String,LdapProfile> ldapProfiles;
         private final Map<PwmSetting, StoredValue> settings = new EnumMap<>(PwmSetting.class);
@@ -805,7 +755,16 @@ public class Configuration implements Serializable, SettingReader {
 
     /* generic profile stuff */
 
-    
+
+    public Map<String,NewUserProfile> getNewUserProfiles() {
+        final Map<String,NewUserProfile> returnMap = new LinkedHashMap<>();
+        final Map<String,Profile> profileMap = profileMap(ProfileType.NewUser);
+        for (final String profileID : profileMap.keySet()) {
+            returnMap.put(profileID, (NewUserProfile)profileMap.get(profileID));
+        }
+        return returnMap;
+    }
+
     public Map<String,HelpdeskProfile> getHelpdeskProfiles() {
         final Map<String,HelpdeskProfile> returnMap = new LinkedHashMap<>();
         final Map<String,Profile> profileMap = profileMap(ProfileType.Helpdesk);
@@ -845,6 +804,10 @@ public class Configuration implements Serializable, SettingReader {
             case ForgottenPassword:
                 newProfile = ForgottenPasswordProfile.makeFromStoredConfiguration(storedConfiguration, profileID);
                 break;
+            
+            case NewUser:
+                newProfile = NewUserProfile.makeFromStoredConfiguration(storedConfiguration, profileID);
+                break;
 
             default: throw new IllegalArgumentException("unknown profile type: " + profileType.toString());
         }
@@ -855,5 +818,11 @@ public class Configuration implements Serializable, SettingReader {
 
     public boolean isDevDebugMode() {
         return Boolean.parseBoolean(readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
+    }
+    
+    public String configurationHash() 
+            throws PwmUnrecoverableException 
+    {
+        return storedConfiguration.settingChecksum();
     }
 }

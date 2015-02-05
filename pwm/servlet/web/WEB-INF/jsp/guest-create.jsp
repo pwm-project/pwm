@@ -1,12 +1,10 @@
-<%@ page import="password.pwm.http.PwmRequest" %>
-<%@ page import="password.pwm.http.bean.GuestRegistrationBean" %>
 <%@ page import="java.util.Date" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -36,60 +34,58 @@
         <jsp:param name="pwm.PageName" value="Title_GuestRegistration"/>
     </jsp:include>
     <div id="centerbody">
-        <p id="registration-menu-bar" style="text-align:center;">
-            <a class="menubutton" href="GuestRegistration?menuSelect=create&pwmFormID=<pwm:FormID/>"><pwm:display key="Title_GuestRegistration"/></a>
-            &nbsp;&nbsp;&nbsp;
-            <a class="menubutton" href="GuestRegistration?menuSelect=search&pwmFormID=<pwm:FormID/>"><pwm:display key="Title_GuestUpdate"/></a>
-        </p>
-        <br/>
+        <%@ include file="/WEB-INF/jsp/fragment/guest-nav.jsp" %>
         <p><pwm:display key="Display_GuestRegistration"/></p>
 
         <form action="<pwm:url url='GuestRegistration'/>" method="post" name="newGuest" enctype="application/x-www-form-urlencoded" class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <br/>
-            <% request.setAttribute("form",PwmSetting.GUEST_FORM); %>
             <jsp:include page="fragment/form.jsp"/>
             <%
-                final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
-                final long maxValidDays = pwmRequest.getConfig().readSettingAsLong(PwmSetting.GUEST_MAX_VALID_DAYS);
-                final GuestRegistrationBean guestRegistrationBean = pwmRequest.getPwmSession().getGuestRegistrationBean();
+                final PwmRequest guestPwmRequest = PwmRequest.forRequest(request,response);
+                final long maxValidDays = guestPwmRequest.getConfig().readSettingAsLong(PwmSetting.GUEST_MAX_VALID_DAYS);
+                final GuestRegistrationBean guestRegistrationBean = guestPwmRequest.getPwmSession().getGuestRegistrationBean();
                 if (maxValidDays > 0) {
                     long futureMS = maxValidDays * 24 * 60 * 60 * 1000;
                     Date maxValidDate = new Date(new Date().getTime() + (futureMS));
                     String maxValidDateString = new SimpleDateFormat("yyyy-MM-dd").format(maxValidDate);
-                    String selectedDate = guestRegistrationBean.getFormValues().get("__expirationDate__");
+                    String selectedDate = guestRegistrationBean.getFormValues().get(GuestRegistrationServlet.HTTP_PARAM_EXPIRATION_DATE.toString());
                     if (selectedDate == null || selectedDate.length() <= 0) {
                         selectedDate = maxValidDateString;
                     }
             %>
             <p>
-                <label for="__expirationDate__"><pwm:display key="Display_ExpirationDate" value1="<%=String.valueOf(maxValidDays)%>"/> </label>
-                <input name="__expirationDate__" id="__expirationDate__"
-                       type="date" required="true" value="<%=selectedDate%>"/>
+                <label>
+                    <pwm:display key="Display_ExpirationDate" value1="<%=String.valueOf(maxValidDays)%>"/>
+                    <input name="<%=GuestRegistrationServlet.HTTP_PARAM_EXPIRATION_DATE%>" id="<%=GuestRegistrationServlet.HTTP_PARAM_EXPIRATION_DATE%>" type="hidden" required="true" value="<%=selectedDate%>"/>
+                    <input name="expiredate-stub" id="expiredate-stub" type="date" required="true" value="<%=selectedDate%>"/>
+                </label>
             </p>
             <pwm:script>
             <script type="text/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
-                    require(["dijit/form/DateTextBox"],function(dojo){
-                        new dijit.form.DateTextBox({
-                            name: "__expirationDate__",
+                    require(["dijit/form/DateTextBox"],function(DateTextBox){
+                        new DateTextBox({
                             constraints: {
                                 min: new Date(),
                                 max: '<%=maxValidDateString%>'
                             },
-                            value: '<%=selectedDate%>'
-                        }, "__expirationDate__");
+                            value: '<%=selectedDate%>',
+                            onChange: function(){
+                                PWM_MAIN.getObject('<%=GuestRegistrationServlet.HTTP_PARAM_EXPIRATION_DATE%>').value = this.value;
+                            }
+                        }, "expiredate-stub");
                     });
                 });
             </script>
             </pwm:script>
             <% } %>
 
-            <div id="buttonbar">
+            <div class="buttonbar">
                 <input type="hidden" name="processAction" value="create"/>
-                <input type="submit" name="Create" class="btn"
-                       value="<pwm:display key="Button_Create"/>"
-                       id="submitBtn"/>
+                <button type="submit" name="Create" class="btn" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-user-plus"></span></pwm:if>
+                    <pwm:display key="Button_Create"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
@@ -101,7 +97,6 @@
 <pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        document.forms.newGuest.elements[0].focus();
     });
 </script>
 </pwm:script>

@@ -261,7 +261,7 @@ public class ActivateUserServlet extends PwmServlet {
         final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
 
         if (!activateUserBean.isFormValidated() || activateUserBean.getUserIdentity() == null) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACTIVATE_USER);
+            forwardToActivateUserForm(pwmRequest);
             return;
         }
 
@@ -273,7 +273,7 @@ public class ActivateUserServlet extends PwmServlet {
                     initializeToken(pwmRequest, locale, activateUserBean.getUserIdentity());
                 } catch (PwmOperationalException e) {
                     pwmRequest.setResponseError(e.getErrorInformation());
-                    pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACTIVATE_USER);
+                    forwardToActivateUserForm(pwmRequest);
                     return;
                 }
             }
@@ -708,5 +708,11 @@ public class ActivateUserServlet extends PwmServlet {
         }
         return searchFilter;
     }
-
+    
+    private static void forwardToActivateUserForm(final PwmRequest pwmRequest) 
+            throws ServletException, PwmUnrecoverableException, IOException 
+    {
+        pwmRequest.addFormInfoToRequestAttr(PwmSetting.ACTIVATE_USER_FORM,false,false);
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACTIVATE_USER);
+    }
 }

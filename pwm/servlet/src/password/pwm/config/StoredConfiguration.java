@@ -52,7 +52,6 @@ public class StoredConfiguration implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     public enum ConfigProperty {
-        PROPERTY_KEY_SETTING_CHECKSUM("settingsChecksum"),
         PROPERTY_KEY_CONFIG_IS_EDITABLE("configIsEditable"),
         PROPERTY_KEY_CONFIG_EPOCH("configEpoch"),
         PROPERTY_KEY_TEMPLATE("configTemplate"),
@@ -110,8 +109,6 @@ public class StoredConfiguration implements Serializable {
     public static final String XML_ATTRIBUTE_MODIFY_USER = "modifyUser";
     public static final String XML_ATTRIBUTE_SYNTAX_VERSION = "syntaxVersion";
 
-    private static final String PROFILE_NAME_PATTERN = "^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$";
-
     private Document document = new Document(new Element(XML_ELEMENT_ROOT));
     private ChangeLog changeLog = new ChangeLog();
 
@@ -121,7 +118,7 @@ public class StoredConfiguration implements Serializable {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static StoredConfiguration getDefaultConfiguration() {
+    public static StoredConfiguration newStoredConfiguration() {
         return new StoredConfiguration();
     }
 
@@ -138,7 +135,7 @@ public class StoredConfiguration implements Serializable {
         //validateXmlSchema(xmlData);
 
         final Document inputDocument = XmlUtil.parseXml(xmlData);
-        final StoredConfiguration newConfiguration = StoredConfiguration.getDefaultConfiguration();
+        final StoredConfiguration newConfiguration = StoredConfiguration.newStoredConfiguration();
 
         try {
             newConfiguration.document = inputDocument;
@@ -463,7 +460,7 @@ public class StoredConfiguration implements Serializable {
                 }
             }
             
-            return linebreaks 
+            return linebreaks
                     ? JsonUtil.serialize(outputObject, JsonUtil.Flag.PrettyPrint)
                     : JsonUtil.serialize(outputObject);
         } finally {
@@ -980,10 +977,11 @@ public class StoredConfiguration implements Serializable {
             commentText.append("\t\t").append("NOTICE: This file is encoded as UTF-8.  Do not save or edit this file with an editor that does not").append("\n");
             commentText.append("\t\t").append("        support UTF-8 encoding.").append("\n");
             commentText.append("\t\t").append("").append("\n");
-            commentText.append("\t\t").append("To edit this file:").append("\n");
-            commentText.append("\t\t").append("   or 1. Edit this file directly by hand, syntax is mostly self-explanatory.").append("\n");
-            commentText.append("\t\t").append("   or 2. Set the property 'configIsEditable' to 'true', note that anyone with access to ").append("\n");
-            commentText.append("\t\t").append("         the application url will be able to edit the configuration while this property is true.").append("\n");
+            commentText.append("\t\t").append("If unable to edit using the application ConfigurationEditor web UI, the following options are available.").append("\n");
+            commentText.append("\t\t").append("   or 1. Edit this file directly by hand.").append("\n");
+            commentText.append("\t\t").append("   or 2. Unlock the configuration by setting the property 'configIsEditable' to 'true' in this file.  This will ").append("\n");
+            commentText.append("\t\t").append("         allow access to the ConfigurationEditor web UI without having to authenticate to an LDAP server first.").append("\n");
+            commentText.append("\t\t").append("   or 3. Unlock the configuration by using the the command line utility. ").append("\n");
             commentText.append("\t\t").append("").append("\n");
             return commentText.toString();
         }
@@ -1414,5 +1412,21 @@ public class StoredConfiguration implements Serializable {
             }
         }
         return null;
+    }
+    
+    public void initNewRandomSecurityKey() 
+            throws PwmUnrecoverableException 
+    {
+        if (isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) {
+            return;
+        }
+        
+        writeSetting(
+                PwmSetting.PWM_SECURITY_KEY,
+                new PasswordValue(new PasswordData(PwmRandom.getInstance().alphaNumericString(1024))),
+                null
+        );
+        
+        LOGGER.debug("initialized new random security key");
     }
 }

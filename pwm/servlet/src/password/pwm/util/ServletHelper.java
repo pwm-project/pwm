@@ -35,7 +35,10 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.*;
+import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmResponse;
+import password.pwm.http.PwmSession;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
@@ -335,7 +338,7 @@ public class ServletHelper {
     }
 
     public static void handleRequestInitialization(
-            final HttpServletRequest req,
+            final PwmRequest pwmRequest,
             final PwmApplication pwmApplication,
             final PwmSession pwmSession
     )
@@ -351,22 +354,22 @@ public class ServletHelper {
 
         // mark session ip address
         if (ssBean.getSrcAddress() == null) {
-            ssBean.setSrcAddress(readUserIPAddress(req, pwmSession));
+            ssBean.setSrcAddress(readUserIPAddress(pwmRequest.getHttpServletRequest(), pwmSession));
         }
 
         // mark the user's hostname in the session bean
         if (ssBean.getSrcHostname() == null) {
-            ssBean.setSrcHostname(readUserHostname(req, pwmSession));
+            ssBean.setSrcHostname(readUserHostname(pwmRequest.getHttpServletRequest(), pwmSession));
         }
 
         // update the privateUrlAccessed flag
-        if (new PwmURL(req).isPrivateUrl()) {
+        if (pwmRequest.getURL().isPrivateUrl()) {
             ssBean.setPrivateUrlAccessed(true);
         }
 
         // initialize the session's locale
         if (ssBean.getLocale() == null) {
-            initializeLocaleAndTheme(req, pwmApplication, pwmSession);
+            initializeLocaleAndTheme(pwmRequest.getHttpServletRequest(), pwmApplication, pwmSession);
         }
     }
 
@@ -413,19 +416,6 @@ public class ServletHelper {
                 final String errorMsg = "current network address '" + remoteAddress + "' has changed from original network address '" + ssBean.getSrcAddress() + "'";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
                 throw new PwmUnrecoverableException(errorInformation);
-            }
-        }
-
-        // check idle time
-        {
-            if (ssBean.getSessionLastAccessedTime() != null && ssBean.getSessionMaximumTimeout() != null) {
-                final TimeDuration maxIdleCheckTime = pwmSession.getSessionStateBean().getSessionMaximumTimeout();
-                final TimeDuration idleTime = TimeDuration.fromCurrent(ssBean.getSessionLastAccessedTime());
-                if (idleTime.isLongerThan(maxIdleCheckTime)) {
-                    final String errorMsg = "session idle time (" + idleTime.asCompactString() + ") is longer than maximum idle time age";
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
-                    throw new PwmUnrecoverableException(errorInformation);
-                }
             }
         }
 

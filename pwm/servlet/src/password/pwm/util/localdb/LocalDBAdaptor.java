@@ -23,6 +23,8 @@
 package password.pwm.util.localdb;
 
 import password.pwm.PwmApplication;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
@@ -312,27 +314,27 @@ public class LocalDBAdaptor implements LocalDB {
             }
         }
 
-        private static void validateKeyValue(final String key) {
+        private static void validateKeyValue(final String key) throws LocalDBException {
             if (key == null) {
                 throw new NullPointerException("key cannot be null");
             }
 
             if (key.length() < 0) {
-                throw new IllegalArgumentException("key length cannot be zero length");
+                throw new LocalDBException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"key length cannot be zero length"));
             }
 
             if (key.length() > LocalDB.MAX_KEY_LENGTH) {
-                throw new IllegalArgumentException("key length " + key.length() + " is greater than max " + LocalDB.MAX_KEY_LENGTH);
+                throw new LocalDBException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"key length " + key.length() + " is greater than max " + LocalDB.MAX_KEY_LENGTH));
             }
         }
 
-        private static void validateValueValue(final String value) {
+        private static void validateValueValue(final String value) throws LocalDBException {
             if (value == null) {
                 throw new NullPointerException("value cannot be null");
             }
 
             if (value.length() > LocalDB.MAX_VALUE_LENGTH) {
-                throw new IllegalArgumentException("value length " + value.length() + " is greater than max " + LocalDB.MAX_VALUE_LENGTH);
+                throw new LocalDBException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"value length " + value.length() + " is greater than max " + LocalDB.MAX_VALUE_LENGTH));
             }
         }
     }
