@@ -72,7 +72,7 @@ public class SessionLabel implements Serializable {
             return "";
         }
         return "{" + this.getSessionID() 
-                + (this.getUsername() == null && !this.getUsername().isEmpty() ? "," + this.getUsername() : "")
+                + (this.getUsername() != null && !this.getUsername().isEmpty() ? "," + this.getUsername() : "")
                 + "}";
         
     }

@@ -712,7 +712,7 @@ public class PasswordUtility {
     ) throws PwmUnrecoverableException {
         final List<String> profiles = pwmApplication.getConfig().getPasswordProfileIDs();
         if (profiles.isEmpty()) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NO_PROFILE_ASSIGNED,"no challenge profile is configured"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NO_PROFILE_ASSIGNED,"no password profiles are configured"));
         }
 
         for (final String profile : profiles) {

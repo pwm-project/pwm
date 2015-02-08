@@ -243,7 +243,8 @@ StringArrayValueHandler.draw = function(settingKey) {
 };
 
 StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCount, parentDivElement) {
-    var syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
+    var settingInfo = PWM_SETTINGS['settings'][settingKey];
+    var syntax = settingInfo['syntax'];
 
     var inputID = 'value-' + settingKey + '-' + iteration;
 
@@ -272,7 +273,8 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
 
     var deleteButtonID = 'button-' + settingKey + '-' + iteration + '-delete';
     rowHtml += '<td style="border:0">';
-    if (itemCount > 1 || !PWM_SETTINGS['settings'][settingKey]['required']) {
+    
+    if (itemCount > 1 || (!settingInfo['required'] && (syntax != 'PROFILE'))) {
         rowHtml += '<span id="' + deleteButtonID + '" class="delete-row-icon action-icon fa fa-times"></span>';
     }
     rowHtml += '</td>';

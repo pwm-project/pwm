@@ -1359,20 +1359,7 @@ PWM_CFGEDIT.showSettingFilter = function() {
     dialogBody += '</table></div>';
     var updateSettingLevelDescription = function() {
         var value = parseInt(PWM_MAIN.getObject('input-settingLevel').value);
-        var descriptionText = '';
-        switch (value) {
-            case 0:
-                descriptionText = 'Basic';
-                break;
-
-            case 1:
-                descriptionText = 'Standard';
-                break;
-
-            case 2:
-                descriptionText = 'Advanced';
-                break;
-        }
+        var descriptionText = PWM_CONFIG.showString('Display_SettingFilter_Level_' + value);
         PWM_MAIN.getObject('panel-settingLevelDescription').innerHTML = descriptionText;
     };
     var updateIcon = function() {

@@ -112,7 +112,6 @@ public abstract class PwmConstants {
     public static final String PROFILE_ID_ALL = "all";
 
     public static final String TOKEN_KEY_PWD_CHG_DATE = "lastPwdChange";
-    public static final String UNCONFIGURED_URL_VALUE = "[UNCONFIGURED_URL]";
     public static final float JAVA_MINIMUM_VERSION = (float)1.6;
 
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle("httpHeaderAuthorizationBasic");

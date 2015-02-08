@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -138,7 +139,8 @@ public abstract class PwmHttpRequestWrapper {
         
         final String rawValue = httpServletRequest.getParameter(name);
         if (rawValue != null) {
-            final String sanitizedValue = Validator.sanitizeInputValue(configuration, rawValue, maxLength);
+            final String decodedValue = decodeStringToDefaultCharSet(rawValue);
+            final String sanitizedValue = Validator.sanitizeInputValue(configuration, decodedValue, maxLength);
             if (sanitizedValue != null) {
                 final String trimmedVale = trim ? sanitizedValue.trim() : sanitizedValue;
                 return new PasswordData(trimmedVale);
@@ -201,7 +203,8 @@ public abstract class PwmHttpRequestWrapper {
 
         final List<String> resultSet = new ArrayList<>();
         for (final String rawValue : rawValues) {
-            final String sanitizedValue = Validator.sanitizeInputValue(configuration, rawValue, maxLength);
+            final String decodedValue = decodeStringToDefaultCharSet(rawValue);
+            final String sanitizedValue = Validator.sanitizeInputValue(configuration, decodedValue, maxLength);
 
             if (sanitizedValue.length() > 0) {
                 resultSet.add(trim ? sanitizedValue.trim() : sanitizedValue);
@@ -289,6 +292,17 @@ public abstract class PwmHttpRequestWrapper {
             }
         }
         return null;
+    }
+
+    private static String decodeStringToDefaultCharSet(final String input) {
+        String decodedValue = input;
+        try {
+            decodedValue = new String(input.getBytes("ISO-8859-1"), PwmConstants.DEFAULT_CHARSET);
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.error("error decoding request parameter: " + e.getMessage());
+        }
+        System.out.println("---- input=" + input + " output=" +decodedValue);
+        return decodedValue;
     }
 }
 

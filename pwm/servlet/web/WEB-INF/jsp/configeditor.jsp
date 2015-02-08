@@ -58,9 +58,6 @@
                 <div class="headerIcon" id="macroDoc_icon">
                     <span class="fa fa-magic"></span>
                 </div>
-                <div class="headerIcon" id="settingFilter_icon">
-                    <span class="fa fa-filter"></span>
-                </div>
             </div>
         </div>
     </div>
@@ -103,6 +100,10 @@
                 <span id="button-navigationExpandAll" class="fa fa-plus-square"></span>
                 &nbsp;&nbsp;
                 <span id="button-navigationCollapseAll" class="fa fa-minus-square"></span>
+                &nbsp;&nbsp;
+                <div class="headerIcon" id="settingFilter_icon">
+                    <span class="fa fa-filter"></span>
+                </div>
             </div>
         </div>
         <div id="settingsPanel">
