@@ -301,7 +301,6 @@ public abstract class PwmHttpRequestWrapper {
         } catch (UnsupportedEncodingException e) {
             LOGGER.error("error decoding request parameter: " + e.getMessage());
         }
-        System.out.println("---- input=" + input + " output=" +decodedValue);
         return decodedValue;
     }
 }
