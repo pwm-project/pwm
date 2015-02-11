@@ -36,6 +36,9 @@
 <% final ConfigManagerBean configManagerBean = configeditor_pwmRequest.getPwmSession().getConfigManagerBean(); %>
 <% final String configNotes = configManagerBean.getStoredConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES);%>
 <body class="nihilo">
+<style>
+    html { overflow-y: scroll; } <%-- always add verticle scrollbar to page --%>
+</style>
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
     <div class="configeditor-header" id="header" >
@@ -58,6 +61,9 @@
                 <div class="headerIcon" id="macroDoc_icon">
                     <span class="fa fa-magic"></span>
                 </div>
+            <div id="idle_status" class="editorIdleStatus">
+                <%--idle timeout text --%>
+            </div>
             </div>
         </div>
     </div>

@@ -38,10 +38,11 @@
         <div class="buttonbar">
             <form action="<pwm:url url='UpdateProfile'/>" method="post" enctype="application/x-www-form-urlencoded">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
-                    <label class="checkboxWrapper">
-                        <input type="checkbox" id="agreeCheckBox"/>
-                        <pwm:display key="Button_Agree"/>
-                    </label>
+                <label class="checkboxWrapper">
+                    <input type="checkbox" id="agreeCheckBox"/>
+                    <pwm:display key="Button_Agree"/>
+                </label>
+                <br/><br/>
                 <input type="hidden" name="processAction"
                        value="agree"/>
                 <button type="submit" name="button" class="btn" id="button_continue">
@@ -62,25 +63,25 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    function updateContinueButton() {
-        var checkBox = PWM_MAIN.getObject("agreeCheckBox");
-        var continueButton = PWM_MAIN.getObject("button_continue");
-        if (checkBox != null && continueButton != null) {
-            if (checkBox.checked) {
-                continueButton.removeAttribute('disabled');
-            } else {
-                continueButton.disabled = "disabled";
+    <script type="text/javascript">
+        function updateContinueButton() {
+            var checkBox = PWM_MAIN.getObject("agreeCheckBox");
+            var continueButton = PWM_MAIN.getObject("button_continue");
+            if (checkBox != null && continueButton != null) {
+                if (checkBox.checked) {
+                    continueButton.removeAttribute('disabled');
+                } else {
+                    continueButton.disabled = "disabled";
+                }
             }
         }
-    }
 
 
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.addEventHandler('agreeCheckBox','click, change',function(){ updateContinueButton() });
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.addEventHandler('agreeCheckBox','click, change',function(){ updateContinueButton() });
             updateContinueButton();
-    });
-</script>
+        });
+    </script>
 </pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>

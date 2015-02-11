@@ -41,13 +41,24 @@
 #centerbody {
     background-color: #eeeeee;
     padding: 10px 10px 40px 10px;
-    border-left: solid 3px #ff0000;
-    border-right: solid 3px #ff0000;
-    border-radius: 5px;
+    border-left: solid 2px #ff0000;
+    border-right: solid 2px #ff0000;
+    border-radius: 0;
+    min-height: 65vh;
     margin-left: 100px;
+    margin-top: 0;
+    animation: fadein 2s;
+    -moz-animation: fadein 2s;
+    -webkit-animation: fadein 2s;
 }
 
-#header-page, #header-title {
+#centerbody.wide {
+    width: 90%;
+    margin-left: auto;
+}
+
+
+#header-center {
     margin-left: 100px;
 }
 
@@ -76,3 +87,18 @@ a:hover {
     color: white;
 }
 
+.btn {
+    border-style:none;
+    padding: 3px 11px;
+    margin: 9px 7px;
+    text-decoration: none;
+    color: white;
+    background-color: #880000;
+    cursor: pointer;
+}.btn:disabled {
+     color: #656565;
+}
+
+@keyframes fadein { from { opacity:0; } to { opacity:1; } }
+@-moz-keyframes fadein { from { opacity:0 } to { opacity:1 } }
+@-webkit-keyframes fadein { from { opacity:0 } to { opacity:1 } }

@@ -274,8 +274,7 @@
             searching <%= numberFormat.format(searchResults.getReturnedEvents()) %> log entries
             in <%= searchResults.getSearchTime().asCompactString() %>.</p>
         <% } %>
-    </div>
-    <div id="centerbody">
+        <div class="footnote">
         <p>
             This page shows the debug log
             history. This history is stored in the LocalDB cache of the debug log. For a
@@ -286,6 +285,7 @@
         The LocalDB is configured to capture events of level
         <b><%=ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL)%>
         </b> and higher.
+        </div>
     </p>
     </div>
     <div class="push"></div>

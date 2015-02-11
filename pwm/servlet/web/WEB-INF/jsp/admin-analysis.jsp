@@ -159,12 +159,10 @@
                         <table>
                             <tr>
                                 <td colspan="10" style="text-align: center">
-                                    <form action="<pwm:url url='analysis.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded"
-                                          name="statsUpdateForm"
-                                          id="statsUpdateForm"
-                                          onsubmit="PWM_MAIN.getObject('submit_button').value = ' Please Wait ';PWM_MAIN.getObject('submit_button').disabled = true">
-                                        <select name="statsPeriodSelect" onchange="PWM_MAIN.getObject('statsUpdateForm').submit();"
-                                                data-dojo-type="dijit.form.Select" style="width: 500px;" data-dojo-props="maxHeight: -1">
+                                    <form action="<pwm:url url='Administration'/>" method="GET" enctype="application/x-www-form-urlencoded"
+                                          name="statsUpdateForm" id="statsUpdateForm">
+                                        <select name="statsPeriodSelect""
+                                                style="width: 500px;" data-dojo-props="maxHeight: -1">
                                             <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
                                                 since installation - <%= dateFormat.format(analysis_pwmRequest.getPwmApplication().getInstallTime()) %>
                                             </option>
@@ -178,6 +176,10 @@
                                             </option>
                                             <% } %>
                                         </select>
+                                        <button class="btn" type="submit">
+                                            <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                                            <pwm:display key="Button_Refresh" bundle="Admin"/>
+                                        </button>
                                     </form>
                                 </td>
                             </tr>

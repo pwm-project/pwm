@@ -792,6 +792,8 @@ public enum PwmSetting {
             "peopleSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_QUERY_MATCH(
             "peopleSearch.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_SEARCH_ATTRIBUTES(
+            "peopleSearch.searchAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_RESULT_FORM(
             "peopleSearch.result.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_DETAIL_FORM(

@@ -30,6 +30,7 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
@@ -186,8 +187,9 @@ public class UpdateProfileServlet extends PwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final String updateProfileAgreementText = pwmApplication.getConfig().readSettingAsLocalizedString(
-                PwmSetting.UPDATE_PROFILE_AGREEMENT_MESSAGE, pwmSession.getSessionStateBean().getLocale());
-        final Map<FormConfiguration, String> formValues = updateProfileBean.getFormData();
+                PwmSetting.UPDATE_PROFILE_AGREEMENT_MESSAGE,
+                pwmSession.getSessionStateBean().getLocale()
+        );
 
         if (updateProfileAgreementText != null && updateProfileAgreementText.length() > 0) {
             if (!updateProfileBean.isAgreementPassed()) {
@@ -199,10 +201,11 @@ public class UpdateProfileServlet extends PwmServlet {
             }
         }
 
+        final Map<FormConfiguration, String> formValues = updateProfileBean.getFormData();
         if (!updateProfileBean.isFormSubmitted()) {
             final Map<FormConfiguration,String> formMap = updateProfileBean.getFormData();
             final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-            populateFormFromLdap(formFields, pwmSession, formMap, pwmSession.getSessionManager().getUserDataReader(pwmApplication));
+            populateFormFromLdap(formFields, pwmRequest.getSessionLabel(), formMap, pwmSession.getSessionManager().getUserDataReader(pwmApplication));
             forwardToForm(pwmRequest);
             return;
         }
@@ -270,17 +273,18 @@ public class UpdateProfileServlet extends PwmServlet {
 
     public static void populateFormFromLdap(
             final List<FormConfiguration> formFields,
-            final PwmSession pwmSession,
+            final SessionLabel sessionLabel,
             final Map<FormConfiguration, String> formMap,
             final UserDataReader userDataReader
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
+        LOGGER.trace(sessionLabel, "loading existing user profile data from ldap");
         final Map<String,String> userData = new LinkedHashMap<>();
         try {
             userData.putAll(userDataReader.readStringAttributes(FormConfiguration.convertToListOfNames(formFields)));
         } catch (ChaiOperationException e) {
-            LOGGER.error(pwmSession, "unexpected error reading profile data attributes: " + e.getMessage());
+            LOGGER.error(sessionLabel, "unexpected error reading profile data attributes: " + e.getMessage());
         }
 
         for (final FormConfiguration formItem : formFields) {

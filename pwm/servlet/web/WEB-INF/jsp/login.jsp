@@ -35,7 +35,7 @@
     <div id="centerbody">
         <p><pwm:display key="Display_Login"/></p>
 
-        <form class="" action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login">
+        <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <h2><label for="username"><pwm:display key="Field_Username"/></label></h2>

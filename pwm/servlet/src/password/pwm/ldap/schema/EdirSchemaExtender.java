@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.ldap;
+package password.pwm.ldap.schema;
 
 import com.novell.ldap.client.SchemaParser;
 import com.novell.ldapchai.ChaiEntry;
@@ -35,68 +35,22 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.*;
 
-public class SchemaExtender {
-    private final static PwmLogger LOGGER = PwmLogger.forClass(SchemaExtender.class);
+public class EdirSchemaExtender implements SchemaExtender {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(EdirSchemaExtender.class);
 
     private final static String LDAP_SCHEMA_DN = "cn=schema";
     private final static String LDAP_SCHEMA_ATTR_ATTRS = "attributeTypes";
     private final static String LDAP_SCHEMA_ATTR_CLASSES = "objectClasses";
 
-    private final ChaiEntry schemaEntry;
+    private ChaiEntry schemaEntry;
+
     private final StringBuilder activityLog = new StringBuilder();
+    private final Map<String,SchemaDefinition.State> stateMap = new HashMap();
 
-    static class SchemaDefinition implements Serializable {
-        private SchemaType schemaType;
-        private String name;
-        private String definition;
-
-        public SchemaDefinition(SchemaType schemaType, String name, String definition) {
-            this.schemaType = schemaType;
-            this.name = name;
-            this.definition = definition;
-        }
-
-        public SchemaType getSchemaType() {
-            return schemaType;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDefinition() {
-            return definition;
-        }
-    }
-
-    enum SchemaType {
-        attribute,
-        objectclass,
-    }
-
-    enum State {
-        missing,
-        incorrect,
-        correct,
-    }
-
-    private final Map<String,State> stateMap = new HashMap();
-
-    public SchemaExtender(ChaiProvider chaiProvider) throws PwmUnrecoverableException {
-        if (!chaiProvider.isConnected()) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, "provider is not connected"));
-        }
+    public void init(ChaiProvider chaiProvider) throws PwmUnrecoverableException {
         try {
-            if (chaiProvider.getDirectoryVendor() != ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, "directory vendor is not supported"));
-            }
-            final List<String> urls = chaiProvider.getChaiConfiguration().bindURLsAsList();
-            if (urls.size() > 1) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, "provider used for schema extension must have only a single ldap url defined"));
-            }
             schemaEntry = ChaiFactory.createChaiEntry(LDAP_SCHEMA_DN, chaiProvider);
         } catch (ChaiUnavailableException e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
@@ -104,20 +58,25 @@ public class SchemaExtender {
     }
 
 
-    public boolean extendSchema() throws PwmUnrecoverableException {
+    @Override
+    public SchemaOperationResult extendSchema()
+            throws PwmUnrecoverableException
+    {
+        activityLog.delete(0,activityLog.length());
         execute(false);
-        return allStatesCorrect();
+        return new SchemaOperationResult(allStatesCorrect(),getActivityLog());
     }
 
-    public boolean checkExistingSchema() throws PwmUnrecoverableException {
+    @Override
+    public SchemaOperationResult checkExistingSchema() throws PwmUnrecoverableException {
         execute(true);
-        return allStatesCorrect();
+        return new SchemaOperationResult(allStatesCorrect(),getActivityLog());
     }
 
     private boolean allStatesCorrect() {
         boolean allStatesCorrect = true;
         for (final String key : stateMap.keySet()) {
-            if (State.correct != stateMap.get(key)) {
+            if (SchemaDefinition.State.correct != stateMap.get(key)) {
                 allStatesCorrect = false;
             }
         }
@@ -130,15 +89,15 @@ public class SchemaExtender {
         stateMap.clear();
         try {
             final Map<String, SchemaParser> existingAttrs = readSchemaAttributes();
-            for (final SchemaDefinition schemaDefinition : getPwmSchemaDefinitions()) {
-                if (schemaDefinition.getSchemaType() == SchemaType.attribute) {
+            for (final SchemaDefinition schemaDefinition : SchemaDefinition.getPwmSchemaDefinitions()) {
+                if (schemaDefinition.getSchemaType() == SchemaDefinition.SchemaType.attribute) {
                     checkAttribute(readOnly, schemaDefinition, existingAttrs);
                 }
             }
 
             final Map<String, SchemaParser> existingObjectclasses = readSchemaObjectclasses();
-            for (final SchemaDefinition schemaDefinition : getPwmSchemaDefinitions()) {
-                if (schemaDefinition.getSchemaType() == SchemaType.objectclass) {
+            for (final SchemaDefinition schemaDefinition : SchemaDefinition.getPwmSchemaDefinitions()) {
+                if (schemaDefinition.getSchemaType() == SchemaDefinition.SchemaType.objectclass) {
                     checkObjectclass(readOnly, schemaDefinition, existingObjectclasses);
                 }
             }
@@ -159,27 +118,27 @@ public class SchemaExtender {
             final SchemaParser existingValue = existingAttrs.get(name);
             logActivity("objectclass '" + name + "' exists");
             final boolean objectclassIsCorrect = checkObjectclassCorrectness(schemaDefinition, existingValue);
-            stateMap.put(name, objectclassIsCorrect ? State.correct : State.incorrect);
+            stateMap.put(name, objectclassIsCorrect ? SchemaDefinition.State.correct : SchemaDefinition.State.incorrect);
 
             if (!readOnly && !objectclassIsCorrect) {
                 logActivity("beginning update for objectclass '" + name + "'");
                 try {
                     schemaEntry.replaceAttribute(LDAP_SCHEMA_ATTR_CLASSES, existingValue.getRawString(), schemaDefinition.getDefinition());
                     logActivity("+ objectclass '" + name + "' has been modified");
-                    stateMap.put(name, State.correct);
+                    stateMap.put(name, SchemaDefinition.State.correct);
                 } catch (ChaiOperationException e) {
                     logActivity("error while updating objectclass definition '" + name + "', error: " + e.getMessage());
                 }
             }
         } else {
             logActivity("objectclass '" + name + "' does not exist");
-            stateMap.put(name, State.missing);
+            stateMap.put(name, SchemaDefinition.State.missing);
             if (!readOnly) {
                 logActivity("beginning add for objectclass '" + name + "'");
                 try {
                     schemaEntry.addAttribute(LDAP_SCHEMA_ATTR_CLASSES, schemaDefinition.getDefinition());
                     logActivity("+ objectclass '" + name + "' has been added");
-                    stateMap.put(name, State.correct);
+                    stateMap.put(name, SchemaDefinition.State.correct);
                 } catch (ChaiOperationException e) {
                     logActivity("error while updating objectclass definition '" + name + "', error: " + e.getMessage());
                 }
@@ -193,14 +152,14 @@ public class SchemaExtender {
             final SchemaParser existingValue = existingAttrs.get(name);
             logActivity("attribute '" + name + "' exists");
             boolean attributeIsCorrect = checkAttributeCorrectness(schemaDefinition, existingValue );
-            stateMap.put(name, attributeIsCorrect ? State.correct : State.incorrect);
+            stateMap.put(name, attributeIsCorrect ? SchemaDefinition.State.correct : SchemaDefinition.State.incorrect);
 
             if (!readOnly && !attributeIsCorrect) {
                 logActivity("beginning update for attribute '" + name + "'");
                 try {
                     schemaEntry.replaceAttribute(LDAP_SCHEMA_ATTR_ATTRS, existingValue.getRawString(), schemaDefinition.getDefinition());
                     logActivity("+ attribute '" + name + "' has been modified");
-                    stateMap.put(name, State.correct);
+                    stateMap.put(name, SchemaDefinition.State.correct);
                 } catch (ChaiOperationException e) {
                     logActivity("error while updating attribute definition '" + name + "', error: " + e.getMessage());
                 }
@@ -211,9 +170,9 @@ public class SchemaExtender {
                 logActivity("beginning add for attribute '" + name + "'");
                 try {
                     schemaEntry.addAttribute(LDAP_SCHEMA_ATTR_ATTRS, schemaDefinition.getDefinition());
-                    stateMap.put(name, State.missing);
+                    stateMap.put(name, SchemaDefinition.State.missing);
                     logActivity("+ attribute '" + name + "' has been added");
-                    stateMap.put(name, State.correct);
+                    stateMap.put(name, SchemaDefinition.State.correct);
                 } catch (ChaiOperationException e) {
                     logActivity("error while adding attribute definition '" + name + "', error: " + e.getMessage());
                 }
@@ -320,22 +279,12 @@ public class SchemaExtender {
         activityLog.append(charSequence).append("\n");
     }
 
-    public String getActivityLog() {
+    private String getActivityLog() {
         return activityLog.toString();
-    }
-
-    public List<SchemaDefinition> getPwmSchemaDefinitions() {
-        final ResourceBundle resourceBundle = ResourceBundle.getBundle(SchemaExtender.class.getName());
-        final TreeMap<String,SchemaDefinition> returnObj = new TreeMap<>();
-        for (final String key : Collections.list(resourceBundle.getKeys())) {
-            final String value = resourceBundle.getString(key);
-            SchemaDefinition schemaDefinition = JsonUtil.deserialize(value, SchemaDefinition.class);
-            returnObj.put(key, schemaDefinition);
-        }
-        return new ArrayList<>(returnObj.values());
     }
 
     private String normalizeSyntaxID(final String input) {
         return input == null ? "" : input.replaceFirst("\\{[0-9]+\\}$","");
     }
+
 }

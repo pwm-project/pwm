@@ -111,9 +111,9 @@ public class RestProfileServer extends AbstractRestServer {
                 final UserDataReader userDataReader = LdapUserDataReader.selfProxiedReader(
                         restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(),
                         restRequestBean.getUserIdentity());
-                UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession(),formData,userDataReader);
+                UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession().getLabel(),formData,userDataReader);
             } else {
-                UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession(),formData,restRequestBean.getPwmSession().getSessionManager().getUserDataReader(restRequestBean.getPwmApplication()));
+                UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession().getLabel(),formData,restRequestBean.getPwmSession().getSessionManager().getUserDataReader(restRequestBean.getPwmApplication()));
             }
 
             for (FormConfiguration formConfig : formData.keySet()) {

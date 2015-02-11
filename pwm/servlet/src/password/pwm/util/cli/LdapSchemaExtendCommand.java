@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,8 @@ package password.pwm.util.cli;
 
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
-import password.pwm.ldap.SchemaExtender;
+import password.pwm.ldap.schema.SchemaManager;
+import password.pwm.ldap.schema.SchemaOperationResult;
 
 import java.io.Console;
 import java.util.Arrays;
@@ -50,9 +51,13 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand {
             bindPW = new String(console.readPassword());
         }
         final ChaiProvider chaiProvider = ChaiProviderFactory.createProvider(ldapUrl, bindDN, bindPW);
-        SchemaExtender schemaExtender = new SchemaExtender(chaiProvider);
-        boolean checkOk = schemaExtender.extendSchema();
-        out("schema extension complete.  all extensions in place = " + checkOk);
+        final SchemaOperationResult operationResult = SchemaManager.extendSchema(chaiProvider);
+        final boolean checkOk = operationResult.isSuccess();
+        if (checkOk) {
+            out("schema extension complete.  all extensions in place = " + checkOk);
+        } else {
+            out("schema extension did not complete.\n" + operationResult.getOperationLog());
+        }
     }
 
 

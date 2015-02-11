@@ -250,8 +250,8 @@ input[type=password]::-ms-reveal{display: none;}
     background: #3e374c;
     cursor: pointer;
 }.btn:disabled {
-     color: #656565;
- }
+     color: #9e9e9e;
+}
 
 .dialogBody {
     width: 500px;
@@ -300,6 +300,15 @@ div.progress-container > div {
     z-index: 5;
     position: relative;
 }
+
+#header-balance-div {
+    position: absolute;
+    text-align:left;
+    border-width:0;
+    top: 19px;
+    left:18px;
+}
+
 
 #header-center {
     width: 600px;
@@ -631,6 +640,7 @@ img.qrcodeimage {
 }
 
 .action-icon {
+    margin-left: 3px;
     cursor: pointer;
 }
 

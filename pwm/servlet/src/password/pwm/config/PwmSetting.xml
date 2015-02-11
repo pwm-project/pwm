@@ -964,6 +964,10 @@
         <default>
             <value>140</value>
         </default>
+        <options>
+            <option value="min">1</option>
+            <option value="max">10000</option>
+        </options>
     </setting>
     <setting key="sms.responseOkRegex" level="2">
         <label>Response Regular Expressions</label>
@@ -2911,8 +2915,19 @@
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
+    <setting key="peopleSearch.searchAttributes" level="1" required="false">
+        <label>People Search Attributes</label>
+        <description><![CDATA[List of LDAP attributes to search LDAP with when generating an automatic search filter.]]></description>
+        <default>
+            <value>givenName</value>
+            <value>sn</value>
+            <value>title</value>
+            <value>mail</value>
+            <value>telephoneNumber</value>
+        </default>
+    </setting>
     <setting key="peopleSearch.searchFilter" level="2" required="false">
-        <label>People SearchSearch Filter</label>
+        <label>People Search LDAP Filter</label>
         <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME%</i> for user supplied username.  If blank, the search filter will be auto generated based on the search result form.]]></description>
         <default/>
     </setting>
@@ -2927,12 +2942,14 @@
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
         <options>
+            <option value="types">[]</option>
             <option value="required">hide</option>
+            <option value="hideOptions">true</option>
         </options>
     </setting>
     <setting key="peopleSearch.detail.form" level="1" required="true">
@@ -2944,7 +2961,7 @@
             <value>{"name":"fullName","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Full Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},searchLike:true}</value>
+            <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"ou","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Department"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"businessCategory","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Business Category"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"company","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Company"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2959,7 +2976,8 @@
             <value>{"name":"directReports","minimumLength":1,"maximumLength":64,"type":"userDN","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Direct Reports"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
         <options>
-            <option value="searchLike">show</option>
+            <option value="types">["text","email","userDN"]</option>
+            <option value="hideOptions">true</option>
             <option value="required">hide</option>
             <option value="type-userDN">show</option>
             <option value="readonly">true</option>
@@ -3000,9 +3018,7 @@
     <setting key="peopleSearch.photo.urlOverride" level="2">
         <label>Photo URL Override</label>
         <description><![CDATA[If the user's photo is not stored in ldap, this URL can be specified to load the photo for the user detail.  May use <b>@LDAP:x@</b> macros, but other macros will not work.  If this setting is specified, the photo will not be loaded from the LDAP directory.]]></description>
-        <default>
-            <value></value>
-        </default>
+        <default/>
     </setting>
     <setting key="peopleSearch.photo.style" level="2">
         <label>LDAP Photo HTML Style Attribute</label>

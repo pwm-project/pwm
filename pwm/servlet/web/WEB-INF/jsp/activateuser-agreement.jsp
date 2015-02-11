@@ -45,6 +45,7 @@
                     <input type="checkbox" id="agreeCheckBox"/>
                     <pwm:display key="Button_Agree"/>
                 </label>
+                    <br/><br/>
                 <input type="hidden" name="processAction" value="agree"/>
                 <button type="submit" name="button" class="btn" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>

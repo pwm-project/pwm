@@ -143,8 +143,12 @@ public class FormValue extends AbstractValue implements StoredValue {
                 sb.append(" Confirm:").append(formRow.isConfirmationRequired());
                 sb.append(" Unique:").append(formRow.isUnique());
                 sb.append("\n");
-                sb.append(" Label:").append(JsonUtil.serializeMap(formRow.getLabelLocaleMap()) + "\n");
-                sb.append(" Description:").append(JsonUtil.serializeMap(formRow.getLabelDescriptionLocaleMap()) + "\n");
+                sb.append(" Label:").append(JsonUtil.serializeMap(formRow.getLabelLocaleMap())).append("\n");
+                sb.append(" Description:").append(JsonUtil.serializeMap(formRow.getLabelDescriptionLocaleMap())).append("\n");
+                if (formRow.getSelectOptions() != null && !formRow.getSelectOptions().isEmpty()) {
+                    sb.append(" Select Options: ").append(JsonUtil.serializeMap(formRow.getSelectOptions())).append("\n");
+                }
+
             }
             return sb.toString();
         } else {

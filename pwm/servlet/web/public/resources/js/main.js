@@ -240,17 +240,6 @@ PWM_MAIN.openHeaderWarningPanel = function() {
 };
 
 PWM_MAIN.applyFormAttributes = function() {
-    require(["dojo/query","dojo/on"], function(query,on){
-        var results = query('.pwm-form');
-        for (var i = 0; i < results.length; i++) {
-            (function(formIter){
-                var element = results[formIter];
-                on(element, "submit", function(event){ PWM_MAIN.handleFormSubmit(element, event); });
-            })(i);
-        }
-    });
-
-
     require(["dojo/_base/array", "dojo/query", "dojo/on"], function(array, query, on){
         array.forEach(
             query("form"),
@@ -354,10 +343,10 @@ PWM_MAIN.goto = function(url,options) {
             url = PWM_GLOBAL['url-context'] + url;
         }
     }
+
     if ('addFormID' in options) {
         if (url.indexOf('pwmFormID') == -1) {
-            url += url.indexOf('?') == -1 ? '?' : '&';
-            url += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+            url = PWM_MAIN.addPwmFormIDtoURL(url);
         }
     }
 
@@ -392,8 +381,10 @@ PWM_MAIN.handleFormCancel = function() {
 };
 
 PWM_MAIN.handleLoginFormSubmit = function(form, event) {
+    console.log('entering handleLoginFormSubmit');
+    PWM_MAIN.cancelEvent(event);
+
     require(["dojo","dojo/dom-form"], function(dojo, domForm) {
-        try { event.preventDefault(); } catch (e) {};
         PWM_MAIN.showWaitDialog({loadFunction: function () {
             var options = {};
             options['content'] = domForm.toObject(form);
@@ -424,9 +415,8 @@ PWM_MAIN.handleLoginFormSubmit = function(form, event) {
 
 
 PWM_MAIN.handleFormSubmit = function(form, event) {
-    if (event) {
-        event.preventDefault();
-    }
+    console.log('entering handleFormSubmit');
+    PWM_MAIN.cancelEvent(event);
 
     PWM_GLOBAL['idle_suspendTimeout'] = true;
     var formElements = form.elements;
@@ -725,8 +715,8 @@ PWM_MAIN.showWaitDialog = function(options) {
     require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(dojo,Dialog,ProgressBar){
         options = options || {};
         var requestedLoadFunction = options['loadFunction'];
-        PWM_MAIN.clearDijitWidget('progressBar');
         options['loadFunction'] = function() {
+            PWM_MAIN.clearDijitWidget('progressBar');
             var progressBar = new ProgressBar({
                 style: '',
                 indeterminate:true
@@ -787,7 +777,7 @@ PWM_MAIN.showDialog = function(options) {
     var bodyText = '';
     bodyText += text;
     if (showOk || showCancel) {
-        bodyText += '<br/><br/>';
+        bodyText += '<br/><div class="buttonbar">';
     }
     if (showOk) {
         bodyText += '<button class="btn" id="dialog_ok_button">'
@@ -803,6 +793,9 @@ PWM_MAIN.showDialog = function(options) {
     var dialogClassText = 'dialogBody';
     if (dialogClass) {
         dialogClassText += ' ' + dialogClass;
+    }
+    if (showOk || showCancel) {
+        bodyText += '</div>';
     }
 
     bodyText = '<div class="' + dialogClassText + '">' + bodyText + '</div>';
@@ -1839,6 +1832,16 @@ PWM_MAIN.autofocusSupportExtension = function() {
                 })(i);
             }
         });
+    }
+};
+
+PWM_MAIN.cancelEvent = function(event) {
+    if (event) {
+        if (event.preventDefault) {
+            event.preventDefault();
+        } else if (event.returnValue) {
+            event.returnValue = false;
+        }
     }
 };
 

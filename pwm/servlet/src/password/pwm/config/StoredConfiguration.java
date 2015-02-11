@@ -1417,7 +1417,7 @@ public class StoredConfiguration implements Serializable {
     public void initNewRandomSecurityKey() 
             throws PwmUnrecoverableException 
     {
-        if (isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) {
+        if (!isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) {
             return;
         }
         

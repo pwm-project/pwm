@@ -509,7 +509,7 @@ public class HelpdeskServlet extends PwmServlet {
             for (final FormConfiguration formConfiguration : detailFormConfig) {
                 formData.put(formConfiguration,"");
             }
-            UpdateProfileServlet.populateFormFromLdap(detailFormConfig, pwmRequest.getPwmSession(), formData, userDataReader);
+            UpdateProfileServlet.populateFormFromLdap(detailFormConfig, pwmRequest.getPwmSession().getLabel(), formData, userDataReader);
             helpdeskBean.getAdditionalUserInfo().setSearchDetails(formData);
         }
 

@@ -165,7 +165,7 @@ public class ServletHelper {
                 resp.setHeader(PwmConstants.HttpHeader.XSessionID, pwmSession.getSessionStateBean().getSessionID());
             }
 
-            if (includeXFrameDeny) {
+            if (includeXFrameDeny && fromServlet) {
                 resp.setHeader(PwmConstants.HttpHeader.XFrameOptions, "DENY");
             }
 

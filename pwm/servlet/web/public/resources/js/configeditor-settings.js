@@ -273,7 +273,7 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
 
     var deleteButtonID = 'button-' + settingKey + '-' + iteration + '-delete';
     rowHtml += '<td style="border:0">';
-    
+
     if (itemCount > 1 || (!settingInfo['required'] && (syntax != 'PROFILE'))) {
         rowHtml += '<span id="' + deleteButtonID + '" class="delete-row-icon action-icon fa fa-times"></span>';
     }
@@ -352,7 +352,6 @@ StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
 };
 
 StringArrayValueHandler.move = function(settingKey, moveUp, iteration) {
-    var syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
     var currentValues = PWM_VAR['clientSettingCache'][settingKey];
     if (moveUp) {
         StringArrayValueHandler.arrayMoveUtil(currentValues, iteration, iteration - 1);
@@ -583,18 +582,8 @@ FormTableHandler.redraw = function(keyName) {
 
     if (!PWM_MAIN.isEmpty(resultValue)) {
         var headerRow = document.createElement("tr");
-        headerRow.setAttribute("style", "border-width: 0");
-
-        var header1 = document.createElement("td");
-        header1.setAttribute("style", "border-width: 0;");
-        header1.innerHTML = "Name";
-        headerRow.appendChild(header1);
-
-        var header2 = document.createElement("td");
-        header2.setAttribute("style", "border-width: 0;");
-        header2.innerHTML = "Label";
-        headerRow.appendChild(header2);
-
+        var rowHtml = '<td>Name</td><td>Label</td>';
+        headerRow.innerHTML = rowHtml;
         parentDivElement.appendChild(headerRow);
     }
 
@@ -613,113 +602,93 @@ FormTableHandler.redraw = function(keyName) {
     addItemButton.setAttribute("type", "button");
     addItemButton.setAttribute("class", "btn");
     addItemButton.setAttribute("onclick", "FormTableHandler.addMultiSetting('" + keyName + "','" + parentDiv + "');");
-    addItemButton.innerHTML = '<span class="btn-icon fa fa-plus-square"></span>Add Value';
+    addItemButton.innerHTML = '<span class="btn-icon fa fa-plus-square"></span>Add Form Item';
     newTableData.appendChild(addItemButton);
 
     newTableRow.appendChild(newTableData);
     parentDivElement.appendChild(newTableRow);
 
-    require(["dojo/parser","dijit/form/Button","dijit/form/Select","dijit/form/ValidationTextBox"],function(dojoParser){
-        dojoParser.parse(parentDiv);
-    });
 };
 
 FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
-    var inputID = 'value_' + settingKey + '_' + iteration + "_";
+    require(["dojo/json"], function(JSON){
+        var itemCount = PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
+        var inputID = 'value_' + settingKey + '_' + iteration + "_";
+        var options = PWM_SETTINGS['settings'][settingKey]['options'];
 
-    // clear the old dijit node (if it exists)
-    PWM_MAIN.clearDijitWidget(inputID + "name");
-    PWM_MAIN.clearDijitWidget(inputID + "label");
-    PWM_MAIN.clearDijitWidget(inputID + "type");
-    PWM_MAIN.clearDijitWidget(inputID + "optionsButton");
+        var newTableRow = document.createElement("tr");
+        newTableRow.setAttribute("style", "border-width: 0");
 
-    var newTableRow = document.createElement("tr");
-    newTableRow.setAttribute("style", "border-width: 0");
-    {
-        {
-            var td1 = document.createElement("td");
-            td1.setAttribute("style", "border-width: 0");
-            var nameInput = document.createElement("input");
-            nameInput.setAttribute("id", inputID + "name");
-            nameInput.setAttribute("value", value['name']);
-            nameInput.setAttribute("onchange", "PWM_VAR['clientSettingCache']['" + settingKey + "'][" + iteration + "]['name'] = this.value;FormTableHandler.writeFormSetting('" + settingKey + "')");
-            nameInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
-            nameInput.setAttribute("data-dojo-props", "required: true");
+        var htmlRow = '';
+        htmlRow += '<td><input style="width:180px" class="configStringInput" id="' + inputID + 'name" value="' + value['name'] + '"/></td>';
+        htmlRow += '<td style="width:170px"><div class="noWrapTextBox" id="' + inputID + 'label"><span class="btn-icon fa fa-edit"></span><span>' + value['labels'][''] + '...</span></div></td>';
 
-            td1.appendChild(nameInput);
-            newTableRow.appendChild(td1);
+        htmlRow += '<td>';
+        var userDNtypeAllowed = options['type-userDN'] == 'show';
+        var optionList = PWM_GLOBAL['formTypeOptions'];
+        if ('types' in options) {
+            optionList = JSON.parse(options['types']);
         }
-
-        {
-            var td2 = document.createElement("td");
-            td2.setAttribute("style", "border-width: 0");
-            var labelInput = document.createElement("input");
-            labelInput.setAttribute("id", inputID + "label");
-            labelInput.setAttribute("value", value['labels']['']);
-            labelInput.setAttribute("readonly", "true");
-            labelInput.setAttribute("onclick", "FormTableHandler.showLabelDialog('" + settingKey + "'," + iteration + ")");
-            labelInput.setAttribute("onkeypress", "FormTableHandler.showLabelDialog('" + settingKey + "'," + iteration + ")");
-            labelInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
-            td2.appendChild(labelInput);
-            newTableRow.appendChild(td2);
-        }
-
-        {
-            var userDNtypeAllowed = PWM_SETTINGS['settings'][settingKey]['options']['type-userDN'] == 'show';
-
-            var td3 = document.createElement("td");
-            td3.setAttribute("style", "border-width: 0");
-            var optionList = PWM_GLOBAL['formTypeOptions'];
-            var typeSelect = document.createElement("select");
-            typeSelect.setAttribute("id", inputID + "type");
+        if (!PWM_MAIN.isEmpty(optionList)) {
+        htmlRow += '<select id="' + inputID + 'type">';
             for (var optionItem in optionList) {
-                var optionElement = document.createElement("option");
                 if (optionList[optionItem] != 'userDN' || userDNtypeAllowed) {
-                    optionElement.value = optionList[optionItem];
-                    optionElement.id = inputID + "type_option_" + optionList[optionItem];
-                    optionElement.innerHTML = optionList[optionItem];
-                    if (optionList[optionItem] == PWM_VAR['clientSettingCache'][settingKey][iteration]['type']) {
-                        optionElement.setAttribute("selected", "true");
-                    }
-                    typeSelect.appendChild(optionElement);
+                    var optionName = optionList[optionItem];
+                    var selected = (optionName == PWM_VAR['clientSettingCache'][settingKey][iteration]['type']);
+                    htmlRow += '<option value="' + optionName + '"' + (selected ? " selected" : "") + '>' + optionName + '</option>';
                 }
             }
+            htmlRow += '</select>';
+        }
+        htmlRow += '</td>';
 
-            td3.appendChild(typeSelect);
-            newTableRow.appendChild(td3);
+        var hideOptions = PWM_SETTINGS['settings'][settingKey]['options']['hideOptions'] == 'true';
+        if (!hideOptions) {
+            htmlRow += '<td><button id="' + inputID + 'optionsButton"><span class="btn-icon fa fa-sliders"/> Options</button></td>';
         }
 
-        {
-            var td4 = document.createElement("td");
-            td4.setAttribute("style", "border-width: 0");
-            var labelButton = document.createElement("button");
-            labelButton.setAttribute("id", inputID + "optionsButton");
-            labelButton.innerHTML = "Options";
-            td4.appendChild(labelButton);
-            newTableRow.appendChild(td4);
+        htmlRow += '<td>';
+        if (itemCount > 1 && iteration != (itemCount -1)) {
+            htmlRow += '<span id="' + inputID + '-moveDown" class="action-icon fa fa-chevron-down"></span>';
         }
+        htmlRow += '</td>';
 
-        {
-            var tdFinal = document.createElement("td");
-            tdFinal.setAttribute("style", "border-width: 0");
-
-
-            var imgElement = document.createElement("div");
-            imgElement.setAttribute("class", "delete-row-icon action-icon fa fa-times");
-            imgElement.setAttribute("onclick", "FormTableHandler.removeMultiSetting('" + settingKey + "','" + iteration + "')");
-            tdFinal.appendChild(imgElement);
-            newTableRow.appendChild(tdFinal);
+        htmlRow += '<td>';
+        if (itemCount > 1 && iteration != 0) {
+            htmlRow += '<span id="' + inputID + '-moveUp" class="action-icon fa fa-chevron-up"></span>';
         }
-    }
-    var parentDivElement = PWM_MAIN.getObject(parentDiv);
-    parentDivElement.appendChild(newTableRow);
+        htmlRow += '</td>';
 
-    PWM_MAIN.addEventHandler(inputID + "optionsButton", 'click', function () {
-        FormTableHandler.showOptionsDialog(settingKey, iteration);
-    });
-    PWM_MAIN.addEventHandler(inputID + "type", 'click', function () {
-        PWM_VAR['clientSettingCache'][settingKey][iteration]['type'] = PWM_MAIN.getObject(inputID + "type").value;
-        FormTableHandler.writeFormSetting(settingKey);
+        htmlRow += '<td><span class="delete-row-icon action-icon fa fa-times" id="' + inputID + 'deleteRowButton"></span></td>';
+
+        newTableRow.innerHTML = htmlRow;
+
+        var parentDivElement = PWM_MAIN.getObject(parentDiv);
+        parentDivElement.appendChild(newTableRow);
+
+        PWM_MAIN.addEventHandler(inputID + "-moveUp", 'click', function () {
+            FormTableHandler.move(settingKey, true, iteration);
+        });
+        PWM_MAIN.addEventHandler(inputID + "-moveDown", 'click', function () {
+            FormTableHandler.move(settingKey, false, iteration);
+        });
+        PWM_MAIN.addEventHandler(inputID + "deleteRowButton", 'click', function () {
+            FormTableHandler.removeRow(settingKey, iteration);
+        });
+        PWM_MAIN.addEventHandler(inputID + "label", 'click, keypress', function () {
+            FormTableHandler.showLabelDialog(settingKey, iteration);
+        });
+        PWM_MAIN.addEventHandler(inputID + "optionsButton", 'click', function () {
+            FormTableHandler.showOptionsDialog(settingKey, iteration);
+        });
+        PWM_MAIN.addEventHandler(inputID + "name", 'input', function () {
+            PWM_VAR['clientSettingCache'][settingKey][iteration]['name'] = PWM_MAIN.getObject(inputID + "name").value;
+            FormTableHandler.writeFormSetting(settingKey);
+        });
+        PWM_MAIN.addEventHandler(inputID + "type", 'click', function () {
+            PWM_VAR['clientSettingCache'][settingKey][iteration]['type'] = PWM_MAIN.getObject(inputID + "type").value;
+            FormTableHandler.writeFormSetting(settingKey);
+        });
     });
 };
 
@@ -728,10 +697,33 @@ FormTableHandler.writeFormSetting = function(settingKey) {
     PWM_CFGEDIT.writeSetting(settingKey, cachedSetting);
 };
 
-FormTableHandler.removeMultiSetting = function(keyName, iteration) {
-    delete PWM_VAR['clientSettingCache'][keyName][iteration];
-    FormTableHandler.writeFormSetting(keyName);
-    FormTableHandler.redraw(keyName);
+FormTableHandler.removeRow = function(keyName, iteration) {
+    PWM_MAIN.showConfirmDialog({
+        text:'Are you sure you wish to delete this item?',
+        okAction:function(){
+            var currentValues = PWM_VAR['clientSettingCache'][keyName];
+            currentValues.splice(iteration,1);
+            FormTableHandler.writeFormSetting(keyName);
+            FormTableHandler.redraw(keyName);
+        }
+    });
+};
+
+FormTableHandler.move = function(settingKey, moveUp, iteration) {
+    var currentValues = PWM_VAR['clientSettingCache'][settingKey];
+    if (moveUp) {
+        FormTableHandler.arrayMoveUtil(currentValues, iteration, iteration - 1);
+    } else {
+        FormTableHandler.arrayMoveUtil(currentValues, iteration, iteration + 1);
+    }
+    FormTableHandler.writeFormSetting(settingKey);
+    FormTableHandler.redraw(settingKey);
+};
+
+FormTableHandler.arrayMoveUtil = function(arr, fromIndex, toIndex) {
+    var element = arr[fromIndex];
+    arr.splice(fromIndex, 1);
+    arr.splice(toIndex, 0, element);
 };
 
 FormTableHandler.newRowValue = {
@@ -744,7 +736,7 @@ FormTableHandler.newRowValue = {
     description:{'':''}
 };
 
-FormTableHandler.addMultiSetting = function(keyName) {
+FormTableHandler.addRow = function(keyName) {
     var body='Name <input class="configStringInput" id="newFormFieldName" style="width:300px"/>';
     PWM_MAIN.showConfirmDialog({title:'New Form Field',text:body,showClose:true,loadFunction:function(){
         PWM_MAIN.getObject('dialog_ok_button').disabled = true;
@@ -766,61 +758,100 @@ FormTableHandler.addMultiSetting = function(keyName) {
 FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     var options = 'options' in PWM_SETTINGS['settings'][keyName] ? PWM_SETTINGS['settings'][keyName]['options'] : {};
     var showUnique = options['unique'] == 'show';
-    var showSearchLike = options['searchLike'] == 'show';
     require(["dijit/Dialog","dijit/form/Textarea","dijit/form/CheckBox","dijit/form/NumberSpinner"],function(){
         var inputID = 'value_' + keyName + '_' + iteration + "_";
-        var bodyText = '<table class="noborder">';
+        var bodyText = '<div style="max-height: 500px; overflow-y: auto"><table class="noborder">';
         bodyText += '<tr>';
-        bodyText += '<td style="text-align: right">Description</td><td><input type="text" id="' + inputID + 'description' + '"/></td>';
+        var descriptionValue = PWM_VAR['clientSettingCache'][keyName][iteration]['description'][''];
+        bodyText += '<td id="' + inputID + '-label-description" class="key">Description</td><td>';
+        bodyText += '<div class="noWrapTextBox" id="' + inputID + 'description"><span class="btn-icon fa fa-edit"></span><span>' + descriptionValue + '...</span></div>';
+        bodyText += '</td>';
+
         bodyText += '</tr><tr>';
         if (options['required'] != 'hide') {
-            bodyText += '<td style="text-align: right">Required</td><td><input type="checkbox" id="' + inputID + 'required' + '"/></td>';
+            bodyText += '<td id="' + inputID + '-label-required" class="key">Required</td><td><input type="checkbox" id="' + inputID + 'required' + '"/></td>';
             bodyText += '</tr><tr>';
         }
-        if (showSearchLike) {
-            bodyText += '<td style="text-align: right">Search Like Values</td><td><input type="checkbox" id="' + inputID + 'searchLike' + '"/></td>';
-            bodyText += '</tr><tr>';
-        }
-        bodyText += '<td style="text-align: right">Confirm</td><td><input type="checkbox" id="' + inputID + 'confirmationRequired' + '"/></td>';
+        bodyText += '<td id="' + inputID + '-label-confirm" class="key">Confirm</td><td><input type="checkbox" id="' + inputID + 'confirmationRequired' + '"/></td>';
         bodyText += '</tr><tr>';
         if (options['readonly'] == 'show') {
-            bodyText += '<td style="text-align: right">Read Only</td><td><input type="checkbox" id="' + inputID + 'readonly' + '"/></td>';
+            bodyText += '<td id="' + inputID + '-label-readOnly" class="key">Read Only</td><td><input type="checkbox" id="' + inputID + 'readonly' + '"/></td>';
             bodyText += '</tr><tr>';
         }
         if (showUnique) {
-            bodyText += '<td style="border:0; text-align: right">Unique</td><td><input type="checkbox" id="' + inputID + 'unique' + '"/></td>';
+            bodyText += '<td id="' + inputID + '-label-unique" class="key">Unique</td><td><input type="checkbox" id="' + inputID + 'unique' + '"/></td>';
             bodyText += '</tr><tr>';
         }
-        bodyText += '<td style="text-align: right">Minimum Length</td><td><input type="number" id="' + inputID + 'minimumLength' + '"/></td>';
+        bodyText += '<td class="key">Minimum Length</td><td><input type="number" id="' + inputID + 'minimumLength' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td style="text-align: right">Maximum Length</td><td><input type="number" id="' + inputID + 'maximumLength' + '"/></td>';
+        bodyText += '<td class="key">Maximum Length</td><td><input type="number" id="' + inputID + 'maximumLength' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td style="text-align: right">Regular Expression</td><td><input type="text" id="' + inputID + 'regex' + '"/></td>';
+
+        { // regex
+            bodyText += '<td id="' + inputID + '-label-regex" class="key">Regular Expression</td><td><input type="text" class="configStringInput" id="' + inputID + 'regex' + '"/></td>';
+            bodyText += '</tr><tr>';
+
+            var regexErrorValue = PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors'][''];
+            bodyText += '<td id="' + inputID + '-label-regexError" class="key">Regular Expression<br/>Error Message</td><td>';
+            bodyText += '<div class="noWrapTextBox" id="' + inputID + 'regexErrors"><span class="btn-icon fa fa-edit"></span><span>' + regexErrorValue + '...</span></div>';
+            bodyText += '</td>';
+            bodyText += '</tr><tr>';
+        }
+        bodyText += '<td id="' + inputID + '-label-placeholder" class="key">Placeholder</td><td><input type="text" id="' + inputID + 'placeholder' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td style="text-align: right">Regular Expression<br/>Error Message</td><td><input type="text" id="' + inputID + 'regexErrors' + '"/></td>';
-        bodyText += '</tr><tr>';
-        bodyText += '<td style="text-align: right">Placeholder</td><td><input type="text" id="' + inputID + 'placeholder' + '"/></td>';
-        bodyText += '</tr><tr>';
-        bodyText += '<td style="text-align: right">JavaScript</td><td><input type="text" id="' + inputID + 'javascript' + '"/></td>';
+        bodyText += '<td id="' + inputID + '-label-js" class="key">JavaScript</td><td><input type="text" id="' + inputID + 'javascript' + '"/></td>';
         bodyText += '</tr><tr>';
         if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'select') {
-            bodyText += '<td style="text-align: right">Select Options</td><td><input class="menubutton" type="button" id="' + inputID + 'selectOptions' + '" value="Edit" onclick="FormTableHandler.showSelectOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')"/></td>';
+            bodyText += '<td class="key">Select Options</td><td><button id="' + inputID + 'editOptionsButton"><span class="btn-icon fa fa-list-ul"/> Edit</button></td>';
             bodyText += '</tr>';
         }
-        bodyText += '</table>';
+        bodyText += '</table></div>';
 
         var initDialogWidgets = function() {
-            PWM_MAIN.clearDijitWidget(inputID + "description");
-            new dijit.form.Textarea({
-                value: PWM_VAR['clientSettingCache'][keyName][iteration]['description'][''],
-                readonly: true,
-                onClick: function () {
-                    FormTableHandler.showDescriptionDialog(keyName, iteration);
-                },
-                onKeyPress: function () {
-                    FormTableHandler.showDescriptionDialog(keyName, iteration);
-                }
-            }, inputID + "description");
+            PWM_MAIN.showTooltip({
+                id: inputID + '-label-description',
+                text: 'Detailed description of this form item, including any special instructions.'
+            });
+            PWM_MAIN.showTooltip({
+                id: inputID + '-label-required',
+                text: 'Marks the field as required.  The user must supply a value before being able to complete the form.'
+            });
+            PWM_MAIN.showTooltip({
+                id: inputID + '-label-confirm',
+                text: 'Adds a duplicate field to the form and requires the value be the same for the original and confirmation field.'
+            });
+            PWM_MAIN.showTooltip({
+                id: inputID + '-label-readOnly',
+                text: 'Make the field unmodifiable.'
+            });
+            PWM_MAIN.showTooltip({
+                id: inputID + '-label-unique',
+                text: 'Indicate that the field value must be unique in the directory before proceeding.'
+            });
+            PWM_MAIN.showTooltip({
+                id: inputID + '-label-regex',
+                text: 'Apply a <i>regular expression</i> pattern to the value.  The value must match the pattern before the form is completed.  This pattern can be used to constrain the permitted syntax of the value.'
+            });
+            PWM_MAIN.showTooltip({
+                id: inputID + '-label-regexError',
+                text: 'Error message to show when the regular expression pattern is not matched.'
+            });
+            PWM_MAIN.showTooltip({
+                id: inputID + '-label-placeholder',
+                text: 'Placeholder text to display in the form field with the field is not populated with a value.'
+            });
+            PWM_MAIN.showTooltip({
+                id: inputID + '-label-js',
+                text: 'Javascript to be added to the browser.'
+            });
+
+            PWM_MAIN.addEventHandler(inputID + 'editOptionsButton', 'click', function(){
+                FormTableHandler.showSelectOptionsDialog(keyName,iteration);
+            });
+
+            PWM_MAIN.addEventHandler(inputID + 'description','click',function(){
+                FormTableHandler.showDescriptionDialog(keyName, iteration);
+            });
 
             PWM_MAIN.clearDijitWidget(inputID + "required");
             new dijit.form.CheckBox({
@@ -860,17 +891,6 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
                         FormTableHandler.writeFormSetting(keyName)
                     }
                 }, inputID + "unique");
-            }
-
-            if (showSearchLike) {
-                PWM_MAIN.clearDijitWidget(inputID + "searchLike");
-                new dijit.form.CheckBox({
-                    checked: PWM_VAR['clientSettingCache'][keyName][iteration]['searchLike'],
-                    onChange: function () {
-                        PWM_VAR['clientSettingCache'][keyName][iteration]['searchLike'] = this.checked;
-                        FormTableHandler.writeFormSetting(keyName)
-                    }
-                }, inputID + "searchLike");
             }
 
             if (PWM_SETTINGS['settings'][keyName]['options']['unique'] == 'show') {
@@ -915,17 +935,10 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
                 }
             }, inputID + "regex");
 
-            PWM_MAIN.clearDijitWidget(inputID + "regexErrors");
-            new dijit.form.Textarea({
-                value: PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors'][''],
-                readonly: true,
-                onClick: function () {
-                    FormTableHandler.showRegexErrorsDialog(keyName, iteration);
-                },
-                onKeyPress: function () {
-                    FormTableHandler.showRegexErrorsDialog(keyName, iteration);
-                }
-            }, inputID + "regexErrors");
+
+            PWM_MAIN.addEventHandler(inputID + 'regexErrors','click',function(){
+                FormTableHandler.showRegexErrorsDialog(keyName, iteration);
+            });
 
             PWM_MAIN.clearDijitWidget(inputID + "placeholder");
             new dijit.form.Textarea({
@@ -950,225 +963,118 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             loadFunction:initDialogWidgets,
             okAction:function(){
                 FormTableHandler.redraw(keyName);
-                
             }
         });
     });
 };
 
 FormTableHandler.showLabelDialog = function(keyName, iteration) {
+    var finishAction = function(){ FormTableHandler.redraw(keyName); };
+    var title = 'Label for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
+    FormTableHandler.multiLocaleStringDialog(keyName, iteration, 'labels', finishAction, title);
+};
+
+FormTableHandler.multiLocaleStringDialog = function(keyName, iteration, settingType, finishAction, titleText) {
     require(["dijit/Dialog","dijit/form/Textarea","dijit/form/CheckBox"],function(){
         var inputID = 'value_' + keyName + '_' + iteration + "_" + "label_";
-        var bodyText = '<table style="border:0" id="' + inputID + 'table">';
+        var bodyText = '<table class="noborder" id="' + inputID + 'table">';
         bodyText += '<tr>';
-        for (var localeName in PWM_VAR['clientSettingCache'][keyName][iteration]['labels']) {
-            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['labels'][localeName];
+        for (var localeName in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
+            var value = PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
             var localeID = inputID + localeName;
-            bodyText += '<td style="border:0; text-align: right">' + localeName + '</td><td><input type="text" value="' + value + '" id="' + localeID + '' + '"/></td>';
+            bodyText += '<td>' + localeName + '</td>';
+            bodyText += '<td><input style="width:445px" class="configStringInput" type="text" value="' + value + '" id="' + localeID + '-input"></input></td>';
             if (localeName != '') {
-                bodyText += '<td style="border:0">';
-                bodyText += '<img id="' + localeID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png"';
-                bodyText += ' onclick="FormTableHandler.removeLocaleLabel(\'' + keyName + '\',' + iteration + ',\'' + localeName + '\')" />';
-                bodyText += '</td>';
+                bodyText += '<td><span class="delete-row-icon action-icon fa fa-times" id="' + localeID + '-removeLocaleButton"></span></td>';
             }
             bodyText += '</tr><tr>';
         }
         bodyText += '</tr></table>';
-        bodyText += '<br/>';
-        bodyText += '<button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\');FormTableHandler.redraw(\'' + keyName + '\')">OK</button>';
 
-        PWM_MAIN.clearDijitWidget('dialogPopup');
-        var theDialog = new dijit.Dialog({
-            id: 'dialogPopup',
-            title: 'Label for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
-            style: "width: 450px",
-            content: bodyText,
-            hide: function(){
-                PWM_MAIN.clearDijitWidget('dialogPopup');
-                FormTableHandler.redraw(keyName);
-            }
-        });
-        theDialog.show();
-
-        for (var localeName in PWM_VAR['clientSettingCache'][keyName][iteration]['labels']) {
-            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['labels'][localeName];
-            var loopID = inputID + localeName;
-            PWM_MAIN.clearDijitWidget(loopID);
-            new dijit.form.Textarea({
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['labels'][localeName] = this.value;FormTableHandler.writeFormSetting(keyName)}
-            },loopID);
-
-        }
-
-        var addLocaleFunction = function() {
-            require(["dijit/registry"],function(registry){
-                FormTableHandler.addLocaleLabel(keyName, iteration, registry.byId(inputID + "-addLocaleValue").value);
-            });
-        };
-
-        PWM_CFGEDIT.addAddLocaleButtonRow(inputID + 'table', inputID, addLocaleFunction);
-    });
-};
-
-FormTableHandler.addLocaleLabel = function(keyName, iteration, localeName) {
-    PWM_VAR['clientSettingCache'][keyName][iteration]['labels'][localeName] = '';
-    FormTableHandler.writeFormSetting(keyName);
-    FormTableHandler.showLabelDialog(keyName, iteration)
-};
-
-FormTableHandler.removeLocaleLabel = function(keyName, iteration, localeName) {
-    delete PWM_VAR['clientSettingCache'][keyName][iteration]['labels'][localeName];
-    FormTableHandler.writeFormSetting(keyName);
-    FormTableHandler.showLabelDialog(keyName, iteration)
-};
-
-FormTableHandler.showRegexErrorsDialog = function(keyName, iteration) {
-    require(["dijit/Dialog","dijit/form/Textarea"],function(){
-        var inputID = 'value_' + keyName + '_' + iteration + "_" + "regexErrors_";
-
-        var bodyText = '';
-        bodyText += '<p>Error Message to show when the regular expression constraint is violated.</p>';
-        bodyText += '<table style="border:0" id="' + inputID + 'table">';
-        bodyText += '<tr>';
-        for (var localeName in PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors']) {
-            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors'][localeName];
-            var localeID = inputID + localeName;
-            bodyText += '<td style="border:0; text-align: right">' + localeName + '</td><td style="border:0;"><input type="text" value="' + value + '" id="' + localeID + '' + '"/></td>';
-            if (localeName != '') {
-                bodyText += '<td style="border:0">';
-                bodyText += '<img id="' + localeID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png"';
-                bodyText += ' onclick="FormTableHandler.removeRegexErrorLocale(\'' + keyName + '\',' + iteration + ',\'' + localeName + '\')" />';
-                bodyText += '</td>';
-            }
-            bodyText += '</tr><tr>';
-        }
-        bodyText += '</tr></table>';
-        bodyText += '<br/>';
-        bodyText += '<button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\');FormTableHandler.showOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')">OK</button>';
-
-        PWM_MAIN.clearDijitWidget('dialogPopup');
-        var theDialog = new dijit.Dialog({
-            id: 'dialogPopup',
-            title: 'Regular Expression Error Message for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
-            style: "width: 450px",
-            content: bodyText,
-            hide: function(){
-                PWM_MAIN.clearDijitWidget('dialogPopup');
-                FormTableHandler.showOptionsDialog(keyName,iteration);
-            }
-        });
-        theDialog.show();
-
-        for (var localeName in PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors']) {
-            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors'][localeName];
-            var loopID = inputID + localeName;
-            PWM_MAIN.clearDijitWidget(loopID);
-            new dijit.form.Textarea({
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors'][localeName] = this.value;FormTableHandler.writeFormSetting(keyName)}
-            },loopID);
-
-        }
-
-        var addLocaleFunction = function() {
-            require(["dijit/registry"],function(registry){
-                FormTableHandler.addRegexErrorLocale(keyName, iteration, registry.byId(inputID + "-addLocaleValue").value);
-            });
-        };
-
-        PWM_CFGEDIT.addAddLocaleButtonRow(inputID + 'table', inputID, addLocaleFunction);
-    });
-};
-
-FormTableHandler.addRegexErrorLocale = function(keyName, iteration, localeName) {
-    PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors'][localeName] = '';
-    FormTableHandler.writeFormSetting(keyName);
-    FormTableHandler.showRegexErrorsDialog(keyName, iteration);
-};
-
-FormTableHandler.removeRegexErrorLocale = function(keyName, iteration, localeName) {
-    delete PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors'][localeName];
-    FormTableHandler.writeFormSetting(keyName);
-    FormTableHandler.showRegexErrorsDialog(keyName, iteration);
-};
-
-FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
-    require(["dijit/Dialog","dijit/form/ValidationTextBox","dijit/form/Button","dijit/form/TextBox"],function(Dialog,ValidationTextBox,Button,TextBox){
-        var inputID = 'value_' + keyName + '_' + iteration + "_" + "selectOptions_";
-
-        var bodyText = '';
-        bodyText += '<table style="border:0" id="' + inputID + 'table">';
-        bodyText += '<tr>';
-        bodyText += '<td style="border:1px"><b>Name</b></td><td style="border:1px"><b>Display Value</b></td>';
-        bodyText += '</tr><tr>';
-        for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
-            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][optionName];
-            var optionID = inputID + optionName;
-            bodyText += '<td style="border:1px solid grey">' + optionName + '</td><td style="border:1px solid grey">' + value + '</td>';
-            bodyText += '<td style="border:1px">';
-            bodyText += '<span id="' + optionID + '-removeButton" class="delete-row-icon action-icon fa fa-times"></span>';
-            bodyText += '</td>';
-            bodyText += '</tr><tr>';
-        }
-        bodyText += '</tr></table>';
-        bodyText += '<br/>';
-        bodyText += '<br/>';
-        bodyText += '<input type="text" id="addSelectOptionName"/>';
-        bodyText += '<input type="text" id="addSelectOptionValue"/>';
-        bodyText += '<input type="button" id="addSelectOptionButton" value="Add"/>';
-        bodyText += '<br/>';
-        bodyText += '<button class="btn" onclick="FormTableHandler.showOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')">OK</button>';
-
-        PWM_MAIN.clearDijitWidget('dialogPopup');
-        var theDialog = new dijit.Dialog({
-            id: 'dialogPopup',
-            title: 'Select Options for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
-            style: "width: 450px",
-            content: bodyText,
-            hide: function(){
-                PWM_MAIN.clearDijitWidget('dialogPopup');
-                FormTableHandler.showOptionsDialog(keyName,iteration);
-            }
-        });
-        theDialog.show();
-
-        for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
-            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][optionName];
-            var loopID = inputID + optionName;
-            var optionID = inputID + optionName;
-            PWM_MAIN.clearDijitWidget(loopID);
-            PWM_MAIN.addEventHandler(optionID + '-removeButton','click',function(){
-                FormTableHandler.removeSelectOptionsOption(keyName,iteration,optionName);
-            });
-            new TextBox({
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][optionName] = this.value;FormTableHandler.writeFormSetting(keyName)}
-            },loopID);
-        }
-
-        PWM_MAIN.clearDijitWidget("addSelectOptionName");
-        new ValidationTextBox({
-            placeholder: "Name",
-            id: "addSelectOptionName",
-            constraints: {min: 1}
-        },"addSelectOptionName");
-
-        PWM_MAIN.clearDijitWidget("addSelectOptionValue");
-        new ValidationTextBox({
-            placeholder: "Display Value",
-            id: "addSelectOptionValue",
-            constraints: {min: 1}
-        },"addSelectOptionValue");
-
-        PWM_MAIN.clearDijitWidget("addSelectOptionButton");
-        new Button({
-            label: "Add",
-            onClick: function() {
-                require(["dijit/registry"],function(registry){
-                    var name = registry.byId('addSelectOptionName').value;
-                    var value = registry.byId('addSelectOptionValue').value;
-                    FormTableHandler.addSelectOptionsOption(keyName, iteration, name, value);
+        PWM_MAIN.showDialog({
+            title: titleText,
+            text: bodyText,
+            okAction:function(){
+                finishAction();
+            },
+            loadFunction:function(){
+                for (var iter in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
+                    (function(localeName) {
+                        var localeID = inputID + localeName;
+                        PWM_MAIN.addEventHandler(localeID + '-input', 'input', function () {
+                            var inputElement = PWM_MAIN.getObject(localeID + '-input');
+                            var value = inputElement.value;
+                            PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = value;
+                            FormTableHandler.writeFormSetting(keyName);
+                        });
+                        PWM_MAIN.addEventHandler(localeID + 'removeLocaleButton', 'click', function () {
+                            delete PWM_VAR['clientSettingCache'][keyName][iteration]['labels'][localeName];
+                            FormTableHandler.writeFormSetting(keyName);
+                            FormTableHandler.multiLocaleStringDialog(keyName, iteration, settingType, finishAction, titleText);
+                        });
+                    }(iter));
+                }
+                PWM_CFGEDIT.addAddLocaleButtonRow(inputID + 'table', inputID, function(localeName){
+                    PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = '';
+                    FormTableHandler.writeFormSetting(keyName);
+                    FormTableHandler.multiLocaleStringDialog(keyName, iteration, settingType, finishAction, titleText);
                 });
             }
-        },"addSelectOptionButton");
+        });
+    });
+};
+
+
+FormTableHandler.showRegexErrorsDialog = function(keyName, iteration) {
+    var finishAction = function(){ FormTableHandler.showOptionsDialog(keyName, iteration); };
+    var title = 'Regular Expression Error Message for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
+    FormTableHandler.multiLocaleStringDialog(keyName, iteration, 'regexErrors', finishAction, title);
+};
+
+
+FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
+    var inputID = 'value_' + keyName + '_' + iteration + "_" + "selectOptions_";
+    var bodyText = '';
+    bodyText += '<table class="noborder" id="' + inputID + 'table"">';
+    bodyText += '<tr>';
+    bodyText += '<td><b>Value</b></td><td><b>Display Name</b></td>';
+    bodyText += '</tr><tr>';
+    for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
+        var value = PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][optionName];
+        var optionID = inputID + optionName;
+        bodyText += '<td>' + optionName + '</td><td>' + value + '</td>';
+        bodyText += '<td style="border:0; width:15px">';
+        bodyText += '<span id="' + optionID + '-removeButton" class="delete-row-icon action-icon fa fa-times"></span>';
+        bodyText += '</td>';
+        bodyText += '</tr><tr>';
+    }
+    bodyText += '</tr></table>';
+    bodyText += '<br/><br/><br/>';
+    bodyText += '<input class="configStringInput" style="width:200px" type="text" placeholder="Value" required id="addSelectOptionName"/>';
+    bodyText += '<input class="configStringInput" style="width:200px" type="text" placeholder="Display Name" required id="addSelectOptionValue"/>';
+    bodyText += '<button id="addSelectOptionButton"><span class="btn-icon fa fa-plus-square"/> Add</button>';
+
+    PWM_MAIN.showDialog({
+        title: 'Select Options for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
+        text: bodyText,
+        okAction: function(){
+            FormTableHandler.showOptionsDialog(keyName,iteration);
+        }
+    });
+
+    for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
+        var loopID = inputID + optionName;
+        var optionID = inputID + optionName;
+        PWM_MAIN.clearDijitWidget(loopID);
+        PWM_MAIN.addEventHandler(optionID + '-removeButton','click',function(){
+            FormTableHandler.removeSelectOptionsOption(keyName,iteration,optionName);
+        });
+    }
+
+    PWM_MAIN.addEventHandler('addSelectOptionButton','click',function(){
+        var value = PWM_MAIN.getObject('addSelectOptionName').value;
+        var display = PWM_MAIN.getObject('addSelectOptionValue').value;
+        FormTableHandler.addSelectOptionsOption(keyName, iteration, value, display);
     });
 };
 
@@ -1195,71 +1101,11 @@ FormTableHandler.removeSelectOptionsOption = function(keyName, iteration, option
 };
 
 FormTableHandler.showDescriptionDialog = function(keyName, iteration) {
-    require(["dijit/Dialog","dijit/form/Textarea"],function(){
-        var inputID = 'value_' + keyName + '_' + iteration + "_" + "description_";
-
-        var bodyText = '';
-        bodyText += '<table style="border:0" id="' + inputID + 'table">';
-        bodyText += '<tr>';
-        for (var localeName in PWM_VAR['clientSettingCache'][keyName][iteration]['description']) {
-            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['description'][localeName];
-            var localeID = inputID + localeName;
-            bodyText += '<td style="border:0; text-align: right">' + localeName + '</td><td style="border:0;"><input type="text" value="' + value + '" id="' + localeID + '' + '"/></td>';
-            if (localeName != '') {
-                bodyText += '<td style="border:0">';
-                bodyText += '<img id="' + localeID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png"';
-                bodyText += ' onclick="FormTableHandler.removeDescriptionLocale(\'' + keyName + '\',' + iteration + ',\'' + localeName + '\')" />';
-                bodyText += '</td>';
-            }
-            bodyText += '</tr><tr>';
-        }
-        bodyText += '</tr></table>';
-        bodyText += '<br/>';
-        bodyText += '<button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\');FormTableHandler.showOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')">OK</button>';
-
-        PWM_MAIN.clearDijitWidget('dialogPopup');
-        var theDialog = new dijit.Dialog({
-            id: 'dialogPopup',
-            title: 'Description for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
-            style: "width: 450px",
-            content: bodyText,
-            hide: function(){
-                PWM_MAIN.clearDijitWidget('dialogPopup');
-                FormTableHandler.showOptionsDialog(keyName,iteration);
-            }
-        });
-        theDialog.show();
-
-        for (var localeName in PWM_VAR['clientSettingCache'][keyName][iteration]['description']) {
-            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['description'][localeName];
-            var loopID = inputID + localeName;
-            PWM_MAIN.clearDijitWidget(loopID);
-            new dijit.form.Textarea({
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['description'][localeName] = this.value;FormTableHandler.writeFormSetting(keyName)}
-            },loopID);
-        }
-
-        var addLocaleFunction = function() {
-            require(["dijit/registry"],function(registry){
-                FormTableHandler.addDescriptionLocale(keyName, iteration, registry.byId(inputID + "-addLocaleValue").value);
-            });
-        };
-
-        PWM_CFGEDIT.addAddLocaleButtonRow(inputID + 'table', inputID, addLocaleFunction);
-    });
+    var finishAction = function(){ FormTableHandler.showOptionsDialog(keyName, iteration); };
+    var title = 'Description for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
+    FormTableHandler.multiLocaleStringDialog(keyName, iteration, 'description', finishAction, title);
 };
 
-FormTableHandler.addDescriptionLocale = function(keyName, iteration, localeName) {
-    PWM_VAR['clientSettingCache'][keyName][iteration]['description'][localeName] = '';
-    FormTableHandler.writeFormSetting(keyName);
-    FormTableHandler.showDescriptionDialog(keyName, iteration);
-};
-
-FormTableHandler.removeDescriptionLocale = function(keyName, iteration, localeName) {
-    delete PWM_VAR['clientSettingCache'][keyName][iteration]['description'][localeName];
-    FormTableHandler.writeFormSetting(keyName);
-    FormTableHandler.showDescriptionDialog(keyName, iteration);
-};
 
 // -------------------------- change password handler ------------------------------------
 
@@ -1651,14 +1497,14 @@ ActionHandler.writeFormSetting = function(settingKey) {
     PWM_CFGEDIT.writeSetting(settingKey, cachedSetting);
 };
 
-ActionHandler.removeMultiSetting = function(keyName, iteration) {
+ActionHandler.removeRow = function(keyName, iteration) {
     delete PWM_VAR['clientSettingCache'][keyName][iteration];
     console.log("removed iteration " + iteration + " from " + keyName + ", cached keyValue=" + PWM_VAR['clientSettingCache'][keyName]);
     ActionHandler.writeFormSetting(keyName);
     ActionHandler.redraw(keyName);
 };
 
-ActionHandler.addMultiSetting = function(keyName) {
+ActionHandler.addRow = function(keyName) {
     var currentSize = 0;
     for (var loopVar in PWM_VAR['clientSettingCache'][keyName]) {
         currentSize++;
@@ -2362,23 +2208,28 @@ UserPermissionHandler.draw = function(keyName) {
                 htmlBody += 'LDAP Filter';
             }
 
+            var currentProfileValue = ('ldapProfileID' in resultValue[rowKey]) ? resultValue[rowKey]['ldapProfileID'] : "";
             htmlBody += '</div><table class="noborder">'
-            + '<td id="' + inputID + '_profileHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Profile') + '</td>'
-            + '<td><select id="' + inputID + '-profile" disabled></select></td>'
+            + '<td style="width:200px" id="' + inputID + '_profileHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Profile') + '</td>'
+            + '<td><input style="width: 200px;" class="configStringInput" id="' + inputID + '-profile" list="' + inputID + '-datalist" value="' +  currentProfileValue + '"/>'
+            + '<datalist id="' + inputID + '-datalist"/></td>'
             + '</tr>';
 
             if (resultValue[rowKey]['type'] != 'ldapGroup') {
+                var currentQueryValue = ('ldapQuery' in resultValue[rowKey]) ? resultValue[rowKey]['ldapQuery'] : "";
                 htmlBody += '<tr>'
                 + '<td><span id="' + inputID + '_FilterHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Filter') + '</span></td>'
-                + '<td><input id="' + inputID + '-query" disabled></input></td>'
+                + '<td><input style="width: 420px;" class="configStringInput" id="' + inputID + '-query" value="' + currentQueryValue + '"></input></td>'
                 + '</tr>';
             }
 
+            var currentBaseValue = ('ldapBase' in resultValue[rowKey]) ? resultValue[rowKey]['ldapBase'] : "";
             htmlBody += '<tr>'
             + '<td><span id="' + inputID + '_BaseHeader' + '">'
             + PWM_CONFIG.showString((resultValue[rowKey]['type'] == 'ldapGroup') ?  'Setting_Permission_Base_Group' : 'Setting_Permission_Base')
             + '</span></td>'
-            + '<td><input id="' + inputID + '-base" disabled></input></td>'
+
+            + '<td><input style="width: 420px;" class="configStringInput" id="' + inputID + '-base" value="' + currentBaseValue + '"></input></td>'
             + '</td>'
             + '</tr>';
 
@@ -2389,86 +2240,69 @@ UserPermissionHandler.draw = function(keyName) {
     parentDivElement.innerHTML = parentDivElement.innerHTML + htmlBody;
 
     setTimeout(function(){
-        require(["dijit/form/ComboBox","dijit/form/ValidationTextBox"],function(ComboBox,ValidationTextBox){
-            for (var iteration in resultValue) {
-                (function(rowKey) {
-                    var inputID = "value-" + keyName + "-" + rowKey;
-                    console.log('inputID-' + inputID);
+        for (var iteration in resultValue) {
+            (function(rowKey) {
+                var inputID = "value-" + keyName + "-" + rowKey;
+                console.log('inputID-' + inputID);
 
-                    var profileSelectElement = PWM_MAIN.getObject(inputID + "-profile");
-                    profileSelectElement.options[profileSelectElement.options.length] = new Option('all');
-                    profileSelectElement.options[profileSelectElement.options.length] = new Option('default');
-                    for (var i in PWM_VAR['ldapProfileIds']) {
-                        profileSelectElement.options[profileSelectElement.options.length] = new Option(PWM_VAR['ldapProfileIds'][i]);
-                    }
-                    PWM_MAIN.clearDijitWidget(inputID + "-profile");
-                    new ComboBox({
-                        id: inputID + "-profile",
-                        value: resultValue[rowKey]['ldapProfileID'] || '',
-                        onChange: function(){
-                            PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapProfileID'] = this.value;
-                            UserPermissionHandler.write(keyName);
-                        }
-                    },inputID+'-profile');
+                var profileSelectElement = PWM_MAIN.getObject(inputID + "-datalist");
+                profileSelectElement.appendChild(new Option('all'));
+                for (var i in PWM_VAR['ldapProfileIds']) {
+                    profileSelectElement.appendChild(new Option(PWM_VAR['ldapProfileIds'][i]));
+                }
 
-                    if (resultValue[rowKey]['type'] != 'ldapGroup') {
-                        var queryInput = PWM_MAIN.getObject(inputID + "-query");
-                        queryInput.disabled = false;
-                        queryInput.required = true;
+                PWM_MAIN.addEventHandler(inputID + '-profile','input',function(){
+                    console.log('write');
+                    PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapProfileID'] = this.value;
+                    UserPermissionHandler.write(keyName);
+                });
 
-                        PWM_MAIN.clearDijitWidget(inputID + "-query");
-                        new ValidationTextBox({
-                            id: inputID + "-query",
-                            value: resultValue[rowKey]['ldapQuery'],
-                            style: 'width:420px',
-                            onChange: function () {
-                                PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery'] = this.value;
-                                UserPermissionHandler.write(keyName);
-                            }
-                        }, inputID + "-query");
-                    }
-
-                    var queryInput = PWM_MAIN.getObject(inputID + "-base");
+                if (resultValue[rowKey]['type'] != 'ldapGroup') {
+                    var queryInput = PWM_MAIN.getObject(inputID + "-query");
                     queryInput.disabled = false;
                     queryInput.required = true;
-                    PWM_MAIN.clearDijitWidget(inputID + "-base");
-                    new ValidationTextBox({
-                        id: inputID + "-base",
-                        value: ('ldapBase' in resultValue[rowKey]) ? resultValue[rowKey]['ldapBase'] : "",
-                        style: 'width:420px',
-                        onChange: function(){
-                            PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapBase'] = this.value;
-                            UserPermissionHandler.write(keyName);
-                        }
-                    },inputID + "-base");
 
-                    var deleteButtonID = 'button-' + inputID + '-deleteRow';
-                    var hasID = PWM_MAIN.getObject(deleteButtonID) ? "YES" : "NO";
-                    console.log("addEventHandler row: " + deleteButtonID + " rowKey=" + rowKey + " hasID="+hasID);
-                    PWM_MAIN.addEventHandler(deleteButtonID,'click',function(){
-                        console.log("delete row: " + inputID + " rowKey=" + rowKey + " hasID="+hasID);
-                        delete PWM_VAR['clientSettingCache'][keyName][rowKey];
-                        UserPermissionHandler.write(keyName,true);
+                    PWM_MAIN.addEventHandler(inputID + "-query",'input',function(){
+                        PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery'] = this.value;
+                        UserPermissionHandler.write(keyName);
                     });
+                }
 
-                    PWM_MAIN.showTooltip({
-                        id:inputID +'_profileHeader',
-                        width: 300,
-                        text:PWM_CONFIG.showString('Tooltip_Setting_Permission_Profile')
-                    });
-                    PWM_MAIN.showTooltip({
-                        id:inputID +'_FilterHeader',
-                        width: 300,
-                        text:PWM_CONFIG.showString('Tooltip_Setting_Permission_Filter')
-                    });
-                    PWM_MAIN.showTooltip({
-                        id: inputID + '_BaseHeader',
-                        width: 300,
-                        text: PWM_CONFIG.showString('Tooltip_Setting_Permission_Base')
-                    });
-                }(iteration));
-            }
-        });
+                var queryInput = PWM_MAIN.getObject(inputID + "-base");
+                queryInput.disabled = false;
+                queryInput.required = true;
+
+                PWM_MAIN.addEventHandler(inputID + "-base",'input',function(){
+                    PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapBase'] = this.value;
+                    UserPermissionHandler.write(keyName);
+                });
+
+                var deleteButtonID = 'button-' + inputID + '-deleteRow';
+                var hasID = PWM_MAIN.getObject(deleteButtonID) ? "YES" : "NO";
+                console.log("addEventHandler row: " + deleteButtonID + " rowKey=" + rowKey + " hasID="+hasID);
+                PWM_MAIN.addEventHandler(deleteButtonID,'click',function(){
+                    console.log("delete row: " + inputID + " rowKey=" + rowKey + " hasID="+hasID);
+                    delete PWM_VAR['clientSettingCache'][keyName][rowKey];
+                    UserPermissionHandler.write(keyName,true);
+                });
+
+                PWM_MAIN.showTooltip({
+                    id:inputID +'_profileHeader',
+                    width: 300,
+                    text:PWM_CONFIG.showString('Tooltip_Setting_Permission_Profile')
+                });
+                PWM_MAIN.showTooltip({
+                    id:inputID +'_FilterHeader',
+                    width: 300,
+                    text:PWM_CONFIG.showString('Tooltip_Setting_Permission_Filter')
+                });
+                PWM_MAIN.showTooltip({
+                    id: inputID + '_BaseHeader',
+                    width: 300,
+                    text: PWM_CONFIG.showString('Tooltip_Setting_Permission_Base')
+                });
+            }(iteration));
+        }
     },10);
 
     var options = PWM_SETTINGS['settings'][keyName]['options'];

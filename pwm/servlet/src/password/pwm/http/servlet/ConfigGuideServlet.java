@@ -41,7 +41,8 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigGuideBean;
-import password.pwm.ldap.SchemaExtender;
+import password.pwm.ldap.schema.SchemaManager;
+import password.pwm.ldap.schema.SchemaOperationResult;
 import password.pwm.util.PasswordData;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.X509Utils;
@@ -643,7 +644,7 @@ public class ConfigGuideServlet extends PwmServlet {
         servletContext.getRequestDispatcher(destURL).forward(req, pwmRequest.getPwmResponse().getHttpServletResponse());
     }
 
-    public static SchemaExtender getSchemaExtender(ConfigGuideBean configGuideBean) {
+    public static SchemaOperationResult extendSchema(ConfigGuideBean configGuideBean, final boolean doSchemaExtension) {
         final Map<String,String> form = configGuideBean.getFormData();
         final boolean ldapServerSecure = "true".equalsIgnoreCase(form.get(PARAM_LDAP_SECURE));
         final String ldapUrl = "ldap" + (ldapServerSecure ? "s" : "") + "://" + form.get(PARAM_LDAP_HOST) + ":" + form.get(PARAM_LDAP_PORT);
@@ -651,7 +652,11 @@ public class ConfigGuideServlet extends PwmServlet {
             final ChaiConfiguration chaiConfiguration = new ChaiConfiguration(ldapUrl, form.get(PARAM_LDAP_ADMIN_DN), form.get(PARAM_LDAP_ADMIN_PW));
             chaiConfiguration.setSetting(ChaiSetting.PROMISCUOUS_SSL,"true");
             final ChaiProvider chaiProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
-            return new SchemaExtender(chaiProvider);
+            if (doSchemaExtension) {
+                return SchemaManager.extendSchema(chaiProvider);
+            } else {
+                return SchemaManager.checkExistingSchema(chaiProvider);
+            }
         } catch (Exception e) {
             LOGGER.error("unable to create schema extender object: " + e.getMessage());
             return null;
@@ -662,12 +667,8 @@ public class ConfigGuideServlet extends PwmServlet {
             throws IOException
     {
         try {
-            SchemaExtender schemaExtender = getSchemaExtender(configGuideBean);
-            schemaExtender.extendSchema();
-            pwmRequest.outputJsonResult(new RestResultBean(schemaExtender.getActivityLog()));
-        } catch (PwmException e) {
-            pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(),pwmRequest));
-            LOGGER.error(pwmRequest, e.getErrorInformation());
+            SchemaOperationResult schemaOperationResult = extendSchema(configGuideBean, true);
+            pwmRequest.outputJsonResult(new RestResultBean(schemaOperationResult.getOperationLog()));
         } catch (Exception e) {
             ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
             pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));

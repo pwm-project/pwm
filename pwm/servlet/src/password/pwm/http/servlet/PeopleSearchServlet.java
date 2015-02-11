@@ -232,7 +232,7 @@ public class PeopleSearchServlet extends PwmServlet {
         final Map<String, String> valueMap = JsonUtil.deserializeStringMap(bodyString);
 
         final String username = Validator.sanitizeInputValue(pwmRequest.getConfig(), valueMap.get("username"), 1024);
-        final boolean useProxy = useProxy(pwmRequest.getPwmApplication());
+        final boolean useProxy = useProxy(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
         final CacheKey cacheKey = CacheKey.makeCacheKey(
                 this.getClass(),
                 useProxy ? null : pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity(),
@@ -363,7 +363,7 @@ public class PeopleSearchServlet extends PwmServlet {
             return;
         }
 
-        final boolean useProxy = useProxy(pwmRequest.getPwmApplication());
+        final boolean useProxy = useProxy(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
         final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig());
 
         final CacheKey cacheKey = CacheKey.makeCacheKey(
@@ -391,7 +391,7 @@ public class PeopleSearchServlet extends PwmServlet {
             }
         }
         try {
-            checkIfUserIdentityPermitted(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
+            checkIfUserIdentityViewable(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmRequest.getPwmSession(), "error during detail results request while checking if requested userIdentity is within search scope: " + e.getMessage());
             pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest));
@@ -487,7 +487,7 @@ public class PeopleSearchServlet extends PwmServlet {
 
         final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig());
         try {
-            checkIfUserIdentityPermitted(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
+            checkIfUserIdentityViewable(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, "error during photo request while checking if requested userIdentity is within search scope: " + e.getMessage());
             LOGGER.error(pwmRequest, errorInformation);
@@ -530,6 +530,7 @@ public class PeopleSearchServlet extends PwmServlet {
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final int MAX_VALUES = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.PEOPLESEARCH_MAX_VALUE_COUNT));
+        final Set<String> searchAttributes = getSearchAttributes(pwmApplication.getConfig());
         final List<AttributeDetailBean> returnObj = new ArrayList<>();
         for (FormConfiguration formConfiguration : detailForm) {
             if (formConfiguration.isRequired() || searchResults.containsKey(formConfiguration.getName())) {
@@ -537,7 +538,7 @@ public class PeopleSearchServlet extends PwmServlet {
                 bean.setName(formConfiguration.getName());
                 bean.setLabel(formConfiguration.getLabel(pwmSession.getSessionStateBean().getLocale()));
                 bean.setType(formConfiguration.getType());
-                if (formConfiguration.isSearchLike()) {
+                if (searchAttributes.contains(formConfiguration.getName())) {
                     bean.setSearchable(true);
                 }
                 if (formConfiguration.getType() == FormConfiguration.Type.userDN) {
@@ -574,11 +575,15 @@ public class PeopleSearchServlet extends PwmServlet {
         return returnObj;
     }
 
-    private static boolean useProxy(final PwmApplication pwmApplication) {
+    private static boolean useProxy(final PwmApplication pwmApplication, final PwmSession pwmSession) {
+
+        final boolean useProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_USE_PROXY);
         final boolean publicAccessEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC);
-        final boolean useProxyEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_USE_PROXY);
-        return publicAccessEnabled || useProxyEnabled;
-        
+        if (useProxy) {
+            return true;
+        }
+
+        return !pwmSession.getSessionStateBean().isAuthenticated() && publicAccessEnabled;
     }
 
     private static ChaiUser getChaiUser(
@@ -587,8 +592,8 @@ public class PeopleSearchServlet extends PwmServlet {
             final UserIdentity userIdentity
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
-        final boolean useProxy = useProxy(pwmApplication);
-        return pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_USE_PROXY)
+        final boolean useProxy = useProxy(pwmApplication, pwmSession);
+        return useProxy
                 ? pwmApplication.getProxiedChaiUser(userIdentity)
                 : pwmSession.getSessionManager().getActor(pwmApplication, userIdentity);
 
@@ -615,7 +620,7 @@ public class PeopleSearchServlet extends PwmServlet {
         return new MacroMachine(pwmApplication, userInfoBean, null, userDataReader);
     }
 
-    private static void checkIfUserIdentityPermitted(
+    private static void checkIfUserIdentityViewable(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final UserIdentity userIdentity
@@ -682,13 +687,7 @@ public class PeopleSearchServlet extends PwmServlet {
     }
 
     private static Set<String> getSearchAttributes(final Configuration configuration) {
-        final List<FormConfiguration> searchResultForm = configuration.readSettingAsForm(PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
-        final Set<String> result = new HashSet<>();
-        for (final FormConfiguration formConfiguration : searchResultForm) {
-            if (formConfiguration != null && formConfiguration.getName() != null && !formConfiguration.getName().isEmpty()) {
-                result.add(formConfiguration.getName());
-            }
-        }
-        return Collections.unmodifiableSet(result);
+        final List<String> searchResultForm = configuration.readSettingAsStringArray(PwmSetting.PEOPLE_SEARCH_SEARCH_ATTRIBUTES);
+        return Collections.unmodifiableSet(new HashSet<String>(searchResultForm));
     }
 }

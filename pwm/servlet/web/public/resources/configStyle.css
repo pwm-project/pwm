@@ -25,9 +25,9 @@
     border-radius: 3px 3px 5px 5px;
     /* box-shadow: 2px 2px 1px 1px #bfbfbf; */
     margin-bottom: 10px;
-    animation: fadein 1.5s;
-    -moz-animation: fadein 1.5s; /* Firefox */
-    -webkit-animation: fadein 1.5s; /* Safari and Chrome */
+    animation: fadein 1s;
+    -moz-animation: fadein 1s; /* Firefox */
+    -webkit-animation: fadein 1s; /* Safari and Chrome */
 }
 
 .setting_title {
@@ -419,4 +419,21 @@ table {
     font-size: smaller;
     color: grey;
     margin-left: 10px;
+}
+
+.noWrapTextBox {
+    margin-left: 5px;
+    max-width: 160px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.editorIdleStatus {
+    margin: 0 auto;
+    position: absolute;
+    top: 0;
+    text-align: center;
+    width: 100%;
+    font-size: 10px
 }

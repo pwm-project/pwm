@@ -126,6 +126,17 @@
         </script>
     </pwm:script>
     <% } %>
+    <pwm:script>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                PWM_MAIN.showTooltip({
+                    id: "label_required_<%=loopConfiguration.getName()%>",
+                    text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmApplication.getConfig(),new String[]{loopConfiguration.getLabel(formLocale)})%>',
+                    position: ['above']
+                });
+            });
+        </script>
+    </pwm:script>
 </div>
 <% } %>
 
@@ -199,17 +210,3 @@
 </table>
 <% } %>
 <% } %>
-
-<%--
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.showTooltip({
-                id: "label_required_<%=loopConfiguration.getName()%>",
-                text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmApplication.getConfig(),new String[]{loopConfiguration.getLabel(formLocale)})%>',
-                position: ['above']
-            });
-        });
-    </script>
-</pwm:script>
---%>

@@ -27,6 +27,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -258,53 +259,60 @@ public class ConfigManagerServlet extends PwmServlet {
             return false;
         }
 
-        final SecretKey securityKey = pwmRequest.getConfig().getSecurityKey();
-
-        final String persistentLoginValue;
-        if (PwmApplication.MODE.RUNNING == pwmRequest.getPwmApplication().getApplicationMode()) {
-            persistentLoginValue = SecureHelper.hash(
-                    storedConfig.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH)
-                            + pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey(),
-                    SecureHelper.DEFAULT_HASH_ALGORITHM);
-
-        } else {
-            persistentLoginValue = SecureHelper.hash(
-                    storedConfig.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH),
-                    SecureHelper.DEFAULT_HASH_ALGORITHM);
-        }
-
+        String persistentLoginValue = null;
         boolean persistentLoginAccepted = false;
-        {
-            final String cookieStr = ServletHelper.readCookie(
-                    pwmRequest.getHttpServletRequest(),
-                    PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN
-            );
-            if (securityKey != null && cookieStr != null && !cookieStr.isEmpty()) {
-                try {
-                    final String jsonStr = SecureHelper.decryptStringValue(cookieStr, securityKey);
-                    final PersistentLoginInfo persistentLoginInfo = JsonUtil.deserialize(jsonStr, PersistentLoginInfo.class);
-                    if (persistentLoginInfo != null && persistentLoginValue != null) {
-                        if (persistentLoginInfo.getExpireDate().after(new Date())) {
-                            if (persistentLoginValue.equals(persistentLoginInfo.getPassword())) {
-                                persistentLoginAccepted = true;
-                                LOGGER.debug(pwmRequest, "accepting persistent config login from cookie (expires "
-                                                + PwmConstants.DEFAULT_DATETIME_FORMAT.format(persistentLoginInfo.getExpireDate())
-                                                + ")"
-                                );
+        boolean persistentLoginEnabled = false;
+        if (pwmRequest.getConfig().isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) {
+            LOGGER.debug(pwmRequest, "security not available, persistent login not possible.");
+        } else {
+            persistentLoginEnabled = true;
+            final SecretKey securityKey = pwmRequest.getConfig().getSecurityKey();
+
+            if (PwmApplication.MODE.RUNNING == pwmRequest.getPwmApplication().getApplicationMode()) {
+                persistentLoginValue = SecureHelper.hash(
+                        storedConfig.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH)
+                                + pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey(),
+                        SecureHelper.DEFAULT_HASH_ALGORITHM);
+
+            } else {
+                persistentLoginValue = SecureHelper.hash(
+                        storedConfig.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH),
+                        SecureHelper.DEFAULT_HASH_ALGORITHM);
+            }
+
+            {
+                final String cookieStr = ServletHelper.readCookie(
+                        pwmRequest.getHttpServletRequest(),
+                        PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN
+                );
+                if (securityKey != null && cookieStr != null && !cookieStr.isEmpty()) {
+                    try {
+                        final String jsonStr = SecureHelper.decryptStringValue(cookieStr, securityKey);
+                        final PersistentLoginInfo persistentLoginInfo = JsonUtil.deserialize(jsonStr, PersistentLoginInfo.class);
+                        if (persistentLoginInfo != null && persistentLoginValue != null) {
+                            if (persistentLoginInfo.getExpireDate().after(new Date())) {
+                                if (persistentLoginValue.equals(persistentLoginInfo.getPassword())) {
+                                    persistentLoginAccepted = true;
+                                    LOGGER.debug(pwmRequest, "accepting persistent config login from cookie (expires "
+                                                    + PwmConstants.DEFAULT_DATETIME_FORMAT.format(persistentLoginInfo.getExpireDate())
+                                                    + ")"
+                                    );
+                                }
                             }
                         }
+                    } catch (Exception e) {
+                        LOGGER.error(pwmRequest, "error examining persistent config login cookie: " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    LOGGER.error(pwmRequest, "error examining persistent config login cookie: " + e.getMessage());
-                }
-                if (!persistentLoginAccepted) {
-                    Cookie removalCookie = new Cookie(PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN,null);
-                    removalCookie.setMaxAge(0);
-                    pwmRequest.getPwmResponse().addCookie(removalCookie);
-                    LOGGER.debug(pwmRequest, "removing non-working persistent config login cookie");
+                    if (!persistentLoginAccepted) {
+                        Cookie removalCookie = new Cookie(PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN, null);
+                        removalCookie.setMaxAge(0);
+                        pwmRequest.getPwmResponse().addCookie(removalCookie);
+                        LOGGER.debug(pwmRequest, "removing non-working persistent config login cookie");
+                    }
                 }
             }
         }
+
 
         final String password = pwmRequest.readParameterAsString("password");
         boolean passwordAccepted = false;
@@ -312,7 +320,9 @@ public class ConfigManagerServlet extends PwmServlet {
             if (password != null && password.length() > 0) {
                 if (storedConfig.verifyPassword(password)) {
                     passwordAccepted = true;
+                    LOGGER.trace(pwmRequest, "valid configuration password accepted");
                 } else{
+                    LOGGER.trace(pwmRequest, "configuration password is not correct");
                     pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                     pwmApplication.getIntruderManager().mark(RecordType.USERNAME, CONFIGMANAGER_INTRUDER_USERNAME, pwmSession.getLabel());
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_WRONGPASSWORD);
@@ -321,18 +331,18 @@ public class ConfigManagerServlet extends PwmServlet {
             }
         }
 
-        if (persistentLoginAccepted || passwordAccepted) {
+        if ((persistentLoginAccepted || passwordAccepted)) {
             configManagerBean.setPasswordVerified(true);
             pwmApplication.getIntruderManager().convenience().clearAddressAndSession(pwmSession);
             pwmApplication.getIntruderManager().clear(RecordType.USERNAME,CONFIGMANAGER_INTRUDER_USERNAME);
-            if (!persistentLoginAccepted && "on".equals(pwmRequest.readParameterAsString("remember"))) {
+            if (persistentLoginEnabled && !persistentLoginAccepted && "on".equals(pwmRequest.readParameterAsString("remember"))) {
                 final int persistentSeconds = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_PERSISTENT_LOGIN_SECONDS));
                 if (persistentSeconds > 0) {
                     final Date expirationDate = new Date(System.currentTimeMillis() + (persistentSeconds * 1000));
                     final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo(expirationDate, persistentLoginValue);
                     final String jsonPersistentLoginInfo = JsonUtil.serialize(persistentLoginInfo);
                     final String cookieValue = SecureHelper.encryptToString(jsonPersistentLoginInfo,
-                            securityKey);
+                            pwmRequest.getConfig().getSecurityKey());
                     pwmRequest.getPwmResponse().writeCookie(
                             PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN,
                             cookieValue,

@@ -336,7 +336,6 @@ public class SetupOtpServlet extends PwmServlet {
         final String otpToken = pwmRequest.readParameterAsString(PwmConstants.PARAM_OTP_TOKEN);
         final OtpService otpService = pwmApplication.getOtpService();
         if (otpToken != null && otpToken.length() > 0) {
-            LOGGER.debug(pwmRequest, String.format("received OTP token: %s", otpToken));
             try {
                 if (otpService.validateToken(
                         pwmSession,
@@ -345,12 +344,12 @@ public class SetupOtpServlet extends PwmServlet {
                         otpToken,
                         false
                 )) {
-                    LOGGER.debug(pwmRequest, "correct OTP secret");
+                    LOGGER.debug(pwmRequest, "request OTP token returned true, valid OTP secret provided");
                     otpBean.setConfirmed(true);
                     otpBean.setChallenge(null);
                 } else {
-                    LOGGER.debug(pwmRequest, "wrong OTP secret");
-                    pwmRequest.setResponseError(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE));
+                    LOGGER.debug(pwmRequest, "request OTP token returned false, incorrect OTP secret provided");
+                            pwmRequest.setResponseError(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE));
                 }
             } catch (PwmOperationalException e) {
                 LOGGER.error(pwmRequest, "error validating otp token: " + e.getMessage());

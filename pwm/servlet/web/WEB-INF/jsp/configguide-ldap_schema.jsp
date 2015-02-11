@@ -1,6 +1,6 @@
 <%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
-<%@ page import="password.pwm.ldap.SchemaExtender" %>
+<%@ page import="password.pwm.ldap.schema.SchemaOperationResult" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -33,9 +33,9 @@
     boolean existingSchemaGood = false;
     String schemaActivityLog = "";
     try {
-        SchemaExtender schemaExtender = ConfigGuideServlet.getSchemaExtender(configGuideBean);
-        existingSchemaGood = schemaExtender.checkExistingSchema();
-        schemaActivityLog = schemaExtender.getActivityLog();
+        SchemaOperationResult schemaManager = ConfigGuideServlet.extendSchema(configGuideBean,false);
+        existingSchemaGood = schemaManager.isSuccess();
+        schemaActivityLog = schemaManager.getOperationLog();
     } catch (Exception e) {
         schemaActivityLog = "unable to check schema: " + e.getMessage();
     }

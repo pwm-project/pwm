@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -27,8 +28,8 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    String pageTitle = LocaleHelper.getLocalizedMessage("Title_ConfigManager", ContextManager.getPwmApplication(request).getConfig(),
-            password.pwm.i18n.Config.class);
+    final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
+    String pageTitle = LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, pwmRequest);
 %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -47,11 +48,13 @@
             <br class="clear"/>
             <input type="<pwm:value name="passwordFieldType"/>" class="inputfield passwordfield" name="password" id="password" <pwm:autofocus/>/>
             <div class="buttonbar">
+                <% if (!pwmRequest.getConfig().isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) { %>
                 <label class="checkboxWrapper">
                     <input type="checkbox" id="remember" name="remember"/>
                     Remember Password for 1 Hour
                 </label>
                 <br>
+                <% } %>
                 <button type="submit" class="btn" name="button" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-in"></span></pwm:if>
                     <pwm:display key="Button_Login"/>

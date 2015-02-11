@@ -891,9 +891,6 @@ PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo, options) {
     options = options === undefined ? {} : options;
     var settingKey = settingInfo['key'];
     var settingLabel = settingInfo['label'];
-    if (settingInfo['level'] && settingInfo['level'] >= 2) {
-        settingLabel += ' (Advanced)';
-    }
     var htmlBody = '<div id="outline_' + settingKey + '" class="setting_outline" style="display:none">'
         + '<div class="setting_title" id="title_' + settingKey + '">'
         + '<a id="setting-' + settingKey + '" class="text">' + settingLabel + '</a>'
