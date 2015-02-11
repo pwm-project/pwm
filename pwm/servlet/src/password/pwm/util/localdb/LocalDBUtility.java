@@ -221,7 +221,7 @@ public class LocalDBUtility {
 
         Reader csvReader = null;
         try {
-            csvReader = new BufferedReader(new InputStreamReader(new GZIPInputStream(inputStream),PwmConstants.DEFAULT_CHARSET));
+            csvReader = new InputStreamReader(new GZIPInputStream(inputStream),PwmConstants.DEFAULT_CHARSET);
             for (final CSVRecord record : PwmConstants.DEFAULT_CSV_FORMAT.parse(csvReader)) {
                 importLineCounter++;
                 final LocalDB.DB db = LocalDB.DB.valueOf(record.get(0));

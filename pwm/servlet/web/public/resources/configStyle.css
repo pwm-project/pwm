@@ -430,10 +430,11 @@ table {
 }
 
 .editorIdleStatus {
-    margin: 0 auto;
+    margin-left: 40%;
+    margin-right: 40%;
     position: absolute;
     top: 0;
     text-align: center;
-    width: 100%;
-    font-size: 10px
+    font-size: 10px;
+    width:20%;
 }

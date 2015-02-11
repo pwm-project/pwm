@@ -437,9 +437,8 @@ public class NewUserServlet extends PwmServlet {
     private void handleProcessFormRequest(final PwmRequest pwmRequest, final NewUserBean newUserBean)
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-
-        pwmSession.clearSessionBean(NewUserBean.class);
+        newUserBean.setFormPassed(false);
+        newUserBean.setNewUserForm(null);
 
         try {
             NewUserBean.NewUserForm newUserForm = NewUserFormUtils.readFromRequest(pwmRequest);
@@ -600,7 +599,7 @@ public class NewUserServlet extends PwmServlet {
         sessionAuthenticator.authenticateUser(userIdentity, userPassword);
 
         {  // execute configured actions
-            final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(
+            final List<ActionConfiguration> actions = newUserProfile.readSettingAsAction(
                     PwmSetting.NEWUSER_WRITE_ATTRIBUTES);
             if (actions != null && !actions.isEmpty()) {
                 LOGGER.debug(pwmSession, "executing configured actions to user " + theUser.getEntryDN());
@@ -623,7 +622,7 @@ public class NewUserServlet extends PwmServlet {
         // increment the new user creation statistics
         pwmApplication.getStatisticsManager().incrementValue(Statistic.NEW_USERS);
 
-        LOGGER.debug(pwmSession, "beginning createUser process for " + newUserDN + " (" + TimeDuration.fromCurrent(
+        LOGGER.debug(pwmSession, "completed createUser process for " + newUserDN + " (" + TimeDuration.fromCurrent(
                 startTime).asCompactString() + ")");
     }
 
@@ -884,7 +883,8 @@ public class NewUserServlet extends PwmServlet {
             return;
         }
 
-        final long minWaitTime = pwmRequest.getConfig().readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME) * 1000L;
+        final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
+        final long minWaitTime = newUserProfile.readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME) * 1000L;
         final Date completeTime = new Date(startTime.getTime() + minWaitTime);
 
         final BigDecimal percentComplete;
@@ -923,7 +923,8 @@ public class NewUserServlet extends PwmServlet {
             return;
         }
 
-        final long minWaitTime = pwmRequest.getConfig().readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME) * 1000L;
+        final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
+        final long minWaitTime = newUserProfile.readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME) * 1000L;
         final Date completeTime = new Date(startTime.getTime() + minWaitTime);
 
         // be sure minimum wait time has passed

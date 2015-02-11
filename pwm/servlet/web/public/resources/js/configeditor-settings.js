@@ -591,22 +591,15 @@ FormTableHandler.redraw = function(keyName) {
         FormTableHandler.drawRow(parentDiv, keyName, i, resultValue[i]);
     }
 
-    var newTableRow = document.createElement("tr");
-    newTableRow.setAttribute("style", "border-width: 0");
-    newTableRow.setAttribute("colspan", "5");
+    var buttonRow = document.createElement("tr");
+    buttonRow.setAttribute("colspan","5");
+    buttonRow.innerHTML = '<td><button class="btn" id="button-' + keyName + '-addRow"><span class="btn-icon fa fa-plus-square"></span>Add Form Item</button></td>';
 
-    var newTableData = document.createElement("td");
-    newTableData.setAttribute("style", "border-width: 0;");
+    parentDivElement.appendChild(buttonRow);
 
-    var addItemButton = document.createElement("button");
-    addItemButton.setAttribute("type", "button");
-    addItemButton.setAttribute("class", "btn");
-    addItemButton.setAttribute("onclick", "FormTableHandler.addMultiSetting('" + keyName + "','" + parentDiv + "');");
-    addItemButton.innerHTML = '<span class="btn-icon fa fa-plus-square"></span>Add Form Item';
-    newTableData.appendChild(addItemButton);
-
-    newTableRow.appendChild(newTableData);
-    parentDivElement.appendChild(newTableRow);
+    PWM_MAIN.addEventHandler('button-' + keyName + '-addRow','click',function(){
+        FormTableHandler.addRow(keyName);
+    });
 
 };
 
@@ -810,39 +803,39 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         var initDialogWidgets = function() {
             PWM_MAIN.showTooltip({
                 id: inputID + '-label-description',
-                text: 'Detailed description of this form item, including any special instructions.'
+                text: PWM_CONFIG.showString('Tooltip_FormOptions_Description')
             });
             PWM_MAIN.showTooltip({
                 id: inputID + '-label-required',
-                text: 'Marks the field as required.  The user must supply a value before being able to complete the form.'
+                text: PWM_CONFIG.showString('Tooltip_FormOptions_Required')
             });
             PWM_MAIN.showTooltip({
                 id: inputID + '-label-confirm',
-                text: 'Adds a duplicate field to the form and requires the value be the same for the original and confirmation field.'
+                text: PWM_CONFIG.showString('Tooltip_FormOptions_Confirm')
             });
             PWM_MAIN.showTooltip({
                 id: inputID + '-label-readOnly',
-                text: 'Make the field unmodifiable.'
+                text: PWM_CONFIG.showString('Tooltip_FormOptions_ReadOnly')
             });
             PWM_MAIN.showTooltip({
                 id: inputID + '-label-unique',
-                text: 'Indicate that the field value must be unique in the directory before proceeding.'
+                text: PWM_CONFIG.showString('Tooltip_FormOptions_Unique')
             });
             PWM_MAIN.showTooltip({
                 id: inputID + '-label-regex',
-                text: 'Apply a <i>regular expression</i> pattern to the value.  The value must match the pattern before the form is completed.  This pattern can be used to constrain the permitted syntax of the value.'
+                text: PWM_CONFIG.showString('Tooltip_FormOptions_Regex')
             });
             PWM_MAIN.showTooltip({
                 id: inputID + '-label-regexError',
-                text: 'Error message to show when the regular expression pattern is not matched.'
+                text: PWM_CONFIG.showString('Tooltip_FormOptions_RegexError')
             });
             PWM_MAIN.showTooltip({
                 id: inputID + '-label-placeholder',
-                text: 'Placeholder text to display in the form field with the field is not populated with a value.'
+                text: PWM_CONFIG.showString('Tooltip_FormOptions_Placeholder')
             });
             PWM_MAIN.showTooltip({
                 id: inputID + '-label-js',
-                text: 'Javascript to be added to the browser.'
+                text: PWM_CONFIG.showString('Tooltip_FormOptions_Javascript')
             });
 
             PWM_MAIN.addEventHandler(inputID + 'editOptionsButton', 'click', function(){

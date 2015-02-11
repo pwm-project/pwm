@@ -813,7 +813,7 @@ public class PasswordUtility {
                     final PasswordData oldPassword = loginInfoBean == null ? null : loginInfoBean.getUserCurrentPassword();
                     pwmPasswordRuleValidator.testPassword(password, oldPassword, userInfoBean, user);
                     pass = true;
-                    if (cacheService != null) {
+                    if (cacheService != null && cacheKey != null) {
                         cacheService.put(cacheKey, cachePolicy, NEGATIVE_CACHE_HIT);
                     }
                 }

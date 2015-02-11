@@ -1,9 +1,4 @@
-<%@ page import="password.pwm.config.ConfigurationReader" %>
-<%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
-<%@ page import="java.io.File" %>
-<%@ page import="java.util.Date" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -32,21 +27,7 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
-    String configFileName = PwmConstants.DEFAULT_CONFIG_FILE_FILENAME;
-    String configFilePath = "<application path>/WEB-INF";
-    String pageTitle = LocaleHelper.getLocalizedMessage("Title_ConfigManager",pwmRequest.getConfig(),password.pwm.i18n.Config.class);
-    Date lastModified = null;
-    boolean hasPassword = false;
-
-    try {
-        final ConfigurationReader configurationReader = pwmRequest.getContextManager().getConfigReader();
-        lastModified = configurationReader.getStoredConfiguration().modifyTime();
-        configurationReader.getStoredConfiguration().hasPassword();
-        final File file = configurationReader.getConfigFile();
-        configFileName = file.getAbsolutePath();
-        configFilePath = file.getParentFile().getAbsolutePath();
-    } catch (Exception e) { /* */ }
+    final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
 %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -54,19 +35,10 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="<%=pageTitle%>"/>
+        <jsp:param name="pwm.PageName" value="<%=JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.PageTitle)%>"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <pwm:script>
-            <script type="text/javascript">
-                PWM_GLOBAL['startupFunctions'].push(function(){
-                    require(["dojo/domReady!"],function(){
-                        PWM_ADMIN.showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});
-                    });
-                });
-            </script>
-        </pwm:script>
         <style>
             .buttoncell {
                 border: 0;
@@ -102,10 +74,11 @@
                     Last Modified
                 </td>
                 <td>
+                    <% String lastModified = (String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigLastModified); %>
                     <% if (lastModified == null) { %>
                     <pwm:display key="Value_NotApplicable"/>
                     <% } else { %>
-                    <span class="timestamp"><%= PwmConstants.DEFAULT_DATETIME_FORMAT.format(lastModified)%></span>
+                    <span class="timestamp"><%=lastModified%></span>
                     <% } %>
                 </td>
             </tr>
@@ -114,7 +87,7 @@
                     Password Protected
                 </td>
                 <td>
-                    <%if (hasPassword) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                    <%=JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigHasPassword)%>
                 </td>
             </tr>
             <tr>
@@ -123,7 +96,7 @@
                 </td>
                 <td>
                     <div style="max-width:398px; overflow-x: auto; white-space: nowrap">
-                        <%=StringUtil.escapeHtml(configFileName)%>
+                        <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigFilename))%>
                     </div>
                 </td>
             </tr>
@@ -204,7 +177,7 @@
                         <pwm:script>
                             <script type="application/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
-                                    makeTooltip('MenuItem_LockConfig',PWM_CONFIG.showString('MenuDisplay_LockConfig',{value1:'<%=configFileName%>'}));
+                                    makeTooltip('MenuItem_LockConfig',PWM_CONFIG.showString('MenuDisplay_LockConfig',{value1:'<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigFilename))%>'}));
                                     PWM_MAIN.addEventHandler('MenuItem_LockConfig','click',function(){
                                         PWM_CONFIG.lockConfiguration();
                                     });
@@ -225,8 +198,7 @@
                                             title:'Alert',
                                             width:500,
                                             text:PWM_CONFIG.showString('MenuDisplay_UnlockConfig',{
-                                                value1:'<%=StringUtil.escapeJS(configFileName)%>',
-                                                value2:'<%=StringUtil.escapeJS(configFilePath)%>'
+                                                value1:'<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.ConfigFilename))%>'
                                             })
                                         });
                                     });
@@ -353,6 +325,10 @@
                 dojoParser.parse();
             });
             PWM_VAR['config_localDBLogLevel'] = '<%=pwmRequest.getConfig().getEventLogLocalDBLevel()%>'
+
+            require(["dojo/domReady!"],function(){
+                PWM_ADMIN.showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});
+            });
         });
 
         function makeTooltip(id,text) {
@@ -376,7 +352,6 @@
 </pwm:script>
 <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/admin.js"/>"></script>
-<% password.pwm.http.JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>
 </html>

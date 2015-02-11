@@ -135,11 +135,12 @@ public abstract class PwmConstants {
         CompleteText,
         AvailableAuthMethods,
         ConfigurationSummaryOutput,
+        PageTitle,
 
         FormConfiguration,
         FormReadOnly,
         FormShowPasswordFields,
-        FormData,
+        FormData, ConfigFilename, ConfigLastModified, ConfigHasPassword,
     }
 
 

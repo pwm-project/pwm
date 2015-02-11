@@ -39,6 +39,8 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
+import password.pwm.i18n.Config;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.*;
@@ -153,7 +155,18 @@ public class ConfigManagerServlet extends PwmServlet {
             return;
         }
 
+        initRequestAttributes(pwmRequest);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_MODE_CONFIGURATION);
+    }
+
+    void initRequestAttributes(final PwmRequest pwmRequest)
+            throws PwmUnrecoverableException
+    {
+        final ConfigurationReader configurationReader = pwmRequest.getContextManager().getConfigReader();
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.PageTitle,LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, pwmRequest));
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigFilename, configurationReader.getConfigFile().getAbsolutePath());
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigLastModified, PwmConstants.DEFAULT_DATETIME_FORMAT.format(configurationReader.getStoredConfiguration().modifyTime()));
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigHasPassword, LocaleHelper.booleanString(configurationReader.getStoredConfiguration().hasPassword(),pwmRequest.getLocale(),pwmRequest.getConfig()));
     }
 
     void restUploadLocalDB(final PwmRequest pwmRequest)

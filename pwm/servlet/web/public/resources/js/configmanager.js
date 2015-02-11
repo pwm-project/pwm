@@ -106,154 +106,32 @@ PWM_CONFIG.startConfigurationEditor=function() {
 
 
 PWM_CONFIG.uploadConfigDialog=function() {
-    var body = '<div id="uploadFormWrapper"><form action="ConfigGuide" enctype="multipart/form-data">';
-    body += '<div id="fileList"></div>';
-    body += '<input name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
-    body += '<input type="submit" id="uploadButton" name="Upload"/>';
-    body += '</form></div>';
-
-    var uploadUrl = window.location.pathname + '?processAction=uploadConfig&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
-
-    require(["dojo","dijit/Dialog","dojox/form/Uploader","dojox/form/uploader/FileList","dijit/form/Button","dojox/form/uploader/plugins/HTML5"],function(
-        dojo,Dialog,Uploader,FileList,Button){
-
-        if(dojo.isIE <= 9){ // IE9 and below no workie
-            PWM_MAIN.showDialog({title:PWM_MAIN.showString("Title_Error"),text:PWM_CONFIG.showString("Warning_UploadIE9")});
-            return;
-        }
-
-        PWM_MAIN.showWaitDialog({loadFunction:function() {
-            console.log('uploading config file to url ' + uploadUrl);
-            PWM_MAIN.closeWaitDialog();
-            var idName = 'dialogPopup';
-            PWM_MAIN.clearDijitWidget(idName);
-            var theDialog = new Dialog({
-                id: idName,
-                title: 'Upload Configuration',
-                style: "width: 300px",
-                content: body
-            });
-            theDialog.show();
-            var fileMask = [
-                ["XML File", "*.xml"],
-                ["TXT File", "*.txt"]
-            ];
-            var uploader = new dojox.form.Uploader({
-                multiple: false,
-                name: "uploadFile",
-                label: 'Select File',
-                required: true,
-                fileMask: fileMask,
-                preventCache: true,
-                url: uploadUrl,
-                isDebug: true,
-                devMode: true
-            }, 'uploadFile');
-            uploader.startup();
-            var uploadButton = new Button({
-                label: 'Upload',
-                type: 'submit'
-            }, "uploadButton");
-            uploadButton.startup();
-            new FileList({
-                uploaderId: 'uploadFile'
-            }, "fileList");
-            dojo.connect(uploader, "onComplete", function (data) {
-                if (data['error'] == true) {
-                    PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorDetail']});
-                } else {
-                    PWM_MAIN.closeWaitDialog();
-                    PWM_MAIN.clearDijitWidget(idName);
-                    PWM_CONFIG.waitForRestart();
-                }
-            });
+    var uploadOptions = {};
+    uploadOptions['url'] = window.location.pathname + '?processAction=uploadConfig';
+    uploadOptions['title'] = 'Upload Configuration';
+    uploadOptions['nextFunction'] = function() {
+        PWM_MAIN.showWaitDialog({title:'Save complete, restarting application...',loadFunction:function(){
+            PWM_CONFIG.waitForRestart({location:'/'});
         }});
-    });
+    };
+    PWM_CONFIG.uploadFile(uploadOptions);
 };
 
 PWM_CONFIG.uploadLocalDB=function() {
-    var body = '<div id="uploadFormWrapper"><form action="ConfigGuide" enctype="multipart/form-data">';
-    body += '<div id="fileList"></div>';
-    body += '<input name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
-    body += '<input type="submit" id="uploadButton" name="Upload"/>';
-    body += '</form></div><br/>';
-
-    var uploadUrl = window.location.pathname + '?processAction=importLocalDB&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
-
-    PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('Confirm_UploadLocalDB'),okAction:function(){
-        PWM_MAIN.preloadAll(function(){
-            require(["dojo","dijit/Dialog","dojox/form/Uploader","dojox/form/uploader/FileList","dijit/form/Button","dojox/form/uploader/plugins/HTML5"],function(
-                dojo,Dialog,Uploader,FileList,Button){
-
-                if(dojo.isIE <= 9){ // IE9 and below no workie
-                    PWM_MAIN.showDialog({title:PWM_MAIN.showString("Title_Error"),text:PWM_CONFIG.showString("Warning_UploadIE9")});
-                    return;
-                }
-
-                PWM_MAIN.showWaitDialog({loadFunction:function() {
-                    console.log('uploading localdb file to url ' + uploadUrl);
-
-                    PWM_MAIN.closeWaitDialog();
-                    var idName = 'dialogPopup';
-                    PWM_MAIN.clearDijitWidget(idName);
-                    var theDialog = new Dialog({
-                        id: idName,
-                        title: 'Upload LocalDB Archive',
-                        style: "width: 300px",
-                        content: body
-                    });
-                    theDialog.show();
-                    var uploader = new dojox.form.Uploader({
-                        multiple: false,
-                        name: "uploadFile",
-                        label: 'Select File',
-                        required: true,
-                        url: uploadUrl,
-                        isDebug: true,
-                        devMode: true,
-                        preventCache: true
-                    }, 'uploadFile');
-                    uploader.startup();
-                    var uploadButton = new Button({
-                        label: 'Upload',
-                        type: 'submit'
-                    }, "uploadButton");
-                    uploadButton.startup();
-                    new FileList({
-                        uploaderId: 'uploadFile'
-                    }, "fileList");
-                    dojo.connect(uploader, "onComplete", function (data) {
-                        if (data['error'] == true) {
-                            PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage'] + '  '  + data['errorDetail'],okAction:function(){
-                                PWM_MAIN.goto('/private/config/ConfigManager');
-                            }});
-                        } else {
-                            PWM_MAIN.closeWaitDialog();
-                            PWM_MAIN.clearDijitWidget(idName);
-                            PWM_CONFIG.waitForRestart();
-                        }
-                    });
-                    dojo.connect(uploader, "onBegin", function () {
-                        PWM_GLOBAL['inhibitHealthUpdate'] = true;
-                        PWM_GLOBAL['idle_suspendTimeout'] = true;
-                        PWM_MAIN.getObject('centerbody').style.display = 'none';
-
-                        PWM_MAIN.showWaitDialog({title:"Importing LocalDB Archive File..."});
-                    });
-                    dojo.connect(uploader, "onProgress", function (data) {
-                        var decimal = data['decimal'];
-                        require(["dijit/registry"],function(registry){
-                            var progressBar = registry.byId('progressBar');
-                            progressBar.set("maximum",100);
-                            progressBar.set("indeterminate",false);
-                            progressBar.set("value", decimal * 100);
-                        });
-                    });
+    PWM_MAIN.showConfirmDialog({
+        text:PWM_CONFIG.showString('Confirm_UploadLocalDB'),
+        okAction:function(){
+            var uploadOptions = {};
+            uploadOptions['url'] = 'ConfigManager?processAction=importLocalDB';
+            uploadOptions['title'] = 'Upload and Import LocalDB Archive';
+            uploadOptions['nextFunction'] = function() {
+                PWM_MAIN.showWaitDialog({title:'Save complete, restarting application...',loadFunction:function(){
+                    PWM_CONFIG.waitForRestart({location:'/'});
                 }});
-            });
-        });
-    }});
-
+            };
+            PWM_CONFIG.uploadFile(uploadOptions);
+        }
+    });
 };
 
 
@@ -369,26 +247,29 @@ PWM_CONFIG.uploadFile = function(options) {
     body += '<div id="fileList"></div>';
     body += '<input name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
     body += '<input type="submit" id="uploadButton" name="Upload"/>';
-    body += '<br/></form></div><br/>';
+    body += '<br/></form></div><br/><br/>';
 
     var currentUrl = window.location.pathname;
     var uploadUrl = 'url' in options ? options['url'] : currentUrl;
+    var title = 'title' in options ? options['title'] : 'Upload File';
+
     uploadUrl = PWM_MAIN.addPwmFormIDtoURL(uploadUrl);
 
-    var nextFunction = 'nextFunction' in options ? options['nextFunction'] : function(){PWM_MAIN.goto(currentUrl)};
+    var nextFunction = 'nextFunction' in options ? options['nextFunction'] : function(data){
+        PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Success"), text: data['successMessage'],okAction:function(){
+            PWM_MAIN.goto(currentUrl)
+        }});
+    };
 
-    var title = 'title' in options ? options['title'] : 'Upload File';
 
     var completeFunction = function(data){
         if (data['error'] == true) {
             var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
             PWM_MAIN.showErrorDialog(data,{text:errorText,okAction:function(){
-                nextFunction();
+                location.reload();
             }});
         } else {
-            PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Success"), text: data['successMessage'],okAction:function(){
-                nextFunction();
-            }});
+            nextFunction(data);
         }
     };
 

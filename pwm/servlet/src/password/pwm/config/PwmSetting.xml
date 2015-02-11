@@ -3625,6 +3625,10 @@
         <default>
             <value>100000</value>
         </default>
+        <options>
+            <option value="min">1</option>
+            <option value="max">100000000</option>
+        </options>
     </setting>
     <setting key="reporting.job.timeOffset" level="2">
         <label>Reporting Job Time Offset</label>
