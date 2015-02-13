@@ -908,6 +908,7 @@ public class StoredConfiguration implements Serializable {
 
     private static class ConfigurationCleaner {
         private static void cleanup(final StoredConfiguration configuration) {
+            updateProperitiesWithoutType(configuration);
             updateMandatoryElements(configuration.document);
             profilizeNonProfiledSettings(configuration);
             stripOrphanedProfileSettings(configuration);
@@ -1017,6 +1018,17 @@ public class StoredConfiguration implements Serializable {
                         }
                     }
                 }
+            }
+        }
+
+        private static void updateProperitiesWithoutType(final StoredConfiguration storedConfiguration) {
+            final Document document = storedConfiguration.document;
+            final String xpathString = "//properties[not(@type)]";
+            final XPathFactory xpfac = XPathFactory.instance();
+            final XPathExpression xp = xpfac.compile(xpathString);
+            final List<Element> propertiesElements = (List<Element>)xp.evaluate(document);
+            for (final Element propertiesElement : propertiesElements) {
+                propertiesElement.setAttribute(XML_ATTRIBUTE_TYPE,XML_ATTRIBUTE_VALUE_CONFIG);
             }
         }
 

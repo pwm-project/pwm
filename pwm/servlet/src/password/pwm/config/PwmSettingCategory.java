@@ -89,8 +89,10 @@ public enum PwmSettingCategory {
     CHALLENGE                   (PROFILES),
     CHALLENGE_POLICY            (PROFILES),
 
-    CHANGE_PASSWORD             (MODULES),
+    ADMINISTRATION              (MODULES),
+
     ACCOUNT_INFO                (MODULES),
+    CHANGE_PASSWORD             (MODULES),
     RECOVERY                    (MODULES),
     RECOVERY_SETTINGS           (RECOVERY),
     RECOVERY_PROFILE            (RECOVERY),
@@ -153,7 +155,7 @@ public enum PwmSettingCategory {
     public String getDescription(final Locale locale) {
         Element categoryElement = PwmSettingXml.readCategoryXml(this);
         Element description = categoryElement.getChild("description");
-        return description.getText();
+        return description == null ? "" : description.getText();
     }
 
     public int getLevel() {

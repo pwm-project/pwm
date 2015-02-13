@@ -81,7 +81,7 @@
             </tr>
             <tr>
                 <td>
-                    <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                    <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
                 </td>
                 <td>
                     &nbsp;

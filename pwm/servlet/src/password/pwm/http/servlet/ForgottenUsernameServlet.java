@@ -93,7 +93,7 @@ public class ForgottenUsernameServlet extends PwmServlet {
             }
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.FORGOTTEN_USERNAME);
+        forwardToFormJsp(pwmRequest);
     }
 
     public void handleSearchRequest(
@@ -145,29 +145,33 @@ public class ForgottenUsernameServlet extends PwmServlet {
                 pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
                 pwmRequest.setResponseError(PwmError.ERROR_CANT_MATCH_USER.toInfo());
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.FORGOTTEN_USERNAME);
+                forwardToFormJsp(pwmRequest);
                 return;
             }
 
             // make sure the user isn't locked.
             pwmApplication.getIntruderManager().convenience().checkUserIdentity(userIdentity);
 
+
+            final UserInfoBean forgottenUserInfo = new UserInfoBean();
+            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmSession.getLabel());
+            userStatusReader.populateUserInfoBean(forgottenUserInfo, pwmRequest.getLocale(), userIdentity);
+
+
             // send username
-            sendUsername(pwmApplication, pwmSession, userIdentity);
+            sendUsername(pwmApplication, pwmSession, forgottenUserInfo);
 
             // redirect user to success page.
             LOGGER.info(pwmSession, "found user " + userIdentity.getUserDN());
             try {
-                final String usernameAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_USERNAME_USERNAME_ATTRIBUTE);
-                final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
-                final String username = userDataReader.readStringAttribute(usernameAttribute);
-                LOGGER.trace(pwmSession, "read username attribute '" + usernameAttribute + "' value=" + username);
+                final String username = forgottenUserInfo.getUsername();
+                LOGGER.trace(pwmSession, "read username value=" + username);
 
                 pwmApplication.getIntruderManager().convenience().clearAddressAndSession(pwmSession);
                 pwmApplication.getIntruderManager().convenience().clearAttributes(formValues);
 
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_SUCCESSES);
-                pwmRequest.forwardToSuccessPage(Message.Success_ForgottenUsername);
+                pwmRequest.forwardToSuccessPage(Message.Success_ForgottenUsername, username);
                 return;
             } catch (Exception e) {
                 LOGGER.error("error reading username value for " + userIdentity + ", " + e.getMessage());
@@ -185,14 +189,14 @@ public class ForgottenUsernameServlet extends PwmServlet {
         }
 
         pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.FORGOTTEN_USERNAME);
+        forwardToFormJsp(pwmRequest);
     }
 
 
     private void sendUsername(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
-            final UserIdentity userIdentity
+            final UserInfoBean forgottenUserInfo
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
@@ -205,10 +209,6 @@ public class ForgottenUsernameServlet extends PwmServlet {
         if (messageSendMethod == null || messageSendMethod == MessageSendMethod.NONE) {
             return;
         }
-
-        final UserInfoBean forgottenUserInfo = new UserInfoBean();
-        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmSession.getLabel());
-        userStatusReader.populateUserInfoBean(forgottenUserInfo, userLocale, userIdentity);
 
         sendMessageViaMethod(
                 pwmApplication,
@@ -288,8 +288,6 @@ public class ForgottenUsernameServlet extends PwmServlet {
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final Configuration config = pwmApplication.getConfig();
-
         final String toNumber = userInfoBean.getUserSmsNumber();
         if (toNumber == null || toNumber.length() < 1) {
             final String errorMsg = String.format("unable to send new password email for '%s'; no SMS number available in ldap", userInfoBean.getUserIdentity());
@@ -322,6 +320,13 @@ public class ForgottenUsernameServlet extends PwmServlet {
         pwmApplication.getEmailQueue().submitEmail(emailItemBean, userInfoBean, macroMachine);
 
         return null;
+    }
+
+    private void forwardToFormJsp(final PwmRequest pwmRequest)
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        pwmRequest.addFormInfoToRequestAttr(PwmSetting.FORGOTTEN_USERNAME_FORM,false,false);
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.FORGOTTEN_USERNAME);
     }
 
 }

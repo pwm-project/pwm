@@ -46,7 +46,7 @@
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <pwm:display key="Display_ConfigGuideSelectTemplate" bundle="Config"/>
         <br/>
-        <form id="configForm" data-dojo-type="dijit/form/Form">
+        <form id="configForm">
             <select id="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>" name="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>" style="width:300px">
                 <% if (selectedTemplate == null) { %>
                 <option value="NOTSELECTED" selected="selected">-- Please select a template --</option>
@@ -79,9 +79,7 @@
     <script type="text/javascript">
         function formHandler() {
             var startTemplate = '<%=selectedTemplate == null ? "" : selectedTemplate.toString()%>';
-
-            var configForm = dojo.formToObject('configForm');
-            var newTemplate = configForm['<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>'];
+            var newTemplate = getSelectedValue();
             if (startTemplate && startTemplate.length > 0 && startTemplate != newTemplate) {
                 PWM_MAIN.showConfirmDialog({
                     text:'Changing the template will cause existing guide settings to be cleared.  Are you sure you wish to continue?',
@@ -99,18 +97,23 @@
             }
         }
 
+        function getSelectedValue() {
+            var selectedIndex = PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>').selectedIndex;
+            var newTemplate = PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>').options[selectedIndex];
+            return newTemplate.value;
+        }
+
         function updateNextButton() {
-            require(["dojo"],function(dojo) {
-                var configForm = dojo.formToObject('configForm');
-                var notSelected = configForm['<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>'] == 'NOTSELECTED';
-                PWM_MAIN.getObject('button_next').disabled = notSelected;
-            });
+            var newTemplate = getSelectedValue();
+            var notSelected = newTemplate == 'NOTSELECTED';
+            PWM_MAIN.getObject('button_next').disabled = notSelected;
         }
 
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
             PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
             PWM_MAIN.addEventHandler('<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>','change',function(){formHandler()});
+            updateNextButton();
         });
     </script>
 </pwm:script>

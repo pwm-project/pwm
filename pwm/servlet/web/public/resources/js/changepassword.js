@@ -64,7 +64,6 @@ PWM_CHANGEPW.validatePasswords = function(userDN)
         }
     };
 
-    debugger;
     PWM_MAIN.pwmFormValidator(validationProps);
 };
 

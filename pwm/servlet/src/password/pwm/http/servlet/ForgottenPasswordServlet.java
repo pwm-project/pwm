@@ -188,7 +188,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
                     break;
 
                 case reset:
-                    pwmSession.clearSessionBean(ForgottenPasswordBean.class);
+                    this.processReset(pwmRequest);
                     break;
 
                 case actionChoice:
@@ -225,6 +225,19 @@ public class ForgottenPasswordServlet extends PwmServlet {
                     this.executeResetPassword(pwmRequest);
                 }
             }
+        }
+    }
+
+    private void processReset(final PwmRequest pwmRequest)
+            throws IOException, PwmUnrecoverableException
+    {
+        final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
+
+        pwmRequest.getPwmSession().clearSessionBean(ForgottenPasswordBean.class);
+
+        if (forgottenPasswordBean.getUserInfo() == null) {
+            pwmRequest.sendRedirectToContinue();
+            return;
         }
     }
 

@@ -65,39 +65,24 @@ this is handled this way so on browsers where hiding fields is not possible, the
                     <pwm:display key="Button_RecoverPassword"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
-                <pwm:if test="showCancel">
-                    <button style="visibility:hidden;" type="button" name="button" class="btn" id="button_cancel" onclick="handleCancelClick()">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
-                        <pwm:display key="Button_Cancel"/>
-                    </button>
-                </pwm:if>
+                <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>
     <div class="push"></div>
 </div>
-<form name="responseResetForm" id="responseResetForm" action="<pwm:url url='ForgottenPassword'/>" method="post"
-      enctype="application/x-www-form-urlencoded">
-    <input type="hidden" name="processAction" value="reset"/>
-    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-</form>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_RESPONSES.startupResponsesPage();
-    });
-
-    function handleCancelClick() {
-        PWM_MAIN.showWaitDialog({
-            loadFunction:function(){
-                PWM_MAIN.getObject('responseResetForm').submit();
-            }
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_RESPONSES.startupResponsesPage();
+            PWM_MAIN.addEventHandler('button_cancel', 'click', function(event){
+                PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('button_cancel'),event);
+            });
         });
-    }
-</script>
+    </script>
 </pwm:script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/responses.js'/>"></script>
+<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/responses.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

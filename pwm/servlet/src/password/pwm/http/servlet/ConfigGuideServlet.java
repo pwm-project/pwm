@@ -158,7 +158,7 @@ public class ConfigGuideServlet extends PwmServlet {
             defaultLdapForm.put(PARAM_LDAP_SECURE, "ldaps".equalsIgnoreCase(uri.getScheme()) ? "true" : "false");
 
             defaultLdapForm.put(PARAM_LDAP_ADMIN_DN, (String)PwmSetting.LDAP_PROXY_USER_DN.getDefaultValue(template).toNativeObject());
-            defaultLdapForm.put(PARAM_LDAP_ADMIN_PW, (String)PwmSetting.LDAP_PROXY_USER_PASSWORD.getDefaultValue(template).toNativeObject());
+            defaultLdapForm.put(PARAM_LDAP_ADMIN_PW, "");
 
             defaultLdapForm.put(PARAM_LDAP2_CONTEXT, ((List<String>)PwmSetting.LDAP_CONTEXTLESS_ROOT.getDefaultValue(template).toNativeObject()).get(0));
             defaultLdapForm.put(PARAM_LDAP2_TEST_USER, (String)PwmSetting.LDAP_TEST_USER_DN.getDefaultValue(template).toNativeObject());

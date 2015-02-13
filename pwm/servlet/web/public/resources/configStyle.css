@@ -430,11 +430,19 @@ table {
 }
 
 .editorIdleStatus {
-    margin-left: 40%;
-    margin-right: 40%;
-    position: absolute;
-    top: 0;
+    margin-left: auto;
+    margin-right: auto;
     text-align: center;
     font-size: 10px;
+    font-family: "Courier New", Courier, monospace;
+    /*
+    display: table;
+    margin: 0 auto;
+    top: 0;
+    position: absolute;
+    margin-left: 40%;
+    margin-right: 40%;
+    text-align: center;
     width:20%;
+    */
 }

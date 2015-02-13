@@ -40,6 +40,7 @@ import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.i18n.Config;
+import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -165,7 +166,13 @@ public class ConfigManagerServlet extends PwmServlet {
         final ConfigurationReader configurationReader = pwmRequest.getContextManager().getConfigReader();
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.PageTitle,LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, pwmRequest));
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigFilename, configurationReader.getConfigFile().getAbsolutePath());
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigLastModified, PwmConstants.DEFAULT_DATETIME_FORMAT.format(configurationReader.getStoredConfiguration().modifyTime()));
+        {
+            final Date lastModifyTime = configurationReader.getStoredConfiguration().modifyTime();
+            final String output = lastModifyTime == null
+                    ? LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable,pwmRequest)
+                    : PwmConstants.DEFAULT_DATETIME_FORMAT.format(lastModifyTime);
+            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigLastModified, output);
+        }
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigHasPassword, LocaleHelper.booleanString(configurationReader.getStoredConfiguration().hasPassword(),pwmRequest.getLocale(),pwmRequest.getConfig()));
     }
 

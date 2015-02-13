@@ -81,7 +81,7 @@
             </tr>
             <tr>
                 <td>
-                    <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                    <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
                 </td>
                 <td>
                     &nbsp;
@@ -96,13 +96,6 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.getObject('username').focus();
-    });
-</script>
-</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -637,6 +637,7 @@ img.qrcodeimage {
 
 .btn-icon {
     margin-right: 5px;
+    cursor: pointer;
 }
 
 .action-icon {

@@ -156,7 +156,7 @@ public class FormUtility {
             filter.append("(|");
             for (final String name : filterClauses.keySet()) {
                 final String value = filterClauses.get(name);
-                filter.append("(").append(name).append("=").append(StringUtil.escapeLdap(value)).append(")");
+                filter.append("(").append(name).append("=").append(StringUtil.escapeLdapFilter(value)).append(")");
             }
             filter.append(")");
 

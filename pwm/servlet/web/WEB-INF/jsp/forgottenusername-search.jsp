@@ -37,7 +37,6 @@
         <form action="<pwm:url url='ForgottenUsername'/>" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm" class="pwm-form" id="searchForm">
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
-            <% request.setAttribute("form",PwmSetting.FORGOTTEN_USERNAME_FORM); %>
             <jsp:include page="fragment/form.jsp"/>
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="search"/>
@@ -53,13 +52,6 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        document.forms.searchForm.elements[0].focus();
-    });
-</script>
-</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

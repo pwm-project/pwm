@@ -59,8 +59,6 @@ public class ConfigEditorServlet extends PwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigEditorServlet.class);
 
-    private static final String COOKIE_NAME_PREFERENCES = "ConfigEditor_preferences";
-
     public enum ConfigEditorAction implements PwmServlet.ProcessAction {
         readSetting(HttpMethod.POST),
         writeSetting(HttpMethod.POST),

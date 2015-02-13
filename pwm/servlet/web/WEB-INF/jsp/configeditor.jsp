@@ -34,6 +34,7 @@
 <%@ include file="fragment/header.jsp" %>
 <% final PwmRequest configeditor_pwmRequest = PwmRequest.forRequest(request, response); %>
 <% final ConfigManagerBean configManagerBean = configeditor_pwmRequest.getPwmSession().getConfigManagerBean(); %>
+<% final boolean configUnlocked = configeditor_pwmRequest.getPwmApplication().getApplicationMode() == PwmApplication.MODE.CONFIGURATION && !PwmConstants.TRIAL_MODE; %>
 <% final String configNotes = configManagerBean.getStoredConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES);%>
 <body class="nihilo">
 <style>
@@ -46,6 +47,9 @@
             <div id="header-title">
                 <%=PwmConstants.PWM_APP_NAME%> Configuration Editor <span id="currentPageDisplay"></span>
                 <span style="visibility: hidden" id="working_icon" class="headerIcon fa fa-cog fa-spin"></span>
+                <span id="idle_status" class="editorIdleStatus">
+                    <%--idle timeout text --%>
+                </span>
                 <div class="headerIcon" id="cancelButton_icon">
                     <span class="fa fa-times"></span>
                 </div>
@@ -61,9 +65,6 @@
                 <div class="headerIcon" id="macroDoc_icon">
                     <span class="fa fa-magic"></span>
                 </div>
-            <div id="idle_status" class="editorIdleStatus">
-                <%--idle timeout text --%>
-            </div>
             </div>
         </div>
     </div>
@@ -121,8 +122,8 @@
 </div>
 <pwm:script>
     <script type="text/javascript">
-        PWM_GLOBAL['setting_alwaysFloatMessages'] = true;
         var PWM_VAR = PWM_VAR || {};
+        PWM_GLOBAL['setting_alwaysFloatMessages'] = true;
         PWM_VAR['currentTemplate'] = '<%=configManagerBean.getStoredConfiguration().getTemplate()%>';
         PWM_VAR['configurationNotes'] = '<%=configNotes==null?"":StringUtil.escapeJS(configNotes)%>';
         PWM_VAR['ldapProfileIds'] = [];
@@ -132,8 +133,20 @@
 
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_CFGEDIT.initConfigEditor();
-        });
 
+            <% if (configUnlocked) { %>
+            PWM_MAIN.showDialog({
+                title:'Notice - Configuration Status: Open',
+                text:PWM_CONFIG.showString('Display_ConfigOpenInfo'),
+                loadFunction:function(){
+                    PWM_MAIN.addEventHandler('link-configManager','click',function(){
+                        PWM_MAIN.goto('/private/config/ConfigManager');
+                    });
+                }
+            });
+
+            <% } %>
+        });
     </script>
 </pwm:script>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>

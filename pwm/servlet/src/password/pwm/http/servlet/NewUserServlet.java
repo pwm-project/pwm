@@ -279,12 +279,12 @@ public class NewUserServlet extends PwmServlet {
             newUserBean.setCreateStartTime(new Date());
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_WAIT);
         } catch (PwmOperationalException e) {
+            LOGGER.error(pwmRequest, "error during user creation: " + e.getMessage());
             if (newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_DELETE_ON_FAIL)) {
                 deleteUserAccount(newUserDN, pwmSession, pwmApplication);
             }
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
-            pwmRequest.setResponseError(e.getErrorInformation());
-            forwardToFormPage(pwmRequest);
+            pwmRequest.respondWithError(e.getErrorInformation());
         }
     }
 
@@ -671,7 +671,7 @@ public class NewUserServlet extends PwmServlet {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,
                         "username definition not set, and naming attribute is not present in form"));
             }
-            final String escapedName = StringUtil.escapeLdap(namingValue);
+            final String escapedName = StringUtil.escapeLdapDN(namingValue);
             final String generatedDN = namingAttribute + "=" + escapedName + "," + expandedContext;
             LOGGER.debug(pwmRequest, "generated dn for new user: " + generatedDN);
             return generatedDN;
@@ -690,7 +690,7 @@ public class NewUserServlet extends PwmServlet {
                 if (!testIfEntryNameExists(pwmRequest, expandedName)) {
                     LOGGER.trace(pwmRequest, "generated entry name for new user is unique: " + expandedName);
                     final String namingAttribute = pwmRequest.getConfig().getDefaultLdapProfile().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-                    final String escapedName = StringUtil.escapeLdap(expandedName);
+                    final String escapedName = StringUtil.escapeLdapDN(expandedName);
                     generatedDN = namingAttribute + "=" + escapedName + "," + expandedContext;
                     LOGGER.debug(pwmRequest, "generated dn for new user: " + generatedDN);
                     return generatedDN;

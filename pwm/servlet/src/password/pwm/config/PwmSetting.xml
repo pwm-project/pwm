@@ -517,7 +517,7 @@
         <regex>^.+:::.+$</regex>
         <default />
     </setting>
-    <setting key="ldap.testuser.username" level="1">
+    <setting key="ldap.testuser.username" level="0">
         <label>LDAP Test User</label>
         <description><![CDATA[The LDAP test user is used to test functionality and access to the ldap directory. This user should be configured similar to a normal user account with normal access privileges. This account will periodically be used to perform a health check, including changing the password of the account. <br/><br/><b>Using a test user account will greatly increase the ability to detect and alert configuration and health issues.</b><br/><br/>The following functionality (if enabled) will be tested using the test user account.<ul><li>Authentication</li><li>Password policy reading</li><li>Set password</li><li>Set challenge/responses</li><li>Load challenge/responses</li></ul>]]></description>
         <default>
@@ -3618,6 +3618,10 @@
         <default>
             <value>-1</value>
         </default>
+        <options>
+            <option value="min">-1</option>
+            <option value="max">10000</option>
+        </options>
     </setting>
     <setting key="reporting.ldap.maxQuerySize" level="2">
         <label>Maximum LDAP Query Size</label>
@@ -4242,6 +4246,10 @@
         <description><![CDATA[Policies for forgotten password configuration.]]></description>
         <profile setting="recovery.profile.list"/>
     </category>
+    <category key="ADMINISTRATION">
+        <label>Administration</label>
+        <description></description>
+    </category>
     <category key="FORGOTTEN_USERNAME">
         <label>Forgotten Username</label>
         <description><![CDATA[Allow a user to search for a forgotten username using a configurable search filter and attributes.]]></description>
@@ -4280,7 +4288,7 @@
         <description>The people search module provides basic white pages or directory lookup functionality to your users.  Customizations alow easy searching and display quick detailed information about your user's colleagues.</description>
     </category>
     <category key="HELPDESK_PROFILE">
-        <label>Helpdesk Profile</label>
+        <label>Helpdesk</label>
         <description><![CDATA[Profile for helpdesk activities.]]></description>
         <profile setting="helpdesk.profile.list"/>
     </category>

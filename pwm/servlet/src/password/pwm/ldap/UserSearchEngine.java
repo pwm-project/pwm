@@ -89,7 +89,7 @@ public class UserSearchEngine {
             final String attrName = "%" + formItem.getName() + "%";
             String value = formValues.get(formItem);
             if (enableValueEscaping) {
-                value = StringUtil.escapeLdap(value);
+                value = StringUtil.escapeLdapFilter(value);
             }
             newSearchFilter = newSearchFilter.replace(attrName, value);
         }
@@ -291,7 +291,7 @@ public class UserSearchEngine {
         final String searchFilter;
         if (searchConfiguration.getUsername() != null) {
             final String inputQuery = searchConfiguration.isEnableValueEscaping()
-                    ? StringUtil.escapeLdap(searchConfiguration.getUsername())
+                    ? StringUtil.escapeLdapFilter(searchConfiguration.getUsername())
                     : searchConfiguration.getUsername();
 
             if (searchConfiguration.getUsername().split("\\s").length > 1) { // split on all whitespace chars

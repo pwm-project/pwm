@@ -121,7 +121,7 @@ PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
 
 PWM_MAIN.initPage = function() {
     PWM_MAIN.applyFormAttributes();
-    
+
     try {
         PWM_MAIN.autofocusSupportExtension();
     } catch(e) {
@@ -147,7 +147,9 @@ PWM_MAIN.initPage = function() {
     if (PWM_MAIN.getObject('button_cancel')) {
         PWM_MAIN.getObject('button_cancel').style.visibility = 'visible';
         PWM_MAIN.addEventHandler('button_cancel', 'click', function () {
-            PWM_MAIN.handleFormCancel()
+            PWM_MAIN.showWaitDialog({loadFunction:function() {
+                PWM_MAIN.goto(PWM_GLOBAL['url-command'] + '?processAction=continue');
+            }});
         });
     }
 
@@ -156,11 +158,16 @@ PWM_MAIN.initPage = function() {
             PWM_MAIN.updateLoginContexts()
         });
     }
+
     PWM_MAIN.showTooltip({
         id: ['header-warning-message'],
         position: ['below', 'above'],
         text: '<pwm:display key="HealthMessage_Config_ConfigMode" bundle="Health"/>',
         width: 500
+    });
+
+    PWM_MAIN.addEventHandler('icon-configModeHelp','click',function(){
+        PWM_MAIN.showDialog({title:'Notice - Configuration Status: Open',text:PWM_CONFIG.showString('Display_ConfigOpenInfo')});
     });
 
     if (PWM_GLOBAL['pageLeaveNotice'] > 0) {
@@ -372,13 +379,6 @@ PWM_MAIN.goto = function(url,options) {
     }
 };
 
-
-PWM_MAIN.handleFormCancel = function() {
-    PWM_MAIN.showWaitDialog({loadFunction:function() {
-        var continueUrl = PWM_GLOBAL['url-command'] + '?processAction=continue&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
-        window.location = continueUrl;
-    }});
-};
 
 PWM_MAIN.handleLoginFormSubmit = function(form, event) {
     console.log('entering handleLoginFormSubmit');
@@ -777,7 +777,7 @@ PWM_MAIN.showDialog = function(options) {
     var bodyText = '';
     bodyText += text;
     if (showOk || showCancel) {
-        bodyText += '<br/><div class="buttonbar">';
+        bodyText += '<div class="buttonbar">';
     }
     if (showOk) {
         bodyText += '<button class="btn" id="dialog_ok_button">'
@@ -1265,7 +1265,6 @@ PWM_MAIN.updateLoginContexts = function() {
             PWM_MAIN.getObject('contextSelectorWrapper').style.display = 'none';
         } else {
             PWM_MAIN.getObject('contextSelectorWrapper').style.display = 'inherit';
-            contextElement.options.length = 0;
             for (var key in contextList) {
                 (function (key) {
                     var display = contextList[key];
@@ -1843,6 +1842,20 @@ PWM_MAIN.cancelEvent = function(event) {
             event.returnValue = false;
         }
     }
+};
+
+PWM_MAIN.submitPostAction = function(buttonID,actionUrl,actionValue) {
+    PWM_MAIN.addEventHandler(buttonID,'click',function(){
+        var formElement = document.createElement('form');
+        formElement.setAttribute('id','form-sendReset');
+        formElement.setAttribute('action',actionUrl);
+        formElement.setAttribute('method','post');
+        formElement.innerHTML = '<input type="hidden" name="processAction" value="' + actionValue + '"> </input>'
+        + '<input type="hidden" name="pwmFormID" value="' + PWM_GLOBAL['pwmFormID'] + '"> </input>';
+
+        document.body.appendChild(formElement);
+        PWM_MAIN.handleFormSubmit(formElement);
+    });
 };
 
 PWM_MAIN.pageLoadHandler();

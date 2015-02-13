@@ -129,13 +129,13 @@ public enum PwmSetting {
     PASSWORD_SYNC_ENABLE_REPLICA_CHECK(
             "passwordSync.enableReplicaCheck", PwmSettingSyntax.SELECT, PwmSettingCategory.CHANGE_PASSWORD),
     PASSWORD_SYNC_MIN_WAIT_TIME(
-            "passwordSyncMinWaitTime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.CHANGE_PASSWORD),
+            "passwordSyncMinWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.CHANGE_PASSWORD),
     PASSWORD_SYNC_MAX_WAIT_TIME(
-            "passwordSyncMaxWaitTime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.CHANGE_PASSWORD),
+            "passwordSyncMaxWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.CHANGE_PASSWORD),
     PASSWORD_EXPIRE_PRE_TIME(
-            "expirePreTime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.CHANGE_PASSWORD),
+            "expirePreTime", PwmSettingSyntax.DURATION, PwmSettingCategory.CHANGE_PASSWORD),
     PASSWORD_EXPIRE_WARN_TIME(
-            "expireWarnTime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.CHANGE_PASSWORD),
+            "expireWarnTime", PwmSettingSyntax.DURATION, PwmSettingCategory.CHANGE_PASSWORD),
     EXPIRE_CHECK_DURING_AUTH(
             "expireCheckDuringAuth", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD),
     SEEDLIST_FILENAME(
@@ -203,8 +203,6 @@ public enum PwmSetting {
             "ldap.defaultObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_GLOBAL),
     LDAP_FOLLOW_REFERRALS(
             "ldap.followReferrals", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_GLOBAL),
-    QUERY_MATCH_PWM_ADMIN(
-            "pwmAdmin.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.LDAP_GLOBAL),
     LDAP_DUPLICATE_MODE(
             "ldap.duplicateMode", PwmSettingSyntax.SELECT, PwmSettingCategory.LDAP_GLOBAL),
     LDAP_SELECTABLE_CONTEXT_MODE(
@@ -966,6 +964,9 @@ public enum PwmSetting {
     SSO_AUTH_HEADER_NAME(
             "security.sso.authHeaderName", PwmSettingSyntax.STRING, PwmSettingCategory.HTTP_SSO),
 
+    // administration
+    QUERY_MATCH_PWM_ADMIN(
+            "pwmAdmin.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.ADMINISTRATION),
 
 
     ENABLE_EXTERNAL_WEBSERVICES(

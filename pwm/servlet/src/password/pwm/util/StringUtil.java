@@ -43,7 +43,7 @@ public abstract class StringUtil {
      * @return ldap escaped script
      *
      */
-    public static String escapeLdap(final String input) {
+    public static String escapeLdapFilter(final String input) {
         final StringBuilder sb = new StringBuilder();
         for (int i = 0; i < input.length(); i++) {
             char curChar = input.charAt(i);
@@ -66,6 +66,52 @@ public abstract class StringUtil {
                 default:
                     sb.append(curChar);
             }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Based on http://www.owasp.org/index.php/Preventing_LDAP_Injection_in_Java.
+     *
+     * @param input string to have escaped
+     * @return ldap escaped script
+     *
+     */
+    public static String escapeLdapDN(final String input) {
+        StringBuilder sb = new StringBuilder(); // If using JDK >= 1.5 consider using StringBuilder
+        if ((input.length() > 0) && ((input.charAt(0) == ' ') || (input.charAt(0) == '#'))) {
+            sb.append('\\'); // add the leading backslash if needed
+        }
+        for (int i = 0; i < input.length(); i++) {
+            char curChar = input.charAt(i);
+            switch (curChar) {
+                case '\\':
+                    sb.append("\\\\");
+                    break;
+                case ',':
+                    sb.append("\\,");
+                    break;
+                case '+':
+                    sb.append("\\+");
+                    break;
+                case '"':
+                    sb.append("\\\"");
+                    break;
+                case '<':
+                    sb.append("\\<");
+                    break;
+                case '>':
+                    sb.append("\\>");
+                    break;
+                case ';':
+                    sb.append("\\;");
+                    break;
+                default:
+                    sb.append(curChar);
+            }
+        }
+        if ((input.length() > 1) && (input.charAt(input.length() - 1) == ' ')) {
+            sb.insert(sb.length() - 1, '\\'); // add the trailing backslash if needed
         }
         return sb.toString();
     }

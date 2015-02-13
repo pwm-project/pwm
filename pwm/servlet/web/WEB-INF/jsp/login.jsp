@@ -120,7 +120,7 @@
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('login','submit',function(){
+            PWM_MAIN.addEventHandler('login','submit',function(event){
                 PWM_MAIN.handleLoginFormSubmit(PWM_MAIN.getObject('login'),event);
             });
         });

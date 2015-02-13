@@ -527,9 +527,9 @@ MultiLocaleTableHandler.draw = function(keyName) {
             }
         }
 
-        var addLocaleFunction = function() {
+        var addLocaleFunction = function(value) {
             require(["dijit/registry"],function(registry){
-                MultiLocaleTableHandler.writeMultiLocaleSetting(keyName, registry.byId(keyName + "-addLocaleValue").value, 0, '', regExPattern);
+                MultiLocaleTableHandler.writeMultiLocaleSetting(keyName, value, 0, '', regExPattern);
             });
         };
 
@@ -623,7 +623,7 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
             optionList = JSON.parse(options['types']);
         }
         if (!PWM_MAIN.isEmpty(optionList)) {
-        htmlRow += '<select id="' + inputID + 'type">';
+            htmlRow += '<select id="' + inputID + 'type">';
             for (var optionItem in optionList) {
                 if (optionList[optionItem] != 'userDN' || userDNtypeAllowed) {
                     var optionName = optionList[optionItem];
@@ -651,11 +651,9 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
             htmlRow += '<span id="' + inputID + '-moveUp" class="action-icon fa fa-chevron-up"></span>';
         }
         htmlRow += '</td>';
-
-        htmlRow += '<td><span class="delete-row-icon action-icon fa fa-times" id="' + inputID + 'deleteRowButton"></span></td>';
+        htmlRow += '<td><span class="delete-row-icon action-icon fa fa-times" id="' + inputID + '-deleteRowButton"></span></td>';
 
         newTableRow.innerHTML = htmlRow;
-
         var parentDivElement = PWM_MAIN.getObject(parentDiv);
         parentDivElement.appendChild(newTableRow);
 
@@ -665,7 +663,7 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         PWM_MAIN.addEventHandler(inputID + "-moveDown", 'click', function () {
             FormTableHandler.move(settingKey, false, iteration);
         });
-        PWM_MAIN.addEventHandler(inputID + "deleteRowButton", 'click', function () {
+        PWM_MAIN.addEventHandler(inputID + "-deleteRowButton", 'click', function () {
             FormTableHandler.removeRow(settingKey, iteration);
         });
         PWM_MAIN.addEventHandler(inputID + "label", 'click, keypress', function () {
@@ -1000,7 +998,7 @@ FormTableHandler.multiLocaleStringDialog = function(keyName, iteration, settingT
                             PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = value;
                             FormTableHandler.writeFormSetting(keyName);
                         });
-                        PWM_MAIN.addEventHandler(localeID + 'removeLocaleButton', 'click', function () {
+                        PWM_MAIN.addEventHandler(localeID + '-removeLocaleButton', 'click', function () {
                             delete PWM_VAR['clientSettingCache'][keyName][iteration]['labels'][localeName];
                             FormTableHandler.writeFormSetting(keyName);
                             FormTableHandler.multiLocaleStringDialog(keyName, iteration, settingType, finishAction, titleText);
@@ -1337,6 +1335,23 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
 // -------------------------- action handler ------------------------------------
 
 var ActionHandler = {};
+ActionHandler.defaultValue = {
+    name:"",
+    description:"",
+    type:"webservice",
+    method:"get",
+    url:"",
+    body:"",
+    headers:{},
+    attributeName:"",
+    attributeValue:""
+};
+ActionHandler.httpMethodOptions = [
+    { label: "Delete", value: "delete" },
+    { label: "Get", value: "get" },
+    { label: "Post", value: "post" },
+    { label: "Put", value: "put" }
+];
 
 ActionHandler.init = function(keyName) {
     console.log('ActionHandler init for ' + keyName);
@@ -1385,8 +1400,8 @@ ActionHandler.redraw = function(keyName) {
 
     var addItemButton = document.createElement("button");
     addItemButton.setAttribute("type", "button");
-    addItemButton.setAttribute("onclick", "ActionHandler.addMultiSetting('" + keyName + "','" + parentDiv + "');");
     addItemButton.setAttribute("class", "btn");
+    addItemButton.setAttribute("id", "button-" + keyName + "-addValue");
     addItemButton.innerHTML = '<span class="btn-icon fa fa-plus-square"></span>Add Value';
     newTableData.appendChild(addItemButton);
 
@@ -1396,93 +1411,58 @@ ActionHandler.redraw = function(keyName) {
     require(["dojo/parser","dijit/form/Button","dijit/form/Select","dijit/form/Textarea"],function(dojoParser){
         dojoParser.parse(parentDiv);
     });
+
+    PWM_MAIN.addEventHandler('button-' + keyName + '-addValue','click',function(){
+        ActionHandler.addRow(keyName);
+    });
 };
 
 ActionHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
     var inputID = 'value_' + settingKey + '_' + iteration + "_";
-
-    // clear the old dijit node (if it exists)
-    PWM_MAIN.clearDijitWidget(inputID + "name");
-    PWM_MAIN.clearDijitWidget(inputID + "description");
-    PWM_MAIN.clearDijitWidget(inputID + "type");
-    PWM_MAIN.clearDijitWidget(inputID + "optionsButton");
+    var optionList = PWM_GLOBAL['actionTypeOptions'];
 
     var newTableRow = document.createElement("tr");
     newTableRow.setAttribute("style", "border-width: 0");
-    {
-        {
-            var td1 = document.createElement("td");
-            td1.setAttribute("style", "border-width: 0; width:50px");
-            var nameInput = document.createElement("input");
-            nameInput.setAttribute("id", inputID + "name");
-            nameInput.setAttribute("value", value['name']);
-            nameInput.setAttribute("onchange","PWM_VAR['clientSettingCache']['" + settingKey + "'][" + iteration + "]['name'] = this.value;ActionHandler.writeFormSetting('" + settingKey + "')");
-            nameInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
-            nameInput.setAttribute("data-dojo-props", "required: true");
 
-            td1.appendChild(nameInput);
-            newTableRow.appendChild(td1);
-        }
-
-        {
-            var td2 = document.createElement("td");
-            td2.setAttribute("style", "border-width: 0");
-            var descriptionInput = document.createElement("input");
-            descriptionInput.setAttribute("id", inputID + "description");
-            descriptionInput.setAttribute("value", value['description']);
-            descriptionInput.setAttribute("onchange","PWM_VAR['clientSettingCache']['" + settingKey + "'][" + iteration + "]['description'] = this.value;ActionHandler.writeFormSetting('" + settingKey + "')");
-            descriptionInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
-            td2.appendChild(descriptionInput);
-            newTableRow.appendChild(td2);
-        }
-
-        {
-            var td3 = document.createElement("td");
-            td3.setAttribute("style", "border-width: 0");
-            var optionList = PWM_GLOBAL['actionTypeOptions'];
-            var typeSelect = document.createElement("select");
-            typeSelect.setAttribute("data-dojo-type", "dijit.form.Select");
-            typeSelect.setAttribute("id", inputID + "type");
-            typeSelect.setAttribute("style","width: 90px");
-            typeSelect.setAttribute("onchange","PWM_VAR['clientSettingCache']['" + settingKey + "'][" + iteration + "]['type'] = this.value;ActionHandler.writeFormSetting('" + settingKey + "')");
-            for (var optionItem in optionList) {
-                var optionElement = document.createElement("option");
-                optionElement.value = optionList[optionItem];
-                optionElement.innerHTML = optionList[optionItem];
-                if (optionList[optionItem] == PWM_VAR['clientSettingCache'][settingKey][iteration]['type']) {
-                    optionElement.setAttribute("selected","true");
-                }
-                typeSelect.appendChild(optionElement);
-            }
-
-            td3.appendChild(typeSelect);
-            newTableRow.appendChild(td3);
-        }
-
-        {
-            var td4 = document.createElement("td");
-            td4.setAttribute("style", "border-width: 0");
-            var labelButton = document.createElement("button");
-            labelButton.setAttribute("id", inputID + "optionsButton");
-            labelButton.setAttribute("data-dojo-type", "dijit.form.Button");
-            labelButton.setAttribute("onclick","ActionHandler.showOptionsDialog('" + settingKey + "'," + iteration + ")");
-            labelButton.innerHTML = "Options";
-            td4.appendChild(labelButton);
-            newTableRow.appendChild(td4);
-        }
-
-        var tdFinal = document.createElement("td");
-        tdFinal.setAttribute("style", "border-width: 0");
-
-        var imgElement = document.createElement("img");
-        imgElement.setAttribute("style", "width: 10px; height: 10px");
-        imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
-        imgElement.setAttribute("onclick", "ActionHandler.removeMultiSetting('" + settingKey + "','" + iteration + "')");
-        tdFinal.appendChild(imgElement);
-        newTableRow.appendChild(tdFinal);
+    var htmlRow = '';
+    htmlRow += '<td>';
+    htmlRow += '<input id="input-' + inputID + '-name" class="configStringInput" style="width:180px" value="' + value['name'] + '"/>';
+    htmlRow += '</td><td>';
+    htmlRow += '<input id="input-' + inputID + '-description" class="configStringInput" style="width:180px" value="' + value['description'] + '"/>';
+    htmlRow += '</td><td>';
+    htmlRow += '<select id="select-' + inputID + '-type">';
+    for (var optionItem in optionList) {
+        var selected = optionList[optionItem] == PWM_VAR['clientSettingCache'][settingKey][iteration]['type'];
+        htmlRow += '<option value="' + optionList[optionItem] + '"' + (selected ? ' selected' : '') + '>' + optionList[optionItem] + '</option>';
     }
+    htmlRow += '</td><td>';
+    htmlRow += '<button id="button-' + inputID + '-options"><span class="btn-icon fa fa-sliders"/> Options</button>';
+    htmlRow += '</td>';
+    htmlRow += '<td><span class="delete-row-icon action-icon fa fa-times" id="button-' + inputID + '-deleteRow"></span></td>';
+
+
+    newTableRow.innerHTML = htmlRow;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
+
+    PWM_MAIN.addEventHandler('button-' + inputID + '-options','click',function(){
+        ActionHandler.showOptionsDialog(settingKey, iteration);
+    });
+    PWM_MAIN.addEventHandler('input-' + inputID + '-name','input',function(){
+        PWM_VAR['clientSettingCache'][settingKey][iteration]['name'] = PWM_MAIN.getObject('input-' + inputID + '-name').value;
+        ActionHandler.writeFormSetting(settingKey);
+    });
+    PWM_MAIN.addEventHandler('input-' + inputID + '-description','input',function(){
+        PWM_VAR['clientSettingCache'][settingKey][iteration]['description'] = PWM_MAIN.getObject('input-' + inputID + '-description').value;
+        ActionHandler.writeFormSetting(settingKey);
+    });
+    PWM_MAIN.addEventHandler('select-' + inputID + '-type','input',function(){
+        PWM_VAR['clientSettingCache'][settingKey][iteration]['type'] = PWM_MAIN.getObject('select-' + inputID + '-type').value;
+        ActionHandler.writeFormSetting(settingKey);
+    });
+    PWM_MAIN.addEventHandler('button-' + inputID + '-deleteRow','click',function(){
+        ActionHandler.removeRow(settingKey, iteration);
+    });
 };
 
 ActionHandler.writeFormSetting = function(settingKey) {
@@ -1491,126 +1471,105 @@ ActionHandler.writeFormSetting = function(settingKey) {
 };
 
 ActionHandler.removeRow = function(keyName, iteration) {
-    delete PWM_VAR['clientSettingCache'][keyName][iteration];
-    console.log("removed iteration " + iteration + " from " + keyName + ", cached keyValue=" + PWM_VAR['clientSettingCache'][keyName]);
-    ActionHandler.writeFormSetting(keyName);
-    ActionHandler.redraw(keyName);
+    PWM_MAIN.showConfirmDialog({
+        text:'Are you sure you wish to delete this item?',
+        okAction:function(){
+            delete PWM_VAR['clientSettingCache'][keyName][iteration];
+            console.log("removed iteration " + iteration + " from " + keyName + ", cached keyValue=" + PWM_VAR['clientSettingCache'][keyName]);
+            ActionHandler.writeFormSetting(keyName);
+            ActionHandler.redraw(keyName);
+        }
+    })
 };
 
 ActionHandler.addRow = function(keyName) {
-    var currentSize = 0;
-    for (var loopVar in PWM_VAR['clientSettingCache'][keyName]) {
-        currentSize++;
-    }
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = {};
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['name'] = '';
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['description'] = '';
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['type'] = 'webservice';
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['method'] = 'get';
-    ActionHandler.writeFormSetting(keyName);
-    ActionHandler.redraw(keyName)
+    var body='Name <input class="configStringInput" id="newActionName" style="width:300px"/>';
+    PWM_MAIN.showConfirmDialog({title:'New Action',text:body,showClose:true,loadFunction:function(){
+        PWM_MAIN.getObject('dialog_ok_button').disabled = true;
+        PWM_MAIN.addEventHandler('newActionName','input',function(){
+            PWM_VAR['newActionName'] = PWM_MAIN.getObject('newActionName').value;
+            if (PWM_VAR['newActionName'] && PWM_VAR['newActionName'].length > 1) {
+                PWM_MAIN.getObject('dialog_ok_button').disabled = false;
+            }
+        });
+    },okAction:function(){
+        var currentSize = PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][keyName]);
+        PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = ActionHandler.defaultValue;
+        PWM_VAR['clientSettingCache'][keyName][currentSize + 1].name = PWM_VAR['newActionName'];
+        ActionHandler.writeFormSetting(keyName);
+        ActionHandler.redraw(keyName)
+    }});
 };
+
 
 ActionHandler.showOptionsDialog = function(keyName, iteration) {
     require(["dojo/store/Memory","dijit/Dialog","dijit/form/Textarea","dijit/form/CheckBox","dijit/form/Select","dijit/form/ValidationTextBox"],function(Memory){
         var inputID = 'value_' + keyName + '_' + iteration + "_";
-        var bodyText = '<table style="border:0">';
+        var value = PWM_VAR['clientSettingCache'][keyName][iteration];
+        var titleText = 'title';
+        var bodyText = '<table class="noborder">';
         if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'webservice') {
+            titleText = 'Web Service options for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
             bodyText += '<tr>';
-            bodyText += '<td style="border:0; text-align: center" colspan="2">Web Service</td>';
+            bodyText += '<td class="key">HTTP Method</td><td style="border:0;"><select id="select-' + inputID + '-method' + '">';
+
+            for (var optionItem in ActionHandler.httpMethodOptions) {
+                var label = ActionHandler.httpMethodOptions[optionItem]['label']
+                var optionValue = ActionHandler.httpMethodOptions[optionItem]['value'];
+                var selected = optionValue == PWM_VAR['clientSettingCache'][keyName][iteration]['method'];
+                bodyText += '<option value="' + optionValue + '"' + (selected ? ' selected' : '') + '>' + label + '</option>';
+            }
+            bodyText += '</td>';
             bodyText += '</tr><tr>';
-            bodyText += '<td style="border:0; text-align: right">&nbsp;</td>';
+            bodyText += '<td class="key">HTTP Headers</td><td><button id="button-' + inputID + '-headers"><span class="btn-icon fa fa-list-ul"/> Edit</button></td>';
             bodyText += '</tr><tr>';
-            bodyText += '<td style="border:0; text-align: right">Method</td><td style="border:0;"><select id="' + inputID + 'method' + '"/></td>';
+            bodyText += '<td class="key">URL</td><td><input type="text" placeholder="http://www.example.com/service"  id="input-' + inputID + '-url' + '" value="' + value['url'] + '"/></td>';
             bodyText += '</tr><tr>';
-            //bodyText += '<td style="border:0; text-align: right">Client Side</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'clientSide' + '"/></td>';
-            //bodyText += '</tr><tr>';
-            bodyText += '<td style="border:0; text-align: right">Headers</td><td style="border:0;"><button class="menubutton" onclick="ActionHandler.showHeadersDialog(\'' + keyName + '\',\'' + iteration + '\')">Edit</button></td>';
-            bodyText += '</tr><tr>';
-            bodyText += '<td style="border:0; text-align: right">URL</td><td style="border:0;"><input type="text" id="' + inputID + 'url' + '"/></td>';
-            bodyText += '</tr><tr>';
-            bodyText += '<td style="border:0; text-align: right">Body</td><td style="border:0;"><input type="text" id="' + inputID + 'body' + '"/></td>';
+            bodyText += '<td class="key">Body</td><td><textarea style="max-width:300px; height:100px; max-height:100px" class="configStringInput" id="input-' + inputID + '-body' + '"/>' + value['body'] + '</textarea></td>';
             bodyText += '</tr>';
         } else if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'ldap') {
+            titleText = 'LDAP options for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
             bodyText += '<tr>';
-            bodyText += '<td style="border:0; text-align: center" colspan="2">LDAP Value Write</td>';
+            bodyText += '<td class="key">Attribute Name</td><td><input style="width:300px" class="configStringInput" type="text" id="input-' + inputID + '-attributeName' + '" value="' + value['attributeName'] + '"/></td>';
             bodyText += '</tr><tr>';
-            bodyText += '<td style="border:0; text-align: right">&nbsp;</td>';
-            bodyText += '</tr><tr>';
-            bodyText += '<td style="border:0; text-align: right">Attribute Name</td><td style="border:0;"><input type="text" id="' + inputID + 'attributeName' + '"/></td>';
-            bodyText += '</tr><tr>';
-            bodyText += '<td style="border:0; text-align: right">Attribute Value</td><td style="border:0;"><input type="text" id="' + inputID + 'attributeValue' + '"/></td>';
+            bodyText += '<td class="key">Attribute Value</td><td><input style="width:300px" class="configStringInput" type="text" id="input-' + inputID + '-attributeValue' + '" value="' + value['attributeValue'] + '"/></td>';
             bodyText += '</tr>';
         }
-        bodyText += '<tr>';
-        bodyText += '<td style="border:0; text-align: right">&nbsp;</td>';
-        bodyText += '</tr><tr>';
-        bodyText += '</tr>';
         bodyText += '</table>';
-        bodyText += '<br/>';
-        bodyText += '<button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\');ActionHandler.redraw(\'' + keyName + '\')">OK</button>';
 
-        PWM_MAIN.clearDijitWidget('dialogPopup');
-        var theDialog = new dijit.Dialog({
-            id: 'dialogPopup',
-            title: 'Options for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
-            style: "width: 650px",
-            content: bodyText,
-            hide: function(){
-                PWM_MAIN.clearDijitWidget('dialogPopup');
-                ActionHandler.redraw(keyName);
+
+        PWM_MAIN.showDialog({
+            title: titleText,
+            text: bodyText,
+            loadFunction: function(){
+                PWM_MAIN.addEventHandler('button-' + inputID + '-headers','click',function(){
+                    ActionHandler.showHeadersDialog(keyName,iteration);
+                });
+                if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'webservice') {
+                    PWM_MAIN.addEventHandler('select-' + inputID + '-method','input',function(){
+                        PWM_VAR['clientSettingCache'][keyName][iteration]['method'] = PWM_MAIN.getObject('select-' + inputID + '-method').value;
+                        ActionHandler.writeFormSetting(keyName);
+                    });
+                    PWM_MAIN.addEventHandler('input-' + inputID + '-url','input',function(){
+                        PWM_VAR['clientSettingCache'][keyName][iteration]['url'] = PWM_MAIN.getObject('input-' + inputID + '-url').value;
+                        ActionHandler.writeFormSetting(keyName);
+                    });
+                    PWM_MAIN.addEventHandler('input-' + inputID + '-body','input',function(){
+                        PWM_VAR['clientSettingCache'][keyName][iteration]['body'] = PWM_MAIN.getObject('input-' + inputID + '-body').value;
+                        ActionHandler.writeFormSetting(keyName);
+                    });
+                } else if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'ldap') {
+                    PWM_MAIN.addEventHandler('input-' + inputID + '-attributeName','input',function(){
+                        PWM_VAR['clientSettingCache'][keyName][iteration]['attributeName'] = PWM_MAIN.getObject('input-' + inputID + '-attributeName').value;
+                        ActionHandler.writeFormSetting(keyName);
+                    });
+                    PWM_MAIN.addEventHandler('input-' + inputID + '-attributeValue','input',function(){
+                        PWM_VAR['clientSettingCache'][keyName][iteration]['attributeValue'] = PWM_MAIN.getObject('input-' + inputID + '-attributeValue').value;
+                        ActionHandler.writeFormSetting(keyName);
+                    });
+                }
             }
         });
-        theDialog.show();
-
-        if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'webservice') {
-            PWM_MAIN.clearDijitWidget(inputID + "method");
-            new dijit.form.Select({
-                value: PWM_VAR['clientSettingCache'][keyName][iteration]['method'],
-                options: [
-                    { label: "Delete", value: "delete" },
-                    { label: "Get", value: "get" },
-                    { label: "Post", value: "post" },
-                    { label: "Put", value: "put" }
-                ],
-                style: "width: 80px",
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['method'] = this.value;ActionHandler.writeFormSetting(keyName)}
-            },inputID + "method");
-
-            //PWM_MAIN.clearDijitWidget(inputID + "clientSide");
-            //new dijit.form.CheckBox({
-            //    checked: PWM_VAR['clientSettingCache'][keyName][iteration]['clientSide'],
-            //    onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['clientSide'] = this.checked;ActionHandler.writeFormSetting(keyName)}
-            //},inputID + "clientSide");
-
-            PWM_MAIN.clearDijitWidget(inputID + "url");
-            new dijit.form.Textarea({
-                value: PWM_VAR['clientSettingCache'][keyName][iteration]['url'],
-                required: true,
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['url'] = this.value;ActionHandler.writeFormSetting(keyName)}
-            },inputID + "url");
-
-            PWM_MAIN.clearDijitWidget(inputID + "body");
-            new dijit.form.Textarea({
-                value: PWM_VAR['clientSettingCache'][keyName][iteration]['body'],
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['body'] = this.value;ActionHandler.writeFormSetting(keyName)}
-            },inputID + "body");
-
-        } else if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'ldap') {
-            PWM_MAIN.clearDijitWidget(inputID + "attributeName");
-            new dijit.form.ValidationTextBox({
-                value: PWM_VAR['clientSettingCache'][keyName][iteration]['attributeName'],
-                required: true,
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['attributeName'] = this.value;ActionHandler.writeFormSetting(keyName)}
-            },inputID + "attributeName");
-
-            PWM_MAIN.clearDijitWidget(inputID + "attributeValue");
-            new dijit.form.Textarea({
-                value: PWM_VAR['clientSettingCache'][keyName][iteration]['attributeValue'],
-                required: true,
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['attributeValue'] = this.value;ActionHandler.writeFormSetting(keyName)}
-            },inputID + "attributeValue");
-        }
     });
 };
 
@@ -1619,104 +1578,80 @@ ActionHandler.showHeadersDialog = function(keyName, iteration) {
         var inputID = 'value_' + keyName + '_' + iteration + "_" + "headers_";
 
         var bodyText = '';
-        bodyText += '<table style="border:0" id="' + inputID + 'table">';
+        bodyText += '<table class="noborder">';
         bodyText += '<tr>';
-        bodyText += '<td style="border:0"><b>Name</b></td><td style="border:0"><b>Value</b></td>';
+        bodyText += '<td><b>Name</b></td><td><b>Value</b></td>';
         bodyText += '</tr><tr>';
         for (var headerName in PWM_VAR['clientSettingCache'][keyName][iteration]['headers']) {
             var value = PWM_VAR['clientSettingCache'][keyName][iteration]['headers'][headerName];
             var optionID = inputID + headerName;
-            bodyText += '<td style="border:1px">' + headerName + '</td><td style="border:1px">' + value + '</td>';
-            bodyText += '<td style="border:0">';
-            bodyText += '<img id="' + optionID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png"';
-            bodyText += ' onclick="ActionHandler.removeHeader(\'' + keyName + '\',' + iteration + ',\'' + headerName + '\')" />';
-            bodyText += '</td>';
+            bodyText += '<td>' + headerName + '</td><td>' + value + '</td>';
+            bodyText += '<td><span class="delete-row-icon action-icon fa fa-times" id="button-' + optionID + '-deleteRow"></span></td>';
             bodyText += '</tr><tr>';
         }
         bodyText += '</tr></table>';
         bodyText += '<br/>';
-        bodyText += '<br/>';
-        bodyText += '<input type="text" id="addHeaderName"/>';
-        bodyText += '<input type="text" id="addHeaderValue"/>';
-        bodyText += '<input type="button" id="addHeaderButton" value="Add"/>';
-        bodyText += '<br/>';
-        bodyText += '<button class="btn" onclick="ActionHandler.showOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')">OK</button>';
+        bodyText += '<button id="button-' + inputID + '-addHeader" class="btn"><span class="btn-icon fa fa-plus-square"></span>Add Header</button>';
 
-        PWM_MAIN.clearDijitWidget('dialogPopup');
-        var theDialog = new dijit.Dialog({
-            id: 'dialogPopup',
+        PWM_MAIN.showDialog({
             title: 'Http Headers for webservice ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
-            style: "width: 450px",
-            content: bodyText,
-            hide: function(){
-                PWM_MAIN.clearDijitWidget('dialogPopup');
+            text: bodyText,
+            okAction: function() {
                 ActionHandler.showOptionsDialog(keyName,iteration);
-            }
-        });
-        theDialog.show();
-
-        for (var headerName in PWM_VAR['clientSettingCache'][keyName][iteration]['headers']) {
-            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['headers'][headerName];
-            var loopID = inputID + headerName;
-            PWM_MAIN.clearDijitWidget(loopID);
-            new TextBox({
-                onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['headers'][headerName] = this.value;ActionHandler.writeFormSetting(keyName)}
-            },loopID);
-        }
-
-        PWM_MAIN.clearDijitWidget("addHeaderName");
-        new ValidationTextBox({
-            placeholder: "Name",
-            id: "addHeaderName",
-            constraints: {min: 1}
-        },"addHeaderName");
-
-        PWM_MAIN.clearDijitWidget("addHeaderValue");
-        new ValidationTextBox({
-            placeholder: "Display Value",
-            id: "addHeaderValue",
-            constraints: {min: 1}
-        },"addHeaderValue");
-
-        PWM_MAIN.clearDijitWidget("addHeaderButton");
-        new Button({
-            label: "Add",
-            onClick: function() {
-                require(["dijit/registry"],function(registry){
-                    var name = registry.byId('addHeaderName').value;
-                    var value = registry.byId('addHeaderValue').value;
-                    ActionHandler.addHeader(keyName, iteration, name, value);
+            },
+            loadFunction: function() {
+                for (var headerName in PWM_VAR['clientSettingCache'][keyName][iteration]['headers']) {
+                    var headerID = inputID + headerName;
+                    PWM_MAIN.addEventHandler('button-' + headerID + '-deleteRow','click',function(){
+                        delete PWM_VAR['clientSettingCache'][keyName][iteration]['headers'][headerName];
+                        ActionHandler.writeFormSetting(keyName);
+                        ActionHandler.showHeadersDialog(keyName, iteration);
+                    });
+                }
+                PWM_MAIN.addEventHandler('button-' + inputID + '-addHeader','click',function(){
+                    ActionHandler.addHeader(keyName, iteration);
                 });
             }
-        },"addHeaderButton");
+        });
     });
 };
 
-ActionHandler.addHeader = function(keyName, iteration, headerName, headerValue) {
-    if (headerName == null || headerName.length < 1) {
-        alert('Name field is required');
-        return;
-    }
+ActionHandler.addHeader = function(keyName, iteration) {
+    var body = '<table class="noborder">';
+    body += '<tr><td>Name</td><td><input class="configStringInput" id="newHeaderName" style="width:300px"/></td></tr>';
+    body += '<tr><td>Value</td><td><input class="configStringInput" id="newHeaderValue" style="width:300px"/></td></tr>';
+    body += '</table>';
 
-    if (headerValue == null || headerValue.length < 1) {
-        alert('Value field is required');
-        return;
-    }
+    var updateFunction = function(){
+        PWM_MAIN.getObject('dialog_ok_button').disabled = true;
+        PWM_VAR['newHeaderName'] = PWM_MAIN.getObject('newHeaderName').value;
+        PWM_VAR['newHeaderValue'] = PWM_MAIN.getObject('newHeaderValue').value;
+        if (PWM_VAR['newHeaderName'].length > 1 && PWM_VAR['newHeaderValue'].length > 1) {
+            PWM_MAIN.getObject('dialog_ok_button').disabled = false;
+        }
+    };
 
-    if (!PWM_VAR['clientSettingCache'][keyName][iteration]['headers']) {
-        PWM_VAR['clientSettingCache'][keyName][iteration]['headers'] = {};
-    }
+    PWM_MAIN.showConfirmDialog({
+        title:'New Header',
+        text:body,
+        showClose:true,
+        loadFunction:function(){
+            PWM_MAIN.addEventHandler('newHeaderName','input',function(){
+                updateFunction();
+            });
+            PWM_MAIN.addEventHandler('newHeaderValue','input',function(){
+                updateFunction();
+            });
+        },okAction:function(){
+            var headers = PWM_VAR['clientSettingCache'][keyName][iteration]['headers'];
+            headers[PWM_VAR['newHeaderName']] = PWM_VAR['newHeaderValue'];
+            ActionHandler.writeFormSetting(keyName);
+            ActionHandler.showHeadersDialog(keyName, iteration);
+        }
+    });
 
-    PWM_VAR['clientSettingCache'][keyName][iteration]['headers'][headerName] = headerValue;
-    ActionHandler.writeFormSetting(keyName);
-    ActionHandler.showHeadersDialog(keyName, iteration);
 };
 
-ActionHandler.removeHeader = function(keyName, iteration, headerName) {
-    delete PWM_VAR['clientSettingCache'][keyName][iteration]['headers'][headerName];
-    ActionHandler.writeFormSetting(keyName);
-    ActionHandler.showHeadersDialog(keyName, iteration);
-};
 
 // -------------------------- email table handler ------------------------------------
 

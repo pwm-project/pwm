@@ -129,7 +129,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         try {
             final String storedSizeStr = localDB.get(META_DB, KEY_SIZE);
             storedSize = Integer.valueOf(storedSizeStr);
-        } catch (LocalDBException e) {
+        } catch (NumberFormatException | LocalDBException e) {
             final String errorMsg = DEBUG_LABEL + " error reading stored size, closing, " + e.getMessage();
             LOGGER.warn(errorMsg);
             lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);

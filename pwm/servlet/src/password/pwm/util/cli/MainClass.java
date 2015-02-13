@@ -62,6 +62,7 @@ public class MainClass {
         commandList.add(new ConfigNewCommand());
         commandList.add(new VersionCommand());
         commandList.add(new LdapSchemaExtendCommand());
+        commandList.add(new ConfigDeleteCommand());
 
         final Map<String,CliCommand> sortedMap = new TreeMap<>();
         for (CliCommand command : commandList) {

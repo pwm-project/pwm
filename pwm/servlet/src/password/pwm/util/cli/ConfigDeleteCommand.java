@@ -22,46 +22,36 @@
 
 package password.pwm.util.cli;
 
-import password.pwm.util.localdb.LocalDB;
+import java.io.File;
 
-public class ClearResponsesCommand extends AbstractCliCommand {
-
-    @Override
-    void doCommand()
+public class ConfigDeleteCommand extends AbstractCliCommand {
+    public void doCommand()
             throws Exception
     {
-        out("Proceeding with this operation will clear all stored responses from the LocalDB.");
-        out("Please consider exporting the responses before proceeding. ");
-        out("");
-        out("The application must be stopped for this operation to succeed.");
-        out("");
+        final File configurationFile = cliEnvironment.configurationFile;
+        if (configurationFile == null || !configurationFile.exists()) {
+            out("configuration file is not present");
+            return;
+        }
+
+
         if (!promptForContinue()) {
             return;
         }
 
-        final LocalDB localDB = cliEnvironment.getLocalDB();
-
-        if (localDB.size(LocalDB.DB.RESPONSE_STORAGE) == 0) {
-            out("The LocalDB response database is already empty");
-            return;
-        }
-
-        out("clearing " + localDB.size(LocalDB.DB.RESPONSE_STORAGE) + " responses");
-        localDB.truncate(LocalDB.DB.RESPONSE_STORAGE);
-        out("all saved responses are now removed from LocalDB");
+        configurationFile.delete();
+        out("success");
     }
 
     @Override
     public CliParameters getCliParameters()
     {
         CliParameters cliParameters = new CliParameters();
-        cliParameters.commandName = "ClearLocalResponses";
-        cliParameters.description = "Clear all responses from the LocalDB";
-
-        cliParameters.needsLocalDB= true;
-        cliParameters.readOnly = false;
-
+        cliParameters.commandName = "ConfigDelete";
+        cliParameters.description = "Unlock a configuration, allows config to be edited without LDAP authentication.";
+        cliParameters.needsPwmApplication = false;
+        cliParameters.readOnly = true;
         return cliParameters;
     }
-}
 
+}

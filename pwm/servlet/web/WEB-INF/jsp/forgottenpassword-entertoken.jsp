@@ -50,8 +50,8 @@
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" id="processAction" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.enterCode%>"/>
-                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
+                <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
             </div>
         </form>
     </div>
