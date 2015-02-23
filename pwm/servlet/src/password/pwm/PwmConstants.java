@@ -24,14 +24,14 @@ package password.pwm;
 
 import org.apache.commons.csv.CSVFormat;
 import password.pwm.bean.SessionLabel;
-import password.pwm.i18n.Display;
-import password.pwm.i18n.Health;
-import password.pwm.i18n.Message;
 
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.TimeZone;
 
 /**
  * Constant values used throughout the servlet.
@@ -99,8 +99,6 @@ public abstract class PwmConstants {
     public static final int TRIAL_MAX_AUTHENTICATIONS = 100;
     public static final int TRIAL_MAX_TOTAL_AUTH = 10000;
 
-    public static final String RECAPTCHA_VALIDATE_URL = readPwmConstantsBundle("recaptchaValidateUrl");
-
     private static final String SESSION_LABEL_SESSION_ID = "#";
     public static final SessionLabel REPORTING_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"reporting",null,null);
     public static final SessionLabel HEALTH_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"health",null,null);
@@ -140,7 +138,12 @@ public abstract class PwmConstants {
         FormConfiguration,
         FormReadOnly,
         FormShowPasswordFields,
-        FormData, ConfigFilename, ConfigLastModified, ConfigHasPassword,
+        FormData,
+        ConfigFilename,
+        ConfigLastModified,
+        ConfigHasPassword,
+
+        CaptchaClientUrl, CaptchaIframeUrl, CaptchaPublicKey,
     }
 
 
@@ -333,42 +336,6 @@ public abstract class PwmConstants {
 
 // -------------------------- ENUMERATIONS --------------------------
 
-
-    public static enum PwmLocaleBundle {
-        DISPLAY(Display.class, false),
-        ERRORS(password.pwm.i18n.Error.class, false),
-        MESSAGE(Message.class, false),
-
-        CONFIG(password.pwm.i18n.Config.class, true),
-        ADMIN(password.pwm.i18n.Admin.class, true),
-        HEALTH(Health.class, true),
-        ;
-
-        private final Class theClass;
-        private final boolean adminOnly;
-        private Set<String> keys = null;
-
-        PwmLocaleBundle(final Class theClass, final boolean adminOnly) {
-            this.theClass = theClass;
-            this.adminOnly = adminOnly;
-        }
-
-        public Class getTheClass() {
-            return theClass;
-        }
-
-        public boolean isAdminOnly() {
-            return adminOnly;
-        }
-
-        public Set<String> getKeys() {
-            if (keys == null) {
-                final ResourceBundle defaultBundle = ResourceBundle.getBundle(this.getTheClass().getName(), PwmConstants.DEFAULT_LOCALE);
-                keys = Collections.unmodifiableSet(new HashSet<>(defaultBundle.keySet()));
-            }
-            return keys;
-        }
-    }
 
     public enum HttpHeader {
         Accept("Accept"),

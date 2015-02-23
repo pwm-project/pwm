@@ -39,7 +39,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
-<style>
+<style nonce="<pwm:value name="cspNonce"/>" type="text/css">
     .analysisGrid {
         min-height: 55vh;
     }

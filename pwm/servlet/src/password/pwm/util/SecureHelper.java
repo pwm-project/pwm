@@ -265,6 +265,17 @@ public class SecureHelper {
     }
 
     public static String hash(
+            final String input
+    )
+            throws PwmUnrecoverableException
+    {
+        if (input == null || input.length() < 1) {
+            return null;
+        }
+        return hash(new ByteArrayInputStream(input.getBytes(PwmConstants.DEFAULT_CHARSET)), DEFAULT_HASH_ALGORITHM);
+    }
+
+    public static String hash(
             final String input,
             final HashAlgorithm algorithm
     )

@@ -32,6 +32,7 @@ public class ActionConfiguration implements Serializable {
 
     public enum Type { webservice, ldap }
     public enum WebMethod { delete, get, post, put }
+    public enum LdapMethod { replace, add, remove }
 
     private String name;
     private String description;
@@ -39,11 +40,11 @@ public class ActionConfiguration implements Serializable {
     private Type type = Type.webservice;
 
     private WebMethod method = WebMethod.get;
-    //private boolean clientSide;
     private Map<String,String> headers;
     private String url;
     private String body;
 
+    private LdapMethod ldapMethod = LdapMethod.replace;
     private String attributeName;
     private String attributeValue;
 
@@ -65,6 +66,10 @@ public class ActionConfiguration implements Serializable {
 
     public String getUrl() {
         return url;
+    }
+
+    public LdapMethod getLdapMethod() {
+        return ldapMethod;
     }
 
     public Map<String, String> getHeaders() {

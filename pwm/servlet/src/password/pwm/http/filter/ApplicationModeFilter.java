@@ -51,7 +51,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
 
         // ignore if resource request
         final PwmURL pwmURL = pwmRequest.getURL();
-        if (!pwmURL.isResourceURL() && !pwmURL.isWebServiceURL()) {
+        if (!pwmURL.isResourceURL() && !pwmURL.isWebServiceURL() && !pwmURL.isReferenceURL()) {
             // check for valid config
             try {
                 if (checkConfigModes(pwmRequest)) {

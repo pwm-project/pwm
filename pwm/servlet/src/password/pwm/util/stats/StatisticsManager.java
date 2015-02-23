@@ -471,7 +471,7 @@ public class StatisticsManager implements PwmService {
             }
             final Configuration config = pwmApplication.getConfig();
             final List<String> configuredSettings = new ArrayList<>();
-            for (final PwmSetting pwmSetting : PwmSetting.values()) {
+            for (final PwmSetting pwmSetting : config.nonDefaultSettings()) {
                 if (!config.isDefaultValue(pwmSetting)) {
                     configuredSettings.add(pwmSetting.getKey());
                 }

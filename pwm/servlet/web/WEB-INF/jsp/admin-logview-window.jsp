@@ -81,7 +81,7 @@
     <% } %></pre>
 <% } %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<pwm:script-ref url="/public/resources/js/configmanager.js"/>
 <pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){

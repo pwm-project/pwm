@@ -28,23 +28,6 @@ PWM_ADMIN.initAdminOtherMenu=function() {
     require(["dijit/form/DropDownButton", "dijit/DropDownMenu", "dijit/Menu","dijit/MenuItem", "dijit/PopupMenuItem", "dojo/dom", "dijit/MenuSeparator"],
         function(DropDownButton, DropDownMenu, Menu, MenuItem, PopupMenuItem, dom, MenuSeparator){
             var pMenu = new DropDownMenu({ style: "display: none;"});
-            
-            /*
-            pMenu.addChild(new MenuItem({
-                label: 'Configuration Manager',
-                onClick: function() {
-                    PWM_MAIN.goto('/private/config/ConfigManager');
-                }
-            }));
-            pMenu.addChild(new MenuItem({
-                label: 'Configuration Editor',
-                onClick: function() {
-                    PWM_MAIN.goto('/private/config/ConfigEditor');
-                }
-            }));
-            pMenu.addChild(new MenuSeparator());
-            */
-
             pMenu.addChild(new MenuItem({
                 label: 'Event Log',
                 onClick: function() {
@@ -68,13 +51,13 @@ PWM_ADMIN.initAdminOtherMenu=function() {
             pMenu.addChild(new MenuItem({
                 label: 'Software License Reference',
                 onClick: function() {
-                    PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/license.jsp','license');
+                    PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/license.jsp','license');
                 }
             }));
             pMenu.addChild(new MenuItem({
                 label: 'Reference',
                 onClick: function() {
-                    PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/referencedoc.jsp','referencedoc');
+                    PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/referencedoc.jsp','referencedoc');
                 }
             }));
             if (PWM_GLOBAL['setting-displayEula'] == true) {

@@ -124,8 +124,9 @@
         });
     </script>
 </pwm:script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configguide.js"/>"></script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<pwm:script-ref url="/public/resources/js/configguide.js"/>
+<pwm:script-ref url="/public/resources/js/configmanager.js"/>
+<pwm:script-ref url="/public/resources/js/admin.js"/>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE);%>
 <%@ include file="fragment/footer.jsp" %>
 </body>

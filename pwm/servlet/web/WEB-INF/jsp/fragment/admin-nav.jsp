@@ -27,7 +27,7 @@
     final AdminBean adminBean = PwmRequest.forRequest(request,response).getPwmSession().getSessionBean(AdminBean.class);
     final AdminServlet.Page currentPage = adminBean.getCurrentPage();
 %>
-<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/admin.js'/>"></script>
+<pwm:script-ref url="/public/resources/js/admin.js"/>
 <pwm:script>
 <script type="text/javascript">
     var PWM_ADMIN = PWM_ADMIN || {};

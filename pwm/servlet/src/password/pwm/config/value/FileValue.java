@@ -243,4 +243,9 @@ public class FileValue extends AbstractValue implements StoredValue {
         }
         return Collections.unmodifiableList(returnObj);
     }
+
+    @Override
+    public String valueHash() throws PwmUnrecoverableException {
+        return SecureHelper.hash(JsonUtil.serializeCollection(toInfoMap()));
+    }
 }

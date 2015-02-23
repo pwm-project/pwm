@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionStateBean;
@@ -44,6 +45,7 @@ import password.pwm.util.ServletHelper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -58,8 +60,6 @@ public class CaptchaServlet extends PwmServlet {
 
     private static final String SKIP_COOKIE_NAME = "captcha-key";
     private static final String COOKIE_SKIP_INSTANCE_VALUE = "INSTANCEID";
-
-    private static final String RECAPTCHA_VALIDATE_URL = PwmConstants.RECAPTCHA_VALIDATE_URL;
 
     public enum CaptchaAction implements PwmServlet.ProcessAction {
         doVerify,
@@ -107,7 +107,7 @@ public class CaptchaServlet extends PwmServlet {
         }
 
         if (!pwmRequest.getPwmResponse().isCommitted()) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CAPTCHA);
+            forwardToCaptchaPage(pwmRequest);
         }
     }
 
@@ -142,7 +142,7 @@ public class CaptchaServlet extends PwmServlet {
             LOGGER.debug(pwmSession, "incorrect captcha passcode");
             pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
             pwmRequest.setResponseError(PwmError.ERROR_BAD_CAPTCHA_RESPONSE.toInfo());
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CAPTCHA);
+            forwardToCaptchaPage(pwmRequest);
         }
     }
 
@@ -167,7 +167,8 @@ public class CaptchaServlet extends PwmServlet {
         bodyText.append("response=").append(pwmRequest.readParameterAsString("recaptcha_response_field"));
 
         try {
-            final URI requestURI = new URI(RECAPTCHA_VALIDATE_URL);
+            final String configuredURI = pwmApplication.getConfig().readAppProperty(AppProperty.RECAPTCHA_VALIDATE_URL);
+            final URI requestURI = new URI(configuredURI);
             final HttpPost httpPost = new HttpPost(requestURI.toString());
             httpPost.setHeader("Content-Type", PwmConstants.ContentTypeValue.form.getHeaderValue());
             httpPost.setEntity(new StringEntity(bodyText.toString(),PwmConstants.DEFAULT_CHARSET));
@@ -272,5 +273,22 @@ public class CaptchaServlet extends PwmServlet {
             }
         }
         return false;
+    }
+
+    private void forwardToCaptchaPage(final PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException {
+        StatisticsManager.incrementStat(pwmRequest, Statistic.CAPTCHA_PRESENTATIONS);
+
+        final String reCaptchaPublicKey = pwmRequest.getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC);
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.CaptchaPublicKey, reCaptchaPublicKey);
+        {
+            final String urlValue = pwmRequest.getConfig().readAppProperty(AppProperty.RECAPTCHA_CLIENT_JS_URL);
+            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.CaptchaClientUrl, urlValue);
+        }
+        {
+            final String configuredUrl =pwmRequest.getConfig().readAppProperty(AppProperty.RECAPTCHA_CLIENT_IFRAME_URL);
+            final String url = configuredUrl + "?k=" + reCaptchaPublicKey + "&hl=" + pwmRequest.getLocale().toString();
+            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.CaptchaIframeUrl,url);
+        }
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CAPTCHA);
     }
 }

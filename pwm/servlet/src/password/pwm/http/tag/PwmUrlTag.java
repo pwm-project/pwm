@@ -118,9 +118,18 @@ public class PwmUrlTag extends PwmAbstractTag {
         return ServletHelper.appendAndEncodeUrlParameters(outputURL, Collections.singletonMap(PwmConstants.PARAM_FORM_ID,pwmFormID));
     }
 
-    private static String insertContext(final PageContext pageContext, final String urlString) {
+    static String insertContext(final PageContext pageContext, final String urlString) {
         final String contextPath = pageContext.getServletContext().getContextPath();
         if (!urlString.startsWith("/")) {
+            return urlString;
+        }
+
+        if (
+                urlString.toLowerCase().startsWith("http://")
+                        || urlString.toLowerCase().startsWith("https://")
+                        || urlString.startsWith("//")
+                )
+        {
             return urlString;
         }
 
@@ -132,7 +141,7 @@ public class PwmUrlTag extends PwmAbstractTag {
 
     }
 
-    private static String insertResourceNonce(final PwmApplication pwmApplication, final String urlString) {
+    static String insertResourceNonce(final PwmApplication pwmApplication, final String urlString) {
         if (pwmApplication != null && urlString.contains(RESOURCE_URL)) {
             final String nonce = ResourceFileServlet.makeResourcePathNonce(pwmApplication);
             if (nonce != null && nonce.length() > 0) {

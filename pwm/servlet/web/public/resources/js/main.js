@@ -269,7 +269,7 @@ PWM_MAIN.applyFormAttributes = function() {
         );
 
         array.forEach(
-            query("a"),
+            query("a:not([target])"),
             function(linkElement){
                 var hrefValue = linkElement.getAttribute('href');
                 if (hrefValue && hrefValue.charAt(0) != '#') {
@@ -728,21 +728,30 @@ PWM_MAIN.showWaitDialog = function(options) {
             });
         };
         options['title'] = options['title'] || PWM_MAIN.showString('Display_PleaseWait');
-        options['text'] = options['text'] || '<div id="progressBar" style="margin: 8px; width: 100%"/>';
+        var supportsProgress = (document.createElement('progress').max !== undefined);
+        if (supportsProgress) {
+            options['text'] = options['text'] || '<progress id="wait">';
+        } else {
+            options['text'] = options['text'] || '<div id="progressBar" style="margin: 8px; width: 100%"/>';
+        }
+
+
         options['dialogClass'] = 'narrow';
         options['showOk'] = false;
-
-        /*
-         var overlayDiv = document.createElement('div');
-         overlayDiv.setAttribute("style","background-color: #000; opacity: .5; filter: alpha(opacity=50); position: absolute; top: 0; left: 0; width: 100%; height: 100%;z-index: 10;");
-         document.body.appendChild(overlayDiv);
-         */
 
         PWM_MAIN.showDialog(options);
     });
 };
 
+PWM_MAIN.html5DialogSupport = function() {
+    var testdialog=document.createElement("dialog");
+    testdialog.setAttribute("open", "");
+    return (testdialog.open==true);
+};
+
 PWM_MAIN.showDialog = function(options) {
+    var html5Dialog = PWM_MAIN.html5DialogSupport();
+
     options = options === undefined ? {} : options;
     var title = options['title'] || 'DialogTitle';
     var text = 'text' in options ? options['text'] : 'DialogBody';
@@ -800,29 +809,68 @@ PWM_MAIN.showDialog = function(options) {
 
     bodyText = '<div class="' + dialogClassText + '">' + bodyText + '</div>';
 
-    require(["dojo","dijit/Dialog"],function(dojo,Dialog){
-        PWM_MAIN.clearDijitWidget(idName);
-        var theDialog = new Dialog({
-            id: idName,
-            closable: showClose,
-            draggable: allowMove,
-            title: title,
-            content: bodyText
-        });
-        if (!showClose) {
-            dojo.style(theDialog.closeButtonNode, "display", "none");
+    if (html5Dialog) {
+        PWM_MAIN.closeWaitDialog();
+        var dialogElement = document.createElement("dialog");
+        dialogElement.setAttribute("id", 'html5Dialog');
+        //dialogElement.setAttribute("draggable","true");
+        var html5DialogHtml = '<div class="titleBar">' + title;
+        if (showClose) {
+            html5DialogHtml += '<div id="icon-closeDialog" class="closeIcon fa fa-times"></div>'
         }
-        dojo.connect(theDialog,"onShow",null,function(){
+        html5DialogHtml += '</div><div class="body">' + bodyText + '</div>';
+        dialogElement.innerHTML = html5DialogHtml;
+        document.body.appendChild(dialogElement);
+        dialogElement.showModal();
+
+        setTimeout(function () {
             if (showOk) {
-                PWM_MAIN.addEventHandler('dialog_ok_button','click',function(){okAction()});
+                PWM_MAIN.addEventHandler('dialog_ok_button', 'click', function () {
+                    okAction()
+                });
             }
+            if (showClose) {
+                PWM_MAIN.addEventHandler('icon-closeDialog', 'click', function () {
+                    PWM_MAIN.closeWaitDialog();
+                });
+            }
+
             if (showCancel) {
-                PWM_MAIN.addEventHandler('dialog_cancel_button','click',function(){cancelAction()});
+                PWM_MAIN.addEventHandler('dialog_cancel_button', 'click', function () {
+                    cancelAction()
+                });
             }
-            setTimeout(loadFunction,100);
+            setTimeout(loadFunction, 100);
+        }, 100);
+    } else {
+        require(["dojo", "dijit/Dialog"], function (dojo, Dialog) {
+            PWM_MAIN.clearDijitWidget(idName);
+            var theDialog = new Dialog({
+                id: idName,
+                closable: showClose,
+                draggable: allowMove,
+                title: title,
+                content: bodyText
+            });
+            if (!showClose) {
+                dojo.style(theDialog.closeButtonNode, "display", "none");
+            }
+            dojo.connect(theDialog, "onShow", null, function () {
+                if (showOk) {
+                    PWM_MAIN.addEventHandler('dialog_ok_button', 'click', function () {
+                        okAction()
+                    });
+                }
+                if (showCancel) {
+                    PWM_MAIN.addEventHandler('dialog_cancel_button', 'click', function () {
+                        cancelAction()
+                    });
+                }
+                setTimeout(loadFunction, 100);
+            });
+            theDialog.show();
         });
-        theDialog.show();
-    });
+    }
 };
 
 PWM_MAIN.showEula = function(requireAgreement, agreeFunction) {
@@ -861,6 +909,14 @@ PWM_MAIN.showConfirmDialog = function(options) {
 };
 
 PWM_MAIN.closeWaitDialog = function(idName) {
+    var html5Mode = PWM_MAIN.html5DialogSupport();
+    if (html5Mode) {
+        if (PWM_MAIN.getObject('html5Dialog')) {
+            PWM_MAIN.getObject('html5Dialog').parentNode.removeChild(PWM_MAIN.getObject('html5Dialog'));
+        }
+        return;
+    }
+
     idName = idName == undefined ? 'dialogPopup' : idName;
     PWM_MAIN.clearDijitWidget(idName);
 };

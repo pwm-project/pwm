@@ -243,7 +243,7 @@ input[type=password]::-ms-reveal{display: none;}
 
 .btn {
     border-style:none;
-    padding: 3px 11px;
+    padding: 4px 12px;
     margin: 9px 7px;
     text-decoration: none;
     color: white;
@@ -763,5 +763,50 @@ input[type=search] {
 
 .formFieldWrapper {
     padding-bottom: 10px;
+}
 
+
+dialog::backdrop { background: rgba(0,0,0,0.6); }
+
+dialog {
+    /*
+    position: absolute;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    margin: auto;
+
+
+    padding-top: 0;
+    */
+    border: 2px solid #DDDDDD;
+    border-radius: 3px;
+    padding:0;
+}
+
+dialog .titleBar {
+    text-align: center;
+    font-weight: bold;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    background-color: #eaeaea;
+    margin-bottom: 5px;
+
+}
+
+dialog .body {
+    padding:5px;
+}
+
+dialog .closeIcon {
+    float: right;
+    cursor: pointer;
+    margin-right: 3px;
+}
+
+progress:not([value]) {
+    width: 100%;
+    height: 20px;
 }

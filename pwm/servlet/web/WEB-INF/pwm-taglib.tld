@@ -216,7 +216,18 @@
         <name>script</name>
         <tag-class>password.pwm.http.tag.PwmScriptTag</tag-class>
         <body-content>JSP</body-content>
-        <description>Offline script to callback js</description>
+        <description>Embedded Script Wrapper</description>
+    </tag>
+    <tag>
+        <name>script-ref</name>
+        <tag-class>password.pwm.http.tag.PwmScriptRefTag</tag-class>
+        <body-content>empty</body-content>
+        <description>External Script Reference</description>
+        <attribute>
+            <name>url</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
     </tag>
 </taglib>
 

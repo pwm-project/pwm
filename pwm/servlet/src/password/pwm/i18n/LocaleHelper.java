@@ -25,9 +25,21 @@ package password.pwm.i18n;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.StoredValue;
+import password.pwm.config.value.ChallengeValue;
+import password.pwm.config.value.StringArrayValue;
+import password.pwm.cr.ChallengeItemBean;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.util.Percent;
+import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 public class LocaleHelper {
@@ -250,5 +262,251 @@ public class LocaleHelper {
     public static String booleanString(final boolean input, Locale locale, Configuration configuration) {
         Display key = input ? Display.Value_True : Display.Value_False;
         return Display.getLocalizedMessage(locale, key, configuration);
+    }
+
+    static public class LocaleStats {
+        List<Locale> localesExamined = new ArrayList<>();
+        int totalKeys;
+        int presentSlots;
+        int missingSlots;
+        int totalSlots;
+        String totalPercentage;
+        Map<Locale,String> perLocale_percentLocalizations = new LinkedHashMap<>();
+        Map<Locale,Integer> perLocale_presentLocalizations = new LinkedHashMap<>();
+        Map<Locale,Integer> perLocale_missingLocalizations = new LinkedHashMap<>();
+        Map<PwmLocaleBundle,Map<Locale,List<String>>> missingKeys = new LinkedHashMap<>();
+
+        public List<Locale> getLocalesExamined() {
+            return localesExamined;
+        }
+
+        public int getTotalKeys() {
+            return totalKeys;
+        }
+
+        public String getTotalPercentage() {
+            return totalPercentage;
+        }
+
+        public int getPresentSlots() {
+            return presentSlots;
+        }
+
+        public int getMissingSlots() {
+            return missingSlots;
+        }
+
+        public int getTotalSlots() {
+            return totalSlots;
+        }
+
+        public Map<Locale, String> getPerLocale_percentLocalizations() {
+            return perLocale_percentLocalizations;
+        }
+
+        public Map<Locale, Integer> getPerLocale_presentLocalizations() {
+            return perLocale_presentLocalizations;
+        }
+
+        public Map<Locale, Integer> getPerLocale_missingLocalizations() {
+            return perLocale_missingLocalizations;
+        }
+
+        public Map<PwmLocaleBundle, Map<Locale, List<String>>> getMissingKeys() {
+            return missingKeys;
+        }
+    }
+
+    static public class ConfigLocaleStats {
+        List<Locale> defaultChallenges = new ArrayList<>();
+        Map<Locale,String> description_percentLocalizations = new LinkedHashMap<>();
+        Map<Locale,Integer> description_presentLocalizations = new LinkedHashMap<>();
+        Map<Locale,Integer> description_missingLocalizations = new LinkedHashMap<>();
+
+        public List<Locale> getDefaultChallenges() {
+            return defaultChallenges;
+        }
+
+        public Map<Locale, String> getDescription_percentLocalizations() {
+            return description_percentLocalizations;
+        }
+
+        public Map<Locale, Integer> getDescription_presentLocalizations() {
+            return description_presentLocalizations;
+        }
+
+        public Map<Locale, Integer> getDescription_missingLocalizations() {
+            return description_missingLocalizations;
+        }
+    }
+
+    public static ConfigLocaleStats getConfigLocaleStats() throws PwmUnrecoverableException, PwmOperationalException {
+
+        final ConfigLocaleStats configLocaleStats = new ConfigLocaleStats();
+        {
+            final StoredValue storedValue = PwmSetting.CHALLENGE_RANDOM_CHALLENGES.getDefaultValue(PwmSetting.Template.DEFAULT);
+            Map<String, List<ChallengeItemBean>> value = ((ChallengeValue) storedValue).toNativeObject();
+
+            for (String localeStr : value.keySet()) {
+                final Locale loopLocale = LocaleHelper.parseLocaleString(localeStr);
+                configLocaleStats.getDefaultChallenges().add(loopLocale);
+            }
+        }
+
+        for (final Locale locale : LocaleInfoGenerator.knownLocales()) {
+            configLocaleStats.description_presentLocalizations.put(locale,0);
+            configLocaleStats.description_missingLocalizations.put(locale,0);
+        }
+
+        for (final PwmSetting pwmSetting : PwmSetting.values()) {
+            final String defaultValue = pwmSetting.getDescription(PwmConstants.DEFAULT_LOCALE);
+            configLocaleStats.description_presentLocalizations.put(PwmConstants.DEFAULT_LOCALE, configLocaleStats.description_presentLocalizations.get(PwmConstants.DEFAULT_LOCALE) + 1);
+            for (final Locale locale : LocaleInfoGenerator.knownLocales()) {
+                if (!PwmConstants.DEFAULT_LOCALE.equals(locale)) {
+                    final String localeValue = pwmSetting.getDescription(locale);
+                    if (defaultValue.equals(localeValue)) {
+                        configLocaleStats.description_missingLocalizations.put(PwmConstants.DEFAULT_LOCALE, configLocaleStats.description_missingLocalizations.get(locale) + 1);
+                    } else {
+                        configLocaleStats.description_presentLocalizations.put(PwmConstants.DEFAULT_LOCALE, configLocaleStats.description_presentLocalizations.get(locale) + 1);
+                    }
+                }
+            }
+        }
+
+        for (final Locale locale : LocaleInfoGenerator.knownLocales()) {
+            final int totalCount = PwmSetting.values().length;
+            final int presentCount = configLocaleStats.getDescription_presentLocalizations().get(locale);
+            final Percent percent = new Percent(presentCount, totalCount);
+            configLocaleStats.getDescription_percentLocalizations().put(locale, percent.pretty());
+        }
+            return configLocaleStats;
+    }
+
+    public static LocaleStats getStatsForBundles(final Collection<PwmLocaleBundle> bundles) {
+        final LocaleStats stats = new LocaleStats();
+        LocaleInfoGenerator.checkLocalesOnBundle(stats,bundles);
+        return stats;
+    }
+
+    private static class LocaleInfoGenerator {
+        private static final boolean debugFlag = false;
+
+        private static void checkLocalesOnBundle(
+                final LocaleStats stats,
+                final Collection<PwmLocaleBundle> bundles
+        ) {
+            for (final PwmLocaleBundle pwmLocaleBundle : bundles) {
+                final Map<Locale,List<String>> missingKeys = checkLocalesOnBundle(pwmLocaleBundle, stats);
+                stats.missingKeys.put(pwmLocaleBundle, missingKeys);
+            }
+
+            stats.getLocalesExamined().addAll(knownLocales());
+
+            if (stats.getTotalSlots() > 0) {
+                Percent percent = new Percent(stats.getPresentSlots(),stats.getTotalSlots());
+                stats.totalPercentage = percent.pretty();
+            } else {
+                stats.totalPercentage = Percent.ZERO.pretty();
+            }
+        }
+
+
+        private static Map<Locale,List<String>> checkLocalesOnBundle(
+                final PwmLocaleBundle pwmLocaleBundle,
+                final LocaleStats stats
+        ) {
+            final Map<Locale, List<String>> returnMap = new LinkedHashMap<>();
+            final int keyCount = pwmLocaleBundle.getKeys().size();
+            stats.totalKeys += keyCount;
+
+            for (final Locale locale : knownLocales()) {
+                final List<String> missingKeys = missingKeysForBundleAndLocale(pwmLocaleBundle, locale);
+                final int missingKeyCount = missingKeys.size();
+                final int presentKeyCount = keyCount - missingKeyCount;
+
+                stats.totalSlots += keyCount;
+                stats.missingSlots += missingKeyCount;
+                stats.presentSlots += presentKeyCount;
+                if (!stats.perLocale_missingLocalizations.containsKey(locale)) {
+                    stats.perLocale_missingLocalizations.put(locale,0);
+                }
+                stats.perLocale_missingLocalizations.put(locale, stats.getPerLocale_missingLocalizations().get(locale) + missingKeyCount);
+                if (!stats.perLocale_presentLocalizations.containsKey(locale)) {
+                    stats.perLocale_presentLocalizations.put(locale,0);
+                }
+                stats.perLocale_presentLocalizations.put(locale, stats.perLocale_presentLocalizations.get(locale) + presentKeyCount);
+
+                if (keyCount > 0) {
+                    Percent percent = new Percent(presentKeyCount, keyCount);
+                    stats.perLocale_percentLocalizations.put(locale, percent.pretty(0));
+                } else {
+                    stats.perLocale_percentLocalizations.put(locale, Percent.ZERO.pretty());
+                }
+
+                returnMap.put(locale, missingKeys);
+            }
+            return returnMap;
+        }
+
+        private static List<String> missingKeysForBundleAndLocale(
+                final PwmLocaleBundle pwmLocaleBundle,
+                final Locale locale
+        )
+        {
+            final List<String> returnList = new ArrayList<>();
+
+            final String bundleFilename = PwmConstants.DEFAULT_LOCALE.equals(locale)
+                    ? pwmLocaleBundle.getTheClass().getSimpleName() + ".properties"
+                    : pwmLocaleBundle.getTheClass().getSimpleName() + "_" + locale.toString() + ".properties";
+            final Properties checkProperties = new Properties();
+
+            try {
+                final InputStream stream = pwmLocaleBundle.getTheClass().getResourceAsStream(bundleFilename);
+                if (stream == null) {
+                    if (debugFlag) {
+                        LOGGER.trace("missing resource bundle: bundle=" + pwmLocaleBundle.getTheClass().getName() + ", locale=" + locale.toString());
+                    }
+                    returnList.addAll(pwmLocaleBundle.getKeys());
+                } else {
+                    LOGGER.trace("checking file " + bundleFilename);
+                    checkProperties.load(stream);
+                    for (final String key : pwmLocaleBundle.getKeys()) {
+                        if (!checkProperties.containsKey(key)) {
+                            if (debugFlag) {
+                                LOGGER.trace("missing resource: bundle=" + pwmLocaleBundle.getTheClass().toString() + ", locale=" + locale.toString() + "' key=" + key);
+                            }
+                            returnList.add(key);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                if (debugFlag) {
+                    LOGGER.trace("error loading resource bundle for class='" + pwmLocaleBundle.getTheClass().toString() + ", locale=" + locale.toString() + "', error: " + e.getMessage());
+                }
+            }
+            Collections.sort(returnList);
+            return returnList;
+        }
+
+        private static List<Locale> knownLocales() {
+            final List<Locale> knownLocales = new ArrayList();
+            try {
+                final StringArrayValue stringArrayValue = (StringArrayValue) PwmSetting.KNOWN_LOCALES.getDefaultValue(PwmSetting.Template.DEFAULT);
+                final List<String> rawValues = stringArrayValue.toNativeObject();
+                final Map<String,String> localeFlagMap = StringUtil.convertStringListToNameValuePair(rawValues, "::");
+                for (final String rawValue : localeFlagMap.keySet()) {
+                    knownLocales.add(LocaleHelper.parseLocaleString(rawValue));
+                }
+            } catch (PwmException e) {
+                throw new IllegalStateException("error reading default locale list",e);
+            }
+
+            final Map<String,Locale> returnMap = new TreeMap<>();
+
+            for (final Locale locale : knownLocales) {
+                returnMap.put(locale.getDisplayName(), locale);
+            }
+            return new ArrayList<>(returnMap.values());
+        }
     }
 }

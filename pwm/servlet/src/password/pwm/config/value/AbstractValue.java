@@ -23,7 +23,9 @@
 package password.pwm.config.value;
 
 import password.pwm.config.StoredValue;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.SecureHelper;
 
 import java.io.Serializable;
 import java.util.Locale;
@@ -48,5 +50,10 @@ public abstract class AbstractValue implements StoredValue {
     public int currentSyntaxVersion()
     {
         return 0;
+    }
+
+    @Override
+    public String valueHash() throws PwmUnrecoverableException {
+        return SecureHelper.hash(JsonUtil.serialize((Serializable)this.toNativeObject()));
     }
 }

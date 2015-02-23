@@ -23,14 +23,13 @@
 package password.pwm.util.operations;
 
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.Challenge;
-import com.novell.ldapchai.cr.ChallengeSet;
-import com.novell.ldapchai.cr.ResponseSet;
+import com.novell.ldapchai.cr.*;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.impl.edir.NmasCrFactory;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
 import password.pwm.bean.ResponseInfoBean;
@@ -130,14 +129,14 @@ public class CrService implements PwmService {
                         final ChallengeProfile challengeProfile = ChallengeProfile.createChallengeProfile(
                                 challengeID,
                                 locale,
-                                returnSet,
+                                applyPwmPolicyToNmasChallenges(returnSet, config),
                                 null,
-                                0,
+                                Integer.parseInt(config.readAppProperty(AppProperty.NMAS_CR_MIN_RANDOM_DURING_SETUP)),
                                 0
                         );
 
                         LOGGER.debug(sessionLabel,"using ldap c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
-                        LOGGER.trace(sessionLabel,"readUserChallengeProfile completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
+                        LOGGER.trace(sessionLabel,"readUserChallengeProfile completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString() + ", result=" + JsonUtil.serialize(challengeProfile));
 
                         return challengeProfile;
                     }
@@ -154,8 +153,38 @@ public class CrService implements PwmService {
         LOGGER.debug(sessionLabel,"no detected c/r policy for user " + theUser.getEntryDN() + " in ldap ");
         LOGGER.trace(sessionLabel,"readUserChallengeProfile completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
         return challengeProfile;
-
     }
+
+    private static ChallengeSet applyPwmPolicyToNmasChallenges(final ChallengeSet challengeSet, final Configuration configuration) throws PwmUnrecoverableException {
+        final List<Challenge> newChallenges = new ArrayList<>();
+        final boolean applyWordlist = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.NMAS_CR_APPLY_WORDLIST));
+        final int questionsInAnswer = Integer.parseInt(configuration.readAppProperty(AppProperty.NMAS_CR_MAX_QUESTION_CHARS_IN__ANSWER));
+        for (final Challenge challenge : challengeSet.getChallenges()) {
+            newChallenges.add(new ChaiChallenge(
+                    challenge.isRequired(),
+                    challenge.getChallengeText(),
+                    challenge.getMinLength(),
+                    challenge.getMaxLength(),
+                    challenge.isAdminDefined(),
+                    questionsInAnswer,
+                    applyWordlist
+            ));
+        }
+
+        try {
+            return new ChaiChallengeSet(
+                    newChallenges,
+                    challengeSet.getMinRandomRequired(),
+                    challengeSet.getLocale(),
+                    challengeSet.getIdentifier()
+            );
+        } catch (ChaiValidationException e) {
+            final String errorMsg = "unexpected error applying policies to nmas challengeset: " + e.getMessage();
+            LOGGER.error(errorMsg,e);
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
+        }
+    }
+
 
     protected static String determineChallengeProfileForUser(
             final PwmApplication pwmApplication,

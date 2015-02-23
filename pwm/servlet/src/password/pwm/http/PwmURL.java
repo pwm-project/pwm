@@ -55,6 +55,10 @@ public class PwmURL {
         return checkIfStartsWithURL("/public/resources/");
     }
 
+    public boolean isReferenceURL() {
+        return checkIfStartsWithURL("/public/reference/");
+    }
+
     public boolean isLogoutURL() {
         return checkIfStartsWithURL("/private/" + PwmConstants.URL_SERVLET_LOGOUT)
                 || checkIfStartsWithURL("/public/" + PwmConstants.URL_SERVLET_LOGOUT);

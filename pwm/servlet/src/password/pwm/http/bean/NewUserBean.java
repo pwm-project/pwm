@@ -23,9 +23,11 @@
 package password.pwm.http.bean;
 
 import password.pwm.config.FormConfiguration;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.NewUserServlet;
 import password.pwm.util.PasswordData;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
@@ -45,7 +47,7 @@ public class NewUserBean implements PwmSessionBean {
     private Date createStartTime;
     private NewUserServlet.Page currentPage;
 
-    public static class NewUserForm {
+    public static class NewUserForm implements Serializable {
         private Map<FormConfiguration,String> formData;
         private PasswordData newUserPassword;
         private PasswordData confirmPassword;
@@ -74,6 +76,30 @@ public class NewUserBean implements PwmSessionBean {
         public PasswordData getConfirmPassword()
         {
             return confirmPassword;
+        }
+
+        public boolean isConsistentWith(NewUserForm otherForm) throws PwmUnrecoverableException {
+            if (otherForm == null) {
+                return false;
+            }
+
+            if (newUserPassword != null && otherForm.newUserPassword == null || newUserPassword == null && otherForm.newUserPassword != null) {
+                return false;
+            }
+
+            if (newUserPassword == null || !newUserPassword.getStringValue().equals(otherForm.newUserPassword.getStringValue())) {
+                return false;
+            }
+
+            for (final FormConfiguration formConfiguration : formData.keySet()) {
+                final String value = formData.get(formConfiguration);
+                final String otherValue = otherForm.formData.get(formConfiguration);
+                if (value != null && !value.equals(otherValue)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 

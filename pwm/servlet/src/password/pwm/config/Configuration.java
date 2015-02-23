@@ -825,4 +825,12 @@ public class Configuration implements Serializable, SettingReader {
     {
         return storedConfiguration.settingChecksum();
     }
+
+    public Set<PwmSetting> nonDefaultSettings() {
+        final HashSet returnSet = new HashSet();
+        for (StoredConfiguration.SettingValueRecord valueRecord : this.storedConfiguration.modifiedSettings()) {
+            returnSet.add(valueRecord.getSetting());
+        }
+        return returnSet;
+    }
 }

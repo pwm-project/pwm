@@ -250,7 +250,7 @@
                 };
             </script>
         </pwm:script>
-        <style scoped="scoped">
+        <style nonce="<pwm:value name="cspNonce"/>" scoped="scoped">
             .dgrid { height: auto; }
             .dgrid .dgrid-scroller { position: relative;  overflow: visible; }
             .dgrid-column-timestamp {width: 80px;}

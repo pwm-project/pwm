@@ -100,9 +100,9 @@
 </script>
 </pwm:script>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configguide.js"/>"></script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/admin.js"/>"></script>
+<pwm:script-ref url="/public/resources/js/configguide.js"/>
+<pwm:script-ref url="/public/resources/js/configmanager.js"/>
+<pwm:script-ref url="/public/resources/js/admin.js"/>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

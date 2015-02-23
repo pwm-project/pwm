@@ -166,4 +166,9 @@ public class PasswordValue implements StoredValue {
     {
         return requiresStoredUpdate;
     }
+
+    @Override
+    public String valueHash() throws PwmUnrecoverableException {
+        return value == null ? "" : SecureHelper.hash(JsonUtil.serialize(value.getStringValue()));
+    }
 }

@@ -57,7 +57,7 @@ public abstract class RestServerHelper {
     private static final PwmLogger LOGGER = PwmLogger.forClass(RestServerHelper.class);
 
     public static javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
-        final URI uri = javax.ws.rs.core.UriBuilder.fromUri("../rest.jsp?forwardedFromRestServer=true").build();
+        final URI uri = javax.ws.rs.core.UriBuilder.fromUri("../reference/rest.jsp?forwardedFromRestServer=true").build();
         return javax.ws.rs.core.Response.temporaryRedirect(uri).build();
     }
 

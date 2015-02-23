@@ -29,14 +29,14 @@ import java.util.*;
 
 public enum PwmSettingCategory {
 
-    LDAP_PROFILE(null),
-    SETTINGS(null),
-    PROFILES(null),
-    MODULES(null),
+    LDAP                        (null),
+    SETTINGS                    (null),
+    PROFILES                    (null),
+    MODULES                     (null),
 
     GENERAL                     (SETTINGS),
-    LDAP                        (SETTINGS),
 
+    LDAP_PROFILE                (LDAP),
     LDAP_GLOBAL                 (LDAP),
     EDIRECTORY                  (LDAP),
     ACTIVE_DIRECTORY            (LDAP),

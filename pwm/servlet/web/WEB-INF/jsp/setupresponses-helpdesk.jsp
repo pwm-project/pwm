@@ -64,7 +64,7 @@
         });
     </script>
 </pwm:script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/responses.js'/>"></script>
+<pwm:script-ref url="/public/resources/js/responses.js"/>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.http.bean.NewUserBean" %>
+<%@ page import="password.pwm.http.servlet.NewUserServlet" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -55,22 +56,22 @@
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-            </div>
-        </form>
-        <div style="text-align: center">
-            <form action="<pwm:url url='/public/NewUser' addContext="true"/>" method="post"
-                  enctype="application/x-www-form-urlencoded">
-                <input type="hidden" name="processAction" value="reset"/>
-                <button type="submit" name="button" class="btn" id="button_reset">
+                <button type="button" name="button-cancel" class="btn" id="button-cancel">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
                     <pwm:display key="Button_Cancel"/>
                 </button>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
+    <script>
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.submitPostAction('button-cancel','NewUser','<%=NewUserServlet.NewUserAction.reset%>');
+        });
+    </script>
+</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

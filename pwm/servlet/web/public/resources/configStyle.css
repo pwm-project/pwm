@@ -430,19 +430,24 @@ table {
 }
 
 .editorIdleStatus {
+    /*
     margin-left: auto;
     margin-right: auto;
+    */
+    color: #c3c3c3;
     text-align: center;
     font-size: 10px;
     font-family: "Courier New", Courier, monospace;
-    /*
-    display: table;
-    margin: 0 auto;
-    top: 0;
-    position: absolute;
-    margin-left: 40%;
-    margin-right: 40%;
-    text-align: center;
-    width:20%;
-    */
+    margin-top: 5px;
+    margin-left: 5px;
+    margin-right: 5px;
+    float: right;
 }
+
+.dialogSection {
+    background-color: #eaeaea;
+    padding:5px;
+    border-radius: 3px;
+    margin-left: 5px;
+}
+

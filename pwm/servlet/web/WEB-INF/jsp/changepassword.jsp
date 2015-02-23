@@ -120,7 +120,7 @@
     });
 </script>
 </pwm:script>
-<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
+<pwm:script-ref url="/public/resources/js/changepassword.js"/>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -5,6 +5,7 @@
 <%@ page import="password.pwm.event.AuditEvent" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
+<%@ page import="password.pwm.i18n.PwmLocaleBundle" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="java.util.*" %>
@@ -72,7 +73,7 @@
             </ol>
             <li><a href="#displayStrings">Display Strings</a></li>
             <ol>
-                <% for (PwmConstants.PwmLocaleBundle bundle : PwmConstants.PwmLocaleBundle.values()) { %>
+                <% for (PwmLocaleBundle bundle : PwmLocaleBundle.values()) { %>
                 <li><a href="#displayStrings_<%=bundle.getTheClass().getSimpleName()%>"><%=bundle.getTheClass().getSimpleName()%></a></li>
                 <% } %>
             </ol>
@@ -316,7 +317,7 @@
         <% } %>
         <% } %>
         <h1><a id="displayStrings">Display Strings</a></h1>
-        <% for (PwmConstants.PwmLocaleBundle bundle : PwmConstants.PwmLocaleBundle.values()) { %>
+        <% for (PwmLocaleBundle bundle : PwmLocaleBundle.values()) { %>
         <h2>
             <a id="displayStrings_<%=bundle.getTheClass().getSimpleName()%>"><%=bundle.getTheClass().getSimpleName()%></a>
             <% if (bundle.isAdminOnly()) { %> (admin-only) <% } %>

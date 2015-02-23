@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 .btn {
     font-family: Trebuchet MS, sans-serif;
     border-radius: 3px;
-    box-shadow: 2px 2px 1px 1px #8c8c8c;
+    /* box-shadow: 2px 2px 1px 1px #8c8c8c; */
     background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #3e374c), color-stop(1, #08070f) );
     background:linear-gradient(to bottom, #3e374c 5%, #08070f 100% );
 }.btn:hover {
@@ -54,7 +54,7 @@
     color: black;
     white-space: normal;
     background: #E8E1F6;
-    box-shadow: 2px 2px 1px 1px #8c8c8c;
+    /* box-shadow: 2px 2px 1px 1px #8c8c8c; */
     background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #E8E1F6), color-stop(1, #B2B1B9) );
     background:linear-gradient(to bottom, #E8E1F6 5%, #B2B1B9 100% );
 }.menubutton:hover {
@@ -63,7 +63,7 @@
 }
 
 .inputfield {
-    box-shadow: 2px 2px 2px 2px #f1f1f1;
+    /* box-shadow: 2px 2px 2px 2px #f1f1f1; */
     padding-left: 3px;
     padding-right: 3px;
     font-size: 10pt;
@@ -71,7 +71,7 @@
 }
 
 .changepasswordfield {
-    box-shadow: 2px 2px 2px 2px #f1f1f1;
+    /* box-shadow: 2px 2px 2px 2px #f1f1f1; */
     font-size: 10pt;
     font-family: monospace;
 }

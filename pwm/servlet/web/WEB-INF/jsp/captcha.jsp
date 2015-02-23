@@ -1,6 +1,4 @@
-<%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="password.pwm.util.stats.Statistic" %>
-<%@ page import="password.pwm.util.stats.StatisticsManager" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -31,30 +29,15 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <%-- begin reCaptcha section (http://code.google.com/apis/recaptcha/docs/display.html) --%>
-<%
-    String reCaptchaPublicKey = "";
-    String reCaptchaProtocol = "";
-    Locale locale = PwmConstants.DEFAULT_LOCALE;
-    try {
-        reCaptchaProtocol = request.isSecure() ? "https" : "http";
-        final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
-        reCaptchaPublicKey = pwmRequest.getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC);
-        locale = pwmRequest.getLocale();
-        StatisticsManager.incrementStat(pwmRequest,Statistic.CAPTCHA_PRESENTATIONS);
-    } catch (PwmException e) {
-        /* noop */
-    }
-%>
-
-<script type="text/javascript" src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
+<pwm:script-ref url="<%=(String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.CaptchaClientUrl)%>"/>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            Recaptcha.create("<%=reCaptchaPublicKey%>",
+            Recaptcha.create("<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.CaptchaPublicKey))%>",
                     "recaptcha_widget",
                     {
                         theme: "custom",
-                        lang: '<%=locale%>',
+                        lang: '<%=JspUtility.getPwmRequest(pageContext).getLocale()%>',
                         callback: Recaptcha.focus_response_field
                     }
             );
@@ -103,7 +86,7 @@
                 </div>
             </div>
             <noscript>
-                <iframe src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/noscript?k=<%=reCaptchaPublicKey%>&hl=<%=locale%>"
+                <iframe nonce="<pwm:value name="cspNonce"/>" src="<%=JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.CaptchaIframeUrl)%>"
                         height="300" width="500" frameborder="0"></iframe>
                 <br>
                 <textarea name="recaptcha_challenge_field" rows="3" cols="40">

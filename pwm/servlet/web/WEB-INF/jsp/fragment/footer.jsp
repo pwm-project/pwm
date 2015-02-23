@@ -89,4 +89,4 @@
     </script>
 </pwm:script>
 <script nonce="<pwm:value name="cspNonce"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
-<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/main.js'/>"></script>
+<pwm:script-ref url="/public/resources/js/main.js"/>

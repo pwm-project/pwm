@@ -160,7 +160,7 @@
         </table>
         <br/>
         <% } %>
-        <form id="tokenForm" action="admin-tokenlookup.jsp" method="post">
+        <form id="tokenForm" action="Administration" method="post">
             <textarea name="token" id="token" style="width: 580px; height: 150px"></textarea>
             <div class="buttonbar">
                 <input name="submitBtn" class="btn" type="submit" value="Lookup Token"/>

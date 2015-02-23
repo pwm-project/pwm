@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 package password.pwm.util.operations;
 
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -46,9 +47,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class ActionExecutor {
 
@@ -97,17 +96,16 @@ public class ActionExecutor {
     {
         final String attributeName = actionConfiguration.getAttributeName();
         final String attributeValue = actionConfiguration.getAttributeValue();
-        final Map<String,String> attributeMap = Collections.singletonMap(attributeName,attributeValue);
         final ChaiUser theUser = settings.getChaiUser() != null ?
                 settings.getChaiUser() :
                 pwmApplication.getProxiedChaiUser(settings.getUserIdentity());
 
-
-        Helper.writeMapToLdap(
+        writeLdapAttribute(
                 theUser,
-                attributeMap,
-                settings.getMacroMachine(),
-                settings.isExpandPwmMacros()
+                attributeName,
+                attributeValue,
+                actionConfiguration.getLdapMethod(),
+                settings.getMacroMachine()
         );
     }
 
@@ -185,6 +183,77 @@ public class ActionExecutor {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
         }
     }
+
+    private static void writeLdapAttribute(
+            final ChaiUser theUser,
+            final String attrName,
+            String attrValue,
+            ActionConfiguration.LdapMethod ldapMethod,
+            final MacroMachine macroMachine
+    )
+            throws PwmOperationalException, ChaiUnavailableException
+    {
+        if (ldapMethod == null) {
+            ldapMethod = ActionConfiguration.LdapMethod.replace;
+        }
+
+        if (macroMachine != null) {
+            attrValue  = macroMachine.expandMacros(attrValue);
+        }
+
+        LOGGER.trace("beginning ldap " + ldapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName);
+        switch (ldapMethod) {
+            case replace:
+            {
+                try {
+                    theUser.writeStringAttribute(attrName, attrValue);
+                    LOGGER.info("replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
+                } catch (ChaiOperationException e) {
+                    final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                    final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+                    newException.initCause(e);
+                    throw newException;
+                }
+            }
+            break;
+
+            case add:
+            {
+                try {
+                    theUser.addAttribute(attrName, attrValue);
+                    LOGGER.info("added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
+                } catch (ChaiOperationException e) {
+                    final String errorMsg = "error adding '" + attrName + "' attribute value from user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                    final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+                    newException.initCause(e);
+                    throw newException;
+                }
+
+            }
+            break;
+
+            case remove:
+            {
+                try {
+                    theUser.deleteAttribute(attrName, attrValue);
+                    LOGGER.info("deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
+                } catch (ChaiOperationException e) {
+                    final String errorMsg = "error deletig '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                    final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+                    newException.initCause(e);
+                    throw newException;
+                }
+            }
+            break;
+
+            default:
+                throw new IllegalStateException("unexpected ldap method type " + ldapMethod);
+        }
+    }
+
 
 
     public static class ActionExecutorSettings {

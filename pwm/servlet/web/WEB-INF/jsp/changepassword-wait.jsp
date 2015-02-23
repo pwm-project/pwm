@@ -1,12 +1,11 @@
 <%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="java.util.Date" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -79,7 +78,7 @@
     });
 </script>
 </pwm:script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
+<pwm:script-ref url="/public/resources/js/changepassword.js"/>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT);%>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

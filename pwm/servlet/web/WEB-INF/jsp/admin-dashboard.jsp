@@ -307,7 +307,7 @@
                                 License Information
                             </td>
                             <td>
-                                <a href="<pwm:context/><pwm:url url="/public/license.jsp"/>">License Information</a>
+                                <a href="<pwm:context/><pwm:url url="/public/reference/license.jsp"/>">License Information</a>
                             </td>
                         </tr>
                     </table>
@@ -425,8 +425,8 @@
                                 Log Events in Write Queue
                             </td>
                             <td>
-                                <%= dashboard_pwmApplication.getLocalDBLogger() != null 
-                                        ? numberFormat.format(dashboard_pwmApplication.getLocalDBLogger().getPendingEventCount()) 
+                                <%= dashboard_pwmApplication.getLocalDBLogger() != null
+                                        ? numberFormat.format(dashboard_pwmApplication.getLocalDBLogger().getPendingEventCount())
                                         : JspUtility.getMessage(pageContext, Display.Value_NotApplicable) %>
                             </td>
                         </tr>
@@ -447,9 +447,9 @@
                                 Oldest Log Event in Write Queue
                             </td>
                             <td>
-                                <%= dashboard_pwmApplication.getLocalDBLogger() != null 
-                                        ? dashboard_pwmApplication.getLocalDBLogger().getDirtyQueueTime().asCompactString() 
-                                        : JspUtility.getMessage(pageContext, Display.Value_NotApplicable) 
+                                <%= dashboard_pwmApplication.getLocalDBLogger() != null
+                                        ? dashboard_pwmApplication.getLocalDBLogger().getDirtyQueueTime().asCompactString()
+                                        : JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                                 %>
                             </td>
                         </tr>
@@ -458,8 +458,8 @@
                                 Oldest Log Event in LocalDB
                             </td>
                             <td>
-                                <%= dashboard_pwmApplication.getLocalDBLogger() != null 
-                                        ? TimeDuration.fromCurrent(dashboard_pwmApplication.getLocalDBLogger().getTailDate()).asCompactString() 
+                                <%= dashboard_pwmApplication.getLocalDBLogger() != null
+                                        ? TimeDuration.fromCurrent(dashboard_pwmApplication.getLocalDBLogger().getTailDate()).asCompactString()
                                         : JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                                 %>
                             </td>
@@ -506,9 +506,9 @@
                                 LocalDB Free Space
                             </td>
                             <td>
-                                <%= dashboard_pwmApplication.getLocalDB() == null 
+                                <%= dashboard_pwmApplication.getLocalDB() == null
                                         ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                        : dashboard_pwmApplication.getLocalDB().getFileLocation() == null 
+                                        : dashboard_pwmApplication.getLocalDB().getFileLocation() == null
                                         ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                                         : Helper.formatDiskSize(Helper.diskSpaceRemaining(dashboard_pwmApplication.getLocalDB().getFileLocation())) %>
                             </td>
@@ -754,25 +754,21 @@
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dojo/domReady!"],function(dojoParser,ready){
-                ready(function(){
-                    dojoParser.parse();
-                    ready(function(){
-                        PWM_ADMIN.showStatChart('PASSWORD_CHANGES',14,'statsChart',{refreshTime:11*1000});
-                        PWM_ADMIN.showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
+            require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
+                dojoParser.parse();
+                PWM_ADMIN.showStatChart('PASSWORD_CHANGES',14,'statsChart',{refreshTime:11*1000});
+                PWM_ADMIN.showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
 
-                        PWM_MAIN.addEventHandler('button-showLocalDBCounts','click',function(){
-                            PWM_MAIN.showWaitDialog({loadFunction:function(){
-                                PWM_MAIN.goto('Administration?showLocalDBCounts=true');
-                            }})
-                        });
-                    });
+                PWM_MAIN.addEventHandler('button-showLocalDBCounts','click',function(){
+                    PWM_MAIN.showWaitDialog({loadFunction:function(){
+                        PWM_MAIN.goto('Administration?showLocalDBCounts=true');
+                    }})
                 });
             });
         });
     </script>
 </pwm:script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/admin.js'/>"></script>
+<pwm:script-ref url="/public/resources/js/admin.js"/>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

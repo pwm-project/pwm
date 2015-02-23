@@ -39,7 +39,7 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <style>
+        <style nonce="<pwm:value name="cspNonce"/>">
             .buttoncell {
                 border: 0;
                 width:50%;
@@ -350,8 +350,8 @@
 
     </script>
 </pwm:script>
-<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
-<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/admin.js"/>"></script>
+<pwm:script-ref url="/public/resources/js/configmanager.js"/>
+<pwm:script-ref url="/public/resources/js/admin.js"/>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>
 </html>

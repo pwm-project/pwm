@@ -128,7 +128,7 @@
                         <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
                     </table>
                     <table style="width:450px;">
-                        <tr><td style="text-align: center; text-decoration: no-underline; cursor: pointer">
+                        <tr><td style="text-align: center; cursor: pointer">
                             <button id="reportStartButton" class="btn">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-play">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_Report_Start" bundle="Admin"/>
@@ -161,7 +161,7 @@
                                 <td colspan="10" style="text-align: center">
                                     <form action="<pwm:url url='Administration'/>" method="GET" enctype="application/x-www-form-urlencoded"
                                           name="statsUpdateForm" id="statsUpdateForm">
-                                        <select name="statsPeriodSelect""
+                                        <select name="statsPeriodSelect"
                                                 style="width: 500px;" data-dojo-props="maxHeight: -1">
                                             <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
                                                 since installation - <%= dateFormat.format(analysis_pwmRequest.getPwmApplication().getInstallTime()) %>

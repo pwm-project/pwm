@@ -37,7 +37,7 @@
 <% final boolean configUnlocked = configeditor_pwmRequest.getPwmApplication().getApplicationMode() == PwmApplication.MODE.CONFIGURATION && !PwmConstants.TRIAL_MODE; %>
 <% final String configNotes = configManagerBean.getStoredConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES);%>
 <body class="nihilo">
-<style>
+<style nonce="<pwm:value name="cspNonce"/>" type="text/css">
     html { overflow-y: scroll; } <%-- always add verticle scrollbar to page --%>
 </style>
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
@@ -47,9 +47,6 @@
             <div id="header-title">
                 <%=PwmConstants.PWM_APP_NAME%> Configuration Editor <span id="currentPageDisplay"></span>
                 <span style="visibility: hidden" id="working_icon" class="headerIcon fa fa-cog fa-spin"></span>
-                <span id="idle_status" class="editorIdleStatus">
-                    <%--idle timeout text --%>
-                </span>
                 <div class="headerIcon" id="cancelButton_icon">
                     <span class="fa fa-times"></span>
                 </div>
@@ -65,6 +62,9 @@
                 <div class="headerIcon" id="macroDoc_icon">
                     <span class="fa fa-magic"></span>
                 </div>
+                <span id="idle_status" class="editorIdleStatus">
+                    <%--idle timeout text --%>
+                </span>
             </div>
         </div>
     </div>
@@ -151,10 +151,10 @@
 </pwm:script>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
-<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
-<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
-<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configeditor-settings.js"/>"></script>
-<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/admin.js"/>"></script>
+<pwm:script-ref url="/public/resources/js/configmanager.js"/>
+<pwm:script-ref url="/public/resources/js/configeditor.js"/>
+<pwm:script-ref url="/public/resources/js/configeditor-settings.js"/>
+<pwm:script-ref url="/public/resources/js/admin.js"/>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

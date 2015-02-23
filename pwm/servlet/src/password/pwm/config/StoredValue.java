@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ package password.pwm.config;
 
 import org.jdom2.Element;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.Serializable;
 import java.util.List;
@@ -51,4 +52,6 @@ public interface StoredValue extends Serializable {
         StoredValue fromXmlElement(final Element settingElement, final String key)
                 throws PwmException;
     }
+
+    String valueHash() throws PwmUnrecoverableException;
 }

@@ -69,7 +69,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
     </div>
     <div class="push"></div>
 </div>
-<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/responses.js'/>"></script>
+<pwm:script-ref url="/public/resources/js/responses.js"/>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

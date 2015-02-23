@@ -327,7 +327,9 @@ PWM_CFGEDIT.setConfigurationPassword = function(password) {
         return;
     }
 
-    var writeFunction = 'PWM_CFGEDIT.setConfigurationPassword(PWM_MAIN.getObject(\'password1\').value)';
+    var writeFunction = function(passwordValue) {
+        PWM_CFGEDIT.setConfigurationPassword(passwordValue);
+    };
     ChangePasswordHandler.popup('configPw','Configuration Password',writeFunction);
 };
 
@@ -401,7 +403,7 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
     PWM_MAIN.addEventHandler('saveButton_icon','click',function(){PWM_CFGEDIT.saveConfiguration()});
     PWM_MAIN.addEventHandler('setPassword_icon','click',function(){PWM_CFGEDIT.setConfigurationPassword()});
     PWM_MAIN.addEventHandler('referenceDoc_icon','click',function(){
-        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/referencedoc.jsp#settings','referencedoc');
+        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/referencedoc.jsp#settings','referencedoc');
     });
     PWM_MAIN.addEventHandler('macroDoc_icon','click',function(){ PWM_CFGEDIT.showMacroHelp(); });
     PWM_MAIN.addEventHandler('settingFilter_icon','click',function(){ PWM_CFGEDIT.showSettingFilter(); });
@@ -713,7 +715,7 @@ PWM_CFGEDIT.showTimezoneList = function() {
             id: idName,
             title: 'Timezones',
             style: "width: 750px",
-            href: PWM_GLOBAL['url-context'] + "/public/timezones.jsp"
+            href: PWM_GLOBAL['url-context'] + "/public/reference/timezones.jsp"
         });
         theDialog.show();
     });

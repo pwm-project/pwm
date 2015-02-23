@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -55,16 +55,8 @@
             <% for (final ShortcutItem item : shortcutItems.values()) { %>
             <tr style="border:0">
                 <td style="border:0; text-align: right; width:10%">
-                    <%
-                        String target = "";
-                        try {
-                            final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-                            target = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_NEW_WINDOW) ? item.getLabel() : "";
-                        } catch (PwmException e) {
-                            /* noop */
-                        }
-                    %>
-                    <a class="menubutton" target="<%=target%>" href="<pwm:url url='/private/Shortcuts' addContext="true"/>?processAction=selectShortcut&link=<%= item.getLabel() %>">
+                    <% final boolean newWindow = JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_NEW_WINDOW); %>
+                    <a class="menubutton" <%=newWindow?" target=\"" + item.getLabel() + "\" " : ""%> href="<pwm:url url='/private/Shortcuts' addContext="true"/>?processAction=selectShortcut&link=<%= item.getLabel() %>">
                         <%= item.getLabel() %>
                     </a>
                 </td>

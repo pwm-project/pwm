@@ -27,7 +27,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
-<style type="text/css">
+<style nonce="<pwm:value name="cspNonce"/>" type="text/css">
     .exampleTD {
         overflow: auto; 
         display: block; 

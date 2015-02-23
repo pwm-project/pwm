@@ -54,6 +54,7 @@ import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.ldap.auth.AuthenticationUtility;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
@@ -350,6 +351,8 @@ public class ForgottenPasswordServlet extends PwmServlet {
                 return;
             }
 
+            AuthenticationUtility.checkIfUserEligibleToAuthentication(pwmApplication, userIdentity);
+
             final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
             initForgottenPasswordBean(pwmApplication, pwmRequest.getLocale(), pwmRequest.getSessionLabel(),userIdentity, forgottenPasswordBean);
 
@@ -579,7 +582,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
             }
         }
 
-        // redirect if an verificiation method is in progress
+        // redirect if an verification method is in progress
         if (progress.getInProgressVerificationMethod() != null) {
             if (progress.getSatisfiedMethods().contains(progress.getInProgressVerificationMethod())) {
                 progress.setInProgressVerificationMethod(null);

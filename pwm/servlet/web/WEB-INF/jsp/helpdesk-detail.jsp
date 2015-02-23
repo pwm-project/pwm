@@ -758,8 +758,8 @@
         });
     </script>
 </pwm:script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/helpdesk.js'/>"></script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
+<pwm:script-ref url="/public/resources/js/helpdesk.js"/>
+<pwm:script-ref url="/public/resources/js/changepassword.js"/>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>

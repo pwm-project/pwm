@@ -51,45 +51,35 @@
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            </div>
-        </form>
-        <div class="buttonbar">
-            <% if (pwmRequest.getConfig().getNewUserProfiles().keySet().size() > 1) { %>
-            <form action="<pwm:url url='NewUser'/>" method="post" name="form-goback" enctype="application/x-www-form-urlencoded"
-                  id="form-goback" class="pwm-form">
-                <button type="submit" name="Create" class="btn">
+
+                <% if (pwmRequest.getConfig().getNewUserProfiles().keySet().size() > 1) { %>
+                <button type="button" id="button-goBack" name="button-goBack" class="btn" >
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
-                <input type="hidden" name="profile" value="-"/>
-                <input type="hidden" name="processAction" value="<%=NewUserServlet.NewUserAction.profileChoice%>"/>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            </form>
-            <% } %>
-            <pwm:if test="showCancel">
-                <form action="<pwm:url url='NewUser'/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
-                    <button class="btn" type="submit" name="submitBtn">
+                <% } %>
+                <pwm:if test="showCancel">
+                    <button  type="submit" id="button-cancel" name="button-cancel" class="btn">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
                         <pwm:display key="Button_Cancel"/>
                     </button>
-                    <input type="hidden" name="processAction" value="reset"/>
-                    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                </form>
-            </pwm:if>
-        </div>
-
+                </pwm:if>
+            </div>
+        </form>
     </div>
     <div class="push"></div>
 </div>
 <pwm:script>
     <script>
         PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('newUserForm','input',function(){PWM_NEWUSER.validateNewUserForm()})
+            PWM_MAIN.addEventHandler('newUserForm','input',function(){PWM_NEWUSER.validateNewUserForm()});
+            PWM_MAIN.submitPostAction('button-goBack','NewUser','<%=NewUserServlet.NewUserAction.profileChoice%>');
+            PWM_MAIN.submitPostAction('button-cancel','NewUser','<%=NewUserServlet.NewUserAction.reset%>');
         });
     </script>
 </pwm:script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/newuser.js'/>"></script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
+<pwm:script-ref url="/public/resources/js/newuser.js"/>
+<pwm:script-ref url="/public/resources/js/changepassword.js"/>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

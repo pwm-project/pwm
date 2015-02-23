@@ -34,6 +34,7 @@ import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.*;
+import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.*;
 import password.pwm.util.logging.PwmLogger;
 
@@ -217,8 +218,6 @@ public class StoredConfiguration implements Serializable {
             final ConfigProperty propertyName,
             final String value
     ) {
-        preModifyActions();
-
         domModifyLock.writeLock().lock();
         try {
 
@@ -685,7 +684,7 @@ public class StoredConfiguration implements Serializable {
 
     public void writeLocaleBundleMap(final String bundleName, final String keyName, final Map<String,String> localeMap) {
         ResourceBundle theBundle = null;
-        for (final PwmConstants.PwmLocaleBundle bundle : PwmConstants.PwmLocaleBundle.values()) {
+        for (final PwmLocaleBundle bundle : PwmLocaleBundle.values()) {
             if (bundle.getTheClass().getName().equals(bundleName)) {
                 theBundle = ResourceBundle.getBundle(bundleName);
             }
@@ -783,35 +782,23 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    public String settingChecksum() throws PwmUnrecoverableException {
+    public String settingChecksum()
+            throws PwmUnrecoverableException
+    {
+        final Date startTime = new Date();
+
+        final List<SettingValueRecord> modifiedSettings = modifiedSettings();
         final StringBuilder sb = new StringBuilder();
         sb.append("PwmSettingsChecksum");
-
-        for (final PwmSetting setting : PwmSetting.values()) {
-            if (setting.getSyntax() != PwmSettingSyntax.PROFILE && !setting.getCategory().hasProfiles()) {
-                if (!isDefaultValue(setting,null)) {
-                    final StoredValue value = readSetting(setting);
-                    sb.append(setting.getKey()).append(JsonUtil.serialize(value));
-                }
-            }
+        for (SettingValueRecord settingValueRecord : modifiedSettings) {
+            final StoredValue storedValue = settingValueRecord.getStoredValue();
+            sb.append(storedValue.valueHash());
         }
 
-        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
-            if (category.hasProfiles()) {
-                for (final String profileID : this.profilesForSetting(category.getProfileSetting())) {
-                    for (final PwmSetting profileSetting : category.getSettings()) {
-                        if (!isDefaultValue(profileSetting, profileID)) {
-                            final StoredValue value = readSetting(profileSetting, profileID);
-                            sb.append(profileSetting.getKey()).append(profileID).append(JsonUtil.serialize(value));
-                        }
-                    }
-                }
-            }
-        }
 
-        sb.append(createTime());
-
-        return SecureHelper.hash(sb.toString(),SecureHelper.DEFAULT_HASH_ALGORITHM);
+        final String result = SecureHelper.hash(sb.toString());
+        LOGGER.trace("computed setting checksum in " + TimeDuration.fromCurrent(startTime).asCompactString());
+        return result;
     }
 
 
@@ -1207,7 +1194,7 @@ public class StoredConfiguration implements Serializable {
             }
             final StringBuilder output = new StringBuilder();
             if (outputMap.isEmpty()) {
-                output.append("No changes.");
+                output.append("No setting changes.");
             } else {
                 for (final String keyName : outputMap.keySet()) {
                     final String value = outputMap.get(keyName);
@@ -1441,4 +1428,5 @@ public class StoredConfiguration implements Serializable {
         
         LOGGER.debug("initialized new random security key");
     }
+
 }

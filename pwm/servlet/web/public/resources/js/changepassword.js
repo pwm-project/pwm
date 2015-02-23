@@ -192,6 +192,12 @@ PWM_CHANGEPW.copyToPasswordFields = function(text) { // used to copy auto-genera
 
 
 PWM_CHANGEPW.showPasswordGuide=function() {
+    PWM_MAIN.showDialog({
+        showClose:true,
+        title: PWM_MAIN.showString('Title_PasswordGuide'),
+        text: '<div id="passwordGuideTextContent">' + PWM_GLOBAL['passwordGuideText'] + '</div>'
+    });
+    /*
     PWM_MAIN.clearDijitWidget('dialogPopup');
     require(["dojo","dijit/Dialog"],function(dojo, Dialog){
         var theDialog = new Dialog({
@@ -208,6 +214,7 @@ PWM_CHANGEPW.showPasswordGuide=function() {
             dojo.destroy(PWM_MAIN.getObject("passwordGuideTextContent"));
         });
     });
+    */
 };
 
 PWM_CHANGEPW.handleChangePasswordSubmit=function() {

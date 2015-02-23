@@ -40,6 +40,7 @@ import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
+import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
@@ -281,7 +282,7 @@ public class ConfigEditorServlet extends PwmServlet {
         if (key.startsWith("localeBundle")) {
             final StringTokenizer st = new StringTokenizer(key, "-");
             st.nextToken();
-            final PwmConstants.PwmLocaleBundle bundleName = PwmConstants.PwmLocaleBundle.valueOf(st.nextToken());
+            final PwmLocaleBundle bundleName = PwmLocaleBundle.valueOf(st.nextToken());
             final String keyName = st.nextToken();
             final Map<String, String> bundleMap = storedConfig.readLocaleBundleMap(bundleName.getTheClass().getName(), keyName);
             if (bundleMap == null || bundleMap.isEmpty()) {
@@ -371,7 +372,7 @@ public class ConfigEditorServlet extends PwmServlet {
         if (key.startsWith("localeBundle")) {
             final StringTokenizer st = new StringTokenizer(key, "-");
             st.nextToken();
-            final PwmConstants.PwmLocaleBundle bundleName = PwmConstants.PwmLocaleBundle.valueOf(st.nextToken());
+            final PwmLocaleBundle bundleName = PwmLocaleBundle.valueOf(st.nextToken());
             final String keyName = st.nextToken();
             final Map<String, String> valueMap = JsonUtil.deserializeStringMap(bodyString);
             final Map<String, String> outputMap = new LinkedHashMap<>(valueMap);
@@ -414,7 +415,7 @@ public class ConfigEditorServlet extends PwmServlet {
         if (key.startsWith("localeBundle")) {
             final StringTokenizer st = new StringTokenizer(key, "-");
             st.nextToken();
-            final PwmConstants.PwmLocaleBundle bundleName = PwmConstants.PwmLocaleBundle.valueOf(st.nextToken());
+            final PwmLocaleBundle bundleName = PwmLocaleBundle.valueOf(st.nextToken());
             final String keyName = st.nextToken();
             storedConfig.resetLocaleBundleMap(bundleName.getTheClass().getName(), keyName);
         } else {
@@ -721,8 +722,7 @@ public class ConfigEditorServlet extends PwmServlet {
                 categoryInfo.put("id", loopCategory.getKey());
                 categoryInfo.put("name", loopCategory.getLabel(pwmRequest.getLocale()));
 
-
-                if (loopCategory.getParent() != null && loopCategory != PwmSettingCategory.LDAP_PROFILE) {
+                if (loopCategory.getParent() != null) {
                     categoryInfo.put("parent", loopCategory.getParent().getKey());
                 } else {
                     categoryInfo.put("parent", "ROOT");
@@ -769,7 +769,7 @@ public class ConfigEditorServlet extends PwmServlet {
 
         boolean includeDisplayText = false;
         if (level >= 1) {
-            for (final PwmConstants.PwmLocaleBundle localeBundle : PwmConstants.PwmLocaleBundle.values()) {
+            for (final PwmLocaleBundle localeBundle : PwmLocaleBundle.values()) {
                 if (!localeBundle.isAdminOnly()) {
                     final Set<String> modifiedKeys = new TreeSet<>();
                     if (modifiedSettingsOnly) {
@@ -803,7 +803,7 @@ public class ConfigEditorServlet extends PwmServlet {
 
     private static class NavTreeHelper {
         private static Set<String> determineModifiedKeysSettings(
-                final PwmConstants.PwmLocaleBundle bundle,
+                final PwmLocaleBundle bundle,
                 final Configuration config,
                 final StoredConfiguration storedConfiguration
         ) {
@@ -929,7 +929,7 @@ public class ConfigEditorServlet extends PwmServlet {
         }
         {
             final LinkedHashMap<String, Object> labelMap = new LinkedHashMap<>();
-            for (final PwmConstants.PwmLocaleBundle localeBundle : PwmConstants.PwmLocaleBundle.values()) {
+            for (final PwmLocaleBundle localeBundle : PwmLocaleBundle.values()) {
                 final LocaleInfo localeInfo = new LocaleInfo();
                 localeInfo.description = localeBundle.getTheClass().getSimpleName();
                 localeInfo.key = localeBundle.toString();

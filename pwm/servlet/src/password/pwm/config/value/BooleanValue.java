@@ -26,6 +26,7 @@ import org.jdom2.Element;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.util.JsonUtil;
 
@@ -96,5 +97,10 @@ public class BooleanValue implements StoredValue {
     public int currentSyntaxVersion()
     {
         return 0;
+    }
+
+    @Override
+    public String valueHash() throws PwmUnrecoverableException {
+        return value ? "1" : "0";
     }
 }

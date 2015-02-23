@@ -381,25 +381,43 @@ public class NewUserServlet extends PwmServlet {
             final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
                     pwmSession,
                     null,
-                    newUserBean.getVerificationPhase().getTokenName(),
+                    null,
                     userEnteredCode
             );
             if (tokenPayload != null) {
                 final NewUserTokenData newUserTokenData = NewUserFormUtils.fromTokenPayload(pwmRequest, tokenPayload);
                 newUserBean.setProfileID(newUserTokenData.profileID);
-                final NewUserBean.NewUserForm newUserForm = newUserTokenData.formData;
-                if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.EMAIL) {
-                    LOGGER.debug("Email token passed");
+                final NewUserBean.NewUserForm newUserFormFromToken = newUserTokenData.formData;
+                if (NewUserBean.NewUserVerificationPhase.EMAIL.getTokenName().equals(tokenPayload.getName())) {
+                    LOGGER.debug(pwmRequest, "email token passed");
+
+                    try {
+                        verifyForm(pwmRequest, newUserFormFromToken);
+                    } catch (PwmUnrecoverableException | PwmOperationalException e) {
+                        LOGGER.error(pwmRequest,"while reading stored form data in token payload, form validation error occured: " + e.getMessage());
+                        throw e;
+                    }
+
+                    newUserBean.setNewUserForm(newUserFormFromToken);
+                    newUserBean.setFormPassed(true);
                     newUserBean.setEmailTokenPassed(true);
                     newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
                     tokenPassed = true;
-                } else if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) {
-                    LOGGER.debug("SMS token passed");
-                    newUserBean.setSmsTokenPassed(true);
-                    newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
-                    tokenPassed = true;
+                } else if (NewUserBean.NewUserVerificationPhase.SMS.getTokenName().equals(tokenPayload.getName())) {
+                    if (newUserBean.getNewUserForm() != null && newUserBean.getNewUserForm().isConsistentWith(newUserFormFromToken)) {
+                        LOGGER.debug(pwmRequest, "SMS token passed");
+                        newUserBean.setSmsTokenPassed(true);
+                        newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
+                        tokenPassed = true;
+                    } else {
+                        LOGGER.debug(pwmRequest, "SMS token value is valid, but form data does not match current session form data");
+                        final String errorMsg = "sms token does not match current session";
+                        errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
+                    }
+                } else {
+                    final String errorMsg = "token name/type is not recognized: " + tokenPayload.getName();
+                    errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
                 }
-                newUserBean.setNewUserForm(newUserForm);
             }
         } catch (PwmOperationalException e) {
             final String errorMsg = "token incorrect: " + e.getMessage();
@@ -425,7 +443,7 @@ public class NewUserServlet extends PwmServlet {
         final Set<String> profileIDs = pwmRequest.getConfig().getNewUserProfiles().keySet();
         final String requestedProfileID = pwmRequest.readParameterAsString("profile");
         
-        if ("-".equalsIgnoreCase(requestedProfileID)) {
+        if (requestedProfileID == null || requestedProfileID.isEmpty()) {
             newUserBean.setProfileID(null);
         } if (profileIDs.contains(requestedProfileID)) {
             newUserBean.setProfileID(requestedProfileID);
@@ -1077,12 +1095,17 @@ public class NewUserServlet extends PwmServlet {
                 throws PwmOperationalException, PwmUnrecoverableException
         {
             final Locale userLocale = pwmRequest.getLocale();
-            final List<FormConfiguration> newUserFormDefinition = getFormDefinition(pwmRequest);
 
             final Map<String, String> payloadMap = tokenPayload.getData();
             final String profileID = payloadMap.get(TOKEN_PAYLOAD_ATTR);
             payloadMap.remove(TOKEN_PAYLOAD_ATTR);
-            
+
+            final NewUserProfile newUserProfile = pwmRequest.getConfig().getNewUserProfiles().get(profileID);
+            if (newUserProfile == null) {
+                throw new PwmOperationalException(PwmError.ERROR_TOKEN_INCORRECT,"token data references an invalid new user profileID");
+            }
+
+            final List<FormConfiguration> newUserFormDefinition = newUserProfile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
             final Map<FormConfiguration, String> userFormValues = FormUtility.readFormValuesFromMap(payloadMap,
                     newUserFormDefinition, userLocale);
             final PasswordData passwordData;
