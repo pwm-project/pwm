@@ -43,6 +43,7 @@ import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.UserAuditRecord;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupResponsesBean;
@@ -71,23 +72,23 @@ public class SetupResponsesServlet extends PwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SetupResponsesServlet.class);
 
     public enum SetupResponsesAction implements PwmServlet.ProcessAction {
-        validateResponses(PwmServlet.HttpMethod.POST),
-        setResponses(PwmServlet.HttpMethod.POST),
-        setHelpdeskResponses(PwmServlet.HttpMethod.POST),
-        confirmResponses(PwmServlet.HttpMethod.POST),
-        clearExisting(PwmServlet.HttpMethod.POST),
-        changeResponses(PwmServlet.HttpMethod.POST),
+        validateResponses(HttpMethod.POST),
+        setResponses(HttpMethod.POST),
+        setHelpdeskResponses(HttpMethod.POST),
+        confirmResponses(HttpMethod.POST),
+        clearExisting(HttpMethod.POST),
+        changeResponses(HttpMethod.POST),
 
         ;
 
-        private final PwmServlet.HttpMethod method;
+        private final HttpMethod method;
 
-        SetupResponsesAction(PwmServlet.HttpMethod method)
+        SetupResponsesAction(HttpMethod method)
         {
             this.method = method;
         }
 
-        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods()
         {
             return Collections.singletonList(method);
         }

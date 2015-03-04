@@ -44,6 +44,7 @@ import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.ProfileUtility;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ForgottenPasswordBean;
@@ -105,14 +106,14 @@ public class ForgottenPasswordServlet extends PwmServlet {
 
         ;
 
-        private final Collection<PwmServlet.HttpMethod> method;
+        private final Collection<HttpMethod> method;
 
-        ForgottenPasswordAction(PwmServlet.HttpMethod... method)
+        ForgottenPasswordAction(HttpMethod... method)
         {
             this.method = Collections.unmodifiableList(Arrays.asList(method));
         }
 
-        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods()
         {
             return method;
         }
@@ -281,6 +282,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
 
         if (remainingAvailableOptionalMethods.contains(requestedChoice)) {
             forgottenPasswordBean.getProgress().setInProgressVerificationMethod(requestedChoice);
+            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordOptionalPageView,"true");
             forwardUserBasedOnRecoveryMethod(pwmRequest, requestedChoice);
             return;
         } else if (requestedChoice != null) {
@@ -587,6 +589,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
             if (progress.getSatisfiedMethods().contains(progress.getInProgressVerificationMethod())) {
                 progress.setInProgressVerificationMethod(null);
             } else {
+                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordOptionalPageView,"true");
                 forwardUserBasedOnRecoveryMethod(pwmRequest, progress.getInProgressVerificationMethod());
                 return;
             }
@@ -1161,13 +1164,13 @@ public class ForgottenPasswordServlet extends PwmServlet {
 
         final Set<RecoveryVerificationMethod> requiredRecoveryVerificationMethods = forgottenPasswordProfile.requiredRecoveryAuthenticationMethods();
         final Set<RecoveryVerificationMethod> optionalRecoveryVerificationMethods = forgottenPasswordProfile.optionalRecoveryAuthenticationMethods();
-        final int minimumOptionalRecoveryAuthMethds = (int)forgottenPasswordProfile.readSettingAsLong(PwmSetting.RECOVERY_VERIFICATION_MIN_OPTIONAL_METHODS);
+        final int minimumOptionalRecoveryAuthMethods = forgottenPasswordProfile.getMinOptionalRequired();
         final boolean allowWhenLdapIntruderLocked = forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_WHEN_LOCKED);
 
         return new ForgottenPasswordBean.RecoveryFlags(
                 requiredRecoveryVerificationMethods,
                 optionalRecoveryVerificationMethods,
-                minimumOptionalRecoveryAuthMethds,
+                minimumOptionalRecoveryAuthMethods,
                 allowWhenLdapIntruderLocked,
                 tokenSendMethod
         );

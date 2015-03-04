@@ -33,6 +33,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ForceSetupPolicy;
 import password.pwm.error.*;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupOtpBean;
@@ -63,24 +64,24 @@ public class SetupOtpServlet extends PwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SetupOtpServlet.class);
 
     public enum SetupOtpAction implements PwmServlet.ProcessAction {
-        clearOtp(PwmServlet.HttpMethod.POST),
-        testOtpSecret(PwmServlet.HttpMethod.POST),
-        toggleSeen(PwmServlet.HttpMethod.POST),
-        restValidateCode(PwmServlet.HttpMethod.POST),
-        complete(PwmServlet.HttpMethod.POST),
-        showQrImage(PwmServlet.HttpMethod.GET),
-        skip(PwmServlet.HttpMethod.POST),
+        clearOtp(HttpMethod.POST),
+        testOtpSecret(HttpMethod.POST),
+        toggleSeen(HttpMethod.POST),
+        restValidateCode(HttpMethod.POST),
+        complete(HttpMethod.POST),
+        showQrImage(HttpMethod.GET),
+        skip(HttpMethod.POST),
 
         ;
 
-        private final PwmServlet.HttpMethod method;
+        private final HttpMethod method;
 
-        SetupOtpAction(PwmServlet.HttpMethod method)
+        SetupOtpAction(HttpMethod method)
         {
             this.method = method;
         }
 
-        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods()
         {
             return Collections.singletonList(method);
         }
@@ -396,6 +397,7 @@ public class SetupOtpServlet extends PwmServlet {
                 final OTPUserRecord otpUserRecord = new OTPUserRecord();
                 final List<String> rawRecoveryCodes = pwmApplication.getOtpService().initializeUserRecord(
                         otpUserRecord,
+                        pwmRequest.getSessionLabel(),
                         identifier
                 );
                 otpBean.setOtpUserRecord(otpUserRecord);

@@ -38,6 +38,7 @@ import password.pwm.config.value.*;
 import password.pwm.error.*;
 import password.pwm.health.*;
 import password.pwm.http.ContextManager;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigGuideBean;

@@ -25,4 +25,9 @@ package password.pwm.util.macro;
 public abstract class AbstractMacro implements MacroImplementation {
     public AbstractMacro() {
     }
+
+    @Override
+    public boolean isSensitive() {
+        return false;
+    }
 }

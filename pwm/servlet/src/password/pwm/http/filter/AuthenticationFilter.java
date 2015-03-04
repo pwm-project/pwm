@@ -23,7 +23,10 @@
 package password.pwm.http.filter;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.Validator;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
@@ -36,6 +39,7 @@ import password.pwm.http.PwmURL;
 import password.pwm.http.servlet.OAuthConsumerServlet;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
+import password.pwm.ldap.PasswordChangeProgressChecker;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;

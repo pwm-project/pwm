@@ -458,7 +458,7 @@ public class StoredConfiguration implements Serializable {
                     outputObject.put(category.getProfileSetting().getKey(),profiles);
                 }
             }
-            
+
             return linebreaks
                     ? JsonUtil.serialize(outputObject, JsonUtil.Flag.PrettyPrint)
                     : JsonUtil.serialize(outputObject);
@@ -1083,6 +1083,40 @@ public class StoredConfiguration implements Serializable {
                     storedConfiguration.resetSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID, actor);
                 }
             }
+
+            /*
+            {
+                if (!storedConfiguration.isDefaultValue(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
+                    final StoredValue configValue = storedConfiguration.readSetting(PwmSetting.RECOVERY_VERIFICATION_METHODS, "default");
+                    final VerificationMethodValue.VerificationMethodSettings existingSettings = (VerificationMethodValue.VerificationMethodSettings)configValue.toNativeObject();
+                    final Map<RecoveryVerificationMethod,VerificationMethodValue.VerificationMethodSetting> newMethods = new HashMap<>();
+                    newMethods.putAll(existingSettings.getMethodSettings());
+                    VerificationMethodValue.VerificationMethodSetting setting = new VerificationMethodValue.VerificationMethodSetting(VerificationMethodValue.EnabledState.disabled);
+                    newMethods.put(RecoveryVerificationMethod.CHALLENGE_RESPONSES,setting);
+                    final VerificationMethodValue.VerificationMethodSettings newSettings = new VerificationMethodValue.VerificationMethodSettings(
+                            newMethods,
+                            existingSettings.getMinOptionalRequired()
+                    );
+                    storedConfiguration.writeSetting(PwmSetting.RECOVERY_VERIFICATION_METHODS, "default", new VerificationMethodValue(newSettings), actor);
+                }
+            }
+
+            {
+                if (!storedConfiguration.isDefaultValue(PwmSetting.FORGOTTEN_PASSWORD_REQUIRE_OTP)) {
+                    final StoredValue configValue = storedConfiguration.readSetting(PwmSetting.RECOVERY_VERIFICATION_METHODS, "default");
+                    final VerificationMethodValue.VerificationMethodSettings existingSettings = (VerificationMethodValue.VerificationMethodSettings)configValue.toNativeObject();
+                    final Map<RecoveryVerificationMethod,VerificationMethodValue.VerificationMethodSetting> newMethods = new HashMap<>();
+                    newMethods.putAll(existingSettings.getMethodSettings());
+                    VerificationMethodValue.VerificationMethodSetting setting = new VerificationMethodValue.VerificationMethodSetting(VerificationMethodValue.EnabledState.required);
+                    newMethods.put(RecoveryVerificationMethod.CHALLENGE_RESPONSES,setting);
+                    final VerificationMethodValue.VerificationMethodSettings newSettings = new VerificationMethodValue.VerificationMethodSettings(
+                            newMethods,
+                            existingSettings.getMinOptionalRequired()
+                    );
+                    storedConfiguration.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_REQUIRE_OTP, "default", new VerificationMethodValue(newSettings), actor);
+                }
+            }
+            */
         }
     }
 
@@ -1177,7 +1211,7 @@ public class StoredConfiguration implements Serializable {
                         final PwmSetting pwmSetting = (PwmSetting) configRecordID.recordID;
                         final String keyName = pwmSetting.toMenuLocationDebug(configRecordID.getProfileID(), locale);
                         final String debugValue = currentValue.toDebugString(asHtml, locale);
-                        outputMap.put(keyName.toString(),debugValue);
+                        outputMap.put(keyName,debugValue);
                     }
                     break;
 
@@ -1412,20 +1446,20 @@ public class StoredConfiguration implements Serializable {
         }
         return null;
     }
-    
-    public void initNewRandomSecurityKey() 
-            throws PwmUnrecoverableException 
+
+    public void initNewRandomSecurityKey()
+            throws PwmUnrecoverableException
     {
         if (!isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) {
             return;
         }
-        
+
         writeSetting(
                 PwmSetting.PWM_SECURITY_KEY,
                 new PasswordValue(new PasswordData(PwmRandom.getInstance().alphaNumericString(1024))),
                 null
         );
-        
+
         LOGGER.debug("initialized new random security key");
     }
 

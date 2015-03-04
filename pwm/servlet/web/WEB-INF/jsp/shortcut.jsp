@@ -33,6 +33,7 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <%
+    final boolean newWindow = JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_NEW_WINDOW);
     Map<String, ShortcutItem> shortcutItems = Collections.emptyMap();
     try {
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
@@ -51,16 +52,21 @@
         <% if (shortcutItems.isEmpty()) { %>
         <p>No shortcuts</p>
         <% } else { %>
-        <table style="border:0">
+        <table class="noborder">
             <% for (final ShortcutItem item : shortcutItems.values()) { %>
-            <tr style="border:0">
-                <td style="border:0; text-align: right; width:10%">
-                    <% final boolean newWindow = JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_NEW_WINDOW); %>
-                    <a class="menubutton" <%=newWindow?" target=\"" + item.getLabel() + "\" " : ""%> href="<pwm:url url='/private/Shortcuts' addContext="true"/>?processAction=selectShortcut&link=<%= item.getLabel() %>">
-                        <%= item.getLabel() %>
-                    </a>
+            <tr>
+                <td class="menubutton_key">
+                    <form action="<pwm:url url='Shortcuts'/>" method="post" name="form-shortcuts-<%=item%>" enctype="application/x-www-form-urlencoded" id="form-shortcuts-<%=item%>" <%=newWindow ? " target=\"_blank\"" : ""%>>
+                        <input type="hidden" name="processAction" value="selectShortcut">
+                        <input type="hidden" name="link" value="<%=item.getLabel()%>">
+                        <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
+                        <button type="submit" class="menubutton">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-external-link"></span></pwm:if>
+                            <%=item.getLabel()%>
+                        </button>
+                    </form>
                 </td>
-                <td style="border: 0">
+                <td>
                     <p><%= item.getDescription() %></p>
                 </td>
             </tr>

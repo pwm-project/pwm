@@ -29,11 +29,13 @@ import password.pwm.Validator;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
+import password.pwm.config.option.RecoveryVerificationMethod;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.*;
 import password.pwm.health.*;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
@@ -707,7 +709,7 @@ public class ConfigEditorServlet extends PwmServlet {
             navigationData.add(categoryInfo);
         }
 
-        {
+        { // home menu item
             final Map<String, Object> categoryInfo = new HashMap<>();
             categoryInfo.put("id", "HOME");
             categoryInfo.put("name", LocaleHelper.getLocalizedMessage(pwmRequest.getLocale(),Config.MenuItem_Home,pwmRequest.getConfig()));
@@ -716,7 +718,7 @@ public class ConfigEditorServlet extends PwmServlet {
         }
 
         final StoredConfiguration storedConfiguration = configManagerBean.getStoredConfiguration();
-        for (final PwmSettingCategory loopCategory : PwmSettingCategory.values()) {
+        for (final PwmSettingCategory loopCategory : PwmSettingCategory.sortedValues(pwmRequest.getLocale())) {
             if (NavTreeHelper.categoryMatcher(loopCategory, storedConfiguration, modifiedSettingsOnly, level)) {
                 final Map<String, Object> categoryInfo = new LinkedHashMap<>();
                 categoryInfo.put("id", loopCategory.getKey());
@@ -797,7 +799,7 @@ public class ConfigEditorServlet extends PwmServlet {
             navigationData.add(categoryInfo);
         }
 
-        LOGGER.debug(pwmRequest,"completed navigation tree data request in " + TimeDuration.fromCurrent(startTime));
+        LOGGER.trace(pwmRequest,"completed navigation tree data request in " + TimeDuration.fromCurrent(startTime).asCompactString());
         pwmRequest.outputJsonResult(new RestResultBean(navigationData));
     }
 
@@ -948,6 +950,13 @@ public class ConfigEditorServlet extends PwmServlet {
             }
             returnMap.put("templates", templateMap);
         }
+        {
+            final LinkedHashMap<String, Object> verificationMethodMap = new LinkedHashMap<>();
+            for (final RecoveryVerificationMethod recoveryVerificationMethod : RecoveryVerificationMethod.values()) {
+                verificationMethodMap.put(recoveryVerificationMethod.toString(), recoveryVerificationMethod.getLabel(pwmRequest.getConfig(), pwmRequest.getLocale()));
+            }
+            returnMap.put("verificationMethods",verificationMethodMap);
+        }
 
         final RestResultBean restResultBean = new RestResultBean();
 
@@ -967,7 +976,7 @@ public class ConfigEditorServlet extends PwmServlet {
             if (pwmRequest.isAuthenticated()) {
                 macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
             } else {
-                macroMachine = MacroMachine.forNonUserSpecific(pwmRequest.getPwmApplication());
+                macroMachine = MacroMachine.forNonUserSpecific(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
             }
             final String input = inputMap.get("input");
             final String output = macroMachine.expandMacros(input);

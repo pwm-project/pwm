@@ -33,6 +33,7 @@ public enum AppProperty {
     BACKUP_LOCALDB_COUNT                            ("backup.localdb.count"),
     CACHE_ENABLE                                    ("cache.enable"),
     CACHE_MEMORY_MAX_ITEMS                          ("cache.memory.maxItems"),
+    CACHE_PWRULECHECK_LIFETIME_MS                   ("cache.pwRuleCheckLifetimeMS"),
     CLIENT_ACTIVITY_MAX_EPS_RATE                    ("client.ajax.activityMaxEpsRate"),
     CLIENT_AJAX_PW_WAIT_CHECK_SECONDS               ("client.ajax.changePasswordWaitCheckSeconds"),
     CLIENT_AJAX_TYPING_TIMEOUT                      ("client.ajax.typingTimeout"),

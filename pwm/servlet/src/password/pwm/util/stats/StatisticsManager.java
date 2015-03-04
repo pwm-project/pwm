@@ -27,7 +27,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import password.pwm.AlertHandler;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
@@ -38,10 +37,8 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmRandom;
-import password.pwm.util.TimeDuration;
+import password.pwm.http.client.PwmHttpClient;
+import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -504,7 +501,7 @@ public class StatisticsManager implements PwmService {
         httpPost.setHeader("Accept", PwmConstants.AcceptValue.json.getHeaderValue());
         httpPost.setHeader("Content-Type", PwmConstants.ContentTypeValue.json.getHeaderValue());
         LOGGER.debug("preparing to send anonymous statistics to " + requestURI.toString() + ", data to send: " + jsonDataString);
-        final HttpResponse httpResponse = Helper.getHttpClient(pwmApplication.getConfig()).execute(httpPost);
+        final HttpResponse httpResponse = PwmHttpClient.getHttpClient(pwmApplication.getConfig()).execute(httpPost);
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new IOException("http response error code: " + httpResponse.getStatusLine().getStatusCode());
         }

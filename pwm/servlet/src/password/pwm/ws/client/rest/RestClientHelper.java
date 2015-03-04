@@ -31,7 +31,7 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.Helper;
+import password.pwm.http.client.PwmHttpClient;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
@@ -60,7 +60,7 @@ public class RestClientHelper {
             stringEntity.setContentType(PwmConstants.AcceptValue.json.getHeaderValue());
             httpPost.setEntity(stringEntity);
             LOGGER.debug("beginning external rest call to: " + httpPost.toString() + ", body: " + jsonRequestBody);
-            httpResponse = Helper.getHttpClient(pwmApplication.getConfig()).execute(httpPost);
+            httpResponse = PwmHttpClient.getHttpClient(pwmApplication.getConfig()).execute(httpPost);
             final String responseBody = EntityUtils.toString(httpResponse.getEntity());
             LOGGER.trace("external rest call returned: " + httpResponse.getStatusLine().toString() + ", body: " + responseBody);
             if (httpResponse.getStatusLine().getStatusCode() != 200) {

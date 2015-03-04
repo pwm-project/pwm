@@ -34,6 +34,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
@@ -42,6 +43,7 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.LoginInfoBean;
@@ -85,25 +87,25 @@ public class NewUserServlet extends PwmServlet {
     }
 
     public enum NewUserAction implements PwmServlet.ProcessAction {
-        profileChoice(PwmServlet.HttpMethod.POST),
-        checkProgress(PwmServlet.HttpMethod.GET),
-        complete(PwmServlet.HttpMethod.GET),
-        processForm(PwmServlet.HttpMethod.POST),
-        validate(PwmServlet.HttpMethod.POST),
-        enterCode(PwmServlet.HttpMethod.POST, HttpMethod.GET),
-        reset(PwmServlet.HttpMethod.POST),
-        agree(PwmServlet.HttpMethod.POST),
+        profileChoice(HttpMethod.POST),
+        checkProgress(HttpMethod.GET),
+        complete(HttpMethod.GET),
+        processForm(HttpMethod.POST),
+        validate(HttpMethod.POST),
+        enterCode(HttpMethod.POST, HttpMethod.GET),
+        reset(HttpMethod.POST),
+        agree(HttpMethod.POST),
 
         ;
 
-        private final Collection<PwmServlet.HttpMethod> method;
+        private final Collection<HttpMethod> method;
 
-        NewUserAction(PwmServlet.HttpMethod... method)
+        NewUserAction(HttpMethod... method)
         {
             this.method = Collections.unmodifiableList(Arrays.asList(method));
         }
 
-        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods()
         {
             return method;
         }
@@ -258,8 +260,11 @@ public class NewUserServlet extends PwmServlet {
                 pwmSession.getSessionStateBean().getLocale());
         if (newUserAgreementText != null && !newUserAgreementText.isEmpty()) {
             if (!newUserBean.isAgreementPassed()) {
-                final MacroMachine macroMachine = createMacroMachineForNewUser(pwmApplication,
-                        newUserBean.getNewUserForm());
+                final MacroMachine macroMachine = createMacroMachineForNewUser(
+                        pwmApplication,
+                        pwmRequest.getSessionLabel(),
+                        newUserBean.getNewUserForm()
+                );
                 final String expandedText = macroMachine.expandMacros(newUserAgreementText);
                 pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.AgreementText, expandedText);
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_AGREEMENT);
@@ -668,7 +673,7 @@ public class NewUserServlet extends PwmServlet {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final MacroMachine macroMachine = createMacroMachineForNewUser(pwmRequest.getPwmApplication(), formValues);
+        final MacroMachine macroMachine = createMacroMachineForNewUser(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), formValues);
         final NewUserProfile newUserProfile = getNewUserProfile(pwmRequest);
         final List<String> configuredNames = newUserProfile.readSettingAsStringArray(PwmSetting.NEWUSER_USERNAME_DEFINITION);
         final List<String> failedValues = new ArrayList<>();
@@ -788,7 +793,7 @@ public class NewUserServlet extends PwmServlet {
         final NewUserBean newUserBean = pwmRequest.getPwmSession().getNewUserBean();
         final Configuration config = pwmApplication.getConfig();
         final Map<String, String> tokenPayloadMap = NewUserFormUtils.toTokenPayload(pwmRequest, newUserBean.getNewUserForm());
-        final MacroMachine macroMachine = createMacroMachineForNewUser(pwmApplication, newUserBean.getNewUserForm());
+        final MacroMachine macroMachine = createMacroMachineForNewUser(pwmApplication, pwmRequest.getSessionLabel(), newUserBean.getNewUserForm());
 
         switch (phase) {
             case SMS: {
@@ -957,6 +962,7 @@ public class NewUserServlet extends PwmServlet {
 
     private static MacroMachine createMacroMachineForNewUser(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final NewUserBean.NewUserForm newUserForm
     )
             throws PwmUnrecoverableException
@@ -975,7 +981,7 @@ public class NewUserServlet extends PwmServlet {
         stubLoginBean.setUserCurrentPassword(newUserForm.getNewUserPassword());
 
         final UserDataReader stubReader = new NewUserUserDataReader(formValues);
-        return new MacroMachine(pwmApplication, stubUserBean, stubLoginBean, stubReader);
+        return new MacroMachine(pwmApplication, sessionLabel, stubUserBean, stubLoginBean, stubReader);
     }
 
 

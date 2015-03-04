@@ -30,6 +30,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.ShortcutItem;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapPermissionTester;
@@ -48,9 +49,9 @@ public class ShortcutServlet extends PwmServlet {
         selectShortcut,
         ;
 
-        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods()
         {
-            return Collections.singletonList(PwmServlet.HttpMethod.GET);
+            return Collections.singletonList(HttpMethod.POST);
         }
     }
 

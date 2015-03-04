@@ -62,6 +62,7 @@
 %>
 <% if (includeHeader) { %>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
+<pwm:script-ref url="/public/resources/js/admin.js"/>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){

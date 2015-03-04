@@ -41,6 +41,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.LoginInfoBean;
+import password.pwm.http.client.PwmHttpClient;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.util.*;
@@ -264,7 +265,7 @@ public class OAuthConsumerServlet extends PwmServlet {
         } catch (PwmUnrecoverableException | IOException e) {
             LOGGER.error(pwmRequest, "error while processing oauth token refresh:" + e.getMessage());
         }
-        LOGGER.error(pwmRequest, "unable to refresh oauth token for user, unauthenticating session");
+        LOGGER.error(pwmRequest, "unable to refresh oauth token for user, unauthenticated session");
         pwmRequest.getPwmSession().unauthenticateUser();
         return true;
     }
@@ -356,7 +357,7 @@ public class OAuthConsumerServlet extends PwmServlet {
         bodyEntity.setContentType(PwmConstants.ContentTypeValue.form.getHeaderValue());
         httpPost.setEntity(bodyEntity);
 
-        final HttpResponse httpResponse = Helper.getHttpClient(pwmRequest.getConfig()).execute(httpPost);
+        final HttpResponse httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig()).execute(httpPost);
         final String bodyResponse = EntityUtils.toString(httpResponse.getEntity());
 
         final StringBuilder debugOutput = new StringBuilder();

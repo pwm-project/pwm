@@ -404,6 +404,11 @@ public abstract class StandardMacros {
                 return "";
             }
         }
+
+        @Override
+        public boolean isSensitive() {
+            return true;
+        }
     }
 
     public static class SiteURLMacro extends AbstractMacro {

@@ -38,6 +38,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.http.client.PwmHttpClient;
 import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
@@ -448,7 +449,7 @@ public class SmsQueueManager extends AbstractQueueManager {
                     httpRequest.addHeader(PwmConstants.HttpHeader.Authorization.getHttpName(), ba.toAuthHeader());
                 }
 
-                final HttpClient httpClient = Helper.getHttpClient(config);
+                final HttpClient httpClient = PwmHttpClient.getHttpClient(config);
                 final HttpResponse httpResponse = httpClient.execute(httpRequest);
                 final String responseBody = EntityUtils.toString(httpResponse.getEntity());
                 final int resultCode = httpResponse.getStatusLine().getStatusCode();

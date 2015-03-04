@@ -34,6 +34,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Message;
@@ -56,9 +57,9 @@ public class ForgottenUsernameServlet extends PwmServlet {
         search,
         ;
 
-        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods()
         {
-            return Collections.singletonList(PwmServlet.HttpMethod.POST);
+            return Collections.singletonList(HttpMethod.POST);
         }
     }
 
@@ -212,6 +213,7 @@ public class ForgottenUsernameServlet extends PwmServlet {
 
         sendMessageViaMethod(
                 pwmApplication,
+                pwmSession.getLabel(),
                 forgottenUserInfo,
                 messageSendMethod,
                 emailItemBean,
@@ -222,6 +224,7 @@ public class ForgottenUsernameServlet extends PwmServlet {
 
     private static void sendMessageViaMethod(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final UserInfoBean userInfoBean,
             final MessageSendMethod messageSendMethod,
             final EmailItemBean emailItemBean,
@@ -244,8 +247,8 @@ public class ForgottenUsernameServlet extends PwmServlet {
 
             case BOTH:
                 // Send both email and SMS, success if one of both succeeds
-                final ErrorInformation err1 = sendEmailViaMethod(pwmApplication, userInfoBean, emailItemBean);
-                final ErrorInformation err2 = sendSmsViaMethod(pwmApplication, userInfoBean, smsMessage);
+                final ErrorInformation err1 = sendEmailViaMethod(pwmApplication, sessionLabel, userInfoBean, emailItemBean);
+                final ErrorInformation err2 = sendSmsViaMethod(pwmApplication, sessionLabel, userInfoBean, smsMessage);
                 if (err1 != null) {
                     error = err1;
                 } else if (err2 != null) {
@@ -254,26 +257,26 @@ public class ForgottenUsernameServlet extends PwmServlet {
                 break;
             case EMAILFIRST:
                 // Send email first, try SMS if email is not available
-                error = sendEmailViaMethod(pwmApplication, userInfoBean, emailItemBean);
+                error = sendEmailViaMethod(pwmApplication, sessionLabel, userInfoBean, emailItemBean);
                 if (error != null) {
-                    error = sendSmsViaMethod(pwmApplication, userInfoBean, smsMessage);
+                    error = sendSmsViaMethod(pwmApplication, sessionLabel, userInfoBean, smsMessage);
                 }
                 break;
             case SMSFIRST:
                 // Send SMS first, try email if SMS is not available
-                error = sendSmsViaMethod(pwmApplication, userInfoBean, smsMessage);
+                error = sendSmsViaMethod(pwmApplication, sessionLabel, userInfoBean, smsMessage);
                 if (error != null) {
-                    error = sendEmailViaMethod(pwmApplication, userInfoBean, emailItemBean);
+                    error = sendEmailViaMethod(pwmApplication, sessionLabel, userInfoBean, emailItemBean);
                 }
                 break;
             case SMSONLY:
                 // Only try SMS
-                error = sendSmsViaMethod(pwmApplication, userInfoBean, smsMessage);
+                error = sendSmsViaMethod(pwmApplication, sessionLabel, userInfoBean, smsMessage);
                 break;
             case EMAILONLY:
             default:
                 // Only try email
-                error = sendEmailViaMethod(pwmApplication, userInfoBean, emailItemBean);
+                error = sendEmailViaMethod(pwmApplication, sessionLabel, userInfoBean, emailItemBean);
                 break;
         }
         if (error != null) {
@@ -283,6 +286,7 @@ public class ForgottenUsernameServlet extends PwmServlet {
 
     private static ErrorInformation sendSmsViaMethod(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final UserInfoBean userInfoBean,
             final String smsMessage
     )
@@ -295,7 +299,7 @@ public class ForgottenUsernameServlet extends PwmServlet {
         }
 
         final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userInfoBean.getUserIdentity());
-        final MacroMachine macroMachine = new MacroMachine(pwmApplication, userInfoBean, null, userDataReader);
+        final MacroMachine macroMachine = new MacroMachine(pwmApplication, sessionLabel, userInfoBean, null, userDataReader);
 
         final SmsItemBean smsItem = new SmsItemBean(toNumber, smsMessage);
         pwmApplication.sendSmsUsingQueue(smsItem, macroMachine);
@@ -304,6 +308,7 @@ public class ForgottenUsernameServlet extends PwmServlet {
 
     private static ErrorInformation sendEmailViaMethod(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final UserInfoBean userInfoBean,
             final EmailItemBean emailItemBean
     )
@@ -315,7 +320,7 @@ public class ForgottenUsernameServlet extends PwmServlet {
         }
 
         final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userInfoBean.getUserIdentity());
-        final MacroMachine macroMachine = new MacroMachine(pwmApplication, userInfoBean, null, userDataReader);
+        final MacroMachine macroMachine = new MacroMachine(pwmApplication, sessionLabel, userInfoBean, null, userDataReader);
 
         pwmApplication.getEmailQueue().submitEmail(emailItemBean, userInfoBean, macroMachine);
 

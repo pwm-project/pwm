@@ -64,6 +64,12 @@ this is handled this way so on browsers where hiding fields is not possible, the
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
                     <pwm:display key="Button_RecoverPassword"/>
                 </button>
+                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ForgottenPasswordOptionalPageView))) { %>
+                <button type="button" id="button-goBack" name="button-goBack" class="btn" >
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                    <pwm:display key="Button_GoBack"/>
+                </button>
+                <% } %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
@@ -79,6 +85,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
             PWM_MAIN.addEventHandler('button_cancel', 'click', function(event){
                 PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('button_cancel'),event);
             });
+            PWM_MAIN.submitPostAction('button-goBack','ForgottenPassword','<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
         });
     </script>
 </pwm:script>

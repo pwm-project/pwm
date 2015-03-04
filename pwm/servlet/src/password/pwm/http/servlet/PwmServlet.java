@@ -27,10 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
 import password.pwm.error.*;
-import password.pwm.http.ContextManager;
-import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
-import password.pwm.http.PwmSessionWrapper;
+import password.pwm.http.*;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
@@ -262,12 +259,6 @@ public abstract class PwmServlet extends HttpServlet {
 
     public interface ProcessAction {
         public Collection<HttpMethod> permittedMethods();
-    }
-
-    public enum HttpMethod {
-        POST,
-        GET,
-
     }
 
     public static final Collection<HttpMethod> GET_AND_POST_METHODS;

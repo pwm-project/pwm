@@ -41,4 +41,6 @@ public interface MacroImplementation {
         LoginInfoBean getLoginInfoBean();
         UserDataReader getUserDataReader();
     }
+
+    boolean isSensitive();
 }

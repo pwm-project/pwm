@@ -45,6 +45,7 @@ public enum PwmSettingSyntax {
     OPTIONLIST(OptionListValue.factory()),
     FILE(FileValue.factory()),
     PROFILE(StringArrayValue.factory()),
+    VERIFICATION_METHOD(VerificationMethodValue.factory()),
 
     ;
 

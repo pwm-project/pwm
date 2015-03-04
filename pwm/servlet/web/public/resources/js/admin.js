@@ -612,13 +612,8 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
 
         if (refreshNow) {
             parentDiv.innerHTML = '<div class="WaitDialogBlank" style="margin-top: 20px; margin-bottom: 20px"/>';
-            refreshUrl += refreshUrl.indexOf('?') > 0 ? '&' : '?';
-            refreshUrl += "&refreshImmediate=true";
+            refreshUrl = PWM_MAIN.addParamToUrl(refreshUrl, 'refreshImmediate', 'true');
         }
-
-        PWM_GLOBAL['healthRefreshFunction'] = function() {
-            PWM_ADMIN.showAppHealth(parentDivID, options, refreshNow);
-        };
 
         var loadFunction = function(data) {
             if (data['error']) {
@@ -627,7 +622,13 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
                 PWM_GLOBAL['pwm-health'] = data['data']['overall'];
                 var htmlBody = PWM_ADMIN.makeHealthHtml(data['data'], showTimestamp, showRefresh);
                 parentDiv.innerHTML = htmlBody;
+
+                PWM_MAIN.addEventHandler('button-refreshHealth','click',function(){
+                    PWM_ADMIN.showAppHealth(parentDivID, options, true);
+                });
+
                 PWM_GLOBAL['healthCheckInProgress'] = false;
+
                 if (refreshTime > 0) {
                     setTimeout(function() {
                         PWM_ADMIN.showAppHealth(parentDivID, options);
@@ -693,9 +694,7 @@ PWM_ADMIN.makeHealthHtml = function(healthData, showTimestamp, showRefresh) {
             htmlBody += '</span>&nbsp;&nbsp;&nbsp;&nbsp;';
         }
         if (showRefresh) {
-            htmlBody += '<a title="refresh" href="#" onclick="PWM_GLOBAL[\'healthRefreshFunction\']()">';
-            htmlBody += '<span class="fa fa-refresh"></span>';
-            htmlBody += '</a>';
+            htmlBody += '<span id="button-refreshHealth" class="fa btn-icon fa-refresh"></span>';
         }
         htmlBody += "</td></tr>";
     }

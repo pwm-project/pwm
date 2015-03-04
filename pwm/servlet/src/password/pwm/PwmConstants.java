@@ -144,6 +144,8 @@ public abstract class PwmConstants {
         ConfigHasPassword,
 
         CaptchaClientUrl, CaptchaIframeUrl, CaptchaPublicKey,
+
+        ForgottenPasswordOptionalPageView
     }
 
 

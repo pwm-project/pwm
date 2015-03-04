@@ -22,7 +22,7 @@
 
 package password.pwm.http.bean;
 
-import password.pwm.PasswordChangeProgressChecker;
+import password.pwm.ldap.PasswordChangeProgressChecker;
 
 import java.util.Date;
 

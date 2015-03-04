@@ -33,6 +33,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.util.ChaiUtility;
+import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -82,8 +83,6 @@ public class PasswordUtility {
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final Configuration config = pwmApplication.getConfig();
-
         final String emailAddress = userInfoBean.getUserEmailAddress();
         final String smsNumber = userInfoBean.getUserSmsNumber();
         String returnToAddress = emailAddress;
@@ -352,11 +351,26 @@ public class PasswordUtility {
         {  // execute configured actions
             LOGGER.debug(pwmSession, "executing configured actions to user " + proxiedUser.getEntryDN());
             final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction(PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES);
-            final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
-            settings.setExpandPwmMacros(true);
-            settings.setUserIdentity(uiBean.getUserIdentity());
-            final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
-            actionExecutor.executeActions(configValues, settings, pwmSession);
+            if (configValues != null && !configValues.isEmpty()) {
+                final LoginInfoBean clonedLoginInfoBean = JsonUtil.cloneUsingJson(pwmSession.getLoginInfoBean(), LoginInfoBean.class);
+                clonedLoginInfoBean.setUserCurrentPassword(newPassword);
+
+                final MacroMachine macroMachine = new MacroMachine(
+                        pwmApplication,
+                        pwmSession.getLabel(),
+                        pwmSession.getUserInfoBean(),
+                        clonedLoginInfoBean,
+                        pwmSession.getSessionManager().getUserDataReader(pwmApplication)
+                );
+
+                final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
+                settings.setExpandPwmMacros(true);
+                settings.setUserIdentity(uiBean.getUserIdentity());
+                settings.setMacroMachine(macroMachine);
+
+                final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
+                actionExecutor.executeActions(configValues, settings, pwmSession);
+            }
         }
 
         //update the current last password update field in ldap
@@ -442,6 +456,12 @@ public class PasswordUtility {
             if (!actions.isEmpty()) {
                 final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
                 settings.setExpandPwmMacros(true);
+                settings.setMacroMachine(MacroMachine.forUser(
+                        pwmApplication,
+                        pwmSession.getSessionStateBean().getLocale(),
+                        sessionLabel,
+                        userIdentity
+                ));
                 settings.setUserIdentity(userIdentity);
                 final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
                 actionExecutor.executeActions(actions,settings,pwmSession);
@@ -475,8 +495,7 @@ public class PasswordUtility {
             final UserDataReader userDataReader = new LdapUserDataReader(userIdentity, chaiUser);
             final LoginInfoBean loginInfoBean = new LoginInfoBean();
             loginInfoBean.setUserCurrentPassword(newPassword);
-            final MacroMachine macroMachine = new MacroMachine(pwmApplication, userInfoBean, loginInfoBean, userDataReader);
-
+            final MacroMachine macroMachine = new MacroMachine(pwmApplication, pwmSession.getLabel(), userInfoBean, loginInfoBean, userDataReader);
             PasswordUtility.sendNewPassword(
                     userInfoBean,
                     pwmApplication,
@@ -532,7 +551,7 @@ public class PasswordUtility {
     {
         final List<PostChangePasswordAction> postChangePasswordActions = pwmSession.getLoginInfoBean().removePostChangePasswordActions();
         if (postChangePasswordActions == null || postChangePasswordActions.isEmpty()) {
-            LOGGER.trace("no post change password actions ");
+            LOGGER.trace(pwmSession, "no post change password actions pending from previous operations");
             return;
         }
 
@@ -671,8 +690,8 @@ public class PasswordUtility {
             final UserIdentity userIdentity,
             final ChaiUser theUser,
             final Locale locale
-    ) 
-    throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         final long startTime = System.currentTimeMillis();
         final PasswordPolicySource ppSource = PasswordPolicySource.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_POLICY_SOURCE));
@@ -716,17 +735,17 @@ public class PasswordUtility {
         }
 
         for (final String profile : profiles) {
-                final PwmPasswordPolicy loopPolicy = pwmApplication.getConfig().getPasswordPolicy(profile,locale);
-                final List<UserPermission> userPermissions = loopPolicy.getUserPermissions();
-                LOGGER.debug(pwmSession, "testing password policy profile '" + profile + "'");
-                try {
-                    boolean match = LdapPermissionTester.testUserPermissions(pwmApplication, pwmSession, userIdentity, userPermissions);
-                    if (match) {
-                        return loopPolicy;
-                    }
-                } catch (PwmUnrecoverableException e) {
-                    LOGGER.error(pwmSession,"unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage());
+            final PwmPasswordPolicy loopPolicy = pwmApplication.getConfig().getPasswordPolicy(profile,locale);
+            final List<UserPermission> userPermissions = loopPolicy.getUserPermissions();
+            LOGGER.debug(pwmSession, "testing password policy profile '" + profile + "'");
+            try {
+                boolean match = LdapPermissionTester.testUserPermissions(pwmApplication, pwmSession, userIdentity, userPermissions);
+                if (match) {
+                    return loopPolicy;
                 }
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error(pwmSession,"unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage());
+            }
         }
 
         throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NO_PROFILE_ASSIGNED,"no challenge profile is configured"));
@@ -785,16 +804,25 @@ public class PasswordUtility {
         int errorCode = 0;
 
         final boolean passwordIsCaseSensitive = userInfoBean.getPasswordPolicy() == null || userInfoBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.CaseSensitive);
-        final CachePolicy cachePolicy = CachePolicy.makePolicy(30 * 1000);
+        final CachePolicy cachePolicy;
+        {
+            final long cacheLifetimeMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_PWRULECHECK_LIFETIME_MS));
+            cachePolicy = CachePolicy.makePolicy(cacheLifetimeMS);
+        }
 
         if (password == null) {
             userMessage = new ErrorInformation(PwmError.PASSWORD_MISSING).toUserStr(locale, pwmApplication.getConfig());
         } else {
             final CacheService cacheService = pwmApplication.getCacheService();
             final CacheKey cacheKey = user != null && userInfoBean.getUserIdentity() != null
-                    ? CacheKey.makeCacheKey(PasswordUtility.class, userInfoBean.getUserIdentity(), user.getEntryDN() + ":" + password )
+                    ? CacheKey.makeCacheKey(
+                    PasswordUtility.class,
+                    userInfoBean.getUserIdentity(),
+                    user.getEntryDN() + ":" + password.hash())
                     : null;
-
+            if (pwmApplication.getConfig().isDevDebugMode()) {
+                LOGGER.trace("generated cacheKey for password check request: " + cacheKey);
+            }
             try {
                 if (cacheService != null && cacheKey != null) {
                     final String cachedValue = cacheService.get(cacheKey);

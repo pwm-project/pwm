@@ -27,6 +27,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import password.pwm.PwmApplication;
+import password.pwm.http.client.PwmHttpClient;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Properties;
@@ -48,7 +49,7 @@ public class TinyUrlShortener extends BasicUrlShortener {
 			LOGGER.debug("Trying to shorten url: "+input);
 			final String encodedUrl = StringUtil.urlEncode(input);
 			final String callUrl = apiUrl + encodedUrl;
-        	final HttpClient httpClient = Helper.getHttpClient(context.getConfig());
+        	final HttpClient httpClient = PwmHttpClient.getHttpClient(context.getConfig());
 	        final HttpGet httpRequest = new HttpGet(callUrl);
     	    final HttpResponse httpResponse = httpClient.execute(httpRequest);
     	    final int httpResponseCode = httpResponse.getStatusLine().getStatusCode();

@@ -31,6 +31,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.AdminBean;
 import password.pwm.util.Helper;
@@ -61,12 +62,12 @@ public class AdminServlet extends PwmServlet {
 
         private final Collection<HttpMethod> method;
 
-        AdminAction(PwmServlet.HttpMethod... method)
+        AdminAction(HttpMethod... method)
         {
             this.method = Collections.unmodifiableList(Arrays.asList(method));
         }
 
-        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods()
         {
             return method;
         }

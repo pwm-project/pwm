@@ -196,7 +196,8 @@ input[type=password]::-ms-reveal{display: none;}
 }
 
 .menubutton {
-    max-width: 150px;
+    max-width: 135px;
+    width: 135px;
     padding: 4px 11px;
     display: block;
     border-radius: 3px;
@@ -769,21 +770,12 @@ input[type=search] {
 dialog::backdrop { background: rgba(0,0,0,0.6); }
 
 dialog {
-    /*
-    position: absolute;
-    top:0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-
-    margin: auto;
-
-
-    padding-top: 0;
-    */
     border: 2px solid #DDDDDD;
     border-radius: 3px;
     padding:0;
+    animation: fadein 0.3s;
+    -moz-animation: fadein 0.3s; /* Firefox */
+    -webkit-animation: fadein 0.3s; /* Safari and Chrome */
 }
 
 dialog .titleBar {
@@ -810,3 +802,7 @@ progress:not([value]) {
     width: 100%;
     height: 20px;
 }
+
+@keyframes fadein { from { opacity:0; } to { opacity:1; } }
+@-moz-keyframes fadein { from { opacity:0 } to { opacity:1 } }
+@-webkit-keyframes fadein { from { opacity:0 } to { opacity:1 } }

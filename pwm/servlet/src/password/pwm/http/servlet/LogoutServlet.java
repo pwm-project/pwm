@@ -28,6 +28,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.util.StringUtil;
@@ -47,7 +48,7 @@ public class LogoutServlet extends PwmServlet {
 
         public Collection<HttpMethod> permittedMethods()
         {
-            return Collections.singletonList(PwmServlet.HttpMethod.GET);
+            return Collections.singletonList(HttpMethod.GET);
         }
     }
 

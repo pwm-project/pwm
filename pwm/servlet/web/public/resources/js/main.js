@@ -584,14 +584,6 @@ PWM_MAIN.showTooltip = function(options){
 
 PWM_MAIN.clearDijitWidget = function (widgetName) {
     require(["dojo","dijit/registry"],function(dojo, registry){
-        /*
-         try {
-         registry.byId(widgetName).destroy(true);
-         } catch (e) {
-         console.log("error destroying widget '" + widgetName + '", error: ' + e);
-         }
-         */
-
 
         var oldDijitNode = registry.byId(widgetName);
         if (oldDijitNode != null) {
@@ -790,7 +782,7 @@ PWM_MAIN.showDialog = function(options) {
     }
     if (showOk) {
         bodyText += '<button class="btn" id="dialog_ok_button">'
-        + '<span class="btn-icon fa fa-forward"></span>'
+        + '<span class="btn-icon fa fa-check-square-o"></span>'
         + PWM_MAIN.showString('Button_OK') + '</button>  ';
     }
     if (showCancel) {
@@ -905,6 +897,7 @@ PWM_MAIN.showConfirmDialog = function(options) {
     options = options == undefined ? {} : options;
     options['showCancel'] = true;
     options['title'] = 'title' in options ? options['title'] : PWM_MAIN.showString('Button_Confirm');
+    options['text'] = 'text' in options ? options['text'] : PWM_MAIN.showString('Confirm');
     PWM_MAIN.showDialog(options);
 };
 
@@ -1178,7 +1171,7 @@ PWM_MAIN.messageDivFloatHandler = function() {
 PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
     var CONSOLE_DEBUG = false;
 
-    var serviceURL = PWM_MAIN.addPwmFormIDtoURL(validationProps['serviceURL']);
+    var serviceURL = validationProps['serviceURL'];
     var readDataFunction = validationProps['readDataFunction'];
     var processResultsFunction = validationProps['processResultsFunction'];
     var messageWorking = validationProps['messageWorking'] ? validationProps['messageWorking'] : PWM_MAIN.showString('Display_PleaseWait');
@@ -1707,7 +1700,15 @@ PWM_MAIN.addPwmFormIDtoURL = function(url) {
 
 PWM_MAIN.addParamToUrl = function(url,paramName,paramValue) {
     if (!url || url.length < 1) {
-        return '';
+        return url;
+    }
+
+    if (
+        url.indexOf('?' + paramName + '=') > -1
+        || url.indexOf('&' + paramName + '=') > -1)
+    {
+        console.warn('ignoring request to append duplicate param "' + paramName + '" to url ' + url);
+        return url;
     }
 
     var encodedName = encodeURIComponent(paramName);

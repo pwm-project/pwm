@@ -34,13 +34,24 @@ public enum PwmSettingCategory {
     PROFILES                    (null),
     MODULES                     (null),
 
-    GENERAL                     (SETTINGS),
-
     LDAP_PROFILE                (LDAP),
     LDAP_GLOBAL                 (LDAP),
     EDIRECTORY                  (LDAP),
     ACTIVE_DIRECTORY            (LDAP),
     ORACLE_DS                   (LDAP),
+
+    GENERAL                     (SETTINGS),
+
+    AUDITING                    (SETTINGS),
+    AUDIT_CONFIG                (AUDITING),
+    USER_HISTORY                (AUDITING),
+    AUDIT_FORWARD               (AUDITING),
+
+    CAPTCHA                     (SETTINGS),
+
+    INTRUDER                    (SETTINGS),
+    INTRUDER_SETTINGS           (INTRUDER),
+    INTRUDER_TIMEOUTS           (INTRUDER),
 
     USER_INTERFACE              (SETTINGS),
     UI_FEATURES                 (USER_INTERFACE),
@@ -58,19 +69,10 @@ public enum PwmSettingCategory {
     APP_SECURITY                (SECURITY),
     WEB_SECURITY                (SECURITY),
 
-    CAPTCHA                     (SETTINGS),
-    INTRUDER                    (SETTINGS),
-    INTRUDER_SETTINGS           (INTRUDER),
-    INTRUDER_TIMEOUTS           (INTRUDER),
 
     TOKEN                       (SETTINGS),
     OTP                         (SETTINGS),
     LOGGING                     (SETTINGS),
-
-    AUDITING                    (SETTINGS),
-    AUDIT_CONFIG                (AUDITING),
-    USER_HISTORY                (AUDITING),
-    AUDIT_FORWARD               (AUDITING),
 
     DATABASE                    (SETTINGS),
     REPORTING                   (SETTINGS),
@@ -253,4 +255,11 @@ public enum PwmSettingCategory {
         return sb.toString();
     }
 
+    public static List<PwmSettingCategory> sortedValues(final Locale locale) {
+        final Map<String,PwmSettingCategory> sortedCategories = new TreeMap<String,PwmSettingCategory>();
+        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
+            sortedCategories.put(category.toMenuLocationDebug(null,locale),category);
+        }
+        return Collections.unmodifiableList(new ArrayList<>(sortedCategories.values()));
+    }
 }

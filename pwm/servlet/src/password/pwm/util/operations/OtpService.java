@@ -132,10 +132,10 @@ public class OtpService implements PwmService {
         return otpCorrect;
     }
 
-    private List<String> createRawRecoveryCodes(final int numRecoveryCodes)
+    private List<String> createRawRecoveryCodes(final int numRecoveryCodes, final SessionLabel sessionLabel)
             throws PwmUnrecoverableException 
     {
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmApplication);
+        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmApplication, sessionLabel);
         final String configuredTokenMacro = settings.getRecoveryTokenMacro();
         final List<String> recoveryCodes = new ArrayList<>();
         while (recoveryCodes.size() < numRecoveryCodes) {
@@ -147,6 +147,7 @@ public class OtpService implements PwmService {
 
     public List<String> initializeUserRecord(
             final OTPUserRecord otpUserRecord,
+            final SessionLabel sessionLabel,
             String identifier
     )
             throws IOException, PwmUnrecoverableException {
@@ -167,16 +168,16 @@ public class OtpService implements PwmService {
         }
         final List<String> rawRecoveryCodes;
         if (settings.getOtpStorageFormat().supportsRecoveryCodes()) {
-            rawRecoveryCodes = createRawRecoveryCodes(settings.getRecoveryCodesCount());
+            rawRecoveryCodes = createRawRecoveryCodes(settings.getRecoveryCodesCount(), sessionLabel);
             final List<OTPUserRecord.RecoveryCode> recoveryCodeList = new ArrayList<>();
             final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
             if (settings.getOtpStorageFormat().supportsHashedRecoveryCodes()) {
-                LOGGER.debug("Hashing the recovery codes");
+                LOGGER.trace(sessionLabel, "hashing the recovery codes");
                 recoveryInfo.setSalt(PwmRandom.getInstance().alphaNumericString(32));
                 recoveryInfo.setHashCount(settings.getRecoveryHashIterations());
                 recoveryInfo.setHashMethod(settings.getRecoveryHashMethod());
             } else {
-                LOGGER.debug("Not hashing the recovery codes");
+                LOGGER.trace(sessionLabel, "not hashing the recovery codes");
                 recoveryInfo.setSalt(null);
                 recoveryInfo.setHashCount(0);
                 recoveryInfo.setHashMethod(null);

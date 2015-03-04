@@ -23,33 +23,26 @@
 package password.pwm.config.option;
 
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
 
 import java.util.Locale;
 
 public enum RecoveryVerificationMethod implements ConfigurationOption {
-    PREVIOUS_AUTH(      false,  PwmSetting.RECOVERY_VERIFICATION_PREVIOUS_AUTH,          Display.Field_VerificationMethodPreviousAuth),
-    ATTRIBUTES(         true,   PwmSetting.RECOVERY_VERIFICATION_ATTRIBUTES,             Display.Field_VerificationMethodAttributes),
-    CHALLENGE_RESPONSES(true,   PwmSetting.RECOVERY_VERIFICATION_CHALLENGE_RESPONSE,     Display.Field_VerificationMethodChallengeResponses),
-    TOKEN(              true,   PwmSetting.RECOVERY_VERIFICATION_TOKEN,                  Display.Field_VerificationMethodToken),
-    OTP(                true,   PwmSetting.RECOVERY_VERIFICATION_OTP,                    Display.Field_VerificationMethodOTP),
-    REMOTE_RESPONSES(   false,  PwmSetting.RECOVERY_VERIFICATION_REMOTE_RESPONSES,       Display.Field_VerificationMethodRemoteResponses),
+    PREVIOUS_AUTH(      false,  Display.Field_VerificationMethodPreviousAuth),
+    ATTRIBUTES(         true,   Display.Field_VerificationMethodAttributes),
+    CHALLENGE_RESPONSES(true,   Display.Field_VerificationMethodChallengeResponses),
+    TOKEN(              true,   Display.Field_VerificationMethodToken),
+    OTP(                true,   Display.Field_VerificationMethodOTP),
+    REMOTE_RESPONSES(   false,  Display.Field_VerificationMethodRemoteResponses),
 
     ;
     
     private final boolean userSelectable;
-    private final PwmSetting associatedSetting;
     private final Display displayKey;
 
-    RecoveryVerificationMethod(boolean userSelectable, PwmSetting associatedSetting, Display displayKey) {
+    RecoveryVerificationMethod(boolean userSelectable, Display displayKey) {
         this.userSelectable = userSelectable;
-        this.associatedSetting = associatedSetting;
         this.displayKey = displayKey;
-    }
-
-    public PwmSetting getAssociatedSetting() {
-        return associatedSetting;
     }
 
     public boolean isUserSelectable() {

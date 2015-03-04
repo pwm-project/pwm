@@ -254,7 +254,7 @@ public class LdapOperationsHelper {
 
             while (attempts < 10 && newGuid == null) {
                 attempts++;
-                newGuid = generateGuidValue(pwmApplication);
+                newGuid = generateGuidValue(pwmApplication, sessionLabel);
                 if (searchForExistingGuidValue(pwmApplication, sessionLabel, newGuid)) {
                     newGuid = null;
                 }
@@ -280,11 +280,12 @@ public class LdapOperationsHelper {
         }
 
         private static String generateGuidValue(
-                final PwmApplication pwmApplication
+                final PwmApplication pwmApplication,
+                final SessionLabel sessionLabel
         )
                 throws PwmUnrecoverableException
         {
-            final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmApplication);
+            final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmApplication, sessionLabel);
             final String guidPattern = pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_GUID_PATTERN);
             return macroMachine.expandMacros(guidPattern);
         }

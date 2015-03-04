@@ -45,6 +45,7 @@ public class MacroMachine {
     private static final PwmLogger LOGGER = PwmLogger.forClass(MacroMachine.class);
 
     private final PwmApplication pwmApplication;
+    private final SessionLabel sessionLabel;
     private final UserInfoBean userInfoBean;
     private final LoginInfoBean loginInfoBean;
     private final UserDataReader userDataReader;
@@ -52,12 +53,14 @@ public class MacroMachine {
 
     public MacroMachine(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final UserInfoBean userInfoBean,
             final LoginInfoBean loginInfoBean,
             final UserDataReader userDataReader
     )
     {
         this.pwmApplication = pwmApplication;
+        this.sessionLabel = sessionLabel;
         this.userInfoBean = userInfoBean;
         this.loginInfoBean = loginInfoBean;
         this.userDataReader = userDataReader;
@@ -76,7 +79,7 @@ public class MacroMachine {
                 final Pattern pattern = macroImplementation.getRegExPattern();
                 map.put(pattern,macroImplementation);
             } catch (Exception e) {
-                LOGGER.error("unable to load macro class " + macroClass.getName() + ", error: " + e.getMessage());
+                LOGGER.error(sessionLabel, "unable to load macro class " + macroClass.getName() + ", error: " + e.getMessage());
             }
         }
 
@@ -173,10 +176,10 @@ public class MacroMachine {
         try {
             replaceStr = macroImplementation.replaceValue(matchedStr, macroRequestInfo);
         } catch (MacroParseException e) {
-            LOGGER.debug("macro parse error replacing macro '" + matchedStr + "', error: " + e.getMessage());
+            LOGGER.debug(sessionLabel, "macro parse error replacing macro '" + matchedStr + "', error: " + e.getMessage());
             replaceStr = "[" + e.getErrorInformation().toUserStr(PwmConstants.DEFAULT_LOCALE,macroRequestInfo.getPwmApplication().getConfig()) + "]";
         }  catch (Exception e) {
-            LOGGER.error("error while replacing macro '" + matchedStr + "', error: " + e.getMessage());
+            LOGGER.error(sessionLabel, "error while replacing macro '" + matchedStr + "', error: " + e.getMessage());
         }
 
         if (replaceStr == null) {
@@ -187,12 +190,13 @@ public class MacroMachine {
             try {
                 replaceStr = stringReplacer.replace(matchedStr, replaceStr);
             }  catch (Exception e) {
-                LOGGER.error("unexpected error while executing '" + matchedStr + "' during StringReplacer.replace(), error: " + e.getMessage());
+                LOGGER.error(sessionLabel,"unexpected error while executing '" + matchedStr + "' during StringReplacer.replace(), error: " + e.getMessage());
             }
         }
 
         if (replaceStr != null && replaceStr.length() > 0) {
-            LOGGER.trace("replaced macro " + matchedStr + " with value: " + replaceStr);
+            LOGGER.trace(sessionLabel, "replaced macro " + matchedStr + " with value: "
+                    + (macroImplementation.isSensitive() ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT : replaceStr));
         }
         return new StringBuilder(input).replace(startPos, endPos, replaceStr).toString();
     }
@@ -228,15 +232,16 @@ public class MacroMachine {
         final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, sessionLabel);
         final UserInfoBean userInfoBean = new UserInfoBean();
         userStatusReader.populateUserInfoBean(userInfoBean, userLocale, userIdentity);
-        return new MacroMachine(pwmApplication, null, null, userDataReader);
+        return new MacroMachine(pwmApplication, sessionLabel, null, null, userDataReader);
     }
 
     public static MacroMachine forNonUserSpecific(
-            final PwmApplication pwmApplication
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel
     )
             throws PwmUnrecoverableException
     {
-        return new MacroMachine(pwmApplication, null, null, null);
+        return new MacroMachine(pwmApplication, sessionLabel, null, null, null);
     }
 
 }

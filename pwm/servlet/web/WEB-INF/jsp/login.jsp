@@ -26,7 +26,6 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<% final PwmRequest login_pwmRequest = PwmRequest.forRequest(request,response); %>
 <body class="nihilo">
 <div id="wrapper" class="login-wrapper">
     <jsp:include page="fragment/header-body.jsp">

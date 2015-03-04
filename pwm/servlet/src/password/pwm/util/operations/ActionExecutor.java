@@ -25,15 +25,6 @@ package password.pwm.util.operations;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.ActionConfiguration;
@@ -41,13 +32,17 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmSession;
-import password.pwm.util.Helper;
+import password.pwm.http.client.PwmHttpClient;
+import password.pwm.http.client.PwmHttpClientRequest;
+import password.pwm.http.client.PwmHttpClientResponse;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
-import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ActionExecutor {
 
@@ -80,18 +75,22 @@ public class ActionExecutor {
     {
         switch (actionConfiguration.getType()) {
             case ldap:
-                executeLdapAction(actionConfiguration, actionExecutorSettings);
+                executeLdapAction(pwmSession, actionConfiguration, actionExecutorSettings);
                 break;
 
             case webservice:
-                executeWebserviceAction(actionConfiguration, actionExecutorSettings);
+                executeWebserviceAction(pwmSession, actionConfiguration, actionExecutorSettings);
                 break;
         }
 
         LOGGER.info(pwmSession,"action " + actionConfiguration.getName() + " completed successfully");
     }
 
-    private void executeLdapAction(final ActionConfiguration actionConfiguration, final ActionExecutorSettings settings)
+    private void executeLdapAction(
+            final PwmSession pwmSession,
+            final ActionConfiguration actionConfiguration,
+            final ActionExecutorSettings settings
+    )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
         final String attributeName = actionConfiguration.getAttributeName();
@@ -101,6 +100,7 @@ public class ActionExecutor {
                 pwmApplication.getProxiedChaiUser(settings.getUserIdentity());
 
         writeLdapAttribute(
+                pwmSession,
                 theUser,
                 attributeName,
                 attributeValue,
@@ -110,6 +110,7 @@ public class ActionExecutor {
     }
 
     private void executeWebserviceAction(
+            final PwmSession pwmSession,
             final ActionConfiguration actionConfiguration,
             final ActionExecutorSettings settings
     )
@@ -117,62 +118,48 @@ public class ActionExecutor {
     {
         String url = actionConfiguration.getUrl();
         String body = actionConfiguration.getBody();
-        final MacroMachine macroMachine = settings.getMacroMachine();
+        final Map<String,String> headers = new LinkedHashMap<>();
+        if (actionConfiguration.getHeaders() != null) {
+            headers.putAll(actionConfiguration.getHeaders());
+        }
 
         try {
             // expand using pwm macros
             if (settings.isExpandPwmMacros()) {
+                if (settings.getMacroMachine() == null) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"executor specified macro expansion but did not supply macro machine"));
+                }
+                final MacroMachine macroMachine = settings.getMacroMachine();
+
                 url = macroMachine.expandMacros(url, new MacroMachine.URLEncoderReplacer());
-                body = body == null ? "" : macroMachine.expandMacros(body, new MacroMachine.URLEncoderReplacer());
-            }
+                if (actionConfiguration.getBodyEncoding() == ActionConfiguration.BodyEncoding.url) {
+                    body = body == null ? "" : macroMachine.expandMacros(body, new MacroMachine.URLEncoderReplacer());
+                } else {
+                    body = body == null ? "" : macroMachine.expandMacros(body);
+                }
 
-            LOGGER.debug("sending HTTP request: " + url);
-            final URI requestURI = new URI(url);
-            final HttpRequestBase httpRequest;
-            switch (actionConfiguration.getMethod()) {
-                case post:
-                    httpRequest = new HttpPost(requestURI.toString());
-                    ((HttpPost)httpRequest).setEntity(new StringEntity(body));
-                    break;
-
-                case put:
-                    httpRequest = new HttpPut(requestURI.toString());
-                    ((HttpPut)httpRequest).setEntity(new StringEntity(body));
-                    break;
-
-                case get:
-                    httpRequest = new HttpGet(requestURI.toString());
-                    break;
-
-                case delete:
-                    httpRequest = new HttpGet(requestURI.toString());
-                    break;
-
-                default:
-                    throw new IllegalStateException("method not yet implemented");
-            }
-
-            if (actionConfiguration.getHeaders() != null) {
-                for (final String headerName : actionConfiguration.getHeaders().keySet()) {
-                    String headerValue = actionConfiguration.getHeaders().get(headerName);
-                    headerValue = headerValue == null ? "" : macroMachine.expandMacros(headerValue);
-                    httpRequest.setHeader(headerName,headerValue);
+                for (final String headerName : headers.keySet()) {
+                    final String headerValue = headers.get(headerName);
+                    if (headerValue != null) {
+                        headers.put(headerName, macroMachine.expandMacros(headerValue));
+                    }
                 }
             }
 
-            final HttpClient httpClient = Helper.getHttpClient(pwmApplication.getConfig());
-            final HttpResponse httpResponse = httpClient.execute(httpRequest);
-            if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new PwmOperationalException(new ErrorInformation(
-                        PwmError.ERROR_UNKNOWN,
-                        "unexpected HTTP status code while calling external web service: "
-                                + httpResponse.getStatusLine().getStatusCode() + " " + httpResponse.getStatusLine().getReasonPhrase()
-                ));
-            }
+            final HttpMethod method = HttpMethod.fromString(actionConfiguration.getMethod().toString());
 
-            final String responseBody = EntityUtils.toString(httpResponse.getEntity());
-            LOGGER.debug("response from http rest request: " + httpResponse.getStatusLine());
-            LOGGER.trace("response body from http rest request: " + responseBody);
+            final PwmHttpClientRequest clientRequest = new PwmHttpClientRequest(method, url, body, headers);
+            final PwmHttpClient client = new PwmHttpClient(pwmApplication, pwmSession);
+            final PwmHttpClientResponse clientResponse = client.makeRequest(clientRequest);
+
+                if (clientResponse.getStatusCode() != 200) {
+                    throw new PwmOperationalException(new ErrorInformation(
+                            PwmError.ERROR_SERVICE_UNREACHABLE,
+                            "unexpected HTTP status code while calling external web service: "
+                                    + clientResponse.getStatusCode() + " " + clientResponse.getStatusPhrase()
+                    ));
+                }
+
         } catch (Exception e) {
             if (e instanceof PwmOperationalException) {
                 throw (PwmOperationalException)e;
@@ -185,6 +172,7 @@ public class ActionExecutor {
     }
 
     private static void writeLdapAttribute(
+            final PwmSession pwmSession,
             final ChaiUser theUser,
             final String attrName,
             String attrValue,
@@ -201,13 +189,13 @@ public class ActionExecutor {
             attrValue  = macroMachine.expandMacros(attrValue);
         }
 
-        LOGGER.trace("beginning ldap " + ldapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName);
+        LOGGER.trace(pwmSession,"beginning ldap " + ldapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName);
         switch (ldapMethod) {
             case replace:
             {
                 try {
                     theUser.writeStringAttribute(attrName, attrValue);
-                    LOGGER.info("replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
+                    LOGGER.info(pwmSession,"replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
                 } catch (ChaiOperationException e) {
                     final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
@@ -222,7 +210,7 @@ public class ActionExecutor {
             {
                 try {
                     theUser.addAttribute(attrName, attrValue);
-                    LOGGER.info("added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
+                    LOGGER.info(pwmSession,"added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
                 } catch (ChaiOperationException e) {
                     final String errorMsg = "error adding '" + attrName + "' attribute value from user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
@@ -238,7 +226,7 @@ public class ActionExecutor {
             {
                 try {
                     theUser.deleteAttribute(attrName, attrValue);
-                    LOGGER.info("deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
+                    LOGGER.info(pwmSession,"deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
                 } catch (ChaiOperationException e) {
                     final String errorMsg = "error deletig '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
@@ -253,8 +241,6 @@ public class ActionExecutor {
                 throw new IllegalStateException("unexpected ldap method type " + ldapMethod);
         }
     }
-
-
 
     public static class ActionExecutorSettings {
         private MacroMachine macroMachine;
@@ -300,4 +286,6 @@ public class ActionExecutor {
             this.userIdentity = userIdentity;
         }
     }
+
+
 }

@@ -44,6 +44,7 @@ import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.HelpdeskAuditRecord;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.HelpdeskBean;
@@ -85,25 +86,25 @@ public class HelpdeskServlet extends PwmServlet {
     private static final String TOKEN_NAME = HelpdeskServlet.class.getName();
 
     public enum HelpdeskAction implements PwmServlet.ProcessAction {
-        doUnlock(PwmServlet.HttpMethod.POST),
-        doClearOtpSecret(PwmServlet.HttpMethod.POST),
-        search(PwmServlet.HttpMethod.POST),
-        detail(PwmServlet.HttpMethod.POST),
-        executeAction(PwmServlet.HttpMethod.POST),
-        deleteUser(PwmServlet.HttpMethod.POST),
-        validateOtpCode(PwmServlet.HttpMethod.POST),
-        sendVerificationToken(PwmServlet.HttpMethod.POST),
+        doUnlock(HttpMethod.POST),
+        doClearOtpSecret(HttpMethod.POST),
+        search(HttpMethod.POST),
+        detail(HttpMethod.POST),
+        executeAction(HttpMethod.POST),
+        deleteUser(HttpMethod.POST),
+        validateOtpCode(HttpMethod.POST),
+        sendVerificationToken(HttpMethod.POST),
 
         ;
 
-        private final PwmServlet.HttpMethod method;
+        private final HttpMethod method;
 
-        HelpdeskAction(PwmServlet.HttpMethod method)
+        HelpdeskAction(HttpMethod method)
         {
             this.method = method;
         }
 
-        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods()
         {
             return Collections.singletonList(method);
         }
@@ -515,7 +516,7 @@ public class HelpdeskServlet extends PwmServlet {
 
         final String configuredDisplayName = helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_DETAIL_DISPLAY_NAME);
         if (configuredDisplayName != null && !configuredDisplayName.isEmpty()) {
-            final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), helpdeskBean.getUserInfoBean(), null, userDataReader);
+            final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), helpdeskBean.getUserInfoBean(), null, userDataReader);
             final String displayName = macroMachine.expandMacros(configuredDisplayName);
             helpdeskBean.setUserDisplayName(displayName);
         }
@@ -674,7 +675,7 @@ public class HelpdeskServlet extends PwmServlet {
 
         final UserInfoBean userInfoBean = helpdeskBean.getUserInfoBean();
         final UserIdentity userIdentity = userInfoBean.getUserIdentity();
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmRequest.getPwmApplication());
+        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
         final String configuredTokenString = config.readAppProperty(AppProperty.HELPDESK_TOKEN_VALUE);
         final String tokenKey = macroMachine.expandMacros(configuredTokenString);
 
@@ -741,8 +742,8 @@ public class HelpdeskServlet extends PwmServlet {
             return;
         }
 
-        if (!helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) {
-            final String errorMsg = "clear responses request, but helpdesk clear responses button is not enabled";
+        if (!helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_OTP_BUTTON)) {
+            final String errorMsg = "clear responses request, but helpdesk clear otp button is not enabled";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg);
             LOGGER.error(pwmRequest, errorMsg);
             pwmRequest.setResponseError(errorInformation);

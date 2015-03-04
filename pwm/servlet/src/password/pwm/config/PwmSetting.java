@@ -644,20 +644,8 @@ public enum PwmSetting {
             "recovery.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.RECOVERY_SETTINGS),
     RECOVERY_PROFILE_QUERY_MATCH(
             "recovery.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.RECOVERY_PROFILE),
-    RECOVERY_VERIFICATION_PREVIOUS_AUTH(
-            "recovery.verification.previousAuthentication", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
-    RECOVERY_VERIFICATION_ATTRIBUTES(
-            "recovery.verification.attributes", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
-    RECOVERY_VERIFICATION_CHALLENGE_RESPONSE(
-            "recovery.verification.challengeResponse", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
-    RECOVERY_VERIFICATION_TOKEN(
-            "recovery.verification.token", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
-    RECOVERY_VERIFICATION_OTP(
-            "recovery.verification.otp", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
-    RECOVERY_VERIFICATION_REMOTE_RESPONSES(
-            "recovery.verification.remoteResponses", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
-    RECOVERY_VERIFICATION_MIN_OPTIONAL_METHODS(
-            "recovery.verification.minOptionalMethods", PwmSettingSyntax.NUMERIC, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_VERIFICATION_METHODS(
+            "recovery.verificationMethods", PwmSettingSyntax.VERIFICATION_METHOD, PwmSettingCategory.RECOVERY_PROFILE),
     RECOVERY_TOKEN_SEND_METHOD(
             "challenge.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
     RECOVERY_ALLOW_UNLOCK(

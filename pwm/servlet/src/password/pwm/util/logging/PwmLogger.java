@@ -24,12 +24,15 @@ package password.pwm.util.logging;
 
 import org.apache.log4j.RollingFileAppender;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.util.JsonUtil;
 
 import java.io.IOException;
@@ -107,14 +110,22 @@ public class PwmLogger {
 
     private void doPwmRequestLogEvent(final PwmLogLevel level, final PwmRequest pwmRequest, final Object message, final Throwable e)
     {
-        final SessionLabel sessionLabel = pwmRequest != null ? pwmRequest.getSessionLabel() : null;
-        doLogEvent(level, sessionLabel, message, e);
+        final PwmSession pwmSession = pwmRequest != null ? pwmRequest.getPwmSession() : null;
+        doPwmSessionLogEvent(level, pwmSession, message, e);
     }
 
     private void doPwmSessionLogEvent(final PwmLogLevel level, final PwmSession pwmSession, final Object message, final Throwable e)
     {
         final SessionLabel sessionLabel = pwmSession != null ? pwmSession.getLabel() : null;
-        doLogEvent(level, sessionLabel, message, e);
+        Object cleanedMessage = message;
+        if (pwmSession != null && message != null) {
+            try {
+                cleanedMessage = PwmLogger.removeUserDataFromString(pwmSession.getLoginInfoBean(), message.toString());
+            } catch (PwmUnrecoverableException e1) {
+                /* can't be logged */
+            }
+        };
+        doLogEvent(level, sessionLabel, cleanedMessage, e);
     }
 
     private void doLogEvent(final PwmLogLevel level, final SessionLabel sessionLabel, final Object message, final Throwable e)
@@ -435,6 +446,24 @@ public class PwmLogger {
                 length = buffer.indexOf("\n");
             }
         }
+    }
+
+    public static String removeUserDataFromString(final LoginInfoBean loginInfoBean, final String input)
+            throws PwmUnrecoverableException
+    {
+        if (input == null || loginInfoBean == null) {
+            return input;
+        }
+
+        String returnString = input;
+        if (loginInfoBean.getUserCurrentPassword() != null) {
+            final String pwdStringValue = loginInfoBean.getUserCurrentPassword().getStringValue();
+            if (pwdStringValue != null && !pwdStringValue.isEmpty() && returnString.contains(pwdStringValue)) {
+                returnString = returnString.replace(pwdStringValue, PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
+            }
+        }
+
+        return returnString;
     }
 }
 

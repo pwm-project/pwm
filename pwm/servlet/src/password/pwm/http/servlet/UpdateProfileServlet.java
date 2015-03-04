@@ -37,6 +37,7 @@ import password.pwm.config.*;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditRecord;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.UpdateProfileBean;
@@ -64,22 +65,22 @@ public class UpdateProfileServlet extends PwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(UpdateProfileServlet.class);
 
     public enum UpdateProfileAction implements PwmServlet.ProcessAction {
-        updateProfile(PwmServlet.HttpMethod.POST),
-        agree(PwmServlet.HttpMethod.POST),
-        confirm(PwmServlet.HttpMethod.POST),
-        unConfirm(PwmServlet.HttpMethod.POST),
+        updateProfile(HttpMethod.POST),
+        agree(HttpMethod.POST),
+        confirm(HttpMethod.POST),
+        unConfirm(HttpMethod.POST),
         validate(HttpMethod.POST),
 
         ;
 
-        private final PwmServlet.HttpMethod method;
+        private final HttpMethod method;
 
-        UpdateProfileAction(PwmServlet.HttpMethod method)
+        UpdateProfileAction(HttpMethod method)
         {
             this.method = method;
         }
 
-        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods()
         {
             return Collections.singletonList(method);
         }

@@ -33,8 +33,8 @@ import password.pwm.error.PwmError;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
+import password.pwm.http.client.PwmHttpClient;
 import password.pwm.i18n.Display;
-import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -184,7 +184,7 @@ public class VersionChecker implements PwmService {
         httpGet.setHeader("Accept", PwmConstants.ContentTypeValue.json.getHeaderValue());
         LOGGER.trace("sending cloud version request to: " + VERSION_CHECK_URL);
 
-        final HttpResponse httpResponse = Helper.getHttpClient(pwmApplication.getConfig()).execute(httpGet);
+        final HttpResponse httpResponse = PwmHttpClient.getHttpClient(pwmApplication.getConfig()).execute(httpGet);
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new IOException("http response error code: " + httpResponse.getStatusLine().getStatusCode());
         }

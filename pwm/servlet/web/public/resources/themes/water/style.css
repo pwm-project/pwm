@@ -167,3 +167,20 @@ table td.key {
     border-top-color: #070618;
     background: #717081;
 }
+
+.menubutton_key {
+    color: white;
+}
+
+.menubutton {
+    color: white;
+    text-align: right;
+}
+
+.agreementText {
+    background-color: #444444;
+}
+
+.checkboxWrapper {
+    background-color: #444444;
+}

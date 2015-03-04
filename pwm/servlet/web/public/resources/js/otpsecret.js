@@ -43,6 +43,8 @@ PWM_OTP.checkExistingCode = function() {
                 PWM_MAIN.getObject('checkIcon').style.display = 'none';
                 PWM_MAIN.getObject('crossIcon').style.display = 'inherit';
             }
+            PWM_MAIN.getObject('verifyCodeInput').value = '';
+            PWM_MAIN.getObject('verifyCodeInput').focus();
         },
         completeFunction:function(){
             PWM_MAIN.getObject('button-verifyCode').disabled = false;
@@ -51,7 +53,37 @@ PWM_OTP.checkExistingCode = function() {
     });
 };
 
+PWM_OTP.openCheckCodeDialog = function() {
+    var templateHtml = '<div>'
+        + '<p>' + PWM_MAIN.showString("Display_RecoverOTP") + '</p>'
+        + '<table class="noborder" style="width: 300px; table-layout: fixed">'
+        + '<tr><td style="width:115px">'
+        + '<input type="text" class="inputfield" style="max-width: 100px; width: 100px" pattern="[0-9].*" id="verifyCodeInput" autofocus maxlength="6" />'
+        + '</td><td style="width:20px">'
+        + '<span style="display:none;color:green" id="checkIcon" class="btn-icon fa fa-lg fa-check"></span>'
+        + '<span style="display:none;color:red" id="crossIcon" class="btn-icon fa fa-lg fa-times"></span>'
+        + '<span style="display:none" id="workingIcon" class="fa fa-lg fa-spin fa-spinner"></span>'
+        + '</td><td style="width:150px">'
+        + '<button type="submit" name="button-verifyCode" class="btn" id="button-verifyCode">'
+        + '<span class="btn-icon fa fa-check"></span>' + PWM_MAIN.showString("Button_CheckCode") + '</button>'
+        + '</td></tr></table></div>';
+
+    PWM_MAIN.showDialog({
+        title:PWM_MAIN.showString('Button_CheckCode'),
+        text:templateHtml,
+        showClose:true,
+        loadFunction: function(){
+            PWM_MAIN.addEventHandler('button-verifyCode','click',function(){
+                PWM_OTP.checkExistingCode();
+            });
+        }
+    });
+};
+
 PWM_OTP.initExistingOtpPage = function() {
+    PWM_MAIN.addEventHandler('button-verifyCodeDialog','click',function(){
+        PWM_OTP.openCheckCodeDialog();
+    });
     PWM_MAIN.getObject('continue_button').type = 'button';
     PWM_MAIN.addEventHandler('continue_button','click',function(){
         PWM_MAIN.showConfirmDialog({

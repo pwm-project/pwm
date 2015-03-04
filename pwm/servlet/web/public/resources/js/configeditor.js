@@ -773,7 +773,7 @@ PWM_CFGEDIT.databaseHealthCheck = function() {
 
 PWM_CFGEDIT.smsHealthCheck = function() {
     require(["dojo/dom-form"], function(domForm){
-        var dialogBody = '<form id="smsCheckParametersForm"><table>';
+        var dialogBody = '<p>' + PWM_CONFIG.showString('Warning_SmsTestData') + '</p><form id="smsCheckParametersForm"><table>';
         dialogBody += '<tr><td>To</td><td><input name="to" type="text" value="555-1212"/></td></tr>';
         dialogBody += '<tr><td>Message</td><td><input name="message" type="text" value="Test Message"/></td></tr>';
         dialogBody += '</table></form>';
@@ -945,7 +945,6 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
     PWM_MAIN.addEventHandler('setting-' + settingKey, 'click', function () {
         PWM_CFGEDIT.displaySettingHelp(settingKey);
     });
-
     PWM_MAIN.addEventHandler('resetButton-' + settingKey, 'click', function () {
         handleResetClick(settingKey);
     });
@@ -1006,7 +1005,7 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
 
         case 'LOCALIZED_STRING':
         case 'LOCALIZED_TEXT_AREA':
-            LocalizedStringValueHandler.init(settingKey, '', setting['syntax']);
+            LocalizedStringValueHandler.init(settingKey);
             break;
 
         case 'USER_PERMISSION':
@@ -1023,6 +1022,13 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
 
         case 'FILE':
             FileValueHandler.init(settingKey);
+            break;
+
+        case 'VERIFICATION_METHOD':
+            VerificationMethodHandler.init(settingKey);
+            break;
+
+        case 'NONE':
             break;
 
         default:
@@ -1172,8 +1178,9 @@ PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
         var settingInfo = {};
         settingInfo['key'] = displayKey;
         settingInfo['label'] = keys[keyCounter];
-        settingInfo['syntax'] = 'LOCALIZED_STRING';
+        settingInfo['syntax'] = 'NONE';
         PWM_CFGEDIT.initSettingDisplay(settingInfo);
+        LocalizedStringValueHandler.init(displayKey,{required:true});
         remainingLoads--;
         PWM_MAIN.getObject('remainingCount').innerHTML = remainingLoads > 0 ? remainingLoads : '';
     };

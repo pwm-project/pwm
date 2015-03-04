@@ -81,10 +81,11 @@ public class JsonUtil {
     }
 
     public static List<String> deserializeStringList(final String jsonString) {
-        return JsonUtil.getGson().fromJson(jsonString, new TypeToken<List<Object>>() {}.getType());
+        return JsonUtil.getGson().fromJson(jsonString, new TypeToken<List<Object>>() {
+        }.getType());
     }
 
-    public static Map<String,String> deserializeStringMap(final String jsonString) {
+    public static Map<String, String> deserializeStringMap(final String jsonString) {
         return JsonUtil.getGson().fromJson(jsonString, new TypeToken<Map<String, String>>() {
         }.getType());
     }
@@ -123,11 +124,10 @@ public class JsonUtil {
         }
 
         public X509Certificate deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext)
-                throws JsonParseException
-        {
+                throws JsonParseException {
             try {
                 final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                return (X509Certificate)certificateFactory.generateCertificate(new ByteArrayInputStream(StringUtil.base64Decode(
+                return (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(StringUtil.base64Decode(
                         jsonElement.getAsString())));
             } catch (Exception e) {
                 throw new JsonParseException("unable to parse x509certificate: " + e.getMessage());
@@ -179,7 +179,7 @@ public class JsonUtil {
             } catch (IOException e) {
                 final String errorMsg = "io stream error while deserializing byte array: " + e.getMessage();
                 LOGGER.error(errorMsg);
-                throw new JsonParseException(errorMsg,e);
+                throw new JsonParseException(errorMsg, e);
             }
         }
 
@@ -189,7 +189,7 @@ public class JsonUtil {
             } catch (IOException e) {
                 final String errorMsg = "io stream error while serializing byte array: " + e.getMessage();
                 LOGGER.error(errorMsg);
-                throw new JsonParseException(errorMsg,e);
+                throw new JsonParseException(errorMsg, e);
             }
         }
     }
@@ -199,5 +199,10 @@ public class JsonUtil {
         gsonBuilder.registerTypeAdapter(X509Certificate.class, new X509CertificateAdapter());
         gsonBuilder.registerTypeAdapter(byte[].class, new ByteArrayToBase64TypeAdapter());
         return gsonBuilder;
+    }
+
+    public static <T> T cloneUsingJson(final Serializable srcObject, final Class<T> classOfT) {
+        final String asJson = JsonUtil.serialize(srcObject);
+        return JsonUtil.deserialize(asJson, classOfT);
     }
 }

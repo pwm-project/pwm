@@ -38,6 +38,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.*;
@@ -617,7 +618,7 @@ public class PeopleSearchServlet extends PwmServlet {
             userInfoBean = null;
         }
         UserDataReader userDataReader = new LdapUserDataReader(userIdentity, chaiUser);
-        return new MacroMachine(pwmApplication, userInfoBean, null, userDataReader);
+        return new MacroMachine(pwmApplication, pwmSession.getLabel(), userInfoBean, null, userDataReader);
     }
 
     private static void checkIfUserIdentityViewable(

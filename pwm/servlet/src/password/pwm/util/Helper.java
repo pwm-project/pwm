@@ -26,18 +26,10 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.HttpClient;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.HttpProtocolParams;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -347,31 +339,6 @@ public class
             LOGGER.debug("error reading file space remaining for " + file.toString() + ",: " + e.getMessage());
         }
         return -1;
-    }
-
-    public static HttpClient getHttpClient(final Configuration configuration)
-    {
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
-
-        final String strValue = configuration.readSettingAsString(PwmSetting.HTTP_PROXY_URL);
-        if (strValue != null && strValue.length() > 0) {
-            final URI proxyURI = URI.create(strValue);
-
-            final String host = proxyURI.getHost();
-            final int port = proxyURI.getPort();
-            final HttpHost proxy = new HttpHost(host,port);
-            httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-
-            final String username = proxyURI.getUserInfo();
-            if (username != null && username.length() > 0) {
-                final String password = (username.contains(":")) ? username.split(":")[1] : "";
-                final UsernamePasswordCredentials passwordCredentials = new UsernamePasswordCredentials(username,password);
-                httpClient.getCredentialsProvider().setCredentials (new AuthScope(host, port),passwordCredentials);
-            }
-        }
-        final String userAgent = PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION;
-        httpClient.getParams().setParameter(HttpProtocolParams.USER_AGENT, userAgent);
-        return httpClient;
     }
 
     static public String buildPwmFormID(final SessionStateBean ssBean) {

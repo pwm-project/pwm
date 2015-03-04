@@ -35,6 +35,7 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditRecord;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ActivateUserBean;
@@ -71,21 +72,21 @@ public class ActivateUserServlet extends PwmServlet {
     private static final String TOKEN_NAME = ActivateUserServlet.class.getName();
 
     public enum ActivateUserAction implements PwmServlet.ProcessAction {
-        activate(PwmServlet.HttpMethod.POST),
-        enterCode(PwmServlet.HttpMethod.POST, HttpMethod.GET),
-        reset(PwmServlet.HttpMethod.POST),
-        agree(PwmServlet.HttpMethod.POST),
+        activate(HttpMethod.POST),
+        enterCode(HttpMethod.POST, HttpMethod.GET),
+        reset(HttpMethod.POST),
+        agree(HttpMethod.POST),
 
         ;
 
-        private final Collection<PwmServlet.HttpMethod> method;
+        private final Collection<HttpMethod> method;
 
-        ActivateUserAction(PwmServlet.HttpMethod... method)
+        ActivateUserAction(HttpMethod... method)
         {
             this.method = Collections.unmodifiableList(Arrays.asList(method));
         }
 
-        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods()
         {
             return method;
         }

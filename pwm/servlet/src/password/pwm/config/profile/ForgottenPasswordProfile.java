@@ -27,6 +27,7 @@ import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.config.StoredValue;
 import password.pwm.config.option.RecoveryVerificationMethod;
+import password.pwm.config.value.VerificationMethodValue;
 
 import java.util.*;
 
@@ -62,34 +63,36 @@ public class ForgottenPasswordProfile extends AbstractProfile {
     
     public Set<RecoveryVerificationMethod> requiredRecoveryAuthenticationMethods() {
         if (requiredRecoveryVerificationMethods == null) {
-            requiredRecoveryVerificationMethods = readRecoveryAuthMethods(VerificationOptionValue.REQUIRED);
+            requiredRecoveryVerificationMethods = readRecoveryAuthMethods(VerificationMethodValue.EnabledState.required);
         }
         return requiredRecoveryVerificationMethods;
     }
 
     public Set<RecoveryVerificationMethod> optionalRecoveryAuthenticationMethods() {
         if (optionalRecoveryVerificationMethods == null) {
-            optionalRecoveryVerificationMethods = readRecoveryAuthMethods(VerificationOptionValue.OPTIONAL);
+            optionalRecoveryVerificationMethods = readRecoveryAuthMethods(VerificationMethodValue.EnabledState.optional);
         }
         return optionalRecoveryVerificationMethods;
     }
     
-    private Set<RecoveryVerificationMethod> readRecoveryAuthMethods(final VerificationOptionValue matchValue) {
+    private Set<RecoveryVerificationMethod> readRecoveryAuthMethods(final VerificationMethodValue.EnabledState enabledState) {
         final Set<RecoveryVerificationMethod> result = new LinkedHashSet<>();
+        final StoredValue configValue = storedValueMap.get(PwmSetting.RECOVERY_VERIFICATION_METHODS);
+        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = (VerificationMethodValue.VerificationMethodSettings)configValue.toNativeObject();
+
         for (final RecoveryVerificationMethod recoveryVerificationMethod : RecoveryVerificationMethod.values()) {
-            final PwmSetting setting = recoveryVerificationMethod.getAssociatedSetting();
-            final VerificationOptionValue value = this.readSettingAsEnum(setting,VerificationOptionValue.class);
-            if (value != null && value == matchValue) {
-                result.add(recoveryVerificationMethod);
+            if (verificationMethodSettings.getMethodSettings().containsKey(recoveryVerificationMethod)) {
+                if (verificationMethodSettings.getMethodSettings().get(recoveryVerificationMethod).getEnabledState() == enabledState) {
+                    result.add(recoveryVerificationMethod);
+                }
             }
         }
         return result;
     }
-    
-    public static enum VerificationOptionValue {
-        NONE,
-        OPTIONAL,
-        REQUIRED,
-    }
 
+    public int getMinOptionalRequired() {
+        final StoredValue configValue = storedValueMap.get(PwmSetting.RECOVERY_VERIFICATION_METHODS);
+        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = (VerificationMethodValue.VerificationMethodSettings)configValue.toNativeObject();
+        return verificationMethodSettings.getMinOptionalRequired();
+    }
 }

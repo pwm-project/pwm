@@ -53,6 +53,12 @@
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
                     <pwm:display key="Button_CheckCode"/>
                 </button>
+                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ForgottenPasswordOptionalPageView))) { %>
+                <button type="button" id="button-goBack" name="button-goBack" class="btn" >
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                    <pwm:display key="Button_GoBack"/>
+                </button>
+                <% } %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
                 <input type="hidden" id="processAction" name="processAction" value="enterOtp"/>
@@ -62,6 +68,13 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
+    <script>
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.submitPostAction('button-goBack','ForgottenPassword','<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
+        });
+    </script>
+</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

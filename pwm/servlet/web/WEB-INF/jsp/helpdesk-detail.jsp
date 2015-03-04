@@ -60,6 +60,7 @@
     final UserInfoBean searchedUserInfo = helpdeskBean.getUserInfoBean();
     final String displayName = helpdeskBean.getUserDisplayName();
     final Set<ViewStatusFields> viewStatusFields = helpdeskProfile.readSettingAsOptionList(PwmSetting.HELPDESK_VIEW_STATUS_VALUES,ViewStatusFields.class);
+    final boolean hasOtp = searchedUserInfo.getOtpUserRecord() != null;
 %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
@@ -551,6 +552,31 @@
                         </pwm:script>
                         <br/>
                         <% } %>
+                        <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
+                        <% if (helpdeskBean.getAdditionalUserInfo().isIntruderLocked()) { %>
+                        <button id="helpdesk_unlockBtn" class="btn" style="width:150px">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
+                            <pwm:display key="Button_Unlock"/>
+                        </button>
+                        <pwm:script>
+                            <script type="text/javascript">
+                                PWM_GLOBAL['startupFunctions'].push(function(){
+                                    PWM_MAIN.addEventHandler('helpdesk_unlockBtn','click',function(){
+                                        PWM_MAIN.showConfirmDialog({okAction:function() {
+                                            document.ldapUnlockForm.submit();
+                                        }});
+                                    });
+                                });
+                            </script>
+                        </pwm:script>
+                        <% } else { %>
+                        <button id="helpdesk_unlockBtn" class="btn" disabled="disabled" style="width:150px">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
+                            <pwm:display key="Button_Unlock"/>
+                        </button>
+                        <% } %>
+                        <br/>
+                        <% } %>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) { %>
                         <% if (helpdeskBean.getUserInfoBean().getResponseInfoBean() != null) { %>
                         <button id="helpdesk_clearResponsesBtn" class="btn" style="width:150px">
@@ -585,8 +611,8 @@
                         </pwm:script>
                         <% } %>
                         <% } %>
-                        <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_OTP_BUTTON) &&
-                                pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) { %>
+                        <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_OTP_BUTTON) && pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) { %>
+                        <% if (hasOtp) { %>
                         <button id="helpdesk_clearOtpSecretBtn" class="btn" style="width:150px">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
                             <pwm:display key="Button_HelpdeskClearOtpSecret"/>
@@ -595,53 +621,22 @@
                             <script type="text/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
                                     PWM_MAIN.addEventHandler('helpdesk_clearOtpSecretBtn','click',function(){
-                                        PWM_MAIN.showConfirmDialog({text:PWM_MAIN.showString('Button_HelpdeskClearOtpSecret'),okAction:function() {
+                                        PWM_MAIN.showConfirmDialog({okAction:function() {
                                             document.clearOtpSecretForm.submit();
                                         }});
                                     });
                                 });
                             </script>
                         </pwm:script>
-                        <br/>
-                        <% } %>
-                        <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
-                        <% if (helpdeskBean.getAdditionalUserInfo().isIntruderLocked()) { %>
-                        <button class="helpdesk_unlockBtn">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
-                            <pwm:display key="Button_Unlock"/>
-                        </button>
-                        <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('helpdesk_unlockBtn','click',function(){
-                                        PWM_MAIN.showConfirmDialog({text:PWM_MAIN.showString('Button_Unlock'),okAction:function() {
-                                            document.ldapUnlockForm.submit();
-                                        }});
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
-                        <br/>
                         <% } else { %>
-                        <button id="helpdesk_unlockBtn" class="btn" disabled="disabled" style="width:150px">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
-                            <pwm:display key="Button_Unlock"/>
+                        <button id="helpdesk_clearOtpSecretBtn" class="btn" disabled="disabled" style="width:150px">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
+                            <pwm:display key="Button_HelpdeskClearOtpSecret"/>
                         </button>
-                        <br/>
-                        <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.showTooltip({
-                                        id: "helpdesk_unlockBtn",
-                                        text: 'User is not locked'
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
                         <% } %>
+                        <br/>
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_OTP_VERIFY)) { %>
-                        <% boolean hasOtp = searchedUserInfo.getOtpUserRecord() != null; %>
                         <button id="helpdesk_verifyOtpButton" <%=hasOtp?"":" disabled=\"true\""%>class="btn" style="width:150px">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-mobile-phone"></span></pwm:if>
                             Verify OTP

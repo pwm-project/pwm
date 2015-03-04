@@ -44,32 +44,14 @@
         </p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <table class="noborder" style="table-layout: fixed; width: 150px">
-            <colgroup>
-                <col style="width:130px;"/>
-                <col style="width:20px;padding-top: 5px"/>
-            </colgroup>
-                
-            <tr>
-                <td>
-                    <input type="text" class="inputfield" style="max-width: 130px; width: 130px" pattern="[0-9].*" id="verifyCodeInput" autofocus maxlength="6" />
-                </td>
-                <td>
-                    <span style="display:none;color:green" id="checkIcon" class="btn-icon fa fa-lg fa-check"></span>
-                    <span style="display:none;color:red" id="crossIcon" class="btn-icon fa fa-lg fa-times"></span>
-                    <span style="display:none" id="workingIcon" class="fa fa-lg fa-spin fa-spinner"></span>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <button type="submit" name="button-verifyCode" class="btn" id="button-verifyCode">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
-                        <pwm:display key="Button_CheckCode"/>
-                    </button>
-                </td>
-            </tr>
-        </table>
+        <%--
+        <br/>
+        --%>
         <div class="buttonbar">
+            <button type="submit" name="button-verifyCodeDialog" class="btn" id="button-verifyCodeDialog">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                <pwm:display key="Button_CheckCode"/>
+            </button>
             <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecretForm" style="display: inline"
                   enctype="application/x-www-form-urlencoded" id="setupOtpSecretForm">
                 <input type="hidden" name="processAction" value="clearOtp"/>
@@ -85,14 +67,11 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="application/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_OTP.initExistingOtpPage();
-        PWM_MAIN.addEventHandler('button-verifyCode','click',function(){
-            PWM_OTP.checkExistingCode();
-        })
-    });
-</script>
+    <script type="application/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_OTP.initExistingOtpPage();
+        });
+    </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/otpsecret.js"/>
 <%@ include file="fragment/footer.jsp" %>

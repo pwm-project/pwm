@@ -324,13 +324,13 @@ public class AuditManager implements PwmService {
         switch (record.getEventCode().getType()) {
             case SYSTEM:
                 for (final String toAddress : settings.systemEmailAddresses) {
-                    sendAsEmail(pwmApplication, record, toAddress, settings.alertFromAddress);
+                    sendAsEmail(pwmApplication, null, record, toAddress, settings.alertFromAddress);
                 }
                 break;
 
             case USER:
                 for (final String toAddress : settings.userEmailAddresses) {
-                    sendAsEmail(pwmApplication, record, toAddress, settings.alertFromAddress);
+                    sendAsEmail(pwmApplication, null, record, toAddress, settings.alertFromAddress);
                 }
                 break;
         }
@@ -338,6 +338,7 @@ public class AuditManager implements PwmService {
 
     private static void sendAsEmail(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final AuditRecord record,
             final String toAddress,
             final String fromAddress
@@ -360,7 +361,7 @@ public class AuditManager implements PwmService {
         }
 
         final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmApplication);
+        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmApplication, sessionLabel);
         pwmApplication.getEmailQueue().submitEmail(emailItem, null, macroMachine);
     }
 

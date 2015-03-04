@@ -40,6 +40,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.GuestRegistrationBean;
@@ -87,9 +88,9 @@ public class GuestRegistrationServlet extends PwmServlet {
         selectPage,
         ;
 
-        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        public Collection<HttpMethod> permittedMethods()
         {
-            return Collections.singletonList(PwmServlet.HttpMethod.POST);
+            return Collections.singletonList(HttpMethod.POST);
         }
     }
 

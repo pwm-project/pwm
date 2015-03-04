@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.http.servlet.ForgottenPasswordServlet" %>
 <%@ page import="java.util.HashSet" %>
 <%@ page import="java.util.Set" %>
 <%--
@@ -51,7 +50,7 @@
             <tr>
                 <td>
                     <form action="<pwm:url url='ForgottenPassword'/>" method="post"
-                          enctype="application/x-www-form-urlencoded" name="search">
+                          enctype="application/x-www-form-urlencoded" class="pwm-form" id="form-<%=method.toString()%>">
                         <button class="btn" type="submit" name="submitBtn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                             <%=method.getLabel(pwmRequest.getConfig(),pwmRequest.getLocale())%>

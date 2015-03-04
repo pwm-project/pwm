@@ -40,12 +40,10 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     PwmRequest pwmRequest = null;
-    final Map<String,PwmSettingCategory> sortedCategories = new TreeMap<String,PwmSettingCategory>();
+    List<PwmSettingCategory> sortedCategories = new ArrayList();
     try {
         pwmRequest = PwmRequest.forRequest(request, response);
-        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
-            sortedCategories.put(category.getLabel(pwmRequest.getLocale()),category);
-        }
+        sortedCategories = PwmSettingCategory.sortedValues(pwmRequest.getLocale());
     } catch (PwmException e) {
         JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
     }
@@ -65,9 +63,9 @@
             <li><a href="#errors">Errors</a></li>
             <li><a href="#settings">Settings</a></li>
             <ol>
-                <% for (final PwmSettingCategory category : sortedCategories.values()) { %>
+                <% for (final PwmSettingCategory category : sortedCategories) { %>
                 <% if (!category.isHidden() && !category.getSettings().isEmpty()) { %>
-                <li><a href="#settings_category_<%=category.toString()%>"><%=category.getLabel(userLocale)%></a></li>
+                <li><a href="#settings_category_<%=category.toString()%>"><%=category.toMenuLocationDebug(null,userLocale)%></a></li>
                 <% } %>
                 <% } %>
             </ol>
@@ -179,7 +177,7 @@
             <% } %>
         </table>
         <h1><a id="settings">Configuration Settings</a></h1>
-        <% for (final PwmSettingCategory category : sortedCategories.values()) { %>
+        <% for (final PwmSettingCategory category : sortedCategories) { %>
         <% if (!category.isHidden() && !category.getSettings().isEmpty()) { %>
         <h2><a id="settings_category_<%=category.toString()%>"><%=category.getLabel(userLocale)%></a></h2>
         <p>

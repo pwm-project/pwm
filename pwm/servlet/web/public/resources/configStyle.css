@@ -97,8 +97,8 @@
 }
 
 .centerbody-config {
-    width: 800px;
-    min-width: 800px;
+    width: 850px;
+    min-width: 850px;
     padding: 10px;
     margin-left: auto;
     margin-right: auto;
@@ -116,7 +116,7 @@
 }
 
 #header-center-wide {
-    width: 800px;
+    width: 850px;
     margin: 0 auto;
     position:relative;
     padding:4px;
@@ -252,7 +252,7 @@ table {
     background-color: white;
     margin-top: 57px;
     height: 85vh;
-    width: 192px;
+    width: 242px;
     position: fixed;
     animation: fadein 1.5s;
     -moz-animation: fadein 1.5s; /* Firefox */
@@ -284,7 +284,7 @@ table {
     position:fixed;
     z-index: 2;
     background: white;
-    width:800px;
+    width:850px;
     animation: fadein 3s;
     -moz-animation: fadein 3s; /* Firefox */
     -webkit-animation: fadein 3s; /* Safari and Chrome */
@@ -400,10 +400,6 @@ table {
     background-color: none !important;
 } */
 
-@keyframes fadein { from { opacity:0; } to { opacity:1; } }
-@-moz-keyframes fadein { from { opacity:0 } to { opacity:1 } }
-@-webkit-keyframes fadein { from { opacity:0 } to { opacity:1 } }
-
 .panel-searchResultItem {
     text-indent: 1.5em; 
     margin-left: 10px;
@@ -429,6 +425,15 @@ table {
     white-space: nowrap;
 }
 
+.configStringPanel {
+    width:480px;
+    max-width:480px;
+    overflow:hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    max-height:50px;
+}
+
 .editorIdleStatus {
     /*
     margin-left: auto;
@@ -451,3 +456,38 @@ table {
     margin-left: 5px;
 }
 
+input[type=range] {
+    padding:0;
+}
+input[type=range]::-ms-tooltip {
+    display: none;
+}
+input[type=range]::-ms-track {
+    width: 300px;
+    height: 5px;
+    background: transparent;
+    border-color: transparent;
+    border-width: 6px 0;
+    color: transparent;
+}
+input[type=range]::-ms-fill-lower {
+    background: #777;
+    border-radius: 10px;
+}
+input[type=range]::-ms-fill-upper {
+    background: #ddd;
+    border-radius: 10px;
+}
+input[type=range]::-ms-thumb {
+    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #656565;
+}
+input[type=range]:focus::-ms-fill-lower {
+    background: #888;
+}
+input[type=range]:focus::-ms-fill-upper {
+    background: #ccc;
+}

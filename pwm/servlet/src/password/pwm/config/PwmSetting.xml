@@ -475,6 +475,7 @@
         <label>LDAP URLs</label>
         <description><![CDATA[List of ldap servers in URL format.  Each of these these servers will be used in a fail-over configuration.  The servers are used in order of appearance in this list.  If the first server is unavailable the next available server in the list will be used.  The first server will periodically be checked to see if it has become available.<ul><li>For secure SSL, use the "<i>ldaps://servername:636</i>" format</li><li>For plain-text servers, use "<i>ldap://serverame:389</i>" format (not recommended)</li></ul><p>When using secure connections, the Java virtual machine must trust the directory server, either because you have manually added the public key certificate from the tree to the Java keystore or the certificate is imported into the setting <i>LDAP Server Certificates</i>.<ul><li>Do not use a non-secure connection for anything but the most basic testing purposes (Many LDAP servers will reject password operations on non-secure connections)</li><li>Do not use a load-balancing device for LDAP high availability, instead use the built in LDAP server fail-over functionality</li><li>Do not use a DNS round-robin address</li><li>Avoid using the network address, use the proper fully-qualified domain name address for the server</li></ul>]]></description>
         <regex>^(ldap|ldaps)://[a-zA-Z0-9.-]+:[0-9]+$</regex>
+        <placeholder>ldaps://ldap.example.com:636</placeholder>
         <default>
             <value><![CDATA[ldaps://ldap.example.com:636]]></value>
         </default>
@@ -1642,11 +1643,11 @@
         <label>Disallowed HTTP Inputs</label>
         <description><![CDATA[Disallowed values.  If any input values (on any http parameter) matches these patterns, the matching portion will be stripped from the input.]]></description>
         <default>
-            <value><![CDATA[(?s)(?i)<.*script.*>]]></value>
-            <value><![CDATA[(?s)(?i)<.*xml.*>*]]></value>
-            <value><![CDATA[(?s)(?i)<.*img.*>]]></value>
-            <value><![CDATA[(?s)(?i)<.*src.*>]]></value>
-            <value><![CDATA[(?s)(?i).*href.*]]></value>
+            <value><![CDATA[(?s)(?i)<.*script.*]]></value>
+            <value><![CDATA[(?s)(?i)<.*xml.*]]></value>
+            <value><![CDATA[(?s)(?i)<.*img.*]]></value>
+            <value><![CDATA[(?s)(?i)<.*src.*]]></value>
+            <value><![CDATA[(?s)(?i)<.*href.*]]></value>
         </default>
     </setting>
     <setting key="pwm.requireHTTPS" level="1" required="true">
@@ -2305,6 +2306,13 @@
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
+    <setting key="recovery.verificationMethods" level="1">
+        <label>Verification Methods</label>
+        <description><![CDATA[Verification Methods]]></description>
+        <default>
+                <value>{"methodSettings":{"CHALLENGE_RESPONSES":{"enabledState":"required"}},"minOptionalRequired":0}</value>
+        </default>
+    </setting>
     <setting key="recovery.enable" level="1">
         <label>Enable Forgotten Password</label>
         <description><![CDATA[If enabled, forgotten password recovery will be available to users.]]></description>
@@ -2923,7 +2931,6 @@
             <value>sn</value>
             <value>title</value>
             <value>mail</value>
-            <value>telephoneNumber</value>
         </default>
     </setting>
     <setting key="peopleSearch.searchFilter" level="2" required="false">
@@ -3419,87 +3426,6 @@
         <default syntaxVersion="2" template="ORACLE_DS">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
-    </setting>
-    <setting key="recovery.verification.otp" level="1">
-        <label>OTP Verification</label>
-        <description><![CDATA[]]></description>
-        <default>
-            <value><![CDATA[NONE]]></value>
-        </default>
-        <options>
-            <option value="NONE">None</option>
-            <option value="OPTIONAL">Optional</option>
-            <option value="REQUIRED">Required</option>
-        </options>
-    </setting>
-    <setting key="recovery.verification.previousAuthentication" level="1">
-        <label>Previous Authentication Verification</label>
-        <description><![CDATA[User must have previously authenticated (using username and password) using current browser. ]]></description>
-        <default>
-            <value><![CDATA[NONE]]></value>
-        </default>
-        <options>
-            <option value="NONE">None</option>
-            <option value="OPTIONAL">Optional</option>
-            <option value="REQUIRED">Required</option>
-        </options>
-    </setting>
-    <setting key="recovery.verification.attributes" level="1">
-        <label>LDAP Attribute Verification</label>
-        <description><![CDATA[]]></description>
-        <default>
-            <value><![CDATA[NONE]]></value>
-        </default>
-        <options>
-            <option value="NONE">None</option>
-            <option value="OPTIONAL">Optional</option>
-            <option value="REQUIRED">Required</option>
-        </options>
-    </setting>
-    <setting key="recovery.verification.challengeResponse" level="1">
-        <label>Challenge/Response Verification</label>
-        <description><![CDATA[]]></description>
-        <default>
-            <value><![CDATA[REQUIRED]]></value>
-        </default>
-        <options>
-            <option value="NONE">None</option>
-            <option value="OPTIONAL">Optional</option>
-            <option value="REQUIRED">Required</option>
-        </options>
-    </setting>
-    <setting key="recovery.verification.token" level="1">
-        <label>SMS/Email Token Verification</label>
-        <description><![CDATA[]]></description>
-        <default>
-            <value><![CDATA[NONE]]></value>
-        </default>
-        <options>
-            <option value="NONE">None</option>
-            <option value="OPTIONAL">Optional</option>
-            <option value="REQUIRED">Required</option>
-        </options>
-    </setting>
-    <setting key="recovery.verification.remoteResponses" level="1">
-        <label>Remote Web Service Response Verification</label>
-        <description><![CDATA[]]></description>
-        <default>
-            <value><![CDATA[NONE]]></value>
-        </default>
-        <options>
-            <option value="NONE">None</option>
-            <option value="OPTIONAL">Optional</option>
-            <option value="REQUIRED">Required</option>
-        </options>
-    </setting>
-
-    <setting key="recovery.verification.minOptionalMethods" level="1">
-        <label>Minimum Optional Verification Methods Required</label>
-        <description>This setting specifieds that of the Verification methods that are configured as <code>Optional</code>, how many are required to complete the verification process.</description>
-        <default>
-            <value>0</value>
-        </default>
-        <regex>^$|^[0-9]+$</regex>
     </setting>
     <setting key="helpdesk.token.sendMethod" level="1">
         <label>Token Send Method</label>
@@ -4238,17 +4164,17 @@
         <description><![CDATA[Policies for forgotten password configuration.]]></description>
     </category>
     <category key="RECOVERY_SETTINGS">
-        <label>Settings</label>
-        <description><![CDATA[Policies for forgotten password configuration.]]></description>
+        <label>Forgotten Password Settings</label>
+        <description><![CDATA[Settings for forgotten password configuration.]]></description>
     </category>
     <category key="RECOVERY_PROFILE" profiles="true" hidden="false">
-        <label>Profiles</label>
+        <label>Forgotten Password Profiles</label>
         <description><![CDATA[Policies for forgotten password configuration.]]></description>
         <profile setting="recovery.profile.list"/>
     </category>
     <category key="ADMINISTRATION">
         <label>Administration</label>
-        <description></description>
+        <description>Administration</description>
     </category>
     <category key="FORGOTTEN_USERNAME">
         <label>Forgotten Username</label>

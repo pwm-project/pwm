@@ -238,7 +238,7 @@ public class SessionManager implements Serializable {
         final UserInfoBean userInfoBean = pwmSession.getSessionStateBean().isAuthenticated()
                 ? pwmSession.getUserInfoBean()
                 : null;
-        return new MacroMachine(pwmApplication, userInfoBean, pwmSession.getLoginInfoBean(), userDataReader);
+        return new MacroMachine(pwmApplication, pwmSession.getLabel(), userInfoBean, pwmSession.getLoginInfoBean(), userDataReader);
     }
 
     public HelpdeskProfile getHelpdeskProfile(final PwmApplication pwmApplication) {

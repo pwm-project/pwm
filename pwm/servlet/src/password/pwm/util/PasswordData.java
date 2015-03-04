@@ -46,6 +46,8 @@ public class PasswordData {
     private static final String staticKeyHash;
     private static final ErrorInformation initializationError;
 
+    private String passwordHashCache;
+
     static {
         SecretKey newKey = null;
         String newKeyHash = null;
@@ -147,5 +149,12 @@ public class PasswordData {
         return input == null || input.isEmpty()
                 ? null
                 : new PasswordData(input);
+    }
+
+    public String hash() throws PwmUnrecoverableException {
+        if (passwordHashCache == null) {
+            passwordHashCache = SecureHelper.hash(this.getStringValue());
+        }
+        return passwordHashCache;
     }
 }

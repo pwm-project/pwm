@@ -158,27 +158,23 @@ PWM_CONFIG.showHeaderHealth = function() {
         var loadFunction = function(data) {
             if (data['data'] && data['data']['records']) {
                 var healthRecords = data['data']['records'];
-                var htmlBody = '';
+                var hasWarnTopics = false;
                 for (var i = 0; i < healthRecords.length; i++) {
                     var healthData = healthRecords[i];
                     if (healthData['status'] == 'WARN') {
-                        //require(["dojo/cookie"], function(cookie){
-                        //    var cookieValue = cookie('headerVisibility');
-                        //    if (!cookieValue) {
-                        PWM_MAIN.openHeaderWarningPanel();
-                        //    }
-                        //});
-
-                        htmlBody += '<div class="header-error">';
-                        htmlBody += healthData['status'];
-                        htmlBody += " - ";
-                        htmlBody += healthData['topic'];
-                        htmlBody += " - ";
-                        htmlBody += healthData['detail'];
-                        htmlBody += '</div>';
+                        hasWarnTopics = true;
                     }
                 }
-                parentDiv.innerHTML = htmlBody;
+                if (hasWarnTopics) {
+                    PWM_MAIN.openHeaderWarningPanel();
+                    parentDiv.innerHTML = '<div id="panel-healthHeaderErrors" class="header-error"><span class="fa fa-warning"></span> ' + PWM_ADMIN.showString('Header_ConfigWarningsPresent') + '</div>';
+                    var tooltipBody = PWM_ADMIN.makeHealthHtml(data['data'],true,false);
+                    PWM_MAIN.showTooltip({
+                        position:'below',
+                        id:'panel-healthHeaderErrors',
+                        text:tooltipBody
+                    });
+                }
                 setTimeout(function () {
                     PWM_CONFIG.showHeaderHealth()
                 }, 60 * 1000);
