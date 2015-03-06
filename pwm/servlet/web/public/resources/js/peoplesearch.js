@@ -65,7 +65,18 @@ PWM_PS.processPeopleSearch = function() {
 
             if (sizeExceeded) {
                 PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
-                PWM_MAIN.showTooltip({id:'maxResultsIndicator',position:'below',text:PWM_MAIN.showString('Display_SearchResultsExceeded')})
+                PWM_MAIN.showTooltip({
+                    id: 'maxResultsIndicator',
+                    position: 'below',
+                    text: PWM_MAIN.showString('Display_SearchResultsExceeded')
+                })
+            } else if (PWM_MAIN.isEmpty(data['data']['searchResults']) && validationProps['usernameField'].length > 0) {
+                PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
+                PWM_MAIN.showTooltip({
+                    id: 'maxResultsIndicator',
+                    position: 'below',
+                    text: PWM_MAIN.showString('Display_SearchResultsNone')
+                })
             } else {
                 PWM_MAIN.getObject('maxResultsIndicator').style.display = 'none';
             }
@@ -83,7 +94,7 @@ PWM_PS.convertDetailResultToHtml = function(data) {
         htmlBody += '<div id="userPhotoParentDiv"><img style="' + styleAttr + '" src="' + blankSrc + '"></div>';
     }
     htmlBody += '<div id="peopleSearch-userDetailWrapper">';
-    htmlBody += '<table style="max-height: 450px; overflow-y: auto">';
+    htmlBody += '<table class="peopleSearch-userDetails">';
     for (var iter in data['detail']) {
         (function(iterCount){
             var attributeData = data['detail'][iterCount];

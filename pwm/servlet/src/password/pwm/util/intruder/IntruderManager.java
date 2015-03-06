@@ -100,7 +100,6 @@ public class IntruderManager implements Serializable, PwmService {
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.INTRUDER_ENABLE)) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"intruder module not enabled");
             LOGGER.error(errorInformation.toDebugStr());
-            startupError = errorInformation;
             status = STATUS.CLOSED;
             return;
         }

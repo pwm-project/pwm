@@ -239,6 +239,13 @@ PWM_HELPDESK.processHelpdeskSearch = function() {
             if (sizeExceeded) {
                 PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
                 PWM_MAIN.showTooltip({id:'maxResultsIndicator',position:'below',text:PWM_MAIN.showString('Display_SearchResultsExceeded')})
+            } else if (PWM_MAIN.isEmpty(data['data']['searchResults']) && validationProps['usernameField'].length > 0) {
+                PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
+                PWM_MAIN.showTooltip({
+                    id: 'maxResultsIndicator',
+                    position: 'below',
+                    text: PWM_MAIN.showString('Display_SearchResultsNone')
+                })
             } else {
                 PWM_MAIN.getObject('maxResultsIndicator').style.display = 'none';
             }

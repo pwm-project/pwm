@@ -103,7 +103,7 @@ LocalizedStringValueHandler.drawRow = function(parentDiv, settingKey, localeStri
     tableHtml += '<td id="button-' + inputID + '" style="border-width:0; width: 15px"><span class="fa fa-edit"/></ta>';
 
     tableHtml += '<td id="panel-' + inputID + '">';
-    tableHtml += '<div class="configStringPanel">' + ((value != null && value.length > 0) ? value : '&nbsp;') + '</div>';
+    tableHtml += '<div id="value-' + inputID + '" class="configStringPanel"></div>';
     tableHtml += '</td>';
 
     var defaultLocale = (localeString == null || localeString.length < 1);
@@ -122,6 +122,7 @@ LocalizedStringValueHandler.drawRow = function(parentDiv, settingKey, localeStri
     PWM_MAIN.addEventHandler("button-" + settingKey + '-' + localeString + "-deleteRow","click",function(){
         LocalizedStringValueHandler.removeLocaleSetting(settingKey, localeString);
     });
+    UILibrary.addTextValueToElement('value-' + inputID, (value != null && value.length > 0) ? value : ' ');
 
     var editFunction = function() {
         UILibrary.stringEditorDialog({
@@ -253,14 +254,11 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
 
     var inputID = 'value-' + settingKey + '-' + iteration;
 
-    // clear the old dijit node (if it exists)
-    PWM_MAIN.clearDijitWidget(inputID);
-
     var valueRow = document.createElement("tr");
     valueRow.setAttribute("style", "border-width: 0");
     valueRow.setAttribute("id",inputID + "_row");
 
-    var rowHtml = '<td style=""><div class="configStringPanel" id="' + inputID + '">' + value + '</div></td>';
+    var rowHtml = '<td style=""><div class="configStringPanel" id="' + inputID + '"></div></td>';
 
     var downButtonID = 'button-' + settingKey + '-' + iteration + '-moveDown';
     rowHtml += '<td style="border:0">';
@@ -287,6 +285,7 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
     valueRow.innerHTML = rowHtml;
     parentDivElement.appendChild(valueRow);
 
+    UILibrary.addTextValueToElement(inputID, value);
     if (syntax != 'PROFILE') {
         PWM_MAIN.addEventHandler(inputID,'click',function(){
             StringArrayValueHandler.valueHandler(settingKey,iteration);
@@ -1436,7 +1435,7 @@ ActionHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         PWM_VAR['clientSettingCache'][settingKey][iteration]['description'] = PWM_MAIN.getObject('input-' + inputID + '-description').value;
         ActionHandler.writeFormSetting(settingKey);
     });
-    PWM_MAIN.addEventHandler('select-' + inputID + '-type','input',function(){
+    PWM_MAIN.addEventHandler('select-' + inputID + '-type','change',function(){
         PWM_VAR['clientSettingCache'][settingKey][iteration]['type'] = PWM_MAIN.getObject('select-' + inputID + '-type').value;
         ActionHandler.writeFormSetting(settingKey);
     });
@@ -1551,7 +1550,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
                     ActionHandler.showHeadersDialog(keyName,iteration);
                 });
                 if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'webservice') {
-                    PWM_MAIN.addEventHandler('select-' + inputID + '-method','input',function(){
+                    PWM_MAIN.addEventHandler('select-' + inputID + '-method','change',function(){
                         var value = PWM_MAIN.getObject('select-' + inputID + '-method').value;
                         if (value == 'get') {
                             PWM_VAR['clientSettingCache'][keyName][iteration]['body'] = '';
@@ -1559,7 +1558,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
                         PWM_VAR['clientSettingCache'][keyName][iteration]['method'] = value;
                         ActionHandler.writeFormSetting(keyName, function(){ ActionHandler.showOptionsDialog(keyName,iteration)});
                     });
-                    PWM_MAIN.addEventHandler('select-' + inputID + '-bodyEncoding','input',function(){
+                    PWM_MAIN.addEventHandler('select-' + inputID + '-bodyEncoding','change',function(){
                         PWM_VAR['clientSettingCache'][keyName][iteration]['bodyEncoding'] = PWM_MAIN.getObject('select-' + inputID + '-bodyEncoding').value;
                         ActionHandler.writeFormSetting(keyName);
                     });
@@ -1580,7 +1579,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
                         PWM_VAR['clientSettingCache'][keyName][iteration]['attributeValue'] = PWM_MAIN.getObject('input-' + inputID + '-attributeValue').value;
                         ActionHandler.writeFormSetting(keyName);
                     });
-                    PWM_MAIN.addEventHandler('select-' + inputID + '-ldapMethod','input',function(){
+                    PWM_MAIN.addEventHandler('select-' + inputID + '-ldapMethod','change',function(){
                         PWM_VAR['clientSettingCache'][keyName][iteration]['ldapMethod'] = PWM_MAIN.getObject('select-' + inputID + '-ldapMethod').value;
                         ActionHandler.writeFormSetting(keyName);
                     });
@@ -2859,5 +2858,12 @@ UILibrary.stringEditorDialog = function(options){
             });
         }
     });
+};
 
+UILibrary.addTextValueToElement = function(elementID, input) {
+    var element = PWM_MAIN.getObject(elementID);
+    if (element) {
+        element.innerHTML = '';
+        element.appendChild(document.createTextNode(input));
+    }
 };

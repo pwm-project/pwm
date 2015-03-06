@@ -375,7 +375,7 @@ PWM_CONFIG.heartbeatCheck = function() {
     var errorFunction = function(e) {
         handleErrorFunction('I/O error communicating with server.');
     };
-    var url = PWM_GLOBAL['url-restservice'] + "/app-data/client?checkForHealtbeat=true";
+    var url = PWM_GLOBAL['url-restservice'] + "/app-data/client?heartbeat=true";
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET'});
 };
 

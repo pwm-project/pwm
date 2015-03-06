@@ -60,6 +60,9 @@
             <br/>
             <table class="noborder" style="margin-left: auto; margin-right: auto; width:100px; table-layout: fixed" >
                 <tr>
+                    <td style="width:15px">
+                        <span class="fa fa-search"></span>
+                    </td>
                     <td style="width:400px">
                         <input type="search" id="username" name="username" class="peoplesearch-input-username" <pwm:autofocus/> autocomplete="off"/>
                     </td>
