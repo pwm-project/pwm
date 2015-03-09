@@ -3105,6 +3105,27 @@
             <value />
         </default>
     </setting>
+    <setting key="ldap.edirectory.cr.minRandomDuringSetup" level="1" required="true">
+        <label>eDir CR Minimum Randoms During Setup</label>
+        <description><![CDATA[]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="ldap.edirectory.cr.applyWordlist" level="1" required="true">
+        <label>eDir CR Apply Wordlist</label>
+        <description><![CDATA[]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="ldap.edirectory.cr.maxQuestionCharsInAnswer" level="1" required="true">
+        <label>eDir CR Maximum Question Chars In Answer</label>
+        <description><![CDATA[]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
     <setting key="ldap.ad.proxyForgotten" level="1" required="true">
         <label>Use Proxy When Password Forgotten</label>
         <description><![CDATA[If true, when the user's password is forgotten, the system will use the ldap proxy account for ldap work.  This is because an ldap connection is not possible to AD without the user's password.  When authenticated in this condition, the user will be forced to change password immediately.]]></description>
@@ -4105,7 +4126,15 @@
     </category>
     <category key="EDIRECTORY">
         <label>NetIQ eDirectory</label>
-        <description><![CDATA[NetIQ eDirectory specifc settings.]]></description>
+        <description><![CDATA[NetIQ eDirectory specific settings.]]></description>
+    </category>
+    <category key="EDIR_SETTINGS">
+        <label>eDirectory Settings</label>
+        <description><![CDATA[NetIQ eDirectory specific settings.]]></description>
+    </category>
+    <category key="EDIR_CR_SETTINGS">
+        <label>eDirectory CR Settings</label>
+        <description><![CDATA[NetIQ eDirectory CR specific settings.]]></description>
     </category>
     <category key="ACTIVE_DIRECTORY">
         <label>Active Directory</label>

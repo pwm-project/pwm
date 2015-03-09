@@ -790,6 +790,8 @@ dialog .titleBar {
 
 dialog .body {
     padding:5px;
+    max-height: 98vh;
+    overflow-x: auto;
 }
 
 dialog .closeIcon {

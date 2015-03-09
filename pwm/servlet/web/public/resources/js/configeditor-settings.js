@@ -79,9 +79,9 @@ LocalizedStringValueHandler.draw = function(settingKey) {
         for (var localeKey in resultValue) {
             LocalizedStringValueHandler.drawRow(parentDiv, settingKey, localeKey, resultValue[localeKey])
         }
-        PWM_CFGEDIT.addAddLocaleButtonRow(parentDiv, settingKey, function(localeKey) {
+        UILibrary.addAddLocaleButtonRow(parentDiv, settingKey, function(localeKey) {
             LocalizedStringValueHandler.addLocaleSetting(settingKey, localeKey);
-        });
+        }, Object.keys(resultValue));
     }
 
     PWM_VAR['clientSettingCache'][settingKey] = resultValue;
@@ -258,7 +258,8 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
     valueRow.setAttribute("style", "border-width: 0");
     valueRow.setAttribute("id",inputID + "_row");
 
-    var rowHtml = '<td style=""><div class="configStringPanel" id="' + inputID + '"></div></td>';
+    var rowHtml = '<td id="button-' + inputID + '" style="border-width:0; width: 15px"><span class="fa fa-edit"/></ta>';
+    rowHtml += '<td style=""><div class="configStringPanel" id="' + inputID + '"></div></td>';
 
     var downButtonID = 'button-' + settingKey + '-' + iteration + '-moveDown';
     rowHtml += '<td style="border:0">';
@@ -288,6 +289,9 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
     UILibrary.addTextValueToElement(inputID, value);
     if (syntax != 'PROFILE') {
         PWM_MAIN.addEventHandler(inputID,'click',function(){
+            StringArrayValueHandler.valueHandler(settingKey,iteration);
+        });
+        PWM_MAIN.addEventHandler('button-' + inputID,'click',function(){
             StringArrayValueHandler.valueHandler(settingKey,iteration);
         });
     }
@@ -506,7 +510,7 @@ MultiLocaleTableHandler.draw = function(keyName) {
             });
         };
 
-        PWM_CFGEDIT.addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
+        UILibrary.addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction, Object.keys(resultValue));
         PWM_VAR['clientSettingCache'][keyName] = resultValue;
         dojoParser.parse(parentDiv);
     });
@@ -949,7 +953,7 @@ FormTableHandler.multiLocaleStringDialog = function(keyName, iteration, settingT
             var value = PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
             var localeID = inputID + localeName;
             bodyText += '<td>' + localeName + '</td>';
-            bodyText += '<td><input style="width:445px" class="configStringInput" type="text" value="' + value + '" id="' + localeID + '-input"></input></td>';
+            bodyText += '<td><input style="width:420px" class="configStringInput" type="text" value="' + value + '" id="' + localeID + '-input"></input></td>';
             if (localeName != '') {
                 bodyText += '<td><span class="delete-row-icon action-icon fa fa-times" id="' + localeID + '-removeLocaleButton"></span></td>';
             }
@@ -974,17 +978,21 @@ FormTableHandler.multiLocaleStringDialog = function(keyName, iteration, settingT
                             FormTableHandler.writeFormSetting(keyName);
                         });
                         PWM_MAIN.addEventHandler(localeID + '-removeLocaleButton', 'click', function () {
-                            delete PWM_VAR['clientSettingCache'][keyName][iteration]['labels'][localeName];
+                            delete PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
                             FormTableHandler.writeFormSetting(keyName);
                             FormTableHandler.multiLocaleStringDialog(keyName, iteration, settingType, finishAction, titleText);
                         });
                     }(iter));
                 }
-                PWM_CFGEDIT.addAddLocaleButtonRow(inputID + 'table', inputID, function(localeName){
-                    PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = '';
-                    FormTableHandler.writeFormSetting(keyName);
-                    FormTableHandler.multiLocaleStringDialog(keyName, iteration, settingType, finishAction, titleText);
-                });
+                UILibrary.addAddLocaleButtonRow(inputID + 'table', inputID, function(localeName){
+                    if (localeName in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
+                        alert('Locale is already present');
+                    } else {
+                        PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = '';
+                        FormTableHandler.writeFormSetting(keyName);
+                        FormTableHandler.multiLocaleStringDialog(keyName, iteration, settingType, finishAction, titleText);
+                    }
+                }, Object.keys(PWM_VAR['clientSettingCache'][keyName][iteration][settingType]));
             }
         });
     });
@@ -1717,7 +1725,7 @@ EmailTableHandler.draw = function(keyName) {
                         EmailTableHandler.writeSetting(keyName,true);
                     }
                 };
-                PWM_CFGEDIT.addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
+                UILibrary.addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction, Object.keys(PWM_VAR['clientSettingCache'][keyName]));
             }
             dojoParser.parse(parentDiv);
         });
@@ -1932,23 +1940,16 @@ ChallengeSettingHandler.draw = function(keyName) {
             bodyText += '</td>';
 
             bodyText += '<td onclick="' + editJsText + '"> ';
-            bodyText += '<div style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden">';
             if (rowCount > 0) {
                 for (var iteration in multiValues) {
                     (function (rowKey) {
-                        var questionText = multiValues[rowKey]['text'];
-                        var adminDefined = multiValues[rowKey]['adminDefined'];
-                        bodyText += '<div>' + (adminDefined ? questionText : '[User Defined]') + '</div>';
+                        var id = 'panel-value-' + keyName + '-' + localeKey + '-' + iteration;
+                        bodyText += '<div style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden" id="' + id + '">text</div>';
                     }(iteration));
                 }
             } else {
                 bodyText += '[No Questions]';
             }
-            bodyText += '</div>';
-            //bodyText += '</td><td style="border:0; vertical-align: top">';
-            //if (!isDefaultLocale) {
-            //    bodyText += '<span id="button-' + keyName + '-' + localeKey + '-deleteRow" style="top:0" class="delete-row-icon action-icon fa fa-times"/>';
-            //}
             bodyText += '</td></tr>';
             bodyText += '<tr><td>&nbsp;</td></tr>';
 
@@ -1973,7 +1974,26 @@ ChallengeSettingHandler.draw = function(keyName) {
     };
     var tableElement = document.createElement("table");
     parentDivElement.appendChild(tableElement);
-    PWM_CFGEDIT.addAddLocaleButtonRow(tableElement, keyName, addLocaleFunction);
+    UILibrary.addAddLocaleButtonRow(tableElement, keyName, addLocaleFunction, Object.keys(resultValue));
+
+    for (var localeName in resultValue) {
+        (function(localeKey) {
+            var multiValues = resultValue[localeKey];
+            var rowCount = PWM_MAIN.itemCount(multiValues);
+            if (rowCount > 0) {
+                for (var iteration in multiValues) {
+                    (function (rowKey) {
+                        var id = 'panel-value-' + keyName + '-' + localeKey + '-' + iteration;
+                        var questionText = multiValues[rowKey]['text'];
+                        var adminDefined = multiValues[rowKey]['adminDefined'];
+                        var output = (adminDefined ? questionText : '[User Defined]');
+                        UILibrary.addTextValueToElement(id,output);
+                    }(iteration));
+                }
+            }
+        }(localeName));
+    }
+
 };
 
 ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
@@ -2427,47 +2447,75 @@ DurationValueHandler.init = function(settingKey) {
 // -------------------------- string value handler ------------------------------------
 
 var StringValueHandler = {};
+
 StringValueHandler.init = function(settingKey) {
     var parentDiv = 'table_setting_' + settingKey;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
+    var settingData = PWM_SETTINGS['settings'][settingKey];
+    PWM_CFGEDIT.readSetting(settingKey,function(data) {
+        var inputID = settingKey;
+        var bodyHtml = '';
+        var value = data;
+        if (value && value.length > 0) {
+            bodyHtml += '<table style="border-width: 0">';
+            bodyHtml += '<td id="button-' + inputID + '" style="border-width:0; width: 15px"><span class="fa fa-edit"/></ta>';
+            bodyHtml += '<td style=""><div class="configStringPanel" id="panel-' + inputID + '"></div></td>';
+            if (!settingData['required']) {
+                bodyHtml += '<td style="border-width: 0"><span id="button-' + inputID + '-delete" class="delete-row-icon action-icon fa fa-times"></span></td>';
+            }
 
-    parentDivElement.innerHTML = '<input class="configStringInput" id="value_' + settingKey + '" name="setting_' + settingKey + '" disabled/>'
-    + '&nbsp;<span id="icon-' + settingKey + '-warning" style="visibility:hidden; color:orange" class="btn-icon fa fa-warning"></span>';
-    PWM_CFGEDIT.readSetting(settingKey,function(data){
-        var inputElement = PWM_MAIN.getObject("value_" + settingKey);
-        inputElement.value = data;
-        if (PWM_SETTINGS['settings'][settingKey]['required']) {
-            inputElement.required = true;
+            bodyHtml += '</table>';
+        } else {
+            bodyHtml += '<button class="btn" id="button-add-' + inputID + '">';
+            bodyHtml += '<span class="btn-icon fa fa-plus-square"></span>Add Value';
+            bodyHtml += '</button>';
         }
-        if (PWM_SETTINGS['settings'][settingKey]['pattern']) {
-            inputElement.pattern = PWM_SETTINGS['settings'][settingKey]['pattern'];
-            inputElement.title = PWM_CONFIG.showString('Warning_InvalidFormat');
-            var validateValue = function() {
-                var re = new RegExp(PWM_SETTINGS['settings'][settingKey]['pattern']);
-                var matches = re.test(inputElement.value);
-                PWM_MAIN.getObject('icon-' + settingKey + '-warning').style.visibility = matches ?  'hidden' : 'visible';
-            };
-            PWM_MAIN.addEventHandler("value_" + settingKey,"keyup",function(){
-                validateValue();
+
+        parentDivElement.innerHTML = bodyHtml;
+        UILibrary.addTextValueToElement('panel-' + inputID, value);
+
+        PWM_MAIN.addEventHandler('button-' + inputID + '-delete','click',function(){
+            PWM_CFGEDIT.writeSetting(settingKey,'',function(){
+                StringValueHandler.init(settingKey);
             });
-            validateValue();
-            PWM_MAIN.showTooltip({id:'icon-'+settingKey+'-warning',text:PWM_CONFIG.showString('Warning_InvalidFormat')});
+        });
 
-        }
-        if (PWM_SETTINGS['settings'][settingKey]['placeholder']) {
-            inputElement.placeholder = PWM_SETTINGS['settings'][settingKey]['placeholder'];
-        }
-        inputElement.disabled = false;
-        PWM_MAIN.addEventHandler("value_" + settingKey,"input,change",function(){
-            PWM_CFGEDIT.writeSetting(settingKey,inputElement.value);
+        var editor = function(){
+            UILibrary.stringEditorDialog({
+                title:'Edit Value - ' + settingData['label'],
+                textarea:('TEXT_AREA' == settingData['syntax']),
+                regex:'pattern' in settingData ? settingData['pattern'] : '.+',
+                placeholder:settingData['placeholder'],
+                value:value,
+                completeFunction:function(value){
+                    PWM_CFGEDIT.writeSetting(settingKey,value,function(){
+                        StringValueHandler.init(settingKey);
+                    });
+                }
+            });
+        };
+
+        PWM_MAIN.addEventHandler('button-' + settingKey,'click',function(){
+            editor();
+        });
+        PWM_MAIN.addEventHandler('button-add-' + settingKey,'click',function(){
+            editor();
+        });
+        PWM_MAIN.addEventHandler('panel-' + settingKey,'click',function(){
+            editor();
         });
     });
 };
+
 
 // -------------------------- text area handler ------------------------------------
 
 var TextAreaValueHandler = {};
 TextAreaValueHandler.init = function(settingKey) {
+    StringValueHandler.init(settingKey);
+};
+
+TextAreaValueHandler.init2 = function(settingKey) {
     var parentDiv = 'table_setting_' + settingKey;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
@@ -2866,4 +2914,41 @@ UILibrary.addTextValueToElement = function(elementID, input) {
         element.innerHTML = '';
         element.appendChild(document.createTextNode(input));
     }
+};
+
+UILibrary.addAddLocaleButtonRow = function(parentDiv, keyName, addFunction, existingLocales) {
+    var availableLocales = PWM_GLOBAL['localeInfo'];
+
+    var tableRowElement = document.createElement('tr');
+    tableRowElement.setAttribute("style","border-width: 0");
+
+    var bodyHtml = '';
+    bodyHtml += '<td style="border-width: 0" colspan="5">';
+    bodyHtml += '<select id="' + keyName + '-addLocaleValue">';
+
+    var localesAdded = 0;
+    for (var localeIter in availableLocales) {
+        if (localeIter != PWM_GLOBAL['defaultLocale']) {
+            if (!existingLocales || (existingLocales.indexOf(localeIter) == -1)) {
+                localesAdded++;
+                var labelText = availableLocales[localeIter] + " (" + localeIter + ")";
+                bodyHtml += '<option value="' + localeIter + '">' + labelText + '</option>';
+            }
+        }
+    }
+    bodyHtml += '</select>';
+
+    bodyHtml += '<button type="button" class="btn" id="' + keyName + '-addLocaleButton"><span class="btn-icon fa fa-plus-square"></span>Add Locale</button>'
+
+    bodyHtml += '</td>';
+    if (localesAdded == 0) {
+        bodyHtml = '<td style="border-width: 0" colspan="5"><span class="footnote">All locales present</span></td>';
+    }
+    tableRowElement.innerHTML = bodyHtml;
+    PWM_MAIN.getObject(parentDiv).appendChild(tableRowElement);
+
+    PWM_MAIN.addEventHandler(keyName + '-addLocaleButton','click',function(){
+        var value = PWM_MAIN.getObject(keyName + "-addLocaleValue").value;
+        addFunction(value);
+    });
 };

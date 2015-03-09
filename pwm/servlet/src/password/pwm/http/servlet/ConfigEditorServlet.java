@@ -137,7 +137,7 @@ public class ConfigEditorServlet extends PwmServlet {
             return null;
         }
     }
-    
+
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -953,7 +953,11 @@ public class ConfigEditorServlet extends PwmServlet {
         {
             final LinkedHashMap<String, Object> verificationMethodMap = new LinkedHashMap<>();
             for (final RecoveryVerificationMethod recoveryVerificationMethod : RecoveryVerificationMethod.values()) {
-                verificationMethodMap.put(recoveryVerificationMethod.toString(), recoveryVerificationMethod.getLabel(pwmRequest.getConfig(), pwmRequest.getLocale()));
+                final String displayLabel = LocaleHelper.getLocalizedMessage(
+                        pwmRequest.getLocale(),
+                        recoveryVerificationMethod.getConfigDisplayKey(),
+                        pwmRequest.getConfig());
+                verificationMethodMap.put(recoveryVerificationMethod.toString(),displayLabel);
             }
             returnMap.put("verificationMethods",verificationMethodMap);
         }

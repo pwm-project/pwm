@@ -224,7 +224,7 @@ PWM_CFGEDIT.addValueButtonRow = function(parentDiv, keyName, addFunction) {
     var addItemButton = document.createElement("button");
     addItemButton.setAttribute("type", "button");
     addItemButton.setAttribute("id", buttonId);
-    addItemButton.setAttribute("class", "btn")
+    addItemButton.setAttribute("class", "btn");
     addItemButton.onclick = addFunction;
     addItemButton.innerHTML = "Add Value";
     newTableData.appendChild(addItemButton);
@@ -232,36 +232,6 @@ PWM_CFGEDIT.addValueButtonRow = function(parentDiv, keyName, addFunction) {
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
     newTableRow.appendChild(newTableData);
-};
-
-PWM_CFGEDIT.addAddLocaleButtonRow = function(parentDiv, keyName, addFunction) {
-    var availableLocales = PWM_GLOBAL['localeInfo'];
-
-    var tableRowElement = document.createElement('tr');
-    tableRowElement.setAttribute("style","border-width: 0");
-
-    var bodyHtml = '';
-    bodyHtml += '<td style="border-width: 0" colspan="5">';
-    bodyHtml += '<select id="' + keyName + '-addLocaleValue">';
-    for (var localeIter in availableLocales) {
-        if (localeIter != PWM_GLOBAL['defaultLocale']) {
-            var labelText = availableLocales[localeIter] + " (" + localeIter + ")";
-            bodyHtml += '<option value="' + localeIter + '">' + labelText + '</option>';
-        }
-    }
-    bodyHtml += '</select>';
-
-    bodyHtml += '<button type="button" class="btn" id="' + keyName + '-addLocaleButton"><span class="btn-icon fa fa-plus-square"></span>Add Locale</button>'
-
-    bodyHtml += '</td>';
-    tableRowElement.innerHTML = bodyHtml;
-    PWM_MAIN.getObject(parentDiv).appendChild(tableRowElement);
-
-    PWM_MAIN.addEventHandler(keyName + '-addLocaleButton','click',function(){
-        var value = PWM_MAIN.getObject(keyName + "-addLocaleValue").value;
-        addFunction(value);
-    });
-
 };
 
 PWM_CFGEDIT.readInitialTextBasedValue = function(key) {

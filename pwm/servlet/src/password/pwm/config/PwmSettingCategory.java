@@ -24,6 +24,8 @@ package password.pwm.config;
 
 import org.jdom2.Attribute;
 import org.jdom2.Element;
+import password.pwm.i18n.Config;
+import password.pwm.i18n.LocaleHelper;
 
 import java.util.*;
 
@@ -36,7 +38,11 @@ public enum PwmSettingCategory {
 
     LDAP_PROFILE                (LDAP),
     LDAP_GLOBAL                 (LDAP),
+
     EDIRECTORY                  (LDAP),
+    EDIR_SETTINGS               (EDIRECTORY),
+    EDIR_CR_SETTINGS            (EDIRECTORY),
+
     ACTIVE_DIRECTORY            (LDAP),
     ORACLE_DS                   (LDAP),
 
@@ -117,6 +123,7 @@ public enum PwmSettingCategory {
 
     private final PwmSettingCategory parent;
     private static final Map<PwmSettingCategory,PwmSetting> CACHE_PROFILE_SETTING = new HashMap<>();
+    private static List<PwmSettingCategory> cached_sortedSettings;
 
     PwmSettingCategory(PwmSettingCategory parent) {
         this.parent = parent;
@@ -234,7 +241,7 @@ public enum PwmSettingCategory {
             final String profileID,
             final Locale locale
     ) {
-        final String SEPARATOR = " -> ";
+        final String SEPARATOR = LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationSeparator, null);
         final StringBuilder sb = new StringBuilder();
 
         PwmSettingCategory nextCategory = this;
@@ -256,10 +263,15 @@ public enum PwmSettingCategory {
     }
 
     public static List<PwmSettingCategory> sortedValues(final Locale locale) {
-        final Map<String,PwmSettingCategory> sortedCategories = new TreeMap<String,PwmSettingCategory>();
-        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
-            sortedCategories.put(category.toMenuLocationDebug(null,locale),category);
+        if (cached_sortedSettings == null) {
+            int counter = 0; // prevents dupes from being eliminated;
+            final Map<String, PwmSettingCategory> sortedCategories = new TreeMap<String, PwmSettingCategory>();
+            for (final PwmSettingCategory category : PwmSettingCategory.values()) {
+                final String sortValue = category.toMenuLocationDebug(null, locale) + (counter++);
+                sortedCategories.put(sortValue, category);
+            }
+            cached_sortedSettings = Collections.unmodifiableList(new ArrayList<>(sortedCategories.values()));
         }
-        return Collections.unmodifiableList(new ArrayList<>(sortedCategories.values()));
+        return cached_sortedSettings;
     }
 }

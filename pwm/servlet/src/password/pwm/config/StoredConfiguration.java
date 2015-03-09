@@ -34,6 +34,8 @@ import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.*;
+import password.pwm.i18n.Config;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.*;
 import password.pwm.util.logging.PwmLogger;
@@ -1204,6 +1206,8 @@ public class StoredConfiguration implements Serializable {
 
         public String changeLogAsDebugString(final Locale locale, boolean asHtml) {
             final Map<String,String> outputMap = new TreeMap<>();
+            final String SEPARATOR = LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationSeparator, null);
+
             for (final ConfigRecordID configRecordID : changeLog.keySet()) {
                 switch (configRecordID.recordType) {
                     case SETTING: {
@@ -1221,7 +1225,7 @@ public class StoredConfiguration implements Serializable {
                         final String keys = key.split("!")[1];
                         final Map<String,String> currentValue = readLocaleBundleMap(bundleName,keys);
                         final String debugValue = JsonUtil.serializeMap(currentValue, JsonUtil.Flag.PrettyPrint);
-                        outputMap.put("LocaleBundle" + " -> " + bundleName + " " + keys,debugValue);
+                        outputMap.put("LocaleBundle" + SEPARATOR + bundleName + " " + keys,debugValue);
                     }
                     break;
                 }

@@ -492,14 +492,14 @@ input[type=range]:focus::-ms-fill-upper {
     background: #ccc;
 }
 
+
 button {
-    border-style:none;
-    padding: 4px 12px;
-    margin: 9px 7px;
     text-decoration: none;
     color: #3e374c;
     background: white;
     cursor: pointer;
+    border: 1px solid #9e9e9e;
+    border-radius: 2px;
 }.button:disabled {
      color: #9e9e9e;
  }

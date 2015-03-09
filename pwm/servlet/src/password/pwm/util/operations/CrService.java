@@ -29,7 +29,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.impl.edir.NmasCrFactory;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
 import password.pwm.bean.ResponseInfoBean;
@@ -131,7 +130,7 @@ public class CrService implements PwmService {
                                 locale,
                                 applyPwmPolicyToNmasChallenges(returnSet, config),
                                 null,
-                                Integer.parseInt(config.readAppProperty(AppProperty.NMAS_CR_MIN_RANDOM_DURING_SETUP)),
+                                (int)config.readSettingAsLong(PwmSetting.EDIRECTORY_CR_MIN_RANDOM_DURING_SETUP),
                                 0
                         );
 
@@ -146,7 +145,7 @@ public class CrService implements PwmService {
             }
         }
 
-        // use PWM policies if PWM is configured and either its all that is configured OR the NMAS policy read was not successfull
+        // use PWM policies if PWM is configured and either its all that is configured OR the NMAS policy read was not successful
         final String challengeProfileID = determineChallengeProfileForUser(pwmApplication, sessionLabel, userIdentity, locale);
         final ChallengeProfile challengeProfile = config.getChallengeProfile(challengeProfileID, locale);
 
@@ -157,8 +156,8 @@ public class CrService implements PwmService {
 
     private static ChallengeSet applyPwmPolicyToNmasChallenges(final ChallengeSet challengeSet, final Configuration configuration) throws PwmUnrecoverableException {
         final List<Challenge> newChallenges = new ArrayList<>();
-        final boolean applyWordlist = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.NMAS_CR_APPLY_WORDLIST));
-        final int questionsInAnswer = Integer.parseInt(configuration.readAppProperty(AppProperty.NMAS_CR_MAX_QUESTION_CHARS_IN__ANSWER));
+        final boolean applyWordlist = configuration.readSettingAsBoolean(PwmSetting.EDIRECTORY_CR_APPLY_WORDLIST);
+        final int questionsInAnswer = (int)configuration.readSettingAsLong(PwmSetting.EDIRECTORY_CR_MAX_QUESTION_CHARS_IN__ANSWER);
         for (final Challenge challenge : challengeSet.getChallenges()) {
             newChallenges.add(new ChaiChallenge(
                     challenge.isRequired(),

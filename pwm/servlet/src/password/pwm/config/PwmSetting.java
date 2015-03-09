@@ -30,6 +30,8 @@ import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.Config;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.*;
@@ -811,17 +813,25 @@ public enum PwmSetting {
 
     // edirectory settings
     EDIRECTORY_ENABLE_NMAS(
-            "ldap.edirectory.enableNmas", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIRECTORY, Template.NOVL),
+            "ldap.edirectory.enableNmas", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS, Template.NOVL),
     EDIRECTORY_STORE_NMAS_RESPONSES(
-            "ldap.edirectory.storeNmasResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIRECTORY, Template.NOVL),
+            "ldap.edirectory.storeNmasResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS, Template.NOVL),
     EDIRECTORY_USE_NMAS_RESPONSES(
-            "ldap.edirectory.useNmasResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIRECTORY, Template.NOVL),
+            "ldap.edirectory.useNmasResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS, Template.NOVL),
     EDIRECTORY_READ_USER_PWD(
-            "ldap.edirectory.readUserPwd", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIRECTORY, Template.NOVL),
-    EDIRECTORY_READ_CHALLENGE_SET(
-            "ldap.edirectory.readChallengeSets", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIRECTORY, Template.NOVL),
+            "ldap.edirectory.readUserPwd", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS, Template.NOVL),
     EDIRECTORY_PWD_MGT_WEBSERVICE_URL(
-            "ldap.edirectory.ws.pwdMgtURL", PwmSettingSyntax.STRING, PwmSettingCategory.EDIRECTORY, Template.NOVL),
+            "ldap.edirectory.ws.pwdMgtURL", PwmSettingSyntax.STRING, PwmSettingCategory.EDIR_SETTINGS, Template.NOVL),
+
+    EDIRECTORY_READ_CHALLENGE_SET(
+            "ldap.edirectory.readChallengeSets", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_CR_SETTINGS, Template.NOVL),
+    EDIRECTORY_CR_MIN_RANDOM_DURING_SETUP(
+            "ldap.edirectory.cr.minRandomDuringSetup", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EDIR_CR_SETTINGS, Template.NOVL),
+    EDIRECTORY_CR_APPLY_WORDLIST(
+            "ldap.edirectory.cr.applyWordlist", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_CR_SETTINGS, Template.NOVL),
+    EDIRECTORY_CR_MAX_QUESTION_CHARS_IN__ANSWER(
+            "ldap.edirectory.cr.maxQuestionCharsInAnswer", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EDIR_CR_SETTINGS, Template.NOVL),
+
 
     // active directory
     AD_USE_PROXY_FOR_FORGOTTEN(
@@ -1235,7 +1245,7 @@ public enum PwmSetting {
             final String profileID,
             final Locale locale
     ) {
-        final String SEPARATOR = " -> ";
+        final String SEPARATOR = LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationSeparator, null);
         final StringBuilder sb = new StringBuilder();
         sb.append(this.getCategory().toMenuLocationDebug(profileID, locale));
 

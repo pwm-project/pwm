@@ -34,6 +34,8 @@ import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.Profile;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.Config;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -65,6 +67,7 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         final String siteUrl = config.readSettingAsString(PwmSetting.PWM_SITE_URL);
+        final String SEPARATOR = LocaleHelper.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, Config.Display_SettingNavigationSeparator, null);
         try {
             if (siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(
                     PwmSetting.PWM_SITE_URL.getDefaultValue(config.getTemplate()).toNativeObject())) {
@@ -84,7 +87,7 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         if (Boolean.parseBoolean(config.readAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE))) {
-            final String appPropertyKey = "AppProperty -> " + AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey();
+            final String appPropertyKey = "AppProperty" +  SEPARATOR + AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey();
             records.add(HealthRecord.forMessage(HealthMessage.Config_PromiscuousLDAP, appPropertyKey));
         }
 
