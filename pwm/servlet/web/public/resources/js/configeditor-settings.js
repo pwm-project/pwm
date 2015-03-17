@@ -1389,7 +1389,7 @@ ActionHandler.redraw = function(keyName) {
     addItemButton.setAttribute("type", "button");
     addItemButton.setAttribute("class", "btn");
     addItemButton.setAttribute("id", "button-" + keyName + "-addValue");
-    addItemButton.innerHTML = '<span class="btn-icon fa fa-plus-square"></span>Add Value';
+    addItemButton.innerHTML = '<span class="btn-icon fa fa-plus-square"></span>Add Action';
     newTableData.appendChild(addItemButton);
 
     newTableRow.appendChild(newTableData);
@@ -1942,10 +1942,8 @@ ChallengeSettingHandler.draw = function(keyName) {
             bodyText += '<td onclick="' + editJsText + '"> ';
             if (rowCount > 0) {
                 for (var iteration in multiValues) {
-                    (function (rowKey) {
-                        var id = 'panel-value-' + keyName + '-' + localeKey + '-' + iteration;
-                        bodyText += '<div style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden" id="' + id + '">text</div>';
-                    }(iteration));
+                    var id = 'panel-value-' + keyName + '-' + localeKey + '-' + iteration;
+                    bodyText += '<div style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden" id="' + id + '">text</div>';
                 }
             } else {
                 bodyText += '[No Questions]';
@@ -1968,8 +1966,10 @@ ChallengeSettingHandler.draw = function(keyName) {
         } else {
             PWM_VAR['clientSettingCache'][keyName][localeValue] = [];
             PWM_VAR['clientSettingCache'][keyName][localeValue][0] = ChallengeSettingHandler.defaultItem;
-            ChallengeSettingHandler.write(keyName);
-            ChallengeSettingHandler.editLocale(keyName,localeValue);
+            ChallengeSettingHandler.write(keyName, function(){
+                ChallengeSettingHandler.init(keyName);
+            });
+            //ChallengeSettingHandler.editLocale(keyName,localeValue);
         }
     };
     var tableElement = document.createElement("table");
@@ -2134,8 +2134,8 @@ ChallengeSettingHandler.addRow = function(keyName, localeKey) {
     ChallengeSettingHandler.editLocale(keyName, localeKey);
 };
 
-ChallengeSettingHandler.write = function(keyName) {
-    PWM_CFGEDIT.writeSetting(keyName, PWM_VAR['clientSettingCache'][keyName]);
+ChallengeSettingHandler.write = function(keyName, nextFunction) {
+    PWM_CFGEDIT.writeSetting(keyName, PWM_VAR['clientSettingCache'][keyName], nextFunction);
 };
 
 // -------------------------- user permission handler ------------------------------------

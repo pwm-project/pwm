@@ -3205,6 +3205,10 @@
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"userPrincipalName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"UPN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
+        <options>
+            <option value="types">[]</option>
+            <option value="hideOptions">true</option>
+        </options>
     </setting>
     <setting key="helpdesk.detail.form" level="1" required="true">
         <label>Helpdesk Detail Form</label>
@@ -3231,6 +3235,13 @@
             <value>{"name":"employeeStatus","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Employee Status"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"WorkforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
+        <options>
+            <option value="types">["text","email","userDN"]</option>
+            <option value="hideOptions">true</option>
+            <option value="required">hide</option>
+            <option value="type-userDN">show</option>
+            <option value="readonly">true</option>
+        </options>
     </setting>
     <setting key="helpdesk.searchBase" level="1">
         <label>LDAP Search base</label>

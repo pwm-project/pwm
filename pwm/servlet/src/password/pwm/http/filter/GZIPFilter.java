@@ -27,6 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.PwmURL;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.*;
@@ -71,6 +72,15 @@ public class GZIPFilter implements Filter {
     }
 
     private boolean isEnabled(final ServletRequest servletRequest) {
+
+        try {
+            final PwmURL pwmURL = new PwmURL((HttpServletRequest) servletRequest);
+            if (pwmURL.isResourceURL() || pwmURL.isWebServiceURL()) {
+                return false;
+            }
+        } catch (Exception e) {
+            LOGGER.error("unable to parse request url, defaulting to non-gzip: " + e.getMessage());
+        }
 
         final PwmApplication pwmApplication;
         try {

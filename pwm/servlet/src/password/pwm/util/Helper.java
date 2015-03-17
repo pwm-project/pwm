@@ -470,7 +470,7 @@ public class
         }
 
         final String testURI = sb.toString();
-        LOGGER.trace(sessionLabel, "will test parsed and decoded URL: " + testURI);
+        LOGGER.trace(sessionLabel, "preparing to whitelist test parsed and decoded URL: " + testURI);
 
         final String REGEX_PREFIX = "regex:";
         final List<String> whiteList = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.SECURITY_REDIRECT_WHITELIST);

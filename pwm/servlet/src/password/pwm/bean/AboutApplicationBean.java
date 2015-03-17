@@ -59,6 +59,113 @@ public class AboutApplicationBean implements Serializable {
     private String localDbFreeSpace;
     
     private int configurationRestartCounter;
+
+    private JavaInformation javaInformation = new JavaInformation();
+
+    public static class JavaInformation implements Serializable {
+        private long memoryFree;
+        private long memoryAllocated;
+        private long memoryMax;
+        private long threadCount;
+        private String vmVendor;
+        private String vmLocation;
+        private String vmVersion;
+        private String runtimeVersion;
+        private String vmName;
+        private String osName;
+        private String osVersion;
+
+        public JavaInformation() {
+        }
+
+        public long getMemoryFree() {
+            return memoryFree;
+        }
+
+        public void setMemoryFree(long memoryFree) {
+            this.memoryFree = memoryFree;
+        }
+
+        public long getMemoryAllocated() {
+            return memoryAllocated;
+        }
+
+        public void setMemoryAllocated(long memoryAllocated) {
+            this.memoryAllocated = memoryAllocated;
+        }
+
+        public long getMemoryMax() {
+            return memoryMax;
+        }
+
+        public void setMemoryMax(long memoryMax) {
+            this.memoryMax = memoryMax;
+        }
+
+        public long getThreadCount() {
+            return threadCount;
+        }
+
+        public void setThreadCount(long threadCount) {
+            this.threadCount = threadCount;
+        }
+
+        public String getVmVendor() {
+            return vmVendor;
+        }
+
+        public void setVmVendor(String vmVendor) {
+            this.vmVendor = vmVendor;
+        }
+
+        public String getVmLocation() {
+            return vmLocation;
+        }
+
+        public void setVmLocation(String vmLocation) {
+            this.vmLocation = vmLocation;
+        }
+
+        public String getVmVersion() {
+            return vmVersion;
+        }
+
+        public void setVmVersion(String vmVersion) {
+            this.vmVersion = vmVersion;
+        }
+
+        public String getRuntimeVersion() {
+            return runtimeVersion;
+        }
+
+        public void setRuntimeVersion(String runtimeVersion) {
+            this.runtimeVersion = runtimeVersion;
+        }
+
+        public String getVmName() {
+            return vmName;
+        }
+
+        public void setVmName(String vmName) {
+            this.vmName = vmName;
+        }
+
+        public String getOsName() {
+            return osName;
+        }
+
+        public void setOsName(String osName) {
+            this.osName = osName;
+        }
+
+        public String getOsVersion() {
+            return osVersion;
+        }
+
+        public void setOsVersion(String osVersion) {
+            this.osVersion = osVersion;
+        }
+    }
     
     ///////////////////////////////
 
@@ -252,5 +359,13 @@ public class AboutApplicationBean implements Serializable {
 
     public void setConfigurationRestartCounter(int configurationRestartCounter) {
         this.configurationRestartCounter = configurationRestartCounter;
+    }
+
+    public JavaInformation getJavaInformation() {
+        return javaInformation;
+    }
+
+    public void setJavaInformation(JavaInformation javaInformation) {
+        this.javaInformation = javaInformation;
     }
 }

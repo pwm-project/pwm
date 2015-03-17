@@ -1002,7 +1002,7 @@ public class StoredConfiguration implements Serializable {
                         }
 
                         if (!profileStringDefinitions.contains(NEW_PROFILE_NAME)) {
-                            profileStringDefinitions.add(0,NEW_PROFILE_NAME);
+                            profileStringDefinitions.add(NEW_PROFILE_NAME);
                             storedConfiguration.writeSetting(profileSetting,new StringArrayValue(profileStringDefinitions),null);
                         }
                     }

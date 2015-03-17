@@ -162,6 +162,7 @@ public class ConfigManagerServlet extends PwmServlet {
     {
         final ConfigurationReader configurationReader = pwmRequest.getContextManager().getConfigReader();
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.PageTitle,LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, pwmRequest));
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ApplicationPath, pwmRequest.getPwmApplication().getApplicationPath().getAbsolutePath());
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigFilename, configurationReader.getConfigFile().getAbsolutePath());
         {
             final Date lastModifyTime = configurationReader.getStoredConfiguration().modifyTime();

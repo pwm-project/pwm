@@ -430,6 +430,16 @@ public class ContextManager implements Serializable {
             return null;
         }
 
+        // read system property.
+        {
+            final String propertyName = PwmConstants.PWM_APP_NAME.toLowerCase() + ".sspr.applicationPath";
+            final String propertyAppPath = System.getProperty(propertyName);
+            if (propertyAppPath != null && !propertyAppPath.isEmpty()) {
+                return new File(propertyAppPath);
+            }
+        }
+
+
         final String contextAppPathSetting = servletContext.getInitParameter(
                 ContextParameter.applicationPath.toString());
 

@@ -112,7 +112,7 @@
                 }
 
                 var div = document.createElement('div');
-                div.innerHTML = passwordValue + ':' + PWM_GLOBAL['epsActivityCount'];
+                div.innerHTML = passwordValue;
                 div.id = divId;
                 div.setAttribute("class",'health-' + PWM_GLOBAL['pwm-health']);
 

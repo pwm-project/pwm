@@ -33,6 +33,9 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.tag.PasswordRequirementsTag;
 import password.pwm.ldap.UserStatusReader;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestRequestBean;
@@ -52,6 +55,7 @@ import java.util.*;
 
 @Path("/status")
 public class RestStatusServer extends AbstractRestServer {
+    public static final PwmLogger LOGGER = PwmLogger.forClass(RestStatusServer.class);
 
     public static class JsonStatusData implements Serializable {
         public String userDN;
@@ -119,6 +123,7 @@ public class RestStatusServer extends AbstractRestServer {
     public Response doGetStatusData(
             @QueryParam("username") final String username
     ) {
+        final Date startTime = new Date();
         final RestRequestBean restRequestBean;
         try {
             final ServicePermissions servicePermissions = new ServicePermissions();
@@ -158,6 +163,8 @@ public class RestStatusServer extends AbstractRestServer {
                 }
             }
 
+            final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
+            LOGGER.debug(restRequestBean.getPwmSession(),"completed REST status request in " + timeDuration.asCompactString() + ", result=" + JsonUtil.serialize(restRequestBean));
             return restResultBean.asJsonResponse();
         } catch (PwmException e) {
             return RestResultBean.fromError(e.getErrorInformation(), restRequestBean).asJsonResponse();

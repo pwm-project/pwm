@@ -92,7 +92,17 @@
             </tr>
             <tr>
                 <td>
-                    File Location
+                    Application Data Path
+                </td>
+                <td>
+                    <div style="max-width:398px; overflow-x: auto; white-space: nowrap">
+                        <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ApplicationPath))%>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Configuration File
                 </td>
                 <td>
                     <div style="max-width:398px; overflow-x: auto; white-space: nowrap">

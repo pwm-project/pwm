@@ -139,11 +139,15 @@ public abstract class PwmConstants {
         FormReadOnly,
         FormShowPasswordFields,
         FormData,
+
         ConfigFilename,
         ConfigLastModified,
         ConfigHasPassword,
+        ApplicationPath,
 
-        CaptchaClientUrl, CaptchaIframeUrl, CaptchaPublicKey,
+        CaptchaClientUrl,
+        CaptchaIframeUrl,
+        CaptchaPublicKey,
 
         ForgottenPasswordOptionalPageView
     }

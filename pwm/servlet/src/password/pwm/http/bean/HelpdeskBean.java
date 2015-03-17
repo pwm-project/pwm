@@ -35,11 +35,12 @@ import java.util.Map;
 public class HelpdeskBean implements PwmSessionBean {
     private String searchString;
     private Map<String,String> searchColumnHeaders = Collections.emptyMap();
-    private UserInfoBean userInfoBean = new UserInfoBean();
-    private AdditionalUserInfo additionalUserInfo = new AdditionalUserInfo();
-    private String userDisplayName;
+    private HelpdeskDetailInfo heldpdeskDetailInfo = new HelpdeskDetailInfo();
 
-    public static class AdditionalUserInfo implements Serializable {
+    public static class HelpdeskDetailInfo implements Serializable {
+        private UserInfoBean userInfoBean = new UserInfoBean();
+        private String userDisplayName;
+
         private boolean intruderLocked;
         private boolean accountEnabled;
         private boolean accountExpired;
@@ -48,6 +49,22 @@ public class HelpdeskBean implements PwmSessionBean {
         private List<UserAuditRecord> userHistory;
         private Map<FormConfiguration, String> searchDetails;
         private String passwordSetDelta;
+
+        public String getUserDisplayName() {
+            return userDisplayName;
+        }
+
+        public void setUserDisplayName(String userDisplayName) {
+            this.userDisplayName = userDisplayName;
+        }
+
+        public UserInfoBean getUserInfoBean() {
+            return userInfoBean;
+        }
+
+        public void setUserInfoBean(UserInfoBean userInfoBean) {
+            this.userInfoBean = userInfoBean;
+        }
 
         public boolean isIntruderLocked() {
             return intruderLocked;
@@ -108,14 +125,6 @@ public class HelpdeskBean implements PwmSessionBean {
         }
     }
 
-    public UserInfoBean getUserInfoBean() {
-        return userInfoBean;
-    }
-
-    public void setUserInfoBean(UserInfoBean userInfoBean) {
-        this.userInfoBean = userInfoBean;
-    }
-
     public String getSearchString() {
         return searchString;
     }
@@ -124,12 +133,12 @@ public class HelpdeskBean implements PwmSessionBean {
         this.searchString = searchString;
     }
 
-    public AdditionalUserInfo getAdditionalUserInfo() {
-        return additionalUserInfo;
+    public HelpdeskDetailInfo getHeldpdeskDetailInfo() {
+        return heldpdeskDetailInfo;
     }
 
-    public void setAdditionalUserInfo(AdditionalUserInfo additionalUserInfo) {
-        this.additionalUserInfo = additionalUserInfo;
+    public void setHeldpdeskDetailInfo(HelpdeskDetailInfo heldpdeskDetailInfo) {
+        this.heldpdeskDetailInfo = heldpdeskDetailInfo;
     }
 
     public Map<String, String> getSearchColumnHeaders()
@@ -142,15 +151,6 @@ public class HelpdeskBean implements PwmSessionBean {
         this.searchColumnHeaders = searchColumnHeaders;
     }
 
-    public String getUserDisplayName()
-    {
-        return userDisplayName;
-    }
 
-    public void setUserDisplayName(String userDisplayName)
-    {
-        this.userDisplayName = userDisplayName;
-    }
-    
     
 }

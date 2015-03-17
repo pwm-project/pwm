@@ -49,15 +49,28 @@ PWM_ADMIN.initAdminOtherMenu=function() {
             }));
             pMenu.addChild(new MenuSeparator());
             pMenu.addChild(new MenuItem({
-                label: 'Software License Reference',
+                label: 'Full Page Health Status',
+                onClick: function() {
+                    PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/public/health.jsp');
+                }
+            }));
+            pMenu.addChild(new MenuSeparator());
+            pMenu.addChild(new MenuItem({
+                label: '<span class="fa fa-external-link"></span> Software License Reference',
                 onClick: function() {
                     PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/license.jsp','license');
                 }
             }));
             pMenu.addChild(new MenuItem({
-                label: 'Reference',
+                label: '<span class="fa fa-external-link"></span> Application Reference',
                 onClick: function() {
                     PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/referencedoc.jsp','referencedoc');
+                }
+            }));
+            pMenu.addChild(new MenuItem({
+                label: '<span class="fa fa-external-link"></span> REST Web Services Reference',
+                onClick: function() {
+                    PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/rest.jsp','restreference');
                 }
             }));
             if (PWM_GLOBAL['setting-displayEula'] == true) {
@@ -68,6 +81,13 @@ PWM_ADMIN.initAdminOtherMenu=function() {
                     }
                 }));
             }
+            pMenu.addChild(new MenuSeparator());
+            pMenu.addChild(new MenuItem({
+                label: 'Configuration Manager',
+                onClick: function() {
+                    PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/config/ConfigManager');
+                }
+            }));
 
 
             var dropDownButton = new DropDownButton({
@@ -590,11 +610,6 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
     var showTimestamp = inputOpts['showTimestamp'];
     var refreshTime = inputOpts['refreshTime'] || 10 * 1000;
     var finishFunction = inputOpts['finishFunction'];
-
-    {
-        refreshUrl += refreshUrl.indexOf('?') == -1 ? '?' : '&';
-        refreshUrl += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-    }
 
     console.log('starting showPwmHealth: refreshTime=' + refreshTime);
     require(["dojo"],function(dojo){

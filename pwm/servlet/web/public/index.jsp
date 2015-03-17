@@ -41,7 +41,7 @@
                     </a>
                 </td>
                 <td style="border: 0">
-                    <p><pwm:display key="Button_Login"/></p>
+                    <p><pwm:display key="Display_Login"/></p>
                 </td>
             </tr>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>

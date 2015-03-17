@@ -531,7 +531,7 @@ public class UserStatusReader {
                 LOGGER.debug(sessionLabel, "checkProfile: " + userIdentity + " has value for attributes, update profile will not be required");
                 return false;
             } catch (PwmDataValidationException e) {
-                LOGGER.debug(sessionLabel, "checkProfile: " + userIdentity + " does not have good attributes (" + e.getMessage() + "), update profile will br required");
+                LOGGER.debug(sessionLabel, "checkProfile: " + userIdentity + " does not have good attributes (" + e.getMessage() + "), update profile will be required");
                 return true;
             }
         }

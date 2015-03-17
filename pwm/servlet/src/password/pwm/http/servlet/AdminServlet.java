@@ -278,6 +278,24 @@ public class AdminServlet extends PwmServlet {
         aboutBean.setLocalDbStorageSize(Helper.formatDiskSize(Helper.getFileDirectorySize(pwmApplication.getLocalDB().getFileLocation())));
         aboutBean.setLocalDbFreeSpace(Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())));
 
+        { // java version
+            final Runtime runtime = Runtime.getRuntime();
+            final AboutApplicationBean.JavaInformation javaInformation = aboutBean.getJavaInformation();
+            javaInformation.setMemoryFree(runtime.freeMemory());
+            javaInformation.setMemoryAllocated(runtime.totalMemory());
+            javaInformation.setMemoryMax(runtime.maxMemory());
+            javaInformation.setThreadCount(Thread.activeCount());
+
+            javaInformation.setVmVendor(System.getProperty("java.vm.vendor"));
+            javaInformation.setRuntimeVersion(System.getProperty("java.runtime.version"));
+            javaInformation.setVmVersion(System.getProperty("java.vm.version"));
+            javaInformation.setVmName(System.getProperty("java.vm.name"));
+            javaInformation.setVmLocation(System.getProperty("java.home"));
+
+            javaInformation.setOsName(System.getProperty("os.name"));
+            javaInformation.setOsVersion(System.getProperty("os.version"));
+        }
+
         return aboutBean;
     }
 

@@ -22,10 +22,10 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <!DOCTYPE html>
-
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -58,50 +58,19 @@
                         <b>Configuration Password</b>
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
-                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" class="passwordfield"/>
-                        <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
-                                        new ValidationTextBox({
-                                            id: '<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>',
-                                            name: '<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>',
-                                            required: true,
-                                            type: "password",
-                                            style: "width: 200px",
-                                            value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_CONFIG_PASSWORD)%>'
-                                        }, "<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>");
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
+                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" class="configStringInput passwordfield" style="width:200px" autofocus/>
                     </div>
                     <div class="setting_item">
                         <b>Verify Configuration Password</b>
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
-                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" class="passwordfield"/>
+                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" class="configStringInput passwordfield" style="width:200px"/>
                         <div style="display: inline; padding-top:45px;">
                             <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"
                                  src="<pwm:context/><pwm:url url='/public/resources/greenCheck.png'/>">
                             <img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15"
                                  src="<pwm:context/><pwm:url url='/public/resources/redX.png'/>">
                         </div>
-                        <pwm:script>
-                        <script type="text/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
-                                    new ValidationTextBox({
-                                        id: '<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>',
-                                        name: '<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>',
-                                        required: true,
-                                        type: "password",
-                                        style: "width: 200px"
-                                    }, "<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>");
-                                });
-                            });
-                        </script>
-                        </pwm:script>
                     </div>
                 </div>
             </div>
@@ -165,7 +134,6 @@
 <pwm:script-ref url="/public/resources/js/configguide.js"/>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE);%>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
