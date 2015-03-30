@@ -103,6 +103,11 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
             return true;
         }
 
+        // allow oauth
+        if (pwmURL.isOauthConsumer()) {
+            return false;
+        }
+
         // block if public request and not running or in trial
         if (!PwmConstants.TRIAL_MODE) {
             if (pwmURL.isPublicUrl() && !pwmURL.isLogoutURL() && !pwmURL.isCommandServletURL()) {

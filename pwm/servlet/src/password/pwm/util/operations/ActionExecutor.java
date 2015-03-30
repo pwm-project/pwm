@@ -132,11 +132,7 @@ public class ActionExecutor {
                 final MacroMachine macroMachine = settings.getMacroMachine();
 
                 url = macroMachine.expandMacros(url, new MacroMachine.URLEncoderReplacer());
-                if (actionConfiguration.getBodyEncoding() == ActionConfiguration.BodyEncoding.url) {
-                    body = body == null ? "" : macroMachine.expandMacros(body, new MacroMachine.URLEncoderReplacer());
-                } else {
-                    body = body == null ? "" : macroMachine.expandMacros(body);
-                }
+                body = body == null ? "" : macroMachine.expandMacros(body);
 
                 for (final String headerName : headers.keySet()) {
                     final String headerValue = headers.get(headerName);
@@ -152,13 +148,13 @@ public class ActionExecutor {
             final PwmHttpClient client = new PwmHttpClient(pwmApplication, pwmSession);
             final PwmHttpClientResponse clientResponse = client.makeRequest(clientRequest);
 
-                if (clientResponse.getStatusCode() != 200) {
-                    throw new PwmOperationalException(new ErrorInformation(
-                            PwmError.ERROR_SERVICE_UNREACHABLE,
-                            "unexpected HTTP status code while calling external web service: "
-                                    + clientResponse.getStatusCode() + " " + clientResponse.getStatusPhrase()
-                    ));
-                }
+            if (clientResponse.getStatusCode() != 200) {
+                throw new PwmOperationalException(new ErrorInformation(
+                        PwmError.ERROR_SERVICE_UNREACHABLE,
+                        "unexpected HTTP status code while calling external web service: "
+                                + clientResponse.getStatusCode() + " " + clientResponse.getStatusPhrase()
+                ));
+            }
 
         } catch (Exception e) {
             if (e instanceof PwmOperationalException) {

@@ -43,7 +43,7 @@ import java.util.List;
 public class PwmLogManager {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmLogManager.class);
 
-    private static final List<Package> LOGGING_PACKAGES = Collections.unmodifiableList(Arrays.asList(
+    public static final List<Package> LOGGING_PACKAGES = Collections.unmodifiableList(Arrays.asList(
             PwmApplication.class.getPackage(),
             ChaiUser.class.getPackage(),
             Package.getPackage("org.jasig.cas.client")
@@ -54,6 +54,7 @@ public class PwmLogManager {
         for (final Package logPackage : LOGGING_PACKAGES) {
             if (logPackage != null) {
                 final Logger logger = Logger.getLogger(logPackage.getName());
+                logger.setAdditivity(false);
                 logger.removeAllAppenders();
                 logger.setLevel(Level.TRACE);
             }
@@ -72,8 +73,6 @@ public class PwmLogManager {
             final File pwmApplicationPath,
             final String fileLogLevel
     ) {
-        deinitializeLogger();
-
         PwmLogger.setPwmApplication(pwmApplication);
 
         // try to configure using the log4j config file (if it exists)
@@ -89,6 +88,8 @@ public class PwmLogManager {
                 LOGGER.error("error loading log4jconfig file '" + log4jConfigFile + "' error: " + e.getMessage());
             }
         }
+
+        deinitializeLogger();
 
         // if we haven't yet configured log4j for whatever reason, do so using the hardcoded defaults and level (if supplied)
         final Layout patternLayout = new PatternLayout(config.readAppProperty(AppProperty.LOGGING_PATTERN));

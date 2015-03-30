@@ -22,6 +22,9 @@
 
 package password.pwm.http.servlet;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -37,6 +40,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.TimeDuration;
@@ -46,8 +50,10 @@ import password.pwm.util.stats.StatisticsManager;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 
 public class CaptchaServlet extends PwmServlet {
@@ -154,13 +160,11 @@ public class CaptchaServlet extends PwmServlet {
         final PasswordData privateKey = pwmApplication.getConfig().readSettingAsPassword(PwmSetting.RECAPTCHA_KEY_PRIVATE);
 
         final StringBuilder bodyText = new StringBuilder();
-        bodyText.append("privatekey=").append(privateKey.getStringValue());
+        bodyText.append("secret=").append(privateKey.getStringValue());
         bodyText.append("&");
         bodyText.append("remoteip=").append(pwmRequest.getSessionLabel().getSrcAddress());
         bodyText.append("&");
-        bodyText.append("challenge=").append(pwmRequest.readParameterAsString("recaptcha_challenge_field"));
-        bodyText.append("&");
-        bodyText.append("response=").append(pwmRequest.readParameterAsString("recaptcha_response_field"));
+        bodyText.append("response=").append(pwmRequest.readParameterAsString("g-recaptcha-response"));
 
         try {
             final PwmHttpClientRequest clientRequest = new PwmHttpClientRequest(
@@ -180,15 +184,24 @@ public class CaptchaServlet extends PwmServlet {
                 ));
             }
 
-            final String[] splitResponse = clientResponse.getBody().split("\n");
-            if (splitResponse.length > 0 && Boolean.parseBoolean(splitResponse[0])) {
-                return true;
+            final JsonElement responseJson = new JsonParser().parse(clientResponse.getBody());
+            final JsonObject topObject = responseJson.getAsJsonObject();
+            if (topObject != null && topObject.has("success")) {
+                boolean success = topObject.get("success").getAsBoolean();
+                if (success) {
+                    return true;
+                }
+
+                if (topObject.has("error-codes")) {
+                    final List<String> errorCodes = new ArrayList<>();
+                    for (final JsonElement element : topObject.get("error-codes").getAsJsonArray()) {
+                        final String errorCode = element.getAsString();
+                        errorCodes.add(errorCode);
+                    }
+                    LOGGER.debug(pwmRequest, "recaptcha error codes: " + JsonUtil.serializeCollection(errorCodes));
+                }
             }
 
-            if (splitResponse.length > 1) {
-                final String errorCode = splitResponse[1];
-                LOGGER.debug(pwmRequest, "reCaptcha error response: " + errorCode);
-            }
         } catch (Exception e) {
             final String errorMsg = "unexpected error during reCaptcha API execution: " + e.getMessage();
             LOGGER.error(errorMsg,e);

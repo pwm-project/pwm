@@ -138,7 +138,7 @@ public abstract class PwmHttpRequestWrapper {
         final boolean trim = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_INPUT_TRIM));
         
         final String rawValue = httpServletRequest.getParameter(name);
-        if (rawValue != null) {
+        if (rawValue != null && !rawValue.isEmpty()) {
             final String decodedValue = decodeStringToDefaultCharSet(rawValue);
             final String sanitizedValue = Validator.sanitizeInputValue(configuration, decodedValue, maxLength);
             if (sanitizedValue != null) {

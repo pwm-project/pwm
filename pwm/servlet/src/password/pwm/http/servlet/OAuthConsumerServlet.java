@@ -32,16 +32,15 @@ import org.apache.http.util.EntityUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.http.client.PwmHttpClient;
+import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.util.*;
@@ -59,6 +58,14 @@ import java.util.Map;
 
 public class OAuthConsumerServlet extends PwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(OAuthConsumerServlet.class);
+    private static int oauthStateIDcounter = 0;
+
+
+    private static class OAuthState implements Serializable {
+        private final int stateID = oauthStateIDcounter++;
+        private String sessionID;
+        private String nextUrl;
+    }
 
     @Override
     protected ProcessAction readProcessAction(PwmRequest request)
@@ -72,15 +79,24 @@ public class OAuthConsumerServlet extends PwmServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final Configuration config = pwmApplication.getConfig();
+        final Configuration config = pwmRequest.getConfig();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Settings settings = Settings.fromConfiguration(pwmApplication.getConfig());
 
-        if (!pwmSession.getSessionStateBean().isOauthInProgress()) {
+        final boolean userIsAuthenticated = pwmSession.getSessionStateBean().isAuthenticated();
+
+        if (!userIsAuthenticated && !pwmSession.getSessionStateBean().isOauthInProgress()) {
+            final String requestStateStr = pwmRequest.readParameterAsString(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_STATE));
+            if (requestStateStr != null && requestStateStr.length() > 0) {
+                final String nextUrl = parseNextUrlFromState(requestStateStr, pwmRequest, false);
+                LOGGER.debug(pwmSession, "received unrecognized oauth response, ignoring authcode and redirecting to embedded next url: " + nextUrl);
+                pwmRequest.sendRedirect(nextUrl);
+                return;
+            }
             final String errorMsg = "oauth consumer reached, but oauth authentication has not yet been initiated.";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,errorMsg);
-            LOGGER.error(pwmSession, errorMsg);
             pwmRequest.respondWithError(errorInformation);
+            LOGGER.error(pwmSession, errorMsg);
             return;
         }
 
@@ -88,32 +104,30 @@ public class OAuthConsumerServlet extends PwmServlet {
         if (oauthRequestError != null && !oauthRequestError.isEmpty()) {
             final String errorMsg = "error detected from oauth request parameter: " + oauthRequestError;
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,errorMsg,"Remote Error: " + oauthRequestError,null);
-            LOGGER.error(pwmSession, errorMsg);
+            LOGGER.error(pwmSession,errorMsg);
             pwmRequest.respondWithError(errorInformation);
             return;
         }
 
-        // mark the inprogress flag to false, if we read this far and fail user needs to start over.
+        if (userIsAuthenticated) {
+            LOGGER.debug(pwmSession, "oauth consumer reached, but user is already authenticated; will proceed and verify authcode matches current user identity.");
+        }
+
+        // mark the inprogress flag to false, if we get this far and fail user needs to start over.
         pwmSession.getSessionStateBean().setOauthInProgress(false);
 
-        final String requestStateStr = pwmRequest.readParameterAsString(
-                config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_STATE));
+        final String requestStateStr = pwmRequest.readParameterAsString(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_STATE));
         if (requestStateStr == null || requestStateStr.isEmpty()) {
             final String errorMsg = "state parameter is missing from oauth request";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,errorMsg);
             LOGGER.error(pwmSession,errorMsg);
             pwmRequest.respondWithError(errorInformation);
             return;
-        } else if (!requestStateStr.equals(pwmSession.getSessionStateBean().getSessionVerificationKey())) {
-            final String errorMsg = "state value does not match current session key value";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,errorMsg);
-            LOGGER.error(pwmSession,errorMsg);
-            pwmRequest.respondWithError(errorInformation);
-            return;
         }
 
+        final String nextUrl = parseNextUrlFromState(requestStateStr, pwmRequest, true);
         final String requestCodeStr = pwmRequest.readParameterAsString(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_CODE));
-        LOGGER.trace(pwmRequest, "received code from oauth server: " + requestCodeStr);
+        LOGGER.trace(pwmSession,"received code from oauth server: " + requestCodeStr);
 
         final OAuthResolveResults resolveResults;
         {
@@ -150,34 +164,44 @@ public class OAuthConsumerServlet extends PwmServlet {
 
         LOGGER.debug(pwmSession, "received user login id value from OAuth server: " + oauthSuppliedUsername);
 
+        if (userIsAuthenticated) {
+            try {
+                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest);
+                final UserIdentity resolvedIdentity = userSearchEngine.resolveUsername(oauthSuppliedUsername, null, null);
+                if (resolvedIdentity != null && resolvedIdentity.equals(pwmSession.getUserInfoBean().getUserIdentity())) {
+                    LOGGER.debug(pwmSession, "verified incoming oauth code for already authenticated session does resolve to same as logged in user");
+                } else {
+                    final String errorMsg = "incoming oauth code for already authenticated session does not resolve to same as logged in user ";
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,errorMsg);
+                    LOGGER.error(pwmSession,errorMsg);
+                    pwmRequest.respondWithError(errorInformation);
+                    pwmSession.unauthenticateUser();
+                    return;
+                }
+            } catch (PwmOperationalException e) {
+                final String errorMsg = "error while examining incoming oauth code for already authenticated session: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,errorMsg);
+                LOGGER.error(pwmSession,errorMsg);
+                pwmRequest.respondWithError(errorInformation);
+                return;
+            }
+        }
+
         try {
-            final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
-            sessionAuthenticator.authUserWithUnknownPassword(oauthSuppliedUsername, AuthenticationType.AUTH_WITHOUT_PASSWORD);
-
-            if (resolveResults.getExpiresSeconds() > 0) {
-                final LoginInfoBean loginInfoBean = pwmRequest.getPwmSession().getLoginInfoBean();
-
-                final Date accessTokenExpirationDate = new Date(System.currentTimeMillis() + 1000 * resolveResults.getExpiresSeconds());
-                LOGGER.trace(pwmRequest, "noted oauth access token expiration at timestamp " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(accessTokenExpirationDate));
-                loginInfoBean.setOauthExpiration(accessTokenExpirationDate);
-                loginInfoBean.setOauthRefreshToken(resolveResults.getRefreshToken());
+            if (!userIsAuthenticated) {
+                final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
+                sessionAuthenticator.authUserWithUnknownPassword(oauthSuppliedUsername, AuthenticationType.AUTH_WITHOUT_PASSWORD);
             }
 
             // recycle the session to prevent session fixation attack.
             pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded(true);
 
             // see if there is a an original request url
-            pwmRequest.sendRedirectToPreLoginUrl();
-        } catch (ChaiUnavailableException e) {
-            final String errorMsg = "unable to reach ldap server during OAuth authentication attempt: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, errorMsg);
-            LOGGER.error(pwmSession, errorInformation);
-            pwmRequest.respondWithError(errorInformation);
-            return;
+            LOGGER.debug(pwmSession, "oauth authentication completed, redirecting to originally requested URL: " + nextUrl);
+            pwmRequest.sendRedirect(nextUrl);
         } catch (PwmException e) {
-            final String errorMsg = "error during OAuth authentication attempt: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR, errorMsg);
-            LOGGER.error(pwmSession, errorInformation);
+            LOGGER.error(pwmSession, "error during OAuth authentication attempt: " + e.getMessage());
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR, e.getMessage());
             pwmRequest.respondWithError(errorInformation);
             return;
         }
@@ -506,5 +530,49 @@ public class OAuthConsumerServlet extends PwmServlet {
         {
             this.refreshToken = refreshToken;
         }
+    }
+
+    public static String makeStateStringForRequest(
+            final PwmRequest pwmRequest,
+            final String nextUrl
+    )
+            throws PwmUnrecoverableException
+    {
+            OAuthState oAuthState = new OAuthState();
+            oAuthState.sessionID = pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey();
+            oAuthState.nextUrl = nextUrl;
+
+            LOGGER.trace(pwmRequest, "issuing oauth state id="
+                    + oAuthState.stateID + " with the next destination URL set to " + oAuthState.nextUrl);
+
+
+
+            final String jsonValue = JsonUtil.serialize(oAuthState);
+            return SecureHelper.encryptToString(jsonValue, pwmRequest.getConfig().getSecurityKey(), true);
+    }
+
+    public static String parseNextUrlFromState(
+            final String input,
+            final PwmRequest pwmRequest,
+            final boolean validateSessionState
+    )
+            throws PwmUnrecoverableException
+    {
+            final String stateJson = SecureHelper.decryptStringValue(input, pwmRequest.getConfig().getSecurityKey(), true);
+            final OAuthState oAuthState = JsonUtil.deserialize(stateJson, OAuthState.class);
+
+            if (validateSessionState) {
+                if (oAuthState == null || !oAuthState.sessionID.equals(pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey())) {
+                    final String errorMsg = "state value does not match current session key value";
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR, errorMsg);
+                    LOGGER.error(pwmRequest, errorMsg);
+                    throw new PwmUnrecoverableException(errorInformation);
+                }
+            }
+
+            LOGGER.trace(pwmRequest, "while parsing oauth state id="
+                    + oAuthState.stateID + ", determined the next destination URL to be " + oAuthState.nextUrl);
+
+            return oAuthState.nextUrl;
     }
 }

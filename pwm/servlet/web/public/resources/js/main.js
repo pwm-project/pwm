@@ -1270,8 +1270,7 @@ PWM_MAIN.preloadImages = function(imgArray){
 
 
 PWM_MAIN.isEmpty = function(o) {
-    for (var key in o) if (o.hasOwnProperty(key)) return false;
-    return true;
+    return PWM_MAIN.itemCount(o) < 1;
 };
 
 PWM_MAIN.itemCount = function(o) {
@@ -1728,7 +1727,7 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
     };
     var preventCache = 'preventCache' in options ? options['preventCache'] : true;
     var addPwmFormID = 'addPwmFormID' in options ? options['addPwmFormID'] : true;
-    var ajaxTimeout = options['ajaxTimeout'] ? options['ajaxTimeout'] : PWM_GLOBAL['client.ajaxTypingTimeout'];
+    var ajaxTimeout = options['ajaxTimeout'] ? options['ajaxTimeout'] : PWM_MAIN.ajaxTimeout;
     var requestHeaders = {};
     requestHeaders['Accept'] = "application/json";
     requestHeaders['X-RestClientKey'] = PWM_GLOBAL['restClientKey'];

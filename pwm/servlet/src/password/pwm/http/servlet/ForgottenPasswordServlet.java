@@ -239,7 +239,6 @@ public class ForgottenPasswordServlet extends PwmServlet {
 
         if (forgottenPasswordBean.getUserInfo() == null) {
             pwmRequest.sendRedirectToContinue();
-            return;
         }
     }
 
@@ -310,7 +309,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
         final List<FormConfiguration> forgottenPasswordForm = pwmApplication.getConfig().readSettingAsForm(
                 PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM);
 
-        Map<FormConfiguration, String> formValues = new HashMap();
+        Map<FormConfiguration, String> formValues = new HashMap<>();
 
         try {
             //read the values from the request
@@ -1102,7 +1101,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
                         userInfoBean.getUserIdentity(),
                         theUser
                 );
-                challengeSet = responseSet == null ? null : responseSet.getChallengeSet();
+                challengeSet = responseSet == null ? null : responseSet.getPresentableChallengeSet();
             } catch (ChaiValidationException e) {
                 final String errorMsg = "unable to determine presentable challengeSet for stored responses: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, errorMsg);
@@ -1319,6 +1318,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
             break;
 
             case CHALLENGE_RESPONSES: {
+                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordChallengeSet, forgottenPasswordBean.getPresentableChallengeSet());
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
             }
             break;

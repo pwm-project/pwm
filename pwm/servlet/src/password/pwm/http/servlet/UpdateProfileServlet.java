@@ -283,7 +283,7 @@ public class UpdateProfileServlet extends PwmServlet {
         LOGGER.trace(sessionLabel, "loading existing user profile data from ldap");
         final Map<String,String> userData = new LinkedHashMap<>();
         try {
-            userData.putAll(userDataReader.readStringAttributes(FormConfiguration.convertToListOfNames(formFields)));
+            userData.putAll(userDataReader.readStringAttributes(FormConfiguration.convertToListOfNames(formFields), true));
         } catch (ChaiOperationException e) {
             LOGGER.error(sessionLabel, "unexpected error reading profile data attributes: " + e.getMessage());
         }

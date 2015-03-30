@@ -48,9 +48,8 @@
     <div id="centerbody">
         <p><pwm:display key="Display_PleaseWaitNewUser"/></p>
         <%@ include file="fragment/message.jsp" %>
-
-        <div style="width:400px; margin-left: auto; margin-right: auto; padding-top: 70px">
-            <div data-dojo-type="dijit/ProgressBar" style="width:400px" data-dojo-id="createProgressBar" id="createProgressBar" data-dojo-props="maximum:100"></div>
+        <div class="meteredProgressBar">
+            <div data-dojo-type="dijit/ProgressBar" style="width:100%" data-dojo-id="createProgressBar" id="createProgressBar" data-dojo-props="maximum:100"></div>
         </div>
         <div style="text-align: center; width: 100%; padding-top: 50px">
             <%--

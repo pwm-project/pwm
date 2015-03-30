@@ -223,7 +223,6 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         //try to authenticate user with basic auth
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
@@ -405,7 +404,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
     static boolean processOAuthAuthenticationRequest(
             final PwmRequest pwmRequest
     )
-            throws IOException, ServletException
+            throws IOException, ServletException, PwmUnrecoverableException
 
     {
         final Configuration config = pwmRequest.getConfig();
@@ -414,7 +413,13 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             return false;
         }
 
-        final String state = pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey();
+        final String originalURL;
+        {
+            final HttpServletRequest req = pwmRequest.getHttpServletRequest();
+            originalURL = req.getRequestURI() + (req.getQueryString() != null ? ('?' + req.getQueryString()) : "");
+        }
+
+        final String state = OAuthConsumerServlet.makeStateStringForRequest(pwmRequest, originalURL);
         final String redirectUri = OAuthConsumerServlet.figureOauthSelfEndPointUrl(pwmRequest);
         final String code = config.readAppProperty(AppProperty.OAUTH_ID_REQUEST_TYPE);
 
@@ -425,6 +430,8 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI),redirectUri);
 
         final String redirectUrl = ServletHelper.appendAndEncodeUrlParameters(settings.getLoginURL(), urlParams);
+
+        LOGGER.trace(pwmRequest, "preparing to start oauth authentication request sequence, set originally requested url: " + originalURL);
 
         try{
             pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress(true);

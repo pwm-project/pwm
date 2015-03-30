@@ -50,15 +50,21 @@ public class PwmLogger {
     private static PwmLogLevel minimumDbLogLevel;
     private static PwmApplication pwmApplication;
     private static RollingFileAppender fileAppender;
+    private static boolean initialized;
 
     private final String name;
     private final org.apache.log4j.Logger log4jLogger;
     private final boolean localDBDisabled;
 
-
+    public static void markInitialized() {
+        initialized = true;
+    }
 
     static void setPwmApplication(final PwmApplication pwmApplication) {
         PwmLogger.pwmApplication = pwmApplication;
+        if (pwmApplication != null) {
+            initialized = true;
+        }
     }
 
     static void setLocalDBLogger(final PwmLogLevel minimumDbLogLevel, final LocalDBLogger localDBLogger) {
@@ -175,7 +181,7 @@ public class PwmLogger {
         final Throwable throwable = logEvent.getThrowable();
         final PwmLogLevel level = logEvent.getLevel();
 
-        if (pwmApplication != null) {
+        if (initialized) {
             switch (level) {
                 case DEBUG:
                     log4jLogger.debug(wrappedMessage, throwable);

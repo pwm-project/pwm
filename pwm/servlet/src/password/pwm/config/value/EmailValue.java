@@ -64,7 +64,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
             )
                     throws PwmOperationalException
             {
-                final Map<String, EmailItemBean> values = new HashMap<>();
+                final Map<String, EmailItemBean> values = new TreeMap<>();
                 {
                     final List valueElements = settingElement.getChildren("value");
                     for (final Object loopValue : valueElements) {

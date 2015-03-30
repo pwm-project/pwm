@@ -52,7 +52,7 @@
     <div id="centerbody" >
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p><pwm:display key="Display_PleaseWaitPassword"/></p>
-        <div style="width:80%; margin-left: 10%; margin-right: 10%; padding-top: 70px">
+        <div class="meteredProgressBar">
             <div data-dojo-type="dijit/ProgressBar" style="width:100%" data-dojo-id="passwordProgressBar" id="passwordProgressBar" data-dojo-props="maximum:100"></div>
         </div>
         <div style="text-align: center; width: 100%; padding-top: 50px">

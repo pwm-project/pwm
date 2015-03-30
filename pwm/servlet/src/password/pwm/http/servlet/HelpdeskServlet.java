@@ -84,7 +84,6 @@ import java.util.*;
 public class HelpdeskServlet extends PwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(HelpdeskServlet.class);
-    private static final String TOKEN_NAME = HelpdeskServlet.class.getName();
 
     public enum HelpdeskAction implements PwmServlet.ProcessAction {
         doUnlock(HttpMethod.POST),
@@ -286,7 +285,7 @@ public class HelpdeskServlet extends PwmServlet {
 
         // check user identity matches helpdesk bean user
         final UserInfoBean detailUserInfo = helpdeskBean.getHeldpdeskDetailInfo().getUserInfoBean();
-        if (helpdeskBean == null || detailUserInfo == null || !userIdentity.equals(detailUserInfo.getUserIdentity())) {
+        if (detailUserInfo == null || !userIdentity.equals(detailUserInfo.getUserIdentity())) {
             pwmRequest.setResponseError(new ErrorInformation(PwmError.ERROR_UNKNOWN,"requested user for delete  is not currently selected user"));
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.HELPDESK_SEARCH);
             return;
@@ -369,7 +368,7 @@ public class HelpdeskServlet extends PwmServlet {
             final String errorMsg = "cannot select self";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,errorMsg);
             LOGGER.debug(pwmRequest, errorInformation);
-            pwmRequest.respondWithError(errorInformation);
+            pwmRequest.respondWithError(errorInformation, false);
             return;
         }
 
@@ -411,7 +410,8 @@ public class HelpdeskServlet extends PwmServlet {
         searchConfiguration.setEnableContextValidation(false);
         searchConfiguration.setUsername(username);
         searchConfiguration.setEnableValueEscaping(false);
-        searchConfiguration.setFilter(helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_SEARCH_FILTER));
+        searchConfiguration.setFilter(getSearchFilter(pwmRequest.getConfig(),helpdeskProfile));
+
         if (!useProxy) {
             final UserIdentity loggedInUser = pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity();
             searchConfiguration.setLdapProfile(loggedInUser.getLdapProfileID());
@@ -804,6 +804,32 @@ public class HelpdeskServlet extends PwmServlet {
         helpdeskBean.setHeldpdeskDetailInfo(makeHelpdeskDetailInfo(pwmRequest, helpdeskProfile, userIdentity));
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.HELPDESK_DETAIL);
     }
+
+    private static String getSearchFilter(final Configuration configuration, final HelpdeskProfile helpdeskProfile) {
+        final String configuredFilter = helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_SEARCH_FILTER);
+        if (configuredFilter != null && !configuredFilter.isEmpty()) {
+            return configuredFilter;
+        }
+
+        final List<String> defaultObjectClasses = configuration.readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES);
+        final List<FormConfiguration> searchAttributes = helpdeskProfile.readSettingAsForm(PwmSetting.HELPDESK_SEARCH_FORM);
+        final StringBuilder filter = new StringBuilder();
+        filter.append("(&"); //open AND clause for objectclasses and attributes
+        for (final String objectClass : defaultObjectClasses) {
+            filter.append("(objectClass=").append(objectClass).append(")");
+        }
+        filter.append("(|"); // open OR clause for attributes
+        for (final FormConfiguration formConfiguration : searchAttributes) {
+            if (formConfiguration != null && formConfiguration.getName() != null) {
+                final String searchAttribute = formConfiguration.getName();
+                filter.append("(").append(searchAttribute).append("=*").append(PwmConstants.VALUE_REPLACEMENT_USERNAME).append("*)");
+            }
+        }
+        filter.append(")"); // close OR clause
+        filter.append(")"); // close AND clause
+        return filter.toString();
+    }
+
 
     private static ChaiUser getChaiUser(
             final PwmRequest pwmRequest,

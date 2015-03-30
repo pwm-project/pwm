@@ -68,9 +68,39 @@ public class SessionFilter extends AbstractPwmFilter {
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
     )
-            throws IOException, ServletException, PwmUnrecoverableException {
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        boolean continueFilter = true;
+        {
+            final PwmURL pwmURL = pwmRequest.getURL();
+            if (!pwmURL.isWebServiceURL() && !pwmURL.isResourceURL()) {
+                continueFilter = handleStandardRequestOperations(pwmRequest);
+            }
+        }
+
+        if (!continueFilter) {
+            return;
+        }
+
+        try {
+            chain.doFilter();
+        } catch (Exception e) {
+            LOGGER.warn(pwmRequest.getPwmSession(), "unhandled exception", e);
+            throw new ServletException(e);
+        } catch (Throwable e) {
+            LOGGER.warn(pwmRequest.getPwmSession(), "unhandled exception " + e.getMessage(), e);
+            throw new ServletException(e);
+        }
+    }
+
+    private boolean handleStandardRequestOperations(
+            final PwmRequest pwmRequest
+    )
+            throws PwmUnrecoverableException, IOException, ServletException
+    {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmRequest.getConfig();
+
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final PwmResponse resp = pwmRequest.getPwmResponse();
@@ -85,7 +115,7 @@ public class SessionFilter extends AbstractPwmFilter {
             if (PwmError.ERROR_INTRUDER_SESSION != e.getError()) {
                 pwmRequest.invalidateSession();
             }
-            return;
+            return false;
         }
 
         // mark last url
@@ -110,7 +140,7 @@ public class SessionFilter extends AbstractPwmFilter {
             LOGGER.warn("invalidating session due to dirty page leave time greater then configured timeout");
             pwmRequest.invalidateSession();
             resp.sendRedirect(pwmRequest.getHttpServletRequest().getRequestURI());
-            return;
+            return false;
         }
 
         //override session locale due to parameter
@@ -122,7 +152,7 @@ public class SessionFilter extends AbstractPwmFilter {
         // make sure connection is secure.
         if (config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS) && !pwmRequest.getHttpServletRequest().isSecure()) {
             pwmRequest.respondWithError(PwmError.ERROR_SECURE_REQUEST_REQUIRED.toInfo());
-            return;
+            return false;
         }
 
         //check for session verification failure
@@ -134,7 +164,7 @@ public class SessionFilter extends AbstractPwmFilter {
                 ssBean.setSessionVerified(true);
             } else {
                 if (verifySession(pwmRequest, mode)) {
-                    return;
+                    return false;
                 }
             }
         }
@@ -147,7 +177,7 @@ public class SessionFilter extends AbstractPwmFilter {
                 } catch (PwmOperationalException e) {
                     LOGGER.error(pwmRequest, e.getErrorInformation());
                     pwmRequest.respondWithError(e.getErrorInformation());
-                    return;
+                    return false;
                 }
                 ssBean.setForwardURL(forwardURL);
                 LOGGER.debug(pwmRequest, "forwardURL parameter detected in request, setting session forward url to " + forwardURL);
@@ -163,7 +193,7 @@ public class SessionFilter extends AbstractPwmFilter {
                 } catch (PwmOperationalException e) {
                     LOGGER.error(pwmRequest, e.getErrorInformation());
                     pwmRequest.respondWithError(e.getErrorInformation());
-                    return;
+                    return false;
                 }
                 ssBean.setLogoutURL(logoutURL);
                 LOGGER.debug(pwmRequest, "logoutURL parameter detected in request, setting session logout url to " + logoutURL);
@@ -190,22 +220,14 @@ public class SessionFilter extends AbstractPwmFilter {
             ServletHelper.addPwmResponseHeaders(pwmRequest, true);
         }
 
-        try {
-            chain.doFilter();
-        } catch (Exception e) {
-            LOGGER.warn(pwmSession, "unhandled exception", e);
-            throw new ServletException(e);
-        } catch (Throwable e) {
-            LOGGER.warn(pwmSession, "unhandled exception " + e.getMessage(), e);
-            throw new ServletException(e);
-        }
-
         // update last request time.
         ssBean.setSessionLastAccessedTime(new Date());
 
         if (pwmApplication.getStatisticsManager() != null) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.HTTP_REQUESTS);
         }
+
+        return true;
     }
 
     public void destroy() {

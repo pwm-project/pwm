@@ -21,12 +21,11 @@
   --%>
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
+<%@ page import="com.novell.ldapchai.cr.ChallengeSet" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmRequest pwmRequest = PwmRequest.forRequest(request, response); %>
-<% final ForgottenPasswordBean recoverBean = pwmRequest.getPwmSession().getForgottenPasswordBean(); %>
+<% final ChallengeSet challengeSet = (ChallengeSet)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ForgottenPasswordChallengeSet); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <%--
@@ -47,7 +46,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
 
             <% // loop through challenges
                 int counter = 0;
-                for (final Challenge loopChallenge : recoverBean.getPresentableChallengeSet().getChallenges()) {
+                for (final Challenge loopChallenge : challengeSet.getChallenges()) {
                     counter++;
             %>
             <h2><label for="PwmResponse_R_<%=counter%>"><%= loopChallenge.getChallengeText() %>
@@ -59,7 +58,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
                 <input type="hidden" name="processAction" value="checkResponses"/>
                 <button type="submit" name="checkResponses" class="btn" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
-                    <pwm:display key="Button_RecoverPassword"/>
+                                                   <pwm:display key="Button_RecoverPassword"/>
                 </button>
                 <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ForgottenPasswordOptionalPageView))) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >

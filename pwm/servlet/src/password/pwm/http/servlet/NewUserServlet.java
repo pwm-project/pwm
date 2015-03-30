@@ -145,7 +145,6 @@ public class NewUserServlet extends PwmServlet {
         final NewUserBean newUserBean = pwmSession.getNewUserBean();
 
         if (action != null) {
-            pwmRequest.validatePwmFormID();
             switch (action) {
                 case checkProgress:
                     restCheckProgress(pwmRequest, newUserBean);
@@ -322,6 +321,7 @@ public class NewUserServlet extends PwmServlet {
             pwmRequest.outputJsonResult(restResultBean);
         } catch (PwmOperationalException e) {
             final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
+            LOGGER.error(pwmRequest, "error while validating new user form: " + e.getMessage());
             pwmRequest.outputJsonResult(restResultBean);
         }
     }
@@ -406,12 +406,14 @@ public class NewUserServlet extends PwmServlet {
                     newUserBean.setNewUserForm(newUserFormFromToken);
                     newUserBean.setFormPassed(true);
                     newUserBean.setEmailTokenPassed(true);
+                    newUserBean.setEmailTokenIssued(true);
                     newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
                     tokenPassed = true;
                 } else if (NewUserBean.NewUserVerificationPhase.SMS.getTokenName().equals(tokenPayload.getName())) {
                     if (newUserBean.getNewUserForm() != null && newUserBean.getNewUserForm().isConsistentWith(newUserFormFromToken)) {
                         LOGGER.debug(pwmRequest, "SMS token passed");
                         newUserBean.setSmsTokenPassed(true);
+                        newUserBean.setSmsTokenIssued(true);
                         newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
                         tokenPassed = true;
                     } else {

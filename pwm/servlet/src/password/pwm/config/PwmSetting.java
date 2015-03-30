@@ -808,6 +808,8 @@ public enum PwmSetting {
             "peopleSearch.searchBase", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_ENABLE_PUBLIC(
             "peopleSearch.enablePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS(
+            "peopleSearch.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH),
 
 
 
@@ -887,6 +889,8 @@ public enum PwmSetting {
             "helpdesk.enforcePasswordPolicy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
     HELPDESK_CLEAR_RESPONSES(
             "helpdesk.clearResponses", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_FORCE_PW_EXPIRATION(
+            "helpdesk.forcePwExpiration", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
     HELPDESK_CLEAR_RESPONSES_BUTTON(
             "helpdesk.clearResponses.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
     HELPDESK_CLEAR_OTP_BUTTON(
@@ -957,7 +961,7 @@ public enum PwmSetting {
     // CAS SSO
     CAS_CLEAR_PASS_URL(
             "cas.clearPassUrl", PwmSettingSyntax.STRING, PwmSettingCategory.CAS_SSO),
-    
+
     // http sso
     SSO_AUTH_HEADER_NAME(
             "security.sso.authHeaderName", PwmSettingSyntax.STRING, PwmSettingCategory.HTTP_SSO),
@@ -991,7 +995,7 @@ public enum PwmSetting {
             "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
 
 
-    
+
     // deprecated.
     PASSWORD_POLICY_AD_COMPLEXITY(
             "password.policy.ADComplexity", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),
@@ -1000,8 +1004,8 @@ public enum PwmSetting {
     FORGOTTEN_PASSWORD_REQUIRE_OTP(
             "recovery.require.otp", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS),
 
-    
-    
+
+
     ;
 
 // ------------------------------ STATICS ------------------------------

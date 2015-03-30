@@ -22,13 +22,10 @@
   --%>
 
 <!DOCTYPE html>
-
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.ALWAYS_EXPAND_MESSAGE_TEXT); %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
-%>
+<% final PwmRequest pwmRequest = PwmRequest.forRequest(request,response); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">

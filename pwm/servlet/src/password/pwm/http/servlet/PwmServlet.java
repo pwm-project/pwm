@@ -85,7 +85,7 @@ public abstract class PwmServlet extends HttpServlet {
                     final ErrorInformation errorInformation = e.getErrorInformation();
                     final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(req);
                     LOGGER.error(pwmSession, errorInformation.toDebugStr());
-                    pwmRequest.respondWithError(errorInformation);
+                    pwmRequest.respondWithError(errorInformation,false);
                     return;
                 }
                 throw e;

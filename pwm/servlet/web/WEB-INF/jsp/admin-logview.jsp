@@ -46,6 +46,7 @@
         <%@ include file="fragment/admin-nav.jsp" %>
         <form action="Administration" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm" id="searchForm" class="pwm-form">
+            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             <table style="">
                 <tr style="width:0">
                     <td class="key" style="border:0">

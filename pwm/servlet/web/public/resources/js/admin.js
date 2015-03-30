@@ -88,6 +88,12 @@ PWM_ADMIN.initAdminOtherMenu=function() {
                     PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/config/ConfigManager');
                 }
             }));
+            pMenu.addChild(new MenuItem({
+                label: 'Configuration Editor',
+                onClick: function() {
+                    PWM_CONFIG.startConfigurationEditor();
+                }
+            }));
 
 
             var dropDownButton = new DropDownButton({

@@ -174,13 +174,13 @@ PWM_PS.showUserDetail = function(userKey) {
     };
     PWM_MAIN.showWaitDialog({
         loadFunction:function(){
+            PWM_VAR['detailInProgress'] = false;
             var url = "PeopleSearch?processAction=detail";
             var loadFunction = function(data) {
-                PWM_VAR['detailInProgress'] = false;
                 if (data['error'] == true) {
                     console.error('unable to load people detail, error: ' + data['errorDetail']);
-                    PWM_MAIN.showError(data['errorDetail']);
                     PWM_MAIN.closeWaitDialog();
+                    PWM_MAIN.showErrorDialog(data);
                     return;
                 }
                 var htmlBody = PWM_PS.convertDetailResultToHtml(data['data']);

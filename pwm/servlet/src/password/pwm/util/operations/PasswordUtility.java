@@ -489,6 +489,17 @@ public class PasswordUtility {
         // send email notification
         sendChangePasswordHelpdeskEmailNotice(pwmSession, pwmApplication, userInfoBean);
 
+        // expire if so configured
+        if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_FORCE_PW_EXPIRATION)) {
+            LOGGER.trace(pwmSession,"preparing to expire password for user " + userIdentity.toDisplayString());
+            try {
+                proxiedUser.expirePassword();
+            } catch (ChaiOperationException e) {
+                LOGGER.warn(pwmSession, "error while forcing password expiration for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
         // send password
         final boolean sendPassword = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_SEND_PASSWORD);
         if (sendPassword) {

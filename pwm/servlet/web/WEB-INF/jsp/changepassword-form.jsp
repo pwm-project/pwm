@@ -39,12 +39,12 @@
         <p><pwm:display key="Display_ChangePasswordForm"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" onreset="PWM_CHANGEPW.setInputFocus()" name="changePasswordForm" id="changePasswordForm">
+        <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" name="changePasswordForm" id="changePasswordForm">
             <% if (JspUtility.getPwmSession(pageContext).getChangePasswordBean().isCurrentPasswordRequired()) { %>
             <h1>
                 <label for="currentPassword"><pwm:display key="Field_CurrentPassword"/></label>
             </h1>
-            <input id="currentPassword" type="<pwm:value name="passwordFieldType"/>" class="inputfield" name="currentPassword"/>
+            <input id="currentPassword" type="<pwm:value name="passwordFieldType"/>" class="inputfield" name="currentPassword" <pwm:autofocus/>  />
             <br/>
             <% } %>
             <jsp:include page="fragment/form.jsp"/>

@@ -22,8 +22,10 @@
 
 package password.pwm.util.cli;
 
-import com.novell.ldapchai.ChaiUser;
-import org.apache.log4j.*;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Layout;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.apache.log4j.varia.NullAppender;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -34,12 +36,19 @@ import password.pwm.util.Helper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBFactory;
+import password.pwm.util.logging.PwmLogLevel;
+import password.pwm.util.logging.PwmLogManager;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.*;
 
 public class MainClass {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(MainClass.class);
+
+    private static final String LOGGING_PATTERN = "%d{yyyy-MM-dd HH:mm:ss}, %-5p, %c{2}, %m%n";
 
     public static final Map<String,CliCommand> COMMANDS;
     static {
@@ -99,7 +108,7 @@ public class MainClass {
             throws Exception
     {
         final Map<String,Object> options = parseCommandOptions(parameters, args);
-        final File applicationPath = new File(".").getCanonicalFile();
+        final File applicationPath = figureApplicationPath(MAIN_OPTIONS);
         final File configurationFile = locateConfigurationFile(applicationPath);
 
         final ConfigurationReader configReader = loadConfiguration(configurationFile);
@@ -109,7 +118,7 @@ public class MainClass {
                 : null;
         final LocalDB localDB = parameters.needsLocalDB
                 ? pwmApplication == null
-                ? loadPwmDB(config, parameters.readOnly)
+                ? loadPwmDB(config, parameters.readOnly, applicationPath)
                 : pwmApplication.getLocalDB()
                 : null;
 
@@ -189,10 +198,14 @@ public class MainClass {
         return returnObj;
     }
 
-    public static void main(final String[] args)
+    static MainOptions MAIN_OPTIONS = new MainOptions();
+
+    public static void main(String[] args)
             throws Exception
     {
-        initLog4j(false);
+        args = parseCommandOptions(args);
+
+        initLog4j(MAIN_OPTIONS.pwmLogLevel);
 
         final String commandStr = args == null || args.length < 1 ? null : args[0];
 
@@ -224,33 +237,84 @@ public class MainClass {
         }
     }
 
+    static String[] parseCommandOptions(String[] args) {
+        final String OPT_DEBUG_LEVEL = "-debugLevel";
+        final String OPT_APP_PATH = "-applicationPath";
 
-    static void initLog4j(boolean show) {
-        if (!show) {
+        if (args == null || args.length < 1) {
+            return args;
+        }
+
+        final List<String> outputArgs = new ArrayList<>();
+        for (final String arg : args) {
+            if (arg != null) {
+                if (arg.startsWith(OPT_DEBUG_LEVEL)) {
+                    if (arg.length() < OPT_DEBUG_LEVEL.length() + 2) {
+                        out(OPT_DEBUG_LEVEL + " switch must include level (example: -debugLevel=TRACE");
+                        System.exit(-1);
+                    } else {
+                        final String levelStr = arg.substring(OPT_DEBUG_LEVEL.length() + 1, arg.length());
+                        final PwmLogLevel pwmLogLevel;
+                        try {
+                            pwmLogLevel = PwmLogLevel.valueOf(levelStr.toUpperCase());
+                            MAIN_OPTIONS.pwmLogLevel = pwmLogLevel;
+                        } catch (IllegalArgumentException e) {
+                            out(" unknown log level value: " + levelStr);
+                            System.exit(-1);
+                        }
+                    }
+                } else  if (arg.startsWith(OPT_APP_PATH)) {
+                    if (arg.length() < OPT_DEBUG_LEVEL.length() + 2) {
+                        out(OPT_APP_PATH + " switch must include value (example: -debugLevel=/tmp/applicationPath");
+                        System.exit(-1);
+                    } else {
+                        final String pathStr = arg.substring(OPT_DEBUG_LEVEL.length() + 1, arg.length());
+                        final File pathValue = new File(pathStr);
+                        if (!pathValue.exists()) {
+                            exitWithError(" specified applicationPath '" + pathStr + "' does not exist");
+                        }
+                        if (!pathValue.isDirectory()) {
+                            exitWithError(" specified applicationPath '" + pathStr + "' must be a directory");
+                        }
+                        MAIN_OPTIONS.applicationPath = pathValue;
+                    }
+                } else {
+                    outputArgs.add(arg);
+                }
+            }
+        }
+        return outputArgs.toArray(new String[outputArgs.size()]);
+    }
+
+    static void initLog4j(PwmLogLevel logLevel) {
+        if (logLevel == null) {
             Logger.getRootLogger().removeAllAppenders();
             Logger.getRootLogger().addAppender(new NullAppender());
             return;
         }
 
-
-        // clear all existing package loggers
-        final String pwmPackageName = PwmApplication.class.getPackage().getName();
-        final Logger pwmPackageLogger = Logger.getLogger(pwmPackageName);
-        final String chaiPackageName = ChaiUser.class.getPackage().getName();
-        final Logger chaiPackageLogger = Logger.getLogger(chaiPackageName);
-        final Layout patternLayout = new PatternLayout("%d{yyyy-MM-dd HH:mm:ss}, %-5p, %c{2}, %m%n");
+        final Layout patternLayout = new PatternLayout(LOGGING_PATTERN);
         final ConsoleAppender consoleAppender = new ConsoleAppender(patternLayout);
-        final Level level = Level.toLevel(Level.INFO_INT);
-        pwmPackageLogger.addAppender(consoleAppender);
-        pwmPackageLogger.setLevel(level);
-        chaiPackageLogger.addAppender(consoleAppender);
-        chaiPackageLogger.setLevel(level);
+        for (final Package logPackage : PwmLogManager.LOGGING_PACKAGES) {
+            if (logPackage != null) {
+                final Logger logger = Logger.getLogger(logPackage.getName());
+                logger.addAppender(consoleAppender);
+                logger.setLevel(logLevel.getLog4jLevel());
+            }
+        }
+        PwmLogger.markInitialized();
     }
 
-    static LocalDB loadPwmDB(final Configuration config, final boolean readonly) throws Exception {
+    static LocalDB loadPwmDB(
+            final Configuration config,
+            final boolean readonly,
+            final File applicationPath
+    )
+            throws Exception
+    {
         final File databaseDirectory;
         final String pwmDBLocationSetting = config.readSettingAsString(PwmSetting.PWMDB_LOCATION);
-        databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, new File("."));
+        databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, applicationPath);
         return LocalDBFactory.getInstance(databaseDirectory, readonly, null, config);
     }
 
@@ -287,5 +351,27 @@ public class MainClass {
 
     private static void out(CharSequence txt) {
         System.out.println(txt + "\n");
+    }
+
+    private static class MainOptions {
+        private PwmLogLevel pwmLogLevel = null;
+        private File applicationPath = null;
+    }
+
+    private static void exitWithError(final String msg) {
+        out(msg);
+        System.exit(-1);
+    }
+
+    private static File figureApplicationPath(final MainOptions mainOptions) throws IOException {
+        final File applicationPath;
+        if (mainOptions != null && mainOptions.applicationPath != null) {
+            applicationPath = mainOptions.applicationPath;
+        } else {
+            applicationPath = new File(".").getCanonicalFile();
+        }
+
+        LOGGER.debug("using applicationPath " + applicationPath.getAbsolutePath());
+        return applicationPath;
     }
 }

@@ -84,7 +84,7 @@
                         <input type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" <pwm:autofocus/>/>
                     </td>
                     <td>
-                        <div style="margin-top:5px">
+                        <div style="margin-top:5px; width:20px; max-width: 20px;">
                             <div id="indicator-searching" style="display: none">
                                 <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
                             </div>

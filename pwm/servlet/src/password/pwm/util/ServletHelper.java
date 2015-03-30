@@ -371,6 +371,12 @@ public class ServletHelper {
         if (ssBean.getLocale() == null) {
             initializeLocaleAndTheme(pwmRequest.getHttpServletRequest(), pwmApplication, pwmSession);
         }
+
+        // set idle timeout (may get overridden by module-specific values elsewhere
+        {
+            final int sessionIdleSeconds = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
+            pwmSession.setSessionTimeout(pwmRequest.getHttpServletRequest().getSession(), sessionIdleSeconds);
+        }
     }
 
     private static void initializeLocaleAndTheme(

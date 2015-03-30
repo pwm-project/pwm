@@ -509,8 +509,12 @@ public class ConfigGuideServlet extends PwmServlet {
             final ContextManager contextManager = ContextManager.getContextManager(pwmRequest);
             try {
                 writeConfig(contextManager, configGuideBean);
-            } catch (PwmOperationalException e) {
+            } catch (PwmException e) {
                 final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
+                pwmRequest.outputJsonResult(restResultBean);
+                return;
+            } catch (Exception e) {
+                final RestResultBean restResultBean = RestResultBean.fromError(new ErrorInformation(PwmError.ERROR_UNKNOWN,"error during save: " + e.getMessage()), pwmRequest);
                 pwmRequest.outputJsonResult(restResultBean);
                 return;
             }

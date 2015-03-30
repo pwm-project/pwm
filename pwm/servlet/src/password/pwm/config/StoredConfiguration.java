@@ -1240,7 +1240,7 @@ public class StoredConfiguration implements Serializable {
                         output.append("<div class=\"changeLogKey\">");
                         output.append(keyName);
                         output.append("</div><div class=\"changeLogValue\">");
-                        output.append(value);
+                        output.append(StringUtil.escapeHtml(value));
                         output.append("</div>");
                     } else {
                         output.append(keyName);

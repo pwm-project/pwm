@@ -298,6 +298,8 @@ public class LocalDBUtility {
                 }
             }
         } catch (Exception e) {
+            LOGGER.error("error while examining LocalDB: " + e.getMessage());
+        } finally {
             if (iter != null) {
                 iter.close();
             }

@@ -42,7 +42,7 @@
 <% if (formConfigurationList == null) { %>
 [ form definition is not available ]
 <% } else if (formConfigurationList.isEmpty()) { %>
-[ form containes no items ]
+<!-- form contains no items ] -->
 <% } else { %>
 <%
     final boolean forceReadOnly = (Boolean)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.FormReadOnly);

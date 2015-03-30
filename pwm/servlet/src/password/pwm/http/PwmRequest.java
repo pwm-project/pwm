@@ -25,7 +25,6 @@ package password.pwm.http;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.h2.util.StringUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
@@ -84,6 +83,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         HIDE_HEADER_BUTTONS,
         HIDE_HEADER_WARNINGS,
         NO_REQ_COUNTER,
+        ALWAYS_EXPAND_MESSAGE_TEXT,
     }
 
     public static PwmRequest forRequest(
@@ -339,15 +339,15 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             return false;
         }
 
+        final String tokenValue = aftPath; // note this value is still urlencoded - the servlet container does not decode path values.
+
         final StringBuilder redirectURL = new StringBuilder();
         redirectURL.append(this.getHttpServletRequest().getContextPath());
         redirectURL.append(this.getHttpServletRequest().getServletPath());
         redirectURL.append("?");
         redirectURL.append(PwmConstants.PARAM_ACTION_REQUEST).append("=enterCode");
         redirectURL.append("&");
-        redirectURL.append(PwmConstants.PARAM_TOKEN).append("=").append(StringUtils.urlEncode(aftPath));
-        redirectURL.append("&");
-        redirectURL.append(PwmConstants.PARAM_FORM_ID).append("=").append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
+        redirectURL.append(PwmConstants.PARAM_TOKEN).append("=").append(tokenValue);
 
         LOGGER.debug(pwmSession, "detected long servlet url, redirecting user to " + redirectURL);
         sendRedirect(redirectURL.toString());

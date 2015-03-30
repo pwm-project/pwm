@@ -84,6 +84,10 @@ public class PwmURL {
         return checkIfStartsWithURL("/public/" + PwmConstants.URL_SERVLET_NEW_USER);
     }
 
+    public boolean isOauthConsumer() {
+        return checkIfStartsWithURL("/public/" + PwmConstants.URL_SERVLET_OAUTH_CONSUMER);
+    }
+
     public boolean isPrivateUrl() {
         return checkIfStartsWithURL("/private/");
     }

@@ -204,6 +204,9 @@ public class PeopleSearchServlet extends PwmServlet {
             }
         }
 
+        final int peopleSearchIdleTimeout = (int)pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS);
+        pwmRequest.getPwmSession().setSessionTimeout(pwmRequest.getHttpServletRequest().getSession(),peopleSearchIdleTimeout);
+
         final PeopleSearchActions peopleSearchAction = this.readProcessAction(pwmRequest);
         if (peopleSearchAction != null) {
             switch (peopleSearchAction) {
@@ -334,7 +337,7 @@ public class PeopleSearchServlet extends PwmServlet {
         final List<FormConfiguration> detailFormConfig = config.readSettingAsForm(PwmSetting.PEOPLE_SEARCH_DETAIL_FORM);
         final Map<String, String> attributeHeaderMap = UserSearchEngine.UserSearchResults.fromFormConfiguration(
                 detailFormConfig, pwmSession.getSessionStateBean().getLocale());
-        final ChaiUser theUser = config.readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_USE_PROXY)
+        final ChaiUser theUser = useProxy(pwmApplication,pwmSession)
                 ? pwmApplication.getProxiedChaiUser(userIdentity)
                 : pwmSession.getSessionManager().getActor(pwmApplication, userIdentity);
         Map<String, String> values = null;
@@ -351,7 +354,8 @@ public class PeopleSearchServlet extends PwmServlet {
     private void restUserDetailRequest(
             final PwmRequest pwmRequest
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException {
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
         final Date startTime = new Date();
         final Map<String, String> valueMap = pwmRequest.readBodyAsJsonStringMap();
 
@@ -580,6 +584,7 @@ public class PeopleSearchServlet extends PwmServlet {
 
         final boolean useProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_USE_PROXY);
         final boolean publicAccessEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC);
+
         if (useProxy) {
             return true;
         }
@@ -689,6 +694,6 @@ public class PeopleSearchServlet extends PwmServlet {
 
     private static Set<String> getSearchAttributes(final Configuration configuration) {
         final List<String> searchResultForm = configuration.readSettingAsStringArray(PwmSetting.PEOPLE_SEARCH_SEARCH_ATTRIBUTES);
-        return Collections.unmodifiableSet(new HashSet<String>(searchResultForm));
+        return Collections.unmodifiableSet(new HashSet<>(searchResultForm));
     }
 }

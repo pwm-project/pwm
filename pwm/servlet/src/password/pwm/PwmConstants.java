@@ -149,6 +149,7 @@ public abstract class PwmConstants {
         CaptchaIframeUrl,
         CaptchaPublicKey,
 
+        ForgottenPasswordChallengeSet,
         ForgottenPasswordOptionalPageView
     }
 

@@ -28,23 +28,16 @@ var PWM_GLOBAL = PWM_GLOBAL || {};
 
 PWM_GUIDE.selectTemplate = function(template) {
     PWM_MAIN.showWaitDialog({title:'Loading...',loadFunction:function() {
-        require(["dojo"], function (dojo) {
-            dojo.xhrGet({
-                url: "ConfigGuide?processAction=selectTemplate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + template,
-                preventCache: true,
-                error: function (errorObj) {
-                    PWM_MAIN.showError("error starting configuration editor: " + errorObj);
-                },
-                load: function (result) {
-                    if (!result['error']) {
-                        PWM_MAIN.getObject('button_next').disabled = template == "NOTSELECTED";
-                        PWM_MAIN.closeWaitDialog();
-                    } else {
-                        PWM_MAIN.showError(result['errorDetail']);
-                    }
-                }
-            });
-        });
+        var url = "ConfigGuide?processAction=selectTemplate&template=" + template;
+        PWM_MAIN.showDialog(url,function(result){
+            if (!result['error']) {
+                PWM_MAIN.getObject('button_next').disabled = template == "NOTSELECTED";
+                PWM_MAIN.closeWaitDialog();
+            } else {
+                PWM_MAIN.showError(result['errorDetail']);
+            }
+
+        },{method:'GET'});
     }});
 };
 
@@ -76,7 +69,10 @@ PWM_GUIDE.gotoStep = function(step) {
         PWM_MAIN.preloadAll(function(){
             var url =  "ConfigGuide?processAction=gotoStep&step=" + step;
             var loadFunction = function(result) {
-                if (result['data']) {
+                if (result['error']) {
+                    PWM_MAIN.showErrorDialog(result);
+                    return;
+                } else if (result['data']) {
                     if (result['data']['serverRestart']) {
                         PWM_CONFIG.waitForRestart();
                         return;

@@ -32,8 +32,7 @@ html, body {
 #centerbody {
     width: auto;
     min-width: inherit;
-    padding-left: 3px;
-    padding-right: 3px;
+    padding: 0
 }
 
 #centerbody.wide {
@@ -45,7 +44,7 @@ html, body {
     width: 100%;
     margin: 0;
     position:relative;
-    padding:2px;
+    padding:0;
 }
 
 
@@ -72,4 +71,31 @@ html, body {
 .dialogBody {
     width: 100%;
     max-width: 100%;
+}
+
+progress:not([value]) {
+    width: 90%;
+    max-width: 90%;
+    height: 20px;
+}
+
+progress .wait {
+    color: purple;
+    width: 70%;
+}
+
+.menubutton {
+    max-width: 100px;
+    width: auto;
+    padding: 2px 7px;
+    display: block;
+    border-radius: 2px;
+    border: 5px;
+    margin: 0 5px;
+}
+
+.menubutton_key {
+    border: 0;
+    width: auto;
+    table-layout: fixed;
 }

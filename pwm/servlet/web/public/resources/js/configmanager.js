@@ -169,11 +169,13 @@ PWM_CONFIG.showHeaderHealth = function() {
                     PWM_MAIN.openHeaderWarningPanel();
                     parentDiv.innerHTML = '<div id="panel-healthHeaderErrors" class="header-error"><span class="fa fa-warning"></span> ' + PWM_ADMIN.showString('Header_ConfigWarningsPresent') + '</div>';
                     var tooltipBody = PWM_ADMIN.makeHealthHtml(data['data'],true,false);
+                    /*
                     PWM_MAIN.showTooltip({
                         position:'below',
                         id:'panel-healthHeaderErrors',
                         text:tooltipBody
                     });
+                    */
                 }
                 setTimeout(function () {
                     PWM_CONFIG.showHeaderHealth()
@@ -383,12 +385,12 @@ PWM_CONFIG.initConfigHeader = function() {
     // header initialization
     if (PWM_MAIN.getObject('header_configManagerButton')) {
         PWM_MAIN.addEventHandler('header_configManagerButton', 'click', function () {
-            PWM_MAIN.goto('/private/config/ConfigManager')
+            PWM_MAIN.goto('/private/config/ConfigManager');
         });
     }
     if (PWM_MAIN.getObject('header_configEditorButton')) {
         PWM_MAIN.addEventHandler('header_configEditorButton', 'click', function () {
-            PWM_CONFIG.startConfigurationEditor()
+            PWM_CONFIG.startConfigurationEditor();
         });
     }
     PWM_MAIN.addEventHandler('header_openLogViewerButton', 'click', function () {

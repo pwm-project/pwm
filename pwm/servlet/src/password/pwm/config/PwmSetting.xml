@@ -1329,16 +1329,12 @@
     <setting key="password.policy.regExMatch" level="2">
         <label>Required Regular Expression Matches</label>
         <description><![CDATA[A Regular Expression pattern the password must match in order to be allowed.  Multiple patterns can be listed.  A pattern must match the <i>entire</i> password to be applied.  A partial match is ignored.]]></description>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting key="password.policy.regExNoMatch" level="2">
         <label>Disallowed Regular Expression Matches</label>
         <description><![CDATA[A Regular Expression pattern the password must <b>not</b> match in order to be allowed.  Multiple patterns can be listed.  A pattern must match the <i>entire</i> password to be applied.  A partial match is ignored.]]></description>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting key="password.policy.disallowedValues" level="1">
         <label>Disallowed Values</label>
@@ -1389,9 +1385,7 @@
     <setting key="password.policy.changeMessage" level="1">
         <label>Password Change Message</label>
         <description><![CDATA[Message to be displayed to user during password changes.  May include HTML markup.  This setting may be overwritten by a change password message read as part of an ldap password policy.]]></description>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting key="password.policy.ruleText" level="2">
         <label>Password Rule Text</label>
@@ -1765,9 +1759,8 @@
     <setting key="email.adminAlert.toAddress" level="1">
         <label>System Audit Event Email Alerts</label>
         <description><![CDATA[Send an email when System Audit events occur to these email addresses.]]></description>
-        <default>
-            <value><![CDATA[admin@example.com]]></value>
-        </default>
+        <default/>
+        <placeholder><![CDATA[admin@example.com]]></placeholder>
     </setting>
     <setting key="audit.system.eventList" level="1">
         <label>System Audit Event Types</label>
@@ -1791,9 +1784,8 @@
     <setting key="audit.userEvent.toAddress" level="1">
         <label>User Audit Event Email Alerts</label>
         <description><![CDATA[Send an email User Audit events occur to these email addresses.]]></description>
-        <default>
-            <value><![CDATA[]]></value>
-        </default>
+        <default/>
+        <placeholder><![CDATA[admin@example.com]]></placeholder>
     </setting>
     <setting key="audit.user.eventList" level="1">
         <label>User Audit Event Types</label>
@@ -2157,62 +2149,60 @@
         <label>Random Questions</label>
         <description><![CDATA[Random Questions for Challenge/Response.   Some of these questions will be presented to the user during forgotten password - the number set in the "Minimum Password Required" setting.  The user may be required to supply answers to all or some of these questions when setting up their responses, this is controlled by the "Minimum Random Challenges Required During Setup" setting.]]></description>
         <default>
-            <value><![CDATA[{"text":"What is the name of the main character in your favorite book?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"What is the name of your favorite teacher?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"What is the name of your favorite pet?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"What was the name of your childhood best friend?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"What was your favorite show as a child?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"Who is your favorite author?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"What is your favorite food?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"What is your partner's nickname?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"What is your favorite team?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"What street did you grow up on?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"What city / town were you born in?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"What is your favorite vehicle?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"If you could meet someone from history, who would it be?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"What is your least favorite film of all time?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"Who was your least favorite teacher?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value><![CDATA[{"text":"What food do you dislike the most?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel est le nom du personnage principal de votre livre préféré?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel est le nom de votre professeur préféré?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel est le nom de votre animal préféré?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel était le nom de votre meilleur ami d'enfance?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel a été votre émission préférée comme un enfant?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Qui est votre auteur préféré?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel est votre plat préféré?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel est le surnom de votre partenaire?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quelle est votre équipe préférée?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Dans quelle rue avez-vous grandi?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Dans quelle ville / ville êtes-vous né?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel est votre véhicule préféré?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Si vous pouviez rencontrer quelqu'un de l'histoire, ce serait qui?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel est ton film préféré moins de tous les temps?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Qui était votre professeur préféré moins?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quels sont les aliments que vous aimez le plus?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Hoe heet de hoofdpersoon in uw favoriete boek?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Hoe heet uw favoriete leraar?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Hoe heet uw favoriete huisdier?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Hoe heette uw beste vriend(in) uit uw jeugd?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat was uw favoriete TV-programma in uw jeugd?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wie is uw favoriete schrijver?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is uw lievelingseten?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is de bijnaam van uw partner?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete team?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"In welke straat bent u opgegroeid?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"In welke stad of plaats bent u geboren?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete voertuig?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Als u een historisch persoon zou kunnen ontmoeten, wie zou dat zijn?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete film aller tijden?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wie was uw minst geliefde leraar?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Van welk eten houdt u het minst?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"What is the name of the main character in your favorite book?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"What is the name of your favorite teacher?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"What is the name of your favorite pet?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"What was the name of your childhood best friend?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"What was your favorite show as a child?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"Who is your favorite author?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"What is your favorite food?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"What is your partner's nickname?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"What is your favorite team?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"What street did you grow up on?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"What city / town were you born in?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"What is your favorite vehicle?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"If you could meet someone from history, who would it be?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"What is your least favorite film of all time?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"Who was your least favorite teacher?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"What food do you dislike the most?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est le nom du personnage principal de votre livre préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est le nom de votre professeur préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est le nom de votre animal préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel était le nom de votre meilleur ami d'enfance?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel a été votre émission préférée comme un enfant?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Qui est votre auteur préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est votre plat préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est le surnom de votre partenaire?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quelle est votre équipe préférée?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Dans quelle rue avez-vous grandi?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Dans quelle ville / ville êtes-vous né?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est votre véhicule préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Si vous pouviez rencontrer quelqu'un de l'histoire, ce serait qui?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est ton film préféré moins de tous les temps?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Qui était votre professeur préféré moins?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quels sont les aliments que vous aimez le plus?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Hoe heet de hoofdpersoon in uw favoriete boek?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Hoe heet uw favoriete leraar?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Hoe heet uw favoriete huisdier?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Hoe heette uw beste vriend(in) uit uw jeugd?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat was uw favoriete TV-programma in uw jeugd?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wie is uw favoriete schrijver?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is uw lievelingseten?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is de bijnaam van uw partner?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete team?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"In welke straat bent u opgegroeid?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"In welke stad of plaats bent u geboren?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete voertuig?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Als u een historisch persoon zou kunnen ontmoeten, wie zou dat zijn?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete film aller tijden?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wie was uw minst geliefde leraar?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Van welk eten houdt u het minst?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
         </default>
     </setting>
     <setting key="challenge.requiredChallenges" level="1">
         <label>Required Questions</label>
         <description><![CDATA[Required Questions for Challenge/Response.  The user must supply answers for all of these questions when setting up their responses.  Additionally, answers to these questions must be supplied during forgotten password.]]></description>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting key="challenge.minRandomRequired" level="1" required="true">
         <label>Minimum Random Required</label>
@@ -2252,16 +2242,12 @@
     <setting key="challenge.helpdesk.randomChallenges" level="1">
         <label>Helpdesk Random Questions</label>
         <description><![CDATA[The user may be required to supply answers to all or some of these questions when setting up their responses, as controlled by the "Minimum Helpdesk Random Challenges Required During Setup" setting.  The questions and answers will be visible to helpdesk users, but are not used for forgotten password recovery.]]></description>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting key="challenge.helpdesk.requiredChallenges" level="1">
         <label>Helpdesk Required Questions</label>
         <description><![CDATA[The user must supply answers for all of these questions when setting up their responses.  The questions and answers will be visible to helpdesk users, but are not used for forgotten password recovery.]]></description>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting key="challenge.helpdesk.minRandomsSetup" level="1" required="true">
         <label>Minimum Helpdesk Random Challenges Required During Setup</label>
@@ -2310,7 +2296,7 @@
         <label>Verification Methods</label>
         <description><![CDATA[Verification Methods]]></description>
         <default>
-                <value>{"methodSettings":{"CHALLENGE_RESPONSES":{"enabledState":"required"}},"minOptionalRequired":0}</value>
+            <value>{"methodSettings":{"CHALLENGE_RESPONSES":{"enabledState":"required"}},"minOptionalRequired":0}</value>
         </default>
     </setting>
     <setting key="recovery.enable" level="1">
@@ -3048,6 +3034,13 @@
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
+    <setting key="peopleSearch.idleTimeout" level="1">
+        <label>Idle Timeout Seconds for PeopleSearch Users</label>
+        <description><![CDATA[Number of seconds after which an authenticated session becomes unauthenticated.   Session Idle timeout will be set to this value once a user successfully access the people search module.]]></description>
+        <default>
+            <value>3600</value>
+        </default>
+    </setting>
     <setting key="ldap.edirectory.enableNmas" level="1" required="true">
         <label>Enable NMAS Extensions</label>
         <description><![CDATA[When connecting to a NetIQ eDirectory LDAP directory, this parameter will control if NMAS extensions will be used when connecting to the ldap directory.  Enabling nmas results in:<ul><li>better error messages when using universal password policies</li><li>better error handling during certain change password scenarios</li></ul>Unless you are using an older version of eDirectory (pre 8.8 or before), it is generally best to set this to true.<br/><br/>All NMAS operations require an SSL connection to the directory.]]></description>
@@ -3089,7 +3082,7 @@
         </default>
     </setting>
     <setting key="ldap.edirectory.readChallengeSets" level="1" required="true">
-        <label>Read Challenge Sets</label>
+        <label>Read eDirectory Challenge Sets</label>
         <description><![CDATA[If true, the challenge set configuration from eDirectory Universal Password policy will be read and applied to users.  If an eDirectory challenge set is applied to the user, that policy will be used, otherwise the policy that is a part of this configuration will be used.  To require only NMAS configured challenge sets, be sure to blank out the required and forgotten questions as part of this configuration, or else those will be used in cases where no eDirectory policy.]]></description>
         <default>
             <value>false</value>
@@ -3106,21 +3099,21 @@
         </default>
     </setting>
     <setting key="ldap.edirectory.cr.minRandomDuringSetup" level="1" required="true">
-        <label>eDir CR Minimum Randoms During Setup</label>
+        <label>eDirectory Challenge Set Minimum Randoms During Setup</label>
         <description><![CDATA[]]></description>
         <default>
             <value>0</value>
         </default>
     </setting>
     <setting key="ldap.edirectory.cr.applyWordlist" level="1" required="true">
-        <label>eDir CR Apply Wordlist</label>
+        <label>eDirectory Challenge Set Apply Wordlist</label>
         <description><![CDATA[]]></description>
         <default>
             <value>false</value>
         </default>
     </setting>
     <setting key="ldap.edirectory.cr.maxQuestionCharsInAnswer" level="1" required="true">
-        <label>eDir CR Maximum Question Chars In Answer</label>
+        <label>eDirectory Challenge Set Maximum Question Chars In Answer</label>
         <description><![CDATA[]]></description>
         <default>
             <value>0</value>
@@ -3180,13 +3173,8 @@
     </setting>
     <setting key="helpdesk.filter" level="1">
         <label>Helpdesk Search Filter</label>
-        <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME%</i> for user supplied username]]></description>
-        <default>
-            <value><![CDATA[(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))]]></value>
-        </default>
-        <default template="AD">
-            <value><![CDATA[(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(sAMAccountName=*%USERNAME%*)(userprincipalname=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))]]></value>
-        </default>
+        <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME%</i> for user supplied username.  If not specified, a search filter will be auto calculated based on the Helpdesk Search Form.<p>Examples<ul><li>Edirectory: (&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))</li><li>Active Directory:(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(sAMAccountName=*%USERNAME%*)(userprincipalname=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))</li></ul>]]></description>
+        <default/>
     </setting>
     <setting key="helpdesk.result.form" level="1" required="true">
         <label>Helpdesk Search Form</label>
@@ -3385,6 +3373,13 @@
             <option value="ask">Ask</option>
             <option value="no">False</option>
         </options>
+    </setting>
+    <setting key="helpdesk.forcePwExpiration" level="1">
+        <label>Force Password Expiration On Password Set</label>
+        <description><![CDATA[]]></description>
+        <default>
+            <value>false</value>
+        </default>
     </setting>
     <setting key="helpdesk.clearOtp.button" level="2" hidden="false">
         <label>Enable Clear One Time Password Settings Button</label>
@@ -3676,26 +3671,26 @@
         <label>External Web Services Permissions</label>
         <description><![CDATA[Users permitted to execute REST web services.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=WebServiceUsers,ou=Groups,o=example)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=WebServiceUsers,ou=Groups,o=example"}]]></value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=WebServiceUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=WebServiceUsers,cn=Users,DC=site,DC=example,DC=net"}]]></value>
         </default>
         <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=WebServiceUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=WebServiceUsers,cn=Users,DC=site,DC=example,DC=net"}]]></value>
         </default>
     </setting>
     <setting key="webservices.thirdParty.queryMatch" level="2">
         <label>Web Services Third Party Permissions</label>
         <description><![CDATA[Users permitted to execute REST web services and specify a third party via the 'username' parameter.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=ThirdPartyWebServiceUsers,ou=Groups,o=example)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=ThirdPartyWebServiceUsers,ou=Groups,o=example"}]]></value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=ThirdPartyWebServiceUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=ThirdPartyWebServiceUsers,cn=Users,DC=site,DC=example,DC=net"}]]></value>
         </default>
         <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=ThirdPartyWebServiceUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=ThirdPartyWebServiceUsers,cn=Users,DC=site,DC=example,DC=net"}]]></value>
         </default>
     </setting>
     <setting key="external.macros.urls" level="2">
@@ -4144,7 +4139,7 @@
         <description><![CDATA[NetIQ eDirectory specific settings.]]></description>
     </category>
     <category key="EDIR_CR_SETTINGS">
-        <label>eDirectory CR Settings</label>
+        <label>eDirectory Challenge Sets</label>
         <description><![CDATA[NetIQ eDirectory CR specific settings.]]></description>
     </category>
     <category key="ACTIVE_DIRECTORY">

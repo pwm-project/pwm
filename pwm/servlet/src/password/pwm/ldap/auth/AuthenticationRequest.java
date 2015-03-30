@@ -239,14 +239,15 @@ class AuthenticationRequest {
                 sessionLabel.getSrcHostname()
         ));
 
-        final ChaiProvider returnProvider = determineUserProvider(requestedAuthType, password);
-        return new AuthenticationResult(returnProvider, requestedAuthType, password);
+        final ChaiProvider returnProvider = determineUserProvider(returnAuthType, password);
+        return new AuthenticationResult(returnProvider, returnAuthType, password);
     }
 
     private void initialize() {
         if (startTime != null) {
             throw new IllegalStateException("AuthenticationRequest can not be used more than once");
         }
+        log(PwmLogLevel.DEBUG, "preparing to authenticate user using authenticationType=" + this.requestedAuthType + " using strategy " + this.strategy);
         startTime = new Date();
     }
 

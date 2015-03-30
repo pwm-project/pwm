@@ -153,6 +153,11 @@ public class ConfigEditorServlet extends PwmServlet {
             configManagerBean.setConfiguration(loadedConfig);
         }
 
+        pwmSession.setSessionTimeout(
+                pwmRequest.getHttpServletRequest().getSession(),
+                Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_EDITOR_IDLE_TIMEOUT)));
+
+
         final ConfigEditorAction action = readProcessAction(pwmRequest);
 
         if (action != null) {

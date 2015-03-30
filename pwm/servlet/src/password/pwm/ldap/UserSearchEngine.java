@@ -47,7 +47,6 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.*;
 
 public class UserSearchEngine {
@@ -66,15 +65,6 @@ public class UserSearchEngine {
 
     public UserSearchEngine(final PwmRequest pwmRequest) {
         this(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
-    }
-
-    private static String nextSearchID() {
-        searchCounter++;
-        if (searchCounter < 0) {
-            searchCounter = 0;
-        }
-
-        return BigInteger.valueOf(searchCounter).toString(16).toLowerCase();
     }
 
     private static String figureSearchFilterForParams(
@@ -382,8 +372,9 @@ public class UserSearchEngine {
         searchHelper.setFilter(searchFilter);
         searchHelper.setAttributes(returnAttributes);
         searchHelper.setTimeLimit((int)timeoutMs);
+        final int searchID = searchCounter++;
 
-        final String debugInfo = "searchID=" + nextSearchID() + " profile=" + ldapProfile.getIdentifier() + " base=" + context + " filter=" + searchHelper.toString();
+        final String debugInfo = "searchID=" + searchID + " profile=" + ldapProfile.getIdentifier() + " base=" + context + " filter=" + searchHelper.toString();
         LOGGER.debug(sessionLabel, "performing ldap search for user; " + debugInfo);
 
         final Date startTime = new Date();
