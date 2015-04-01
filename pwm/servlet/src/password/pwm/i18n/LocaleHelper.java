@@ -379,7 +379,7 @@ public class LocaleHelper {
             final Percent percent = new Percent(presentCount, totalCount);
             configLocaleStats.getDescription_percentLocalizations().put(locale, percent.pretty());
         }
-            return configLocaleStats;
+        return configLocaleStats;
     }
 
     public static LocaleStats getStatsForBundles(final Collection<PwmLocaleBundle> bundles) {
@@ -489,7 +489,7 @@ public class LocaleHelper {
         }
 
         private static List<Locale> knownLocales() {
-            final List<Locale> knownLocales = new ArrayList();
+            final List<Locale> knownLocales = new ArrayList<>();
             try {
                 final StringArrayValue stringArrayValue = (StringArrayValue) PwmSetting.KNOWN_LOCALES.getDefaultValue(PwmSetting.Template.DEFAULT);
                 final List<String> rawValues = stringArrayValue.toNativeObject();
@@ -508,5 +508,28 @@ public class LocaleHelper {
             }
             return new ArrayList<>(returnMap.values());
         }
+    }
+
+    public static Map<PwmLocaleBundle,Map<String,List<Locale>>> getModifiedKeysInConfig(final Configuration configuration) {
+        final Map<PwmLocaleBundle,Map<String,List<Locale>>> returnObj = new LinkedHashMap<>();
+        for (final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.values()) {
+            for (final String key : pwmLocaleBundle.getKeys()) {
+                for (final Locale locale : configuration.getKnownLocales()) {
+                    final String defaultValue = LocaleHelper.getLocalizedMessage(locale, key, null, pwmLocaleBundle.getTheClass());
+                    final String customizedValue = LocaleHelper.getLocalizedMessage(locale, key, configuration, pwmLocaleBundle.getTheClass());
+                    if (defaultValue != null && !defaultValue.equals(customizedValue)) {
+                        if (!returnObj.containsKey(pwmLocaleBundle)) {
+                            returnObj.put(pwmLocaleBundle,new LinkedHashMap<String, List<Locale>>());
+                        }
+                        if (!returnObj.get(pwmLocaleBundle).containsKey(key)) {
+                            returnObj.get(pwmLocaleBundle).put(key, new ArrayList<Locale>());
+                        }
+
+                        returnObj.get(pwmLocaleBundle).get(key).add(locale);
+                    }
+                }
+            }
+        }
+        return returnObj;
     }
 }

@@ -40,7 +40,7 @@
             LocaleHelper.parseLocaleString("en"),
             LocaleHelper.parseLocaleString("fr"),
             LocaleHelper.parseLocaleString("zh_tw"),
-            LocaleHelper.parseLocaleString("ge"),
+            LocaleHelper.parseLocaleString("de"),
             LocaleHelper.parseLocaleString("ja"),
             LocaleHelper.parseLocaleString("pt_BR"),
             LocaleHelper.parseLocaleString("es"),

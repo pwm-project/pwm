@@ -3173,7 +3173,7 @@
     </setting>
     <setting key="helpdesk.filter" level="1">
         <label>Helpdesk Search Filter</label>
-        <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME%</i> for user supplied username.  If not specified, a search filter will be auto calculated based on the Helpdesk Search Form.<p>Examples<ul><li>Edirectory: (&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))</li><li>Active Directory:(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(sAMAccountName=*%USERNAME%*)(userprincipalname=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))</li></ul>]]></description>
+        <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME%</i> for user supplied username.  If not specified, a search filter will be auto calculated based on the Helpdesk Search Form.<p>Examples<ul><li>Edirectory: <pre>(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))</pre></li><li>Active Directory: <pre>(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(sAMAccountName=*%USERNAME%*)(userprincipalname=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))</pre></li></ul>]]></description>
         <default/>
     </setting>
     <setting key="helpdesk.result.form" level="1" required="true">

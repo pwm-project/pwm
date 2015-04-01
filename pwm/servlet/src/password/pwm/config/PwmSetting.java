@@ -1258,5 +1258,38 @@ public enum PwmSetting {
 
         return sb.toString();
     }
+
+    public enum SettingStat {
+        Total,
+        hasProfile,
+        syntaxCounts,
+    }
+
+    public static Map<SettingStat, Object> getStats() {
+        final Map<SettingStat,Object> returnObj = new LinkedHashMap<>();
+        {
+            returnObj.put(SettingStat.Total,PwmSetting.values().length);
+        }
+        {
+            int hasProfile = 0;
+            for (final PwmSetting pwmSetting : values()) {
+                if (pwmSetting.getCategory().hasProfiles()) {
+                    hasProfile++;
+                }
+            }
+            returnObj.put(SettingStat.hasProfile,hasProfile);
+        }
+        {
+            final Map<PwmSettingSyntax,Integer> syntaxCounts = new LinkedHashMap<>();
+            for (final PwmSettingSyntax syntax : PwmSettingSyntax.values()) {
+                syntaxCounts.put(syntax,0);
+            }
+            for (final PwmSetting pwmSetting : values()) {
+                syntaxCounts.put(pwmSetting.getSyntax(), syntaxCounts.get(pwmSetting.getSyntax()) + 1);
+            }
+            returnObj.put(SettingStat.syntaxCounts, syntaxCounts);
+        }
+        return returnObj;
+    }
 }
 

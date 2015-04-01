@@ -40,6 +40,7 @@ public class CliEnvironment {
     final LocalDB localDB;
     final Writer debugWriter;
     final Map<String,Object> options;
+    final MainClass.MainOptions mainOptions;
 
     public CliEnvironment(
             ConfigurationReader configurationReader,
@@ -49,7 +50,8 @@ public class CliEnvironment {
             PwmApplication pwmApplication,
             LocalDB localDB,
             Writer debugWriter,
-            Map<String, Object> options
+            Map<String, Object> options,
+            MainClass.MainOptions mainOptions
     )
     {
         this.configurationReader = configurationReader;
@@ -60,6 +62,7 @@ public class CliEnvironment {
         this.localDB = localDB;
         this.debugWriter = debugWriter;
         this.options = options;
+        this.mainOptions = mainOptions;
     }
 
     public Configuration getConfig()
@@ -94,5 +97,9 @@ public class CliEnvironment {
 
     public ConfigurationReader getConfigurationReader() {
         return configurationReader;
+    }
+
+    public MainClass.MainOptions getMainOptions() {
+        return mainOptions;
     }
 }

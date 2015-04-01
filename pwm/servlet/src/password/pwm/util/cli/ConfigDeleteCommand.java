@@ -35,7 +35,7 @@ public class ConfigDeleteCommand extends AbstractCliCommand {
         }
 
 
-        if (!promptForContinue()) {
+        if (!promptForContinue("Proceeding will delete the existing configuration")) {
             return;
         }
 

@@ -61,7 +61,12 @@ public abstract class AbstractCliCommand implements CliCommand  {
         }
     }
 
-    boolean promptForContinue() {
+    boolean promptForContinue(final String msg) {
+        if (cliEnvironment.getMainOptions().isForceFlag()) {
+            return true;
+        }
+        out(msg);
+        out("");
         out("To proceed, type 'continue'");
         final Scanner scanner = new Scanner(System.in);
         final String input = scanner.nextLine();

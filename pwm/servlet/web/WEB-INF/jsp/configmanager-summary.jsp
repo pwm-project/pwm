@@ -1,5 +1,8 @@
+<%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.i18n.LocaleHelper" %>
+<%@ page import="password.pwm.i18n.PwmLocaleBundle" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.*" %>
 <%--
@@ -33,15 +36,16 @@
 
     settingData.addAll((List<Map<String,String>>)outputData.get("settings"));
   } catch (PwmException e) {
-        /* noop */
+          /* noop */
   }
 %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_REQ_COUNTER); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -58,86 +62,101 @@
       </div>
       <div>
         Current Time: <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></span>
-      <br/>
+        <br/>
         Configuration Template: <%=outputData.get("template")%>
         <br/>
         <br/>
         <span class="footnote">Only settings modified from their default value are shown.</span>
       </div>
-      
+
+      <br/>
+      <% for (final Map<String,String> record : settingData) { %>
+      <table style="width:800px">
+        <col class="key" style="width:100px">
+        <col style="max-width: 700px; overflow: auto">
+        <tr>
+          <td>
+            Title
+          </td>
+          <td>
+            <%=record.get("label")%>
+          </td>
+        </tr>
+        <% if (record.containsKey("profile")) { %>
+        <tr>
+          <td>
+            Profile
+          </td>
+          <td>
+            <div>
+              <%=StringUtil.escapeHtml(record.get("profile"))%>
+            </div>
+          </td>
+        </tr>
+        <% } %>
+        <% if (record.containsKey("modifyTime")) { %>
+        <tr>
+          <td>
+            Modify Time
+          </td>
+          <td>
+            <div>
+              <span class="timestamp"><%=StringUtil.escapeHtml(record.get("modifyTime"))%></span>
+            </div>
+          </td>
+        </tr>
+        <% } %>
+        <% if (record.containsKey("modifyUser")) { %>
+        <tr>
+          <td>
+            Modified by
+          </td>
+          <td>
+            <div>
+              <%=StringUtil.escapeHtml(record.get("modifyUser"))%>
+            </div>
+          </td>
+        </tr>
+        <% } %>
+        <tr>
+          <td>
+            Value
+          </td>
+          <td>
+            <div>
+              <pre style="white-space: pre-wrap"><%=StringUtil.escapeHtml(record.get("value"))%></pre>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <br/>
+      <br/>
+      <% } %>
+      <% final Configuration pwmConfig = JspUtility.getPwmRequest(pageContext).getConfig(); %>
+      <% Map<PwmLocaleBundle,Map<String,List<Locale>>> modifiedKeys = LocaleHelper.getModifiedKeysInConfig(pwmConfig); %>
+      <% if (modifiedKeys != null && !modifiedKeys.isEmpty()) { %>
+      <% for (final PwmLocaleBundle pwmLocaleBundle : modifiedKeys.keySet()) { %>
+      <% for (final String key : modifiedKeys.get(pwmLocaleBundle).keySet()) { %>
+      <table style="width: 800px">
+        <tr>
+          <td colspan="5"><%=pwmLocaleBundle.getTheClass().getSimpleName()%> - <%= key%></td>
+        </tr>
+        <% for (final Locale locale : modifiedKeys.get(pwmLocaleBundle).get(key)) { %>
+        <tr>
+          <td class="key"><%=LocaleHelper.debugLabel(locale)%></td>
+          <td><%=LocaleHelper.getLocalizedMessage(locale,key,pwmConfig,pwmLocaleBundle.getTheClass())%></td>
+        </tr>
+        <% } %>
+      </table>
+      <br/>
+      <% } %>
+      <% } %>
+      <% } %>
     </div>
-    <br/>
-    <% for (final Map<String,String> record : settingData) { %>
-    <table style="width:800px">
-      <col class="key" style="width:100px">
-      <col style="max-width: 700px; overflow: auto">
-      <tr>
-        <td>
-          Title
-        </td>
-        <td>
-          <%=record.get("label")%>
-        </td>
-      </tr>
-      <% if (record.containsKey("profile")) { %>
-      <tr>
-        <td>
-          Profile
-        </td>
-        <td>
-          <div>
-            <%=StringUtil.escapeHtml(record.get("profile"))%>
-          </div>
-        </td>
-      </tr>
-      <% } %>
-      <% if (record.containsKey("modifyTime")) { %>
-      <tr>
-        <td>
-          Modify Time
-        </td>
-        <td>
-          <div>
-            <span class="timestamp"><%=StringUtil.escapeHtml(record.get("modifyTime"))%></span>
-          </div>
-        </td>
-      </tr>
-      <% } %>
-      <% if (record.containsKey("modifyUser")) { %>
-      <tr>
-        <td>
-          Modified by
-        </td>
-        <td>
-          <div>
-            <%=StringUtil.escapeHtml(record.get("modifyUser"))%>
-          </div>
-        </td>
-      </tr>
-      <% } %>
-      <tr>
-        <td>
-          Value
-        </td>
-        <td>
-          <div>
-            <pre style="white-space: pre-wrap"><%=StringUtil.escapeHtml(record.get("value"))%></pre>
-          </div>
-        </td>
-      </tr>
-    </table>
-    <br/>
-    <% } %>
   </div>
-  <div class="push"></div>
 </div>
-<pwm:script>
-  <script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-      PWM_GLOBAL['idle_suspendTimeout'] = true;
-    });
-  </script>
-</pwm:script>
+<div class="push"></div>
+</div>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

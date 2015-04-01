@@ -67,7 +67,6 @@ public class MainClass {
         commandList.add(new ClearResponsesCommand());
         commandList.add(new ImportResponsesCommand());
         commandList.add(new TokenInfoCommand());
-        commandList.add(new IntegrityReportCommand());
         commandList.add(new ConfigNewCommand());
         commandList.add(new VersionCommand());
         commandList.add(new LdapSchemaExtendCommand());
@@ -98,6 +97,15 @@ public class MainClass {
             output.append("       ").append(command.getCliParameters().description);
             output.append("\n");
         }
+        output.append("\n");
+        output.append("options:\n");
+        output.append(" -force                force operations skipping any confirmation\n");
+        output.append(" -debugLevel=x         set the debug level where x is TRACE, DEBUG, INFO, WARN or FATAL\n");
+        output.append(" -applicationPath=x    set the application path, default is current path\n");
+        output.append("\n");
+        output.append("usage: \n");
+        output.append(" command[.bat/.sh] <options> CommandName <command options>");
+
         return output.toString();
     }
 
@@ -130,7 +138,8 @@ public class MainClass {
                 pwmApplication,
                 localDB,
                 new OutputStreamWriter(System.out),
-                options
+                options,
+                MAIN_OPTIONS
         );
     }
 
@@ -220,9 +229,8 @@ public class MainClass {
                     final List<String> argList = new LinkedList<>(Arrays.asList(args));
                     argList.remove(0);
 
-                    CliEnvironment cliEnvironment;
                     try {
-                        cliEnvironment = createEnv(command.getCliParameters(), argList);
+                        final CliEnvironment cliEnvironment = createEnv(command.getCliParameters(), argList);
                         command.execute(commandStr, cliEnvironment);
                     } catch (CliException e) {
                         System.out.println(e.getMessage());
@@ -240,6 +248,7 @@ public class MainClass {
     static String[] parseCommandOptions(String[] args) {
         final String OPT_DEBUG_LEVEL = "-debugLevel";
         final String OPT_APP_PATH = "-applicationPath";
+        final String OPT_FORCE = "-force";
 
         if (args == null || args.length < 1) {
             return args;
@@ -278,6 +287,8 @@ public class MainClass {
                         }
                         MAIN_OPTIONS.applicationPath = pathValue;
                     }
+                } else if (arg.equals(OPT_FORCE)) {
+                    MAIN_OPTIONS.forceFlag = true;
                 } else {
                     outputArgs.add(arg);
                 }
@@ -290,6 +301,7 @@ public class MainClass {
         if (logLevel == null) {
             Logger.getRootLogger().removeAllAppenders();
             Logger.getRootLogger().addAppender(new NullAppender());
+            PwmLogger.markInitialized();
             return;
         }
 
@@ -353,9 +365,22 @@ public class MainClass {
         System.out.println(txt + "\n");
     }
 
-    private static class MainOptions {
+    public static class MainOptions {
         private PwmLogLevel pwmLogLevel = null;
         private File applicationPath = null;
+        private boolean forceFlag = false;
+
+        public PwmLogLevel getPwmLogLevel() {
+            return pwmLogLevel;
+        }
+
+        public File getApplicationPath() {
+            return applicationPath;
+        }
+
+        public boolean isForceFlag() {
+            return forceFlag;
+        }
     }
 
     private static void exitWithError(final String msg) {

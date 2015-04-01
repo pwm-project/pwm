@@ -2026,7 +2026,7 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
                     dialogBody += ' onchange="PWM_VAR[\'clientSettingCache\'][\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'maxQuestionCharsInAnswer\'] = this.value"/><br/> Max Question Chars';
 
                     dialogBody += '</td><td style="padding-bottom: 15px; border:0">';
-                    dialogBody += '<label class="checkboxWrapper"><input type="checkbox" id="value-wordlist-' + inputID + '" disabled/>Wordlist</label>';
+                    dialogBody += '<label class="checkboxWrapper"><input type="checkbox" id="value-wordlist-' + inputID + '" disabled/>Apply Wordlist</label>';
 
                     dialogBody += '</td></tr>';
                     dialogBody += '</table></td><td style="border:0; vertical-align: top">';
@@ -2069,10 +2069,10 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
 
                         // admin defined checkbox
                         PWM_MAIN.getObject('value-adminDefined-' + inputID).disabled = false;
-                        PWM_MAIN.getObject('value-adminDefined-' + inputID).checked = !multiValues[rowKey]['adminDefined'];
+                        PWM_MAIN.getObject('value-adminDefined-' + inputID).checked = multiValues[rowKey]['adminDefined'];
                         PWM_MAIN.addEventHandler('value-adminDefined-' + inputID,'change',function(){
                             var checked = PWM_MAIN.getObject('value-adminDefined-' + inputID).checked;
-                            multiValues[rowKey]['adminDefined'] = !checked;
+                            multiValues[rowKey]['adminDefined'] = checked;
                             processQuestion();
                         });
 

@@ -70,6 +70,9 @@
                 <% } %>
                 <% } %>
             </ol>
+            <% if (pwmRequest.readParameterAsBoolean("advanced")) { %>
+            <li><a href="#settingSummary">Setting Summary</a></li>
+            <% } %>
             <li><a href="#displayStrings">Display Strings</a></li>
             <ol>
                 <% for (PwmLocaleBundle bundle : PwmLocaleBundle.values()) { %>
@@ -314,6 +317,39 @@
         <br/>
         <% } %>
         <% } %>
+        <% } %>
+        <% if (pwmRequest.readParameterAsBoolean("advanced")) { %>
+        <h2><a id="settingSummary">Setting Summary</a></h2>
+        <% Map<PwmSetting.SettingStat,Object> settingStats = PwmSetting.getStats(); %>
+        <table>
+            <tr>
+                <td class="key">
+                    Total Settings
+                </td>
+                <td>
+                    <%= settingStats.get(PwmSetting.SettingStat.Total) %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Settings that are part of a Profile
+                </td>
+                <td>
+                    <%= settingStats.get(PwmSetting.SettingStat.hasProfile) %>
+                </td>
+            </tr>
+            <% Map<PwmSettingSyntax,Integer> syntaxCounts = (Map<PwmSettingSyntax,Integer>)settingStats.get(PwmSetting.SettingStat.syntaxCounts); %>
+            <% for (final PwmSettingSyntax loopSyntax : syntaxCounts.keySet()) { %>
+            <tr>
+                <td class="key" style="width: auto; white-space: nowrap">
+                    Settings with syntax type <%= loopSyntax.toString() %>
+                </td>
+                <td>
+                    <%= syntaxCounts.get(loopSyntax) %>
+                </td>
+            </tr>
+            <% } %>
+        </table>
         <% } %>
         <h1><a id="displayStrings">Display Strings</a></h1>
         <% for (PwmLocaleBundle bundle : PwmLocaleBundle.values()) { %>

@@ -29,7 +29,6 @@ import password.pwm.util.localdb.LocalDBUtility;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.Scanner;
 
 public class ImportLocalDBCommand extends AbstractCliCommand {
     protected static final String INPUT_FILE_OPTIONNAME = "inputFile";
@@ -41,16 +40,11 @@ public class ImportLocalDBCommand extends AbstractCliCommand {
         final Configuration config = cliEnvironment.getConfig();
         final LocalDB localDB = cliEnvironment.getLocalDB();
 
-        out("Proceeding with this operation will clear ALL data from the LocalDB.");
-        out("Please consider backing up the LocalDB before proceeding. ");
-        out("");
-        out("The application must be stopped for this operation to succeed.");
-        out("");
-        out("To proceed, type 'continue'");
-        final Scanner scanner = new Scanner(System.in);
-        final String input = scanner.nextLine();
-
-        if (!"continue".equalsIgnoreCase(input)) {
+        final String msg = "Proceeding with this operation will clear ALL data from the LocalDB." + "\n"
+                + "Please consider backing up the LocalDB before proceeding. " + "\n"
+                + "\n"
+                + "The application must be stopped for this operation to succeed.";
+        if (!promptForContinue(msg)) {
             out("exiting...");
             return;
         }

@@ -36,16 +36,16 @@ public enum PwmLocaleBundle {
     HEALTH(Health.class, true),
     ;
 
-    private final Class theClass;
+    private final Class<? extends PwmDisplayBundle> theClass;
     private final boolean adminOnly;
     private Set<String> keys = null;
 
-    PwmLocaleBundle(final Class theClass, final boolean adminOnly) {
+    PwmLocaleBundle(final Class<? extends PwmDisplayBundle> theClass, final boolean adminOnly) {
         this.theClass = theClass;
         this.adminOnly = adminOnly;
     }
 
-    public Class getTheClass() {
+    public Class<? extends PwmDisplayBundle> getTheClass() {
         return theClass;
     }
 
