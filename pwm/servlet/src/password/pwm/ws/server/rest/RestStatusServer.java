@@ -164,7 +164,7 @@ public class RestStatusServer extends AbstractRestServer {
             }
 
             final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
-            LOGGER.debug(restRequestBean.getPwmSession(),"completed REST status request in " + timeDuration.asCompactString() + ", result=" + JsonUtil.serialize(restRequestBean));
+            LOGGER.debug(restRequestBean.getPwmSession(),"completed REST status request in " + timeDuration.asCompactString() + ", result=" + JsonUtil.serialize(restResultBean));
             return restResultBean.asJsonResponse();
         } catch (PwmException e) {
             return RestResultBean.fromError(e.getErrorInformation(), restRequestBean).asJsonResponse();

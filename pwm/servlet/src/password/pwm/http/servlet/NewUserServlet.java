@@ -303,7 +303,7 @@ public class NewUserServlet extends PwmServlet {
 
         try {
             final NewUserBean.NewUserForm newUserForm = NewUserFormUtils.readFromJsonRequest(pwmRequest);
-            PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(pwmRequest, newUserForm);
+            PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(pwmRequest, newUserForm, true);
             if (passwordCheckInfo.isPassed() && passwordCheckInfo.getMatch() == PasswordUtility.PasswordCheckInfo.MATCH_STATUS.MATCH) {
                 passwordCheckInfo = new PasswordUtility.PasswordCheckInfo(
                         Message.getLocalizedMessage(locale,
@@ -328,7 +328,8 @@ public class NewUserServlet extends PwmServlet {
 
     static PasswordUtility.PasswordCheckInfo verifyForm(
             final PwmRequest pwmRequest,
-            final NewUserBean.NewUserForm newUserForm
+            final NewUserBean.NewUserForm newUserForm,
+            final boolean allowResultCaching
     )
             throws PwmDataValidationException, PwmUnrecoverableException, ChaiUnavailableException
     {
@@ -339,7 +340,8 @@ public class NewUserServlet extends PwmServlet {
                 pwmApplication,
                 newUserForm.getFormData(),
                 locale,
-                Collections.<UserIdentity>emptyList()
+                Collections.<UserIdentity>emptyList(),
+                allowResultCaching
         );
         final UserInfoBean uiBean = new UserInfoBean();
         final NewUserProfile newUserProfile = getNewUserProfile(pwmRequest);
@@ -397,9 +399,9 @@ public class NewUserServlet extends PwmServlet {
                     LOGGER.debug(pwmRequest, "email token passed");
 
                     try {
-                        verifyForm(pwmRequest, newUserFormFromToken);
+                        verifyForm(pwmRequest, newUserFormFromToken, false);
                     } catch (PwmUnrecoverableException | PwmOperationalException e) {
-                        LOGGER.error(pwmRequest,"while reading stored form data in token payload, form validation error occured: " + e.getMessage());
+                        LOGGER.error(pwmRequest,"while reading stored form data in token payload, form validation error occurred: " + e.getMessage());
                         throw e;
                     }
 
@@ -467,7 +469,7 @@ public class NewUserServlet extends PwmServlet {
 
         try {
             NewUserBean.NewUserForm newUserForm = NewUserFormUtils.readFromRequest(pwmRequest);
-            final PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(pwmRequest, newUserForm);
+            final PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(pwmRequest, newUserForm, true);
             passwordCheckInfoToException(passwordCheckInfo);
             newUserBean.setNewUserForm(newUserForm);
             newUserBean.setFormPassed(true);
@@ -490,17 +492,18 @@ public class NewUserServlet extends PwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final long startTime = System.currentTimeMillis();
-        LOGGER.debug(pwmSession, "beginning createUser process for " + newUserDN);
 
         // re-perform verification before proceeding
         {
             final PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(
                     pwmRequest,
-                    newUserForm
+                    newUserForm,
+                    false
             );
             passwordCheckInfoToException(passwordCheckInfo);
         }
 
+        LOGGER.debug(pwmSession, "beginning createUser process for " + newUserDN);
         final PasswordData userPassword = newUserForm.getNewUserPassword();
 
         // set up the user creation attributes
@@ -788,8 +791,8 @@ public class NewUserServlet extends PwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         
         if (pwmApplication.getConfig().getTokenStorageMethod() == TokenStorageMethod.STORE_LDAP) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,
-                    "cannot generate new user tokens when storage type is configured as STORE_LDAP."));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{
+                    "cannot generate new user tokens when storage type is configured as STORE_LDAP."}));
         }
 
         final NewUserBean newUserBean = pwmRequest.getPwmSession().getNewUserBean();

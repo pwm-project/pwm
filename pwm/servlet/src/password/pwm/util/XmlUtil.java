@@ -51,7 +51,7 @@ public class XmlUtil {
         try {
             inputDocument = builder.build(inputStream);
         } catch (Exception e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"error parsing xml data: " + e.getMessage()));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{"error parsing xml data: " + e.getMessage()}));
         }
         return inputDocument;
     }

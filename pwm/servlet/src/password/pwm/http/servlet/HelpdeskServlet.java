@@ -94,6 +94,7 @@ public class HelpdeskServlet extends PwmServlet {
         deleteUser(HttpMethod.POST),
         validateOtpCode(HttpMethod.POST),
         sendVerificationToken(HttpMethod.POST),
+        clientData(HttpMethod.GET),
 
         ;
 
@@ -139,17 +140,10 @@ public class HelpdeskServlet extends PwmServlet {
             return;
         }
 
-        {
-            final List<FormConfiguration> searchForm = helpdeskProfile.readSettingAsForm(PwmSetting.HELPDESK_SEARCH_FORM);
-            final Map<String,String> searchColumns = new LinkedHashMap<>();
-            for (final FormConfiguration formConfiguration : searchForm) {
-                searchColumns.put(formConfiguration.getName(),formConfiguration.getLabel(pwmSession.getSessionStateBean().getLocale()));
-            }
-            helpdeskBean.setSearchColumnHeaders(searchColumns);
-        }
-
         final int helpdeskIdleTimeout = (int)helpdeskProfile.readSettingAsLong(PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS);
-        pwmSession.setSessionTimeout(pwmRequest.getHttpServletRequest().getSession(),helpdeskIdleTimeout);
+        if (helpdeskIdleTimeout > 0) {
+            pwmSession.setSessionTimeout(pwmRequest.getHttpServletRequest().getSession(), helpdeskIdleTimeout);
+        }
 
         final HelpdeskAction action = readProcessAction(pwmRequest);
         if (action != null) {
@@ -187,10 +181,29 @@ public class HelpdeskServlet extends PwmServlet {
                 case sendVerificationToken:
                     restSendVerificationTokenRequest(pwmRequest, helpdeskBean, helpdeskProfile);
                     return;
+
+                case clientData:
+                    restClientData(pwmRequest, helpdeskProfile);
+                    return;
             }
         }
 
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.HELPDESK_SEARCH);
+    }
+
+    private void restClientData(final PwmRequest pwmRequest, final HelpdeskProfile helpdeskProfile)
+            throws IOException
+    {
+        final List<FormConfiguration> searchForm = helpdeskProfile.readSettingAsForm(PwmSetting.HELPDESK_SEARCH_FORM);
+        final Map<String,String> searchColumns = new LinkedHashMap<>();
+        for (final FormConfiguration formConfiguration : searchForm) {
+            searchColumns.put(formConfiguration.getName(),formConfiguration.getLabel(pwmRequest.getLocale()));
+        }
+        final HashMap<String,Object> returnValues = new HashMap<>();
+        returnValues.put("helpdesk_search_columns",searchColumns);
+        final RestResultBean restResultBean = new RestResultBean(returnValues);
+        LOGGER.trace(pwmRequest, "returning clientData: " + JsonUtil.serialize(restResultBean));
+        pwmRequest.outputJsonResult(restResultBean);
     }
 
     private void processExecuteActionRequest(

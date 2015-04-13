@@ -27,14 +27,12 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.event.UserAuditRecord;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 public class HelpdeskBean implements PwmSessionBean {
     private String searchString;
-    private Map<String,String> searchColumnHeaders = Collections.emptyMap();
     private HelpdeskDetailInfo heldpdeskDetailInfo = new HelpdeskDetailInfo();
 
     public static class HelpdeskDetailInfo implements Serializable {
@@ -140,17 +138,4 @@ public class HelpdeskBean implements PwmSessionBean {
     public void setHeldpdeskDetailInfo(HelpdeskDetailInfo heldpdeskDetailInfo) {
         this.heldpdeskDetailInfo = heldpdeskDetailInfo;
     }
-
-    public Map<String, String> getSearchColumnHeaders()
-    {
-        return searchColumnHeaders;
-    }
-
-    public void setSearchColumnHeaders(Map<String, String> searchColumnHeaders)
-    {
-        this.searchColumnHeaders = searchColumnHeaders;
-    }
-
-
-    
 }

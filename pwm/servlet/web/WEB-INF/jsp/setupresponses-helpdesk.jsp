@@ -41,13 +41,15 @@
         <form action="<pwm:url url='SetupResponses'/>" method="post" name="form-setupResponses"
               enctype="application/x-www-form-urlencoded" id="form-setupResponses" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
-            <% request.setAttribute("setupData",responseBean.getHelpdeskResponseData()); %>
-            <jsp:include page="fragment/setupresponses-form.jsp"/>
+            <div id="pwm-setupResponsesDiv">
+                <% request.setAttribute("setupData",responseBean.getHelpdeskResponseData()); %>
+                <jsp:include page="fragment/setupresponses-form.jsp"/>
+            </div>
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="setHelpdeskResponses"/>
                 <button type="submit" name="setResponses" class="btn" id="button-setResponses">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                <pwm:display key="Button_SetResponses"/>
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:display key="Button_SetResponses"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

@@ -32,7 +32,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.servlet.ResourceFileServlet;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.logging.PwmLogger;
@@ -331,7 +330,6 @@ public class ContextManager implements Serializable {
 
             LOGGER.info("beginning application restart");
             try {
-                ResourceFileServlet.clearCache(servletContext);
                 shutdown();
             } catch (Exception e) {
                 LOGGER.fatal("unexpected error during shutdown: " + e.getMessage(),e);

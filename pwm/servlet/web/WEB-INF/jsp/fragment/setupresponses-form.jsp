@@ -1,6 +1,9 @@
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
+<%@ page import="password.pwm.util.JsonUtil" %>
 <%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -55,21 +58,25 @@
 <% } %>
 <%---------------------- display fields for RANDOM challenges using SIMPLE mode ----------------------------------------%>
 <% if (setupData.isSimpleMode()) {  %>
+<% // need to output all the random options for the javascript functions.
+    final List<String> questionTexts = new ArrayList<String>();
+    for (final String indexKey : setupData.getIndexedChallenges().keySet()) {
+        final Challenge challenge = setupData.getIndexedChallenges().get(indexKey);
+        if (!challenge.isRequired()) {
+            questionTexts.add(challenge.getChallengeText());
+        }
+    }
+%>
 <p><pwm:display key="Display_SetupRandomResponses" value1="<%= String.valueOf(setupData.getChallengeSet().getMinRandomRequired()) %>"/></p>
 <% for (int index = 0; index < setupData.getMinRandomSetup(); index++) { %>
 <h2>
     <select name="PwmResponse_Q_Random_<%=index%>" id="PwmResponse_Q_Random_<%=index%>" style="width:70%" <pwm:autofocus/> class="simpleModeResponseSelection"
             data-response-id="PwmResponse_R_Random_<%=index%>">
         <option value="UNSELECTED" data-unselected-option="true">&nbsp;&mdash;&nbsp;<pwm:display key="Display_SelectionIndicator"/>&nbsp;&mdash;&nbsp;</option>
-        <%
-            for (final String indexKey : setupData.getIndexedChallenges().keySet()) {
-                final Challenge challenge = setupData.getIndexedChallenges().get(indexKey);
-                if (!challenge.isRequired()) {
-
+        <% for (final String questionText : questionTexts) {
         %>
-        <option value="<%=StringUtil.escapeHtml(challenge.getChallengeText())%>"><%=StringUtil.escapeHtml(challenge.getChallengeText())%>
+        <option value="<%=StringUtil.escapeHtml(questionText)%>"><%=StringUtil.escapeHtml(questionText)%>
         </option>
-        <% } %>
         <% } %>
     </select>
 </h2>
@@ -81,16 +88,9 @@
 <% } %>
 <pwm:script>
 <script type="text/javascript">
-    <% // need to output all the random options for the javascript functions.
-        for (final String indexKey : setupData.getIndexedChallenges().keySet()) {
-        final Challenge challenge = setupData.getIndexedChallenges().get(indexKey);
-        if (!challenge.isRequired()) {
-    %>
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_VAR['simpleRandomOptions'].push('<%=StringUtil.escapeJS(challenge.getChallengeText())%>')
+        PWM_VAR['simpleRandomOptions'] = <%=JsonUtil.serializeCollection(questionTexts)%>;
     });
-    <% } %>
-    <% } %>
 </script>
 </pwm:script>
 <% } else { %>

@@ -142,7 +142,7 @@ public class PwmPasswordRuleValidator {
     )
             throws PwmUnrecoverableException
     {
-        final String passwordString = password.getStringValue();
+        final String passwordString = password == null ? "" : password.getStringValue();
         final String oldPasswordString = oldPassword == null ? null : oldPassword.getStringValue();
         return internalPwmPolicyValidator(passwordString, oldPasswordString, uiBean, failFast);
     }
@@ -518,13 +518,16 @@ public class PwmPasswordRuleValidator {
         final boolean haltOnError = Boolean.parseBoolean(config.readAppProperty(AppProperty.WS_REST_CLIENT_PWRULE_HALTONERROR));
         final Map<String,Object> sendData = new LinkedHashMap<>();
 
-        final PasswordCharCounter passwordCharCounter = new PasswordCharCounter(password.getStringValue());
 
         if (restURL == null || restURL.isEmpty()) {
             return Collections.emptyList();
         }
 
-        sendData.put("password",password.getStringValue());
+        {
+            final String passwordStr = password == null ? "" : password.getStringValue();
+            sendData.put("password", passwordStr);
+        }
+
         if (pwmPasswordPolicy != null) {
             final LinkedHashMap<String,Object> policyData = new LinkedHashMap<>();
             for (final PwmPasswordRule rule : PwmPasswordRule.values()) {

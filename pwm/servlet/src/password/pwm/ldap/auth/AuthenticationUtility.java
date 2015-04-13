@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -59,5 +60,14 @@ public abstract class AuthenticationUtility {
         if (chaiUser.isAccountExpired()) {
             throw new PwmUnrecoverableException(PwmError.ERROR_ACCOUNT_EXPIRED);
         }
+    }
+
+    static LDAPAuthenticationRequest createLDAPAuthenticationRequest(
+            PwmApplication pwmApplication,
+            SessionLabel sessionLabel,
+            UserIdentity userIdentity,
+            AuthenticationType requestedAuthType
+    ) {
+        return new LDAPAuthenticationRequest(pwmApplication, sessionLabel, userIdentity, requestedAuthType);
     }
 }

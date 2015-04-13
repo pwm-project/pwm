@@ -20,6 +20,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+"use strict";
+
 var PWM_RESPONSES = PWM_RESPONSES || {};
 var PWM_VAR = PWM_VAR || {};
 var require;
@@ -104,16 +106,11 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
             var responseID = selectedElement.getAttribute('data-response-id');
             selectedElement.innerHTML = '';
             if (selectedValue == 'UNSELECTED') {
-                PWM_MAIN.getObject(responseID).disabled = true;
-                PWM_MAIN.getObject(responseID).readonly = true;
                 var unselectedOption = document.createElement('option');
                 unselectedOption.value = 'UNSELECTED';
                 unselectedOption.innerHTML = '&nbsp;&mdash;&nbsp;' + initialChoiceText + '&nbsp;&mdash;&nbsp;';
                 unselectedOption.selected = true;
                 selectedElement.appendChild(unselectedOption);
-            } else {
-                PWM_MAIN.getObject(responseID).disabled = false;
-                PWM_MAIN.getObject(responseID).readonly = false;
             }
 
             for (var i = 0; i < allPossibleTexts.length; i++) {
@@ -138,48 +135,65 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
 };
 
 PWM_RESPONSES.startupResponsesPage=function() {
-    var initialPrompt = PWM_MAIN.showString('Display_ResponsesPrompt');
-    if (initialPrompt != null && initialPrompt.length > 1) {
-        var messageElement = PWM_MAIN.getObject("message");
-        if (messageElement.firstChild.nodeValue.length < 2) {
-            PWM_MAIN.showInfo(initialPrompt);
+    PWM_MAIN.doIfQueryHasResults('#pwm-setupResponsesDiv',function(){
+        var initialPrompt = PWM_MAIN.showString('Display_ResponsesPrompt');
+        if (initialPrompt != null && initialPrompt.length > 1) {
+            var messageElement = PWM_MAIN.getObject("message");
+            if (messageElement.firstChild.nodeValue.length < 2) {
+                PWM_MAIN.showInfo(initialPrompt);
+            }
         }
-    }
-    PWM_MAIN.addEventHandler('form-setupResponses','input',function(){
-        console.log('form-setupResponses input event handler');
-        PWM_RESPONSES.validateResponses();
+        PWM_MAIN.addEventHandler('form-setupResponses','input',function(){
+            console.log('form-setupResponses input event handler');
+            PWM_RESPONSES.validateResponses();
+        });
+        PWM_MAIN.getObject("button-setResponses").disabled = true;
+        PWM_RESPONSES.initSimpleRandomElements();
     });
-    PWM_MAIN.getObject("button-setResponses").disabled = true;
-    PWM_RESPONSES.initSimpleRandomElements();
 };
 
 
 PWM_RESPONSES.initSimpleRandomElements = function() {
+    console.log('entering initSimpleRandomElements');
     PWM_VAR['simpleRandomSelectElements'] = [];
     PWM_VAR['focusInValues'] = {};
-    require(["dojo/query","dojo/on"], function(query,on){
-        var results = query('.simpleModeResponseSelection');
-        for (var i = 0; i < results.length; i++) {
-            (function(itemIterator){
-                var element = results[itemIterator];
-                PWM_VAR['simpleRandomSelectElements'].push(element.id);
-                on(element, "focusin", function(){
-                    PWM_VAR['focusInValues'][element.id] = element.selectedIndex;
-                });
-                on(element, "click,blur", function(){
-                    if (PWM_VAR['focusInValues'][element.id] != element.selectedIndex) {
-                        var selectedIndex = element.selectedIndex;
-                        var selectedValue = element.options[selectedIndex].value;
-                        if (selectedValue != 'UNSELECTED') {
-                            PWM_RESPONSES.makeSelectOptionsDistinct();
-                            var responseID = element.getAttribute('data-response-id');
-                            PWM_MAIN.getObject(responseID).value = '';
-                            PWM_MAIN.getObject(responseID).disabled = false;
-                            PWM_MAIN.getObject(responseID).focus();
-                        }
-                    }
-                });
-            })(i);
+
+    var updateResponseInputField = function(element) {
+        var responseID = element.getAttribute('data-response-id');
+        if (element.value == 'UNSELECTED') {
+            PWM_MAIN.getObject(responseID).disabled = true;
+            PWM_MAIN.getObject(responseID).readonly = true;
+        } else {
+            PWM_MAIN.getObject(responseID).disabled = false;
+            PWM_MAIN.getObject(responseID).readonly = false;
         }
+
+    };
+
+    PWM_MAIN.doQuery('.simpleModeResponseSelection',function(element){
+        PWM_VAR['simpleRandomSelectElements'].push(element.id);
+        updateResponseInputField(element);
+        PWM_MAIN.addEventHandler(element.id,"keypress,keyup,keydown",function(){
+            updateResponseInputField(element);
+        });
+        PWM_MAIN.addEventHandler(element.id,"focusin",function(){
+            PWM_VAR['focusInValues'][element.id] = element.selectedIndex;
+        });
+        PWM_MAIN.addEventHandler(element.id,"click,blur",function(){
+            if (PWM_VAR['focusInValues'][element.id] != element.selectedIndex) {
+                var selectedIndex = element.selectedIndex;
+                var selectedValue = element.options[selectedIndex].value;
+                if (selectedValue != 'UNSELECTED') {
+                    var responseID = element.getAttribute('data-response-id');
+                    var responseElement = PWM_MAIN.getObject(responseID);
+                    responseElement.value = '';
+                    responseElement.disabled = false;
+                    responseElement.readonly = false;
+                    responseElement.focus();
+                    PWM_RESPONSES.makeSelectOptionsDistinct();
+                }
+            }
+        });
     });
+    PWM_RESPONSES.makeSelectOptionsDistinct();
 };

@@ -356,16 +356,8 @@ public class Configuration implements Serializable, SettingReader {
             throw new IllegalArgumentException("unknown challenge profileID specified: " + profile);
         }
 
-        if (!dataCache.challengeProfile.containsKey(profile)) {
-            dataCache.challengeProfile.put(profile,new HashMap<Locale,ChallengeProfile>());
-        }
-
-        if (dataCache.challengeProfile.get(profile).containsKey(locale)) {
-            return dataCache.challengeProfile.get(profile).get(locale);
-        }
-
+        // challengeProfile challengeSet's are mutable (question text) and can not be cached.
         final ChallengeProfile challengeProfile = ChallengeProfile.readChallengeProfileFromConfig(profile, locale, storedConfiguration);
-        dataCache.challengeProfile.get(profile).put(locale,challengeProfile);
         return challengeProfile;
     }
 
@@ -560,7 +552,7 @@ public class Configuration implements Serializable, SettingReader {
 
     public LdapProfile getDefaultLdapProfile() throws PwmUnrecoverableException {
         if (getLdapProfiles().isEmpty()) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"no ldap profiles are defined"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{"no ldap profiles are defined"}));
         }
         return getLdapProfiles().values().iterator().next();
     }
@@ -733,7 +725,6 @@ public class Configuration implements Serializable, SettingReader {
 
     private static class DataCache implements Serializable {
         private final Map<String,Map<Locale,PwmPasswordPolicy>> cachedPasswordPolicy = new HashMap<>();
-        private final Map<String,Map<Locale,ChallengeProfile>> challengeProfile = new HashMap<>();
         private Map<Locale,String> localeFlagMap = null;
         private Map<String,LdapProfile> ldapProfiles;
         private final Map<PwmSetting, StoredValue> settings = new EnumMap<>(PwmSetting.class);

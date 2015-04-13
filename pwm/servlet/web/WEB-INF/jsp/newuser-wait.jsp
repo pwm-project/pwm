@@ -23,6 +23,9 @@
   --%>
 
 <!DOCTYPE html>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_IDLE_TIMEOUT); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -41,7 +44,7 @@
 %>
 <meta http-equiv="refresh" content="<%=refreshSeconds%>;url=NewUser?processAction=complete&pwmFormID=<pwm:FormID/>">
 <div id="wrapper">
-    <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
+
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PleaseWait"/>
     </jsp:include>
@@ -65,7 +68,6 @@
 <pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_GLOBAL['idle_suspendTimeout'] = true;
         require(["dojo/parser", "dijit/ProgressBar","dojo/ready"], function(parser,registry){
             parser.parse();
             PWM_NEWUSER.refreshCreateStatus(<%=checkIntervalSeconds * 1000%>);
@@ -74,7 +76,6 @@
 </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/newuser.js"/>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

@@ -573,12 +573,12 @@ public class TokenService implements PwmService {
         }
 
         // check if password-last-modified is same as when tried to read it before.
-        if (sessionUserIdentity != null && tokenPayload.getUserIdentity() != null && tokenPayload.getData().containsKey(PwmConstants.TOKEN_KEY_PWD_CHG_DATE)) {
+        if (tokenPayload.getUserIdentity() != null && tokenPayload.getData() != null && tokenPayload.getData().containsKey(PwmConstants.TOKEN_KEY_PWD_CHG_DATE)) {
             try {
                 final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(
                         pwmApplication,
                         pwmSession.getLabel(),
-                        sessionUserIdentity);
+                        tokenPayload.getUserIdentity());
                 final String dateStringInToken = tokenPayload.getData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
                 if (userLastPasswordChange != null && dateStringInToken != null) {
                     final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);

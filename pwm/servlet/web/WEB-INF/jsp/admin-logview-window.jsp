@@ -31,6 +31,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_REQ_COUNTER); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_IDLE_TIMEOUT); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% final PwmRequest pwmRequest = PwmRequest.forRequest(request,response); %>
@@ -86,7 +87,6 @@
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         var refreshFunction = function(){
-            PWM_GLOBAL['idle_suspendTimeout'] = true;
             var levelSelectElement = PWM_MAIN.getObject('select-level');
             var level=levelSelectElement.options[levelSelectElement.selectedIndex].value;
             PWM_MAIN.showWaitDialog({loadFunction:function(){PWM_CONFIG.openLogViewer(level)}});

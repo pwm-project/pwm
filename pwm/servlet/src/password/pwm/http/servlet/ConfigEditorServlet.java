@@ -461,15 +461,19 @@ public class ConfigEditorServlet extends PwmServlet {
         final HashMap<String, String> resultData = new HashMap<>();
         restResultBean.setData(resultData);
 
-        if (!configManagerBean.getStoredConfiguration().validateValues().isEmpty()) {
-            final String errorString = configManagerBean.getStoredConfiguration().validateValues().get(0);
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString);
+        final List<String> validationErrors = configManagerBean.getStoredConfiguration().validateValues();
+        if (!validationErrors.isEmpty()) {
+            final String errorString = validationErrors.get(0);
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString, new String[]{errorString});
             restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
+            LOGGER.error(pwmSession, "save configuration aborted, error: " + errorString);
         } else {
             try {
                 ConfigManagerServlet.saveConfiguration(pwmRequest, configManagerBean.getStoredConfiguration());
                 configManagerBean.setConfiguration(null);
                 restResultBean.setError(false);
+                configManagerBean.setConfiguration(null);
+                LOGGER.debug(pwmSession, "save configuration operation completed");
             } catch (PwmUnrecoverableException e) {
                 final ErrorInformation errorInfo = e.getErrorInformation();
                 restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
@@ -477,8 +481,6 @@ public class ConfigEditorServlet extends PwmServlet {
             }
         }
 
-        configManagerBean.setConfiguration(null);
-        LOGGER.debug(pwmSession, "save configuration operation completed");
         pwmRequest.outputJsonResult(restResultBean);
     }
 

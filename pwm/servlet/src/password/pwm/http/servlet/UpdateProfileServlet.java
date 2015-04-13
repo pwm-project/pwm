@@ -157,7 +157,7 @@ public class UpdateProfileServlet extends PwmServlet {
             readFromJsonRequest(pwmRequest, updateProfileBean);
 
             // verify form meets the form requirements
-            verifyFormAttributes(pwmRequest, formValues);
+            verifyFormAttributes(pwmRequest, formValues, true);
         } catch (PwmOperationalException e) {
             success = false;
             userMessage = e.getErrorInformation().toUserStr(pwmRequest.getPwmSession(), pwmRequest.getPwmApplication());
@@ -220,7 +220,7 @@ public class UpdateProfileServlet extends PwmServlet {
         // validate the form data.
         try {
             // verify form meets the form requirements
-            verifyFormAttributes(pwmRequest, formValues);
+            verifyFormAttributes(pwmRequest, formValues, true);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession, e.getMessage());
             pwmRequest.setResponseError(e.getErrorInformation());
@@ -360,7 +360,7 @@ public class UpdateProfileServlet extends PwmServlet {
         final UserInfoBean uiBean = pwmRequest.getPwmSession().getUserInfoBean();
 
         // verify form meets the form requirements (may be redundant, but shouldn't hurt)
-        verifyFormAttributes(pwmRequest, formValues);
+        verifyFormAttributes(pwmRequest, formValues, false);
 
         // write values.
         LOGGER.info("updating profile for " + pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity());
@@ -411,7 +411,8 @@ public class UpdateProfileServlet extends PwmServlet {
 
     private static void verifyFormAttributes(
             final PwmRequest pwmRequest,
-            final Map<FormConfiguration, String> formValues
+            final Map<FormConfiguration, String> formValues,
+            final boolean allowResultCaching
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
@@ -425,7 +426,8 @@ public class UpdateProfileServlet extends PwmServlet {
                     pwmRequest.getPwmApplication(),
                     formValues,
                     userLocale,
-                    Collections.singletonList(pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity())
+                    Collections.singletonList(pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity()),
+                    allowResultCaching
             );
     }
 

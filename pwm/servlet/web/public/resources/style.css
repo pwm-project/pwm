@@ -540,7 +540,7 @@ img.qrcodeimage {
 
 #peoplesearch-searchResultsGrid {
     min-height: 400px;
-    height: 60vh;
+    height: 70vh;
 }
 
 #helpdesk-searchResultsGrid {
@@ -687,4 +687,8 @@ progress:not([value]) {
     margin-left: 10%;
     margin-right: 10%;
     padding-top: 70px;
+}
+
+.dgrid-row-odd {
+    background: #fdfdfd;
 }

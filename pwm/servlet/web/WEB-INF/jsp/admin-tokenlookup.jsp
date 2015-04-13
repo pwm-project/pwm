@@ -163,8 +163,12 @@
         <form id="tokenForm" action="Administration" method="post">
             <textarea name="token" id="token" style="width: 580px; height: 150px"></textarea>
             <div class="buttonbar">
-                <input name="submitBtn" class="btn" type="submit" value="Lookup Token"/>
+                <button type="submit" name="submitBtn" class="btn" type="submit">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-search"></span></pwm:if>
+                    Lookup Token
+                </button>
             </div>
+            <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
     </div>
     <div class="push"></div>

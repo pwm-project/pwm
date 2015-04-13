@@ -255,10 +255,7 @@ PWM_CFGEDIT.saveConfiguration = function() {
             var url = "ConfigEditor?processAction=finishEditing";
             var loadFunction = function(data) {
                 if (data['error'] == true) {
-                    PWM_MAIN.showDialog({
-                        title: PWM_MAIN.showString('Title_Error'),
-                        text: data['errorDetail']
-                    })
+                    PWM_MAIN.showErrorDialog(data);
                 } else {
                     console.log('save completed');
                     PWM_MAIN.showWaitDialog({title:'Save complete, restarting application...',loadFunction:function(){

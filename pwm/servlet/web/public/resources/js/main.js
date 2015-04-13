@@ -674,6 +674,7 @@ PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
 
 PWM_MAIN.showErrorDialog = function(error, options) {
     options = options === undefined ? {} : options;
+    var forceReload = false;
     var body = '';
     var logMsg = '';
     var titleMsg = PWM_MAIN.showString('Title_Error');
@@ -683,6 +684,10 @@ PWM_MAIN.showErrorDialog = function(error, options) {
         logMsg += options['text'];
     }
     if (error && error['error']) {
+        var code = error['errorCode'];
+        if (code == 5028 || code == 5035) {
+            forceReload = true;
+        }
         titleMsg += ' ' + error['errorCode'];
         logMsg += ' ' + error['errorCode'];
 
@@ -694,12 +699,23 @@ PWM_MAIN.showErrorDialog = function(error, options) {
         }
     } else {
         body += error;
-        logMsg + error;
+        logMsg += error;
+    }
+
+    if (forceReload) {
+        logMsg += 'due to error code type, reloading page.';
     }
 
     console.log('displaying error message: ' + logMsg);
     options['title'] = titleMsg;
     options['text'] = body;
+    options['okAction'] = function() {
+        if (forceReload) { // incorrect page sequence;
+            var newURL = window.location.pathname;
+            PWM_MAIN.goto(newURL);
+            PWM_MAIN.showWaitDialog();
+        }
+    };
     PWM_MAIN.showDialog(options);
 };
 
@@ -736,9 +752,12 @@ PWM_MAIN.showWaitDialog = function(options) {
 };
 
 PWM_MAIN.html5DialogSupport = function() {
-    var testdialog=document.createElement("dialog");
-    testdialog.setAttribute("open", "");
-    return (testdialog.open==true);
+    if (PWM_GLOBAL['client.js.enableHtml5Dialog']) {
+        var testdialog = document.createElement("dialog");
+        testdialog.setAttribute("open", "");
+        return (testdialog.open == true);
+    }
+    return false;
 };
 
 PWM_MAIN.showDialog = function(options) {
@@ -1911,6 +1930,27 @@ PWM_MAIN.submitPostAction = function(buttonID,actionUrl,actionValue) {
 
         document.body.appendChild(formElement);
         PWM_MAIN.handleFormSubmit(formElement);
+    });
+};
+
+PWM_MAIN.doQuery = function(queryString, resultFunction) {
+    require(["dojo/query"], function (query) {
+        var results = query(queryString);
+        for (var i = 0; i < results.length; i++) {
+            (function(iterator){
+                var result = results[iterator];
+                resultFunction(result)
+            })(i);
+        }
+    });
+};
+
+PWM_MAIN.doIfQueryHasResults = function(queryString, trueFunction) {
+    require(["dojo/query"], function (query) {
+        var results = query(queryString);
+        if (results && results.length > 0) {
+            trueFunction();
+        }
     });
 };
 

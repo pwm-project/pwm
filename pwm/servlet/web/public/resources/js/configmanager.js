@@ -167,15 +167,7 @@ PWM_CONFIG.showHeaderHealth = function() {
                 }
                 if (hasWarnTopics) {
                     PWM_MAIN.openHeaderWarningPanel();
-                    parentDiv.innerHTML = '<div id="panel-healthHeaderErrors" class="header-error"><span class="fa fa-warning"></span> ' + PWM_ADMIN.showString('Header_ConfigWarningsPresent') + '</div>';
-                    var tooltipBody = PWM_ADMIN.makeHealthHtml(data['data'],true,false);
-                    /*
-                    PWM_MAIN.showTooltip({
-                        position:'below',
-                        id:'panel-healthHeaderErrors',
-                        text:tooltipBody
-                    });
-                    */
+                    parentDiv.innerHTML = '<div id="panel-healthHeaderErrors" class="header-error"><span class="fa fa-warning"></span> ' + PWM_ADMIN.showString('Header_HealthWarningsPresent') + '</div>';
                 }
                 setTimeout(function () {
                     PWM_CONFIG.showHeaderHealth()

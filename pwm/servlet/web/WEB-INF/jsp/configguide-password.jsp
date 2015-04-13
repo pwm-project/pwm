@@ -58,7 +58,7 @@
                         <b>Configuration Password</b>
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
-                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" class="configStringInput passwordfield" style="width:200px" autofocus/>
+                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" class="configStringInput passwordfield" style="width:200px" <pwm:autofocus/>/>
                     </div>
                     <div class="setting_item">
                         <b>Verify Configuration Password</b>

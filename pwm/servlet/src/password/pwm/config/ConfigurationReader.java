@@ -112,7 +112,7 @@ public class ConfigurationReader {
             theFileData = new FileInputStream(configFile);
         } catch (Exception e) {
             final String errorMsg = "unable to read configuration file: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{errorMsg});
             this.configMode = PwmApplication.MODE.ERROR;
             throw new PwmUnrecoverableException(errorInformation);
         }
@@ -122,7 +122,7 @@ public class ConfigurationReader {
             storedConfiguration = StoredConfiguration.fromXml(theFileData);
         } catch (PwmUnrecoverableException e) {
             final String errorMsg = "unable to parse configuration file: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{errorMsg});
             this.configMode = PwmApplication.MODE.ERROR;
             throw new PwmUnrecoverableException(errorInformation);
         }
@@ -130,7 +130,7 @@ public class ConfigurationReader {
         final List<String> validationErrorMsgs = storedConfiguration.validateValues();
         if (validationErrorMsgs != null && !validationErrorMsgs.isEmpty()) {
             final String errorMsg = "value error in config file, please investigate: " + validationErrorMsgs.get(0);
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{errorMsg});
             this.configMode = PwmApplication.MODE.ERROR;
             throw new PwmUnrecoverableException(errorInformation);
         }

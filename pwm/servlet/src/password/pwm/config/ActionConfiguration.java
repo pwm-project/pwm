@@ -22,6 +22,7 @@
 
 package password.pwm.config;
 
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 
@@ -103,26 +104,26 @@ public class ActionConfiguration implements Serializable {
 
     public void validate() throws PwmOperationalException {
         if (this.getName() == null || this.getName().length() < 1) {
-            throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," form field name is required");
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, null, new String[]{" form field name is required"}));
         }
 
         if (this.getType() == null) {
-            throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," type is required for field " + this.getName());
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, null, new String[]{" type is required for field " + this.getName()}));
         }
 
         if (this.getType() == Type.webservice) {
             if (this.getMethod() == null) {
-                throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," method for webservice action " + this.getName() + " is required");
+                throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, null, new String[]{" method for webservice action " + this.getName() + " is required"}));
             }
             if (this.getUrl() == null || this.getUrl().length() < 1) {
-                throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," url for webservice action " + this.getName() + " is required");
+                throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, null, new String[]{" url for webservice action " + this.getName() + " is required"}));
             }
         } else if (this.getType() == Type.ldap) {
             if (this.getAttributeName() == null || this.getAttributeName().length() < 1) {
-                throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," attribute name for ldap action " + this.getName() + " is required");
+                throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, null, new String[]{" attribute name for ldap action " + this.getName() + " is required"}));
             }
             if (this.getAttributeValue() == null || this.getAttributeValue().length() < 1) {
-                throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," attribute value for ldap action " + this.getName() + " is required");
+                throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, null, new String[]{" attribute value for ldap action " + this.getName() + " is required"}));
             }
         }
     }

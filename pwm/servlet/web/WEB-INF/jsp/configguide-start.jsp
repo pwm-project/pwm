@@ -22,6 +22,7 @@
 
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_IDLE_TIMEOUT); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -84,7 +85,6 @@
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function() {
-            PWM_GLOBAL['idle_suspendTimeout'] = true;
             PWM_MAIN.addEventHandler('button-startConfigGuide', 'click', function () {
                 if (PWM_GLOBAL['setting-displayEula']) {
                     PWM_MAIN.showEula(true, function () {

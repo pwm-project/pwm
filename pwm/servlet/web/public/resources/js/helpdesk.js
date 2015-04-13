@@ -273,18 +273,6 @@ PWM_HELPDESK.makeSearchGrid = function(nextAction) {
     });
 };
 
-PWM_HELPDESK.initHelpdeskSearchPage = function() {
-    PWM_HELPDESK.makeSearchGrid(function(){
-        PWM_MAIN.addEventHandler('username', "keyup, input", function(){
-            PWM_HELPDESK.processHelpdeskSearch();
-        });
-        if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
-            PWM_HELPDESK.processHelpdeskSearch();
-        }
-    });
-};
-
-
 PWM_HELPDESK.deleteUser = function(userKey) {
     PWM_MAIN.showConfirmDialog({
         text:PWM_MAIN.showString('Confirm_DeleteUser'),
@@ -405,3 +393,35 @@ PWM_HELPDESK.sendVerificationToken = function(userKey,choiceFlag) {
         loadFunction:dialoagLoadFunction
     });
 };
+
+PWM_HELPDESK.initHelpdeskSearchPage = function() {
+    PWM_HELPDESK.makeSearchGrid(function(){
+        PWM_MAIN.addEventHandler('username', "keyup, input", function(){
+            PWM_HELPDESK.processHelpdeskSearch();
+        });
+        if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
+            PWM_HELPDESK.processHelpdeskSearch();
+        }
+    });
+};
+
+PWM_HELPDESK.initPage = function() {
+    var applicationData = PWM_MAIN.getObject("application-info");
+    var jspName = applicationData ? applicationData.getAttribute("data-jsp-name") : "";
+    if ("helpdesk.jsp" == jspName) {
+        PWM_HELPDESK.initHelpdeskSearchPage();
+        PWM_MAIN.ajaxRequest("Helpdesk?processAction=clientData",function(data){
+            if (data['error']) {
+                PWM_MAIN.showErrorDialog(data);
+                return;
+            }
+            for (var keyName in data['data']) {
+                PWM_VAR[keyName] = data['data'][keyName];
+            }
+            console.log('loaded helpdesk clientData');
+            PWM_HELPDESK.initHelpdeskSearchPage();
+        },{method:"GET"});
+    }
+};
+
+PWM_HELPDESK.initPage();

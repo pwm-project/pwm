@@ -146,7 +146,7 @@ public class StoredConfiguration implements Serializable {
             ConfigurationCleaner.cleanup(newConfiguration);
         } catch (Exception e) {
             final String errorMsg = "error reading configuration file format, error=" + e.getMessage();
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{errorMsg});
             throw new PwmUnrecoverableException(errorInfo);
         }
 
@@ -817,11 +817,11 @@ public class StoredConfiguration implements Serializable {
             throws PwmOperationalException
     {
         if (password == null || password.isEmpty()) {
-            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"can not set blank password"));
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{"can not set blank password"}));
         }
         final String trimmedPassword = password.trim();
         if (trimmedPassword.length() < 1) {
-            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"can not set blank password"));
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{"can not set blank password"}));
         }
 
 

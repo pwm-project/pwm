@@ -755,8 +755,8 @@
         });
     </script>
 </pwm:script>
+<jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 <pwm:script-ref url="/public/resources/js/helpdesk.js"/>
 <pwm:script-ref url="/public/resources/js/changepassword.js"/>
-<jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>

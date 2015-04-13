@@ -717,8 +717,9 @@ FormTableHandler.addRow = function(keyName) {
         });
     },okAction:function(){
         var currentSize = PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][keyName]);
-        PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = FormTableHandler.newRowValue
+        PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = FormTableHandler.newRowValue;
         PWM_VAR['clientSettingCache'][keyName][currentSize + 1].name = PWM_VAR['newFormFieldName'];
+        PWM_VAR['clientSettingCache'][keyName][currentSize + 1].labels = {'':PWM_VAR['newFormFieldName']};
         FormTableHandler.writeFormSetting(keyName,function(){
             FormTableHandler.init(keyName);
         });

@@ -266,7 +266,7 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
 
     eventHandlers.push(function(){
         PWM_MAIN.addEventHandler('cancelRandomsButton','click',function(){
-            PWM_MAIN.clearDijitWidget('dialogPopup');
+            PWM_MAIN.closeWaitDialog('dialogPopup');
         });
         PWM_MAIN.addEventHandler('moreRandomsButton','click',function(){
             PWM_CHANGEPW.beginFetchRandoms(randomConfig);

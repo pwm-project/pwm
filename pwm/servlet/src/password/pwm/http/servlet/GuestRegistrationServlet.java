@@ -199,7 +199,8 @@ public class GuestRegistrationServlet extends PwmServlet {
                     pwmApplication,
                     formValues,
                     ssBean.getLocale(),
-                    Collections.singletonList(guBean.getUpdateUserIdentity())
+                    Collections.singletonList(guBean.getUpdateUserIdentity()),
+                    false
             );
 
             final Date expirationDate = readExpirationFromRequest(pwmRequest);

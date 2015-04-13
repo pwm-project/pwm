@@ -51,6 +51,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
@@ -77,12 +78,12 @@ public class ResourceFileServlet extends HttpServlet {
     private final Map<String, FileResource> customFileBundle = new HashMap<>();
     private Pattern noncePattern;
     private String nonceValue;
-    private boolean pwmApplicationInitialized = false;
+    private Date pwmAppStartupTime = null;
 
     public void init()
             throws ServletException {
         this.getServletContext().setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_HIT_AVG, new EventRateMeter.MovingAverage(60 * 60 * 1000));
-
+        this.clearCache(getServletContext());
         final String zipFileResourceParam = this.getInitParameter("zipFileResources");
         if (zipFileResourceParam != null) {
             for (final String loopInitParam : zipFileResourceParam.split(";")) {
@@ -109,6 +110,8 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     void init(final PwmApplication pwmApplication) {
+        LOGGER.trace("initializing");
+        clearCache(getServletContext());
         final int setting_maxCacheItems = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_MAX_CACHE_ITEMS));
         setting_expireSeconds = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_EXPIRATION_SECONDS));
         setting_enableGzip = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_ENABLE_GZIP));
@@ -136,7 +139,7 @@ public class ResourceFileServlet extends HttpServlet {
                 e.printStackTrace();
             }
         }
-        pwmApplicationInitialized = true;
+        pwmAppStartupTime = pwmApplication.getStartupTime();
     }
 
 
@@ -151,8 +154,8 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     private static Map<CacheKey, CacheEntry> getCache(final ServletContext servletContext) {
-        Map<CacheKey, CacheEntry> cacheMap = (Map) servletContext.getAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE);
-        return cacheMap == null ? new HashMap() : cacheMap;
+        Map<CacheKey, CacheEntry> cacheMap = (Map<CacheKey, CacheEntry>) servletContext.getAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE);
+        return cacheMap == null ? new HashMap<CacheKey,CacheEntry>() : cacheMap;
     }
 
     private static EventRateMeter.MovingAverage getCacheHitRatio(final ServletContext servletContext) {
@@ -165,9 +168,10 @@ public class ResourceFileServlet extends HttpServlet {
         return cacheHitRatio;
     }
 
-    public static void clearCache(final ServletContext servletContext) {
-        final Map cache = getCache(servletContext);
-        if (cache != null) {
+    private void clearCache(final ServletContext servletContext) {
+        final Map<CacheKey, CacheEntry> cache = getCache(servletContext);
+        if (cache != null && !cache.isEmpty()) {
+            LOGGER.trace("clearing cacheMap of " + cache.size() + " items");
             cache.clear();
         }
     }
@@ -185,7 +189,7 @@ public class ResourceFileServlet extends HttpServlet {
             pwmRequest = PwmRequest.forRequest(request, response);
             sessionLabel = pwmRequest.getSessionLabel();
             pwmApplication = pwmRequest.getPwmApplication();
-            if (!pwmApplicationInitialized) {
+            if (pwmAppStartupTime == null || !pwmAppStartupTime.equals(pwmApplication.getStartupTime())) {
                 init(pwmApplication);
             }
         } catch (PwmException e) {
@@ -639,7 +643,7 @@ public class ResourceFileServlet extends HttpServlet {
         }
     }
 
-    static interface FileResource {
+    interface FileResource {
         InputStream getInputStream() throws IOException;
 
         long length();

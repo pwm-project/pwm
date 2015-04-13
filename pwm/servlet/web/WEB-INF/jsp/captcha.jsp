@@ -29,13 +29,19 @@
 <%-- begin reCaptcha section (http://code.google.com/apis/recaptcha/docs/display.html) --%>
 <pwm:script>
     <script type="text/javascript">
-        function recaptchaCallback() {
-            console.log('captcha completed, submitting form');
-            PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('verifyCaptcha'));
+        function onloadCallback() {
+            var recaptchaCallback = function() {
+                console.log('captcha completed, submitting form');
+                PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('verifyCaptcha'));
+            };
+
+            console.log('reached google recaptcha onload callback');
+            PWM_MAIN.setStyle('captcha-loading','display','none');
+            grecaptcha.render('recaptcha-container',{callback:recaptchaCallback,sitekey:'<%=JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.CaptchaPublicKey)%>'});
         }
     </script>
 </pwm:script>
-<pwm:script-ref url="<%=(String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.CaptchaClientUrl)%>"/>
+<script nonce="<pwm:value name="cspNonce"/>" src="<%=(String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.CaptchaClientUrl)%>?onload=onloadCallback&render=explicit" defer async></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Captcha"/>
@@ -44,29 +50,18 @@
         <p><pwm:display key="Display_Captcha"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
+        <div id="captcha-loading" class="WaitDialogBlank"></div>
         <form action="<pwm:url url='Captcha'/>" method="post" enctype="application/x-www-form-urlencoded" id="verifyCaptcha" name="verifyCaptcha" class="pwm-form">
             <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
+
             <center>
-                <div data-callback="recaptchaCallback" style="margin: auto !important" class="g-recaptcha" data-sitekey="<%=JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.CaptchaPublicKey)%>"></div>
-            </center>
-            <%--
-            <noscript>
-                <div style="width: 302px; height: 352px;">
-                    <div style="width: 302px; height: 352px; position: relative;">
-                        <div style="width: 302px; height: 352px; position: absolute;">
-                            <iframe src="https://www.google.com/recaptcha/api/fallback?k=your_site_key"
-                                    frameborder="0" scrolling="no"
-                                    style="width: 302px; height:352px; border-style: none;">
-                            </iframe>
-                        </div>
-                        <div style="width: 250px; height: 80px; position: absolute; border-style: none; bottom: 21px; left: 25px; margin: 0px; padding: 0px; right: 25px;">
-                            <textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" style="width: 250px; height: 80px; border: 1px solid #c1c1c1; margin: 0px; padding: 0px; resize: none;" value="">
-                            </textarea>
-                        </div>
-                    </div>
+                <div id="recaptcha-container">
                 </div>
+            </center>
+            <noscript>
+                <span><pwm:display key="Display_JavascriptRequired"/></span>
+                <a href="<pwm:context/>"><pwm:display key="Title_MainPage"/></a>
             </noscript>
-            --%>
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="doVerify"/>
                 <button type="submit" name="verify" class="btn" id="verify_button">

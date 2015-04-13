@@ -65,7 +65,7 @@ public class FormConfiguration implements Serializable {
             throws PwmOperationalException
     {
         if (config == null) {
-            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"input cannot be null"));
+            throw new NullPointerException("config can not be null");
         }
 
         final FormConfiguration formItem = new FormConfiguration();
@@ -83,7 +83,7 @@ public class FormConfiguration implements Serializable {
             try {
                 formItem.type = Type.valueOf(typeStr.toLowerCase());
             } catch (IllegalArgumentException e) {
-                throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"unknown type for form config: " + typeStr));
+                throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{"unknown type for form config: " + typeStr}));
             }
         }
 
@@ -91,14 +91,14 @@ public class FormConfiguration implements Serializable {
         try {
             formItem.minimumLength = Integer.parseInt(st.nextToken());
         } catch (NumberFormatException e) {
-            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"invalid minimum length type for form config: " + e.getMessage()));
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{"invalid minimum length type for form config: " + e.getMessage()}));
         }
 
         //maximum length
         try {
             formItem.maximumLength = Integer.parseInt(st.nextToken());
         } catch (NumberFormatException e) {
-            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"invalid maximum length type for form config: " + e.getMessage()));
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{"invalid maximum length type for form config: " + e.getMessage()}));
         }
 
         //required
@@ -112,28 +112,28 @@ public class FormConfiguration implements Serializable {
 
     public void validate() throws PwmOperationalException {
         if (this.getName() == null || this.getName().length() < 1) {
-            throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," form field name is required");
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{" form field name is required"}));
         }
 
         if (this.getType() == null) {
-            throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," type is required for field " + this.getName());
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{" type is required for field " + this.getName()}));
         }
 
         if (labels == null || this.labels.isEmpty() || this.getLabel(PwmConstants.DEFAULT_LOCALE) == null || this.getLabel(PwmConstants.DEFAULT_LOCALE).length() < 1) {
-            throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," a default label value is required for " + this.getName());
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{" a default label value is required for " + this.getName()}));
         }
 
         if (this.getRegex() != null && this.getRegex().length() > 0) {
             try {
                 Pattern.compile(this.getRegex());
             } catch (PatternSyntaxException e) {
-                throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," regular expression for '" + this.getName() + " ' is not valid: " + e.getMessage());
+                throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{" regular expression for '" + this.getName() + " ' is not valid: " + e.getMessage()}));
             }
         }
 
         if (this.getType() == Type.select) {
             if (this.getSelectOptions() == null || this.getSelectOptions().isEmpty()) {
-                throw new PwmOperationalException(PwmError.CONFIG_FORMAT_ERROR," field '" + this.getName() + " ' is type select, but no select options are defined");
+                throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{" field '" + this.getName() + " ' is type select, but no select options are defined"}));
             }
         }
     }

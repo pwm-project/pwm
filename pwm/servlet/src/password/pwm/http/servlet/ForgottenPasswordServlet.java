@@ -33,7 +33,6 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.Validator;
 import password.pwm.bean.*;
 import password.pwm.config.*;
 import password.pwm.config.option.MessageSendMethod;
@@ -166,7 +165,6 @@ public class ForgottenPasswordServlet extends PwmServlet {
         }
 
         if (processAction != null) {
-            Validator.validatePwmFormID(pwmRequest);
 
             switch (processAction) {
                 case search:
@@ -380,7 +378,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
         try {
             final TokenPayload tokenPayload = pwmRequest.getPwmApplication().getTokenService().processUserEnteredCode(
                     pwmRequest.getPwmSession(),
-                    forgottenPasswordBean.getUserInfo().getUserIdentity(),
+                    forgottenPasswordBean.getUserInfo() == null ? null : forgottenPasswordBean.getUserInfo().getUserIdentity(),
                     TOKEN_NAME,
                     userEnteredCode
             );
@@ -567,7 +565,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
             forwardToSearchPage(pwmRequest);
             return;
         }
-        
+
         if (!progress.getSatisfiedMethods().contains(RecoveryVerificationMethod.PREVIOUS_AUTH)) {
             if (checkAuthRecord(pwmRequest, forgottenPasswordBean.getUserInfo().getUserGuid())) {
                 LOGGER.debug(pwmRequest, "marking " + RecoveryVerificationMethod.PREVIOUS_AUTH + " method as satisfied");
@@ -1185,8 +1183,9 @@ public class ForgottenPasswordServlet extends PwmServlet {
         LOGGER.debug(pwmRequest, errorInformation);
         pwmRequest.setResponseError(errorInformation);
 
-        final UserIdentity userIdentity = forgottenPasswordBean.getUserInfo().getUserIdentity();
-        StatisticsManager.incrementStat(pwmRequest, Statistic.RECOVERY_FAILURES);
+        final UserIdentity userIdentity = forgottenPasswordBean == null || forgottenPasswordBean.getUserInfo() == null
+                ? null
+                : forgottenPasswordBean.getUserInfo().getUserIdentity();
         if (userIdentity != null) {
             SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
             sessionAuthenticator.simulateBadPassword(userIdentity);
@@ -1195,6 +1194,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
             pwmRequest.getPwmApplication().getIntruderManager().convenience().markAddressAndSession(
                     pwmRequest.getPwmSession());
         }
+        StatisticsManager.incrementStat(pwmRequest, Statistic.RECOVERY_FAILURES);
     }
 
     private void checkForLocaleSwitch(final PwmRequest pwmRequest, final ForgottenPasswordBean forgottenPasswordBean)
@@ -1367,7 +1367,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
                 LOGGER.trace(pwmRequest, "skipping auth record cookie read, cookie name parameter is blank");
                 return false;
             }
-            
+
             final AuthenticationFilter.AuthRecord authRecord = pwmRequest.readCookie(cookieName, AuthenticationFilter.AuthRecord.class);
             if (authRecord != null) {
                 if (authRecord.getGuid() != null && !authRecord.getGuid().isEmpty() && authRecord.getGuid().equals(userGuid)) {
@@ -1380,13 +1380,49 @@ public class ForgottenPasswordServlet extends PwmServlet {
         }
         return false;
     }
-    
-    protected void forwardToSearchPage(final PwmRequest pwmRequest) 
-            throws ServletException, PwmUnrecoverableException, IOException 
+
+    protected void forwardToSearchPage(final PwmRequest pwmRequest)
+            throws ServletException, PwmUnrecoverableException, IOException
     {
         pwmRequest.addFormInfoToRequestAttr(PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM,false,false);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
     }
+
+
+    private void verifyTokenPayload(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final UserIdentity sessionUserIdentity,
+            final TokenPayload tokenPayload
+    )
+            throws PwmOperationalException
+    {
+        if (tokenPayload.getData().containsKey(PwmConstants.TOKEN_KEY_PWD_CHG_DATE)) {
+            return;
+        }
+
+        try {
+            final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(
+                    pwmApplication,
+                    sessionLabel,
+                    sessionUserIdentity);
+            final String dateStringInToken = tokenPayload.getData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
+            if (userLastPasswordChange != null && dateStringInToken != null) {
+                final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);
+                if (!dateStringInToken.equalsIgnoreCase(userChangeString)) {
+                    final String errorString = "user password has changed since token issued, token rejected";
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED, errorString);
+                    throw new PwmOperationalException(errorInformation);
+                }
+            }
+        } catch (ChaiUnavailableException | PwmUnrecoverableException e) {
+            final String errorMsg = "unexpected error reading user's last password change time while validating token: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT, errorMsg);
+            throw new PwmOperationalException(errorInformation);
+        }
+    }
+
+
 }
 
 

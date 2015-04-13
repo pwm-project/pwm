@@ -163,7 +163,10 @@ public class PeopleSearchServlet extends PwmServlet {
     public enum PeopleSearchActions implements ProcessAction {
         search(HttpMethod.POST),
         detail(HttpMethod.POST),
-        photo(HttpMethod.GET),;
+        photo(HttpMethod.GET),
+        clientData(HttpMethod.GET),
+
+        ;
 
         private final HttpMethod method;
 
@@ -189,7 +192,7 @@ public class PeopleSearchServlet extends PwmServlet {
     protected void processAction(
             final PwmRequest pwmRequest
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException 
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final boolean publicAccessEnabled = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC);
         if (!publicAccessEnabled) {
@@ -205,7 +208,9 @@ public class PeopleSearchServlet extends PwmServlet {
         }
 
         final int peopleSearchIdleTimeout = (int)pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS);
-        pwmRequest.getPwmSession().setSessionTimeout(pwmRequest.getHttpServletRequest().getSession(),peopleSearchIdleTimeout);
+        if (peopleSearchIdleTimeout > 0 && pwmRequest.getURL().isPrivateUrl()) {
+            pwmRequest.getPwmSession().setSessionTimeout(pwmRequest.getHttpServletRequest().getSession(), peopleSearchIdleTimeout);
+        }
 
         final PeopleSearchActions peopleSearchAction = this.readProcessAction(pwmRequest);
         if (peopleSearchAction != null) {
@@ -221,11 +226,42 @@ public class PeopleSearchServlet extends PwmServlet {
                 case photo:
                     processUserPhotoImageRequest(pwmRequest);
                     return;
+
+                case clientData:
+                    restLoadClientData(pwmRequest);
+                    return;
             }
         }
 
+        if (pwmRequest.getURL().isPublicUrl()) {
+            pwmRequest.setFlag(PwmRequest.Flag.HIDE_IDLE, true);
+            pwmRequest.setFlag(PwmRequest.Flag.NO_IDLE_TIMEOUT, true);
+        }
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PEOPLE_SEARCH);
     }
+
+    private void restLoadClientData(
+            final PwmRequest pwmRequest
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
+
+        final Map<String, String> searchColumns = new LinkedHashMap<>();
+        final String photoStyle = pwmRequest.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_STYLE_ATTR);
+        final List<FormConfiguration> searchForm = pwmRequest.getConfig().readSettingAsForm(PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
+        for (final FormConfiguration formConfiguration : searchForm) {
+            searchColumns.put(formConfiguration.getName(),
+                    formConfiguration.getLabel(pwmRequest.getLocale()));
+        }
+
+        final HashMap<String,Object> returnValues = new HashMap<>();
+        returnValues.put("peoplesearch_search_columns",searchColumns);
+        returnValues.put("photo_style_attribute",photoStyle);
+        final RestResultBean restResultBean = new RestResultBean(returnValues);
+        LOGGER.trace(pwmRequest, "returning clientData: " + JsonUtil.serialize(restResultBean));
+        pwmRequest.outputJsonResult(restResultBean);
+    };
+
 
     private void restSearchRequest(
             final PwmRequest pwmRequest

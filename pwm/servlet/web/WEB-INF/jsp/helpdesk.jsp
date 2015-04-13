@@ -20,14 +20,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.http.PwmSessionWrapper" %>
 <%@ page import="password.pwm.http.bean.HelpdeskBean" %>
-<%@ page import="password.pwm.util.JsonUtil" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(request); %>
-<% final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean(); %>
+<% final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext); %>
+<% final HelpdeskBean helpdeskBean = pwmRequest.getPwmSession().getHelpdeskBean(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
@@ -74,15 +72,7 @@
     <input type="hidden" name="userKey" id="userKey" value=""/>
     <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
 </form>
-<pwm:script>
-<script>
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_VAR['helpdesk_search_columns'] = <%=JsonUtil.serializeMap(helpdeskBean.getSearchColumnHeaders())%>;
-        PWM_HELPDESK.initHelpdeskSearchPage();
-    });
-</script>
-</pwm:script>
-<pwm:script-ref url="/public/resources/js/helpdesk.js"/>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
+<pwm:script-ref url="/public/resources/js/helpdesk.js"/>
 </body>
 </html>

@@ -28,6 +28,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_REQ_COUNTER); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_IDLE_TIMEOUT); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
@@ -266,7 +267,6 @@
 </div>
 <pwm:script>
 <script type="text/javascript">
-    PWM_GLOBAL['idle_suspendTimeout'] = true;
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dijit/TitlePane"],function(dojoParser){
             dojoParser.parse();

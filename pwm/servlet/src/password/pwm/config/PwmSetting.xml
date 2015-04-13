@@ -2980,7 +2980,7 @@
         <label>PeopleSearch Result Limit</label>
         <description><![CDATA[Maximum number of records to return while searching.]]></description>
         <default>
-            <value>100</value>
+            <value>200</value>
         </default>
         <options>
             <option value="min">1</option>
@@ -3036,9 +3036,9 @@
     </setting>
     <setting key="peopleSearch.idleTimeout" level="1">
         <label>Idle Timeout Seconds for PeopleSearch Users</label>
-        <description><![CDATA[Number of seconds after which an authenticated session becomes unauthenticated.   Session Idle timeout will be set to this value once a user successfully access the people search module.]]></description>
+        <description><![CDATA[Number of seconds after which an authenticated session becomes unauthenticated.   Session idle timeout will be set to this value while a user user is accessing the people search module.  If the value is set to 0, then the application wide idle timeout value will be used.  If a user is using the PeopleSearch module without authenticating, then no timeout is applied.]]></description>
         <default>
-            <value>3600</value>
+            <value>0</value>
         </default>
     </setting>
     <setting key="ldap.edirectory.enableNmas" level="1" required="true">

@@ -117,17 +117,16 @@ public class FormUtility {
             final PwmApplication pwmApplication,
             final Map<FormConfiguration, String> formValues,
             final Locale locale,
-            final Collection<UserIdentity> excludeDN
+            final Collection<UserIdentity> excludeDN,
+            final boolean allowResultCaching
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
         final Map<String, String> filterClauses = new HashMap<>();
         final Map<String,String> labelMap = new HashMap<>();
-        final List<String> uniqueAttributes = new ArrayList();
         for (final FormConfiguration formItem : formValues.keySet()) {
             if (formItem.isUnique() && !formItem.isReadonly()) {
                 if (formItem.getType() != FormConfiguration.Type.hidden) {
-                    uniqueAttributes.add(formItem.getName());
                     final String value = formValues.get(formItem);
                     if (value != null && value.length() > 0) {
                         filterClauses.put(formItem.getName(), value);
@@ -167,7 +166,7 @@ public class FormUtility {
         final CacheKey cacheKey = CacheKey.makeCacheKey(
                 Validator.class, null, "attr_unique_check_" + filter.toString()
         );
-        if (cacheService != null) {
+        if (allowResultCaching && cacheService != null) {
             final String cacheValue = cacheService.get(cacheKey);
             if (cacheValue != null) {
                 if (NEGATIVE_CACHE_HIT.equals(cacheValue)) {
@@ -244,7 +243,7 @@ public class FormUtility {
             }
             throw new PwmDataValidationException(e.getErrorInformation());
         }
-        if (cacheService != null) {
+        if (allowResultCaching && cacheService != null) {
             cacheService.put(cacheKey, cachePolicy, NEGATIVE_CACHE_HIT);
         }
     }
@@ -256,8 +255,6 @@ public class FormUtility {
      *
      * @param formValues - a Map containing String keys of parameter names and ParamConfigs as values
      * @throws password.pwm.error.PwmDataValidationException - If there is a problem with any of the fields
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException
-     *                             if ldap server becomes unavailable
      * @throws password.pwm.error.PwmUnrecoverableException
      *                             if an unexpected error occurs
      */
@@ -279,7 +276,7 @@ public class FormUtility {
     {
         if (formElements == null || formElements.isEmpty()) {
             final String errorMsg = "can not auto-generate ldap search filter for form with no required form items";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{errorMsg});
             throw new PwmUnrecoverableException(errorInformation);
         }
 

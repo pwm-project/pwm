@@ -429,7 +429,7 @@ public class ConfigManagerServlet extends PwmServlet {
         try {
             final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
             if (!storedConfiguration.hasPassword()) {
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Please set a configuration password before locking the configuration");
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{"Please set a configuration password before locking the configuration"});
                 final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
                 LOGGER.debug(pwmSession, errorInfo);
                 pwmRequest.outputJsonResult(restResultBean);
@@ -468,7 +468,7 @@ public class ConfigManagerServlet extends PwmServlet {
             final List<String> errorStrings = storedConfiguration.validateValues();
             if (errorStrings != null && !errorStrings.isEmpty()) {
                 final String errorString = errorStrings.get(0);
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString));
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{errorString}));
             }
         }
 
@@ -479,7 +479,7 @@ public class ConfigManagerServlet extends PwmServlet {
         } catch (Exception e) {
             final String errorString = "error saving file: " + e.getMessage();
             LOGGER.error(pwmRequest, errorString);
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{errorString}));
         }
 
     }

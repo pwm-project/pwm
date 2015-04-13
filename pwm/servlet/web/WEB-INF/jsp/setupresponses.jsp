@@ -22,8 +22,7 @@
 
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final SetupResponsesBean responseBean = JspUtility.getPwmSession(pageContext).getSetupResponseBean(); %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -35,11 +34,12 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:display key="Display_SetupResponses"/></p>
-        <form action="<pwm:url url='SetupResponses'/>" method="post" name="form-setupResponses"
-              enctype="application/x-www-form-urlencoded" id="form-setupResponses" class="pwm-form">
+        <form action="<pwm:url url='SetupResponses'/>" method="post" name="form-setupResponses" enctype="application/x-www-form-urlencoded" id="form-setupResponses" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
+            <div id="pwm-setupResponsesDiv">
             <% request.setAttribute("setupData",responseBean.getResponseData()); %>
             <jsp:include page="fragment/setupresponses-form.jsp"/>
+            </div>
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="setResponses"/>
                 <button type="submit" name="setResponses" class="btn" id="button-setResponses">

@@ -83,6 +83,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         HIDE_HEADER_BUTTONS,
         HIDE_HEADER_WARNINGS,
         NO_REQ_COUNTER,
+        NO_IDLE_TIMEOUT,
         ALWAYS_EXPAND_MESSAGE_TEXT,
     }
 

@@ -42,6 +42,7 @@ public enum AppProperty {
     CLIENT_FORM_NONCE_LENGTH                        ("client.formNonce.length"),
     CLIENT_WARNING_HEADER_SHOW                      ("client.warningHeader.show"),
     CLIENT_PW_SHOW_REVERT_TIMEOUT                   ("client.pwShowRevertTimeout"),
+    CLIENT_JS_ENABLE_HTML5DIALOG                    ("client.js.enableHtml5Dialog"),
     CLIENT_JSP_SHOW_ICONS                           ("client.jsp.showIcons"),
     CONFIG_MAX_JDBC_JAR_SIZE                        ("config.maxJdbcJarSize"),
     CONFIG_RELOAD_ON_CHANGE                         ("config.reloadOnChange"),
