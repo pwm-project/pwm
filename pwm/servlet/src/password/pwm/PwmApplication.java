@@ -151,6 +151,8 @@ public class PwmApplication {
     private PwmApplication(final PwmEnvironment pwmEnvironment)
             throws PwmUnrecoverableException
     {
+        verifyIfApplicationPathIsSetProperly(pwmEnvironment);
+
         this.pwmEnvironment = pwmEnvironment;
         this.configuration = pwmEnvironment.config;
         this.applicationMode = pwmEnvironment.applicationMode;
@@ -170,8 +172,6 @@ public class PwmApplication {
             throws PwmUnrecoverableException
     {
         final Date startTime = new Date();
-
-        verifyIfApplicationPathIsSetProperly(pwmEnvironment);
 
         // initialize log4j
         if (initLogging) {
@@ -674,57 +674,70 @@ public class PwmApplication {
         return webInfPath;
     }
 
-    private static void verifyIfApplicationPathIsSetProperly(final PwmEnvironment pwmEnvironment)
+    private void verifyIfApplicationPathIsSetProperly(final PwmEnvironment pwmEnvironment)
             throws PwmUnrecoverableException
     {
-        final File webInfPath = pwmEnvironment.webInfPath;
         final File applicationPath = pwmEnvironment.applicationPath;
+        File webInfPath = pwmEnvironment.webInfPath;
 
         if (applicationPath == null) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, "unable to determine valid applicationPath"));
         }
+        LOGGER.trace("examining applicationPath of " + applicationPath.getAbsolutePath() + "");
 
         if (!applicationPath.exists()) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, "applicationPath \"" + applicationPath.getAbsolutePath() + "\" does not exist"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, "applicationPath " + applicationPath.getAbsolutePath() + " does not exist"));
         }
 
         if (!applicationPath.canRead()) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, "unable to read from applicationPath \"" + applicationPath.getAbsolutePath() + "\""));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, "unable to read from applicationPath " + applicationPath.getAbsolutePath() + ""));
         }
 
         if (!applicationPath.canWrite()) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, "unable to write to applicationPath \"" + applicationPath.getAbsolutePath() + "\""));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, "unable to write to applicationPath " + applicationPath.getAbsolutePath() + ""));
         }
 
-        if (webInfPath == null) {
-            return;
+        boolean applicationPathIsWebInfPath = false;
+        if (applicationPath.equals(webInfPath)) {
+            applicationPathIsWebInfPath = true;
+        } else if (applicationPath.getAbsolutePath().endsWith("/WEB-INF")) {
+            final File webXmlFile = new File(applicationPath.getAbsolutePath() + File.separator + "web.xml");
+            if (webXmlFile.exists()) {
+                applicationPathIsWebInfPath = true;
+            }
+        }
+        if (applicationPathIsWebInfPath) {
+            if (webInfPath == null) {
+                webInfPath = applicationPath;
+                pwmEnvironment.webInfPath = applicationPath;
+            }
+
+            LOGGER.trace("applicationPath appears to be servlet /WEB-INF directory");
         }
 
         final File infoFile = new File(webInfPath.getAbsolutePath() + File.separator + PwmConstants.APPLICATION_PATH_INFO_FILE);
-        if (pwmEnvironment.applicationPathType == PwmEnvironment.ApplicationPathType.derived) {
-            LOGGER.trace("checking " + infoFile.getAbsolutePath() + " status, (applicationPath=" + PwmEnvironment.ApplicationPathType.derived);
-            if (infoFile.exists()) {
-                final String errorMsg = "The file \"" + infoFile.getAbsolutePath() + "\" exists, but applicationPath was not explicitly specified."
-                        + "  This file must be removed, or an explicit applicationPath parameter must be specified.";
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,errorMsg));
-            } else {
-                LOGGER.trace(infoFile.getAbsolutePath() + " does not exist");
+        if (applicationPathIsWebInfPath) {
+            if (pwmEnvironment.applicationPathType == PwmEnvironment.ApplicationPathType.derived) {
+                LOGGER.trace("checking " + infoFile.getAbsolutePath() + " status, (applicationPathType=" + PwmEnvironment.ApplicationPathType.derived + ")");
+                if (infoFile.exists()) {
+                    final String errorMsg = "The file " + infoFile.getAbsolutePath() + " exists, and an applicationPath was not explicitly specified."
+                            + "  This happens when an applicationPath was previously configured, but is not now being specified."
+                            + "  An explicit applicationPath parameter must be specified, or the file can be removed if the applicationPath should be changed to the default /WEB-INF directory.";
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, errorMsg));
+                } else {
+                    LOGGER.trace("marker file " + infoFile.getAbsolutePath() + " does not exist");
+                }
             }
-        }
-
-        if (webInfPath.equals(applicationPath)) {
-            LOGGER.trace("webInfPath and applicationPath are same");
-            return;
-        }
-
-        if (pwmEnvironment.applicationPathType == PwmEnvironment.ApplicationPathType.specified) {
-            try {
-                final FileOutputStream fos = new FileOutputStream(infoFile);
-                final Properties outputProperties = new Properties();
-                outputProperties.setProperty("lastApplicationPath", applicationPath.getAbsolutePath());
-                outputProperties.store(fos, "Marker file to record a previously specified applicationPath");
-            } catch (IOException e) {
-                LOGGER.warn("unable to write marker properties file in WEB-INF directory");
+        } else {
+            if (pwmEnvironment.applicationPathType == PwmEnvironment.ApplicationPathType.specified) {
+                try {
+                    final FileOutputStream fos = new FileOutputStream(infoFile);
+                    final Properties outputProperties = new Properties();
+                    outputProperties.setProperty("lastApplicationPath", applicationPath.getAbsolutePath());
+                    outputProperties.store(fos, "Marker file to record a previously specified applicationPath");
+                } catch (IOException e) {
+                    LOGGER.warn("unable to write applicationPath marker properties file " + infoFile.getAbsolutePath() + "");
+                }
             }
         }
     }

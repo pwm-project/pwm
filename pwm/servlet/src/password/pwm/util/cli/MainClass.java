@@ -237,6 +237,7 @@ public class MainClass {
                     } catch (CliException e) {
                         System.out.println(e.getMessage());
                         System.exit(-1);
+                        return;
                     }
 
                     System.exit(0);

@@ -257,6 +257,7 @@ public class ContextManager implements Serializable {
         } else {
             errorMsg = throwable.getMessage();
             startupErrorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, msgPrefix + errorMsg);
+            throwable.printStackTrace();
         }
 
         try {
@@ -266,7 +267,6 @@ public class ContextManager implements Serializable {
         }
 
         outputError(startupErrorInformation.getDetailedErrorMsg());
-        throwable.printStackTrace();
     }
 
     public void shutdown() {
