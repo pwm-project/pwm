@@ -24,6 +24,7 @@ package password.pwm.http.servlet;
 
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -63,6 +64,54 @@ import java.util.*;
 public class PeopleSearchServlet extends PwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PeopleSearchServlet.class);
+
+    public static class UserDetailBean implements Serializable {
+        private String displayName;
+        private String userKey;
+        private Map<String,AttributeDetailBean> detail;
+        private String photoURL;
+        private boolean hasOrgChart;
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public void setDisplayName(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getUserKey() {
+            return userKey;
+        }
+
+        public void setUserKey(String userKey) {
+            this.userKey = userKey;
+        }
+
+        public Map<String, AttributeDetailBean> getDetail() {
+            return detail;
+        }
+
+        public void setDetail(Map<String, AttributeDetailBean> detail) {
+            this.detail = detail;
+        }
+
+        public String getPhotoURL() {
+            return photoURL;
+        }
+
+        public void setPhotoURL(String photoURL) {
+            this.photoURL = photoURL;
+        }
+
+        public boolean isHasOrgChart() {
+            return hasOrgChart;
+        }
+
+        public void setHasOrgChart(boolean hasOrgChart) {
+            this.hasOrgChart = hasOrgChart;
+        }
+    }
 
     public static class AttributeDetailBean implements Serializable {
         private String name;
@@ -119,11 +168,55 @@ public class PeopleSearchServlet extends PwmServlet {
         public void setSearchable(boolean searchable) {
             this.searchable = searchable;
         }
+
+
+    }
+
+    public static class UserTreeData implements Serializable {
+        private UserTreeReferenceBean parent;
+        private List<UserTreeReferenceBean> siblings;
+
+        public UserTreeReferenceBean getParent() {
+            return parent;
+        }
+
+        public void setParent(UserTreeReferenceBean parent) {
+            this.parent = parent;
+        }
+
+        public List<UserTreeReferenceBean> getSiblings() {
+            return siblings;
+        }
+
+        public void setSiblings(List<UserTreeReferenceBean> siblings) {
+            this.siblings = siblings;
+        }
+    }
+
+    public static class UserTreeReferenceBean extends UserReferenceBean {
+        public String photoURL;
+        public boolean hasMoreNodes;
+
+        public String getPhotoURL() {
+            return photoURL;
+        }
+
+        public void setPhotoURL(String photoURL) {
+            this.photoURL = photoURL;
+        }
+
+        public boolean isHasMoreNodes() {
+            return hasMoreNodes;
+        }
+
+        public void setHasMoreNodes(boolean hasMoreNodes) {
+            this.hasMoreNodes = hasMoreNodes;
+        }
     }
 
     public static class UserReferenceBean implements Serializable {
         private String userKey;
-        private String display;
+        private String displayName;
 
         public String getUserKey() {
             return userKey;
@@ -133,12 +226,12 @@ public class PeopleSearchServlet extends PwmServlet {
             this.userKey = userKey;
         }
 
-        public String getDisplay() {
-            return display;
+        public String getDisplayName() {
+            return displayName;
         }
 
-        public void setDisplay(String display) {
-            this.display = display;
+        public void setDisplayName(String displayName) {
+            this.displayName = displayName;
         }
     }
 
@@ -165,6 +258,7 @@ public class PeopleSearchServlet extends PwmServlet {
         detail(HttpMethod.POST),
         photo(HttpMethod.GET),
         clientData(HttpMethod.GET),
+        userTreeData(HttpMethod.POST),
 
         ;
 
@@ -230,6 +324,10 @@ public class PeopleSearchServlet extends PwmServlet {
                 case clientData:
                     restLoadClientData(pwmRequest);
                     return;
+
+                case userTreeData:
+                    restUserTreeData(pwmRequest);
+                    return;
             }
         }
 
@@ -254,9 +352,13 @@ public class PeopleSearchServlet extends PwmServlet {
                     formConfiguration.getLabel(pwmRequest.getLocale()));
         }
 
+        final boolean orgChartEnabled = orgChartIsEnabled(pwmRequest.getConfig());
+
         final HashMap<String,Object> returnValues = new HashMap<>();
         returnValues.put("peoplesearch_search_columns",searchColumns);
         returnValues.put("photo_style_attribute",photoStyle);
+        returnValues.put("peoplesearch_orgChart_enabled",orgChartEnabled);
+
         final RestResultBean restResultBean = new RestResultBean(returnValues);
         LOGGER.trace(pwmRequest, "returning clientData: " + JsonUtil.serialize(restResultBean));
         pwmRequest.outputJsonResult(restResultBean);
@@ -341,13 +443,11 @@ public class PeopleSearchServlet extends PwmServlet {
             return;
         }
 
-
-        final RestResultBean restResultBean = new RestResultBean();
         final LinkedHashMap<String, Object> outputData = new LinkedHashMap<>();
-        outputData.put("searchResults",
-                new ArrayList<>(results.resultsAsJsonOutput(pwmRequest.getPwmApplication())));
+        outputData.put("searchResults", new ArrayList<>(results.resultsAsJsonOutput(pwmRequest.getPwmApplication())));
         outputData.put("sizeExceeded", sizeExceeded);
-        restResultBean.setData(outputData);
+
+        final RestResultBean restResultBean = new RestResultBean(outputData);
         pwmRequest.outputJsonResult(restResultBean);
         final long maxCacheSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS);
         if (maxCacheSeconds > 0) {
@@ -368,22 +468,94 @@ public class PeopleSearchServlet extends PwmServlet {
             final PwmSession pwmSession,
             final UserIdentity userIdentity
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException {
+            throws PwmUnrecoverableException
+    {
         final Configuration config = pwmApplication.getConfig();
         final List<FormConfiguration> detailFormConfig = config.readSettingAsForm(PwmSetting.PEOPLE_SEARCH_DETAIL_FORM);
         final Map<String, String> attributeHeaderMap = UserSearchEngine.UserSearchResults.fromFormConfiguration(
                 detailFormConfig, pwmSession.getSessionStateBean().getLocale());
-        final ChaiUser theUser = useProxy(pwmApplication,pwmSession)
-                ? pwmApplication.getProxiedChaiUser(userIdentity)
-                : pwmSession.getSessionManager().getActor(pwmApplication, userIdentity);
-        Map<String, String> values = null;
-        try {
-            values = theUser.readStringAttributes(attributeHeaderMap.keySet());
-        } catch (ChaiOperationException e) {
-            LOGGER.error("unexpected error during detail lookup of '" + userIdentity + "', error: " + e.getMessage());
+
+        if (orgChartIsEnabled(pwmApplication.getConfig())) {
+            final String orgChartParentAttr = config.readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_PARENT_ATTRIBUTE);
+            if (!attributeHeaderMap.containsKey(orgChartParentAttr)) {
+                attributeHeaderMap.put(orgChartParentAttr, orgChartParentAttr);
+            }
+            final String orgChartChildAttr = config.readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE);
+            if (!attributeHeaderMap.containsKey(orgChartChildAttr)) {
+                attributeHeaderMap.put(orgChartChildAttr, orgChartChildAttr);
+            }
         }
-        return new UserSearchEngine.UserSearchResults(attributeHeaderMap,
-                Collections.singletonMap(userIdentity, values), false);
+
+        try {
+            final ChaiUser theUser = useProxy(pwmApplication,pwmSession)
+                    ? pwmApplication.getProxiedChaiUser(userIdentity)
+                    : pwmSession.getSessionManager().getActor(pwmApplication, userIdentity);
+            final Map<String, String> values = theUser.readStringAttributes(attributeHeaderMap.keySet());
+            return new UserSearchEngine.UserSearchResults(attributeHeaderMap,
+                    Collections.singletonMap(userIdentity, values), false);
+        } catch (ChaiException e) {
+            LOGGER.error("unexpected error during detail lookup of '" + userIdentity + "', error: " + e.getMessage());
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.forChaiError(e.getErrorCode()),e.getMessage()));
+        }
+    }
+
+    private void restUserTreeData(
+            final PwmRequest pwmRequest
+    )
+            throws IOException, PwmUnrecoverableException, ServletException
+    {
+        if (!orgChartIsEnabled(pwmRequest.getConfig())) {
+            throw new PwmUnrecoverableException(PwmError.ERROR_SERVICE_NOT_AVAILABLE);
+        }
+
+        final Map<String,String> requestInputMap = pwmRequest.readBodyAsJsonStringMap();
+        if (requestInputMap == null) {
+            return;
+        }
+        final String userKey = requestInputMap.get("userKey");
+        if (userKey == null || userKey.isEmpty()) {
+            return;
+        }
+        final boolean asParent = Boolean.parseBoolean(requestInputMap.get("asParent"));
+
+        final String parentAttribute = pwmRequest.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_PARENT_ATTRIBUTE);
+        final String childAttribute = pwmRequest.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE);
+        try {
+
+            UserDetailBean parentDetail = null;
+            if (asParent) {
+                parentDetail = makeUserDetailRequestImpl(pwmRequest, userKey);
+            } else {
+                final UserDetailBean selfDetailData = makeUserDetailRequestImpl(pwmRequest, userKey);
+                if (selfDetailData.getDetail().containsKey(parentAttribute)) {
+                    final UserReferenceBean parentReference = selfDetailData.getDetail().get(parentAttribute).getUserReferences().iterator().next();
+                    parentDetail = makeUserDetailRequestImpl(pwmRequest, parentReference.getUserKey());
+                }
+            }
+            final UserTreeData userTreeData = new UserTreeData();
+            if (parentDetail != null) {
+                final UserTreeReferenceBean managerTreeReference = userDetailToTreeReference(parentDetail, parentAttribute);
+                userTreeData.setParent(managerTreeReference);
+
+                if (parentDetail.getDetail() != null) {
+                    if (parentDetail.getDetail().containsKey(childAttribute)) {
+                        final List<UserTreeReferenceBean> siblings = new ArrayList<>();
+                        for (final UserReferenceBean siblingReferenceBean : parentDetail.getDetail().get(childAttribute).getUserReferences()) {
+                            final UserDetailBean siblingDetail = makeUserDetailRequestImpl(pwmRequest, siblingReferenceBean.getUserKey());
+                            final UserTreeReferenceBean siblingTreeReferenceBean = userDetailToTreeReference(siblingDetail, childAttribute);
+                            siblings.add(siblingTreeReferenceBean);
+                        }
+                        userTreeData.setSiblings(siblings);
+                    }
+                }
+            }
+            pwmRequest.outputJsonResult(new RestResultBean(userTreeData));
+        } catch (PwmOperationalException e) {
+            LOGGER.error(pwmRequest, "error generating user detail object: " + e.getMessage());
+            pwmRequest.respondWithError(e.getErrorInformation());
+        } catch (ChaiUnavailableException e) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.forChaiError(e.getErrorCode()),e.getMessage()));
+        }
     }
 
 
@@ -392,7 +564,6 @@ public class PeopleSearchServlet extends PwmServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final Date startTime = new Date();
         final Map<String, String> valueMap = pwmRequest.readBodyAsJsonStringMap();
 
         if (valueMap == null) {
@@ -404,6 +575,23 @@ public class PeopleSearchServlet extends PwmServlet {
             return;
         }
 
+        try {
+            final UserDetailBean detailData = makeUserDetailRequestImpl(pwmRequest, userKey);
+            pwmRequest.outputJsonResult(new RestResultBean(detailData));
+        } catch (PwmOperationalException e) {
+            LOGGER.error(pwmRequest, "error generating user detail object: " + e.getMessage());
+            pwmRequest.respondWithError(e.getErrorInformation());
+        }
+
+    }
+
+    private UserDetailBean makeUserDetailRequestImpl(
+            final PwmRequest pwmRequest,
+            final String userKey
+    )
+            throws PwmUnrecoverableException, IOException, ServletException, PwmOperationalException, ChaiUnavailableException
+    {
+        final Date startTime = new Date();
         final boolean useProxy = useProxy(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
         final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig());
 
@@ -415,12 +603,8 @@ public class PeopleSearchServlet extends PwmServlet {
         {
             final String cachedOutput = pwmRequest.getPwmApplication().getCacheService().get(cacheKey);
             if (cachedOutput != null) {
-                final HashMap<String, Object> resultOutput = JsonUtil.deserialize(cachedOutput,
-                        new TypeToken<HashMap<String, Object>>() {}
-                );
-                final RestResultBean restResultBean = new RestResultBean();
-                restResultBean.setData(new HashMap<>(resultOutput));
-                pwmRequest.outputJsonResult(restResultBean);
+                final UserDetailBean resultOutput = JsonUtil.deserialize(cachedOutput, UserDetailBean.class);
+                final RestResultBean restResultBean = new RestResultBean(resultOutput);
                 LOGGER.debug(pwmRequest.getPwmSession(), "finished rest detail request in " + TimeDuration.fromCurrent(
                         startTime).asCompactString() + " using cached details, results=" + JsonUtil.serialize(restResultBean));
 
@@ -428,51 +612,56 @@ public class PeopleSearchServlet extends PwmServlet {
                     pwmRequest.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PEOPLESEARCH_DETAILS);
                 }
 
-                return;
+                return resultOutput;
             }
         }
+
         try {
             checkIfUserIdentityViewable(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmRequest.getPwmSession(), "error during detail results request while checking if requested userIdentity is within search scope: " + e.getMessage());
-            pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest));
-            return;
+            throw e;
         }
 
         final UserSearchEngine.UserSearchResults detailResults = doDetailLookup(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
         final Map<String, String> searchResults = detailResults.getResults().get(userIdentity);
 
-        final LinkedHashMap<String, Object> resultOutput = new LinkedHashMap<>();
+        final UserDetailBean userDetailBean = new UserDetailBean();
+        userDetailBean.setUserKey(userKey);
         final List<FormConfiguration> detailFormConfig = pwmRequest.getConfig().readSettingAsForm( PwmSetting.PEOPLE_SEARCH_DETAIL_FORM);
-        List<AttributeDetailBean> bean = convertResultMapToBean(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity,
+        final Map<String,AttributeDetailBean> attributeBeans = convertResultMapToBeans(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity,
                 detailFormConfig, searchResults);
 
-        resultOutput.put("detail", bean);
+        userDetailBean.setDetail(attributeBeans);
         final String photoURL = figurePhotoURL(pwmRequest.getPwmApplication(), pwmRequest, userIdentity);
         if (photoURL != null) {
-            resultOutput.put("photoURL", photoURL);
+            userDetailBean.setPhotoURL(photoURL);
         }
         final String displayName = figureDisplaynameValue(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
         if (displayName != null) {
-            resultOutput.put("displayName", displayName);
+            userDetailBean.setDisplayName(displayName);
         }
 
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(resultOutput);
-        pwmRequest.outputJsonResult(restResultBean);
+        if (orgChartIsEnabled(pwmRequest.getConfig())) {
+            final String parentAttr = pwmRequest.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_PARENT_ATTRIBUTE);
+            if (searchResults.containsKey(parentAttr)) {
+                userDetailBean.setHasOrgChart(true);
+            }
+        }
+
         LOGGER.debug(pwmRequest.getPwmSession(), "finished non-cached rest detail request in " + TimeDuration.fromCurrent(
-                startTime).asCompactString() + ", results=" + JsonUtil.serialize(restResultBean));
+                startTime).asCompactString() + ", results=" + JsonUtil.serialize(userDetailBean));
 
         final long maxCacheSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS);
         if (maxCacheSeconds > 0) {
             final Date expiration = new Date(System.currentTimeMillis() * maxCacheSeconds * 1000);
             pwmRequest.getPwmApplication().getCacheService().put(cacheKey, CachePolicy.makePolicy(expiration),
-                    JsonUtil.serializeMap(resultOutput));
+                    JsonUtil.serialize(userDetailBean));
         }
 
         StatisticsManager.incrementStat(pwmRequest, Statistic.PEOPLESEARCH_SEARCHES);
+        return userDetailBean;
     }
-
 
     private static String figurePhotoURL(
             final PwmApplication pwmApplication,
@@ -561,7 +750,7 @@ public class PeopleSearchServlet extends PwmServlet {
         }
     }
 
-    private static List<AttributeDetailBean> convertResultMapToBean(
+    private static Map<String,AttributeDetailBean> convertResultMapToBeans(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final UserIdentity userIdentity,
@@ -572,7 +761,7 @@ public class PeopleSearchServlet extends PwmServlet {
     {
         final int MAX_VALUES = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.PEOPLESEARCH_MAX_VALUE_COUNT));
         final Set<String> searchAttributes = getSearchAttributes(pwmApplication.getConfig());
-        final List<AttributeDetailBean> returnObj = new ArrayList<>();
+        final Map<String,AttributeDetailBean> returnObj = new LinkedHashMap<>();
         for (FormConfiguration formConfiguration : detailForm) {
             if (formConfiguration.isRequired() || searchResults.containsKey(formConfiguration.getName())) {
                 AttributeDetailBean bean = new AttributeDetailBean();
@@ -597,7 +786,7 @@ public class PeopleSearchServlet extends PwmServlet {
                                             loopIdentity);
                                     final UserReferenceBean userReference = new UserReferenceBean();
                                     userReference.setUserKey(loopIdentity.toObfuscatedKey(pwmApplication.getConfig()));
-                                    userReference.setDisplay(displayValue);
+                                    userReference.setDisplayName(displayValue);
                                     userReferences.put(displayValue, userReference);
                                 }
                             }
@@ -610,7 +799,7 @@ public class PeopleSearchServlet extends PwmServlet {
                     bean.setValue(searchResults.containsKey(formConfiguration.getName()) ? searchResults.get(
                             formConfiguration.getName()) : "");
                 }
-                returnObj.add(bean);
+                returnObj.put(formConfiguration.getName(),bean);
             }
         }
         return returnObj;
@@ -667,7 +856,7 @@ public class PeopleSearchServlet extends PwmServlet {
             final PwmSession pwmSession,
             final UserIdentity userIdentity
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
+            throws  PwmUnrecoverableException, PwmOperationalException {
         final String filterSetting = getSearchFilter(pwmApplication.getConfig());
         String filterString = filterSetting.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, "*");
         while (filterString.contains("**")) {
@@ -731,5 +920,22 @@ public class PeopleSearchServlet extends PwmServlet {
     private static Set<String> getSearchAttributes(final Configuration configuration) {
         final List<String> searchResultForm = configuration.readSettingAsStringArray(PwmSetting.PEOPLE_SEARCH_SEARCH_ATTRIBUTES);
         return Collections.unmodifiableSet(new HashSet<>(searchResultForm));
+    }
+
+    private static UserTreeReferenceBean userDetailToTreeReference(final UserDetailBean userDetailBean, final String nextNodeAttribute) {
+        final UserTreeReferenceBean userTreeReferenceBean = new UserTreeReferenceBean();
+        userTreeReferenceBean.setUserKey(userDetailBean.getUserKey());
+        userTreeReferenceBean.setPhotoURL(userDetailBean.getPhotoURL());
+        userTreeReferenceBean.setDisplayName(userDetailBean.getDisplayName());
+        if (userDetailBean.getDetail() != null && userDetailBean.getDetail().containsKey(nextNodeAttribute)) {
+            userTreeReferenceBean.setHasMoreNodes(true);
+        }
+        return userTreeReferenceBean;
+    }
+
+    private static boolean orgChartIsEnabled(final Configuration config) {
+        final String orgChartParentAttr = config.readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_PARENT_ATTRIBUTE);
+        final String orgChartChildAttr = config.readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE);
+        return orgChartParentAttr != null && !orgChartParentAttr.isEmpty() && orgChartChildAttr != null && !orgChartChildAttr.isEmpty();
     }
 }

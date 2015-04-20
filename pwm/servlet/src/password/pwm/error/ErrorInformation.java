@@ -149,4 +149,12 @@ public class ErrorInformation implements Serializable {
     public Date getDate() {
         return date;
     }
+
+    public ErrorInformation wrapWithNewErrorCode(final PwmError pwmError) {
+        if (pwmError == this.getError()) {
+            return this;
+        }
+        return new ErrorInformation(pwmError,this.getDetailedErrorMsg());
+
+    }
 }

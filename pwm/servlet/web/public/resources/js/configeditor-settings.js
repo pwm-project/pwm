@@ -563,7 +563,6 @@ FormTableHandler.init = function(keyName) {
 FormTableHandler.redraw = function(keyName) {
     var resultValue = PWM_VAR['clientSettingCache'][keyName];
     var parentDiv = 'table_setting_' + keyName;
-    PWM_CFGEDIT.clearDivElements(parentDiv, false);
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     if (!PWM_MAIN.isEmpty(resultValue)) {
@@ -599,7 +598,7 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         newTableRow.setAttribute("style", "border-width: 0");
 
         var htmlRow = '';
-        htmlRow += '<td><input style="width:180px" class="configStringInput" id="' + inputID + 'name" value="' + value['name'] + '"/></td>';
+        htmlRow += '<td style="width:180px" id="panel-name-' + inputID + '" class="noWrapTextBox"></td>';
         htmlRow += '<td style="width:170px"><div class="noWrapTextBox" id="' + inputID + 'label"><span class="btn-icon fa fa-edit"></span><span>' + value['labels'][''] + '...</span></div></td>';
 
         htmlRow += '<td>';
@@ -642,6 +641,8 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         newTableRow.innerHTML = htmlRow;
         var parentDivElement = PWM_MAIN.getObject(parentDiv);
         parentDivElement.appendChild(newTableRow);
+
+        UILibrary.addTextValueToElement("panel-name-" + inputID,value['name']);
 
         PWM_MAIN.addEventHandler(inputID + "-moveUp", 'click', function () {
             FormTableHandler.move(settingKey, true, iteration);
@@ -706,24 +707,26 @@ FormTableHandler.arrayMoveUtil = function(arr, fromIndex, toIndex) {
 
 
 FormTableHandler.addRow = function(keyName) {
-    var body='Name <input class="configStringInput" id="newFormFieldName" style="width:300px"/>';
-    PWM_MAIN.showConfirmDialog({title:'New Form Field',text:body,showClose:true,loadFunction:function(){
-        PWM_MAIN.getObject('dialog_ok_button').disabled = true;
-        PWM_MAIN.addEventHandler('newFormFieldName','input',function(){
-            PWM_VAR['newFormFieldName'] = PWM_MAIN.getObject('newFormFieldName').value;
-            if (PWM_VAR['newFormFieldName'] && PWM_VAR['newFormFieldName'].length > 1) {
-                PWM_MAIN.getObject('dialog_ok_button').disabled = false;
+    UILibrary.stringEditorDialog({
+        title:PWM_SETTINGS['settings'][keyName]['label'] + ' - New Form Field',
+        regex:'^[a-zA-Z][a-zA-Z0-9-]*$',
+        placeholder:'FieldName',
+        completeFunction:function(value){
+            for (var i in PWM_VAR['clientSettingCache'][keyName]) {
+                if (PWM_VAR['clientSettingCache'][keyName][i]['name'] == value) {
+                    alert('field already exists');
+                    return;
+                }
             }
-        });
-    },okAction:function(){
-        var currentSize = PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][keyName]);
-        PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = FormTableHandler.newRowValue;
-        PWM_VAR['clientSettingCache'][keyName][currentSize + 1].name = PWM_VAR['newFormFieldName'];
-        PWM_VAR['clientSettingCache'][keyName][currentSize + 1].labels = {'':PWM_VAR['newFormFieldName']};
-        FormTableHandler.writeFormSetting(keyName,function(){
-            FormTableHandler.init(keyName);
-        });
-    }});
+            var currentSize = PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][keyName]);
+            PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = FormTableHandler.newRowValue;
+            PWM_VAR['clientSettingCache'][keyName][currentSize + 1].name = value;
+            PWM_VAR['clientSettingCache'][keyName][currentSize + 1].labels = {'':value};
+            FormTableHandler.writeFormSetting(keyName,function(){
+                FormTableHandler.init(keyName);
+            });
+        }
+    });
 };
 
 FormTableHandler.showOptionsDialog = function(keyName, iteration) {

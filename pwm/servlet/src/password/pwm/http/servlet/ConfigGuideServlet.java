@@ -336,7 +336,13 @@ public class ConfigGuideServlet extends PwmServlet {
     )
             throws IOException, PwmUnrecoverableException {
         final Configuration tempConfiguration = new Configuration(configGuideBean.getStoredConfiguration());
-        final PwmApplication tempApplication = new PwmApplication(tempConfiguration, PwmApplication.MODE.NEW, null, false, null);
+        final PwmApplication tempApplication = new PwmApplication.PwmEnvironment()
+                .setConfig(tempConfiguration)
+                .setApplicationMode(PwmApplication.MODE.NEW)
+                .setApplicationPath(null)
+                .setInitLogging(false)
+                .setConfigurationFile(null)
+                .setWebInfPath(null).createPwmApplication();
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
         final List<HealthRecord> records = new ArrayList<>();
         final LdapProfile ldapProfile = tempConfiguration.getDefaultLdapProfile();

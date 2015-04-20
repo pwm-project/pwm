@@ -103,7 +103,7 @@ PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
         } else {
             PWM_GLOBAL['localeStrings'] = PWM_GLOBAL['localeStrings'] || {};
             PWM_GLOBAL['localeStrings'][bundleName] = {};
-            for (var settingKey in data['data']) {
+                for (var settingKey in data['data']) {
                 PWM_GLOBAL['localeStrings'][bundleName][settingKey] = data['data'][settingKey];
             }
         }
@@ -127,6 +127,16 @@ PWM_MAIN.initPage = function() {
     } catch(e) {
         console.log('error during autofocus support extension: ' + e);
     }
+
+    require(["dojo"], function (dojo) {
+        if (dojo.isIE) {
+            document.body.setAttribute('data-browserType','ie');
+        } else if (dojo.isFF) {
+            document.body.setAttribute('data-browserType','ff');
+        } else if (dojo.isWebKit) {
+            document.body.setAttribute('data-browserType','webkit');
+        }
+    });
 
     require(["dojo", "dojo/on"], function (dojo, on) {
         on(document, "keypress", function (event) {
@@ -394,10 +404,12 @@ PWM_MAIN.handleLoginFormSubmit = function(form, event) {
             var loadFunction = function(data) {
 
                 if (data['error'] == true) {
+                    PWM_MAIN.getObject('password').value = '';
                     PWM_MAIN.showErrorDialog(data,{
                         okAction:function(){
-                            PWM_MAIN.getObject('password').value = '';
-                            PWM_MAIN.getObject('password').focus();
+                            setTimeout(function(){
+                                PWM_MAIN.getObject('password').focus();
+                            },50);
                         }
                     });
                     return;

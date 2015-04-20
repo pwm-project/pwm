@@ -25,6 +25,8 @@ package password.pwm.http.filter;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.*;
 import password.pwm.util.logging.PwmLogger;
@@ -73,6 +75,16 @@ public class RequestInitializationFilter implements Filter {
         } catch (Throwable e) {
             LOGGER.error("can't load application: " + e.getMessage());
             if (!(new PwmURL(req).isResourceURL())) {
+                ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE);
+                try {
+                    ContextManager contextManager = ContextManager.getContextManager(servletRequest.getServletContext());
+                    if (contextManager != null) {
+                        errorInformation = contextManager.getStartupErrorInformation();
+                    }
+                } catch (Throwable e2) {
+                    e2.getMessage();
+                }
+                servletRequest.setAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo.toString(),errorInformation);
                 final String url = PwmConstants.JSP_URL.APP_UNAVAILABLE.getPath();
                 servletRequest.getServletContext().getRequestDispatcher(url).forward(req, resp);
             }

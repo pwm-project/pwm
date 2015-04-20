@@ -90,7 +90,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
     public void init(final PwmApplication pwmApplication) throws PwmException {
         super.init(pwmApplication);
         final String setting = pwmApplication.getConfig().readSettingAsString(PwmSetting.SEEDLIST_FILENAME);
-        final File seedlistFile = setting == null || setting.length() < 1 ? null : Helper.figureFilepath(setting, pwmApplication.getApplicationPath());
+        final File seedlistFile = setting == null || setting.length() < 1 ? null : Helper.figureFilepath(setting, pwmApplication.getWebInfPath());
         final int loadFactor = PwmConstants.DEFAULT_WORDLIST_LOADFACTOR;
         final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(seedlistFile, loadFactor, true, 0);
 

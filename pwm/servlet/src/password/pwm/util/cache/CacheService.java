@@ -60,6 +60,17 @@ public class CacheService implements PwmService {
             return;
         }
 
+        if (pwmApplication.getLocalDB() == null) {
+            LOGGER.debug("skipping cache service init due to localDB not being available");
+            status = STATUS.CLOSED;
+            return;
+        }
+
+        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
+            LOGGER.debug("skipping cache service init due to read-only application mode");
+            status = STATUS.CLOSED;
+            return;
+        }
 
         status = STATUS.OPENING;
         final int maxMemItems = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_MEMORY_MAX_ITEMS));

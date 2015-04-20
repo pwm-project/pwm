@@ -3041,6 +3041,20 @@
             <value>0</value>
         </default>
     </setting>
+    <setting key="peopleSearch.orgChart.parentAttribute" level="1">
+        <label>Org Chart Parent Attribute</label>
+        <description/>
+        <default>
+            <value>manager</value>
+        </default>
+    </setting>
+    <setting key="peopleSearch.orgChart.childAttribute" level="1">
+        <label>Org Chart Child Attribute</label>
+        <description/>
+        <default>
+            <value>directReports</value>
+        </default>
+    </setting>
     <setting key="ldap.edirectory.enableNmas" level="1" required="true">
         <label>Enable NMAS Extensions</label>
         <description><![CDATA[When connecting to a NetIQ eDirectory LDAP directory, this parameter will control if NMAS extensions will be used when connecting to the ldap directory.  Enabling nmas results in:<ul><li>better error messages when using universal password policies</li><li>better error handling during certain change password scenarios</li></ul>Unless you are using an older version of eDirectory (pre 8.8 or before), it is generally best to set this to true.<br/><br/>All NMAS operations require an SSL connection to the directory.]]></description>

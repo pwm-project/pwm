@@ -669,7 +669,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
             theUser.unlockPassword();
 
             // mark the event log
-            pwmApplication.getAuditManager().submit(AuditEvent.UNLOCK_PASSWORD, pwmSession.getUserInfoBean(),pwmSession);
+            pwmApplication.getAuditManager().submit(AuditEvent.UNLOCK_PASSWORD, forgottenPasswordBean.getUserInfo(),pwmSession);
 
             pwmRequest.forwardToSuccessPage(Message.Success_UnlockAccount);
         } catch (ChaiOperationException e) {

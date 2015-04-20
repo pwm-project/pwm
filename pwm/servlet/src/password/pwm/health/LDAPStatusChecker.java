@@ -542,8 +542,18 @@ public class LDAPStatusChecker implements HealthChecker {
             boolean testContextless,
             boolean fullTest
 
-    ) {
-        final PwmApplication tempApplication = new PwmApplication(config, PwmApplication.MODE.NEW, null, false, null);
+    )
+                throws PwmUnrecoverableException
+    {
+        final PwmApplication tempApplication = new PwmApplication.PwmEnvironment()
+                .setConfig(config)
+                .setApplicationMode(PwmApplication.MODE.NEW)
+                .setApplicationPath(null)
+                .setInitLogging(false)
+                .setConfigurationFile(null)
+                .setWebInfPath(null)
+                .createPwmApplication();
+
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
         final List<HealthRecord> profileRecords = new ArrayList<>();
 

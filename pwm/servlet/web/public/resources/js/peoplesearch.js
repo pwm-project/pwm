@@ -51,17 +51,8 @@ PWM_PS.processPeopleSearch = function() {
             var sizeExceeded = data['data']['sizeExceeded'];
             grid.refresh();
             grid.renderArray(gridData);
-            grid.on(".dgrid-row:click", function(evt){
-                if (PWM_VAR['detailInProgress'] != true) {
-                    PWM_VAR['detailInProgress'] = true;
-                    evt.preventDefault();
-                    var row = grid.row(evt);
-                    var userKey = row.data['userKey'];
-                    PWM_PS.showUserDetail(userKey);
-                } else {
-                    console.log('ignoring dupe detail request event');
-                }
-            });
+            grid.set("sort", { attribute : 'givenName'});
+
 
             if (sizeExceeded) {
                 PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
@@ -109,10 +100,11 @@ PWM_PS.convertDetailResultToHtml = function(data) {
                     (function(refIterInner){
                         var reference = userReferences[refIterInner];
                         var userKey = reference['userKey'];
-                        var displayValue = reference['display'];
+                        var displayValue = reference['displayName'];
                         htmlBody += '<a id="link-' + userKey + '-' + reference + '">';
                         htmlBody += displayValue;
-                        htmlBody += "</a><br/>";
+                        htmlBody += "</a>";
+                        htmlBody += "<br/>";
                     })(refIter);
                 }
                 htmlBody += '</div>';
@@ -194,7 +186,124 @@ PWM_PS.showUserDetail = function(userKey) {
                         if (photoURL) {
                             PWM_PS.loadPicture(PWM_MAIN.getObject("userPhotoParentDiv"),photoURL);
                         }
+
                         PWM_PS.applyEventHandlersToDetailView(data['data']);
+
+                        if (PWM_VAR['peoplesearch_orgChart_enabled'] && data['data']['hasOrgChart']) {
+                            var buttonObj = document.createElement('button');
+                            buttonObj.setAttribute('class', 'btn');
+                            buttonObj.id = 'button-orgChart';
+                            buttonObj.innerHTML = '<span class="btn-icon fa fa-sitemap"></span> ' + PWM_MAIN.showString('Button_OrgChart');
+                            PWM_MAIN.getObject('dialog_ok_button').parentElement.appendChild(buttonObj);
+                        }
+
+                        setTimeout(function() {
+                            try {PWM_MAIN.getObject('dialog_ok_button').focus(); } catch (e) { /*noop */}
+                        },1000);
+                        PWM_MAIN.addEventHandler('button-orgChart','click',function(){
+                            PWM_PS.showOrgChartView(userKey);
+                        });
+                    }
+                });
+            };
+            PWM_MAIN.ajaxRequest(url, loadFunction, {content:sendData});
+        }
+    });
+};
+
+PWM_PS.convertUserTreeDataToOrgChartHtml = function(data) {
+    var htmlOutput = '<div>';
+    if ('parent' in data) {
+        var parentReference = data['parent'];
+        htmlOutput += '<div class="panel-orgChart-parent">';
+        if (parentReference['hasMoreNodes']) {
+            htmlOutput += '<a id="link-parent-' + parentReference['userKey'] + '"><span class="fa fa-arrow-up"/> </a>';
+        }
+        htmlOutput += '<div class="panel-orgChart-person">';
+        if ('photoURL' in parentReference) {
+            htmlOutput += '<img class="img-orgChart" id="" src="' + parentReference['photoURL'] + '">';
+        }
+        htmlOutput += '<div class="panel-orgChart-displayName">' + parentReference['displayName'] + '</div>';
+        htmlOutput += ' <span id="button-userDetail-' + parentReference['userKey'] + '" class="btn-icon fa fa-info-circle">';
+        htmlOutput += '</div></div><br/>';
+    }
+    if ('siblings' in data) {
+        for (var iter in data['siblings']) {
+            (function(iterCount){
+                var siblingReference = data['siblings'][iterCount];
+                htmlOutput += '<div class="panel-orgChart-child">';
+                if (siblingReference['hasMoreNodes']) {
+                    htmlOutput += '<a id="link-sibling-' + siblingReference['userKey'] + '"><span class="fa fa-arrow-down"/> </a>';
+                }
+                htmlOutput += '<div class="panel-orgChart-person">';
+                if ('photoURL' in siblingReference) {
+                    htmlOutput += '<img class="img-orgChart" id="img-orgChart-' + siblingReference['userKey'] + '" src="' + siblingReference['photoURL'] + '">';
+                }
+
+                htmlOutput += '<div class="panel-orgChart-displayName">' + siblingReference['displayName'] + '</div>';
+                htmlOutput += ' <span id="button-userDetail-' + siblingReference['userKey'] + '" class="btn-icon fa fa-info-circle">';
+                htmlOutput += '</div></div><br/>';
+            })(iter);
+        }
+    }
+    htmlOutput += '</div>';
+    return htmlOutput;
+};
+
+PWM_PS.applyUserTreeDataToOrgChartEvents = function(data) {
+    if ('parent' in data) {
+        var parentReference = data['parent'];
+        if (parentReference['hasMoreNodes']) {
+            PWM_MAIN.addEventHandler('link-parent-' + parentReference['userKey'], 'click', function () {
+                PWM_PS.showOrgChartView(parentReference['userKey'])
+            });
+        }
+        PWM_MAIN.addEventHandler('button-userDetail-' + parentReference['userKey'],'click',function(){
+            PWM_PS.showUserDetail(parentReference['userKey']);
+        });
+    }
+    if ('siblings' in data) {
+        for (var iter in data['siblings']) {
+            (function(iterCount){
+                var siblingReference = data['siblings'][iterCount];
+                if (siblingReference['hasMoreNodes']) {
+                    PWM_MAIN.addEventHandler('link-sibling-' + siblingReference['userKey'], 'click', function () {
+                        PWM_PS.showOrgChartView(siblingReference['userKey'], true)
+                    });
+                }
+                PWM_MAIN.addEventHandler('button-userDetail-' + siblingReference['userKey'],'click',function(){
+                    PWM_PS.showUserDetail(siblingReference['userKey']);
+                });
+            })(iter);
+        }
+    }
+};
+
+
+PWM_PS.showOrgChartView = function(userKey, asParent) {
+    console.log('beginning showOrgChartView, userKey=' + userKey);
+    var sendData = {
+        userKey:userKey,
+        asParent:asParent
+    };
+    PWM_MAIN.showWaitDialog({
+        loadFunction:function(){
+            var url = "PeopleSearch?processAction=userTreeData";
+            var loadFunction = function(data) {
+                if (data['error'] == true) {
+                    PWM_MAIN.closeWaitDialog();
+                    PWM_MAIN.showErrorDialog(data);
+                    return;
+                }
+                var htmlBody = PWM_PS.convertUserTreeDataToOrgChartHtml(data['data']);
+                PWM_MAIN.closeWaitDialog();
+                PWM_MAIN.showDialog({
+                    title:PWM_MAIN.showString('Button_OrgChart'),
+                    allowMove:true,
+                    text:htmlBody,
+                    showClose:true,
+                    loadFunction:function(){
+                        PWM_PS.applyUserTreeDataToOrgChartEvents(data['data']);
                         setTimeout(function() {
                             try {PWM_MAIN.getObject('dialog_ok_button').focus(); } catch (e) { /*noop */}
                         },1000);
@@ -204,27 +313,45 @@ PWM_PS.showUserDetail = function(userKey) {
             PWM_MAIN.ajaxRequest(url, loadFunction, {content:sendData});
         }
     });
+
 };
 
 PWM_PS.makeSearchGrid = function(nextFunction) {
-        require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
-            function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
-                PWM_MAIN.getObject('peoplesearch-searchResultsGrid').innerHTML = '';
+    require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
+        function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+            PWM_MAIN.getObject('peoplesearch-searchResultsGrid').innerHTML = '';
 
-                var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
 
-                PWM_VAR['peoplesearch_search_grid'] = new CustomGrid({
-                    columns: PWM_VAR['peoplesearch_search_columns']
-                }, "peoplesearch-searchResultsGrid");
+            PWM_VAR['peoplesearch_search_grid'] = new CustomGrid({
+                columns: PWM_VAR['peoplesearch_search_columns'],
+                queryOptions: {
+                    sort: [{ attribute: "sn" }]
+                }
+            }, "peoplesearch-searchResultsGrid");
 
-                if (nextFunction) {
-                    nextFunction();
+            if (nextFunction) {
+                nextFunction();
+            }
+
+            PWM_VAR['peoplesearch_search_grid'].on(".dgrid-row:click", function(evt){
+                if (PWM_VAR['detailInProgress'] != true) {
+                    PWM_VAR['detailInProgress'] = true;
+                    evt.preventDefault();
+                    var row = PWM_VAR['peoplesearch_search_grid'].row(evt);
+                    var userKey = row.data['userKey'];
+                    PWM_PS.showUserDetail(userKey);
+                } else {
+                    console.log('ignoring dupe detail request event');
                 }
             });
+
+        }
+    );
 };
 
 PWM_PS.loadPicture = function(parentDiv,url) {
-    if (url.lastIndexOf('http', 0) !== 0) {
+    if (url.lastIndexOf('http', 0) !== 0) { // if not absolute url
         url = PWM_MAIN.addPwmFormIDtoURL(url);
     }
     require(["dojo/on"], function(on){
@@ -232,10 +359,12 @@ PWM_PS.loadPicture = function(parentDiv,url) {
         image.setAttribute('id',"userPhotoImage");
         image.setAttribute('style',PWM_VAR['photo_style_attribute']);
         on(image,"load",function(){
-            while (parentDiv.firstChild) {
-                parentDiv.removeChild(parentDiv.firstChild);
+            if (parentDiv) {
+                while (parentDiv.firstChild) {
+                    parentDiv.removeChild(parentDiv.firstChild);
+                }
+                parentDiv.appendChild(image);
             }
-            parentDiv.appendChild(image);
         });
         image.src = url;
     });

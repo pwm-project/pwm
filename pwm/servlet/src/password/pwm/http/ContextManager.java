@@ -141,11 +141,25 @@ public class ContextManager implements Serializable {
         }
 
         Configuration configuration = null;
-        File applicationPath = null;
         PwmApplication.MODE mode = PwmApplication.MODE.ERROR;
+
+        final File webInfPath = locateWebInfFilePath();
+
+        final File applicationPath;
+        final PwmApplication.PwmEnvironment.ApplicationPathType applicationPathType;
+        {
+            final String applicationPathStr = readSpecifiedApplicationPath();
+            if (applicationPathStr == null || applicationPathStr.isEmpty()) {
+                applicationPathType = PwmApplication.PwmEnvironment.ApplicationPathType.derived;
+                applicationPath = webInfPath;
+            } else {
+                applicationPath = new File(applicationPathStr);
+                applicationPathType = PwmApplication.PwmEnvironment.ApplicationPathType.specified;
+            }
+        }
+
         File configurationFile = null;
         try {
-            applicationPath = locateApplicationPath();
             configurationFile = locateConfigurationFile(applicationPath);
 
             configReader = new ConfigurationReader(configurationFile);
@@ -166,29 +180,43 @@ public class ContextManager implements Serializable {
                 outputError("Startup Error: " + (startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr()));
             }
         } catch (Throwable e) {
-            handleStartupError("unable to initialize application due to configuration related error: ",e);
+            handleStartupError("unable to initialize application due to configuration related error: ", e);
         }
+        LOGGER.debug("configuration file was loaded from " + (configurationFile == null ? "null" : configurationFile.getAbsoluteFile()));
+
 
         try {
-            pwmApplication = new PwmApplication(configuration, mode, applicationPath, true, configurationFile);
+            pwmApplication = new PwmApplication.PwmEnvironment()
+                    .setConfig(configuration)
+                    .setApplicationMode(mode)
+                    .setApplicationPath(applicationPath)
+                    .setInitLogging(true)
+                    .setConfigurationFile(configurationFile)
+                    .setWebInfPath(webInfPath)
+                    .setApplicationPathType(applicationPathType).createPwmApplication();
         } catch (Exception e) {
-            handleStartupError("unable to initialize application: ",e);
+            handleStartupError("unable to initialize application: ", e);
         }
 
         final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
         taskMaster = new Timer(threadName, true);
         taskMaster.schedule(new RestartFlagWatcher(), 1031, 1031);
 
-        final boolean reloadOnChange = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_RELOAD_ON_CHANGE));
-        if (reloadOnChange) {
-            final long fileScanFrequencyMs = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_FILE_SCAN_FREQUENCY));
-            taskMaster.schedule(new ConfigFileWatcher(), fileScanFrequencyMs, fileScanFrequencyMs);
+        boolean reloadOnChange = true;
+        long fileScanFrequencyMs = 5000;
+        {
+            if (pwmApplication != null) {
+                reloadOnChange = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_RELOAD_ON_CHANGE));
+                fileScanFrequencyMs = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_FILE_SCAN_FREQUENCY));
+            }
+            if (reloadOnChange) {
+                taskMaster.schedule(new ConfigFileWatcher(), fileScanFrequencyMs, fileScanFrequencyMs);
+            }
+
+            checkConfigForSaveOnRestart(configReader, pwmApplication);
         }
 
-        LOGGER.debug(
-                "configuration file was loaded from " + (configurationFile == null ? "null" : configurationFile.getAbsoluteFile()));
 
-        checkConfigForSaveOnRestart(configReader, pwmApplication);
     }
 
     private void checkConfigForSaveOnRestart(
@@ -223,19 +251,21 @@ public class ContextManager implements Serializable {
         final String errorMsg;
         if (throwable instanceof OutOfMemoryError) {
             errorMsg = "JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + throwable.getMessage();
+            startupErrorInformation = new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,errorMsg);
+        } else if (throwable instanceof PwmException) {
+            startupErrorInformation = ((PwmException)throwable).getErrorInformation().wrapWithNewErrorCode(PwmError.ERROR_STARTUP_ERROR);
         } else {
             errorMsg = throwable.getMessage();
+            startupErrorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, msgPrefix + errorMsg);
         }
 
-        startupErrorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, msgPrefix + errorMsg);
-
         try {
-            LOGGER.fatal(errorMsg);
+            LOGGER.fatal(startupErrorInformation.getDetailedErrorMsg());
         } catch (Exception e2) {
             // noop
         }
 
-        outputError(errorMsg);
+        outputError(startupErrorInformation.getDetailedErrorMsg());
         throwable.printStackTrace();
     }
 
@@ -348,7 +378,7 @@ public class ContextManager implements Serializable {
         return startupErrorInformation;
     }
 
-    private static interface EnvironmentTest {
+    private interface EnvironmentTest {
         ErrorInformation doTest();
     }
 
@@ -421,43 +451,61 @@ public class ContextManager implements Serializable {
         return new File(applicationPath.getAbsolutePath() + File.separator + configurationFileSetting);
     }
 
-    public File locateApplicationPath()
+    public File locateWebInfFilePath() {
+        final String realPath = servletContext.getRealPath("/WEB-INF");
+
+        if (realPath != null) {
+            final File servletPath = new File(realPath);
+            if (servletPath.exists()) {
+                return servletPath;
+            }
+        }
+
+        return null;
+    }
+
+    public String readSpecifiedApplicationPath() {
+
+        {
+            final String contextName = this.servletContext.getContextPath() == null
+                    ? PwmConstants.PWM_APP_NAME.toLowerCase()
+                    : this.servletContext.getContextPath().replaceAll("^/", ""); // strip leading slash
+
+            // java prop command name
+            final String propertyName = PwmConstants.PWM_APP_NAME.toLowerCase()
+                    + "."
+                    + contextName
+                    + "."
+                    + "applicationPath";
+
+            final String propertyAppPath = System.getProperty(propertyName);
+            if (propertyAppPath != null && !propertyAppPath.isEmpty()) {
+                return propertyAppPath;
+            }
+        }
+
+        {
+            final String contextAppPathSetting = servletContext.getInitParameter(
+                    ContextParameter.applicationPath.toString());
+
+            if (contextAppPathSetting != null && !contextAppPathSetting.isEmpty()) {
+                if (!"unspecified".equals(contextAppPathSetting)) {
+                    return contextAppPathSetting;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    public File deriveApplicationPath()
             throws PwmException
     {
         if (this.servletContext == null) {
             return null;
         }
 
-        // read system property.
-        {
-            final String propertyName = PwmConstants.PWM_APP_NAME.toLowerCase() + ".sspr.applicationPath";
-            final String propertyAppPath = System.getProperty(propertyName);
-            if (propertyAppPath != null && !propertyAppPath.isEmpty()) {
-                return new File(propertyAppPath);
-            }
-        }
-
-
-        final String contextAppPathSetting = servletContext.getInitParameter(
-                ContextParameter.applicationPath.toString());
-
-        // first try to check if context setting is a real directory.
-        try {
-            File file = new File(contextAppPathSetting);
-            if (file.exists() && file.isDirectory()) {
-                return file;
-            }
-        } catch (Exception e) {
-            outputError("error testing context " + ContextParameter.applicationPath.toString() + " parameter to verify if it is a valid file path: " + e.getMessage());
-        }
-
-        final String prefixedRealPath = contextAppPathSetting == null
-                ? "/" :
-                contextAppPathSetting.startsWith("/")
-                        ? contextAppPathSetting
-                        : "/" + contextAppPathSetting;
-
-        final String realPath = servletContext.getRealPath(prefixedRealPath);
+        final String realPath = servletContext.getRealPath("/WEB-INF");
 
         if (realPath != null) {
             final File servletPath = new File(realPath);

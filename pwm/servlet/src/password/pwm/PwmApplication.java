@@ -64,6 +64,8 @@ import password.pwm.wordlist.SharedHistoryManager;
 import password.pwm.wordlist.WordlistManager;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -78,7 +80,6 @@ public class PwmApplication {
     // ----------------------------- CONSTANTS ----------------------------
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmApplication.class);
     private static final String DEFAULT_INSTANCE_ID = "-1";
-
 
     public enum AppAttribute {
         INSTANCE_ID("context_instanceID"),
@@ -96,7 +97,7 @@ public class PwmApplication {
 
         private String key;
 
-        private AppAttribute(String key) {
+        AppAttribute(String key) {
             this.key = key;
         }
 
@@ -117,8 +118,11 @@ public class PwmApplication {
     private final Date startupTime = new Date();
     private Date installTime = new Date();
     private ErrorInformation lastLocalDBFailure = null;
-    private File applicationPath;
-    private File configurationFile;
+
+    private final PwmEnvironment pwmEnvironment;
+    private final File applicationPath;
+    private final File webInfPath;
+    private final File configurationFile;
 
     private MODE applicationMode;
 
@@ -144,22 +148,165 @@ public class PwmApplication {
     ));
 
 
-    public PwmApplication(
-            final Configuration config,
-            final MODE applicationMode,
-            final File applicationPath,
-            final boolean initLogging,
-            final File configurationFile
-    )
+    private PwmApplication(final PwmEnvironment pwmEnvironment)
+            throws PwmUnrecoverableException
     {
-        this.configuration = config;
-        this.applicationMode = applicationMode;
-        this.applicationPath = applicationPath;
-        this.configurationFile = configurationFile;
-        initialize(initLogging);
+        this.pwmEnvironment = pwmEnvironment;
+        this.configuration = pwmEnvironment.config;
+        this.applicationMode = pwmEnvironment.applicationMode;
+        this.applicationPath = pwmEnvironment.applicationPath;
+        this.configurationFile = pwmEnvironment.configurationFile;
+        this.webInfPath = pwmEnvironment.webInfPath;
+
+        try {
+            initialize(pwmEnvironment.initLogging);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.fatal(e.getMessage());
+            throw e;
+        }
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
+    private void initialize(final boolean initLogging)
+            throws PwmUnrecoverableException
+    {
+        final Date startTime = new Date();
+
+        verifyIfApplicationPathIsSetProperly(pwmEnvironment);
+
+        // initialize log4j
+        if (initLogging) {
+            final String log4jFileName = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE);
+            final File log4jFile = Helper.figureFilepath(log4jFileName, applicationPath);
+            final String consoleLevel, fileLevel;
+            switch (getApplicationMode()) {
+                case ERROR:
+                case NEW:
+                    consoleLevel = PwmLogLevel.TRACE.toString();
+                    fileLevel = PwmLogLevel.TRACE.toString();
+                    break;
+
+                default:
+                    consoleLevel = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_STDOUT_LEVEL);
+                    fileLevel = configuration.readSettingAsString(PwmSetting.EVENTS_FILE_LEVEL);
+                    break;
+            }
+
+            PwmLogManager.initializeLogger(this, configuration, log4jFile, consoleLevel, applicationPath, fileLevel);
+
+            switch (getApplicationMode()) {
+                case RUNNING:
+                    break;
+
+                case ERROR:
+                    LOGGER.fatal("starting up in ERROR mode! Check log or health check information for cause");
+                    break;
+
+                default:
+                    LOGGER.trace("setting log level to TRACE because application mode is " + getApplicationMode());
+                    break;
+            }
+        }
+
+        LOGGER.info("initializing, application mode=" + getApplicationMode()
+                        + ", applicationPath=" + (applicationPath == null ? "null" : applicationPath.getAbsolutePath())
+                        + ", configurationFile=" + (configurationFile == null ? "null" : configurationFile.getAbsolutePath())
+        );
+
+        this.localDB = Initializer.initializeLocalDB(this);
+        this.localDBLogger = PwmLogManager.initializeLocalDBLogger(this);
+
+        // log the loaded configuration
+        LOGGER.info("loaded configuration: \n" + configuration.toString());
+
+        // read the pwm servlet instance id
+        instanceID = fetchInstanceID(localDB, this);
+        LOGGER.info("using '" + getInstanceID() + "' for instance's ID (instanceID)");
+
+        // read the pwm installation date
+        installTime = fetchInstallDate(startupTime);
+        LOGGER.debug("this application instance first installed on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(installTime));
+
+        LOGGER.info(logEnvironment());
+        LOGGER.info(logDebugInfo());
+
+        for (final Class<? extends PwmService> serviceClass : PWM_SERVICE_CLASSES) {
+            final PwmService newServiceInstance;
+            try {
+                final Object newInstance = serviceClass.newInstance();
+                newServiceInstance = (PwmService)newInstance;
+            } catch (Exception e) {
+                final String errorMsg = "unexpected error instantiating service class '" + serviceClass.getName() + "', error: " + e.toString();
+                LOGGER.fatal(errorMsg,e);
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,errorMsg));
+            }
+
+            try {
+                LOGGER.debug("initializing service " + serviceClass.getName());
+                newServiceInstance.init(this);
+                LOGGER.debug("initialization of service " + serviceClass.getName() + " has completed successfully");
+            } catch (PwmException e) {
+                LOGGER.warn("error instantiating service class '" + serviceClass.getName() + "', service will remain unavailable, error: " + e.getMessage());
+            } catch (Exception e) {
+                String errorMsg = "unexpected error instantiating service class '" + serviceClass.getName() + "', cannot load, error: " + e.getMessage();
+                if (e.getCause() != null) {
+                    errorMsg += ", cause: " + e.getCause();
+                }
+                LOGGER.fatal(errorMsg);
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,errorMsg));
+            }
+            pwmServices.put(serviceClass,newServiceInstance);
+        }
+
+        final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
+        LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
+        getStatisticsManager().incrementValue(Statistic.PWM_STARTUPS);
+        LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
+
+        // detect if config has been modified since previous startup
+        try {
+            final String previousHash = readAppAttribute(AppAttribute.CONFIG_HASH);
+            final String currentHash = configuration.configurationHash();
+            if (previousHash == null || !previousHash.equals(currentHash)) {
+                writeAppAttribute(AppAttribute.CONFIG_HASH, currentHash);
+                LOGGER.warn("configuration checksum does not match previously seen checksum, configuration has been modified since last startup");
+                if (this.getAuditManager() != null) {
+                    final String modifyMessage = "configuration was modified directly (not using ConfigEditor UI)";
+                    this.getAuditManager().submit(SystemAuditRecord.create(
+                            AuditEvent.MODIFY_CONFIGURATION,
+                            modifyMessage,
+                            this.getInstanceID()
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.debug("unable to detect if configuration has been modified since previous startup: " + e.getMessage());
+        }
+
+        if (this.getConfig() != null) {
+            final Map<AppProperty,String> nonDefaultProperties = getConfig().readAllNonDefaultAppProperties();
+            if (nonDefaultProperties != null && !nonDefaultProperties.isEmpty()) {
+                final Map<String,String> tempMap = new LinkedHashMap<>();
+                for (final AppProperty loopProperty : nonDefaultProperties.keySet()) {
+                    tempMap.put(loopProperty.getKey(), nonDefaultProperties.get(loopProperty));
+                }
+                LOGGER.trace("non-default app properties read from configuration: " + JsonUtil.serializeMap(tempMap));
+            } else {
+                LOGGER.trace("no non-default app properties in configuration");
+            }
+        }
+
+        // send system audit event
+        final SystemAuditRecord auditRecord = SystemAuditRecord.create(
+                AuditEvent.STARTUP,
+                null,
+                getInstanceID()
+        );
+        try {
+            getAuditManager().submit(auditRecord);
+        } catch (PwmException e) {
+            LOGGER.warn("unable to submit alert event " + JsonUtil.serialize(auditRecord));
+        }
+    }
 
     public String getInstanceID() {
         return instanceID;
@@ -178,7 +325,6 @@ public class PwmApplication {
     {
         final ChaiProvider proxiedProvider = getProxyChaiProvider(userIdentity.getLdapProfileID());
         return ChaiFactory.createChaiUser(userIdentity.getUserDN(), proxiedProvider);
-
     }
 
     public ChaiProvider getProxyChaiProvider(final String identifier)
@@ -239,7 +385,6 @@ public class PwmApplication {
         return lastLocalDBFailure;
     }
 
-
     public TokenService getTokenService() {
         return (TokenService)pwmServices.get(TokenService.class);
     }
@@ -262,144 +407,6 @@ public class PwmApplication {
     public synchronized DatabaseAccessorImpl getDatabaseAccessor()
     {
         return (DatabaseAccessorImpl)pwmServices.get(DatabaseAccessorImpl.class);
-    }
-
-    private void initialize(final boolean initLogging) {
-        final Date startTime = new Date();
-
-        // initialize log4j
-        if (initLogging) {
-            final String log4jFileName = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE);
-            final File log4jFile = Helper.figureFilepath(log4jFileName, applicationPath);
-            final String consoleLevel, fileLevel;
-            switch (getApplicationMode()) {
-                case ERROR:
-                case NEW:
-                    consoleLevel = PwmLogLevel.TRACE.toString();
-                    fileLevel = PwmLogLevel.TRACE.toString();
-                    break;
-
-                default:
-                    consoleLevel = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_STDOUT_LEVEL);
-                    fileLevel = configuration.readSettingAsString(PwmSetting.EVENTS_FILE_LEVEL);
-                    break;
-            }
-
-            PwmLogManager.initializeLogger(this, configuration, log4jFile, consoleLevel, applicationPath, fileLevel);
-
-            switch (getApplicationMode()) {
-                case RUNNING:
-                    break;
-
-                case ERROR:
-                    LOGGER.fatal("starting up in ERROR mode! Check log or health check information for cause");
-                    break;
-
-                default:
-                    LOGGER.trace("setting log level to TRACE because application mode is " + getApplicationMode());
-                    break;
-            }
-        }
-
-        LOGGER.info("initializing, application mode=" + getApplicationMode()
-                + ", applicationPath=" + (applicationPath == null ? "null" : applicationPath.getAbsolutePath())
-                + ", configurationFile=" + (configurationFile == null ? "null" : configurationFile.getAbsolutePath())
-        );
-
-        this.localDB = Initializer.initializeLocalDB(this);
-        this.localDBLogger = PwmLogManager.initializeLocalDBLogger(this);
-
-        // log the loaded configuration
-        LOGGER.info("loaded configuration: \n" + configuration.toString());
-
-        // read the pwm servlet instance id
-        instanceID = fetchInstanceID(localDB, this);
-        LOGGER.info("using '" + getInstanceID() + "' for instance's ID (instanceID)");
-
-        // read the pwm installation date
-        installTime = fetchInstallDate(startupTime);
-        LOGGER.debug("this application instance first installed on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(installTime));
-
-        LOGGER.info(logEnvironment());
-        LOGGER.info(logDebugInfo());
-
-        for (final Class serviceClass : PWM_SERVICE_CLASSES) {
-            final PwmService newServiceInstance;
-            try {
-                final Object newInstance = serviceClass.newInstance();
-                newServiceInstance = (PwmService)newInstance;
-            } catch (Exception e) {
-                final String errorMsg = "unexpected error instantiating service class '" + serviceClass.getName() + "', error: " + e.toString();
-                LOGGER.fatal(errorMsg,e);
-                throw new IllegalStateException(errorMsg);
-            }
-
-            try {
-                LOGGER.debug("initializing service " + serviceClass.getName());
-                newServiceInstance.init(this);
-                LOGGER.debug("initialization of service " + serviceClass.getName() + " has completed successfully");
-            } catch (PwmException e) {
-                LOGGER.warn("error instantiating service class '" + serviceClass.getName() + "', service will remain unavailable, error: " + e.getMessage());
-            } catch (Exception e) {
-                String errorMsg = "unexpected error instantiating service class '" + serviceClass.getName() + "', cannot load, error: " + e.getMessage();
-                if (e.getCause() != null) {
-                    errorMsg += ", cause: " + e.getCause();
-                }
-                LOGGER.fatal(errorMsg);
-                throw new IllegalStateException(errorMsg,e);
-            }
-            pwmServices.put(serviceClass,newServiceInstance);
-        }
-
-        final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
-        LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
-        getStatisticsManager().incrementValue(Statistic.PWM_STARTUPS);
-        LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
-
-        // detect if config has been modified since previous startup
-        try {
-            final String previousHash = readAppAttribute(AppAttribute.CONFIG_HASH);
-            final String currentHash = configuration.configurationHash();
-            if (previousHash == null || !previousHash.equals(currentHash)) {
-                writeAppAttribute(AppAttribute.CONFIG_HASH, currentHash);
-                LOGGER.warn("configuration checksum does not match previously seen checksum, configuration has been modified since last startup");
-                if (this.getAuditManager() != null) {
-                    final String modifyMessage = "configuration was modified directly (not using ConfigEditor UI)";
-                    this.getAuditManager().submit(SystemAuditRecord.create(
-                            AuditEvent.MODIFY_CONFIGURATION,
-                            modifyMessage,
-                            this.getInstanceID()
-                    ));
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.debug("unable to detect if configuration has been modified since previous startup: " + e.getMessage());
-        }
-
-        if (this.getConfig() != null) {
-            final Map<AppProperty,String> nonDefaultProperties = getConfig().readAllNonDefaultAppProperties();
-            if (nonDefaultProperties != null && !nonDefaultProperties.isEmpty()) {
-                final Map<String,String> tempMap = new LinkedHashMap<>();
-                for (final AppProperty loopProperty : nonDefaultProperties.keySet()) {
-                    tempMap.put(loopProperty.getKey(), nonDefaultProperties.get(loopProperty));
-                }
-                LOGGER.trace("non-default app properties read from configuration: " + JsonUtil.serializeMap(tempMap));
-            } else {
-                LOGGER.trace("no non-default app properties in configuration");
-            }
-        }
-
-        // send system audit event
-        final SystemAuditRecord auditRecord = SystemAuditRecord.create(
-                AuditEvent.STARTUP,
-                null,
-                getInstanceID()
-        );
-        try {
-            getAuditManager().submit(auditRecord);
-        } catch (PwmException e) {
-            LOGGER.warn("unable to submit alert event " + JsonUtil.serialize(auditRecord));
-        }
     }
 
     private Date fetchInstallDate(final Date startupTime) {
@@ -660,6 +667,122 @@ public class PwmApplication {
             }
         } catch (Exception e) {
             LOGGER.error("error retrieving key '" + appAttribute.getKey() + "' installation date from localDB: " + e.getMessage());
+        }
+    }
+
+    public File getWebInfPath() {
+        return webInfPath;
+    }
+
+    private static void verifyIfApplicationPathIsSetProperly(final PwmEnvironment pwmEnvironment)
+            throws PwmUnrecoverableException
+    {
+        final File webInfPath = pwmEnvironment.webInfPath;
+        final File applicationPath = pwmEnvironment.applicationPath;
+
+        if (applicationPath == null) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, "unable to determine valid applicationPath"));
+        }
+
+        if (!applicationPath.exists()) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, "applicationPath \"" + applicationPath.getAbsolutePath() + "\" does not exist"));
+        }
+
+        if (!applicationPath.canRead()) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, "unable to read from applicationPath \"" + applicationPath.getAbsolutePath() + "\""));
+        }
+
+        if (!applicationPath.canWrite()) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, "unable to write to applicationPath \"" + applicationPath.getAbsolutePath() + "\""));
+        }
+
+        if (webInfPath == null) {
+            return;
+        }
+
+        final File infoFile = new File(webInfPath.getAbsolutePath() + File.separator + PwmConstants.APPLICATION_PATH_INFO_FILE);
+        if (pwmEnvironment.applicationPathType == PwmEnvironment.ApplicationPathType.derived) {
+            LOGGER.trace("checking " + infoFile.getAbsolutePath() + " status, (applicationPath=" + PwmEnvironment.ApplicationPathType.derived);
+            if (infoFile.exists()) {
+                final String errorMsg = "The file \"" + infoFile.getAbsolutePath() + "\" exists, but applicationPath was not explicitly specified."
+                        + "  This file must be removed, or an explicit applicationPath parameter must be specified.";
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,errorMsg));
+            } else {
+                LOGGER.trace(infoFile.getAbsolutePath() + " does not exist");
+            }
+        }
+
+        if (webInfPath.equals(applicationPath)) {
+            LOGGER.trace("webInfPath and applicationPath are same");
+            return;
+        }
+
+        if (pwmEnvironment.applicationPathType == PwmEnvironment.ApplicationPathType.specified) {
+            try {
+                final FileOutputStream fos = new FileOutputStream(infoFile);
+                final Properties outputProperties = new Properties();
+                outputProperties.setProperty("lastApplicationPath", applicationPath.getAbsolutePath());
+                outputProperties.store(fos, "Marker file to record a previously specified applicationPath");
+            } catch (IOException e) {
+                LOGGER.warn("unable to write marker properties file in WEB-INF directory");
+            }
+        }
+    }
+
+    public static class PwmEnvironment {
+        private MODE applicationMode = MODE.ERROR;
+
+        private Configuration config;
+        private File applicationPath;
+        private boolean initLogging;
+        private File configurationFile;
+        private File webInfPath;
+        private ApplicationPathType applicationPathType = ApplicationPathType.derived;
+
+        public enum ApplicationPathType {
+            derived,
+            specified,
+        }
+
+        public PwmEnvironment setConfig(Configuration config) {
+            this.config = config;
+            return this;
+        }
+
+        public PwmEnvironment setApplicationMode(MODE applicationMode) {
+            this.applicationMode = applicationMode;
+            return this;
+        }
+
+        public PwmEnvironment setApplicationPath(File applicationPath) {
+            this.applicationPath = applicationPath;
+            return this;
+        }
+
+        public PwmEnvironment setInitLogging(boolean initLogging) {
+            this.initLogging = initLogging;
+            return this;
+        }
+
+        public PwmEnvironment setConfigurationFile(File configurationFile) {
+            this.configurationFile = configurationFile;
+            return this;
+        }
+
+        public PwmEnvironment setWebInfPath(File webInfPath) {
+            this.webInfPath = webInfPath;
+            return this;
+        }
+
+        public PwmEnvironment setApplicationPathType(ApplicationPathType applicationPathType) {
+            this.applicationPathType = applicationPathType;
+            return this;
+        }
+
+        public PwmApplication createPwmApplication()
+                throws PwmUnrecoverableException
+        {
+            return new PwmApplication(this);
         }
     }
 }

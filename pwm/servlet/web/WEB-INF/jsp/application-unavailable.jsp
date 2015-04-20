@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.PwmConstants" %>
+<%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.error.PwmError" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -23,8 +24,10 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%
+    final ErrorInformation startupError = (ErrorInformation)request.getAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo.toString());
+%>
 <html>
 <head>
     <title><%=PwmConstants.PWM_APP_NAME%></title>
@@ -46,7 +49,12 @@
         <h2><%=PwmError.ERROR_APP_UNAVAILABLE.toInfo().toDebugStr()%></h2>
         <br/>
         <br/>
-        <p><%=PwmError.ERROR_APP_UNAVAILABLE.toInfo().toUserStr(request.getLocale(),null)%></p>
+        <p><%=PwmError.ERROR_APP_UNAVAILABLE.toInfo().toUserStr(request.getLocale(), null)%></p>
+        <% if (startupError != null) { %>
+        <br/>
+        <br/>
+        <p><%=startupError.toDebugStr()%></p>
+        <% } %>
     </div>
     <div class="push"></div>
 </div>

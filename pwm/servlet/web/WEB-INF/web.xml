@@ -31,10 +31,10 @@
     <context-param>
         <description>
             Explicit location of application working directory. If a relative path is specified, it is relative to the
-            deployed applications base directory.
+            deployed applications base directory.  If the value is "unspecified", the /WEB-INF directory is assumed.
         </description>
         <param-name>applicationPath</param-name>
-        <param-value>/WEB-INF</param-value>
+        <param-value>unspecified</param-value>
     </context-param>
     <context-param>
         <description>

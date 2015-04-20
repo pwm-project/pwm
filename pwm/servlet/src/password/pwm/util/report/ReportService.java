@@ -80,7 +80,7 @@ public class ReportService implements PwmService {
     }
 
     public void clear()
-            throws LocalDBException, PwmUnrecoverableException 
+            throws LocalDBException, PwmUnrecoverableException
     {
         final Date startTime = new Date();
         LOGGER.info(PwmConstants.REPORTING_SESSION_LABEL,"clearing cached report data");
@@ -174,7 +174,7 @@ public class ReportService implements PwmService {
     }
 
     private void initTempData()
-            throws LocalDBException, PwmUnrecoverableException 
+            throws LocalDBException, PwmUnrecoverableException
     {
         final String cleanFlag = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG);
         if (!"true".equals(cleanFlag)) {
@@ -192,7 +192,7 @@ public class ReportService implements PwmService {
             LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL,"error loading cached report status info into memory: " + e.getMessage());
         }
         reportStatus = reportStatus == null ? new ReportStatusInfo(settings.getSettingsHash()) : reportStatus; //safety
-        
+
         final String currentSettingCache = settings.getSettingsHash();
         if (reportStatus.getSettingsHash() != null && !reportStatus.getSettingsHash().equals(currentSettingCache)) {
             LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL,"configuration has changed, will clear cached report data");
@@ -201,7 +201,7 @@ public class ReportService implements PwmService {
 
         pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG, "false");
     }
-    
+
     @Override
     public List<HealthRecord> healthCheck()
     {
@@ -236,7 +236,7 @@ public class ReportService implements PwmService {
         reportStatus.setInProgress(true);
         reportStatus.setStartDate(new Date());
         try {
-            final Queue<UserIdentity> allUsers = new LinkedList<>(generateListOfUsers());
+            final Queue<UserIdentity> allUsers = new LinkedList<>(getListOfUsers());
             reportStatus.setTotal(allUsers.size());
             while (status == STATUS.OPEN && !allUsers.isEmpty() && !cancelFlag) {
                 final long startUpdateTime = System.currentTimeMillis();
@@ -385,22 +385,33 @@ public class ReportService implements PwmService {
         return reportStatus;
     }
 
-    private List<UserIdentity> generateListOfUsers()
+    private List<UserIdentity> getListOfUsers()
+            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+    {
+        return readAllUsersFromLdap(pwmApplication, settings.getSearchFilter(), settings.getMaxSearchSize());
+    }
+
+    private static List<UserIdentity> readAllUsersFromLdap(
+            final PwmApplication pwmApplication,
+            final String searchFilter,
+            final int maxResults
+    )
             throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
     {
         final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication,null);
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
         searchConfiguration.setEnableValueEscaping(false);
         searchConfiguration.setSearchTimeout(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT)));
-        if (settings.getSearchFilter() == null) {
+
+        if (searchFilter == null) {
             searchConfiguration.setUsername("*");
         } else {
-            searchConfiguration.setFilter(settings.getSearchFilter());
+            searchConfiguration.setFilter(searchFilter);
         }
 
         LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"beginning UserReportService user search using parameters: " + (JsonUtil.serialize(searchConfiguration)));
 
-        final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(searchConfiguration, settings.getMaxSearchSize(), Collections.<String>emptyList());
+        final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(searchConfiguration, maxResults, Collections.<String>emptyList());
         LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"user search found " + searchResults.size() + " users for reporting");
         final List<UserIdentity> returnList = new ArrayList<>(searchResults.keySet());
         Collections.shuffle(returnList);
@@ -458,9 +469,9 @@ public class ReportService implements PwmService {
             storageKeyIterator.close();
         }
     }
-    
-    public void outputSummaryToCsv(final OutputStream outputStream, final Locale locale) 
-            throws IOException 
+
+    public void outputSummaryToCsv(final OutputStream outputStream, final Locale locale)
+            throws IOException
     {
         final List<ReportSummaryData.PresentationRow> outputList = summaryData.asPresentableCollection(pwmApplication.getConfig(),locale);
         final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
@@ -472,7 +483,7 @@ public class ReportService implements PwmService {
             headerRow.add(presentationRow.getPct());
             csvPrinter.printRecord(headerRow);
         }
-        
+
         csvPrinter.close();
     }
 

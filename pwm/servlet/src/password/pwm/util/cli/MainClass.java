@@ -32,6 +32,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -49,6 +50,8 @@ public class MainClass {
     private static final PwmLogger LOGGER = PwmLogger.forClass(MainClass.class);
 
     private static final String LOGGING_PATTERN = "%d{yyyy-MM-dd HH:mm:ss}, %-5p, %c{2}, %m%n";
+
+    private static MainOptions MAIN_OPTIONS = new MainOptions();
 
     public static final Map<String,CliCommand> COMMANDS;
     static {
@@ -71,6 +74,7 @@ public class MainClass {
         commandList.add(new VersionCommand());
         commandList.add(new LdapSchemaExtendCommand());
         commandList.add(new ConfigDeleteCommand());
+        commandList.add(new ResponseStatsCommand());
 
         final Map<String,CliCommand> sortedMap = new TreeMap<>();
         for (CliCommand command : commandList) {
@@ -207,8 +211,6 @@ public class MainClass {
         return returnObj;
     }
 
-    static MainOptions MAIN_OPTIONS = new MainOptions();
-
     public static void main(String[] args)
             throws Exception
     {
@@ -259,7 +261,7 @@ public class MainClass {
             if (arg != null) {
                 if (arg.startsWith(OPT_DEBUG_LEVEL)) {
                     if (arg.length() < OPT_DEBUG_LEVEL.length() + 2) {
-                        out(OPT_DEBUG_LEVEL + " switch must include level (example: -debugLevel=TRACE");
+                        out(OPT_DEBUG_LEVEL + " option must include level (example: -debugLevel=TRACE");
                         System.exit(-1);
                     } else {
                         final String levelStr = arg.substring(OPT_DEBUG_LEVEL.length() + 1, arg.length());
@@ -274,7 +276,7 @@ public class MainClass {
                     }
                 } else  if (arg.startsWith(OPT_APP_PATH)) {
                     if (arg.length() < OPT_DEBUG_LEVEL.length() + 2) {
-                        out(OPT_APP_PATH + " switch must include value (example: -debugLevel=/tmp/applicationPath");
+                        out(OPT_APP_PATH + " option must include value (example: -debugLevel=/tmp/applicationPath");
                         System.exit(-1);
                     } else {
                         final String pathStr = arg.substring(OPT_DEBUG_LEVEL.length() + 1, arg.length());
@@ -286,6 +288,7 @@ public class MainClass {
                             exitWithError(" specified applicationPath '" + pathStr + "' must be a directory");
                         }
                         MAIN_OPTIONS.applicationPath = pathValue;
+                        MAIN_OPTIONS.applicationPathType = PwmApplication.PwmEnvironment.ApplicationPathType.specified;
                     }
                 } else if (arg.equals(OPT_FORCE)) {
                     MAIN_OPTIONS.forceFlag = true;
@@ -343,10 +346,17 @@ public class MainClass {
     }
 
     static PwmApplication loadPwmApplication(final File applicationPath, final Configuration config, final File configurationFile, final boolean readonly)
-            throws LocalDBException
+            throws LocalDBException, PwmUnrecoverableException
     {
         final PwmApplication.MODE mode = readonly ? PwmApplication.MODE.READ_ONLY : PwmApplication.MODE.RUNNING;
-        final PwmApplication pwmApplication = new PwmApplication(config, mode, applicationPath, false, configurationFile);
+        final PwmApplication pwmApplication = new PwmApplication.PwmEnvironment()
+                .setConfig(config)
+                .setApplicationMode(mode)
+                .setApplicationPath(applicationPath)
+                .setApplicationPathType(MAIN_OPTIONS.applicationPathType)
+                .setInitLogging(false)
+                .setConfigurationFile(configurationFile)
+                .setWebInfPath(null).createPwmApplication();
         final PwmApplication.MODE runningMode = pwmApplication.getApplicationMode();
 
         if (runningMode != mode) {
@@ -368,6 +378,7 @@ public class MainClass {
     public static class MainOptions {
         private PwmLogLevel pwmLogLevel = null;
         private File applicationPath = null;
+        private PwmApplication.PwmEnvironment.ApplicationPathType applicationPathType = PwmApplication.PwmEnvironment.ApplicationPathType.derived;
         private boolean forceFlag = false;
 
         public PwmLogLevel getPwmLogLevel() {
@@ -380,6 +391,10 @@ public class MainClass {
 
         public boolean isForceFlag() {
             return forceFlag;
+        }
+
+        public PwmApplication.PwmEnvironment.ApplicationPathType getApplicationPathType() {
+            return applicationPathType;
         }
     }
 

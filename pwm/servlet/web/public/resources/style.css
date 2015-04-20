@@ -540,7 +540,7 @@ img.qrcodeimage {
 
 #peoplesearch-searchResultsGrid {
     min-height: 400px;
-    height: 70vh;
+    height: 60vh;
 }
 
 #helpdesk-searchResultsGrid {
@@ -691,4 +691,26 @@ progress:not([value]) {
 
 .dgrid-row-odd {
     background: #fdfdfd;
+}
+
+.panel-orgChart-person {
+    margin:0;
+    display: inline-block;
+    background-color: #D4D4D4;
+    padding: 3px;
+    border-radius: 3px;
+    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #D4D4D4), color-stop(1, #EEEEEE) );
+    background:linear-gradient(to bottom, #D4D4D4 5%, #EEEEEE 100% );
+    margin-bottom: 5px;
+    width:auto;
+}
+
+.panel-orgChart-child {
+    display: inline-block;
+    margin-left: 25px;
+}
+
+.img-orgChart {
+    height:25px;
+    width:25px
 }
