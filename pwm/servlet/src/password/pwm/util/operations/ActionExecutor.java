@@ -73,6 +73,8 @@ public class ActionExecutor {
     )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
+        LOGGER.trace(pwmSession, "preparing to execute " + actionConfiguration.getType() + " action " + actionConfiguration.getName());
+
         switch (actionConfiguration.getType()) {
             case ldap:
                 executeLdapAction(pwmSession, actionConfiguration, actionExecutorSettings);
@@ -83,7 +85,7 @@ public class ActionExecutor {
                 break;
         }
 
-        LOGGER.info(pwmSession,"action " + actionConfiguration.getName() + " completed successfully");
+        LOGGER.info(pwmSession, "action " + actionConfiguration.getName() + " completed successfully");
     }
 
     private void executeLdapAction(
@@ -95,9 +97,18 @@ public class ActionExecutor {
     {
         final String attributeName = actionConfiguration.getAttributeName();
         final String attributeValue = actionConfiguration.getAttributeValue();
-        final ChaiUser theUser = settings.getChaiUser() != null ?
-                settings.getChaiUser() :
-                pwmApplication.getProxiedChaiUser(settings.getUserIdentity());
+
+        final ChaiUser theUser;
+        if (settings.getChaiUser() != null) {
+            theUser = settings.getChaiUser();
+        } else {
+            if (settings.getUserIdentity() == null) {
+                final String errorMsg = "attempt to execute lap action but neither chaiUser or userIdentity is specified";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+            theUser = pwmApplication.getProxiedChaiUser(settings.getUserIdentity());
+        }
 
         writeLdapAttribute(
                 pwmSession,

@@ -339,6 +339,7 @@ public class ActivateUserServlet extends PwmServlet {
                     final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
                     settings.setExpandPwmMacros(true);
                     settings.setMacroMachine(macroMachine);
+                    settings.setUserIdentity(userIdentity);
                     final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
                     actionExecutor.executeActions(configValues, settings, pwmSession);
                 }
@@ -375,13 +376,14 @@ public class ActivateUserServlet extends PwmServlet {
                         throws PwmUnrecoverableException {
                     try {
                         {  // execute configured actions
+                            LOGGER.debug(pwmSession.getLabel(), "executing post-activate configured actions to user " + userIdentity.toDisplayString());
+
                             final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
-                            final ChaiUser proxiedUser = pwmApplication.getProxiedChaiUser(userIdentity);
-                            LOGGER.debug(pwmSession.getLabel(), "executing post-activate configured actions to user " + proxiedUser.getEntryDN());
                             final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction(PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES);
                             final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
                             settings.setExpandPwmMacros(true);
                             settings.setMacroMachine(macroMachine);
+                            settings.setUserIdentity(userIdentity);
                             final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
                             actionExecutor.executeActions(configValues, settings, pwmSession);
                         }

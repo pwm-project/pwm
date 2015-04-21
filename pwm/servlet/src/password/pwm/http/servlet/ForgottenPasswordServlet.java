@@ -973,6 +973,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
                         settings.setExpandPwmMacros(true);
                         settings.setMacroMachine(
                                 pwmSession.getSessionManager().getMacroMachine(pwmRequest.getPwmApplication()));
+                        settings.setUserIdentity(userIdentity);
                         final ActionExecutor actionExecutor = new ActionExecutor(pwmRequest.getPwmApplication());
                         actionExecutor.executeActions(configValues, settings, pwmSession);
                     }
