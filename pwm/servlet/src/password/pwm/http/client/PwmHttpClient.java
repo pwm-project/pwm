@@ -59,13 +59,7 @@ public class PwmHttpClient {
 
     public static HttpClient getHttpClient(final Configuration configuration) {
         DefaultHttpClient httpClient;
-        try {
-            ClientConnectionManager clientConnectionManager = ccm();
-            httpClient = new DefaultHttpClient(ccm());
-        } catch (Exception e) {
-            e.printStackTrace();
             httpClient = new DefaultHttpClient();
-        }
         final String strValue = configuration.readSettingAsString(PwmSetting.HTTP_PROXY_URL);
         if (strValue != null && strValue.length() > 0) {
             final URI proxyURI = URI.create(strValue);
