@@ -422,12 +422,14 @@ public class GuestRegistrationServlet extends PwmServlet {
                 final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(PwmSetting.GUEST_WRITE_ATTRIBUTES);
                 if (actions != null && !actions.isEmpty()) {
                     final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest, userIdentity);
-                    final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
-                    settings.setExpandPwmMacros(true);
-                    settings.setMacroMachine(macroMachine);
-                    settings.setChaiUser(theUser);
-                    final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
-                    actionExecutor.executeActions(actions, settings, pwmSession);
+
+
+                    final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, theUser)
+                            .setExpandPwmMacros(true)
+                            .setMacroMachine(macroMachine)
+                            .createActionExecutor();
+
+                    actionExecutor.executeActions(actions, pwmSession);
                 }
             }
 

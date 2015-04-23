@@ -42,7 +42,7 @@ public class CachePolicy implements Serializable {
         return policy;
     }
 
-    public static CachePolicy makePolicy(final long expirationMs) {
+    public static CachePolicy makePolicyWithExpirationMS(final long expirationMs) {
         final CachePolicy policy = new CachePolicy();
         final Date expirationDate = new Date(System.currentTimeMillis() + expirationMs);
         policy.expiration = expirationDate;

@@ -385,12 +385,13 @@ public class UpdateProfileServlet extends PwmServlet {
             final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(PwmSetting.UPDATE_PROFILE_WRITE_ATTRIBUTES);
             if (actions != null && !actions.isEmpty()) {
                 LOGGER.debug(pwmRequest, "executing configured actions to user " + userIdentity);
-                final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
-                settings.setExpandPwmMacros(true);
-                settings.setChaiUser(pwmApplication.getProxiedChaiUser(userIdentity));
-                settings.setUserIdentity(userIdentity);
-                final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
-                actionExecutor.executeActions(actions, settings, pwmSession);
+
+
+                final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, userIdentity)
+                        .setExpandPwmMacros(true)
+                        .createActionExecutor();
+
+                actionExecutor.executeActions(actions, pwmSession);
             }
         }
 

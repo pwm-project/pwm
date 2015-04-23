@@ -236,16 +236,21 @@ StringArrayValueHandler.draw = function(settingKey) {
         })(i);
     }
 
-    var addItemButton = document.createElement("button");
-    addItemButton.setAttribute("type", "button");
-    addItemButton.setAttribute("class","btn");
-    addItemButton.setAttribute("id","button-" + settingKey + "-addItem");
-    addItemButton.innerHTML = '<span class="btn-icon fa fa-plus-square"></span>' + (syntax == 'PROFILE' ? "Add Profile" : "Add Value");
-    parentDivElement.appendChild(addItemButton);
+    var settingOptions = PWM_SETTINGS['settings'][settingKey]['options'];
+    if (settingOptions && 'max' in settingOptions && itemCount >= settingOptions['max']) {
+        // item count is already maxed out
+    } else {
+        var addItemButton = document.createElement("button");
+        addItemButton.setAttribute("type", "button");
+        addItemButton.setAttribute("class", "btn");
+        addItemButton.setAttribute("id", "button-" + settingKey + "-addItem");
+        addItemButton.innerHTML = '<span class="btn-icon fa fa-plus-square"></span>' + (syntax == 'PROFILE' ? "Add Profile" : "Add Value");
+        parentDivElement.appendChild(addItemButton);
 
-    PWM_MAIN.addEventHandler('button-' + settingKey + '-addItem','click',function(){
-        StringArrayValueHandler.valueHandler(settingKey,-1);
-    });
+        PWM_MAIN.addEventHandler('button-' + settingKey + '-addItem', 'click', function () {
+            StringArrayValueHandler.valueHandler(settingKey, -1);
+        });
+    }
 };
 
 StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCount, parentDivElement) {
@@ -2420,7 +2425,7 @@ NumericValueHandler.impl = function(settingKey, type, defaultMin, defaultMax) {
         PWM_VAR['clientSettingCache'][settingKey] = data;
         PWM_MAIN.addEventHandler('value_' + settingKey,'input',function(){
             var value = PWM_MAIN.getObject('value_' + settingKey).value;
-            var valid = value.match(/[0-9]+/);
+            var valid = value && value.match(/[0-9]+/);
             if (valid) {
                 console.log('valid');
                 PWM_VAR['clientSettingCache'][settingKey] = data;

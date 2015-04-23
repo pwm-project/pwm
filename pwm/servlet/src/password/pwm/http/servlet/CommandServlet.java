@@ -39,7 +39,6 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Date;
 
@@ -69,9 +68,6 @@ public class CommandServlet extends PwmServlet {
 
         final String action = pwmRequest.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST);
         LOGGER.trace(pwmSession, "received request for action " + action);
-
-        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-        //final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
 
         if (action.equalsIgnoreCase("idleUpdate")) {
             processIdleUpdate(pwmRequest);

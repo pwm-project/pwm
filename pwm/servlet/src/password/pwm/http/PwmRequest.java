@@ -375,7 +375,13 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     public void markPreLoginUrl()
     {
-        final String originalRequestedUrl = this.getHttpServletRequest().getRequestURL().toString();
+        String originalRequestedUrl = this.getHttpServletRequest().getRequestURL().toString();
+        {
+            final String queryString = this.getHttpServletRequest().getQueryString();
+            if (queryString != null && queryString.length() > 0) {
+                originalRequestedUrl += "?" + queryString;
+            }
+        }
         if (pwmSession.getSessionStateBean().getOriginalRequestURL() == null) {
             LOGGER.trace(this, "noted originally requested url as: " + originalRequestedUrl);
             pwmSession.getSessionStateBean().setOriginalRequestURL(originalRequestedUrl);

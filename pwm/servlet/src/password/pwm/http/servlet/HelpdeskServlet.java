@@ -244,15 +244,16 @@ public class HelpdeskServlet extends PwmServlet {
         try {
             final UserIdentity userIdentity = helpdeskBean.getHeldpdeskDetailInfo().getUserInfoBean().getUserIdentity();
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final ActionExecutor actionExecutor = new ActionExecutor(pwmRequest.getPwmApplication());
-            final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
+
             final ChaiUser chaiUser = useProxy ?
                     pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity) :
                     pwmRequest.getPwmSession().getSessionManager().getActor(pwmRequest.getPwmApplication(), userIdentity);
-            settings.setUserIdentity(userIdentity);
-            settings.setChaiUser(chaiUser);
-            settings.setExpandPwmMacros(true);
-            actionExecutor.executeAction(action,settings,pwmRequest.getPwmSession());
+            final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmRequest.getPwmApplication(),chaiUser)
+                    .setExpandPwmMacros(true)
+                    .createActionExecutor();
+
+            actionExecutor.executeAction(action,pwmRequest.getPwmSession());
+
             // mark the event log
             {
                 final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(

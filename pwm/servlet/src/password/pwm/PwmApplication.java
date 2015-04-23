@@ -321,10 +321,14 @@ public class PwmApplication {
     }
 
     public ChaiUser getProxiedChaiUser(final UserIdentity userIdentity)
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
-        final ChaiProvider proxiedProvider = getProxyChaiProvider(userIdentity.getLdapProfileID());
-        return ChaiFactory.createChaiUser(userIdentity.getUserDN(), proxiedProvider);
+        try {
+            final ChaiProvider proxiedProvider = getProxyChaiProvider(userIdentity.getLdapProfileID());
+            return ChaiFactory.createChaiUser(userIdentity.getUserDN(), proxiedProvider);
+        } catch (ChaiUnavailableException e) {
+            throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
+        }
     }
 
     public ChaiProvider getProxyChaiProvider(final String identifier)

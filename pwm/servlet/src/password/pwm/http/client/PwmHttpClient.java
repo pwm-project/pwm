@@ -7,9 +7,15 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.*;
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.util.EntityUtils;
 import password.pwm.PwmApplication;
@@ -23,9 +29,17 @@ import password.pwm.http.PwmSession;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -44,7 +58,14 @@ public class PwmHttpClient {
     }
 
     public static HttpClient getHttpClient(final Configuration configuration) {
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        DefaultHttpClient httpClient;
+        try {
+            ClientConnectionManager clientConnectionManager = ccm();
+            httpClient = new DefaultHttpClient(ccm());
+        } catch (Exception e) {
+            e.printStackTrace();
+            httpClient = new DefaultHttpClient();
+        }
         final String strValue = configuration.readSettingAsString(PwmSetting.HTTP_PROXY_URL);
         if (strValue != null && strValue.length() > 0) {
             final URI proxyURI = URI.create(strValue);
@@ -159,6 +180,40 @@ public class PwmHttpClient {
         final TimeDuration duration = TimeDuration.fromCurrent(startTime);
         LOGGER.trace(pwmSession, "received response (id=" + counter + ") in " + duration.asCompactString() + ": " + httpClientResponse.toDebugString());
         return httpClientResponse;
+    }
+
+    private static ClientConnectionManager ccm()
+            throws NoSuchAlgorithmException, KeyManagementException
+    {
+        SSLContext sslContext = SSLContext.getInstance("SSL");
+
+        // set up a TrustManager that trusts everything
+        sslContext.init(null, new TrustManager[]{new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() {
+                System.out.println("getAcceptedIssuers =============");
+                return new X509Certificate[0];
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs,
+                                           String authType) {
+                System.out.println("checkClientTrusted =============");
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs,
+                                           String authType) {
+                System.out.println("checkServerTrusted =============");
+            }
+        }}, new SecureRandom());
+
+        SSLSocketFactory sf = new SSLSocketFactory(sslContext);
+        HostnameVerifier hostnameVerifier = org.apache.http.conn.ssl.SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
+
+        sf.setHostnameVerifier((X509HostnameVerifier) hostnameVerifier);        Scheme httpsScheme = new Scheme("https", 443, sf);
+        SchemeRegistry schemeRegistry = new SchemeRegistry();
+        schemeRegistry.register(httpsScheme);
+
+
+        return new SingleClientConnManager(schemeRegistry);
     }
 }
 

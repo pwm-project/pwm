@@ -159,16 +159,21 @@ public class SessionManager implements Serializable {
     }
 
     public ChaiUser getActor(final PwmApplication pwmApplication, final UserIdentity userIdentity)
-            throws PwmUnrecoverableException, ChaiUnavailableException {
-        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
+            throws PwmUnrecoverableException
+    {
+        try {
+            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+                throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
+            }
+            final UserIdentity thisIdentity = pwmSession.getUserInfoBean().getUserIdentity();
+            if (thisIdentity.getLdapProfileID() == null || userIdentity.getLdapProfileID() == null) {
+                throw new PwmUnrecoverableException(PwmError.ERROR_NO_LDAP_CONNECTION);
+            }
+            final ChaiProvider provider = this.getChaiProvider();
+            return ChaiFactory.createChaiUser(userIdentity.getUserDN(), provider);
+        } catch (ChaiUnavailableException e) {
+            throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
         }
-        final UserIdentity thisIdentity = pwmSession.getUserInfoBean().getUserIdentity();
-        if (thisIdentity.getLdapProfileID() == null || userIdentity.getLdapProfileID() == null) {
-            throw new PwmUnrecoverableException(PwmError.ERROR_NO_LDAP_CONNECTION);
-        }
-        final ChaiProvider provider = this.getChaiProvider();
-        return ChaiFactory.createChaiUser(userIdentity.getUserDN(), provider);
     }
 
     public UserDataReader getUserDataReader(final PwmApplication pwmApplication)

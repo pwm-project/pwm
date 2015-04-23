@@ -363,13 +363,11 @@ public class PasswordUtility {
                         pwmSession.getSessionManager().getUserDataReader(pwmApplication)
                 );
 
-                final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
-                settings.setExpandPwmMacros(true);
-                settings.setUserIdentity(uiBean.getUserIdentity());
-                settings.setMacroMachine(macroMachine);
-
-                final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
-                actionExecutor.executeActions(configValues, settings, pwmSession);
+                final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, uiBean.getUserIdentity())
+                        .setMacroMachine(macroMachine)
+                        .setExpandPwmMacros(true)
+                        .createActionExecutor();
+                actionExecutor.executeActions(configValues, pwmSession);
             }
         }
 
@@ -454,17 +452,18 @@ public class PasswordUtility {
             actions.addAll(pwmApplication.getConfig().readSettingAsAction(PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES));
             actions.addAll(helpdeskProfile.readSettingAsAction(PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES));
             if (!actions.isEmpty()) {
-                final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
-                settings.setExpandPwmMacros(true);
-                settings.setMacroMachine(MacroMachine.forUser(
-                        pwmApplication,
-                        pwmSession.getSessionStateBean().getLocale(),
-                        sessionLabel,
-                        userIdentity
-                ));
-                settings.setUserIdentity(userIdentity);
-                final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
-                actionExecutor.executeActions(actions,settings,pwmSession);
+
+                final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, userIdentity)
+                        .setMacroMachine(MacroMachine.forUser(
+                                pwmApplication,
+                                pwmSession.getSessionStateBean().getLocale(),
+                                sessionLabel,
+                                userIdentity
+                        ))
+                        .setExpandPwmMacros(true)
+                        .createActionExecutor();
+
+                actionExecutor.executeActions(actions,pwmSession);
             }
         }
 
@@ -536,7 +535,6 @@ public class PasswordUtility {
             ChaiProvider loopProvider = null;
             try {
                 loopProvider = ChaiProviderFactory.createProvider(loopConfiguration);
-                final ChaiUser loopUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), loopProvider);
                 final Date lastModifiedDate = determinePwdLastModified(pwmApplication, sessionLabel, userIdentity);
                 returnValue.put(loopReplicaUrl, lastModifiedDate);
             } catch (ChaiUnavailableException e) {
@@ -818,7 +816,7 @@ public class PasswordUtility {
         final CachePolicy cachePolicy;
         {
             final long cacheLifetimeMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_PWRULECHECK_LIFETIME_MS));
-            cachePolicy = CachePolicy.makePolicy(cacheLifetimeMS);
+            cachePolicy = CachePolicy.makePolicyWithExpirationMS(cacheLifetimeMS);
         }
 
         if (password == null) {

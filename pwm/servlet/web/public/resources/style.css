@@ -694,7 +694,8 @@ progress:not([value]) {
 }
 
 .panel-orgChart-person {
-    margin:0;
+    margin-left:auto;
+    margin-right:auto;
     display: inline-block;
     background-color: #D4D4D4;
     padding: 3px;
@@ -705,9 +706,13 @@ progress:not([value]) {
     width:auto;
 }
 
-.panel-orgChart-child {
+.panel-orgChart-sibling {
     display: inline-block;
     margin-left: 25px;
+}
+
+.panel-orgChart-displayName-1 {
+    font-weight: bold;
 }
 
 .img-orgChart {

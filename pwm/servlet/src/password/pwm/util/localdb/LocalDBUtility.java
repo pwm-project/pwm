@@ -107,8 +107,10 @@ public class LocalDBUtility {
 
         final CSVPrinter csvPrinter = Helper.makeCsvPrinter(new GZIPOutputStream(outputStream));
         try {
+            csvPrinter.printComment(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " LocalDB export on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
             for (LocalDB.DB loopDB : LocalDB.DB.values()) {
                 if (!BACKUP_IGNORE_DBs.contains(loopDB)) {
+                    csvPrinter.printComment("Export of " + loopDB.toString());
                     final LocalDB.LocalDBIterator<String> localDBIterator = localDB.iterator(loopDB);
                     try {
                         while (localDBIterator.hasNext()) {
@@ -124,6 +126,7 @@ public class LocalDBUtility {
             }
         } finally {
             if (csvPrinter != null) {
+                csvPrinter.printComment("export completed at " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
                 csvPrinter.close();
             }
         }

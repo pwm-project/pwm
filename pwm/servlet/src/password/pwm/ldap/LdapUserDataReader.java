@@ -30,7 +30,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
-import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
@@ -63,11 +62,7 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
             throws PwmUnrecoverableException
     {
         final ChaiUser user;
-        try {
             user = pwmApplication.getProxiedChaiUser(userIdentity);
-        } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
-        }
         return new LdapUserDataReader(userIdentity, user);
     }
 

@@ -38,6 +38,8 @@ public class UserIdentity implements Serializable, Comparable {
     private static final String CRYPO_HEADER = "ui_C-";
     private static final String DELIM_SEPARATOR = "|";
 
+    private transient String obfuscatedValue;
+
     private String userDN;
     private String ldapProfile;
 
@@ -73,11 +75,18 @@ public class UserIdentity implements Serializable, Comparable {
     }
 
     public String toObfuscatedKey(final Configuration configuration)
-            throws PwmUnrecoverableException {
+            throws PwmUnrecoverableException
+    {
+        final String cachedValue = obfuscatedValue;
+        if (cachedValue != null) {
+            return cachedValue;
+        }
         try {
             final SecretKey secretKey = configuration.getSecurityKey();
             final String jsonValue = JsonUtil.serialize(this);
-            return CRYPO_HEADER + SecureHelper.encryptToString(jsonValue, secretKey, true);
+            final String localValue = CRYPO_HEADER + SecureHelper.encryptToString(jsonValue, secretKey, true);
+            this.obfuscatedValue = localValue;
+            return localValue;
         } catch (Exception e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error making obfuscated user key: " + e.getMessage()));
         }

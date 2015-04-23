@@ -271,7 +271,6 @@ public class ResourceFileServlet extends HttpServlet {
         response.reset();
         response.setBufferSize(BUFFER_SIZE);
         response.setDateHeader("Expires", System.currentTimeMillis() + (setting_expireSeconds * 1000l));
-        response.setHeader("Cache-Control", "public, max-age=" + setting_expireSeconds);
         response.setHeader("ETag", nonceValue);
         response.setContentType(contentType);
 

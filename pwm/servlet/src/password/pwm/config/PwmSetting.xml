@@ -3024,7 +3024,7 @@
         <label>PeopleSearch Maximum Cache Seconds</label>
         <description><![CDATA[]]></description>
         <default>
-            <value>3600</value>
+            <value>120</value>
         </default>
     </setting>
     <setting key="peopleSearch.photo.queryFilter" level="2">
@@ -3054,6 +3054,18 @@
         <default>
             <value>directReports</value>
         </default>
+    </setting>
+    <setting key="peopleSearch.orgChart.displayValues" level="1">
+        <label>Org Chart Display Labels</label>
+        <description/>
+        <default>
+            <value>@LDAP:givenName@ @LDAP:sn@</value>
+            <value>@LDAP:title@</value>
+            <value>@LDAP:mail@</value>
+        </default>
+        <options>
+            <option value="max">3</option>
+        </options>
     </setting>
     <setting key="ldap.edirectory.enableNmas" level="1" required="true">
         <label>Enable NMAS Extensions</label>

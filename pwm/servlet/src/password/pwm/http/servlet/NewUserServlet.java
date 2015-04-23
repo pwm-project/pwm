@@ -631,12 +631,13 @@ public class NewUserServlet extends PwmServlet {
                     PwmSetting.NEWUSER_WRITE_ATTRIBUTES);
             if (actions != null && !actions.isEmpty()) {
                 LOGGER.debug(pwmSession, "executing configured actions to user " + theUser.getEntryDN());
-                final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
-                settings.setExpandPwmMacros(true);
-                settings.setMacroMachine(pwmSession.getSessionManager().getMacroMachine(pwmApplication));
-                settings.setUserIdentity(userIdentity);
-                final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
-                actionExecutor.executeActions(actions, settings, pwmSession);
+
+                final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, userIdentity)
+                        .setExpandPwmMacros(true)
+                        .setMacroMachine(pwmSession.getSessionManager().getMacroMachine(pwmApplication))
+                        .createActionExecutor();
+
+                actionExecutor.executeActions(actions, pwmSession);
             }
         }
 

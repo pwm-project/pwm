@@ -49,26 +49,25 @@ public class ActionExecutor {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ActionExecutor.class);
 
     private PwmApplication pwmApplication;
+    private ActionExecutorSettings settings;
 
-    public ActionExecutor(PwmApplication pwmApplication) {
+    private ActionExecutor(PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
     }
 
     public void executeActions(
             final List<ActionConfiguration> configValues,
-            final ActionExecutorSettings settings,
             final PwmSession pwmSession
     )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
         for (final ActionConfiguration loopAction : configValues) {
-            this.executeAction(loopAction, settings, pwmSession);
+            this.executeAction(loopAction, pwmSession);
         }
     }
 
     public void executeAction(
             final ActionConfiguration actionConfiguration,
-            final ActionExecutorSettings actionExecutorSettings,
             final PwmSession pwmSession
     )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
@@ -77,11 +76,11 @@ public class ActionExecutor {
 
         switch (actionConfiguration.getType()) {
             case ldap:
-                executeLdapAction(pwmSession, actionConfiguration, actionExecutorSettings);
+                executeLdapAction(pwmSession, actionConfiguration);
                 break;
 
             case webservice:
-                executeWebserviceAction(pwmSession, actionConfiguration, actionExecutorSettings);
+                executeWebserviceAction(pwmSession, actionConfiguration);
                 break;
         }
 
@@ -90,8 +89,7 @@ public class ActionExecutor {
 
     private void executeLdapAction(
             final PwmSession pwmSession,
-            final ActionConfiguration actionConfiguration,
-            final ActionExecutorSettings settings
+            final ActionConfiguration actionConfiguration
     )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
@@ -122,8 +120,7 @@ public class ActionExecutor {
 
     private void executeWebserviceAction(
             final PwmSession pwmSession,
-            final ActionConfiguration actionConfiguration,
-            final ActionExecutorSettings settings
+            final ActionConfiguration actionConfiguration
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
@@ -250,47 +247,58 @@ public class ActionExecutor {
     }
 
     public static class ActionExecutorSettings {
-        private MacroMachine macroMachine;
-        private ChaiUser chaiUser;
-        private UserIdentity userIdentity;
-        private boolean expandPwmMacros = true;
+        private final UserIdentity userIdentity;
+        private final PwmApplication pwmApplication;
+        private final ChaiUser chaiUser;
 
-        public boolean isExpandPwmMacros() {
+        private boolean expandPwmMacros = true;
+        private MacroMachine macroMachine;
+
+        public ActionExecutorSettings(PwmApplication pwmApplication, ChaiUser chaiUser) {
+            this.pwmApplication = pwmApplication;
+            this.chaiUser = chaiUser;
+            this.userIdentity = null;
+        }
+
+        public ActionExecutorSettings(PwmApplication pwmApplication, UserIdentity userIdentity) {
+            this.pwmApplication = pwmApplication;
+            this.userIdentity = userIdentity;
+            this.chaiUser = null;
+        }
+
+        private boolean isExpandPwmMacros() {
             return expandPwmMacros;
         }
 
-        public void setExpandPwmMacros(boolean expandPwmMacros) {
-            this.expandPwmMacros = expandPwmMacros;
-        }
-
-        public ChaiUser getChaiUser()
+        private ChaiUser getChaiUser()
         {
             return chaiUser;
         }
 
-        public void setChaiUser(ChaiUser chaiUser)
-        {
-            this.chaiUser = chaiUser;
-        }
-
-        public MacroMachine getMacroMachine()
+        private MacroMachine getMacroMachine()
         {
             return macroMachine;
         }
 
-        public void setMacroMachine(MacroMachine macroMachine)
-        {
-            this.macroMachine = macroMachine;
-        }
-
-        public UserIdentity getUserIdentity()
+        private UserIdentity getUserIdentity()
         {
             return userIdentity;
         }
 
-        public void setUserIdentity(UserIdentity userIdentity)
+        public ActionExecutorSettings setExpandPwmMacros(boolean expandPwmMacros) {
+            this.expandPwmMacros = expandPwmMacros;
+            return this;
+        }
+
+
+        public ActionExecutorSettings setMacroMachine(MacroMachine macroMachine)
         {
-            this.userIdentity = userIdentity;
+            this.macroMachine = macroMachine;
+            return this;
+        }
+
+        public ActionExecutor createActionExecutor() {
+            return new ActionExecutor(this.pwmApplication);
         }
     }
 

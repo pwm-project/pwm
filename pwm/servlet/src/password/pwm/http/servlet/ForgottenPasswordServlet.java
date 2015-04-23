@@ -262,7 +262,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
         final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
         final String requestedChoiceStr = pwmRequest.readParameterAsString("choice");
         final LinkedHashSet<RecoveryVerificationMethod> remainingAvailableOptionalMethods = new LinkedHashSet<>(figureRemainingAvailableOptionalAuthMethods(forgottenPasswordBean));
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.AvailableAuthMethods,remainingAvailableOptionalMethods);
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.AvailableAuthMethods, remainingAvailableOptionalMethods);
 
         RecoveryVerificationMethod requestedChoice = null;
         if (requestedChoiceStr != null && !requestedChoiceStr.isEmpty()) {
@@ -969,13 +969,12 @@ public class ForgottenPasswordServlet extends PwmServlet {
                         final ChaiUser proxiedUser = pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity);
                         LOGGER.debug(pwmSession, "executing post-forgotten password configured actions to user " + proxiedUser.getEntryDN());
                         final List<ActionConfiguration> configValues = pwmRequest.getConfig().readSettingAsAction(PwmSetting.FORGOTTEN_USER_POST_ACTIONS);
-                        final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
-                        settings.setExpandPwmMacros(true);
-                        settings.setMacroMachine(
-                                pwmSession.getSessionManager().getMacroMachine(pwmRequest.getPwmApplication()));
-                        settings.setUserIdentity(userIdentity);
-                        final ActionExecutor actionExecutor = new ActionExecutor(pwmRequest.getPwmApplication());
-                        actionExecutor.executeActions(configValues, settings, pwmSession);
+                        final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmRequest.getPwmApplication(),userIdentity)
+                                .setMacroMachine(pwmSession.getSessionManager().getMacroMachine(pwmRequest.getPwmApplication()))
+                                .setExpandPwmMacros(true)
+                                .createActionExecutor();
+
+                        actionExecutor.executeActions(configValues, pwmSession);
                     }
                 } catch (PwmOperationalException e) {
                     final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
@@ -1422,8 +1421,6 @@ public class ForgottenPasswordServlet extends PwmServlet {
             throw new PwmOperationalException(errorInformation);
         }
     }
-
-
 }
 
 

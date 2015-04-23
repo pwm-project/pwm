@@ -51,7 +51,8 @@ PWM_PS.processPeopleSearch = function() {
             var sizeExceeded = data['data']['sizeExceeded'];
             grid.refresh();
             grid.renderArray(gridData);
-            grid.set("sort", { attribute : 'givenName'});
+            var sortState = grid.get("sort");
+            grid.set("sort", sortState);
 
 
             if (sizeExceeded) {
@@ -212,68 +213,71 @@ PWM_PS.showUserDetail = function(userKey) {
 };
 
 PWM_PS.convertUserTreeDataToOrgChartHtml = function(data) {
-    var htmlOutput = '<div>';
-    if ('parent' in data) {
-        var parentReference = data['parent'];
-        htmlOutput += '<div class="panel-orgChart-parent">';
+
+    var makePanel = function(parentReference, type, direction) {
+        var userKey = parentReference['userKey'];
+
+        var output = '';
+        output += '<div class="panel-orgChart-' + type + '">';
+        output += '<div class="panel-orgChart-person">';
         if (parentReference['hasMoreNodes']) {
-            htmlOutput += '<a id="link-parent-' + parentReference['userKey'] + '"><span class="fa fa-arrow-up"/> </a>';
+            output += '<a id="link-' + userKey + '"><span class="icon-orgChart-' + direction + ' fa fa-arrow-' + direction + '"/> </a>';
         }
-        htmlOutput += '<div class="panel-orgChart-person">';
         if ('photoURL' in parentReference) {
-            htmlOutput += '<img class="img-orgChart" id="" src="' + parentReference['photoURL'] + '">';
+            output += '<img class="img-orgChart" id="" src="' + parentReference['photoURL'] + '">';
         }
-        htmlOutput += '<div class="panel-orgChart-displayName">' + parentReference['displayName'] + '</div>';
-        htmlOutput += ' <span id="button-userDetail-' + parentReference['userKey'] + '" class="btn-icon fa fa-info-circle">';
-        htmlOutput += '</div></div><br/>';
+        output += '<div class="panel-orgChart-displayNames">';
+        var loopID = 1;
+        for (var iter in parentReference['displayNames']) {
+            (function(displayName){
+                output += '<div class="panel-orgChart-displayName-' + loopID + '">';
+                output += parentReference['displayNames'][displayName];
+                output += '</div>';
+                loopID++;
+            })(iter);
+        }
+        output += '</div>';
+        output += ' <span id="button-userDetail-' + userKey + '" class="btn-icon fa fa-info-circle">';
+        output += '</div></div>';
+        return output;
+    };
+
+
+    var htmlOutput = '';
+    if ('parent' in data) {
+        htmlOutput += makePanel(data['parent'], 'parent', 'up');
     }
     if ('siblings' in data) {
         for (var iter in data['siblings']) {
             (function(iterCount){
                 var siblingReference = data['siblings'][iterCount];
-                htmlOutput += '<div class="panel-orgChart-child">';
-                if (siblingReference['hasMoreNodes']) {
-                    htmlOutput += '<a id="link-sibling-' + siblingReference['userKey'] + '"><span class="fa fa-arrow-down"/> </a>';
-                }
-                htmlOutput += '<div class="panel-orgChart-person">';
-                if ('photoURL' in siblingReference) {
-                    htmlOutput += '<img class="img-orgChart" id="img-orgChart-' + siblingReference['userKey'] + '" src="' + siblingReference['photoURL'] + '">';
-                }
-
-                htmlOutput += '<div class="panel-orgChart-displayName">' + siblingReference['displayName'] + '</div>';
-                htmlOutput += ' <span id="button-userDetail-' + siblingReference['userKey'] + '" class="btn-icon fa fa-info-circle">';
-                htmlOutput += '</div></div><br/>';
+                htmlOutput += makePanel(siblingReference, 'sibling', 'down');
             })(iter);
         }
     }
-    htmlOutput += '</div>';
     return htmlOutput;
 };
 
 PWM_PS.applyUserTreeDataToOrgChartEvents = function(data) {
-    if ('parent' in data) {
-        var parentReference = data['parent'];
-        if (parentReference['hasMoreNodes']) {
-            PWM_MAIN.addEventHandler('link-parent-' + parentReference['userKey'], 'click', function () {
-                PWM_PS.showOrgChartView(parentReference['userKey'])
+    var applyEventsToReference = function(reference,asParent) {
+        if (reference['hasMoreNodes']) {
+            PWM_MAIN.addEventHandler('link-' + reference['userKey'], 'click', function () {
+                PWM_PS.showOrgChartView(reference['userKey'],asParent)
             });
         }
-        PWM_MAIN.addEventHandler('button-userDetail-' + parentReference['userKey'],'click',function(){
-            PWM_PS.showUserDetail(parentReference['userKey']);
+        PWM_MAIN.addEventHandler('button-userDetail-' + reference['userKey'],'click',function(){
+            PWM_PS.showUserDetail(reference['userKey']);
         });
+
+    };
+    if ('parent' in data) {
+        applyEventsToReference(data['parent'],false);
     }
     if ('siblings' in data) {
         for (var iter in data['siblings']) {
             (function(iterCount){
                 var siblingReference = data['siblings'][iterCount];
-                if (siblingReference['hasMoreNodes']) {
-                    PWM_MAIN.addEventHandler('link-sibling-' + siblingReference['userKey'], 'click', function () {
-                        PWM_PS.showOrgChartView(siblingReference['userKey'], true)
-                    });
-                }
-                PWM_MAIN.addEventHandler('button-userDetail-' + siblingReference['userKey'],'click',function(){
-                    PWM_PS.showUserDetail(siblingReference['userKey']);
-                });
+                applyEventsToReference(siblingReference,true);
             })(iter);
         }
     }
@@ -298,7 +302,7 @@ PWM_PS.showOrgChartView = function(userKey, asParent) {
                 var htmlBody = PWM_PS.convertUserTreeDataToOrgChartHtml(data['data']);
                 PWM_MAIN.closeWaitDialog();
                 PWM_MAIN.showDialog({
-                    title:PWM_MAIN.showString('Button_OrgChart'),
+                    title:PWM_MAIN.showString('Title_OrgChart'),
                     allowMove:true,
                     text:htmlBody,
                     showClose:true,
@@ -346,14 +350,13 @@ PWM_PS.makeSearchGrid = function(nextFunction) {
                 }
             });
 
+            PWM_VAR['peoplesearch_search_grid'].set("sort", { attribute : 'sn', descending: true});
+
         }
     );
 };
 
 PWM_PS.loadPicture = function(parentDiv,url) {
-    if (url.lastIndexOf('http', 0) !== 0) { // if not absolute url
-        url = PWM_MAIN.addPwmFormIDtoURL(url);
-    }
     require(["dojo/on"], function(on){
         var image = new Image();
         image.setAttribute('id',"userPhotoImage");

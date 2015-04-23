@@ -814,6 +814,8 @@ public enum PwmSetting {
             "peopleSearch.orgChart.parentAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE(
             "peopleSearch.orgChart.childAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_ORGCHART_DISPLAY_VALUES(
+            "peopleSearch.orgChart.displayValues", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH),
 
 
 

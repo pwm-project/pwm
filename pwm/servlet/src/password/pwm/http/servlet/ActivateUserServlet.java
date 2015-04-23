@@ -336,12 +336,13 @@ public class ActivateUserServlet extends PwmServlet {
                 final List<ActionConfiguration> configValues = config.readSettingAsAction(PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES);
                 if (configValues != null && !configValues.isEmpty()) {
                     final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest, userIdentity);
-                    final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
-                    settings.setExpandPwmMacros(true);
-                    settings.setMacroMachine(macroMachine);
-                    settings.setUserIdentity(userIdentity);
-                    final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
-                    actionExecutor.executeActions(configValues, settings, pwmSession);
+
+                    final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, userIdentity)
+                            .setExpandPwmMacros(true)
+                            .setMacroMachine(macroMachine)
+                            .createActionExecutor();
+
+                    actionExecutor.executeActions(configValues, pwmSession);
                 }
             }
 
@@ -380,12 +381,12 @@ public class ActivateUserServlet extends PwmServlet {
 
                             final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
                             final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction(PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES);
-                            final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
-                            settings.setExpandPwmMacros(true);
-                            settings.setMacroMachine(macroMachine);
-                            settings.setUserIdentity(userIdentity);
-                            final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
-                            actionExecutor.executeActions(configValues, settings, pwmSession);
+
+                            final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, userIdentity)
+                                    .setExpandPwmMacros(true)
+                                    .setMacroMachine(macroMachine)
+                                    .createActionExecutor();
+                            actionExecutor.executeActions(configValues, pwmSession);
                         }
                     } catch (PwmOperationalException e) {
                         final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());

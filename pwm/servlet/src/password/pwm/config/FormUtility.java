@@ -185,7 +185,7 @@ public class FormUtility {
         searchConfiguration.setFilter(filter.toString());
 
         int resultSearchSizeLimit = 1 + (excludeDN == null ? 0 : excludeDN.size());
-        final CachePolicy cachePolicy = CachePolicy.makePolicy(30 * 1000);
+        final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS(30 * 1000);
 
         try {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, SessionLabel.SYSTEM_LABEL);
