@@ -93,13 +93,13 @@
             <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret-skip"
                   enctype="application/x-www-form-urlencoded" id="setupOtpSecret-skip" class="pwm-form">
                 <input type="hidden" name="processAction" value="skip"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                 <% if (forcedPageView) { %>
                 <% if (allowSkip) { %>
                 <button type="submit" name="continue" class="btn" id="skipbutton">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-fighter-jet"></span></pwm:if>
                     <pwm:display key="Button_Skip"/>
                 </button>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                 <% } %>
                 <% } else { %>
                 <pwm:if test="showCancel">

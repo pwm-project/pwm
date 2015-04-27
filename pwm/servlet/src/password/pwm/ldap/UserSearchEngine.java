@@ -557,8 +557,51 @@ public class UserSearchEngine {
 
         public UserSearchResults(Map<String, String> headerAttributeMap, Map<UserIdentity, Map<String, String>> results, boolean sizeExceeded) {
             this.headerAttributeMap = headerAttributeMap;
-            this.results = results;
+            this.results = Collections.unmodifiableMap(defaultSort(results, headerAttributeMap));
             this.sizeExceeded = sizeExceeded;
+
+        }
+
+        private static Map<UserIdentity, Map<String, String>> defaultSort(
+                final Map<UserIdentity, Map<String, String>> results,
+                final Map<String,String> headerAttributeMap
+        )
+        {
+            final Date startTime = new Date();
+            if (headerAttributeMap == null || headerAttributeMap.isEmpty() || results == null) {
+                return results;
+            }
+
+            final String sortAttribute = headerAttributeMap.keySet().iterator().next();
+            final Comparator<UserIdentity> comparator = new Comparator<UserIdentity>() {
+                @Override
+                public int compare(UserIdentity o1, UserIdentity o2) {
+                    final String s1 = getSortValueByIdentity(o1);
+                    final String s2 = getSortValueByIdentity(o2);
+                    return s1.compareTo(s2);
+                }
+
+                private String getSortValueByIdentity(final UserIdentity userIdentity) {
+                    final Map<String,String> valueMap = results.get(userIdentity);
+                    if (valueMap != null) {
+                        final String sortValue = valueMap.get(sortAttribute);
+                        if (sortValue != null) {
+                            return sortValue;
+                        }
+                    }
+                    return "";
+                }
+            };
+
+            final List<UserIdentity> identitySortMap = new ArrayList<>();
+            identitySortMap.addAll(results.keySet());
+            Collections.sort(identitySortMap,comparator);
+
+            final Map<UserIdentity, Map<String, String>> sortedResults = new LinkedHashMap<>();
+            for (final UserIdentity userIdentity : identitySortMap) {
+                sortedResults.put(userIdentity, results.get(userIdentity));
+            }
+            return sortedResults;
         }
 
         public Map<String, String> getHeaderAttributeMap() {

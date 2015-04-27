@@ -231,11 +231,9 @@ PWM_HELPDESK.processHelpdeskSearch = function() {
             var sizeExceeded = data['data']['sizeExceeded'];
             grid.refresh();
             grid.renderArray(gridData);
-            grid.on(".dgrid-row:click", function(evt){
-                var row = grid.row(evt);
-                PWM_HELPDESK.loadSearchDetails(row.data['userKey']);
-            });
-            grid.set("sort",1);
+            var sortState = grid.get("sort");
+            grid.set("sort", sortState);
+
             if (sizeExceeded) {
                 PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
                 PWM_MAIN.showTooltip({id:'maxResultsIndicator',position:'below',text:PWM_MAIN.showString('Display_SearchResultsExceeded')})
@@ -269,6 +267,12 @@ PWM_HELPDESK.makeSearchGrid = function(nextAction) {
                 if (nextAction) {
                     nextAction();
                 }
+
+                PWM_VAR['heldesk_search_grid'].on(".dgrid-row:click", function(evt){
+                    var row = PWM_VAR['heldesk_search_grid'].row(evt);
+                    PWM_HELPDESK.loadSearchDetails(row.data['userKey']);
+                });
+
             });
     });
 };

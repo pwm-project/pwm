@@ -351,6 +351,7 @@ StringArrayValueHandler.arrayMoveUtil = function(arr, fromIndex, toIndex) {
 
 StringArrayValueHandler.removeValue = function(settingKey, iteration) {
     var syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
+    var profileName = PWM_VAR['clientSettingCache'][settingKey][iteration];
     var deleteFunction = function() {
         var currentValues = PWM_VAR['clientSettingCache'][settingKey];
         currentValues.splice(iteration,1);
@@ -358,7 +359,7 @@ StringArrayValueHandler.removeValue = function(settingKey, iteration) {
     };
     if (syntax == 'PROFILE') {
         PWM_MAIN.showConfirmDialog({
-            text:'Are you sure you want to remove the profile?',
+            text:PWM_CONFIG.showString('Confirm_RemoveProfile',{value1:profileName}),
             okAction:function(){
                 deleteFunction();
             }

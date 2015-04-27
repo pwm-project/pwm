@@ -1536,7 +1536,7 @@
         </default>
     </setting>
     <setting key="intruder.enable" level="1" required="true">
-        <label>Intruder Detection Enabled</label>
+        <label>Enable Intruder Detection</label>
         <description><![CDATA[Enable the application level intruder detection system.  Your LDAP directory intruder detection settings will function independently of this setting.]]></description>
         <default>
             <value>true</value>

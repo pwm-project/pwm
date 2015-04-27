@@ -777,7 +777,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
     }
 
     public static class JdbcDriverClassLoader extends ClassLoader {
-
+        private static final String CLASS_FILE_SEPERATOR = "/";
         private final byte[] jdbcDriverJar;
 
         public JdbcDriverClassLoader(byte[] jdbcDriverJar) {
@@ -802,7 +802,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         private byte[] loadClassData(String name)
                 throws IOException
         {
-            final String literalFileName = name.replace(".",File.separator) + ".class";
+            final String literalFileName = name.replace(".", CLASS_FILE_SEPERATOR) + ".class";
             final JarInputStream jarInputStream = new JarInputStream(new ByteArrayInputStream(jdbcDriverJar));
             JarEntry jarEntry;
             while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {

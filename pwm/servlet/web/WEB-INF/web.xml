@@ -362,6 +362,8 @@
         <servlet-name>PeopleSearchServlet</servlet-name>
         <url-pattern>/private/PeopleSearch</url-pattern>
         <url-pattern>/public/PeopleSearch</url-pattern>
+        <url-pattern>/private/peoplesearch</url-pattern>
+        <url-pattern>/public/peoplesearch</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>CaptchaServlet</servlet-name>

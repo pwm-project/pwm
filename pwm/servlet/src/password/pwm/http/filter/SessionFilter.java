@@ -290,9 +290,7 @@ public class SessionFilter extends AbstractPwmFilter {
     private static String figureValidationURL(final HttpServletRequest req, final String validationKey) {
         final StringBuilder sb = new StringBuilder();
         sb.append(req.getRequestURL());
-        if (!req.getParameterMap().isEmpty()) {
-            sb.append("?");
-        }
+
         for (final Enumeration paramEnum = req.getParameterNames(); paramEnum.hasMoreElements(); ) {
             final String paramName = (String) paramEnum.nextElement();
 
@@ -303,14 +301,9 @@ public class SessionFilter extends AbstractPwmFilter {
 
                     for (final Iterator<String> valueIter = paramValues.iterator(); valueIter.hasNext(); ) {
                         final String value = valueIter.next();
+                        sb.append(sb.toString().contains("?") ? "&" : "?");
                         sb.append(StringUtil.urlEncode(paramName)).append("=");
                         sb.append(StringUtil.urlEncode(value));
-                        if (valueIter.hasNext()) {
-                            sb.append("&");
-                        }
-                    }
-                    if (paramEnum.hasMoreElements()) {
-                        sb.append("&");
                     }
                 }
             } else {

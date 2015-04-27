@@ -139,6 +139,7 @@ PWM_CONFIG.showString=function (key, options) {
     options = options === undefined ? {} : options;
     options['bundle'] = 'Config';
     return PWM_MAIN.showString(key,options);
+
 };
 
 PWM_CONFIG.openLogViewer=function(level) {

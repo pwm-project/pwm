@@ -536,6 +536,7 @@ public class LDAPStatusChecker implements HealthChecker {
     }
 
     public static HealthData healthForNewConfiguration(
+            final PwmApplication pwmApplication,
             final Configuration config,
             final Locale locale,
             final String profileID,
@@ -548,10 +549,10 @@ public class LDAPStatusChecker implements HealthChecker {
         final PwmApplication tempApplication = new PwmApplication.PwmEnvironment()
                 .setConfig(config)
                 .setApplicationMode(PwmApplication.MODE.NEW)
-                .setApplicationPath(null)
+                .setApplicationPath(pwmApplication.getApplicationPath())
                 .setInitLogging(false)
                 .setConfigurationFile(null)
-                .setWebInfPath(null)
+                .setWebInfPath(pwmApplication.getWebInfPath())
                 .createPwmApplication();
 
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();

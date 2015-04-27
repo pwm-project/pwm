@@ -22,7 +22,6 @@
 
 package password.pwm.http.servlet;
 
-import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
@@ -62,6 +61,27 @@ import java.util.*;
 public class PeopleSearchServlet extends PwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PeopleSearchServlet.class);
+
+    public static class SearchResultBean implements Serializable {
+        private List searchResults = new ArrayList<>();
+        private boolean sizeExceeded;
+
+        public List getSearchResults() {
+            return searchResults;
+        }
+
+        public void setSearchResults(List searchResults) {
+            this.searchResults = searchResults;
+        }
+
+        public boolean isSizeExceeded() {
+            return sizeExceeded;
+        }
+
+        public void setSizeExceeded(boolean sizeExceeded) {
+            this.sizeExceeded = sizeExceeded;
+        }
+    }
 
     public static class UserDetailBean implements Serializable {
         private String displayName;
@@ -313,19 +333,23 @@ public class PeopleSearchServlet extends PwmServlet {
     )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final boolean publicAccessEnabled = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC);
-        if (!publicAccessEnabled) {
-            if (!pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) {
-                pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
+        if (!pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) {
+            pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
+            return;
+        }
+
+        if (pwmRequest.getURL().isPublicUrl()) {
+            if (!pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC)) {
+                pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"public peoplesearch service is not enabled"));
                 return;
             }
-
+        } else {
             if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PEOPLE_SEARCH)) {
                 pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
                 return;
             }
-        }
 
+        }
         final int peopleSearchIdleTimeout = (int)pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS);
         if (peopleSearchIdleTimeout > 0 && pwmRequest.getURL().isPrivateUrl()) {
             pwmRequest.getPwmSession().setSessionTimeout(pwmRequest.getHttpServletRequest().getSession(), peopleSearchIdleTimeout);
@@ -393,7 +417,8 @@ public class PeopleSearchServlet extends PwmServlet {
     private void restSearchRequest(
             final PwmRequest pwmRequest
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException {
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
         final Date startTime = new Date();
         final String bodyString = pwmRequest.readRequestBodyAsString();
         final Map<String, String> valueMap = JsonUtil.deserializeStringMap(bodyString);
@@ -403,43 +428,42 @@ public class PeopleSearchServlet extends PwmServlet {
         final CacheKey cacheKey = CacheKey.makeCacheKey(
                 this.getClass(),
                 useProxy ? null : pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity(),
-                "search-" + SecureHelper.hash(username, SecureHelper.HashAlgorithm.SHA1)
-        );
+                "search-" + SecureHelper.hash(username, SecureHelper.HashAlgorithm.SHA1));
+
         {
             final String cachedOutput = pwmRequest.getPwmApplication().getCacheService().get(cacheKey);
             if (cachedOutput != null) {
-                final HashMap<String, Object> resultOutput = JsonUtil.deserialize(cachedOutput,
-                        new TypeToken<HashMap<String, Object>>() {}
-                );
+                final SearchResultBean resultOutput = JsonUtil.deserialize(cachedOutput, SearchResultBean.class);
                 final RestResultBean restResultBean = new RestResultBean();
-                restResultBean.setData(new LinkedHashMap<>(resultOutput));
-                pwmRequest.outputJsonResult(restResultBean);
-                LOGGER.trace(pwmRequest.getPwmSession(), "finished rest peoplesearch search using CACHE in " + TimeDuration.fromCurrent(
-                        startTime).asCompactString() + ", size=" + resultOutput.size());
-
-                if (pwmRequest.getPwmApplication().getStatisticsManager() != null) {
-                    pwmRequest.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PEOPLESEARCH_SEARCHES);
-                }
+                pwmRequest.outputJsonResult(new RestResultBean(restResultBean));
+                LOGGER.trace(pwmRequest, "finished rest peoplesearch search using CACHE in "
+                        + TimeDuration.fromCurrent(startTime).asCompactString()
+                        + ", size=" + resultOutput.getSearchResults().size());
 
                 return;
             }
         }
 
-        final List<FormConfiguration> searchForm = pwmRequest.getConfig().readSettingAsForm(
-                PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
-        final int maxResults = (int) pwmRequest.getConfig().readSettingAsLong(
-                PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT);
+        final SearchResultBean outputData = makeSearchResultsImpl(pwmRequest, username);
+        final RestResultBean restResultBean = new RestResultBean(outputData);
+        pwmRequest.outputJsonResult(restResultBean);
+        storeDataInCache(pwmRequest.getPwmApplication(), cacheKey, outputData);
+    }
+
+    private SearchResultBean makeSearchResultsImpl(
+            final PwmRequest pwmRequest,
+            final String username
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final Date startTime = new Date();
 
         if (username == null || username.length() < 1) {
-            final HashMap<String, Object> emptyResults = new HashMap<>();
-            emptyResults.put("searchResults", new ArrayList<Map<String, String>>());
-            emptyResults.put("sizeExceeded", false);
-            final RestResultBean restResultBean = new RestResultBean();
-            restResultBean.setData(emptyResults);
-            pwmRequest.outputJsonResult(restResultBean);
-            return;
+            final SearchResultBean searchResultBean = new SearchResultBean();
+            return searchResultBean;
         }
 
+        final boolean useProxy = useProxy(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
         final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest);
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
         searchConfiguration.setContexts(
@@ -456,32 +480,30 @@ public class PeopleSearchServlet extends PwmServlet {
         final UserSearchEngine.UserSearchResults results;
         final boolean sizeExceeded;
         try {
+            final List<FormConfiguration> searchForm = pwmRequest.getConfig().readSettingAsForm(
+                    PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
+            final int maxResults = (int) pwmRequest.getConfig().readSettingAsLong(
+                    PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT);
             final Locale locale = pwmRequest.getLocale();
             results = userSearchEngine.performMultiUserSearchFromForm(locale, searchConfiguration, maxResults, searchForm);
             sizeExceeded = results.isSizeExceeded();
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInformation = e.getErrorInformation();
             LOGGER.error(pwmRequest.getSessionLabel(), errorInformation.toDebugStr());
-            final RestResultBean restResultBean = new RestResultBean();
-            restResultBean.setData(new ArrayList<Map<String, String>>());
-            pwmRequest.outputJsonResult(restResultBean);
-            return;
+            throw new PwmUnrecoverableException(errorInformation);
         }
-
-        final LinkedHashMap<String, Object> outputData = new LinkedHashMap<>();
-        outputData.put("searchResults", new ArrayList<>(results.resultsAsJsonOutput(pwmRequest.getPwmApplication())));
-        outputData.put("sizeExceeded", sizeExceeded);
-
-        final RestResultBean restResultBean = new RestResultBean(outputData);
-        pwmRequest.outputJsonResult(restResultBean);
-        storeDataInCache(pwmRequest.getPwmApplication(), cacheKey, outputData);
 
         if (pwmRequest.getPwmApplication().getStatisticsManager() != null) {
             pwmRequest.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PEOPLESEARCH_SEARCHES);
         }
 
         LOGGER.trace(pwmRequest.getPwmSession(), "finished rest peoplesearch search in " + TimeDuration.fromCurrent(
-                startTime).asCompactString() + " using CACHE, size=" + results.getResults().size());
+                startTime).asCompactString() + " not using cache, size=" + results.getResults().size());
+
+        final SearchResultBean searchResultBean = new SearchResultBean();
+        searchResultBean.setSearchResults(new ArrayList<>(results.resultsAsJsonOutput(pwmRequest.getPwmApplication())));
+        searchResultBean.setSizeExceeded(sizeExceeded);
+        return searchResultBean;
     }
 
     private static UserSearchEngine.UserSearchResults doDetailLookup(
@@ -567,6 +589,7 @@ public class PeopleSearchServlet extends PwmServlet {
     )
             throws PwmUnrecoverableException
     {
+        final Date startTime = new Date();
         final boolean useProxy = useProxy(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
 
         final CacheKey cacheKey = CacheKey.makeCacheKey(
@@ -609,6 +632,7 @@ public class PeopleSearchServlet extends PwmServlet {
                 userTreeData.setSiblings(new ArrayList<>(sortedSiblings.values()));
             }
             storeDataInCache(pwmRequest.getPwmApplication(), cacheKey, userTreeData);
+            LOGGER.trace(pwmRequest, "completed building userTreeData in " + TimeDuration.fromCurrent(startTime).asCompactString());
             return userTreeData;
         } catch (ChaiException e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.forChaiError(e.getErrorCode()),e.getMessage()));
@@ -709,9 +733,7 @@ public class PeopleSearchServlet extends PwmServlet {
             }
         }
 
-        LOGGER.debug(pwmRequest.getPwmSession(), "finished non-cached rest detail request in " + TimeDuration.fromCurrent(
-                startTime).asCompactString() + ", results=" + JsonUtil.serialize(userDetailBean));
-
+        LOGGER.trace(pwmRequest.getPwmSession(), "finished building userDetail result in " + TimeDuration.fromCurrent(startTime).asCompactString());
         storeDataInCache(pwmRequest.getPwmApplication(), cacheKey, userDetailBean);
         StatisticsManager.incrementStat(pwmRequest, Statistic.PEOPLESEARCH_SEARCHES);
         return userDetailBean;

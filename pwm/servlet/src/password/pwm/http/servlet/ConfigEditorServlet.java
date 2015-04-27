@@ -597,7 +597,7 @@ public class ConfigEditorServlet extends PwmServlet {
         LOGGER.debug(pwmRequest, "beginning restLdapHealthCheck");
         final String profileID = pwmRequest.readParameterAsString("profile");
         final Configuration config = new Configuration(configManagerBean.getStoredConfiguration());
-        final HealthData healthData = LDAPStatusChecker.healthForNewConfiguration(config, pwmRequest.getLocale(), profileID, true, true);
+        final HealthData healthData = LDAPStatusChecker.healthForNewConfiguration(pwmRequest.getPwmApplication(), config, pwmRequest.getLocale(), profileID, true, true);
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(healthData);
 

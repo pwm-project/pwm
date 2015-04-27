@@ -57,13 +57,14 @@ public class UserMatchViewerFunction implements SettingUIFunction {
         final Locale userLocale = pwmSession == null ? PwmConstants.DEFAULT_LOCALE : pwmSession.getSessionStateBean().getLocale();
         final int maxResultSize = Integer.parseInt(
                 pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT));
-        final Map<String,List<String>> matchingUsers = discoverMatchingUsers(maxResultSize, storedConfiguration, setting, profile);
+        final Map<String,List<String>> matchingUsers = discoverMatchingUsers(pwmApplication, maxResultSize, storedConfiguration, setting, profile);
         return convertResultsToHtmlTable(
                 pwmApplication, userLocale, matchingUsers, maxResultSize
         );
     }
 
     public Map<String,List<String>> discoverMatchingUsers(
+            final PwmApplication pwmApplication,
             final int maxResultSize,
             final StoredConfiguration storedConfiguration,
             final PwmSetting setting,
@@ -75,9 +76,10 @@ public class UserMatchViewerFunction implements SettingUIFunction {
         final PwmApplication tempApplication = new PwmApplication.PwmEnvironment()
                 .setConfig(config)
                 .setApplicationMode(PwmApplication.MODE.CONFIGURATION)
-                .setApplicationPath(null).setInitLogging(false)
+                .setApplicationPath(pwmApplication.getApplicationPath())
+                .setInitLogging(false)
                 .setConfigurationFile(null)
-                .setWebInfPath(null)
+                .setWebInfPath(pwmApplication.getWebInfPath())
                 .createPwmApplication();
         final List<UserPermission> permissions = (List<UserPermission>)storedConfiguration.readSetting(setting,profile).toNativeObject();
 

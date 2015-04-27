@@ -357,7 +357,8 @@ public class MainClass {
                 .setApplicationPathType(MAIN_OPTIONS.applicationPathType)
                 .setInitLogging(false)
                 .setConfigurationFile(configurationFile)
-                .setWebInfPath(null).createPwmApplication();
+                .setWebInfPath(null)
+                .createPwmApplication();
         final PwmApplication.MODE runningMode = pwmApplication.getApplicationMode();
 
         if (runningMode != mode) {

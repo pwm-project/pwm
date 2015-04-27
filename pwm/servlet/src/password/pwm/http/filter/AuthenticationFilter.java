@@ -165,13 +165,13 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         if (!pwmRequest.isAuthenticated() || pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationType() != AuthenticationType.AUTHENTICATED) {
             return;
         }
-        
+
         if (pwmRequest.getPwmSession().getLoginInfoBean().isAuthRecordCookieSet()) {
             return;
         }
-        
+
         pwmRequest.getPwmSession().getLoginInfoBean().setAuthRecordCookieSet(true);
-        
+
         final String cookieName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_AUTHRECORD_NAME);
         if (cookieName == null || cookieName.isEmpty()) {
             LOGGER.debug(pwmRequest, "skipping auth record cookie set, cookie name parameter is blank");
@@ -187,7 +187,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         final Date authTime = pwmRequest.getPwmSession().getLoginInfoBean().getLocalAuthTime();
         final String userGuid = pwmRequest.getPwmSession().getUserInfoBean().getUserGuid();
         final AuthRecord authRecord = new AuthRecord(authTime, userGuid);
-        
+
         try {
             pwmRequest.getPwmResponse().writeCookie(cookieName, authRecord, cookieAgeSeconds, true, pwmRequest.getContextPath());
             LOGGER.debug(pwmRequest,"wrote auth record cookie to user browser for use during forgotten password");
@@ -264,7 +264,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
 
         //store the original requested url
-        final String originalRequestedUrl = req.getRequestURL().toString();
+        final String originalRequestedUrl = figureOriginalRequestUrl(pwmRequest);
 
         pwmRequest.markPreLoginUrl();
 
@@ -413,11 +413,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             return false;
         }
 
-        final String originalURL;
-        {
-            final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-            originalURL = req.getRequestURI() + (req.getQueryString() != null ? ('?' + req.getQueryString()) : "");
-        }
+        final String originalURL = figureOriginalRequestUrl(pwmRequest);
 
         final String state = OAuthConsumerServlet.makeStateStringForRequest(pwmRequest, originalURL);
         final String redirectUri = OAuthConsumerServlet.figureOauthSelfEndPointUrl(pwmRequest);
@@ -522,6 +518,16 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
 
         return false;
+    }
+
+    private static String figureOriginalRequestUrl(final PwmRequest pwmRequest) {
+        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
+        final String queryString = req.getQueryString();
+        if (queryString != null && !queryString.isEmpty()) {
+            return req.getRequestURI() + '?' + queryString;
+        } else {
+            return req.getRequestURI();
+        }
     }
 }
 

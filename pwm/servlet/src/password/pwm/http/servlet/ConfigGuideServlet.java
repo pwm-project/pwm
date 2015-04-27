@@ -339,10 +339,10 @@ public class ConfigGuideServlet extends PwmServlet {
         final PwmApplication tempApplication = new PwmApplication.PwmEnvironment()
                 .setConfig(tempConfiguration)
                 .setApplicationMode(PwmApplication.MODE.NEW)
-                .setApplicationPath(null)
+                .setApplicationPath(pwmRequest.getPwmApplication().getApplicationPath())
                 .setInitLogging(false)
                 .setConfigurationFile(null)
-                .setWebInfPath(null).createPwmApplication();
+                .setWebInfPath(pwmRequest.getPwmApplication().getWebInfPath()).createPwmApplication();
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
         final List<HealthRecord> records = new ArrayList<>();
         final LdapProfile ldapProfile = tempConfiguration.getDefaultLdapProfile();
@@ -363,6 +363,7 @@ public class ConfigGuideServlet extends PwmServlet {
                 try {
                     final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
                     final Map<String, List<String>> results = userMatchViewerFunction.discoverMatchingUsers(
+                            pwmRequest.getPwmApplication(),
                             2,
                             configGuideBean.getStoredConfiguration(),
                             PwmSetting.QUERY_MATCH_PWM_ADMIN,
@@ -411,6 +412,7 @@ public class ConfigGuideServlet extends PwmServlet {
         final int maxResults = 1000;
         try {
             final Map<String, List<String>> results = userMatchViewerFunction.discoverMatchingUsers(
+                    pwmRequest.getPwmApplication(),
                     1000,
                     configGuideBean.getStoredConfiguration(),
                     PwmSetting.QUERY_MATCH_PWM_ADMIN,
