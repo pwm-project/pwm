@@ -373,7 +373,7 @@ StringArrayValueHandler.writeSetting = function(settingKey, reload) {
     var syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
     var nextFunction = function() {
         if (syntax == 'PROFILE') {
-            PWM_CFGEDIT.drawNavigationMenu();
+            PWM_MAIN.goto('ConfigEditor');
         }
         if (reload) {
             StringArrayValueHandler.init(settingKey);
@@ -571,9 +571,13 @@ FormTableHandler.redraw = function(keyName) {
     var parentDiv = 'table_setting_' + keyName;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
+    parentDivElement.innerHTML = '<table class="noborder" id="table-top-' + keyName + '"></table>';
+    parentDiv = 'table-top-' + keyName;
+    parentDivElement = PWM_MAIN.getObject(parentDiv);
+
     if (!PWM_MAIN.isEmpty(resultValue)) {
         var headerRow = document.createElement("tr");
-        var rowHtml = '<td>Name</td><td>Label</td>';
+        var rowHtml = '<td>Name</td><td></td><td>Label</td>';
         headerRow.innerHTML = rowHtml;
         parentDivElement.appendChild(headerRow);
     }
@@ -604,16 +608,17 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         newTableRow.setAttribute("style", "border-width: 0");
 
         var htmlRow = '';
-        htmlRow += '<td style="width:180px" id="panel-name-' + inputID + '" class="noWrapTextBox"></td>';
-        htmlRow += '<td style="width:170px"><div class="noWrapTextBox" id="' + inputID + 'label"><span class="btn-icon fa fa-edit"></span><span>' + value['labels'][''] + '...</span></div></td>';
+        htmlRow += '<td style="width:180px"><div class="noWrapTextBox border" id="panel-name-' + inputID + '" ></div></td>';
+        htmlRow += '<td style="width:1px" id="icon-editLabel-' + inputID + '"><span class="btn-icon fa fa-edit"></span></td>';
+        htmlRow += '<td style="width:170px"><div style="" class="noWrapTextBox border" id="' + inputID + 'label"><span>' + value['labels'][''] + '...</span></div></td>';
 
-        htmlRow += '<td>';
         var userDNtypeAllowed = options['type-userDN'] == 'show';
         var optionList = PWM_GLOBAL['formTypeOptions'];
         if ('types' in options) {
             optionList = JSON.parse(options['types']);
         }
         if (!PWM_MAIN.isEmpty(optionList)) {
+            htmlRow += '<td style="width:15px;">';
             htmlRow += '<select id="' + inputID + 'type">';
             for (var optionItem in optionList) {
                 if (optionList[optionItem] != 'userDN' || userDNtypeAllowed) {
@@ -623,26 +628,26 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
                 }
             }
             htmlRow += '</select>';
+            htmlRow += '</td>';
         }
-        htmlRow += '</td>';
 
         var hideOptions = PWM_SETTINGS['settings'][settingKey]['options']['hideOptions'] == 'true';
         if (!hideOptions) {
-            htmlRow += '<td><button id="' + inputID + 'optionsButton"><span class="btn-icon fa fa-sliders"/> Options</button></td>';
+            htmlRow += '<td style="min-width:90px; border:0"><button id="' + inputID + 'optionsButton"><span class="btn-icon fa fa-sliders"/> Options</button></td>';
         }
 
-        htmlRow += '<td>';
+        htmlRow += '<td style="width:10px">';
         if (itemCount > 1 && iteration != (itemCount -1)) {
             htmlRow += '<span id="' + inputID + '-moveDown" class="action-icon fa fa-chevron-down"></span>';
         }
         htmlRow += '</td>';
 
-        htmlRow += '<td>';
+        htmlRow += '<td style="width:10px">';
         if (itemCount > 1 && iteration != 0) {
             htmlRow += '<span id="' + inputID + '-moveUp" class="action-icon fa fa-chevron-up"></span>';
         }
         htmlRow += '</td>';
-        htmlRow += '<td><span class="delete-row-icon action-icon fa fa-times" id="' + inputID + '-deleteRowButton"></span></td>';
+        htmlRow += '<td style="width:10px"><span class="delete-row-icon action-icon fa fa-times" id="' + inputID + '-deleteRowButton"></span></td>';
 
         newTableRow.innerHTML = htmlRow;
         var parentDivElement = PWM_MAIN.getObject(parentDiv);
@@ -660,6 +665,9 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
             FormTableHandler.removeRow(settingKey, iteration);
         });
         PWM_MAIN.addEventHandler(inputID + "label", 'click, keypress', function () {
+            FormTableHandler.showLabelDialog(settingKey, iteration);
+        });
+        PWM_MAIN.addEventHandler("icon-editLabel-" + inputID, 'click, keypress', function () {
             FormTableHandler.showLabelDialog(settingKey, iteration);
         });
         PWM_MAIN.addEventHandler(inputID + "optionsButton", 'click', function () {

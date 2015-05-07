@@ -387,7 +387,7 @@ public class AuditManager implements PwmService {
         final String jsonRecord = JsonUtil.serialize(auditRecord);
 
         if (status != STATUS.OPEN) {
-            LOGGER.warn("discarding audit event (AuditManager is not open); event=" + jsonRecord);
+            LOGGER.debug("discarding audit event (AuditManager is not open); event=" + jsonRecord);
             return;
         }
 
@@ -397,7 +397,7 @@ public class AuditManager implements PwmService {
         }
 
         if (!settings.permittedEvents.contains(auditRecord.getEventCode())) {
-            LOGGER.warn("discarding audit event, '" + auditRecord.getEventCode() + "', are being ignored; event=" + jsonRecord);
+            LOGGER.debug("discarding event, " + auditRecord.getEventCode() + " are being ignored; event=" + jsonRecord);
             return;
         }
 

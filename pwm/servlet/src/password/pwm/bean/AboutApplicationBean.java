@@ -60,7 +60,83 @@ public class AboutApplicationBean implements Serializable {
     
     private int configurationRestartCounter;
 
-    private JavaInformation javaInformation = new JavaInformation();
+    private JavaInformation javaInformation;
+    private BuildInformation buildInformation;
+
+    public static class BuildInformation implements Serializable {
+        private String buildTime;
+        private String buildNumber;
+        private String buildType;
+        private String buildUser;
+        private String buildRevision;
+        private String buildJavaVendor;
+        private String buildJavaVersion;
+        private String buildVersion;
+
+        public String getBuildTime() {
+            return buildTime;
+        }
+
+        public void setBuildTime(String buildTime) {
+            this.buildTime = buildTime;
+        }
+
+        public String getBuildNumber() {
+            return buildNumber;
+        }
+
+        public void setBuildNumber(String buildNumber) {
+            this.buildNumber = buildNumber;
+        }
+
+        public String getBuildType() {
+            return buildType;
+        }
+
+        public void setBuildType(String buildType) {
+            this.buildType = buildType;
+        }
+
+        public String getBuildUser() {
+            return buildUser;
+        }
+
+        public void setBuildUser(String buildUser) {
+            this.buildUser = buildUser;
+        }
+
+        public String getBuildRevision() {
+            return buildRevision;
+        }
+
+        public void setBuildRevision(String buildRevision) {
+            this.buildRevision = buildRevision;
+        }
+
+        public String getBuildJavaVendor() {
+            return buildJavaVendor;
+        }
+
+        public void setBuildJavaVendor(String buildJavaVendor) {
+            this.buildJavaVendor = buildJavaVendor;
+        }
+
+        public String getBuildJavaVersion() {
+            return buildJavaVersion;
+        }
+
+        public void setBuildJavaVersion(String buildJavaVersion) {
+            this.buildJavaVersion = buildJavaVersion;
+        }
+
+        public String getBuildVersion() {
+            return buildVersion;
+        }
+
+        public void setBuildVersion(String buildVersion) {
+            this.buildVersion = buildVersion;
+        }
+    }
 
     public static class JavaInformation implements Serializable {
         private long memoryFree;
@@ -74,6 +150,7 @@ public class AboutApplicationBean implements Serializable {
         private String vmName;
         private String osName;
         private String osVersion;
+        private String randomAlgorithm;
 
         public JavaInformation() {
         }
@@ -164,6 +241,14 @@ public class AboutApplicationBean implements Serializable {
 
         public void setOsVersion(String osVersion) {
             this.osVersion = osVersion;
+        }
+
+        public String getRandomAlgorithm() {
+            return randomAlgorithm;
+        }
+
+        public void setRandomAlgorithm(String randomAlgorithm) {
+            this.randomAlgorithm = randomAlgorithm;
         }
     }
     
@@ -367,5 +452,13 @@ public class AboutApplicationBean implements Serializable {
 
     public void setJavaInformation(JavaInformation javaInformation) {
         this.javaInformation = javaInformation;
+    }
+
+    public BuildInformation getBuildInformation() {
+        return buildInformation;
+    }
+
+    public void setBuildInformation(BuildInformation buildInformation) {
+        this.buildInformation = buildInformation;
     }
 }

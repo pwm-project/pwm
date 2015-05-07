@@ -350,10 +350,8 @@ public class MainClass {
             throws LocalDBException, PwmUnrecoverableException
     {
         final PwmApplication.MODE mode = readonly ? PwmApplication.MODE.READ_ONLY : PwmApplication.MODE.RUNNING;
-        final PwmApplication pwmApplication = new PwmApplication.PwmEnvironment()
-                .setConfig(config)
+        final PwmApplication pwmApplication = new PwmApplication.PwmEnvironment(config, applicationPath)
                 .setApplicationMode(mode)
-                .setApplicationPath(applicationPath)
                 .setApplicationPathType(MAIN_OPTIONS.applicationPathType)
                 .setInitLogging(false)
                 .setConfigurationFile(configurationFile)

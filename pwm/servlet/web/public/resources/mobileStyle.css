@@ -26,6 +26,7 @@ html, body {
     height: 100%;
     margin: 0;
     width: 100%;
+    min-height: inherit;
 }
 
 /* main content section, all content should be inside a centerbody div */
@@ -98,4 +99,29 @@ progress .wait {
     border: 0;
     width: auto;
     table-layout: fixed;
+}
+
+.dialogBody.orgChart { width: 100%; max-width: 100%; }
+
+.peoplesearch-wrapper #centerbody.wide {
+    bottom: 80px;
+    height: auto !important;
+    left: 0;
+    margin: auto;
+    min-width: auto;
+    position: absolute;
+    right: 40px;
+    top: 80px;
+    width: auto;
+}
+
+
+#peoplesearch-searchResultsGrid {
+    bottom: 0px;
+    height: auto;
+    left: 0px;
+    position: absolute;
+    right: 0px;
+    top: 45px;
+    cursor: pointer;
 }

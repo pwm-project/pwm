@@ -184,18 +184,13 @@ public class PwmHttpClient {
         // set up a TrustManager that trusts everything
         sslContext.init(null, new TrustManager[]{new X509TrustManager() {
             public X509Certificate[] getAcceptedIssuers() {
-                System.out.println("getAcceptedIssuers =============");
                 return new X509Certificate[0];
             }
 
-            public void checkClientTrusted(X509Certificate[] certs,
-                                           String authType) {
-                System.out.println("checkClientTrusted =============");
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
             }
 
-            public void checkServerTrusted(X509Certificate[] certs,
-                                           String authType) {
-                System.out.println("checkServerTrusted =============");
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
             }
         }}, new SecureRandom());
 

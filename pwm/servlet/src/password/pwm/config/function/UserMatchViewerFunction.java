@@ -73,10 +73,8 @@ public class UserMatchViewerFunction implements SettingUIFunction {
             throws Exception
     {
         final Configuration config = new Configuration(storedConfiguration);
-        final PwmApplication tempApplication = new PwmApplication.PwmEnvironment()
-                .setConfig(config)
+        final PwmApplication tempApplication = new PwmApplication.PwmEnvironment(config,pwmApplication.getApplicationPath())
                 .setApplicationMode(PwmApplication.MODE.CONFIGURATION)
-                .setApplicationPath(pwmApplication.getApplicationPath())
                 .setInitLogging(false)
                 .setConfigurationFile(null)
                 .setWebInfPath(pwmApplication.getWebInfPath())

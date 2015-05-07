@@ -237,25 +237,6 @@ PWM_MAIN.initPage = function() {
     console.log('initPage completed');
 };
 
-
-PWM_MAIN.closeHeaderWarningPanel = function() {
-    console.log('action closeHeader');
-    PWM_MAIN.setStyle('header-warning','display','none');
-    PWM_MAIN.setStyle('button-openHeader','display','inherit');
-    require(["dojo/cookie"], function(cookie){
-        cookie('headerVisibility', 'hide', {});
-    });
-};
-
-PWM_MAIN.openHeaderWarningPanel = function() {
-    console.log('action openHeader');
-    PWM_MAIN.setStyle('header-warning','display','inherit');
-    PWM_MAIN.setStyle('button-openHeader','display','none');
-    require(["dojo/cookie"], function(cookie){
-        cookie('headerVisibility', 'show', {});
-    });
-};
-
 PWM_MAIN.applyFormAttributes = function() {
     require(["dojo/_base/array", "dojo/query", "dojo/on"], function(array, query, on){
         array.forEach(
@@ -697,7 +678,7 @@ PWM_MAIN.showErrorDialog = function(error, options) {
     }
     if (error && error['error']) {
         var code = error['errorCode'];
-        if (code == 5028 || code == 5035) {
+        if (code == 5028 || code == 5034 || code == 5035) {
             forceReload = true;
         }
         titleMsg += ' ' + error['errorCode'];
@@ -1964,6 +1945,40 @@ PWM_MAIN.doIfQueryHasResults = function(queryString, trueFunction) {
             trueFunction();
         }
     });
+};
+
+PWM_MAIN.stopEvent = function(e) {
+    if (!e) var e = window.event;
+    e.cancelBubble = true;
+    if (e.stopPropagation) e.stopPropagation();
+};
+
+PWM_MAIN.clearFocus = function() {
+    document.activeElement.blur();
+};
+
+PWM_MAIN.readLocalStorage = function() {
+    if(typeof(Storage) !== "undefined") {
+        var storedStr = localStorage.getItem("ConfigEditor_Storage");
+        if (storedStr) {
+            try {
+                return JSON.parse(storedStr);
+            } catch (e) {
+                console.error('Error decoding existing local storage value: ' + e);
+            }
+        }
+        return {};
+    } else {
+        console.log("browser doesn't support local storage");
+    }
+};
+
+PWM_MAIN.writeLocalStorage = function(dataUpdate) {
+    if(typeof(Storage) !== "undefined") {
+        if (dataUpdate) {
+            localStorage.setItem("ConfigEditor_Storage",JSON.stringify(dataUpdate));
+        }
+    }
 };
 
 PWM_MAIN.pageLoadHandler();

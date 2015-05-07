@@ -75,22 +75,20 @@
 <div id="floatparent">
 </div>
 <pwm:script>
-<script type="text/javascript">
-    var H_RANGE = 20;
-    var V_RANGE = 20;
-    var MAX_NODES = 150;
+    <script type="text/javascript">
+        var H_RANGE = 20;
+        var V_RANGE = 20;
+        var MAX_NODES = 50;
 
-    var splatCount = 0;
-    var errorColor = '#d20734';
-    var posV = 0;
-    var posH = 0;
-    var deltaV = Math.floor((Math.random() * V_RANGE * 2)) - V_RANGE;
-    var deltaH = Math.floor((Math.random() * H_RANGE * 2)) - H_RANGE;
-    var passwordValue = null;
+        var splatCount = 0;
+        var errorColor = '#d20734';
+        var posV = 0;
+        var posH = 0;
+        var deltaV = Math.floor((Math.random() * V_RANGE * 2)) - V_RANGE;
+        var deltaH = Math.floor((Math.random() * H_RANGE * 2)) - H_RANGE;
 
-    function drawNextSprite() {
-        require(["dojo","dojo/window"],function(dojo){
-            if (passwordValue) {
+        function drawNextSprite() {
+            require(["dojo","dojo/window"],function(dojo){
                 var floatParent = PWM_MAIN.getObject("floatparent");
                 var vs = dojo.window.getBox();
 
@@ -100,8 +98,9 @@
                 var styleText = "position: absolute; ";
                 styleText += "top: " + posV + "px; ";
                 styleText += "left: " + posH +"px; ";
-                styleText += "padding: 4px; z-index:2; border-radius: 5px; ";
-                styleText += "filter:alpha(opacity=30); opacity: 0.3; ";
+                styleText += "padding: 4px; z-index:2;";
+                styleText += "filter:alpha(opacity=30); opacity: 0.8; ";
+                styleText += "width:15px; height:15px";
 
 
                 splatCount++;
@@ -114,7 +113,7 @@
                 }
 
                 var div = document.createElement('div');
-                div.innerHTML = passwordValue;
+                //div.innerHTML = '&nbsp;';
                 div.id = divId;
                 div.setAttribute("class",'health-' + PWM_GLOBAL['pwm-health']);
 
@@ -141,102 +140,77 @@
                     change = true;
                 }
                 if (change) {
-                    splatCount--;
-                    deltaV = deltaV == 0 ? 1 : deltaV;
-                    deltaH = deltaH == 0 ? 1 : deltaH;
-                    drawNextSprite();
-                    return;
+                    div.setAttribute('style','display:none');
+                    //splatCount--;
+                    //deltaV = deltaV == 0 ? 1 : deltaV;
+                    //deltaH = deltaH == 0 ? 1 : deltaH;
+                    //drawNextSprite();
+                    //return;
                 }
-            }
-            var timeOutTime = 1000 - (PWM_GLOBAL['epsActivityCount'] != null ? Math.floor(PWM_GLOBAL['epsActivityCount']) : 0);
-            timeOutTime = timeOutTime < 100 ? 100 : timeOutTime;
-            setTimeout(function(){
-                drawNextSprite();
-            },timeOutTime);
-        });
-    }
+                var timeOutTime = 1000 - (PWM_GLOBAL['epsActivityCount'] != null ? Math.floor(PWM_GLOBAL['epsActivityCount']) : 0);
+                timeOutTime = timeOutTime < 100 ? 100 : timeOutTime;
+                setTimeout(function(){
+                    drawNextSprite();
+                },timeOutTime);
+            });
+        }
 
-    function fetchRandomPassword() {
-        require(["dojo"],function(dojo){
-            dojo.xhrPost({
-                url: PWM_GLOBAL['url-restservice'] + "/randompassword",
-                headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-                dataType: "json",
-                timeout: 15000,
-                sync: false,
-                preventCache: true,
-                handleAs: "json",
-                load:  function(resultInfo) {
-                    passwordValue = resultInfo['data']["password"];
-                },
-                error: function(errorObj){
-                    passwordValue = "server unreachable";
+        function handleWarnFlash() {
+            if (PWM_GLOBAL['pwm-health'] == "WARN") {
+                PWM_MAIN.flashDomElement(errorColor,'body',3000);
+            }
+        }
+
+        function verticalCenter(divName) {
+            require(["dojo","dojo/window"],function(dojo){
+                var vs = dojo.window.getBox();
+                if (document.getElementById) {
+                    var windowHeight = vs.h;
+                    if (windowHeight > 0) {
+                        var contentElement = document.getElementById(divName);
+                        var contentHeight = contentElement.offsetHeight;
+                        if (windowHeight - contentHeight > 0) {
+                            contentElement.style.position = 'relative';
+                            contentElement.style.top = ((windowHeight / 2) - (contentHeight / 2)) + 'px';
+                        }
+                        else {
+                            contentElement.style.position = 'static';
+                        }
+                    }
                 }
             });
-        });
-    }
-
-    function handleWarnFlash() {
-        if (PWM_GLOBAL['pwm-health'] == "WARN") {
-            PWM_MAIN.flashDomElement(errorColor,'body',3000);
         }
-    }
 
-    function verticalCenter(divName) {
-        require(["dojo","dojo/window"],function(dojo){
-            var vs = dojo.window.getBox();
-            if (document.getElementById) {
-                var windowHeight = vs.h;
-                if (windowHeight > 0) {
-                    var contentElement = document.getElementById(divName);
-                    var contentHeight = contentElement.offsetHeight;
-                    if (windowHeight - contentHeight > 0) {
-                        contentElement.style.position = 'relative';
-                        contentElement.style.top = ((windowHeight / 2) - (contentHeight / 2)) + 'px';
-                    }
-                    else {
-                        contentElement.style.position = 'static';
-                    }
-                }
-            }
-        });
-    }
+        function startupHealthPage() {
+            PWM_GLOBAL['pwm-health'] = 'GOOD';
+            require(["dojo","dojo/domReady!","dojo/window"],function(dojo){
+                PWM_MAIN.flashDomElement('white','body',9000);
 
-    function startupHealthPage() {
-        PWM_GLOBAL['pwm-health'] = 'GOOD';
-        require(["dojo","dojo/domReady!","dojo/window"],function(dojo){
-            PWM_MAIN.flashDomElement('white','body',9000);
+                var vs = dojo.window.getBox();
+                posH = Math.floor((Math.random() * (vs.w - 30)));
+                posV = Math.floor((Math.random() * (vs.h - 100)));
 
-            var vs = dojo.window.getBox();
-            posH = Math.floor((Math.random() * (vs.w - 30)));
-            posV = Math.floor((Math.random() * (vs.h - 100)));
+                setInterval(function(){
+                    handleWarnFlash();
+                },30 * 1000);
 
-            fetchRandomPassword();
-            setInterval(function(){
-                fetchRandomPassword();
-            },30 * 1000);
+                drawNextSprite();
 
-            setInterval(function(){
-                handleWarnFlash();
-            },30 * 1000);
+                PWM_ADMIN.showAppHealth('healthBody', {showTimestamp:true});
+                PWM_ADMIN.showStatChart('<%=Statistic.PASSWORD_CHANGES%>',1,'statsChart',{refreshTime:31*1000});
 
-            drawNextSprite();
-
-            PWM_ADMIN.showAppHealth('healthBody', {showTimestamp:true});
-            PWM_ADMIN.showStatChart('<%=Statistic.PASSWORD_CHANGES%>',1,'statsChart',{refreshTime:31*1000});
-
-            verticalCenter('centerbody');
-            setInterval(function(){
                 verticalCenter('centerbody');
-            }, 1000);
+                setInterval(function(){
+                    verticalCenter('centerbody');
+                }, 1000);
 
+            });
+        }
+
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            startupHealthPage();
         });
-    }
-
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        startupHealthPage();
-    });
-</script>
+    </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

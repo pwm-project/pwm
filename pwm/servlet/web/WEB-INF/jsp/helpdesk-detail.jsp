@@ -735,13 +735,13 @@
 <pwm:script>
     <script type="text/javascript">
         function initiateChangePasswordDialog() {
-            <% if (SETTING_PW_UI_MODE == HelpdeskUIMode.autogen) { %>
-            PWM_HELPDESK.generatePasswordPopup();
-            <% } else if (SETTING_PW_UI_MODE == HelpdeskUIMode.random) { %>
-            PWM_HELPDESK.setRandomPasswordPopup();
-            <% } else { %>
-            PWM_HELPDESK.changePasswordPopup();
-            <% } %>
+            if (PWM_VAR['helpdesk_setting_PwUiMode'] == 'autogen') {
+                PWM_HELPDESK.generatePasswordPopup();
+            } else if (PWM_VAR['helpdesk_setting_PwUiMode'] == 'random') {
+                PWM_HELPDESK.setRandomPasswordPopup();
+            } else {
+                PWM_HELPDESK.changePasswordPopup();
+            }
         }
 
         PWM_GLOBAL['startupFunctions'].push(function(){
@@ -751,6 +751,7 @@
                 PWM_VAR['helpdesk_username'] = '<%=StringUtil.escapeJS(searchedUserInfo.getUsername())%>';
                 PWM_VAR['helpdesk_setting_clearResponses'] = '<%=helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_CLEAR_RESPONSES,HelpdeskClearResponseMode.class)%>';
                 PWM_VAR['helpdesk_setting_PwUiMode'] = '<%=helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE,HelpdeskUIMode.class) %>';
+                PWM_VAR['helpdesk_setting_maskPasswords'] = false;
             });
         });
     </script>

@@ -546,12 +546,9 @@ public class LDAPStatusChecker implements HealthChecker {
     )
                 throws PwmUnrecoverableException
     {
-        final PwmApplication tempApplication = new PwmApplication.PwmEnvironment()
-                .setConfig(config)
+        final PwmApplication tempApplication = new PwmApplication.PwmEnvironment(config, pwmApplication.getApplicationPath())
                 .setApplicationMode(PwmApplication.MODE.NEW)
-                .setApplicationPath(pwmApplication.getApplicationPath())
                 .setInitLogging(false)
-                .setConfigurationFile(null)
                 .setWebInfPath(pwmApplication.getWebInfPath())
                 .createPwmApplication();
 

@@ -134,6 +134,25 @@ PWM_CONFIG.uploadLocalDB=function() {
     });
 };
 
+PWM_CONFIG.closeHeaderWarningPanel = function() {
+    console.log('action closeHeader');
+    PWM_MAIN.setStyle('header-warning','display','none');
+    PWM_MAIN.setStyle('button-openHeader','display','inherit');
+    var prefs = PWM_MAIN.readLocalStorage();
+    prefs['headerVisibility'] = 'hide';
+    PWM_MAIN.writeLocalStorage(prefs);
+};
+
+PWM_CONFIG.openHeaderWarningPanel = function() {
+    console.log('action openHeader');
+    PWM_MAIN.setStyle('header-warning','display','inherit');
+    PWM_MAIN.setStyle('button-openHeader','display','none');
+    var prefs = PWM_MAIN.readLocalStorage();
+    prefs['headerVisibility'] = 'show';
+    PWM_MAIN.writeLocalStorage(prefs);
+};
+
+
 
 PWM_CONFIG.showString=function (key, options) {
     options = options === undefined ? {} : options;
@@ -167,8 +186,13 @@ PWM_CONFIG.showHeaderHealth = function() {
                     }
                 }
                 if (hasWarnTopics) {
-                    PWM_MAIN.openHeaderWarningPanel();
+                    PWM_MAIN.addCssClass('button-openHeader','blink');
+                    PWM_MAIN.setStyle('button-openHeader','color','red');
+
                     parentDiv.innerHTML = '<div id="panel-healthHeaderErrors" class="header-error"><span class="fa fa-warning"></span> ' + PWM_ADMIN.showString('Header_HealthWarningsPresent') + '</div>';
+                } else {
+                    PWM_MAIN.removeCssClass('button-openHeader','blink');
+                    PWM_MAIN.setStyle('button-openHeader','color');
                 }
                 setTimeout(function () {
                     PWM_CONFIG.showHeaderHealth()
@@ -393,12 +417,18 @@ PWM_CONFIG.initConfigHeader = function() {
         PWM_MAIN.goto('/private/config/ConfigManager');
     });
     PWM_MAIN.addEventHandler('button-closeHeader','click',function(){
-        PWM_MAIN.closeHeaderWarningPanel();
+        PWM_CONFIG.closeHeaderWarningPanel();
     });
     PWM_MAIN.addEventHandler('button-openHeader','click',function(){
-        PWM_MAIN.openHeaderWarningPanel();
+        PWM_CONFIG.openHeaderWarningPanel();
     });
 
     PWM_CONFIG.showHeaderHealth();
+
+    var prefs = PWM_MAIN.readLocalStorage();
+    if (prefs['headerVisibility'] == 'show') {
+        PWM_CONFIG.openHeaderWarningPanel();
+    }
+
     console.log('initConfigHeader completed');
 };

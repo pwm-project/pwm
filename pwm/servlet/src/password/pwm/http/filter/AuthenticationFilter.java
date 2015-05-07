@@ -264,7 +264,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
 
         //store the original requested url
-        final String originalRequestedUrl = figureOriginalRequestUrl(pwmRequest);
+        final String originalRequestedUrl = pwmRequest.getURLwithQueryString();
 
         pwmRequest.markPreLoginUrl();
 
@@ -413,7 +413,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             return false;
         }
 
-        final String originalURL = figureOriginalRequestUrl(pwmRequest);
+        final String originalURL = pwmRequest.getURLwithQueryString();
 
         final String state = OAuthConsumerServlet.makeStateStringForRequest(pwmRequest, originalURL);
         final String redirectUri = OAuthConsumerServlet.figureOauthSelfEndPointUrl(pwmRequest);
@@ -518,16 +518,6 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
 
         return false;
-    }
-
-    private static String figureOriginalRequestUrl(final PwmRequest pwmRequest) {
-        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-        final String queryString = req.getQueryString();
-        if (queryString != null && !queryString.isEmpty()) {
-            return req.getRequestURI() + '?' + queryString;
-        } else {
-            return req.getRequestURI();
-        }
     }
 }
 

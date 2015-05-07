@@ -96,7 +96,7 @@ public class PasswordValue implements StoredValue {
                 } else {
                     try {
                         final SecretKey secretKey = SecureHelper.makeKey(key);
-                        newPasswordValue.value = new PasswordData(SecureHelper.decryptStringValue(rawValue, secretKey));
+                        newPasswordValue.value = new PasswordData(SecureHelper.decryptStringValue(rawValue, secretKey, false, SecureHelper.BlockAlgorithm.CONFIG));
                         return newPasswordValue;
                     } catch (Exception e) {
                         final String errorMsg = "unable to decode encrypted password value for setting: " + e.getMessage();

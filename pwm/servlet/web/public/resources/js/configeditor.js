@@ -187,7 +187,7 @@ PWM_CFGEDIT.getSettingValueElement = function(settingKey) {
     return PWM_MAIN.getObject(parentDiv);
 };
 
-PWM_CFGEDIT.clearDivElements = function(parentDiv, showLoading) {
+PWM_CFGEDIT.clearDivElements = function(parentDiv) {
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
     if (parentDivElement != null) {
         if (parentDivElement.hasChildNodes()) {
@@ -196,19 +196,6 @@ PWM_CFGEDIT.clearDivElements = function(parentDiv, showLoading) {
                 parentDivElement.removeChild(firstChild);
             }
         }
-        /*
-         if (showLoading) {
-         var newTableRow = document.createElement("tr");
-         newTableRow.setAttribute("style", "border-width: 0");
-         parentDivElement.appendChild(newTableRow);
-
-
-         var newTableData = document.createElement("td");
-         newTableData.setAttribute("style", "border-width: 0");
-         newTableData.innerHTML = PWM_MAIN.showString('Display_PleaseWait');
-         newTableRow.appendChild(newTableData);
-         }
-         */
     }
 };
 
@@ -248,7 +235,7 @@ PWM_CFGEDIT.readInitialTextBasedValue = function(key) {
 };
 
 PWM_CFGEDIT.saveConfiguration = function() {
-    PWM_VAR['cancelHeartbeatCheck'];
+    PWM_VAR['cancelHeartbeatCheck'] = true;
     PWM_MAIN.preloadAll(function(){
         var confirmText = PWM_CONFIG.showString('MenuDisplay_SaveConfig');
         var confirmFunction = function(){
@@ -300,46 +287,6 @@ PWM_CFGEDIT.setConfigurationPassword = function(password) {
     ChangePasswordHandler.popup('configPw','Configuration Password',writeFunction);
 };
 
-PWM_CFGEDIT.toggleHelpDisplay=function(key, options) {
-    console.log('begin toggle help display for key ' + key);
-    PWM_VAR['toggleHelpDisplay'] = PWM_VAR['toggleHelpDisplay'] || {};
-    var helpDiv = PWM_MAIN.getObject('helpDiv_' + key);
-    var titleId = 'title_' + key;
-    var show;
-    if (options && options['force']) {
-        if (options['force'] == 'show') {
-            show = true;
-        } else if (options['force'] == 'hide') {
-            show = false;
-        }
-    } else {
-        show = PWM_VAR['toggleHelpDisplay'][key] == 'hidden';
-    }
-    if (helpDiv) {
-        if (show) {
-            PWM_VAR['toggleHelpDisplay'][key] = 'visible';
-            require(["dijit/registry","dojo/fx"],function(registry,fx){
-                var node = registry.byId('title_' + key);
-                if (node) {
-                    node.destroy();
-                }
-                fx.wipeIn({node:helpDiv}).play();
-            });
-        } else {
-            PWM_VAR['toggleHelpDisplay'][key] = 'hidden';
-            var helpText = PWM_SETTINGS['settings'][key]['description'];
-            PWM_MAIN.showTooltip({
-                id: [titleId],
-                position: ['above','below'],
-                text: helpText,
-                width: 520
-            });
-            require(["dojo/fx"],function(fx){
-                fx.wipeOut({node:helpDiv}).play();
-            });
-        }
-    }
-};
 
 function handleResetClick(settingKey) {
     var label = PWM_SETTINGS['settings'][settingKey] ? PWM_SETTINGS['settings'][settingKey]['label'] : ' ';
@@ -358,11 +305,6 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
     PWM_MAIN.addEventHandler('button-navigationExpandAll','click',function(){PWM_VAR['navigationTree'].expandAll()});
     PWM_MAIN.addEventHandler('button-navigationCollapseAll','click',function(){PWM_VAR['navigationTree'].collapseAll()});
 
-    PWM_MAIN.showTooltip({id:'cancelButton_icon',text:'Cancel Changes and return to Configuration Manager',position:'below'});
-    PWM_MAIN.showTooltip({id:'saveButton_icon',text:'Save',position:'below'});
-    PWM_MAIN.showTooltip({id:'setPassword_icon',text:'Set Configuration Password',position:'below'});
-    PWM_MAIN.showTooltip({id:'referenceDoc_icon',text:'Open Reference Documentation',position:'below'});
-    PWM_MAIN.showTooltip({id:'macroDoc_icon',text:'Macro Help',position:'below'});
     PWM_MAIN.showTooltip({id:'settingSearchIcon',text:'Search settings, help text and setting values',position:'above'});
     PWM_MAIN.showTooltip({id:'indicator-noResults',text:'No search results',position:'above'});
 
@@ -783,7 +725,7 @@ PWM_CFGEDIT.selectTemplate = function(newTemplate) {
 PWM_CFGEDIT.loadMainPageBody = function() {
 
     PWM_CFGEDIT.drawNavigationMenu();
-    var storedPreferences = PWM_CFGEDIT.readLocalStorage();
+    var storedPreferences = PWM_MAIN.readLocalStorage();
     if (storedPreferences['lastSelected']) {
         PWM_CFGEDIT.dispatchNavigationItem(storedPreferences['lastSelected']);
     } else {
@@ -863,18 +805,18 @@ PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo, options) {
     var htmlBody = '<div id="outline_' + settingKey + '" class="setting_outline" style="display:none">'
         + '<div class="setting_title" id="title_' + settingKey + '">'
         + '<a id="setting-' + settingKey + '" class="text">' + settingLabel + '</a>'
-        + '<div class="fa fa-pencil-square modifiedNoticeIcon" title="Setting has been modified" id="modifiedNoticeIcon-' + settingKey + '" style="display: none" ></div>';
+        + '<div class="fa fa-pencil-square modifiedNoticeIcon" title="' + PWM_CONFIG.showString('Tooltip_ModifiedNotice') + '" id="modifiedNoticeIcon-' + settingKey + '" style="display: none" ></div>';
 
     if (settingInfo['description']) {
-        htmlBody += '<div class="fa fa-question-circle icon_button" title="Help" id="helpButton-' + settingKey + '"></div>';
+        htmlBody += '<div class="fa fa-question-circle icon_button" title="' + PWM_CONFIG.showString('Tooltip_HelpButton') + '" id="helpButton-' + settingKey + '"></div>';
     }
 
-    htmlBody += '<div style="visibility: hidden" class="fa fa-undo icon_button" title="Reset" id="resetButton-' + settingKey + '"></div>'
+    htmlBody += '<div style="visibility: hidden" class="fa fa-undo icon_button" title="' + PWM_CONFIG.showString('Tooltip_ResetButton') + '" id="resetButton-' + settingKey + '"></div>'
     + '</div>' // close title
     + '<div id="titlePane_' + settingKey + '" class="setting_body">';
 
     if (settingInfo['description']) {
-        var prefs = PWM_CFGEDIT.readLocalStorage();
+        var prefs = PWM_MAIN.readLocalStorage();
         var expandHelp = 'helpExpanded' in prefs && settingKey in prefs['helpExpanded'];
         htmlBody += '<div class="pane-help" id="pane-help-' + settingKey + '" style="display:' + (expandHelp ? 'inherit' : 'none') + '">'
         + settingInfo['description'] + '</div>';
@@ -894,18 +836,6 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
     var settingKey = setting['key'];
     options = options === undefined ? {} : options;
 
-    PWM_MAIN.showTooltip({
-        id: "modifiedNoticeIcon-" + settingKey,
-        text: 'Setting has been modified from the default value'
-    });
-    PWM_MAIN.showTooltip({
-        id: "resetButton-" + settingKey,
-        text: PWM_CONFIG.showString('Tooltip_ResetButton')
-    });
-    PWM_MAIN.showTooltip({
-        id: "helpButton-" + settingKey,
-        text: PWM_CONFIG.showString('Tooltip_HelpButton')
-    });
     PWM_MAIN.addEventHandler('helpButton-' + settingKey, 'click', function () {
         PWM_CFGEDIT.displaySettingHelp(settingKey);
     });
@@ -1052,9 +982,9 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
                     openOnClick: true,
                     id: 'navigationTree',
                     onClick: function(item){
-                        var storedPreferences = PWM_CFGEDIT.readLocalStorage();
+                        var storedPreferences = PWM_MAIN.readLocalStorage();
                         storedPreferences['lastSelected'] = item;
-                        PWM_CFGEDIT.writeLocalStorage(storedPreferences);
+                        PWM_MAIN.writeLocalStorage(storedPreferences);
                         PWM_CFGEDIT.dispatchNavigationItem(item);
                     }
                 });
@@ -1228,29 +1158,6 @@ PWM_CFGEDIT.drawHomePage = function() {
 
 };
 
-PWM_CFGEDIT.readLocalStorage = function() {
-    if(typeof(Storage) !== "undefined") {
-        var storedStr = localStorage.getItem("ConfigEditor_Storage");
-        if (storedStr) {
-            try {
-                return JSON.parse(storedStr);
-            } catch (e) {
-                console.error('Error decoding existing local storage value: ' + e);
-            }
-        }
-        return {};
-    } else {
-        console.log("browser doesn't support local storage");
-    }
-};
-
-PWM_CFGEDIT.writeLocalStorage = function(dataUpdate) {
-    if(typeof(Storage) !== "undefined") {
-        if (dataUpdate) {
-            localStorage.setItem("ConfigEditor_Storage",JSON.stringify(dataUpdate));
-        }
-    }
-};
 
 PWM_CFGEDIT.initConfigSettingsDefinition=function(nextFunction) {
     var clientConfigUrl = PWM_GLOBAL['url-context'] + "/private/config/ConfigEditor?processAction=settingData&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
@@ -1276,7 +1183,7 @@ PWM_CFGEDIT.initConfigSettingsDefinition=function(nextFunction) {
 
 PWM_CFGEDIT.displaySettingHelp = function(settingKey) {
     console.log('toggle help for ' + settingKey);
-    var prefs = PWM_CFGEDIT.readLocalStorage();
+    var prefs = PWM_MAIN.readLocalStorage();
     prefs['helpExpanded'] = 'helpExpanded' in prefs ? prefs['helpExpanded'] : {};
     var element = PWM_MAIN.getObject('pane-help-' + settingKey);
     if (element) {
@@ -1287,35 +1194,8 @@ PWM_CFGEDIT.displaySettingHelp = function(settingKey) {
             element.style.display = 'none';
             delete prefs['helpExpanded'][settingKey];
         }
-        PWM_CFGEDIT.writeLocalStorage(prefs);
+        PWM_MAIN.writeLocalStorage(prefs);
     }
-    /*
-     var setting = PWM_SETTINGS['settings'][settingKey];
-
-     var body = '<div>' + setting['description'] + '</div><br/><br/>';
-     body += '<div style="cursor:pointer; text-align:center; width: 100%;">';
-     body += '<span id="button-' + settingKey + '-extendHelp" style="color:grey" class="btn-icon fa fa-arrow-circle-down"></span>'
-     body += '</div>';
-     body += '<div style="display:none" id="panel-' + settingKey + '-extendHelp"><table>';
-     body += '<tr><td>Key</td><td>' + setting['key'] + '</td></tr>';
-     body += '<tr><td>Syntax</td><td>' + setting['syntax'] + '</td></tr>';
-     body += '<tr><td>Required</td><td>' + setting['required'] + '</td></tr>';
-     body += '</table></div>';
-
-
-     PWM_MAIN.showDialog({
-     text: body,
-     title: setting['label'],
-     allowMove: true,
-     showClose: true,
-     loadFunction: function(){
-     PWM_MAIN.addEventHandler('button-' + settingKey + '-extendHelp','click',function(){
-     PWM_MAIN.getObject('button-' + settingKey + '-extendHelp').style.visibility = 'hidden';
-     PWM_MAIN.getObject('panel-' + settingKey + '-extendHelp').style.display = 'inline';
-     });
-     }
-     });
-     */
 };
 
 PWM_CFGEDIT.showSettingFilter = function() {

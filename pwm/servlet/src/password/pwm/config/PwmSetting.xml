@@ -1839,7 +1839,7 @@
     </setting>
     <setting key="audit.syslog.servers" level="1" required="false">
         <label>Syslog Audit Server</label>
-        <description><![CDATA[Syslog audit server.  When configured, all audit events will be forwarded to the specified syslog server.  The format is <b>&lt;protocol&gt;</b>,<b>&lt;address&gt;</b>,<b>&lt;port&gt;</b>.  The value for <b>&lt;protocol&gt;</b> can be either <i>udp</i> or <i>tcp</i>.<br/><br/>Examples:<table><tr><td>Protocol</td><td>Address</td><td>Port</td><td>Setting</td><tr><tr><td>UDP</td><td>127.0.0.1</td><td>514</td><td>udp,127.0.0.1,514</td><tr><tr><td>TCP</td><td>central-syslog.example.com</td><td>514</td><td>tcp,central-syslog.example.com,514</td><tr></table>]]></description>
+        <description><![CDATA[Syslog audit server.  When configured, all audit events will be forwarded to the specified syslog server.  The format is <b>&lt;protocol&gt;</b>,<b>&lt;address&gt;</b>,<b>&lt;port&gt;</b>.  The value for <b>&lt;protocol&gt;</b> can be either <i>udp</i> or <i>tcp</i>.<br/><br/>Examples:<table><tr><td>Protocol</td><td>Address</td><td>Port</td><td>Setting</td><tr><tr><td>UDP</td><td>127.0.0.1</td><td>514</td><td>udp,127.0.0.1,514</td><tr><tr><td>TCP</td><td>central-syslog.example.com</td><td>514</td><td>tcp,central-syslog.example.com,514</td><tr><tr><td>TLS</td><td>secure-syslog.example.com</td><td>6514</td><td>tls,central-syslog.example.com,6514</td><tr></table>]]></description>
         <default>
             <value/>
         </default>
@@ -2994,9 +2994,22 @@
             <value>false</value>
         </default>
     </setting>
+    <setting key="peopleSearch.displayName.cardLabels" level="1">
+        <label>Display Labels</label>
+        <description><![CDATA[Display labels for user panel in PeopleSearch detail and on org chart.  LDAP Attribute value <b>@LDAP:x@</b> macros can be used.  A maximum of four values can be set.]]></description>
+        <default>
+            <value>@LDAP:givenName@ @LDAP:sn@</value>
+            <value>@LDAP:title@</value>
+            <value>@LDAP:mail@</value>
+            <value>@LDAP:telephoneNumber@</value>
+        </default>
+        <options>
+            <option value="max">4</option>
+        </options>
+    </setting>
     <setting key="peopleSearch.displayName.user" level="1" required="true">
-        <label>User Name Display</label>
-        <description><![CDATA[Display name for user in PeopleSearch detail.  May use <b>@LDAP:x@</b> macros, but other macros will not work.]]></description>
+        <label>UserDN Name Display</label>
+        <description><![CDATA[Display name for user in PeopleSearch detail.  LDAP Attribute value <b>@LDAP:x@</b> macros can be used.]]></description>
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @LDAP:title@</value>
         </default>
@@ -3012,13 +3025,6 @@
         <label>Photo URL Override</label>
         <description><![CDATA[If the user's photo is not stored in ldap, this URL can be specified to load the photo for the user detail.  May use <b>@LDAP:x@</b> macros, but other macros will not work.  If this setting is specified, the photo will not be loaded from the LDAP directory.]]></description>
         <default/>
-    </setting>
-    <setting key="peopleSearch.photo.style" level="2">
-        <label>LDAP Photo HTML Style Attribute</label>
-        <description><![CDATA[When displaying the photo, the value for this attribute will be used to specify the HTML <i>&lt;img&gt;</i> tag's <i>style</i> attribute.  Any valid CSS style attribute can be used.  Typically this is used to specify the height and width of the photo such as "<i>height: 100px; width: 100px</i>".]]></description>
-        <default>
-            <value>height: 100px; width: 100px</value>
-        </default>
     </setting>
     <setting key="peopleSearch.maxCacheSeconds" level="2">
         <label>PeopleSearch Maximum Cache Seconds</label>
@@ -3054,18 +3060,6 @@
         <default>
             <value>directReports</value>
         </default>
-    </setting>
-    <setting key="peopleSearch.orgChart.displayValues" level="1">
-        <label>Org Chart Display Labels</label>
-        <description/>
-        <default>
-            <value>@LDAP:givenName@ @LDAP:sn@</value>
-            <value>@LDAP:title@</value>
-            <value>@LDAP:mail@</value>
-        </default>
-        <options>
-            <option value="max">3</option>
-        </options>
     </setting>
     <setting key="ldap.edirectory.enableNmas" level="1" required="true">
         <label>Enable NMAS Extensions</label>

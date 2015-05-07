@@ -792,12 +792,12 @@ public enum PwmSetting {
             "peopleSearch.useProxy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_DISPLAY_NAME(
             "peopleSearch.displayName.user", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_DISPLAY_NAMES_CARD_LABELS(
+            "peopleSearch.displayName.cardLabels", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_PHOTO_ATTRIBUTE(
             "peopleSearch.photo.ldapAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_PHOTO_URL_OVERRIDE(
             "peopleSearch.photo.urlOverride", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
-    PEOPLE_SEARCH_PHOTO_STYLE_ATTR(
-            "peopleSearch.photo.style", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_MAX_CACHE_SECONDS(
             "peopleSearch.maxCacheSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_PHOTO_QUERY_FILTER(
@@ -814,8 +814,6 @@ public enum PwmSetting {
             "peopleSearch.orgChart.parentAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE(
             "peopleSearch.orgChart.childAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
-    PEOPLE_SEARCH_ORGCHART_DISPLAY_VALUES(
-            "peopleSearch.orgChart.displayValues", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH),
 
 
 

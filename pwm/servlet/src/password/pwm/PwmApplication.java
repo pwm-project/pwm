@@ -27,6 +27,7 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.bean.AboutApplicationBean;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -39,6 +40,7 @@ import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditManager;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.health.HealthMonitor;
+import password.pwm.http.servlet.AdminServlet;
 import password.pwm.ldap.LdapConnectionService;
 import password.pwm.token.TokenService;
 import password.pwm.util.*;
@@ -229,7 +231,29 @@ public class PwmApplication {
         LOGGER.info(logEnvironment());
         LOGGER.info(logDebugInfo());
 
+        initServices();
+
+        final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
+        LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
+        StatisticsManager.incrementStat(this,Statistic.PWM_STARTUPS);
+        LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE);
+
+        final Thread postInitThread = new Thread(){
+            @Override
+            public void run() {
+                postInitTasks();
+            }
+        };
+        postInitThread.setDaemon(true);
+        postInitThread.setName(Helper.makeThreadName(this, PwmApplication.class));
+        postInitThread.start();
+    }
+
+    private void initServices()
+            throws PwmUnrecoverableException
+    {
         for (final Class<? extends PwmService> serviceClass : PWM_SERVICE_CLASSES) {
+            final Date startTime = new Date();
             final PwmService newServiceInstance;
             try {
                 final Object newInstance = serviceClass.newInstance();
@@ -243,7 +267,7 @@ public class PwmApplication {
             try {
                 LOGGER.debug("initializing service " + serviceClass.getName());
                 newServiceInstance.init(this);
-                LOGGER.debug("initialization of service " + serviceClass.getName() + " has completed successfully");
+                LOGGER.debug("completed initialization of service " + serviceClass.getName() + " in " + TimeDuration.fromCurrent(startTime).asCompactString() + ", status=" + newServiceInstance.status());
             } catch (PwmException e) {
                 LOGGER.warn("error instantiating service class '" + serviceClass.getName() + "', service will remain unavailable, error: " + e.getMessage());
             } catch (Exception e) {
@@ -256,12 +280,10 @@ public class PwmApplication {
             }
             pwmServices.put(serviceClass,newServiceInstance);
         }
+    }
 
-        final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
-        LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
-        getStatisticsManager().incrementValue(Statistic.PWM_STARTUPS);
-        LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
-
+    private void postInitTasks() {
+        final Date startTime = new Date();
         // detect if config has been modified since previous startup
         try {
             final String previousHash = readAppAttribute(AppAttribute.CONFIG_HASH);
@@ -306,6 +328,15 @@ public class PwmApplication {
         } catch (PwmException e) {
             LOGGER.warn("unable to submit alert event " + JsonUtil.serialize(auditRecord));
         }
+
+        try {
+            AboutApplicationBean aboutApplicationBean = AdminServlet.makeInfoBean(this);
+            LOGGER.trace("application info: " + JsonUtil.serialize(aboutApplicationBean));
+        } catch (Exception e) {
+            LOGGER.error("error generating about application bean: " + e.getMessage());
+        }
+
+        LOGGER.trace("completed post init tasks in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
 
     public String getInstanceID() {
@@ -465,7 +496,7 @@ public class PwmApplication {
 
         envStats.put("memmax",Runtime.getRuntime().maxMemory());
         envStats.put("threads",Thread.activeCount());
-        envStats.put("chaiApi",ChaiConstant.CHAI_API_VERSION + ", b" + ChaiConstant.CHAI_API_BUILD_INFO);
+        envStats.put("chaiApi", ChaiConstant.CHAI_API_VERSION + ", b" + ChaiConstant.CHAI_API_BUILD_INFO);
 
         return "environment info: " + JsonUtil.serializeMap(envStats);
     }
@@ -719,28 +750,30 @@ public class PwmApplication {
             LOGGER.trace("applicationPath appears to be servlet /WEB-INF directory");
         }
 
-        final File infoFile = new File(webInfPath.getAbsolutePath() + File.separator + PwmConstants.APPLICATION_PATH_INFO_FILE);
-        if (applicationPathIsWebInfPath) {
-            if (pwmEnvironment.applicationPathType == PwmEnvironment.ApplicationPathType.derived) {
-                LOGGER.trace("checking " + infoFile.getAbsolutePath() + " status, (applicationPathType=" + PwmEnvironment.ApplicationPathType.derived + ")");
-                if (infoFile.exists()) {
-                    final String errorMsg = "The file " + infoFile.getAbsolutePath() + " exists, and an applicationPath was not explicitly specified."
-                            + "  This happens when an applicationPath was previously configured, but is not now being specified."
-                            + "  An explicit applicationPath parameter must be specified, or the file can be removed if the applicationPath should be changed to the default /WEB-INF directory.";
-                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, errorMsg));
-                } else {
-                    LOGGER.trace("marker file " + infoFile.getAbsolutePath() + " does not exist");
+        if (webInfPath != null) {
+            final File infoFile = new File(webInfPath.getAbsolutePath() + File.separator + PwmConstants.APPLICATION_PATH_INFO_FILE);
+            if (applicationPathIsWebInfPath) {
+                if (pwmEnvironment.applicationPathType == PwmEnvironment.ApplicationPathType.derived) {
+                    LOGGER.trace("checking " + infoFile.getAbsolutePath() + " status, (applicationPathType=" + PwmEnvironment.ApplicationPathType.derived + ")");
+                    if (infoFile.exists()) {
+                        final String errorMsg = "The file " + infoFile.getAbsolutePath() + " exists, and an applicationPath was not explicitly specified."
+                                + "  This happens when an applicationPath was previously configured, but is not now being specified."
+                                + "  An explicit applicationPath parameter must be specified, or the file can be removed if the applicationPath should be changed to the default /WEB-INF directory.";
+                        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, errorMsg));
+                    } else {
+                        LOGGER.trace("marker file " + infoFile.getAbsolutePath() + " does not exist");
+                    }
                 }
-            }
-        } else {
-            if (pwmEnvironment.applicationPathType == PwmEnvironment.ApplicationPathType.specified) {
-                try {
-                    final FileOutputStream fos = new FileOutputStream(infoFile);
-                    final Properties outputProperties = new Properties();
-                    outputProperties.setProperty("lastApplicationPath", applicationPath.getAbsolutePath());
-                    outputProperties.store(fos, "Marker file to record a previously specified applicationPath");
-                } catch (IOException e) {
-                    LOGGER.warn("unable to write applicationPath marker properties file " + infoFile.getAbsolutePath() + "");
+            } else {
+                if (pwmEnvironment.applicationPathType == PwmEnvironment.ApplicationPathType.specified) {
+                    try {
+                        final FileOutputStream fos = new FileOutputStream(infoFile);
+                        final Properties outputProperties = new Properties();
+                        outputProperties.setProperty("lastApplicationPath", applicationPath.getAbsolutePath());
+                        outputProperties.store(fos, "Marker file to record a previously specified applicationPath");
+                    } catch (IOException e) {
+                        LOGGER.warn("unable to write applicationPath marker properties file " + infoFile.getAbsolutePath() + "");
+                    }
                 }
             }
         }
@@ -761,18 +794,13 @@ public class PwmApplication {
             specified,
         }
 
-        public PwmEnvironment setConfig(Configuration config) {
+        public PwmEnvironment(Configuration config, File applicationPath) {
             this.config = config;
-            return this;
+            this.applicationPath = applicationPath;
         }
 
         public PwmEnvironment setApplicationMode(MODE applicationMode) {
             this.applicationMode = applicationMode;
-            return this;
-        }
-
-        public PwmEnvironment setApplicationPath(File applicationPath) {
-            this.applicationPath = applicationPath;
             return this;
         }
 

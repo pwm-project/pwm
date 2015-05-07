@@ -77,6 +77,10 @@ public abstract class PwmServlet extends HttpServlet {
         try {
             final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
 
+            if (!method.isIdempotent()) {
+                Validator.validatePwmFormID(pwmRequest);
+            }
+
             // check for duplicate form submit.
             try {
                 Validator.validatePwmRequestCounter(pwmRequest);
@@ -102,10 +106,6 @@ public abstract class PwmServlet extends HttpServlet {
                     pwmRequest.respondWithError(errorInformation, false);
                     return;
                 }
-            }
-
-            if (method == HttpMethod.POST) {
-                Validator.validatePwmFormID(pwmRequest);
             }
 
             this.processAction(pwmRequest);

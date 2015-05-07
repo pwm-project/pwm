@@ -245,6 +245,14 @@ public class SessionFilter extends AbstractPwmFilter {
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final PwmResponse pwmResponse = pwmRequest.getPwmResponse();
 
+        if (!pwmRequest.getMethod().isIdempotent() && pwmRequest.hasParameter(PwmConstants.PARAM_FORM_ID)) {
+            final String errorMsg = "session is unvalidated and cannot be validated during a " + pwmRequest.getMethod().toString() + " request";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_FORMID,errorMsg);
+            pwmRequest.respondWithError(errorInformation);
+            LOGGER.debug(pwmRequest,errorInformation);
+            return true;
+        }
+
         if (pwmRequest.getURL().isCommandServletURL()) {
             return false;
         }

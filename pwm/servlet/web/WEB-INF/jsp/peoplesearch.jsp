@@ -26,7 +26,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
-<div id="wrapper">
+<div id="wrapper" class="peoplesearch-wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PeopleSearch"/>
     </jsp:include>

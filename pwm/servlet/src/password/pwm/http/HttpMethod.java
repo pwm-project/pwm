@@ -1,12 +1,18 @@
 package password.pwm.http;
 
 public enum HttpMethod {
-    POST,
-    GET,
-    DELETE,
-    PUT,
+    POST(false),
+    GET(true),
+    DELETE(false),
+    PUT(false),
 
     ;
+
+    private final boolean idempotent;
+
+    HttpMethod(boolean idempotent) {
+        this.idempotent = idempotent;
+    }
 
     public static HttpMethod fromString(final String input) {
         for (final HttpMethod method : HttpMethod.values()) {
@@ -15,5 +21,9 @@ public enum HttpMethod {
             }
         }
         return null;
+    }
+
+    public boolean isIdempotent() {
+        return idempotent;
     }
 }

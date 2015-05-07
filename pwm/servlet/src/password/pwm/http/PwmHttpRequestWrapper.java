@@ -166,6 +166,11 @@ public abstract class PwmHttpRequestWrapper {
         return returnValue == null || returnValue.isEmpty() ? valueIfNotPresent : returnValue;
     }
 
+    public boolean hasParameter(final String name)
+            throws PwmUnrecoverableException {
+        return this.getHttpServletRequest().getParameterMap().containsKey(name);
+    }
+
     public String readParameterAsString(final String name)
             throws PwmUnrecoverableException {
         final int maxLength = Integer.parseInt(configuration.readAppProperty(AppProperty.HTTP_PARAM_MAX_READ_LENGTH));
@@ -303,5 +308,10 @@ public abstract class PwmHttpRequestWrapper {
         }
         return decodedValue;
     }
+
+    public HttpMethod getMethod() {
+        return HttpMethod.fromString(this.getHttpServletRequest().getMethod());
+    }
+
 }
 

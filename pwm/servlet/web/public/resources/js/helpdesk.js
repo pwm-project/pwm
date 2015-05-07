@@ -45,36 +45,21 @@ PWM_HELPDESK.executeAction = function(actionName) {
 
 PWM_HELPDESK.doResponseClear = function() {
     var username = PWM_VAR['helpdesk_obfuscatedDN'];
-    require(["dojo","dijit/Dialog"],function(dojo){
-        PWM_MAIN.closeWaitDialog();
-        PWM_MAIN.showWaitDialog({loadFunction:function() {
-            var inputValues = { 'username': username };
-            dojo.xhrDelete({
-                url: PWM_GLOBAL['url-restservice'] + "/challenges",
-                headers: {"Accept": "application/json", "X-RestClientKey": PWM_GLOBAL['restClientKey']},
-                content: inputValues,
-                preventCache: true,
-                timeout: PWM_MAIN.ajaxTimeout,
-                sync: false,
-                handleAs: "json",
-                load: function (results) {
-                    var bodyText = "";
-                    if (results['error'] != true) {
-                        PWM_MAIN.showDialog({
-                            title: PWM_MAIN.showString('Button_ClearResponses'),
-                            text: results['successMessage']
-                        });
-                    } else {
-                        PWM_MAIN.showErrorDialog(results);
-                    }
-                },
-                error: function (errorObj) {
-                    PWM_MAIN.closeWaitDialog();
-                    PWM_MAIN.showError("unexpected clear responses error: " + errorObj);
-                }
-            });
-        }});
-    });
+    PWM_MAIN.showWaitDialog({loadFunction:function() {
+        var inputValues = { 'username': username };
+        var url = PWM_GLOBAL['url-restservice'] + "/challenges";
+        var loadFunction = function(results) {
+            if (results['error'] != true) {
+                PWM_MAIN.showDialog({
+                    title: PWM_MAIN.showString('Button_ClearResponses'),
+                    text: results['successMessage']
+                });
+            } else {
+                PWM_MAIN.showErrorDialog(results);
+            }
+        };
+        PWM_MAIN.ajaxRequest(url,loadFunction,{content:inputValues,method:'delete'});
+    }});
 };
 
 PWM_HELPDESK.doPasswordChange = function(password, random) {
@@ -85,8 +70,7 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
     } else {
         inputValues['password'] = password;
     }
-    var htmlBody = PWM_MAIN.showString('Field_NewPassword') + ': <b>' + password + '</b><br/><br/><br/><div class="WaitDialogBlank"/>';
-    PWM_MAIN.showWaitDialog({text:htmlBody,loadFunction:function() {
+    PWM_MAIN.showWaitDialog({loadFunction:function() {
         var url = PWM_GLOBAL['url-restservice'] + "/setpassword";
         var loadFunction = function(results) {
             var bodyText = "";
@@ -100,11 +84,19 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
                 bodyText += '<br/>';
                 bodyText += results['successMessage'];
                 bodyText += '</br></br>';
-                bodyText += PWM_MAIN.showString('Field_NewPassword') + ': <input class="inputfield" value="' + password + '" readonly/>';
+                bodyText += PWM_MAIN.showString('Field_NewPassword');
+
+                if (PWM_VAR['helpdesk_setting_maskPasswords']) {
+                    bodyText += '<button id="button-password-display" class="btn"><span class="btn-icon fa fa-eye"></span>' + PWM_MAIN.showString('Button_Show') + '</button>';
+                    bodyText += ' <input id="panel-password-display" style="display:none" class="inputfield" value="' + password + '" readonly/>';
+                } else {
+                    bodyText += ' <input class="inputfield" value="' + password + '" readonly/>';
+                }
+
                 bodyText += '<br/>';
             }
             bodyText += '<br/><br/><button class="btn" id="button-continue">'
-            + '<span class="btn-icon fa fa-forward"></span>' + PWM_MAIN.showString('Button_OK') + '</button>';
+                + '<span class="btn-icon fa fa-forward"></span>' + PWM_MAIN.showString('Button_OK') + '</button>';
             if (PWM_VAR['helpdesk_setting_clearResponses'] == 'ask') {
                 bodyText += '<span style="padding-left: 10px">&nbsp;</span>';
                 bodyText += '<button class="btn" id="button-clearResponses">';
@@ -116,11 +108,20 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
                 showClose: true,
                 allowMove: true,
                 id: 'dialogPopup',
-                title: PWM_MAIN.showString('Title_ChangePassword') + ': ' + PWM_VAR['helpdesk_username'],
+                title: PWM_MAIN.showString('Title_ChangePassword') + ' - ' + PWM_VAR['helpdesk_username'],
                 text: bodyText,
                 loadFunction:function(){
                     PWM_MAIN.addEventHandler('button-continue','click',function(){ PWM_MAIN.getObject('continueForm').submit(); });
                     PWM_MAIN.addEventHandler('button-clearResponses','click',function(){ PWM_HELPDESK.doResponseClear(); });
+
+                    if (PWM_VAR['helpdesk_setting_maskPasswords']) {
+                        PWM_MAIN.addEventHandler('button-password-display','click',function(){
+                            var buttonElement = PWM_MAIN.getObject('button-password-display');
+                            buttonElement.parentNode.removeChild(buttonElement);
+                            PWM_MAIN.getObject('panel-password-display').style.display = 'inline';
+                        });
+                    }
+
                 }
             });
         };
@@ -143,50 +144,71 @@ PWM_HELPDESK.generatePasswordPopup = function() {
 };
 
 PWM_HELPDESK.changePasswordPopup = function() {
-    require(["dijit/Dialog"],function(){
-        var bodyText = '';
-        bodyText += '<span id="message" class="message message-info" style="width: 400px">' + PWM_MAIN.showString('Display_PasswordPrompt') + '</span>';
-        bodyText += '<table style="border: 0">';
-        bodyText += '<tr style="border: 0"><td style="border: 0"><input type="text" name="password1" id="password1" class="inputfield" style="width: 260px" autocomplete="off" onkeyup="PWM_CHANGEPW.validatePasswords(\'' + PWM_VAR['helpdesk_obfuscatedDN'] + '\');"/></td>';
-        if (PWM_GLOBAL['setting-showStrengthMeter']) {
-            bodyText += '<td style="border:0"><div id="strengthBox" style="visibility:hidden;">';
-            bodyText += '<div id="strengthLabel">' + PWM_MAIN.showString('Display_StrengthMeter') + '</div>';
-            bodyText += '<div class="progress-container" style="margin-bottom:10px">';
-            bodyText += '<div id="strengthBar" style="width:0">&nbsp;</div></div></div></td>';
-        }
-        bodyText += '</tr><tr style="border: 0">';
-        bodyText += '<td style="border: 0"><input type="text" name="password2" id="password2" class="inputfield" style="width: 260px" autocomplete="off" onkeyup="PWM_CHANGEPW.validatePasswords(\'' + PWM_VAR['helpdesk_obfuscatedDN'] + '\');""/></td>';
+    var bodyText = '';
+    bodyText += '<span id="message" class="message message-info" style="width: 400px">' + PWM_MAIN.showString('Display_PasswordPrompt') + '</span>';
+    bodyText += '<table style="border: 0"><tr style="border: 0"><td style="border: 0">';
+    if (PWM_VAR['helpdesk_setting_maskPasswords']) {
+        bodyText += '<input type="password" name="password1" id="password1" class="passwordfield" style="width: 260px" autocomplete="off"/>';
+    } else {
+        bodyText += '<input type="text" name="password1" id="password1" class="inputfield" style="width: 260px" autocomplete="off"/>';
+    }
+    bodyText += '</td>';
+    if (PWM_GLOBAL['setting-showStrengthMeter']) {
+        bodyText += '<td style="border:0"><div id="strengthBox" style="visibility:hidden;">';
+        bodyText += '<div id="strengthLabel">' + PWM_MAIN.showString('Display_StrengthMeter') + '</div>';
+        bodyText += '<div class="progress-container" style="margin-bottom:10px">';
+        bodyText += '<div id="strengthBar" style="width:0">&nbsp;</div></div></div></td>';
+    }
+    bodyText += '</tr><tr style="border: 0">';
 
-        bodyText += '<td style="border: 0"><div style="margin:0;">';
-        bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/greenCheck.png">';
-        bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png">';
-        bodyText += '</div></td>';
+    bodyText += '<td style="border: 0">';
+    if (PWM_VAR['helpdesk_setting_maskPasswords']) {
+        bodyText += '<input type="password" name="password2" id="password2" class="passwordfield" style="width: 260px" autocomplete="off"/>';
+    } else {
+        bodyText += '<input type="text" name="password2" id="password2" class="inputfield" style="width: 260px" autocomplete="off"/>';
+    }
+    bodyText += '</td>';
 
-        bodyText += '</tr></table>';
-        bodyText += '<button name="change" class="btn" id="password_button" disabled="true"><span class="btn-icon fa fa-key"></span>' + PWM_MAIN.showString('Button_ChangePassword') + '</button>';
-        if (PWM_VAR['helpdesk_setting_PwUiMode'] == 'both') {
-            bodyText += '<button name="random" class="btn" id="button-autoGeneratePassword"><span class="btn-icon fa fa-retweet"></span>' + PWM_MAIN.showString('Display_AutoGeneratedPassword') + '</button>';
-        }
+    bodyText += '<td style="border: 0"><div style="margin:0;">';
+    bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/greenCheck.png">';
+    bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png">';
+    bodyText += '</div></td>';
 
-        try { PWM_MAIN.getObject('message').id = "base-message"; } catch (e) {}
+    bodyText += '</tr></table>';
+    bodyText += '<button name="change" class="btn" id="password_button" disabled="true"><span class="btn-icon fa fa-key"></span>' + PWM_MAIN.showString('Button_ChangePassword') + '</button>';
+    if (PWM_VAR['helpdesk_setting_PwUiMode'] == 'both') {
+        bodyText += '<button name="random" class="btn" id="button-autoGeneratePassword"><span class="btn-icon fa fa-retweet"></span>' + PWM_MAIN.showString('Display_AutoGeneratedPassword') + '</button>';
+    }
 
-        PWM_MAIN.showDialog({
-            title: PWM_MAIN.showString('Title_ChangePassword') + ': ' + PWM_VAR['helpdesk_username'],
-            text: bodyText,
-            showOk: false,
-            showClose: true,
-            allowMove: true,
-            loadFunction: function(){
-                setTimeout(function(){ PWM_MAIN.getObject('password1').focus();},500);
-                PWM_MAIN.addEventHandler('password_button','click',function(){
-                    var pw=PWM_MAIN.getObject('password1').value;
-                    PWM_HELPDESK.doPasswordChange(pw);
-                });
-                PWM_MAIN.addEventHandler('button-autoGeneratePassword','click',function(){
-                    PWM_HELPDESK.generatePasswordPopup();
-                })
+    try { PWM_MAIN.getObject('message').id = "base-message"; } catch (e) {}
+
+    PWM_MAIN.showDialog({
+        title: PWM_MAIN.showString('Title_ChangePassword') + ' - ' + PWM_VAR['helpdesk_username'],
+        text: bodyText,
+        showOk: false,
+        showClose: true,
+        allowMove: true,
+        loadFunction: function(){
+            setTimeout(function(){ PWM_MAIN.getObject('password1').focus();},500);
+            PWM_MAIN.addEventHandler('password1','input',function(){
+                PWM_CHANGEPW.validatePasswords(PWM_VAR['helpdesk_obfuscatedDN']);
+            });
+            PWM_MAIN.addEventHandler('password2','input',function(){
+                PWM_CHANGEPW.validatePasswords(PWM_VAR['helpdesk_obfuscatedDN']);
+            });
+            if (PWM_VAR['helpdesk_setting_maskPasswords']) {
+                ShowHidePasswordHandler.init('password1');
+                ShowHidePasswordHandler.init('password2');
             }
-        });
+
+            PWM_MAIN.addEventHandler('password_button','click',function(){
+                var pw=PWM_MAIN.getObject('password1').value;
+                PWM_HELPDESK.doPasswordChange(pw);
+            });
+            PWM_MAIN.addEventHandler('button-autoGeneratePassword','click',function(){
+                PWM_HELPDESK.generatePasswordPopup();
+            })
+        }
     });
 };
 
@@ -269,6 +291,7 @@ PWM_HELPDESK.makeSearchGrid = function(nextAction) {
                 }
 
                 PWM_VAR['heldesk_search_grid'].on(".dgrid-row:click", function(evt){
+                    PWM_MAIN.stopEvent(evt);
                     var row = PWM_VAR['heldesk_search_grid'].row(evt);
                     PWM_HELPDESK.loadSearchDetails(row.data['userKey']);
                 });
@@ -380,9 +403,9 @@ PWM_HELPDESK.sendVerificationToken = function(userKey,choiceFlag) {
     var dialoagLoadFunction = function(){};
     if (choiceFlag) {
         confirmText += '<br/><br/><button class="btn" type="button" name="emailChoiceButton" id="emailChoiceButton">'
-        + '<span class="btn-icon fa fa-file-text"></span>' + PWM_MAIN.showString('Button_Email') + '</button>'
-        + '<button class="btn" type="button" name="smsChoiceButton" id="smsChoiceButton">'
-        + '<span class="btn-icon fa fa-phone"></span>' + PWM_MAIN.showString('Button_SMS') + '</button>';
+            + '<span class="btn-icon fa fa-file-text"></span>' + PWM_MAIN.showString('Button_Email') + '</button>'
+            + '<button class="btn" type="button" name="smsChoiceButton" id="smsChoiceButton">'
+            + '<span class="btn-icon fa fa-phone"></span>' + PWM_MAIN.showString('Button_SMS') + '</button>';
         dialoagLoadFunction = function() {
             PWM_MAIN.addEventHandler('emailChoiceButton','click',function(){sendTokenAction('email')});
             PWM_MAIN.addEventHandler('smsChoiceButton','click',function(){sendTokenAction('sms')});

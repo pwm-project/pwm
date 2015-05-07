@@ -375,13 +375,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     public void markPreLoginUrl()
     {
-        String originalRequestedUrl = this.getHttpServletRequest().getRequestURL().toString();
-        {
-            final String queryString = this.getHttpServletRequest().getQueryString();
-            if (queryString != null && queryString.length() > 0) {
-                originalRequestedUrl += "?" + queryString;
-            }
-        }
+        final String originalRequestedUrl = this.getURLwithQueryString();
         if (pwmSession.getSessionStateBean().getOriginalRequestURL() == null) {
             LOGGER.trace(this, "noted originally requested url as: " + originalRequestedUrl);
             pwmSession.getSessionStateBean().setOriginalRequestURL(originalRequestedUrl);
@@ -588,5 +582,15 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     public void invalidateSession() {
         this.getHttpServletRequest().getSession().invalidate();
+    }
+
+    public String getURLwithQueryString() {
+        final HttpServletRequest req = this.getHttpServletRequest();
+        final String queryString = req.getQueryString();
+        if (queryString != null && !queryString.isEmpty()) {
+            return req.getRequestURI() + '?' + queryString;
+        } else {
+            return req.getRequestURI();
+        }
     }
 }

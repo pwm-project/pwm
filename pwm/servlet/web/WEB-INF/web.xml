@@ -259,7 +259,7 @@
     </servlet>
     <servlet>
         <servlet-name>PeopleSearchServlet</servlet-name>
-        <servlet-class>password.pwm.http.servlet.PeopleSearchServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.peoplesearch.PeopleSearchServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>CaptchaServlet</servlet-name>
@@ -362,8 +362,6 @@
         <servlet-name>PeopleSearchServlet</servlet-name>
         <url-pattern>/private/PeopleSearch</url-pattern>
         <url-pattern>/public/PeopleSearch</url-pattern>
-        <url-pattern>/private/peoplesearch</url-pattern>
-        <url-pattern>/public/peoplesearch</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>CaptchaServlet</servlet-name>

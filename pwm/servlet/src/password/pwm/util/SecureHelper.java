@@ -67,6 +67,8 @@ public class SecureHelper {
 
     public enum BlockAlgorithm {
         AES("AES"),
+        AES_CHECKSUM("AES/CBC/PKCS5Padding"),
+        CONFIG("AES"),
 
         ;
 
@@ -160,6 +162,18 @@ public class SecureHelper {
     )
             throws PwmUnrecoverableException
     {
+
+        return decryptStringValue(value, key, urlSafe, DEFAULT_BLOCK_ALGORITHM);
+    }
+
+    public static String decryptStringValue(
+            final String value,
+            final SecretKey key,
+            final boolean urlSafe,
+            final BlockAlgorithm blockAlgorithm
+    )
+            throws PwmUnrecoverableException
+    {
         try {
             if (value == null || value.length() < 1) {
                 return "";
@@ -168,7 +182,7 @@ public class SecureHelper {
             final byte[] decoded = urlSafe
                     ? StringUtil.base64Decode(value, StringUtil.Base64Options.URL_SAFE,StringUtil.Base64Options.GZIP)
                     : StringUtil.base64Decode(value);
-            return decryptBytes(decoded, key);
+            return decryptBytes(decoded, key, blockAlgorithm);
         } catch (Exception e) {
             final String errorMsg = "unexpected error performing simple decrypt operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);

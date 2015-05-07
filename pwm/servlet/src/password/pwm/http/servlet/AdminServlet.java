@@ -35,6 +35,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.AdminBean;
 import password.pwm.util.Helper;
+import password.pwm.util.PwmRandom;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.report.ReportService;
 import password.pwm.util.stats.StatisticsManager;
@@ -278,9 +279,9 @@ public class AdminServlet extends PwmServlet {
         aboutBean.setLocalDbStorageSize(Helper.formatDiskSize(Helper.getFileDirectorySize(pwmApplication.getLocalDB().getFileLocation())));
         aboutBean.setLocalDbFreeSpace(Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())));
 
-        { // java version
+        { // java info
             final Runtime runtime = Runtime.getRuntime();
-            final AboutApplicationBean.JavaInformation javaInformation = aboutBean.getJavaInformation();
+            final AboutApplicationBean.JavaInformation javaInformation = new AboutApplicationBean.JavaInformation();
             javaInformation.setMemoryFree(runtime.freeMemory());
             javaInformation.setMemoryAllocated(runtime.totalMemory());
             javaInformation.setMemoryMax(runtime.maxMemory());
@@ -294,6 +295,21 @@ public class AdminServlet extends PwmServlet {
 
             javaInformation.setOsName(System.getProperty("os.name"));
             javaInformation.setOsVersion(System.getProperty("os.version"));
+            javaInformation.setRandomAlgorithm(PwmRandom.getInstance().getAlgorithm());
+            aboutBean.setJavaInformation(javaInformation);
+        }
+
+        { // build info
+            final AboutApplicationBean.BuildInformation buildInformation = new AboutApplicationBean.BuildInformation();
+            buildInformation.setBuildTime(PwmConstants.BUILD_TIME);
+            buildInformation.setBuildNumber(PwmConstants.BUILD_NUMBER);
+            buildInformation.setBuildType(PwmConstants.BUILD_TYPE);
+            buildInformation.setBuildUser(PwmConstants.BUILD_USER);
+            buildInformation.setBuildRevision(PwmConstants.BUILD_REVISION);
+            buildInformation.setBuildJavaVendor(PwmConstants.BUILD_JAVA_VENDOR);
+            buildInformation.setBuildJavaVersion(PwmConstants.BUILD_JAVA_VERSION);
+            buildInformation.setBuildVersion(PwmConstants.BUILD_VERSION);
+            aboutBean.setBuildInformation(buildInformation);
         }
 
         return aboutBean;

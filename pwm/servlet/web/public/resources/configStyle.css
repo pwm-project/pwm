@@ -329,12 +329,11 @@ table {
 }
 
 .pane-help {
-    margin-left: 10px;
-    margin-right: 10px;
+    border: 1px white solid;
+    padding: 5px;
     max-height: 250px;
-    margin-bottom: 15px;
+    margin: 2px 2px 15px;
     overflow-x: auto;
-    /* border-bottom: 1px solid #bfbfbf; */
 }
 
 .pane-settingValue {
@@ -424,6 +423,11 @@ table {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
+}
+
+.noWrapTextBox.border {
+    border: 1px solid #bfbfbf;
+    margin: 0;
 }
 
 .configStringPanel {

@@ -26,6 +26,7 @@ html, body {
     font-size: 12px;
     height: 100%;
     margin: 0;
+    min-height: 350px;
 }
 
 a {
@@ -254,27 +255,6 @@ input[type=password]::-ms-reveal{display: none;}
      color: #9e9e9e;
 }
 
-.dialogBody {
-    width: 500px;
-    max-width: 500px;
-}
-.dialogBody.narrow {
-    width: 350px;
-    max-width: 350px;
-}
-.dialogBody.wide {
-    width: 95%;
-    max-width: 100%;
-    min-width: 800px;
-}
-
-.WaitDialogBlank {
-    height: 46px;
-    width: 46px;
-    margin-left: auto;
-    margin-right: auto;
-    background-image: url('wait.gif');
-}
 
 /* used for password complexity meter */
 div.progress-container {
@@ -365,10 +345,37 @@ div.progress-container > div {
 }
 
 #header-warning {
-    width: 100%;
-    background-color: #aaaaaa;
     text-align: center;
+    position: absolute;
+    right:6px;
+    top:6px;
+    width: 190px;
+    border: 2px solid #aaaaaa;
+    background-color: #DDDDDD;
+    z-index: 10;
+    padding: 10px;
+    animation: fadein 0.3s;
+    -moz-animation: fadein 0.3s; /* Firefox */
+    -webkit-animation: fadein 0.3s; /* Safari and Chrome */
 }
+
+.header-warning-buttons {
+    padding-left: 1px;
+    padding-right: 1px;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.header-warning-button {
+    text-align: center;
+    width: 100%;
+    padding-bottom: 10px;
+    display: block;
+    color: black;
+    cursor: pointer;
+}
+
 
 .header-error {
     text-align: center;
@@ -376,6 +383,7 @@ div.progress-container > div {
     max-width: 600px;
     padding-left: 6px;
     padding-right: 6px;
+    margin-top: 10px;
     margin-left: auto;
     margin-right: auto;
     position: relative;
@@ -457,13 +465,6 @@ div.progress-container > div {
 }
 
 
-#dialogPopup_underlay {
-    background-color: #222222;
-}
-
-#idleDialog_underlay {
-    background-color: #111111;
-}
 
 .agreementText {
     border: 0;
@@ -524,32 +525,9 @@ img.qrcodeimage {
     background-color: black;
 }
 
-#userPhotoParentDiv {
-    width: 100%;
-    text-align: center;
-}
-
-#userPhotoImage {
-    border: 2px solid #D4D4D4;
-}
-
-#peopleSearch-userDetailWrapper {
-    max-height: 450px;
-    overflow-y: auto;
-}
-
-#peoplesearch-searchResultsGrid {
-    min-height: 400px;
-    height: 60vh;
-}
-
 #helpdesk-searchResultsGrid {
     min-height: 400px;
     height: 60vh;
-}
-
-.peoplesearch-input-username {
-    width:400px;
 }
 
 .checkboxWrapper {
@@ -572,11 +550,11 @@ select {
 
 #button-openHeader {
     position: absolute;
-    top: 3px;
-    right: 4px;
+    top: 10px;
+    right: 10px;
     z-index: 100;
     cursor: pointer;
-    color: red;
+    color: #ffcd59;
 }
 
 #button-closeHeader {
@@ -632,55 +610,18 @@ input[type=search] {
     padding-bottom: 10px;
 }
 
-
-dialog::backdrop { background: rgba(0,0,0,0.6); }
-
-dialog {
-    border: 2px solid #DDDDDD;
-    border-radius: 3px;
-    padding:0;
-    animation: fadein 0.3s;
-    -moz-animation: fadein 0.3s; /* Firefox */
-    -webkit-animation: fadein 0.3s; /* Safari and Chrome */
-    max-width: 100%;
-}
-
-dialog .titleBar {
-    text-align: center;
-    font-weight: bold;
-    padding-top: 3px;
-    padding-bottom: 3px;
-    background-color: #eaeaea;
-    margin-bottom: 5px;
-
-}
-
-dialog .body {
-    padding:5px;
-    max-height: 98vh;
-    overflow-x: auto;
-}
-
-dialog .closeIcon {
-    float: right;
-    cursor: pointer;
-    margin-right: 3px;
-}
-
 progress:not([value]) {
     width: 100%;
     height: 20px;
 }
 
+.blink { animation: blink 1s steps(5, start) infinite; -webkit-animation: blink 1s steps(5, start) infinite; }
+@keyframes blink { to { visibility: hidden; } }
+@-webkit-keyframes blink { to { visibility: hidden; } }
+
 @keyframes fadein { from { opacity:0; } to { opacity:1; } }
 @-moz-keyframes fadein { from { opacity:0 } to { opacity:1 } }
 @-webkit-keyframes fadein { from { opacity:0 } to { opacity:1 } }
-
-
-.peopleSearch-userDetails {
-    max-height: 450px;
-    overflow-y: auto;
-}
 
 .meteredProgressBar {
     width:80%;
@@ -693,29 +634,83 @@ progress:not([value]) {
     background: #fdfdfd;
 }
 
-.panel-orgChart-person {
-    margin-left:auto;
-    margin-right:auto;
-    display: inline-block;
-    background-color: #D4D4D4;
-    padding: 3px;
-    border-radius: 3px;
-    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #D4D4D4), color-stop(1, #EEEEEE) );
-    background:linear-gradient(to bottom, #D4D4D4 5%, #EEEEEE 100% );
-    margin-bottom: 5px;
-    width:auto;
+
+/* begin dialog section */
+.dialogBody { width: 500px; max-width: 500px; }
+.dialogBody.narrow { width: 350px; max-width: 350px; }
+.dialogBody.wide { width: 95%; max-width: 100%; min-width: 800px; }
+.WaitDialogBlank { height: 46px; width: 46px; margin-left: auto; margin-right: auto; background-image: url('wait.gif');}
+#dialogPopup_underlay { background-color: #222222; }
+#idleDialog_underlay { background-color: #111111; }
+dialog::backdrop { background: rgba(0,0,0,0.6); }
+dialog { border: 2px solid #DDDDDD; border-radius: 3px; padding:0; max-width: 100%;}
+dialog .titleBar { text-align: center; font-weight: bold; padding-top: 3px; padding-bottom: 3px; background-color: #eaeaea; margin-bottom: 5px; }
+dialog .body { padding:5px; max-height: 98vh; overflow-x: auto; }
+dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
+/* end dialog section */
+
+
+/* begin peoplesearch section */
+
+.icon-peoplesearch-orgChart { background-image: url("orgChart.png"); position: absolute; top:5px; right:5px; height:30px; width:30px; cursor: pointer;
+}
+.panel-peoplesearch-userDetailPhoto { display: inline  }
+.img-peoplesearch-userDetailPhoto { width: 80px; height: 80px; border-radius: 2px; border: 1px solid #d8e2e2; }
+.panel-peoplesearch-person { margin-left:5px; background: #eaeaea; position: relative; padding: 6px; width: auto; height: 83px; margin-right: 5px; margin-bottom: 10px; border:  1px solid transparent; }
+.panel-peoplesearch-displayNames { margin-left: 10px; vertical-align: top; display: inline-block; position: relative }
+
+
+#peopleSearch-userDetailWrapper { max-height: 450px; overflow-y: auto; }
+.peoplesearch-input-username { width:400px; }
+#peoplesearch-searchResultsGrid {
+    bottom: 10px;
+    height: auto;
+    left: 10px;
+    position: absolute;
+    right: 10px;
+    top: 45px;
+    cursor: pointer;
 }
 
-.panel-orgChart-sibling {
-    display: inline-block;
-    margin-left: 25px;
+.peoplesearch-wrapper #centerbody.wide {
+    bottom: 80px;
+    height: auto !important;
+    left: 40px;
+    margin: auto;
+    min-width: auto;
+    position: absolute;
+    right: 40px;
+    top: 100px;
+    width: auto;
 }
 
-.panel-orgChart-displayName-1 {
-    font-weight: bold;
-}
+.peopleSearch-userDetails { max-height: 450px; overflow-y: auto; border: 1px solid #d8e2e2; }
+.peopleSearch-userDetails td.key { font-weight: normal; color: #949494; width: auto; padding: 3px 15px 3px 10px; border-bottom: 1px solid #d8e2e2; }
 
-.img-orgChart {
-    height:25px;
-    width:25px
-}
+
+
+/* end peoplesearch section */
+
+
+/* begin peoplesearch org chart section */
+.dialogBody.orgChart { width: 550px; max-width: 550px; }
+.panel-orgChart-parent .panel-orgChart-person {border-left: 5px solid #697374;}
+.panel-orgChart-parent .panel-orgChart-person:hover {border-left: 5px solid #697374;}
+.panel-orgChart-parent { margin-left: 5px }
+.panel-orgChart-person { position: relative; background: #eaeaea; padding: 6px; width: 220px; height: 70px; margin-right: 10px; margin-bottom: 10px; border:  1px solid transparent; cursor:pointer; }
+.panel-orgChart-sibling { float: left; display: block; }
+.panel-orgChart-siblings { margin-left: 40px; }
+.img-orgChart-userPhoto { width: 40px; height: 40px; float: left; border-radius: 2px; margin-right: 6px; margin-bottom: 35px; border: 1px solid #D4D4D4; }
+.icon-orgChart-up { position: absolute; left: 12px; top: 54px; padding: 4px 8px; border: 1px solid #b6b6b6; }
+.icon-orgChart-down {position: absolute; left: 12px; top: 54px; padding: 4px 8px; border: 1px solid #b6b6b6;}
+.panel-orgChart-displayNames { }
+.panel-orgChart-displayName-1 { font-weight: bold; }
+.panel-orgChart-displayName-2 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.panel-orgChart-displayName-3 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
+.panel-orgChart-displayName-4 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
+.panel-orgChart-displayName-5 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
+.panel-orgChart-person:hover { border:  1px solid #d8e2e2; }
+.panel-orgChart { max-height: 600px; overflow-y: auto }
+.panel-orgChart-footer {clear: both; margin-bottom: 10px; }
+/* end peoplesearch org chart section */
+

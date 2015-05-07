@@ -116,7 +116,7 @@ public class StoredConfiguration implements Serializable {
     private ChangeLog changeLog = new ChangeLog();
 
     private boolean locked = false;
-    private boolean setting_writeLabels = false;
+    private boolean setting_writeLabels = true;
     private final ReentrantReadWriteLock domModifyLock = new ReentrantReadWriteLock();
 
 // -------------------------- STATIC METHODS --------------------------

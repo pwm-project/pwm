@@ -28,9 +28,7 @@
 <%
     boolean includeHeader = false;
     boolean adminUser = false;
-    boolean headerVisibility = true;
     boolean configMode = false;
-    boolean showOpenCloseButtons = true;
     try {
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
         final PwmApplication.MODE applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
@@ -40,18 +38,9 @@
             if (!new PwmURL(request).isConfigManagerURL()) {
                 if (configMode || PwmConstants.TRIAL_MODE) {
                     includeHeader = true;
-                    showOpenCloseButtons = false;
                 } else if (pwmRequest.isAuthenticated()) {
                     if (adminUser && !pwmRequest.isForcedPageView()) {
                         includeHeader = true;
-                        final String headerVisibilityCookie = pwmRequest.readCookie("headerVisibility");
-                        if (headerVisibilityCookie != null) {
-                            if (headerVisibilityCookie.equals("hide")) {
-                                headerVisibility = false;
-                            } else if (headerVisibilityCookie.equals("show")) {
-                                headerVisibility = true;
-                            }
-                        }
                     }
                 }
             }
@@ -70,52 +59,53 @@
         });
     </script>
 </pwm:script>
-<div id="header-warning" style="<%=headerVisibility?"":"display: none"%>">
-    <span style="cursor:pointer; white-space: nowrap">
-        <a class="btn" id="header_configManagerButton">
+<div id="header-warning" style="display: none">
+    <div class="header-warning-buttons">
+        <a class="header-warning-button" id="header_configManagerButton">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-gears"></span></pwm:if>
             <pwm:display key="MenuItem_ConfigManager" bundle="Admin"/>
         </a>
-    </span>
-    &nbsp;&nbsp;
-    <span style="cursor:pointer; white-space: nowrap">
-        <a class="btn" id="header_configEditorButton">
+        <a class="header-warning-button" id="header_configEditorButton">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-edit"></span></pwm:if>
             <pwm:display key="MenuItem_ConfigEditor" bundle="Admin"/>
         </a>
-    </span>
-    <% if (adminUser) { %>
-    &nbsp;&nbsp;
-    <span style="cursor:pointer; white-space: nowrap">
-        <a class="btn" id="header_openLogViewerButton">
+        <% if (adminUser) { %>
+        <a class="header-warning-button" id="header_openLogViewerButton">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
             <pwm:display key="MenuItem_ViewLog" bundle="Config"/>
+            &nbsp;
+            <pwm:if test="showIcons"><span class="btn-icon fa fa-external-link"></span></pwm:if>
         </a>
-    </span>
-    <% } %>
-    <br/>
-    <br/>
+        <a class="header-admin-button" href="<pwm:url url="/private/admin"/>">
+            <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
+            <pwm:display key="Title_Admin"/>
+        </a>
+        <% } %>
+    </div>
     <span id="header-warning-message" style="padding-right: 15px; font-weight: bold">
     <% if (PwmConstants.TRIAL_MODE) { %>
-    <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME_VERSION%>"/>
+    <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
     <% } else if (configMode) { %>
-    <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME_VERSION%>"/>
-    &nbsp;&nbsp;<pwm:if test="showIcons"><span id="icon-configModeHelp" class="btn-icon fa fa-question-circle"></span></pwm:if>
+    <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
+
+    <pwm:if test="showIcons"><span id="icon-configModeHelp" class="btn-icon fa fa-question-circle"></span></pwm:if>
+        <br/><br/>
     <% } else if (adminUser) { %>
-    <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME_VERSION%>"/>
+    <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
     <% } %>
     </span>
-    <div id="panel-header-healthData" style="cursor: pointer">
-    </div>
-    <% if (showOpenCloseButtons) { %>
+    <div id="panel-header-healthData" style="cursor: pointer"></div>
+    <% if (includeHeader) { %>
     <div id="button-closeHeader">
-        <span class="fa fa-chevron-circle-up"></span>
+        <span class="fa fa-chevron-circle-right"></span>
     </div>
     <% } %>
+    <br/>
+    <%=PwmConstants.PWM_APP_NAME_VERSION%>
 </div>
-<% if (showOpenCloseButtons) { %>
-<div id="button-openHeader" style="<%=headerVisibility?"display: none":""%>">
-    <span class="fa fa-chevron-circle-down"></span>
+<% if (includeHeader) { %>
+<div id="button-openHeader">
+    <span class="fa fa-chevron-circle-left"></span>
 </div>
 <% } %>
 <% } %>

@@ -79,12 +79,33 @@ PWM_PS.processPeopleSearch = function() {
 };
 
 PWM_PS.convertDetailResultToHtml = function(data) {
+    var blankSrc = PWM_MAIN.addPwmFormIDtoURL(PWM_GLOBAL['url-resources'] + '/UserPhoto.png');
     var htmlBody = '';
-    if (data['photoURL']) {
-        var blankSrc = PWM_MAIN.addPwmFormIDtoURL(PWM_GLOBAL['url-resources'] + '/dojo/dojo/resources/blank.gif');
-        var styleAttr = PWM_VAR['photo_style_attribute'];
-        htmlBody += '<div id="userPhotoParentDiv"><img style="' + styleAttr + '" src="' + blankSrc + '"></div>';
+
+    htmlBody += '<div class="panel-peoplesearch-person" id="panel-orgChart-person-' + data['userKey'] + '">';
+
+    if (PWM_VAR['peoplesearch_enablePhoto']) {
+        htmlBody += '<div class="panel-peoplesearch-userDetailPhoto" id="panel-userPhoto-' + data['userKey'] + '">';
+        htmlBody += '<img class="img-peoplesearch-userDetailPhoto" src="' + blankSrc + '">';
+        htmlBody += '</div>';
     }
+
+    htmlBody += '<div class="panel-peoplesearch-displayNames">';
+    var loopID = 1;
+    for (var iter in data['displayNames']) {
+        (function(displayName){
+            htmlBody += '<div class="panel-orgChart-displayName-' + loopID + '">';
+            htmlBody += data['displayNames'][displayName];
+            htmlBody += '</div>'; //4
+            loopID++;
+        })(iter);
+    }
+    htmlBody += '</div>'; //3
+    if (data['hasOrgChart']) {
+        htmlBody += '<div class="icon-peoplesearch-orgChart" id="icon-peoplesearch-orgChart"></div>';
+    }
+    htmlBody += '</div>';
+
     htmlBody += '<div id="peopleSearch-userDetailWrapper">';
     htmlBody += '<table class="peopleSearch-userDetails">';
     for (var iter in data['detail']) {
@@ -127,6 +148,19 @@ PWM_PS.convertDetailResultToHtml = function(data) {
 };
 
 PWM_PS.applyEventHandlersToDetailView = function(data) {
+    var photoURL = data['photoURL'];
+    if (photoURL) {
+        var photoDiv = PWM_MAIN.getObject('panel-userPhoto-' + data['userKey']);
+        PWM_PS.loadPicture(photoDiv,photoURL,'img-peoplesearch-userDetailPhoto');
+    }
+
+    if (data['hasOrgChart']) {
+        PWM_MAIN.addEventHandler('icon-peoplesearch-orgChart', 'click', function () {
+            PWM_PS.showOrgChartView(data['userKey']);
+        });
+    }
+
+
     for (var iter in data['detail']) {
         (function(iterCount){
             var attributeData = data['detail'][iterCount];
@@ -167,7 +201,6 @@ PWM_PS.showUserDetail = function(userKey) {
     };
     PWM_MAIN.showWaitDialog({
         loadFunction:function(){
-            PWM_VAR['detailInProgress'] = false;
             var url = "PeopleSearch?processAction=detail";
             var loadFunction = function(data) {
                 if (data['error'] == true) {
@@ -176,34 +209,15 @@ PWM_PS.showUserDetail = function(userKey) {
                     return;
                 }
                 var htmlBody = PWM_PS.convertDetailResultToHtml(data['data']);
-                PWM_MAIN.closeWaitDialog();
                 PWM_MAIN.showDialog({
-                    title:data['data']['displayName'],
+                    title:'Details',
                     allowMove:true,
+                    showOk:false,
                     text:htmlBody,
                     showClose:true,
                     loadFunction:function(){
-                        var photoURL = data['data']['photoURL'];
-                        if (photoURL) {
-                            PWM_PS.loadPicture(PWM_MAIN.getObject("userPhotoParentDiv"),photoURL);
-                        }
-
                         PWM_PS.applyEventHandlersToDetailView(data['data']);
-
-                        if (PWM_VAR['peoplesearch_orgChart_enabled'] && data['data']['hasOrgChart']) {
-                            var buttonObj = document.createElement('button');
-                            buttonObj.setAttribute('class', 'btn');
-                            buttonObj.id = 'button-orgChart';
-                            buttonObj.innerHTML = '<span class="btn-icon fa fa-sitemap"></span> ' + PWM_MAIN.showString('Button_OrgChart');
-                            PWM_MAIN.getObject('dialog_ok_button').parentElement.appendChild(buttonObj);
-                        }
-
-                        setTimeout(function() {
-                            try {PWM_MAIN.getObject('dialog_ok_button').focus(); } catch (e) { /*noop */}
-                        },1000);
-                        PWM_MAIN.addEventHandler('button-orgChart','click',function(){
-                            PWM_PS.showOrgChartView(userKey);
-                        });
+                        setTimeout(function(){PWM_MAIN.clearFocus()},10);
                     }
                 });
             };
@@ -212,62 +226,76 @@ PWM_PS.showUserDetail = function(userKey) {
     });
 };
 
-PWM_PS.convertUserTreeDataToOrgChartHtml = function(data) {
 
-    var makePanel = function(parentReference, type, direction) {
-        var userKey = parentReference['userKey'];
+
+PWM_PS.convertOrgChartDataToOrgChartHtml = function(data) {
+    var makePanel = function(userReference, type, direction) {
+        var userKey = userReference['userKey'];
 
         var output = '';
-        output += '<div class="panel-orgChart-' + type + '">';
-        output += '<div class="panel-orgChart-person">';
-        if (parentReference['hasMoreNodes']) {
+        output += '<div class="panel-orgChart-' + type + '">';  //1
+        output += '<div class="panel-orgChart-person" id="panel-orgChart-person-' + userKey + '">'; //2
+        if (userReference['hasMoreNodes']) {
             output += '<a id="link-' + userKey + '"><span class="icon-orgChart-' + direction + ' fa fa-arrow-' + direction + '"/> </a>';
         }
-        if ('photoURL' in parentReference) {
-            output += '<img class="img-orgChart" id="" src="' + parentReference['photoURL'] + '">';
+        if (PWM_VAR['peoplesearch_enablePhoto']) {
+            var blankSrc = PWM_MAIN.addPwmFormIDtoURL(PWM_GLOBAL['url-resources'] + '/UserPhoto.png');
+            output += '<div id="panel-userPhoto-' + userKey + '">';
+            output += '<img class="img-orgChart-userPhoto" src="' + blankSrc + '">';
+            output += '</div>';
         }
-        output += '<div class="panel-orgChart-displayNames">';
+        output += '<div class="panel-orgChart-displayNames">'; //3
         var loopID = 1;
-        for (var iter in parentReference['displayNames']) {
+        for (var iter in userReference['displayNames']) {
             (function(displayName){
-                output += '<div class="panel-orgChart-displayName-' + loopID + '">';
-                output += parentReference['displayNames'][displayName];
-                output += '</div>';
+                output += '<div class="panel-orgChart-displayName-' + loopID + '">';  //4
+                output += userReference['displayNames'][displayName];
+                output += '</div>'; //4
                 loopID++;
             })(iter);
         }
-        output += '</div>';
-        output += ' <span id="button-userDetail-' + userKey + '" class="btn-icon fa fa-info-circle">';
-        output += '</div></div>';
+        output += '</div>'; //3
+        output += '</div>'; //2
+        output += '</div>'; //1
         return output;
     };
 
-
     var htmlOutput = '';
+    htmlOutput += '<div class="panel-orgChart">'; //1
     if ('parent' in data) {
         htmlOutput += makePanel(data['parent'], 'parent', 'up');
     }
     if ('siblings' in data) {
+        htmlOutput += '<div class="panel-orgChart-siblings">'; //2
         for (var iter in data['siblings']) {
             (function(iterCount){
                 var siblingReference = data['siblings'][iterCount];
                 htmlOutput += makePanel(siblingReference, 'sibling', 'down');
             })(iter);
         }
+        htmlOutput += '</div>'; //2
     }
+    htmlOutput += '<div class="panel-orgChart-footer"></div>';
+    htmlOutput += '</div>'; //1
     return htmlOutput;
 };
 
-PWM_PS.applyUserTreeDataToOrgChartEvents = function(data) {
+PWM_PS.applyOrgChartDataToOrgChartEvents = function(data) {
     var applyEventsToReference = function(reference,asParent) {
+        PWM_MAIN.addEventHandler('panel-orgChart-person-' + reference['userKey'],'click',function(){
+            PWM_PS.showUserDetail(reference['userKey']);
+        });
         if (reference['hasMoreNodes']) {
-            PWM_MAIN.addEventHandler('link-' + reference['userKey'], 'click', function () {
+            PWM_MAIN.addEventHandler('link-' + reference['userKey'], 'click', function (e) {
+                PWM_MAIN.stopEvent(e);
                 PWM_PS.showOrgChartView(reference['userKey'],asParent)
             });
         }
-        PWM_MAIN.addEventHandler('button-userDetail-' + reference['userKey'],'click',function(){
-            PWM_PS.showUserDetail(reference['userKey']);
-        });
+        if ('photoURL' in reference) {
+            var photoURL = reference['photoURL'];
+            var parentDiv = PWM_MAIN.getObject('panel-userPhoto-' + reference['userKey']);
+            PWM_PS.loadPicture(parentDiv, photoURL,'img-orgChart-userPhoto');
+        }
 
     };
     if ('parent' in data) {
@@ -292,22 +320,24 @@ PWM_PS.showOrgChartView = function(userKey, asParent) {
     };
     PWM_MAIN.showWaitDialog({
         loadFunction:function(){
-            var url = "PeopleSearch?processAction=userTreeData";
+            var url = "PeopleSearch?processAction=orgChartData";
             var loadFunction = function(data) {
                 if (data['error'] == true) {
                     PWM_MAIN.closeWaitDialog();
                     PWM_MAIN.showErrorDialog(data);
                     return;
                 }
-                var htmlBody = PWM_PS.convertUserTreeDataToOrgChartHtml(data['data']);
+                var htmlBody = PWM_PS.convertOrgChartDataToOrgChartHtml(data['data']);
                 PWM_MAIN.closeWaitDialog();
                 PWM_MAIN.showDialog({
                     title:PWM_MAIN.showString('Title_OrgChart'),
                     allowMove:true,
+                    showOk:false,
                     text:htmlBody,
+                    dialogClass:'orgChart',
                     showClose:true,
                     loadFunction:function(){
-                        PWM_PS.applyUserTreeDataToOrgChartEvents(data['data']);
+                        PWM_PS.applyOrgChartDataToOrgChartEvents(data['data']);
                         setTimeout(function() {
                             try {PWM_MAIN.getObject('dialog_ok_button').focus(); } catch (e) { /*noop */}
                         },1000);
@@ -339,15 +369,11 @@ PWM_PS.makeSearchGrid = function(nextFunction) {
             }
 
             PWM_VAR['peoplesearch_search_grid'].on(".dgrid-row:click", function(evt){
-                if (PWM_VAR['detailInProgress'] != true) {
-                    PWM_VAR['detailInProgress'] = true;
-                    evt.preventDefault();
-                    var row = PWM_VAR['peoplesearch_search_grid'].row(evt);
-                    var userKey = row.data['userKey'];
-                    PWM_PS.showUserDetail(userKey);
-                } else {
-                    console.log('ignoring dupe detail request event');
-                }
+                PWM_MAIN.stopEvent(evt);
+                evt.preventDefault();
+                var row = PWM_VAR['peoplesearch_search_grid'].row(evt);
+                var userKey = row.data['userKey'];
+                PWM_PS.showUserDetail(userKey);
             });
 
             PWM_VAR['peoplesearch_search_grid'].set("sort", { attribute : 'sn', descending: true});
@@ -356,11 +382,10 @@ PWM_PS.makeSearchGrid = function(nextFunction) {
     );
 };
 
-PWM_PS.loadPicture = function(parentDiv,url) {
+PWM_PS.loadPicture = function(parentDiv,url,cssClass) {
     require(["dojo/on"], function(on){
         var image = new Image();
-        image.setAttribute('id',"userPhotoImage");
-        image.setAttribute('style',PWM_VAR['photo_style_attribute']);
+        image.setAttribute('class',cssClass);
         on(image,"load",function(){
             if (parentDiv) {
                 while (parentDiv.firstChild) {

@@ -47,19 +47,19 @@
             <div id="header-title">
                 <%=PwmConstants.PWM_APP_NAME%> Configuration Editor <span id="currentPageDisplay"></span>
                 <span style="visibility: hidden" id="working_icon" class="headerIcon fa fa-cog fa-spin"></span>
-                <div class="headerIcon" id="cancelButton_icon">
+                <div class="headerIcon" id="cancelButton_icon" title="<pwm:display key="Tooltip_CancelEditorButton" bundle="Config"/>">
                     <span class="fa fa-times"></span>
                 </div>
-                <div class="headerIcon" id="saveButton_icon">
+                <div class="headerIcon" id="saveButton_icon" title="<pwm:display key="Tooltip_SaveEditorButton" bundle="Config"/>">
                     <span class="fa fa-save"></span>
                 </div>
-                <div class="headerIcon" id="setPassword_icon">
+                <div class="headerIcon" id="setPassword_icon" title="<pwm:display key="Tooltip_SetConfigPasswordButton" bundle="Config"/>">
                     <span class="fa fa-key"></span>
                 </div>
-                <div class="headerIcon" id="referenceDoc_icon">
+                <div class="headerIcon" id="referenceDoc_icon" title="<pwm:display key="Tooltip_OpenReferenceDocButton" bundle="Config"/>">
                     <span class="fa fa-book"></span>
                 </div>
-                <div class="headerIcon" id="macroDoc_icon">
+                <div class="headerIcon" id="macroDoc_icon" title="<pwm:display key="Tooltip_OpenMacroHelpButton" bundle="Config"/>">
                     <span class="fa fa-magic"></span>
                 </div>
                 <span id="idle_status" class="editorIdleStatus">

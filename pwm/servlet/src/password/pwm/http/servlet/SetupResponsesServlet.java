@@ -36,7 +36,6 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
 import password.pwm.bean.ResponseInfoBean;
-import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ChallengeProfile;
@@ -139,7 +138,7 @@ public class SetupResponsesServlet extends PwmServlet {
             pwmSession.getSetupResponseBean().setUserLocale(pwmSession.getSessionStateBean().getLocale());
         }
 
-        SetupResponsesBean setupResponsesBean = (SetupResponsesBean)pwmSession.getSessionBean(SetupResponsesBean.class);
+        SetupResponsesBean setupResponsesBean = pwmSession.getSessionBean(SetupResponsesBean.class);
         initializeBean(pwmRequest, setupResponsesBean);
 
         // check to see if the user has any challenges assigned
@@ -173,12 +172,12 @@ public class SetupResponsesServlet extends PwmServlet {
                     break;
 
                 case clearExisting:
-                    handleClearResponses(pwmRequest, setupResponsesBean);
+                    handleClearResponses(pwmRequest);
                     return;
 
                 case changeResponses:
                     pwmSession.clearSessionBean(SetupResponsesBean.class);
-                    setupResponsesBean = (SetupResponsesBean)pwmSession.getSessionBean(SetupResponsesBean.class);
+                    setupResponsesBean = pwmSession.getSessionBean(SetupResponsesBean.class);
                     this.initializeBean(pwmRequest, setupResponsesBean);
                     setupResponsesBean.setUserLocale(pwmSession.getSessionStateBean().getLocale());
 
@@ -190,8 +189,7 @@ public class SetupResponsesServlet extends PwmServlet {
     }
 
     private void handleClearResponses(
-            final PwmRequest pwmRequest,
-            final SetupResponsesBean setupResponsesBean
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException {
         LOGGER.trace(pwmRequest, "request for response clear received");
@@ -257,8 +255,7 @@ public class SetupResponsesServlet extends PwmServlet {
 
         try { // everything good, so lets save responses.
             final ResponseInfoBean responses = generateResponseInfoBean(
-                    pwmRequest.getPwmApplication(),
-                    pwmRequest.getPwmSession(),
+                    pwmRequest,
                     setupResponsesBean.getResponseData().getChallengeSet(),
                     setupResponsesBean.getResponseData().getResponseMap(),
                     setupResponsesBean.getHelpdeskResponseData().getResponseMap()
@@ -300,7 +297,7 @@ public class SetupResponsesServlet extends PwmServlet {
             final Map<Challenge, String> responseMap = readResponsesFromJsonRequest(pwmRequest, setupData);
             final int minRandomRequiredSetup = setupData.getMinRandomSetup();
             pwmApplication.getCrService().validateResponses(setupData.getChallengeSet(), responseMap, minRandomRequiredSetup);
-            generateResponseInfoBean(pwmApplication, pwmSession, setupData.getChallengeSet(), responseMap, Collections.<Challenge,String>emptyMap());
+            generateResponseInfoBean(pwmRequest, setupData.getChallengeSet(), responseMap, Collections.<Challenge,String>emptyMap());
         } catch (PwmDataValidationException e) {
             success = false;
             userMessage = e.getErrorInformation().toUserStr(pwmSession, pwmApplication);
@@ -317,7 +314,6 @@ public class SetupResponsesServlet extends PwmServlet {
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
-        final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         final SetupResponsesBean.SetupData setupData = helpdeskMode ? setupResponsesBean.getHelpdeskResponseData() : setupResponsesBean.getResponseData();
 
         final ChallengeSet challengeSet = setupData.getChallengeSet();
@@ -434,14 +430,14 @@ public class SetupResponsesServlet extends PwmServlet {
 
 
     private static ResponseInfoBean generateResponseInfoBean(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final ChallengeSet challengeSet,
             final Map<Challenge, String> readResponses,
             final Map<Challenge, String> helpdeskResponses
     )
-            throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException {
-        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+            throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException
+    {
+        final ChaiProvider provider = pwmRequest.getPwmSession().getSessionManager().getChaiProvider();
 
         try {
             final ResponseInfoBean responseInfoBean = new ResponseInfoBean(
@@ -463,7 +459,7 @@ public class SetupResponsesServlet extends PwmServlet {
 
             responseSet.meetsChallengeSetRequirements(challengeSet);
 
-            final int minRandomRequiredSetup = pwmSession.getSetupResponseBean().getResponseData().getMinRandomSetup();
+            final int minRandomRequiredSetup = pwmRequest.getPwmSession().getSetupResponseBean().getResponseData().getMinRandomSetup();
             if (minRandomRequiredSetup == 0) { // if using recover style, then all readResponseSet must be supplied at this point.
                 if (responseSet.getChallengeSet().getRandomChallenges().size() < challengeSet.getRandomChallenges().size()) {
                     throw new ChaiValidationException("too few random responses", ChaiError.CR_TOO_FEW_RANDOM_RESPONSES);

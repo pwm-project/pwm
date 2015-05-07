@@ -23,12 +23,11 @@
 package password.pwm.util;
 
 import java.security.SecureRandom;
-import java.util.Random;
 import java.util.UUID;
 
 public class PwmRandom {
 
-    private final Random internalRand = new SecureRandom();
+    private final SecureRandom internalRand = new SecureRandom();
 
     private final static PwmRandom SINGLETON = new PwmRandom();
 
@@ -55,6 +54,10 @@ public class PwmRandom {
 
     public boolean nextBoolean() {
         return internalRand.nextBoolean();
+    }
+
+    public String getAlgorithm() {
+        return internalRand.getAlgorithm();
     }
 
     public String alphaNumericString(final int length) {

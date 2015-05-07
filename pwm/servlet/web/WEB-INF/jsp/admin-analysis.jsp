@@ -93,8 +93,6 @@
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                             <pwm:display key="Button_Refresh" bundle="Admin"/>
                         </button>
-                    </div>
-                    <div style="text-align: center">
                         <form action="<pwm:url url="Administration"/>" method="post">
                             <button type="submit" class="btn" id="button-downloadUserReportCsv">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
