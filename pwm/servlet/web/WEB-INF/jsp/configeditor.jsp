@@ -43,7 +43,7 @@
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
     <div class="configeditor-header" id="header" >
-        <div id="header-center-wide">
+        <div id="header-center-wide" style="min-width: 850px">
             <div id="header-title">
                 <%=PwmConstants.PWM_APP_NAME%> Configuration Editor <span id="currentPageDisplay"></span>
                 <span style="visibility: hidden" id="working_icon" class="headerIcon fa fa-cog fa-spin"></span>
@@ -78,7 +78,7 @@
                 </colgroup>
                 <tr>
                     <td>
-                        <span id="settingSearchIcon" class="fa fa-search"></span>
+                        <span id="settingSearchIcon" class="fa fa-search" title="<pwm:display key="Tooltip_IconSettingsSearch" bundle="Config"/>"></span>
                     </td>
                     <td>
                         <input type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" <pwm:autofocus/>/>
@@ -88,7 +88,7 @@
                             <div id="indicator-searching" style="display: none">
                                 <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
                             </div>
-                            <div id="indicator-noResults" style="display: none;">
+                            <div id="indicator-noResults" style="display: none;" title="<pwm:display key="Tooltip_IconSearchNoResults" bundle="Config"/>">
                                 <span style="color: #ffcd59;" class="fa fa-lg fa-ban"></span>
                             </div>
                         </div>
@@ -104,11 +104,11 @@
                 <%-- navtree goes here --%>
             </div>
             <div id="navTreeExpanderButtons">
-                <span id="button-navigationExpandAll" class="fa fa-plus-square"></span>
+                <span id="button-navigationExpandAll" class="fa fa-plus-square" title="<pwm:display key="Tooltip_IconExpandAll" bundle="Config"/>"></span>
                 &nbsp;&nbsp;
-                <span id="button-navigationCollapseAll" class="fa fa-minus-square"></span>
+                <span id="button-navigationCollapseAll" class="fa fa-minus-square" title="<pwm:display key="Tooltip_IconCollapseAll" bundle="Config"/>"></span>
                 &nbsp;&nbsp;
-                <div class="headerIcon" id="settingFilter_icon">
+                <div class="headerIcon" id="settingFilter_icon" title="<pwm:display key="Tooltip_IconFilterSettings" bundle="Config"/>">
                     <span class="fa fa-filter"></span>
                 </div>
             </div>

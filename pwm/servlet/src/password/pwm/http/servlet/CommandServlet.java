@@ -66,7 +66,15 @@ public class CommandServlet extends PwmServlet {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        final String action = pwmRequest.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST);
+        String action = pwmRequest.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST);
+        if (action.isEmpty()) {
+            String uri = pwmRequest.getHttpServletRequest().getRequestURI();
+            if (uri != null && !uri.toLowerCase().endsWith("command") && !uri.toLowerCase().endsWith("CommandServlet")) {
+                final int lastSlash = uri.lastIndexOf("/");
+                action = uri.substring(lastSlash + 1, uri.length());
+            }
+        }
+
         LOGGER.trace(pwmSession, "received request for action " + action);
 
         if (action.equalsIgnoreCase("idleUpdate")) {

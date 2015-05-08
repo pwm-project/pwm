@@ -335,6 +335,12 @@
         <servlet-name>CommandServlet</servlet-name>
         <url-pattern>/public/CommandServlet</url-pattern>
         <url-pattern>/private/CommandServlet</url-pattern>
+        <url-pattern>/public/command</url-pattern>
+        <url-pattern>/private/command</url-pattern>
+        <url-pattern>/public/CommandServlet/*</url-pattern>
+        <url-pattern>/private/CommandServlet/*</url-pattern>
+        <url-pattern>/public/command/*</url-pattern>
+        <url-pattern>/private/command/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>NewUserServlet</servlet-name>

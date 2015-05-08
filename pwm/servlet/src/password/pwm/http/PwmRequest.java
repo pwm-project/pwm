@@ -39,10 +39,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmRandom;
-import password.pwm.util.SecureHelper;
+import password.pwm.util.*;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -374,6 +371,8 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     }
 
     public void markPreLoginUrl()
+            throws PwmUnrecoverableException
+
     {
         final String originalRequestedUrl = this.getURLwithQueryString();
         if (pwmSession.getSessionStateBean().getOriginalRequestURL() == null) {
@@ -584,13 +583,8 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         this.getHttpServletRequest().getSession().invalidate();
     }
 
-    public String getURLwithQueryString() {
+    public String getURLwithQueryString() throws PwmUnrecoverableException {
         final HttpServletRequest req = this.getHttpServletRequest();
-        final String queryString = req.getQueryString();
-        if (queryString != null && !queryString.isEmpty()) {
-            return req.getRequestURI() + '?' + queryString;
-        } else {
-            return req.getRequestURI();
-        }
+        return ServletHelper.appendAndEncodeUrlParameters(req.getRequestURI(), readParametersAsMap());
     }
 }

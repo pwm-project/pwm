@@ -751,23 +751,23 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         var bodyText = '<div style="max-height: 500px; overflow-y: auto"><table class="noborder">';
         bodyText += '<tr>';
         var descriptionValue = PWM_VAR['clientSettingCache'][keyName][iteration]['description'][''];
-        bodyText += '<td id="' + inputID + '-label-description" class="key">Description</td><td>';
+        bodyText += '<td id="' + inputID + '-label-description" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Description') + '">Description</td><td>';
         bodyText += '<div class="noWrapTextBox" id="' + inputID + 'description"><span class="btn-icon fa fa-edit"></span><span>' + descriptionValue + '...</span></div>';
         bodyText += '</td>';
 
         bodyText += '</tr><tr>';
         if (options['required'] != 'hide') {
-            bodyText += '<td id="' + inputID + '-label-required" class="key">Required</td><td><input type="checkbox" id="' + inputID + 'required' + '"/></td>';
+            bodyText += '<td id="' + inputID + '-label-required" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Required') + '">Required</td><td><input type="checkbox" id="' + inputID + 'required' + '"/></td>';
             bodyText += '</tr><tr>';
         }
-        bodyText += '<td id="' + inputID + '-label-confirm" class="key">Confirm</td><td><input type="checkbox" id="' + inputID + 'confirmationRequired' + '"/></td>';
+        bodyText += '<td id="' + inputID + '-label-confirm" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Confirm') + '">Confirm</td><td><input type="checkbox" id="' + inputID + 'confirmationRequired' + '"/></td>';
         bodyText += '</tr><tr>';
         if (options['readonly'] == 'show') {
-            bodyText += '<td id="' + inputID + '-label-readOnly" class="key">Read Only</td><td><input type="checkbox" id="' + inputID + 'readonly' + '"/></td>';
+            bodyText += '<td id="' + inputID + '-label-readOnly" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_ReadOnly') + '">Read Only</td><td><input type="checkbox" id="' + inputID + 'readonly' + '"/></td>';
             bodyText += '</tr><tr>';
         }
         if (showUnique) {
-            bodyText += '<td id="' + inputID + '-label-unique" class="key">Unique</td><td><input type="checkbox" id="' + inputID + 'unique' + '"/></td>';
+            bodyText += '<td id="' + inputID + '-label-unique" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Unique') + '">Unique</td><td><input type="checkbox" id="' + inputID + 'unique' + '"/></td>';
             bodyText += '</tr><tr>';
         }
         bodyText += '<td class="key">Minimum Length</td><td><input type="number" id="' + inputID + 'minimumLength' + '"/></td>';
@@ -776,18 +776,18 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '</tr><tr>';
 
         { // regex
-            bodyText += '<td id="' + inputID + '-label-regex" class="key">Regular Expression</td><td><input type="text" class="configStringInput" id="' + inputID + 'regex' + '"/></td>';
+            bodyText += '<td id="' + inputID + '-label-regex" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Regex') + '">Regular Expression</td><td><input type="text" class="configStringInput" id="' + inputID + 'regex' + '"/></td>';
             bodyText += '</tr><tr>';
 
             var regexErrorValue = PWM_VAR['clientSettingCache'][keyName][iteration]['regexErrors'][''];
-            bodyText += '<td id="' + inputID + '-label-regexError" class="key">Regular Expression<br/>Error Message</td><td>';
+            bodyText += '<td id="' + inputID + '-label-regexError" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_RegexError') + '">Regular Expression<br/>Error Message</td><td>';
             bodyText += '<div class="noWrapTextBox" id="' + inputID + 'regexErrors"><span class="btn-icon fa fa-edit"></span><span>' + regexErrorValue + '...</span></div>';
             bodyText += '</td>';
             bodyText += '</tr><tr>';
         }
-        bodyText += '<td id="' + inputID + '-label-placeholder" class="key">Placeholder</td><td><input type="text" id="' + inputID + 'placeholder' + '"/></td>';
+        bodyText += '<td id="' + inputID + '-label-placeholder" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Placeholder') + '">Placeholder</td><td><input type="text" id="' + inputID + 'placeholder' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td id="' + inputID + '-label-js" class="key">JavaScript</td><td><input type="text" id="' + inputID + 'javascript' + '"/></td>';
+        bodyText += '<td id="' + inputID + '-label-js" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Javascript') + '">JavaScript</td><td><input type="text" id="' + inputID + 'javascript' + '"/></td>';
         bodyText += '</tr><tr>';
         if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'select') {
             bodyText += '<td class="key">Select Options</td><td><button id="' + inputID + 'editOptionsButton"><span class="btn-icon fa fa-list-ul"/> Edit</button></td>';
@@ -796,42 +796,6 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '</table></div>';
 
         var initDialogWidgets = function() {
-            PWM_MAIN.showTooltip({
-                id: inputID + '-label-description',
-                text: PWM_CONFIG.showString('Tooltip_FormOptions_Description')
-            });
-            PWM_MAIN.showTooltip({
-                id: inputID + '-label-required',
-                text: PWM_CONFIG.showString('Tooltip_FormOptions_Required')
-            });
-            PWM_MAIN.showTooltip({
-                id: inputID + '-label-confirm',
-                text: PWM_CONFIG.showString('Tooltip_FormOptions_Confirm')
-            });
-            PWM_MAIN.showTooltip({
-                id: inputID + '-label-readOnly',
-                text: PWM_CONFIG.showString('Tooltip_FormOptions_ReadOnly')
-            });
-            PWM_MAIN.showTooltip({
-                id: inputID + '-label-unique',
-                text: PWM_CONFIG.showString('Tooltip_FormOptions_Unique')
-            });
-            PWM_MAIN.showTooltip({
-                id: inputID + '-label-regex',
-                text: PWM_CONFIG.showString('Tooltip_FormOptions_Regex')
-            });
-            PWM_MAIN.showTooltip({
-                id: inputID + '-label-regexError',
-                text: PWM_CONFIG.showString('Tooltip_FormOptions_RegexError')
-            });
-            PWM_MAIN.showTooltip({
-                id: inputID + '-label-placeholder',
-                text: PWM_CONFIG.showString('Tooltip_FormOptions_Placeholder')
-            });
-            PWM_MAIN.showTooltip({
-                id: inputID + '-label-js',
-                text: PWM_CONFIG.showString('Tooltip_FormOptions_Javascript')
-            });
 
             PWM_MAIN.addEventHandler(inputID + 'editOptionsButton', 'click', function(){
                 FormTableHandler.showSelectOptionsDialog(keyName,iteration);
