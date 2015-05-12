@@ -46,19 +46,21 @@ PWM_HELPDESK.executeAction = function(actionName) {
 PWM_HELPDESK.doResponseClear = function() {
     var username = PWM_VAR['helpdesk_obfuscatedDN'];
     PWM_MAIN.showWaitDialog({loadFunction:function() {
-        var inputValues = { 'username': username };
-        var url = PWM_GLOBAL['url-restservice'] + "/challenges";
+        var url = PWM_GLOBAL['url-restservice'] + "/challenges?username=" + username;
         var loadFunction = function(results) {
             if (results['error'] != true) {
                 PWM_MAIN.showDialog({
                     title: PWM_MAIN.showString('Button_ClearResponses'),
-                    text: results['successMessage']
+                    text: results['successMessage'],
+                    okAction:function(){
+                        PWM_HELPDESK.refreshDetailPage();
+                    }
                 });
             } else {
                 PWM_MAIN.showErrorDialog(results);
             }
         };
-        PWM_MAIN.ajaxRequest(url,loadFunction,{content:inputValues,method:'delete'});
+        PWM_MAIN.ajaxRequest(url,loadFunction,{method:'DELETE'});
     }});
 };
 
@@ -449,6 +451,14 @@ PWM_HELPDESK.initPage = function() {
             PWM_HELPDESK.initHelpdeskSearchPage();
         },{method:"GET"});
     }
+};
+
+PWM_HELPDESK.refreshDetailPage = function() {
+    PWM_MAIN.showWaitDialog({loadFunction:function(){
+        setTimeout(function(){
+            document.continueForm.submit();
+        },1000);
+    }});
 };
 
 PWM_HELPDESK.initPage();

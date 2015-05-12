@@ -153,8 +153,16 @@ PWM_NEWUSER.refreshCreateStatus=function(refreshInterval) {
             timeout: PWM_GLOBAL['client.ajaxTypingTimeout'],
             headers: { "Accept": "application/json" },
             load: function(data) {
-                var progressBar = registry.byId('createProgressBar');
-                progressBar.set("value",data['data']['percentComplete']);
+                var supportsProgress = (document.createElement('progress').max !== undefined);
+                if (supportsProgress) {
+                    console.log('beginning html5 progress refresh');
+                    var html5passwordProgressBar = PWM_MAIN.getObject('html5ProgressBar');
+                    dojo.setAttr(html5passwordProgressBar, "value", data['data']['percentComplete']);
+                } else {
+                    console.log('beginning dojo progress refresh');
+                    var progressBar = registry.byId('passwordProgressBar');
+                    progressBar.set("value",data['data']['percentComplete']);
+                }
 
                 if (data['data']['complete'] == true) {
                     PWM_MAIN.goto(completedUrl,{delay:1000})

@@ -436,8 +436,16 @@ PWM_CHANGEPW.refreshCreateStatus=function(refreshInterval) {
         var displayStringsUrl = "ChangePassword?processAction=checkProgress";
         var completedUrl = "ChangePassword?processAction=complete&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
         var loadFunction = function(data) {
-            var progressBar = registry.byId('passwordProgressBar');
-            progressBar.set("value",data['data']['percentComplete']);
+            var supportsProgress = (document.createElement('progress').max !== undefined);
+            if (supportsProgress) {
+                console.log('beginning html5 progress refresh');
+                var html5passwordProgressBar = PWM_MAIN.getObject('html5ProgressBar');
+                dojo.setAttr(html5passwordProgressBar, "value", data['data']['percentComplete']);
+            } else {
+                console.log('beginning dojo progress refresh');
+                var progressBar = registry.byId('passwordProgressBar');
+                progressBar.set("value",data['data']['percentComplete']);
+            }
 
             try {
                 var tableBody = '';

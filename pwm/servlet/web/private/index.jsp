@@ -35,7 +35,7 @@
 %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="../WEB-INF/jsp/fragment/header.jsp" %>
-<body>
+<body class="nihilo">
 <div id="wrapper">
     <jsp:include page="../WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_MainPage"/>

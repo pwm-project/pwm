@@ -101,6 +101,18 @@ h3 {
      background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
  }
 
+#header-warning {
+    box-shadow: 4px 4px 2px #888888;
+    animation: slideInRight 0.3s;
+    -moz-animation: slideInRight 0.3s; /* Firefox */
+    -webkit-animation: slideInRight 0.3s; /* Safari and Chrome */
+}
+
 .btn-icon {
     opacity:0.75;
 }
+
+
+@keyframes slideInRight { 0% { transform: translate3d(100%, 0, 0); visibility: visible; } 100% { transform: translate3d(0, 0, 0); } }
+@-webkit-keyframes slideInRight { 0% { transform: translate3d(100%, 0, 0); visibility: visible; } 100% { transform: translate3d(0, 0, 0); } }
+@-moz-keyframes slideInRight { 0% { transform: translate3d(100%, 0, 0); visibility: visible; } 100% { transform: translate3d(0, 0, 0); } }

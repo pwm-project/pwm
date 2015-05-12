@@ -426,7 +426,7 @@ PWM_CONFIG.initConfigHeader = function() {
     PWM_CONFIG.showHeaderHealth();
 
     var prefs = PWM_MAIN.readLocalStorage();
-    if (prefs['headerVisibility'] == 'show') {
+    if (prefs['headerVisibility'] != 'hide') {
         PWM_CONFIG.openHeaderWarningPanel();
     }
 

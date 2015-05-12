@@ -22,7 +22,15 @@
 
 package password.pwm.util.macro;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public abstract class AbstractMacro implements MacroImplementation {
+
+    static final String PATTERN_OPTIONAL_PARAMETER_MATCH = "(:(?:/@|[^@])*)*"; // match param values inside @ and include @ if preceded by /
+    static final String PATTERN_PARAMETER_SPLIT = "(?<![/]):"; //split on : except if preceded by /
+
     public AbstractMacro() {
     }
 
@@ -30,4 +38,29 @@ public abstract class AbstractMacro implements MacroImplementation {
     public boolean isSensitive() {
         return false;
     }
+    static String stripMacroDelimiters(final String input) {
+        return input.replaceAll("^@|@$",""); // strip leading / trailing @
+    }
+
+    static String unescapeParamValue(final String input) {
+        String result = input;
+        result = result.replace("/:", ":");
+        result = result.replace("/@","@");
+        return result;
+    }
+
+    static List<String> splitMacroParameters(final String input, String... ignoreValues) {
+        final String strippedInput = stripMacroDelimiters(input);
+        final String[] splitInput = strippedInput.split(PATTERN_PARAMETER_SPLIT);
+        final List<String> returnObj = new ArrayList<>();
+        final List<String> ignoreValueList = Arrays.asList(ignoreValues);
+        for (final String value : splitInput) {
+            if (!ignoreValueList.contains(value)) {
+                returnObj.add(unescapeParamValue(value));
+                ignoreValueList.remove(value);
+            }
+        }
+        return returnObj;
+    }
+
 }

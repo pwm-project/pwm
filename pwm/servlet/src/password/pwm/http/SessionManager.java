@@ -172,7 +172,7 @@ public class SessionManager implements Serializable {
             final ChaiProvider provider = this.getChaiProvider();
             return ChaiFactory.createChaiUser(userIdentity.getUserDN(), provider);
         } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
+            throw PwmUnrecoverableException.fromChaiException(e);
         }
     }
 

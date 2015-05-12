@@ -83,7 +83,9 @@ public class MacroMachine {
             }
         }
 
-        final List<String> externalMethods = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EXTERNAL_MACROS_REST_URLS);
+        final List<String> externalMethods = pwmApplication == null
+                ? Collections.<String>emptyList()
+                : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EXTERNAL_MACROS_REST_URLS);
 
         int iteration = 0;
         for (final String url : externalMethods) {
@@ -177,7 +179,11 @@ public class MacroMachine {
             replaceStr = macroImplementation.replaceValue(matchedStr, macroRequestInfo);
         } catch (MacroParseException e) {
             LOGGER.debug(sessionLabel, "macro parse error replacing macro '" + matchedStr + "', error: " + e.getMessage());
-            replaceStr = "[" + e.getErrorInformation().toUserStr(PwmConstants.DEFAULT_LOCALE,macroRequestInfo.getPwmApplication().getConfig()) + "]";
+            if (pwmApplication != null) {
+                replaceStr = "[" + e.getErrorInformation().toUserStr(PwmConstants.DEFAULT_LOCALE, macroRequestInfo.getPwmApplication().getConfig()) + "]";
+            } else {
+                replaceStr = "[" + e.getErrorInformation().toUserStr(PwmConstants.DEFAULT_LOCALE, null) + "]";
+            }
         }  catch (Exception e) {
             LOGGER.error(sessionLabel, "error while replacing macro '" + matchedStr + "', error: " + e.getMessage());
         }
@@ -199,6 +205,10 @@ public class MacroMachine {
                     + (macroImplementation.isSensitive() ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT : replaceStr));
         }
         return new StringBuilder(input).replace(startPos, endPos, replaceStr).toString();
+    }
+
+    public static MacroMachine forStatic() {
+        return new MacroMachine(null,null,null,null,null);
     }
 
     public static interface StringReplacer {

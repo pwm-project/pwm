@@ -358,7 +358,7 @@ public class PwmApplication {
             final ChaiProvider proxiedProvider = getProxyChaiProvider(userIdentity.getLdapProfileID());
             return ChaiFactory.createChaiUser(userIdentity.getUserDN(), proxiedProvider);
         } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
+            throw PwmUnrecoverableException.fromChaiException(e);
         }
     }
 

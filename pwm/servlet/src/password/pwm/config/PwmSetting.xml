@@ -142,7 +142,19 @@
     </setting>
     <setting key="interface.theme" level="1" required="true">
         <label>Interface Theme</label>
-        <description><![CDATA[Change the look and feel by selecting a theme.  The included themes are provided to mainly to inspiration to those wishing to make customizations.  If <b>Embedded</b> is selected, the settings <i>User Interface -> Embedded CSS Stylesheet</i> and <i>User Interface -> Embedded Mobile CSS Stylesheet</i> will be used to manage the custom CSS tags.  If <b>Custom</b> is selected, the settings <i>User Interface -> Custom CSS Location</i> and <i>Custom Mobile CSS Location</i>.]]></description>
+        <description><![CDATA[
+            Change the look and feel by selecting a theme. The included themes are provided primarily as inspiration to those wishing to make customizations.<br/><br/>
+                If <code>Embedded</code> is selected, the follow settings will be used to contain the contents of the default css theme:
+                <ul>
+                    <li><a data-gotoSettingLink="display.css.customStyle">@PwmSettingReference:display.css.customStyle@</a></li>
+                    <li><a data-gotoSettingLink="display.css.customMobileStyle">@PwmSettingReference:display.css.customMobileStyle@</a></li>
+                </ul>
+                If <code>Custom</code> is selected, the contents of the default css theme will be served from the locations referenced in the settings
+                <ul>
+                    <li><a data-gotoSettingLink="display.css.customStyleLocation">@PwmSettingReference:display.css.customStyleLocation@</a></li>
+                    <li><a data-gotoSettingLink="display.css.customMobileStyleLocation">@PwmSettingReference:display.css.customMobileStyleLocation@</a></li>
+                </ul>
+        ]]></description>
         <default>
             <value><![CDATA[pwm]]></value>
         </default>
@@ -310,28 +322,28 @@
     </setting>
     <setting key="display.css.customStyleLocation" level="2">
         <label>Custom CSS Stylesheet Location</label>
-        <description><![CDATA[URL Location (and name) of the custom <i>style.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Custom for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
+        <description><![CDATA[URL of the custom CSS resource.  The setting <a data-gotoSettingLink="interface.theme">@PwmSettingReference:interface.theme@</a> must be set to <code>Custom</code> for this setting to be useful.  If this URL is relative it will be appended to the context path.]]></description>
         <default>
             <value><![CDATA[]]></value>
         </default>
     </setting>
     <setting key="display.css.customMobileStyleLocation" level="2">
         <label>Custom Mobile CSS Stylesheet Location</label>
-        <description><![CDATA[URL Location (and name) of the custom <i>mobileStyle.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Custom for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
+        <description><![CDATA[URL of the custom mobile CSS resource.  The setting <a data-gotoSettingLink="interface.theme">@PwmSettingReference:interface.theme@</a> must be set to <code>Custom</code> for this setting to be useful.  If this URL is relative it will be appended to the context path.]]></description>
         <default>
             <value><![CDATA[]]></value>
         </default>
     </setting>
     <setting key="display.css.customStyle" level="2">
         <label>Embedded CSS Stylesheet</label>
-        <description><![CDATA[Contents of the custom CSS Stylesheet.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting to be useful.  The contents of this setting will be served from the "virtual" url of <b>/public/resources/themes/embed/style.css</b>.]]></description>
+        <description><![CDATA[Contents of the embedded CSS Stylesheet.   The setting <a data-gotoSettingLink="interface.theme">@PwmSettingReference:interface.theme@</a> must be set to <code>Embedded</code> for this setting to be useful.   The contents of this setting will be served from the virtual url of <code>/public/resources/themes/embed/style.css</code>.]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="display.css.customMobileStyle" level="2">
         <label>Embedded Mobile CSS Stylesheet</label>
-        <description><![CDATA[Contents of the custom mobile CSS Stylesheet.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting to be useful.  The contents of this setting will be served from the "virtual" url of <b>/public/resources/themes/embed/mobileStyle.css</b>.]]></description>
+        <description><![CDATA[Contents of the embedded mobile CSS Stylesheet.   The setting <a data-gotoSettingLink="interface.theme">@PwmSettingReference:interface.theme@</a> must be set to <code>Embedded</code> for this setting to be useful.  The contents of this setting will be served from the virtual url of <code>/public/resources/themes/embed/mobileStyle.css</code>.]]></description>
         <default>
             <value />
         </default>
@@ -2007,7 +2019,7 @@
         </default>
     </setting>
     <setting key="events.java.stdoutLevel" level="1">
-        <label>Java StdOut Log Level</label>
+        <label>Console (StdOut) Log Level</label>
         <description><![CDATA[Default Log level for stdout.  Most servlet containers will redirect stdout to a log file.  For example, tomcat logs stdout output to the <i>tomcat/logs/catalina.out</i> file by default.]]></description>
         <default>
             <value><![CDATA[INFO]]></value>
@@ -3419,7 +3431,7 @@
         <label>User Detail Display Name</label>
         <description><![CDATA[The display name used to identify the user on the user detail screen.  Macros are resolved to the displayed user.]]></description>
         <default>
-            <value>@User:ID@ - @User:Email@</value>
+            <value>@LDAP:givenName@ @LDAP:sn@ - @User:ID@ - @User:Email@</value>
         </default>
     </setting>
     <setting key="helpdesk.profile.list" level="1" hidden="true">
@@ -4084,7 +4096,7 @@
     </category>
     <category key="SMS">
         <label>SMS</label>
-        <description><![CDATA[Configuration settings for interfacing with SMS service gateways.  The SMS gateway should support REST web service to use with this application.  The service provider will provide you with information that will allow you to complete the settings here..]]></description>
+        <description><![CDATA[Configuration settings for interfacing with SMS service gateways.  The SMS gateway should support REST web service to use with this application.  The service provider will provide you with information that will allow you to complete the settings here.]]></description>
     </category>
     <category key="SMS_GATEWAY">
         <label>SMS Gateway</label>

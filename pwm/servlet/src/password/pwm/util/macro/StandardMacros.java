@@ -46,10 +46,6 @@ import java.util.regex.Pattern;
 public abstract class StandardMacros {
     private static final PwmLogger LOGGER = PwmLogger.forClass(StandardMacros.class);
 
-    static final String PATTERN_OPTIONAL_PARAMETER_MATCH = "(:(?:/@|[^@])*)*"; // match param values inside @ and include @ if preceded by /
-    static final String PATTERN_PARAMETER_SPLIT = "(?<![/]):"; //split on : except if preceded by /
-
-
     public static final List<Class<? extends MacroImplementation>> STANDARD_MACROS;
     static {
         final List<Class<? extends MacroImplementation>> defaultMacros = new ArrayList<>();
@@ -74,30 +70,6 @@ public abstract class StandardMacros {
         STANDARD_MACROS = Collections.unmodifiableList(defaultMacros);
     }
 
-    static String stripMacroDelimiters(final String input) {
-        return input.replaceAll("^@|@$",""); // strip leading / trailing @
-    }
-
-    static String unescapeParamValue(final String input) {
-        String result = input;
-        result = result.replace("/:", ":");
-        result = result.replace("/@","@");
-        return result;
-    }
-
-    static List<String> splitMacroParameters(final String input, String... ignoreValues) {
-        final String strippedInput = stripMacroDelimiters(input);
-        final String[] splitInput = strippedInput.split(PATTERN_PARAMETER_SPLIT);
-        final List<String> returnObj = new ArrayList<>();
-        final List<String> ignoreValueList = Arrays.asList(ignoreValues);
-        for (final String value : splitInput) {
-            if (!ignoreValueList.contains(value)) {
-                returnObj.add(unescapeParamValue(value));
-                ignoreValueList.remove(value);
-            }
-        }
-        return returnObj;
-    }
 
     public static class LdapMacro extends AbstractMacro {
         private static final Pattern PATTERN = Pattern.compile("@LDAP" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@");
@@ -529,7 +501,7 @@ public abstract class StandardMacros {
         private static final Pattern PATTERN = Pattern.compile("@Encode:[^:]+:\\[\\[.*\\]\\]@");
         // @Encode:ENCODE_TYPE:value@
 
-        private static enum ENCODE_TYPE {
+        private enum ENCODE_TYPE {
             urlPath,
             urlParameter,
             base64,

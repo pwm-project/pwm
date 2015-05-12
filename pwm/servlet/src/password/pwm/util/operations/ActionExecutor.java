@@ -51,8 +51,9 @@ public class ActionExecutor {
     private PwmApplication pwmApplication;
     private ActionExecutorSettings settings;
 
-    private ActionExecutor(PwmApplication pwmApplication) {
+    private ActionExecutor(final PwmApplication pwmApplication, final ActionExecutorSettings settings) {
         this.pwmApplication = pwmApplication;
+        this.settings = settings;
     }
 
     public void executeActions(
@@ -298,7 +299,7 @@ public class ActionExecutor {
         }
 
         public ActionExecutor createActionExecutor() {
-            return new ActionExecutor(this.pwmApplication);
+            return new ActionExecutor(this.pwmApplication,this);
         }
     }
 

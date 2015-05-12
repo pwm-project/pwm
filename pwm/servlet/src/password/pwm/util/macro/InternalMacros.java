@@ -24,6 +24,7 @@ package password.pwm.util.macro;
 
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.PwmSetting;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ public abstract class InternalMacros {
         final List<Class<? extends MacroImplementation>> defaultMacros = new ArrayList<>();
         defaultMacros.add(OtpSetupTimeMacro.class);
         defaultMacros.add(ResponseSetupTimeMacro.class);
+        defaultMacros.add(PwmSettingReference.class);
         INTERNAL_MACROS = Collections.unmodifiableList(defaultMacros);
     }
 
@@ -74,6 +76,28 @@ public abstract class InternalMacros {
                 return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getResponseInfoBean().getTimestamp());
             }
             return null;
+        }
+    }
+
+    public static class PwmSettingReference extends AbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@PwmSettingReference" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(String matchValue, MacroRequestInfo macroRequestInfo)
+                throws MacroParseException
+        {
+            final String settingKeyStr = matchValue.substring(21, matchValue.length() - 1);
+            if (settingKeyStr.isEmpty()) {
+                throw new MacroParseException("PwmSettingReference macro requires a setting key value");
+            }
+            final PwmSetting setting = PwmSetting.forKey(settingKeyStr);
+            if (setting == null) {
+                throw new MacroParseException("PwmSettingReference macro has unknown key value '" + settingKeyStr + "'");
+            }
+            return setting.toMenuLocationDebug(null, PwmConstants.DEFAULT_LOCALE);
         }
     }
 }

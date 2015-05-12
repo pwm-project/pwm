@@ -52,7 +52,9 @@
         <p><pwm:display key="Display_PleaseWaitNewUser"/></p>
         <%@ include file="fragment/message.jsp" %>
         <div class="meteredProgressBar">
-            <div data-dojo-type="dijit/ProgressBar" style="width:100%" data-dojo-id="createProgressBar" id="createProgressBar" data-dojo-props="maximum:100"></div>
+          <progress id="html5ProgressBar" max="100" value="0">
+            <div data-dojo-type="dijit/ProgressBar" style="width:100%" data-dojo-id="passwordProgressBar" id="passwordProgressBar" data-dojo-props="maximum:100"></div>
+          </progress>
         </div>
         <div style="text-align: center; width: 100%; padding-top: 50px">
             <%--

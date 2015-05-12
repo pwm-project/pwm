@@ -33,10 +33,9 @@
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
     </jsp:include>
-    <div id="centerbody" class="wide">
+    <div id="centerbody" class="wide tall">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <div id="searchControlPanel" style="position: relative; margin-left: auto; margin-right: auto; width: 100%; text-align: center">
-            <br/>
+        <div id="panel-searchbar" class="searchbar">
             <table class="noborder" style="margin-left: auto; margin-right: auto; width:100px; table-layout: fixed" >
                 <tr>
                     <td style="width:15px">
@@ -62,7 +61,7 @@
             </noscript>
             <br/>
         </div>
-        <div id="helpdesk-searchResultsGrid" class="grid">
+        <div id="helpdesk-searchResultsGrid" class="grid tall">
         </div>
     </div>
     <div class="push"></div>

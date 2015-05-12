@@ -38,8 +38,10 @@
         final boolean showButtons = !pwmRequest.isFlag(PwmRequest.Flag.HIDE_HEADER_BUTTONS) && !pwmRequest.isForcedPageView();
         final boolean loggedIn = pwmRequest.isAuthenticated();
         if (showButtons && loggedIn) {
-            showLogout = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON);
             showHome = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_HOME_BUTTON);
+        }
+        if (loggedIn) {
+            showLogout = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON);
         }
     } catch (PwmUnrecoverableException e) {
         /* application must be unavailable */

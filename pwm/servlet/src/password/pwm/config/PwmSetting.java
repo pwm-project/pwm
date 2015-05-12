@@ -33,6 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -1028,9 +1029,9 @@ public enum PwmSetting {
     private final PwmSettingCategory category;
     private final Set<Template> templates;
 
+
     private final Map<Template, StoredValue>    CACHE_DEFAULT_VALUES = new HashMap<>();
     private final Map<Locale,String>            CACHE_LABELS = new HashMap<>();
-
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -1151,7 +1152,10 @@ public enum PwmSetting {
     public String getDescription(final Locale locale) {
         final Element settingElement = PwmSettingXml.readSettingXml(this);
         final Element descriptionElement = settingElement.getChild("description");
-        return descriptionElement.getText();
+        final String storedText = descriptionElement.getText();
+        final MacroMachine macroMachine = MacroMachine.forStatic();
+        final String value = macroMachine.expandMacros(storedText);
+        return value;
     }
 
     public String getPlaceholder(final Locale locale) {

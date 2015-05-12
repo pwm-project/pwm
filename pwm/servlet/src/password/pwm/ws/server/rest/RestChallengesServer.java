@@ -375,7 +375,7 @@ public class RestChallengesServer extends AbstractRestServer {
                 StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_CHALLENGES);
             }
 
-            final String successMsg = Message.Success_ClearResponse.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());
+            final String successMsg = Message.Success_Unknown.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());
             RestResultBean resultBean = new RestResultBean();
             resultBean.setError(false);
             resultBean.setSuccessMessage(successMsg);

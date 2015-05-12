@@ -1957,27 +1957,53 @@ PWM_MAIN.clearFocus = function() {
     document.activeElement.blur();
 };
 
+PWM_MAIN.prefsValues = {
+    attrTimestamp:"ClientPreferencesTimestamp",
+    attrPrefs:"ClientPreferences",
+    persistanceTime:(24 * 60 * 60 * 1000)
+};
+
 PWM_MAIN.readLocalStorage = function() {
     if(typeof(Storage) !== "undefined") {
-        var storedStr = localStorage.getItem("ConfigEditor_Storage");
-        if (storedStr) {
-            try {
-                return JSON.parse(storedStr);
-            } catch (e) {
-                console.error('Error decoding existing local storage value: ' + e);
+        try {
+            var storedTimeStr = localStorage.getItem(PWM_MAIN.prefsValues.attrTimestamp);
+            if (storedTimeStr) {
+                var lastStoredDate = Date.parse(storedTimeStr);
+                if (lastStoredDate) {
+                    var MAX_AGE = PWM_MAIN.prefsValues.persistanceTime;
+                    if (((new Date) - lastStoredDate) > MAX_AGE) {
+                        localStorage.setItem(PWM_MAIN.prefsValues.attrPrefs, "{}");
+                    }
+                }
             }
+
+            var storedStr = localStorage.getItem(PWM_MAIN.prefsValues.attrPrefs);
+            if (storedStr) {
+                try {
+                    return JSON.parse(storedStr);
+                } catch (e) {
+                    console.log('Error decoding existing local storage value: ' + e);
+                }
+            }
+        } catch (e) {
+            console.log("error reading locale storage preferences: " + e);
         }
-        return {};
     } else {
         console.log("browser doesn't support local storage");
     }
+    return {};
 };
 
 PWM_MAIN.writeLocalStorage = function(dataUpdate) {
-    if(typeof(Storage) !== "undefined") {
-        if (dataUpdate) {
-            localStorage.setItem("ConfigEditor_Storage",JSON.stringify(dataUpdate));
+    try {
+        if (typeof(Storage) !== "undefined") {
+            if (dataUpdate) {
+                    localStorage.setItem(PWM_MAIN.prefsValues.attrTimestamp, new Date().toISOString());
+                    localStorage.setItem(PWM_MAIN.prefsValues.attrPrefs, JSON.stringify(dataUpdate));
+            }
         }
+    } catch (e) {
+        console.log("error storing local storage preferences: " + e);
     }
 };
 

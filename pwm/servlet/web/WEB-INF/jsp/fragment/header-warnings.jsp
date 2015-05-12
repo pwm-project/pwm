@@ -60,7 +60,20 @@
     </script>
 </pwm:script>
 <div id="header-warning" style="display: none">
-    <div class="header-warning-buttons">
+    <div class="header-warning-row header-warning-version"><%=PwmConstants.PWM_APP_NAME_VERSION%></div>
+    <div id="header-warning-message" class="header-warning-row header-warning-message">
+    <% if (PwmConstants.TRIAL_MODE) { %>
+    <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
+    <% } else if (configMode) { %>
+    <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
+
+    <pwm:if test="showIcons"><span id="icon-configModeHelp" class="btn-icon fa fa-question-circle"></span></pwm:if>
+        <br/><br/>
+    <% } else if (adminUser) { %>
+    <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
+    <% } %>
+    </div>
+    <div class="header-warning-row header-warning-buttons">
         <a class="header-warning-button" id="header_configManagerButton">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-gears"></span></pwm:if>
             <pwm:display key="MenuItem_ConfigManager" bundle="Admin"/>
@@ -82,26 +95,12 @@
         </a>
         <% } %>
     </div>
-    <span id="header-warning-message" style="padding-right: 15px; font-weight: bold">
-    <% if (PwmConstants.TRIAL_MODE) { %>
-    <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
-    <% } else if (configMode) { %>
-    <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
-
-    <pwm:if test="showIcons"><span id="icon-configModeHelp" class="btn-icon fa fa-question-circle"></span></pwm:if>
-        <br/><br/>
-    <% } else if (adminUser) { %>
-    <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
-    <% } %>
-    </span>
-    <div id="panel-header-healthData" style="cursor: pointer"></div>
+    <div id="panel-header-healthData" class="header-warning-row header-warning-healthData"></div>
     <% if (includeHeader) { %>
     <div id="button-closeHeader">
         <span class="fa fa-chevron-circle-right"></span>
     </div>
     <% } %>
-    <br/>
-    <%=PwmConstants.PWM_APP_NAME_VERSION%>
 </div>
 <% if (includeHeader) { %>
 <div id="button-openHeader">

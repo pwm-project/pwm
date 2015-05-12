@@ -239,7 +239,7 @@ public class ReportService implements PwmService {
             final Queue<UserIdentity> allUsers = new LinkedList<>(getListOfUsers());
             reportStatus.setTotal(allUsers.size());
             while (status == STATUS.OPEN && !allUsers.isEmpty() && !cancelFlag) {
-                final long startUpdateTime = System.currentTimeMillis();
+                final Date startUpdateTime = new Date();
                 final UserIdentity userIdentity = allUsers.poll();
                 try {
                     if (updateCache(userIdentity)) {
@@ -256,9 +256,9 @@ public class ReportService implements PwmService {
                 }
                 reportStatus.setCount(reportStatus.getCount() + 1);
                 reportStatus.getEventRateMeter().markEvents(1);
-                final long totalUpdateTime = System.currentTimeMillis() - startUpdateTime;
+                final TimeDuration totalUpdateTime = TimeDuration.fromCurrent(startUpdateTime);
                 if (settings.isAutoCalcRest()) {
-                    avgTracker.addSample(totalUpdateTime);
+                    avgTracker.addSample(totalUpdateTime.getTotalMilliseconds());
                     Helper.pause(avgTracker.avgAsLong());
                 } else {
                     Helper.pause(settings.getRestTime().getTotalMilliseconds());
@@ -593,7 +593,7 @@ public class ReportService implements PwmService {
                         }
                     }
                 }
-                LOGGER.warn(PwmConstants.REPORTING_SESSION_LABEL,"unable to dredge ldap for ");
+                LOGGER.warn(PwmConstants.REPORTING_SESSION_LABEL,"unable to dredge ldap due to error: " + e.getMessage());
             }
         }
     }

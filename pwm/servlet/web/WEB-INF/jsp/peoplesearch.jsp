@@ -30,10 +30,9 @@
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PeopleSearch"/>
     </jsp:include>
-    <div id="centerbody" class="wide" style="height:100%">
+    <div id="centerbody" class="wide tall" style="height:100%">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-
-        <div id="searchControlPanel" style="position: relative; margin-left: auto; margin-right: auto; width: 100%; text-align: center;">
+        <div id="panel-searchbar" class="searchbar">
             <table class="noborder" style="margin-left: auto; margin-right: auto; width:100px;" >
                 <tr>
                     <td style="width:5%">
@@ -60,7 +59,7 @@
             </noscript>
         </div>
         <br/>
-        <div id="peoplesearch-searchResultsGrid" class="grid">
+        <div id="peoplesearch-searchResultsGrid" class="grid tall">
         </div>
     </div>
     <div class="push"></div>

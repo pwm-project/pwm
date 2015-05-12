@@ -528,11 +528,7 @@
                             <script type="text/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
                                     PWM_MAIN.addEventHandler('button_refresh','click',function(){
-                                        PWM_MAIN.showWaitDialog({loadFunction:function(){
-                                            setTimeout(function(){
-                                                document.continueForm.submit();
-                                            },1000);
-                                        }});
+                                        PWM_HELPDESK.refreshDetailPage();
                                     });
                                 });
                             </script>
@@ -745,7 +741,7 @@
         }
 
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
+            require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
                 dojoParser.parse();
                 PWM_VAR['helpdesk_obfuscatedDN'] = '<%=StringUtil.escapeJS(obfuscatedDN)%>';
                 PWM_VAR['helpdesk_username'] = '<%=StringUtil.escapeJS(searchedUserInfo.getUsername())%>';

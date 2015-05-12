@@ -78,7 +78,7 @@ PWM_CFGEDIT.updateLastModifiedInfo = function(keyName, data) {
     if (PWM_MAIN.getObject('panel-' + keyName + '-modifyTime')) {
         if (data['data']['modifyTime']) {
             PWM_MAIN.getObject('panel-' + keyName + '-modifyTime').innerHTML = 'Last Modified '
-            + '<span id="panel-' + keyName + '-modifyTimestamp">' + data['data']['modifyTime'] + '</span>';
+                + '<span id="panel-' + keyName + '-modifyTimestamp">' + data['data']['modifyTime'] + '</span>';
             PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('panel-' + keyName + '-modifyTimestamp'));
         } else {
             PWM_MAIN.getObject('panel-' + keyName + '-modifyTime').innerHTML = '';
@@ -510,8 +510,27 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
 PWM_CFGEDIT.gotoSetting = function(category,settingKey,profile) {
     console.log('going to setting... category=' + category + " settingKey=" + settingKey + " profile=" + profile);
 
-    if (!category || (!(category in PWM_SETTINGS['categories']))) {
-        console.log('can\'t process request to display settings category: ' + category );
+    if (!category) {
+        if (settingKey) {
+            var settingInfo = PWM_SETTINGS['settings'][settingKey];
+            if (settingInfo) {
+                category = settingInfo['category'];
+            }
+        }
+    }
+
+    if (!settingKey && !category) {
+        alert('unable to goto setting: settingKey and category parameter are not specified');
+        return;
+    }
+
+    if (settingKey && !(settingKey in PWM_SETTINGS['settings'])) {
+        alert('unable to goto setting: settingKey parameter "' + settingKey + '" is not valid');
+        return;
+    }
+
+    if (!(category in PWM_SETTINGS['categories'])) {
+        alert('unable to goto setting: category parameter "' + category + '" is not valid');
         return;
     }
 
@@ -722,12 +741,23 @@ PWM_CFGEDIT.selectTemplate = function(newTemplate) {
 PWM_CFGEDIT.loadMainPageBody = function() {
 
     PWM_CFGEDIT.drawNavigationMenu();
+
     var storedPreferences = PWM_MAIN.readLocalStorage();
-    if (storedPreferences['lastSelected']) {
-        PWM_CFGEDIT.dispatchNavigationItem(storedPreferences['lastSelected']);
+    if (storedPreferences['configeditor-lastSelected']) {
+        PWM_CFGEDIT.dispatchNavigationItem(storedPreferences['configeditor-lastSelected']);
     } else {
         PWM_CFGEDIT.drawHomePage();
     }
+
+    require(["dojo/io-query"],function(ioQuery){
+        var uri = window.location.href;
+        var queryString = uri.substring(uri.indexOf("?") + 1, uri.length);
+        var queryParams = ioQuery.queryToObject(queryString);
+        if (queryParams['processAction'] == 'gotoSetting') {
+            PWM_CFGEDIT.gotoSetting(queryParams['category'],queryParams['settingKey'],queryParams['profile']);
+            return;
+        }
+    });
 };
 
 PWM_CFGEDIT.displaySettingsCategory = function(category) {
@@ -744,16 +774,16 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
 
     if (category == 'LDAP_PROFILE') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
-        + '<button class="btn" id="button-test-LDAP_PROFILE"><span class="btn-icon fa fa-bolt"></span>Test LDAP Profile</button>'
-        + '</div>';
+            + '<button class="btn" id="button-test-LDAP_PROFILE"><span class="btn-icon fa fa-bolt"></span>Test LDAP Profile</button>'
+            + '</div>';
     } else if (category == 'DATABASE') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
-        + '<button class="btn" id="button-test-DATABASE"><span class="btn-icon fa fa-bolt"></span>Test Database Settings</button>'
-        + '</div>';
+            + '<button class="btn" id="button-test-DATABASE"><span class="btn-icon fa fa-bolt"></span>Test Database Settings</button>'
+            + '</div>';
     } else if (category == 'SMS_GATEWAY') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
-        + '<button class="btn" id="button-test-SMS"><span class="btn-icon fa fa-bolt"></span>Test SMS Settings</button>'
-        + '</div>';
+            + '<button class="btn" id="button-test-SMS"><span class="btn-icon fa fa-bolt"></span>Test SMS Settings</button>'
+            + '</div>';
     }
 
     PWM_VAR['skippedSettingCount'] = 0;
@@ -783,6 +813,7 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
     } else if (category == 'SMS_GATEWAY') {
         PWM_MAIN.addEventHandler('button-test-SMS', 'click', function(){PWM_CFGEDIT.smsHealthCheck();});
     }
+    PWM_CFGEDIT.applyGotoSettingHandlers();
 };
 
 PWM_CFGEDIT.drawProfileEditorPage = function(settingKey) {
@@ -809,22 +840,22 @@ PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo, options) {
     }
 
     htmlBody += '<div style="visibility: hidden" class="fa fa-undo icon_button" title="' + PWM_CONFIG.showString('Tooltip_ResetButton') + '" id="resetButton-' + settingKey + '"></div>'
-    + '</div>' // close title
-    + '<div id="titlePane_' + settingKey + '" class="setting_body">';
+        + '</div>' // close title
+        + '<div id="titlePane_' + settingKey + '" class="setting_body">';
 
     if (settingInfo['description']) {
         var prefs = PWM_MAIN.readLocalStorage();
         var expandHelp = 'helpExpanded' in prefs && settingKey in prefs['helpExpanded'];
         htmlBody += '<div class="pane-help" id="pane-help-' + settingKey + '" style="display:' + (expandHelp ? 'inherit' : 'none') + '">'
-        + settingInfo['description'] + '</div>';
+            + settingInfo['description'] + '</div>';
     }
 
     htmlBody += '<div class="pane-settingValue" id="table_setting_' + settingKey + '" style="border:0 none">'
-    + '</div>' // close setting;
-    + '</div>' // close body
-    + '<div class="footnote" style="width:100%"><span id="panel-' + settingKey + '-modifyTime"></span></div>'
-    + '<div class="footnote" style="width:100%"><span id="panel-' + settingKey + '-modifyUser"></span></div>'
-    + '</div>';  // close outline
+        + '</div>' // close setting;
+        + '</div>' // close body
+        + '<div class="footnote" style="width:100%"><span id="panel-' + settingKey + '-modifyTime"></span></div>'
+        + '<div class="footnote" style="width:100%"><span id="panel-' + settingKey + '-modifyUser"></span></div>'
+        + '</div>';  // close outline
 
     return htmlBody;
 };
@@ -980,7 +1011,7 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
                     id: 'navigationTree',
                     onClick: function(item){
                         var storedPreferences = PWM_MAIN.readLocalStorage();
-                        storedPreferences['lastSelected'] = item;
+                        storedPreferences['configeditor-lastSelected'] = item;
                         PWM_MAIN.writeLocalStorage(storedPreferences);
                         PWM_CFGEDIT.dispatchNavigationItem(item);
                     }
@@ -1051,7 +1082,7 @@ PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
     var settingsPanel = PWM_MAIN.getObject('settingsPanel');
     var remainingLoads = keys.length;
     settingsPanel.innerHTML = '<div id="displaytext-loading-panel" style="width:100%; text-align: center">'
-    + PWM_MAIN.showString('Display_PleaseWait') + '&nbsp;<span id="remainingCount"></div>';
+        + PWM_MAIN.showString('Display_PleaseWait') + '&nbsp;<span id="remainingCount"></div>';
     console.log('drawing displaytext-editor for setting-' + settingKey);
     var htmlBody = '<div id="localetext-editor-wrapper" style="display:none">';
     for (var key in keys) {
@@ -1062,7 +1093,7 @@ PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
         htmlBody += PWM_CFGEDIT.drawHtmlOutlineForSetting(settingInfo,{showHelp:false});
     }
     settingsPanel.innerHTML = settingsPanel.innerHTML + htmlBody;
-    
+
     var initSetting = function(keyCounter) {
         if (PWM_VAR['outstandingOperations'] > 5) {
             setTimeout(function () { initSetting(keyCounter); }, 50);
@@ -1078,7 +1109,7 @@ PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
         remainingLoads--;
         PWM_MAIN.getObject('remainingCount').innerHTML = remainingLoads > 0 ? remainingLoads : '';
     };
-    
+
     var delay = 5;
     for (var key in keys) {
         (function(keyCounter) {
@@ -1255,4 +1286,13 @@ PWM_CFGEDIT.setCurrentProfile = function(profile) {
     } else {
         delete PWM_VAR['currentProfile'];
     }
+};
+
+PWM_CFGEDIT.applyGotoSettingHandlers = function() {
+    PWM_MAIN.doQuery('[data-gotoSettingLink]',function(element){
+        PWM_MAIN.addEventHandler(element,'click',function(){
+            var linkValue = element.getAttribute('data-gotoSettingLink');
+            PWM_CFGEDIT.gotoSetting(null,linkValue,null);
+        })
+    });
 };

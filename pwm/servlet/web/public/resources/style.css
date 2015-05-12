@@ -235,6 +235,19 @@ input[type=password]::-ms-reveal{display: none;}
     min-width: 600px;
 }
 
+#centerbody.tall {
+    bottom: 80px;
+    height: auto !important;
+    left: 40px;
+    margin: auto;
+    min-width: auto;
+    position: absolute;
+    right: 40px;
+    top: 100px;
+    width: auto;
+}
+
+
 /* all forms use a buttonbar div containing the action buttons */
 .buttonbar {
     margin-top: 30px;
@@ -349,14 +362,23 @@ div.progress-container > div {
     position: absolute;
     right:6px;
     top:6px;
-    width: 190px;
+    width: 200px;
     border: 2px solid #aaaaaa;
     background-color: #DDDDDD;
     z-index: 10;
     padding: 10px;
-    animation: fadein 0.3s;
-    -moz-animation: fadein 0.3s; /* Firefox */
-    -webkit-animation: fadein 0.3s; /* Safari and Chrome */
+}
+
+.header-warning-row {
+    margin-bottom: 15px;
+}
+
+.header-warning-healthData {
+    cursor: pointer;
+}
+
+.header-warning-version {
+    font-weight: bold;
 }
 
 .header-warning-buttons {
@@ -525,9 +547,14 @@ img.qrcodeimage {
     background-color: black;
 }
 
-#helpdesk-searchResultsGrid {
-    min-height: 400px;
-    height: 60vh;
+.grid.tall {
+    bottom: 10px;
+    height: auto;
+    left: 10px;
+    position: absolute;
+    right: 10px;
+    top: 45px;
+    cursor: pointer;
 }
 
 .checkboxWrapper {
@@ -606,6 +633,10 @@ input[type=search] {
     font-weight: bold;
 }
 
+.searchbar {
+    position: relative; margin-left: auto; margin-right: auto; width: 100%; text-align: center;
+}
+
 .formFieldWrapper {
     padding-bottom: 10px;
 }
@@ -614,6 +645,13 @@ progress:not([value]) {
     width: 100%;
     height: 20px;
 }
+
+progress[value] {
+    height: 20px;
+    width: 100%;
+    color: orange;
+}
+
 
 .blink { animation: blink 1s steps(5, start) infinite; -webkit-animation: blink 1s steps(5, start) infinite; }
 @keyframes blink { to { visibility: hidden; } }
@@ -652,8 +690,7 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 
 /* begin peoplesearch section */
 
-.icon-peoplesearch-orgChart { background-image: url("orgChart.png"); position: absolute; top:5px; right:5px; height:30px; width:30px; cursor: pointer;
-}
+.icon-peoplesearch-orgChart { background-image: url("orgChart.png"); position: absolute; top:5px; right:5px; height:30px; width:30px; cursor: pointer; }
 .panel-peoplesearch-userDetailPhoto { display: inline  }
 .img-peoplesearch-userDetailPhoto { width: 80px; height: 80px; border-radius: 2px; border: 1px solid #d8e2e2; }
 .panel-peoplesearch-person { margin-left:5px; background: #eaeaea; position: relative; padding: 6px; width: auto; height: 83px; margin-right: 5px; margin-bottom: 10px; border:  1px solid transparent; }
@@ -662,27 +699,6 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 
 #peopleSearch-userDetailWrapper { max-height: 450px; overflow-y: auto; }
 .peoplesearch-input-username { width:400px; }
-#peoplesearch-searchResultsGrid {
-    bottom: 10px;
-    height: auto;
-    left: 10px;
-    position: absolute;
-    right: 10px;
-    top: 45px;
-    cursor: pointer;
-}
-
-.peoplesearch-wrapper #centerbody.wide {
-    bottom: 80px;
-    height: auto !important;
-    left: 40px;
-    margin: auto;
-    min-width: auto;
-    position: absolute;
-    right: 40px;
-    top: 100px;
-    width: auto;
-}
 
 .peopleSearch-userDetails { max-height: 450px; overflow-y: auto; border: 1px solid #d8e2e2; }
 .peopleSearch-userDetails td.key { font-weight: normal; color: #949494; width: auto; padding: 3px 15px 3px 10px; border-bottom: 1px solid #d8e2e2; }
@@ -713,4 +729,5 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 .panel-orgChart { max-height: 600px; overflow-y: auto }
 .panel-orgChart-footer {clear: both; margin-bottom: 10px; }
 /* end peoplesearch org chart section */
+
 

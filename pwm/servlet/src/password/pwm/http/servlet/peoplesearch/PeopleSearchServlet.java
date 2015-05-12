@@ -292,7 +292,7 @@ public class PeopleSearchServlet extends PwmServlet {
             );
         } catch (ChaiException e) {
             LOGGER.error("unexpected error during detail lookup of '" + userIdentity + "', error: " + e.getMessage());
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.forChaiError(e.getErrorCode()),e.getMessage()));
+            throw PwmUnrecoverableException.fromChaiException(e);
         }
     }
 
@@ -333,7 +333,7 @@ public class PeopleSearchServlet extends PwmServlet {
             LOGGER.error(pwmRequest, "error generating user detail object: " + e.getMessage());
             pwmRequest.respondWithError(e.getErrorInformation());
         } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.forChaiError(e.getErrorCode()),e.getMessage()));
+            throw PwmUnrecoverableException.fromChaiException(e);
         }
     }
 
@@ -523,7 +523,7 @@ public class PeopleSearchServlet extends PwmServlet {
                 return null;
             }
         } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
+            throw PwmUnrecoverableException.fromChaiException(e);
         }
 
         return "PeopleSearch?processAction=photo&userKey=" + userIdentity.toObfuscatedKey(pwmApplication.getConfig());
