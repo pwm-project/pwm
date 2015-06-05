@@ -101,6 +101,10 @@ public enum AppProperty {
     LOCALDB_INIT_STRING                             ("localdb.initParameters"),
     MACRO_RANDOM_CHAR_MAX_LENGTH                    ("macro.randomChar.maxLength"),
     MACRO_LDAP_ATTR_CHAR_MAX_LENGTH                 ("macro.ldapAttr.maxLength"),
+    NAAF_ID                                         ("naaf.id"),
+    NAAF_SECRET                                     ("naaf.secret"),
+    NAAF_SALT_LENGTH                                ("naaf.salf.length"),
+
     
     /** Time intruder records exist in the intruder table before being deleted. */
     INTRUDER_RETENTION_TIME_MS                      ("intruder.retentionTimeMS"),
@@ -121,7 +125,6 @@ public enum AppProperty {
     LDAP_CONNECTION_TIMEOUT                         ("ldap.connection.timeoutMS"),
     LDAP_PROFILE_RETRY_DELAY                        ("ldap.profile.retryDelayMS"),
     LDAP_PROMISCUOUS_ENABLE                         ("ldap.promiscuousEnable"),
-    LDAP_SEARCH_TIMEOUT                             ("ldap.search.timeoutMS"),
     LDAP_PASSWORD_REPLICA_CHECK_INIT_DELAY_MS       ("ldap.password.replicaCheck.initialDelayMS"),
     LDAP_PASSWORD_REPLICA_CHECK_CYCLE_DELAY_MS      ("ldap.password.replicaCheck.cycleDelayMS"),
     LDAP_GUID_PATTERN                               ("ldap.guid.pattern"),
@@ -173,6 +176,7 @@ public enum AppProperty {
     REPORTING_LDAP_SEARCH_TIMEOUT                   ("reporting.ldap.searchTimeoutMs"),
     SECURITY_STRIP_INLINE_JAVASCRIPT                ("security.html.stripInlineJavascript"),
     SECURITY_HTTP_STRIP_HEADER_REGEX                ("security.http.stripHeaderRegex"),
+    SECURITY_HTTP_PROMISCUOUS_ENABLE                ("security.http.promiscuousEnable"),
     SECURITY_RESPONSES_HASH_ITERATIONS              ("security.responses.hashIterations"),
     SECURITY_INPUT_TRIM                             ("security.input.trim"),
     SECURITY_INPUT_PASSWORD_TRIM                    ("security.input.password.trim"),
@@ -180,6 +184,7 @@ public enum AppProperty {
     SECURITY_SHAREDHISTORY_HASH_ITERATIONS          ("security.sharedHistory.hashIterations"),
     SECURITY_SHAREDHISTORY_HASH_NAME                ("security.sharedHistory.hashName"),
     SECURITY_SHAREDHISTORY_CASE_INSENSITIVE         ("security.sharedHistory.caseInsensitive"),
+    SECURITY_CERTIFICATES_VALIDATE_TIMESTAMPS       ("security.certs.validateTimestamps"),
     TOKEN_REMOVAL_DELAY_MS                          ("token.removalDelayMS"),
     TOKEN_PURGE_BATCH_SIZE                          ("token.purgeBatchSize"),
     TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS                ("token.maxUniqueCreateAttempts"),

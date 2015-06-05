@@ -44,20 +44,10 @@ public class LocalDBUtility {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDBUtility.class);
 
-    final static List<LocalDB.DB> BACKUP_IGNORE_DBs;
     private final LocalDB localDB;
     private int exportLineCounter;
     private int importLineCounter;
 
-    static {
-        final LocalDB.DB[] ignoredDBsArray = {
-                LocalDB.DB.SEEDLIST_META,
-                LocalDB.DB.SEEDLIST_WORDS,
-                LocalDB.DB.WORDLIST_META,
-                LocalDB.DB.WORDLIST_WORDS,
-        };
-        BACKUP_IGNORE_DBs = Collections.unmodifiableList(Arrays.asList(ignoredDBsArray));
-    }
 
     public LocalDBUtility(LocalDB localDB) {
         this.localDB = localDB;
@@ -75,7 +65,7 @@ public class LocalDBUtility {
         if (showLineCount) {
             exportLineCounter = 0;
             for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
-                if (!BACKUP_IGNORE_DBs.contains(loopDB)) {
+                if (loopDB.isBackup()) {
                     exportLineCounter += localDB.size(loopDB);
                 }
             }
@@ -109,7 +99,7 @@ public class LocalDBUtility {
         try {
             csvPrinter.printComment(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " LocalDB export on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
             for (LocalDB.DB loopDB : LocalDB.DB.values()) {
-                if (!BACKUP_IGNORE_DBs.contains(loopDB)) {
+                if (loopDB.isBackup()) {
                     csvPrinter.printComment("Export of " + loopDB.toString());
                     final LocalDB.LocalDBIterator<String> localDBIterator = localDB.iterator(loopDB);
                     try {

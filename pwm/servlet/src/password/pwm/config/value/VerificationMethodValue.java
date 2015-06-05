@@ -4,16 +4,13 @@ import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.config.option.RecoveryVerificationMethod;
+import password.pwm.config.option.RecoveryVerificationMethods;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class VerificationMethodValue extends AbstractValue implements StoredValue {
     private static final PwmLogger LOGGER = PwmLogger.forClass(VerificationMethodValue.class);
@@ -28,18 +25,18 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     }
 
     public static class VerificationMethodSettings implements Serializable {
-        private Map<RecoveryVerificationMethod,VerificationMethodSetting> methodSettings = new HashMap<>();
+        private Map<RecoveryVerificationMethods,VerificationMethodSetting> methodSettings = new HashMap<>();
         private int minOptionalRequired = 0;
 
         public VerificationMethodSettings() {
         }
 
-        public VerificationMethodSettings(Map<RecoveryVerificationMethod, VerificationMethodSetting> methodSettings, int minOptionalRequired) {
+        public VerificationMethodSettings(Map<RecoveryVerificationMethods, VerificationMethodSetting> methodSettings, int minOptionalRequired) {
             this.methodSettings = methodSettings;
             this.minOptionalRequired = minOptionalRequired;
         }
 
-        public Map<RecoveryVerificationMethod, VerificationMethodSetting> getMethodSettings() {
+        public Map<RecoveryVerificationMethods, VerificationMethodSetting> getMethodSettings() {
             return Collections.unmodifiableMap(methodSettings);
         }
 
@@ -66,9 +63,9 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
     public VerificationMethodValue(VerificationMethodSettings value) {
         this.value = value;
-        for (final RecoveryVerificationMethod recoveryVerificationMethod : RecoveryVerificationMethod.values()) {
-            if (!value.methodSettings.containsKey(recoveryVerificationMethod)) {
-                value.methodSettings.put(recoveryVerificationMethod,new VerificationMethodSetting(EnabledState.disabled));
+        for (final RecoveryVerificationMethods recoveryVerificationMethods : RecoveryVerificationMethods.availableValues()) {
+            if (!value.methodSettings.containsKey(recoveryVerificationMethods)) {
+                value.methodSettings.put(recoveryVerificationMethods,new VerificationMethodSetting(EnabledState.disabled));
             }
         }
     }
@@ -112,5 +109,22 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     @Override
     public List<String> validateValue(PwmSetting pwm) {
         return Collections.emptyList();
+    }
+
+    @Override
+    public String toDebugString(boolean prettyFormat, Locale locale) {
+        if (value == null) {
+            return "No Verification Methods";
+        }
+        if (!prettyFormat) {
+            return super.toDebugString(prettyFormat, locale);
+        }
+        final StringBuilder out = new StringBuilder();
+        for (final RecoveryVerificationMethods method : value.getMethodSettings().keySet()) {
+            out.append(" ").append(method.toString()).append(": ").append(value.getMethodSettings().get(method).getEnabledState());
+            out.append("\n");
+        }
+        out.append("  Minimum Optional Methods Required: " + value.getMinOptionalRequired());
+        return out.toString();
     }
 }

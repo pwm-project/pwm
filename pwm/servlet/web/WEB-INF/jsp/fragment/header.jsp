@@ -31,20 +31,18 @@
 <%
 
     boolean showTheme = false;
+    boolean showMobile = false;
     boolean includeXVersion = false;
     String restClientKey = "";
     String clientEtag = "";
-    String jspFileName = "";
-    String instanceID = "";
     try {
         final PwmRequest pwmRequestHeader = PwmRequest.forRequest(request,response);
 
         showTheme = !pwmRequestHeader.isFlag(PwmRequest.Flag.HIDE_THEME);
+        showMobile = !pwmRequestHeader.isFlag(PwmRequest.Flag.NO_MOBILE_CSS);
         includeXVersion = Boolean.parseBoolean(pwmRequestHeader.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
         restClientKey = pwmRequestHeader.getPwmSession().getRestClientKey();
         clientEtag = password.pwm.ws.server.rest.RestAppDataServer.makeClientEtag(pwmRequestHeader);
-        instanceID = pwmRequestHeader.getPwmApplication().getInstanceID();
-        jspFileName = this.getClass().getSimpleName().replaceAll("_", ".");
 
         if (!pwmRequestHeader.isFlag(PwmRequest.Flag.NO_REQ_COUNTER)) {
             pwmRequestHeader.getPwmSession().getSessionManager().incrementRequestCounterKey();
@@ -58,7 +56,7 @@
 <head>
     <title><pwm:display key="Title_TitleBar"/></title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
-    <meta id="application-info" name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service" <%if (includeXVersion){%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.BUILD_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>" <%}%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<%=instanceID%>" data-jsp-name="<%=jspFileName%>"
+    <meta id="application-info" name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service" <%if (includeXVersion){%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.BUILD_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>" <%}%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<pwm:value name="instanceID"/>" data-jsp-name="<pwm:value name="currentJspFilename"/>"
           data-url-context="<pwm:context/>" data-pwmFormID="<pwm:FormID/>" data-clientEtag="<%=clientEtag%>" data-restClientKey="<%=restClientKey%>"/>
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
     <meta http-equiv="X-UA-Compatible" content="IE=10; IE=9; IE=8; IE=7" />
@@ -68,8 +66,10 @@
     <% if (showTheme) { %>
     <link href="<pwm:url url="%THEME_URL%"/>" rel="stylesheet" type="text/css" media="screen"/>
     <% } %>
+    <% if (showMobile) { %>
     <link media="only screen and (max-width: 600px)" href="<pwm:url url='/public/resources/mobileStyle.css' addContext="true"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
-    <% if (showTheme) { %>
+    <% } %>
+    <% if (showTheme && showMobile) { %>
     <link media="only screen and (max-width: 600px)" href="<pwm:url url="%MOBILE_THEME_URL%"/>" type="text/css" rel="stylesheet"/><%-- mobile css --%>
     <% } %>
     <link href="<pwm:url url='/public/resources/dojo/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>

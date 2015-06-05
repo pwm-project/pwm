@@ -457,7 +457,7 @@ public class PwmPasswordRuleValidator {
                 break;
 
             case AD2003:
-                if (complexityPoints < 3) {
+                if (complexityPoints >= 3) {
                     return errorList;
                 }
                 break;

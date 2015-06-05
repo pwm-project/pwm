@@ -32,8 +32,7 @@ p {
 }
 
 #header-warning {
-    width: 100%;
-    background-color: black;
+    background-color: blue;
     color: #f5f5f5;
     text-align: center;
     padding-top: 4px;
@@ -157,6 +156,7 @@ table td.key {
     font-size: 13px;
     text-decoration: none;
     vertical-align: middle;
+    opacity: 0.9;
 }
 .btn:hover {
     border-top-color: #070618;

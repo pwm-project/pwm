@@ -22,13 +22,13 @@
 
 package password.pwm.config;
 
-import password.pwm.PwmApplication;
-import password.pwm.http.PwmSession;
+import password.pwm.http.PwmRequest;
+
+import java.io.Serializable;
 
 public interface SettingUIFunction {
-    String provideFunction(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+    Serializable provideFunction(
+            final PwmRequest pwmRequest,
             final StoredConfiguration storedConfiguration,
             final PwmSetting setting,
             final String profile

@@ -22,7 +22,7 @@
 
 <%@ page import="password.pwm.http.bean.HelpdeskBean" %>
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext); %>
 <% final HelpdeskBean helpdeskBean = pwmRequest.getPwmSession().getHelpdeskBean(); %>

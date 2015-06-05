@@ -66,8 +66,16 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
     closeConnection(final Connection connection)
             throws SQLException
     {
+        try {
+            DriverManager.getConnection("jdbc:derby:;shutdown=true");
+        } catch (SQLException e) {
+            if ("XJ015".equals(e.getSQLState())) {
+                LOGGER.trace("Derby shutdown succeeded. SQLState=" + e.getSQLState() + ", message=" + e.getMessage());
+            } else {
+                throw e;
+            }
+        }
         connection.close();
-        DriverManager.getConnection("jdbc:derby:;shutdown=true");
     }
 
     @Override

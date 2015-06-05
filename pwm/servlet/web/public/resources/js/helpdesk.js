@@ -35,7 +35,7 @@ PWM_HELPDESK.executeAction = function(actionName) {
                 PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Error'), text: data['errorDetail']});
             } else {
                 PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Success'), text: data['successMessage'], nextAction: function () {
-                    PWM_MAIN.getObject('continueForm').submit();
+                    PWM_HELPDESK.refreshDetailPage();
                 }});
             }
         };
@@ -113,7 +113,7 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
                 title: PWM_MAIN.showString('Title_ChangePassword') + ' - ' + PWM_VAR['helpdesk_username'],
                 text: bodyText,
                 loadFunction:function(){
-                    PWM_MAIN.addEventHandler('button-continue','click',function(){ PWM_MAIN.getObject('continueForm').submit(); });
+                    PWM_MAIN.addEventHandler('button-continue','click',function(){ PWM_HELPDESK.refreshDetailPage(); });
                     PWM_MAIN.addEventHandler('button-clearResponses','click',function(){ PWM_HELPDESK.doResponseClear(); });
 
                     if (PWM_VAR['helpdesk_setting_maskPasswords']) {
@@ -213,6 +213,17 @@ PWM_HELPDESK.changePasswordPopup = function() {
         }
     });
 };
+
+PWM_HELPDESK.initiateChangePasswordDialog = function() {
+    if (PWM_VAR['helpdesk_setting_PwUiMode'] == 'autogen') {
+        PWM_HELPDESK.generatePasswordPopup();
+    } else if (PWM_VAR['helpdesk_setting_PwUiMode'] == 'random') {
+        PWM_HELPDESK.setRandomPasswordPopup();
+    } else {
+        PWM_HELPDESK.changePasswordPopup();
+    }
+};
+
 
 PWM_HELPDESK.setRandomPasswordPopup = function() {
     var titleText = PWM_MAIN.showString('Title_ChangePassword') + ': ' + PWM_VAR['helpdesk_username'];
@@ -379,7 +390,10 @@ PWM_HELPDESK.validateOtpCode = function(userKey) {
     });
 };
 
-PWM_HELPDESK.sendVerificationToken = function(userKey,choiceFlag) {
+PWM_HELPDESK.sendVerificationToken = function(userKey) {
+    var sendMethodSetting = PWM_VAR["helpdesk_setting_tokenSendMethod"];
+    var choiceFlag = sendMethodSetting == 'CHOICE_SMS_EMAIL';
+
     var sendTokenAction = function(choice) {
         var sendContent = {};
         if (choiceFlag && choice) {
@@ -434,11 +448,50 @@ PWM_HELPDESK.initHelpdeskSearchPage = function() {
     });
 };
 
+PWM_HELPDESK.initHelpdeskDetailPage = function() {
+    require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
+        dojoParser.parse();
+    });
+    PWM_MAIN.addEventHandler('button_continue','click',function() {
+        PWM_MAIN.goto('Helpdesk');
+    });
+    PWM_MAIN.addEventHandler('button_refresh','click',function(){
+        PWM_HELPDESK.refreshDetailPage();
+    });
+    PWM_MAIN.addEventHandler('helpdesk_ChangePasswordButton','click',function(){
+        PWM_HELPDESK.initiateChangePasswordDialog();
+    });
+    PWM_MAIN.addEventHandler('helpdesk_unlockBtn','click',function(){
+        PWM_MAIN.showConfirmDialog({okAction:function() {
+            PWM_MAIN.submitPostAction('Helpdesk', 'doUnlock', {userKey: PWM_VAR['helpdesk_obfuscatedDN']});
+        }});
+    });
+    PWM_MAIN.addEventHandler('helpdesk_clearResponsesBtn','click',function(){
+        PWM_MAIN.showConfirmDialog({okAction:function(){
+             PWM_HELPDESK.doResponseClear();
+        }});
+    });
+    PWM_MAIN.addEventHandler('helpdesk_clearOtpSecretBtn','click',function(){
+        PWM_MAIN.showConfirmDialog({okAction:function() {
+            PWM_MAIN.submitPostAction('Helpdesk', 'doClearOtpSecret', {userKey: PWM_VAR['helpdesk_obfuscatedDN']});
+        }});
+    });
+    PWM_MAIN.addEventHandler('helpdesk_verifyOtpButton','click',function(){
+        PWM_HELPDESK.validateOtpCode(PWM_VAR['helpdesk_obfuscatedDN']);
+    });
+    PWM_MAIN.addEventHandler('sendTokenButton','click',function(){
+        PWM_HELPDESK.sendVerificationToken(PWM_VAR['helpdesk_obfuscatedDN']);
+    });
+    PWM_MAIN.addEventHandler('helpdesk_deleteUserButton','click',function(){
+        PWM_HELPDESK.deleteUser(PWM_VAR['helpdesk_obfuscatedDN'])
+    });
+
+};
+
 PWM_HELPDESK.initPage = function() {
     var applicationData = PWM_MAIN.getObject("application-info");
     var jspName = applicationData ? applicationData.getAttribute("data-jsp-name") : "";
-    if ("helpdesk.jsp" == jspName) {
-        PWM_HELPDESK.initHelpdeskSearchPage();
+    if ("helpdesk.jsp" == jspName || "helpdesk-detail.jsp" == jspName) {
         PWM_MAIN.ajaxRequest("Helpdesk?processAction=clientData",function(data){
             if (data['error']) {
                 PWM_MAIN.showErrorDialog(data);
@@ -448,7 +501,12 @@ PWM_HELPDESK.initPage = function() {
                 PWM_VAR[keyName] = data['data'][keyName];
             }
             console.log('loaded helpdesk clientData');
-            PWM_HELPDESK.initHelpdeskSearchPage();
+            if ("helpdesk.jsp" == jspName) {
+                PWM_HELPDESK.initHelpdeskSearchPage();
+            }
+            if ("helpdesk-detail.jsp" == jspName) {
+                PWM_HELPDESK.initHelpdeskDetailPage();
+            }
         },{method:"GET"});
     }
 };
@@ -456,7 +514,7 @@ PWM_HELPDESK.initPage = function() {
 PWM_HELPDESK.refreshDetailPage = function() {
     PWM_MAIN.showWaitDialog({loadFunction:function(){
         setTimeout(function(){
-            document.continueForm.submit();
+            PWM_MAIN.submitPostAction('Helpdesk', 'detail', {userKey: PWM_VAR['helpdesk_obfuscatedDN']});
         },1000);
     }});
 };

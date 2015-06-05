@@ -101,8 +101,19 @@ public class SecureHelper {
     )
             throws PwmUnrecoverableException
     {
+        return encryptToString(value, key, urlSafe, DEFAULT_BLOCK_ALGORITHM);
+    }
+
+    public static String encryptToString(
+            final String value,
+            final SecretKey key,
+            final boolean urlSafe,
+            final BlockAlgorithm blockAlgorithm
+    )
+            throws PwmUnrecoverableException
+    {
         try {
-            final byte[] encrypted = encryptToBytes(value, key);
+            final byte[] encrypted = encryptToBytes(value, key, blockAlgorithm);
             return urlSafe
                     ? StringUtil.base64Encode(encrypted, StringUtil.Base64Options.URL_SAFE, StringUtil.Base64Options.GZIP)
                     : StringUtil.base64Encode(encrypted);
@@ -276,6 +287,33 @@ public class SecureHelper {
             return null;
         }
         return hash(new ByteArrayInputStream(input), algorithm);
+    }
+
+    public static String hash(
+            final File file
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        return hash(file,DEFAULT_HASH_ALGORITHM);
+    }
+    public static String hash(
+            final File file,
+            final HashAlgorithm hashAlgorithm
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        if (file == null || !file.exists()) {
+            return null;
+        }
+        FileInputStream fileInputStream = null;
+        try {
+            fileInputStream = new FileInputStream(file);
+            return hash(fileInputStream, hashAlgorithm);
+        } finally {
+            if (fileInputStream != null) {
+                fileInputStream.close();
+            }
+        }
     }
 
     public static String hash(

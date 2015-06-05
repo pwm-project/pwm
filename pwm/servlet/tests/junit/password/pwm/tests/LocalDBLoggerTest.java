@@ -63,17 +63,18 @@ public class LocalDBLoggerTest extends TestCase {
     private EventRateMeter eventRateMeter = new EventRateMeter(new TimeDuration(60 * 1000));
 
 
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
         TestHelper.setupLogging();
-        final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
-        final File configFileLocation = new File(TestHelper.getParameter("pwmConfigurationLocation"));
-        final ConfigurationReader reader = new ConfigurationReader(configFileLocation);
+        final File localDBPath = new File(TestHelper.getParameter("localDBPath"));
+        final File configFile = new File(TestHelper.getParameter("configurationFile"));
+        final ConfigurationReader reader = new ConfigurationReader(configFile);
         config = reader.getConfiguration();
 
         localDB = LocalDBFactory.getInstance(
-                fileLocation,
+                localDBPath,
                 false,
                 null,
                 config

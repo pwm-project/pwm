@@ -252,4 +252,13 @@ public abstract class StringUtil {
 
         return sb.toString();
     }
+
+    public static Collection<String> whitespaceSplit(final String input) {
+        if (input == null) {
+            return Collections.emptyList();
+        }
+
+        final String[] splitValues = input.trim().split("\\s+");
+        return Arrays.asList(splitValues);
+    }
 }

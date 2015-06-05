@@ -35,10 +35,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
-import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmResponse;
-import password.pwm.http.PwmSession;
+import password.pwm.http.*;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
@@ -345,6 +342,7 @@ public class ServletHelper {
             throws PwmUnrecoverableException
     {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final PwmURL pwmURL = pwmRequest.getURL();
 
         // mark if first request
         if (ssBean.getSessionCreationTime() == null) {
@@ -363,7 +361,7 @@ public class ServletHelper {
         }
 
         // update the privateUrlAccessed flag
-        if (pwmRequest.getURL().isPrivateUrl()) {
+        if (pwmURL.isPrivateUrl()) {
             ssBean.setPrivateUrlAccessed(true);
         }
 
@@ -373,7 +371,7 @@ public class ServletHelper {
         }
 
         // set idle timeout (may get overridden by module-specific values elsewhere
-        {
+        if (!pwmURL.isResourceURL() && !pwmURL.isCommandServletURL() && !pwmURL.isWebServiceURL()){
             final int sessionIdleSeconds = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
             pwmSession.setSessionTimeout(pwmRequest.getHttpServletRequest().getSession(), sessionIdleSeconds);
         }
@@ -538,5 +536,4 @@ public class ServletHelper {
 
         return output.toString();
     }
-
 }

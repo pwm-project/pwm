@@ -154,7 +154,7 @@ public class ActionExecutor {
             final HttpMethod method = HttpMethod.fromString(actionConfiguration.getMethod().toString());
 
             final PwmHttpClientRequest clientRequest = new PwmHttpClientRequest(method, url, body, headers);
-            final PwmHttpClient client = new PwmHttpClient(pwmApplication, pwmSession);
+            final PwmHttpClient client = new PwmHttpClient(pwmApplication, pwmSession.getLabel());
             final PwmHttpClientResponse clientResponse = client.makeRequest(clientRequest);
 
             if (clientResponse.getStatusCode() != 200) {

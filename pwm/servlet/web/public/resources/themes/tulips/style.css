@@ -20,11 +20,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+@font-face {
+    font-family: Istok;
+    src:url('Istok.woff');
+
+}
+
 html {
-    background-image: url('tulips-bg.jpg');
     background-size: 100%;
-    background-repeat: no-repeat;
-    background-color: white;
+    background: white url('tulips-bg.jpg') no-repeat;
+}
+
+html,body {
+    font-family: "Istok",Trebuchet MS, sans-serif;
 }
 
 p {
@@ -32,7 +40,6 @@ p {
 }
 
 #header-warning {
-    width: 100%;
     background-color: white;
     color: #0a0a0a;
     text-align: center;
@@ -43,10 +50,14 @@ p {
 
 #header-page {
     color: black;
+    font-family: "Istok",Trebuchet MS, sans-serif;
+
 }
 
 #header-title {
     color: black;
+    font-family: "Istok",Trebuchet MS, sans-serif;
+
 }
 
 #header {
@@ -78,11 +89,15 @@ p {
     border-radius: 5px;
     filter:alpha(opacity=80);
     opacity: 0.8;
+
 }
 
 #footer {
     background-color: white;
     color: #0a0a0a;
+    filter:alpha(opacity=75);
+    opacity: 0.75;
+
 }
 
 a {
@@ -135,3 +150,10 @@ table td.key {
     padding-right: 10px;
     width: 200px;
 }
+
+.btn {
+    border-radius: 3px;
+    background-color: #3c2c2c;
+    border: 2px solid #ffcccc
+}
+

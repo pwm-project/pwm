@@ -31,6 +31,7 @@ import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.jsp.JspPage;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
 
@@ -74,7 +75,7 @@ public class PwmValueTag extends TagSupport {
         return EVAL_PAGE;
     }
 
-    public static String calcValue(
+    public String calcValue(
             final PwmRequest pwmRequest,
             final VALUE value
     ) {
@@ -128,6 +129,21 @@ public class PwmValueTag extends TagSupport {
                 }
                 return "";
             }
+
+            case currentJspFilename: {
+                final JspPage jspPage = (JspPage)pageContext.getPage();
+                if (jspPage != null) {
+                    String name = jspPage.getClass().getSimpleName();
+                    name = name.replaceAll("_002d", "-");
+                    name = name.replaceAll("_", ".");
+                    return name;
+                }
+                return "";
+            }
+
+            case instanceID: {
+                return pwmRequest.getPwmApplication().getInstanceID();
+            }
         }
 
         return "";
@@ -138,7 +154,9 @@ public class PwmValueTag extends TagSupport {
         homeURL,
         passwordFieldType,
         responseFieldType,
-        customJavascript
+        customJavascript,
+        currentJspFilename,
+        instanceID,
     }
 }
 

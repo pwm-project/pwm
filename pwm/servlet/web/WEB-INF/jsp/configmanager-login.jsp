@@ -25,13 +25,14 @@
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+         contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
     String pageTitle = LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, pwmRequest);
 %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE);%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -51,7 +52,7 @@
                 <% if (!pwmRequest.getConfig().isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) { %>
                 <label class="checkboxWrapper">
                     <input type="checkbox" id="remember" name="remember"/>
-                    Remember Password for 1 Hour
+                    <pwm:display key="Display_RememberLogin" bundle="Config" value1="<%=(String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.ConfigPasswordRememberTime)%>"/>
                 </label>
                 <br>
                 <% } %>
@@ -66,7 +67,6 @@
     </div>
     <div class="push"></div>
 </div>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE);%>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

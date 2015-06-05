@@ -31,6 +31,7 @@ import password.pwm.config.value.ValueFactory;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
+import password.pwm.i18n.ConfigEditor;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -195,13 +196,15 @@ public enum PwmSetting {
             "ldap.user.group.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
     LDAP_GROUP_LABEL_ATTRIBUTE(
             "ldap.group.label.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
+    LDAP_SEARCH_TIMEOUT(
+            "ldap.search.timeoutSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.LDAP_PROFILE),
 
 
     // ldap global settings
     LDAP_PROFILE_LIST(
             "ldap.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
     LDAP_IDLE_TIMEOUT(
-            "ldap.idleTimeout", PwmSettingSyntax.NUMERIC, PwmSettingCategory.LDAP_GLOBAL),
+            "ldap.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.LDAP_GLOBAL),
     DEFAULT_OBJECT_CLASSES(
             "ldap.defaultObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_GLOBAL),
     LDAP_FOLLOW_REFERRALS(
@@ -820,41 +823,41 @@ public enum PwmSetting {
 
     // edirectory settings
     EDIRECTORY_ENABLE_NMAS(
-            "ldap.edirectory.enableNmas", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS, Template.NOVL),
+            "ldap.edirectory.enableNmas", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS, PwmSettingTemplate.NOVL),
     EDIRECTORY_STORE_NMAS_RESPONSES(
-            "ldap.edirectory.storeNmasResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS, Template.NOVL),
+            "ldap.edirectory.storeNmasResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS, PwmSettingTemplate.NOVL),
     EDIRECTORY_USE_NMAS_RESPONSES(
-            "ldap.edirectory.useNmasResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS, Template.NOVL),
+            "ldap.edirectory.useNmasResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS, PwmSettingTemplate.NOVL),
     EDIRECTORY_READ_USER_PWD(
-            "ldap.edirectory.readUserPwd", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS, Template.NOVL),
+            "ldap.edirectory.readUserPwd", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS, PwmSettingTemplate.NOVL),
     EDIRECTORY_PWD_MGT_WEBSERVICE_URL(
-            "ldap.edirectory.ws.pwdMgtURL", PwmSettingSyntax.STRING, PwmSettingCategory.EDIR_SETTINGS, Template.NOVL),
+            "ldap.edirectory.ws.pwdMgtURL", PwmSettingSyntax.STRING, PwmSettingCategory.EDIR_SETTINGS, PwmSettingTemplate.NOVL),
 
     EDIRECTORY_READ_CHALLENGE_SET(
-            "ldap.edirectory.readChallengeSets", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_CR_SETTINGS, Template.NOVL),
+            "ldap.edirectory.readChallengeSets", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_CR_SETTINGS, PwmSettingTemplate.NOVL),
     EDIRECTORY_CR_MIN_RANDOM_DURING_SETUP(
-            "ldap.edirectory.cr.minRandomDuringSetup", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EDIR_CR_SETTINGS, Template.NOVL),
+            "ldap.edirectory.cr.minRandomDuringSetup", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EDIR_CR_SETTINGS, PwmSettingTemplate.NOVL),
     EDIRECTORY_CR_APPLY_WORDLIST(
-            "ldap.edirectory.cr.applyWordlist", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_CR_SETTINGS, Template.NOVL),
+            "ldap.edirectory.cr.applyWordlist", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_CR_SETTINGS, PwmSettingTemplate.NOVL),
     EDIRECTORY_CR_MAX_QUESTION_CHARS_IN__ANSWER(
-            "ldap.edirectory.cr.maxQuestionCharsInAnswer", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EDIR_CR_SETTINGS, Template.NOVL),
+            "ldap.edirectory.cr.maxQuestionCharsInAnswer", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EDIR_CR_SETTINGS, PwmSettingTemplate.NOVL),
 
 
     // active directory
     AD_USE_PROXY_FOR_FORGOTTEN(
-            "ldap.ad.proxyForgotten", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVE_DIRECTORY, Template.AD),
+            "ldap.ad.proxyForgotten", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVE_DIRECTORY, PwmSettingTemplate.AD),
     AD_ALLOW_AUTH_REQUIRE_NEW_PWD(
-            "ldap.ad.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVE_DIRECTORY, Template.AD),
+            "ldap.ad.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVE_DIRECTORY, PwmSettingTemplate.AD),
     AD_ALLOW_AUTH_EXPIRED(
-            "ldap.ad.allowAuth.expired", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVE_DIRECTORY, Template.AD),
+            "ldap.ad.allowAuth.expired", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVE_DIRECTORY, PwmSettingTemplate.AD),
     AD_ENFORCE_PW_HISTORY_ON_SET(
-            "ldap.ad.enforcePwHistoryOnSet", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVE_DIRECTORY, Template.AD),
+            "ldap.ad.enforcePwHistoryOnSet", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACTIVE_DIRECTORY, PwmSettingTemplate.AD),
 
     // active directory
     ORACLE_DS_ENABLE_MANIP_ALLOWCHANGETIME(
-            "ldap.oracleDS.enable.manipAllowChangeTime", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ORACLE_DS, Template.ORACLE_DS),
+            "ldap.oracleDS.enable.manipAllowChangeTime", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ORACLE_DS, PwmSettingTemplate.ORACLE_DS),
     ORACLE_DS_ALLOW_AUTH_REQUIRE_NEW_PWD(
-            "ldap.oracleDS.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ORACLE_DS, Template.ORACLE_DS),
+            "ldap.oracleDS.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ORACLE_DS, PwmSettingTemplate.ORACLE_DS),
 
 
     // helpdesk profile
@@ -886,8 +889,6 @@ public enum PwmSetting {
             "helpdesk.actions", PwmSettingSyntax.ACTION, PwmSettingCategory.HELPDESK_PROFILE),
     HELPDESK_IDLE_TIMEOUT_SECONDS(
             "helpdesk.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.HELPDESK_PROFILE),
-
-
     HELPDESK_ENABLE_UNLOCK(
             "helpdesk.enableUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
     HELPDESK_ENFORCE_PASSWORD_POLICY(
@@ -910,6 +911,8 @@ public enum PwmSetting {
             "helpdesk.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK_PROFILE),
     HELPDESK_ENABLE_OTP_VERIFY(
             "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_PASSWORD_MASKVALUE(
+            "helpdesk.setPassword.maskValue", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
 
 
 
@@ -956,6 +959,9 @@ public enum PwmSetting {
             "oauth.idserver.codeResolveUrl", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH),
     OAUTH_ID_ATTRIBUTES_URL(
             "oauth.idserver.attributesUrl", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH),
+    OAUTH_ID_CERTIFICATE(
+            "oauth.idserver.serverCerts", PwmSettingSyntax.X509CERT, PwmSettingCategory.OAUTH),
+
     OAUTH_ID_CLIENTNAME(
             "oauth.idserver.clientName", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH),
     OAUTH_ID_SECRET(
@@ -1000,6 +1006,16 @@ public enum PwmSetting {
             "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
 
 
+    // NAAF
+    NAAF_WS_URL(
+            "naaf.ws.url", PwmSettingSyntax.STRING, PwmSettingCategory.NAAF),
+    NAAF_WS_CERTIFICATE(
+            "naaf.ws.serverCerts", PwmSettingSyntax.X509CERT, PwmSettingCategory.NAAF),
+    NAAF_USER_IDENTIFIER(
+            "naaf.userIdentifier", PwmSettingSyntax.STRING, PwmSettingCategory.NAAF),
+    NAAF_METHODS(
+            "naaf.requiredMethods", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.NAAF),
+
 
     // deprecated.
     PASSWORD_POLICY_AD_COMPLEXITY(
@@ -1013,25 +1029,22 @@ public enum PwmSetting {
 
     ;
 
-// ------------------------------ STATICS ------------------------------
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmSetting.class);
-
-
-// ------------------------------ FIELDS ------------------------------
-
-    private static class Static {
-        private static final Pattern DEFAULT_REGEX = Pattern.compile(".*", Pattern.DOTALL);
-    }
 
     private final String key;
     private final PwmSettingSyntax syntax;
     private final PwmSettingCategory category;
-    private final Set<Template> templates;
+    private final Set<PwmSettingTemplate> templates;
+
+    private Map<PwmSettingTemplate, StoredValue> defaultValues;
+    private Map<String,String> options;
+    private String placeholder;
+    private Boolean required;
+    private Boolean hidden;
+    private Integer level;
+    private Pattern pattern;
 
 
-    private final Map<Template, StoredValue>    CACHE_DEFAULT_VALUES = new HashMap<>();
-    private final Map<Locale,String>            CACHE_LABELS = new HashMap<>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -1039,13 +1052,13 @@ public enum PwmSetting {
             final String key,
             final PwmSettingSyntax syntax,
             final PwmSettingCategory category,
-            final Template... templates
+            final PwmSettingTemplate... templates
     ) {
         this.key = key;
         this.syntax = syntax;
         this.category = category;
-        final Template[] temps = (templates == null || templates.length == 0) ? Template.values() : templates;
-        this.templates = Collections.unmodifiableSet(new HashSet(Arrays.asList(temps)));
+        final PwmSettingTemplate[] temps = (templates == null || templates.length == 0) ? PwmSettingTemplate.values() : templates;
+        this.templates = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(temps)));
     }
 
 
@@ -1068,46 +1081,52 @@ public enum PwmSetting {
         return syntax;
     }
 
-    public Set<Template> getTemplates() {
+    public Set<PwmSettingTemplate> getTemplates() {
         return templates;
     }
 
 
     // -------------------------- OTHER METHODS --------------------------
 
-    public StoredValue getDefaultValue(final Template template)
-            throws PwmOperationalException, PwmUnrecoverableException {
-        if (!CACHE_DEFAULT_VALUES.containsKey(template)) {
-            if (this.getSyntax() == PwmSettingSyntax.PASSWORD) {
-                CACHE_DEFAULT_VALUES.put(template, new PasswordValue(null));
-            } else {
-                final Element settingElement = PwmSettingXml.readSettingXml(this);
-                final XPathFactory xpfac = XPathFactory.instance();
-                Element defaultElement = null;
-                if (template != null) {
-                    XPathExpression xp = xpfac.compile("default[@template=\"" + template.toString() + "\"]");
-                    defaultElement = (Element) xp.evaluateFirst(settingElement);
+    public StoredValue getDefaultValue(final PwmSettingTemplate templates)
+            throws PwmOperationalException, PwmUnrecoverableException
+    {
+        if (defaultValues == null) {
+            final Map<PwmSettingTemplate, StoredValue> returnObj = new HashMap<>();
+            for (final PwmSettingTemplate loopTemplate : PwmSettingTemplate.values()) {
+                if (this.getSyntax() == PwmSettingSyntax.PASSWORD) {
+                    returnObj.put(loopTemplate, new PasswordValue(null));
+                } else {
+                    final Element settingElement = PwmSettingXml.readSettingXml(this);
+                    final XPathFactory xpfac = XPathFactory.instance();
+                    Element defaultElement = null;
+                    if (loopTemplate != null) {
+                        XPathExpression xp = xpfac.compile("default[@template=\"" + loopTemplate.toString() + "\"]");
+                        defaultElement = (Element) xp.evaluateFirst(settingElement);
+                    }
+                    if (defaultElement == null) {
+                        XPathExpression xp = xpfac.compile("default[not(@template)]");
+                        defaultElement = (Element) xp.evaluateFirst(settingElement);
+                    }
+                    if (defaultElement == null) {
+                        throw new IllegalStateException("no default value for setting " + this.getKey());
+                    }
+                    returnObj.put(loopTemplate, ValueFactory.fromXmlValues(this, defaultElement, this.getKey()));
                 }
-                if (defaultElement == null) {
-                    XPathExpression xp = xpfac.compile("default[not(@template)]");
-                    defaultElement = (Element) xp.evaluateFirst(settingElement);
-                }
-                if (defaultElement == null) {
-                    throw new IllegalStateException("no default value for setting " + this.getKey());
-                }
-                CACHE_DEFAULT_VALUES.put(template, ValueFactory.fromXmlValues(this, defaultElement, this.getKey()));
+
             }
+            defaultValues = returnObj;
         }
-        return CACHE_DEFAULT_VALUES.get(template);
+        return defaultValues.get(templates);
     }
 
-    public Map<Template, String> getDefaultValueDebugStrings(final boolean prettyPrint, final Locale locale)
+    public Map<PwmSettingTemplate, String> getDefaultValueDebugStrings(final boolean prettyPrint, final Locale locale)
             throws PwmOperationalException, PwmUnrecoverableException {
-        final Map<Template, String> returnObj = new LinkedHashMap<>();
-        final String defaultDebugStr = this.getDefaultValue(Template.DEFAULT).toDebugString(prettyPrint, locale);
-        returnObj.put(Template.DEFAULT, defaultDebugStr);
-        for (final Template template : Template.values()) {
-            if (template != Template.DEFAULT) {
+        final Map<PwmSettingTemplate, String> returnObj = new LinkedHashMap<>();
+        final String defaultDebugStr = this.getDefaultValue(PwmSettingTemplate.DEFAULT).toDebugString(prettyPrint, locale);
+        returnObj.put(PwmSettingTemplate.DEFAULT, defaultDebugStr);
+        for (final PwmSettingTemplate template : PwmSettingTemplate.values()) {
+            if (template != PwmSettingTemplate.DEFAULT) {
                 final String debugStr = this.getDefaultValue(template).toDebugString(prettyPrint, locale);
                 if (!defaultDebugStr.equals(debugStr)) {
                     returnObj.put(template, debugStr);
@@ -1118,101 +1137,99 @@ public enum PwmSetting {
     }
 
     public Map<String, String> getOptions() {
-        final Element settingElement = PwmSettingXml.readSettingXml(this);
-        final Element optionsElement = settingElement.getChild("options");
-        final Map<String, String> returnList = new LinkedHashMap<>();
-        if (optionsElement != null) {
-            final List<Element> optionElements = optionsElement.getChildren("option");
-            if (optionElements != null) {
-                for (Element optionElement : optionElements) {
-                    if (optionElement.getAttribute("value") == null) {
-                        throw new IllegalStateException("option element is missing 'value' attribute for key " + this.getKey());
+        if (options == null) {
+            final Map<String, String> returnList = new LinkedHashMap<>();
+            final Element settingElement = PwmSettingXml.readSettingXml(this);
+            final Element optionsElement = settingElement.getChild("options");
+            if (optionsElement != null) {
+                final List<Element> optionElements = optionsElement.getChildren("option");
+                if (optionElements != null) {
+                    for (Element optionElement : optionElements) {
+                        if (optionElement.getAttribute("value") == null) {
+                            throw new IllegalStateException("option element is missing 'value' attribute for key " + this.getKey());
+                        }
+                        returnList.put(optionElement.getAttribute("value").getValue(), optionElement.getValue());
                     }
-                    returnList.put(optionElement.getAttribute("value").getValue(), optionElement.getValue());
                 }
             }
+            options = Collections.unmodifiableMap(returnList);
         }
 
-        return Collections.unmodifiableMap(returnList);
+        return options;
     }
 
     public String getLabel(final Locale locale) {
-        if (!CACHE_LABELS.containsKey(locale)) {
-            final Element settingElement = PwmSettingXml.readSettingXml(this);
-            if (settingElement == null) {
-                throw new IllegalStateException("missing Setting value for setting " + this.getKey());
-            }
-            final Element labelElement = settingElement.getChild("label");
-            String labelText = labelElement.getText();
-            CACHE_LABELS.put(locale,labelText);
-        }
-        return CACHE_LABELS.get(locale);
+        final String key = "Setting_Label_" + this.getKey();
+        return LocaleHelper.getLocalizedMessage(locale, key, null, ConfigEditor.class);
     }
 
     public String getDescription(final Locale locale) {
-        final Element settingElement = PwmSettingXml.readSettingXml(this);
-        final Element descriptionElement = settingElement.getChild("description");
-        final String storedText = descriptionElement.getText();
+        final String key = "Setting_Description_" + this.getKey();
+        final String storedText = LocaleHelper.getLocalizedMessage(locale, key, null, ConfigEditor.class);
         final MacroMachine macroMachine = MacroMachine.forStatic();
-        final String value = macroMachine.expandMacros(storedText);
-        return value;
+        return macroMachine.expandMacros(storedText);
     }
 
     public String getPlaceholder(final Locale locale) {
-        Element placeHolderElement = PwmSettingXml.readSettingXml(this);
-        Element placeholder = placeHolderElement.getChild("placeholder");
-        return placeholder != null ? placeholder.getText() : "";
+        if (placeholder == null) {
+            Element settingElement = PwmSettingXml.readSettingXml(this);
+            Element placeholderElement = settingElement.getChild("placeholder");
+            placeholder = placeholderElement != null ? placeholderElement.getText() : "";
+        }
+        return placeholder;
     }
 
     public boolean isRequired() {
-        final Element settingElement = PwmSettingXml.readSettingXml(this);
-        final Attribute requiredAttribute = settingElement.getAttribute("required");
-        return requiredAttribute != null && "true".equalsIgnoreCase(requiredAttribute.getValue());
+        if (required == null) {
+            final Element settingElement = PwmSettingXml.readSettingXml(this);
+            final Attribute requiredAttribute = settingElement.getAttribute("required");
+            required = requiredAttribute != null && "true".equalsIgnoreCase(requiredAttribute.getValue());
+        }
+        return required;
     }
 
     public boolean isHidden() {
-        final Element settingElement = PwmSettingXml.readSettingXml(this);
-        final Attribute requiredAttribute = settingElement.getAttribute("hidden");
-        return requiredAttribute != null && "true".equalsIgnoreCase(requiredAttribute.getValue());
+        if (hidden == null) {
+            final Element settingElement = PwmSettingXml.readSettingXml(this);
+            final Attribute requiredAttribute = settingElement.getAttribute("hidden");
+            hidden = requiredAttribute != null && "true".equalsIgnoreCase(requiredAttribute.getValue());
+        }
+        return hidden;
     }
 
     public int getLevel() {
-        final Element settingElement = PwmSettingXml.readSettingXml(this);
-        final Attribute levelAttribute = settingElement.getAttribute("level");
-        return levelAttribute != null ? Integer.parseInt(levelAttribute.getValue()) : 0;
+        if (level == null) {
+            final Element settingElement = PwmSettingXml.readSettingXml(this);
+            final Attribute levelAttribute = settingElement.getAttribute("level");
+            level = levelAttribute != null ? Integer.parseInt(levelAttribute.getValue()) : 0;
+        }
+        return level;
     }
 
     public Pattern getRegExPattern() {
-        Element settingNode = PwmSettingXml.readSettingXml(this);
-        Element regexNode = settingNode.getChild("regex");
-        if (regexNode == null) {
-            return Static.DEFAULT_REGEX;
+        if (pattern == null) {
+            Element settingNode = PwmSettingXml.readSettingXml(this);
+            Element regexNode = settingNode.getChild("regex");
+            if (regexNode != null) {
+                try {
+                    pattern = Pattern.compile(regexNode.getText());
+                } catch (PatternSyntaxException e) {
+                    final String errorMsg = "error compiling regex constraints for setting " + this.toString() + ", error: " + e.getMessage();
+                    LOGGER.error(errorMsg, e);
+                    throw new IllegalStateException(errorMsg, e);
+                }
+            }
+            if (pattern == null) {
+                final Pattern DEFAULT_REGEX = Pattern.compile(".*", Pattern.DOTALL);
+                pattern = DEFAULT_REGEX;
+            }
         }
-        try {
-            return Pattern.compile(regexNode.getText());
-        } catch (PatternSyntaxException e) {
-            final String errorMsg = "error compiling regex constraints for setting " + this.toString() + ", error: " + e.getMessage();
-            LOGGER.error(errorMsg, e);
-            throw new IllegalStateException(errorMsg, e);
-        }
-    }
-
-    public enum Template {
-        NOVL,
-        AD,
-        ORACLE_DS,
-        DEFAULT,;
-
-        public String getLabel(final Locale locale) {
-            Element categoryElement = PwmSettingXml.readTemplateXml(this);
-            Element labelElement = categoryElement.getChild("label");
-            return labelElement.getText();
-        }
+        return pattern;
 
     }
 
     public static Map<PwmSettingCategory, List<PwmSetting>> valuesByFilter(
-            final Template template,
+            final PwmSettingTemplate template,
             final PwmSettingCategory parent,
             final int level) {
         final List<PwmSetting> settingList = new ArrayList<>(Arrays.asList(PwmSetting.values()));
@@ -1258,13 +1275,7 @@ public enum PwmSetting {
             final Locale locale
     ) {
         final String SEPARATOR = LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationSeparator, null);
-        final StringBuilder sb = new StringBuilder();
-        sb.append(this.getCategory().toMenuLocationDebug(profileID, locale));
-
-        sb.append(SEPARATOR);
-        sb.append(this.getLabel(locale));
-
-        return sb.toString();
+        return this.getCategory().toMenuLocationDebug(profileID, locale) + SEPARATOR + this.getLabel(locale);
     }
 
     public enum SettingStat {

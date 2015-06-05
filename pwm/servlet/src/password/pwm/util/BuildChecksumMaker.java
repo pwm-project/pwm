@@ -25,8 +25,7 @@ package password.pwm.util;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.*;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class BuildChecksumMaker {
 // ------------------------------ FIELDS ------------------------------
@@ -101,6 +100,30 @@ public class BuildChecksumMaker {
         return results;
     }
 
+    public static List<FileInformation> readFileInformation(final File rootFile)
+            throws PwmUnrecoverableException, IOException
+    {
+        return readFileInformation(rootFile, "");
+    }
+
+    protected static List<FileInformation>  readFileInformation(
+            final File rootFile,
+            final String relativePath
+    )
+            throws PwmUnrecoverableException, IOException
+    {
+        final ArrayList<FileInformation> results = new ArrayList<>();
+        for (final File loopFile : rootFile.listFiles()) {
+            final String path = relativePath + loopFile.getName();
+            if (loopFile.isDirectory()) {
+                results.addAll(readFileInformation(loopFile, path + "/"));
+            } else {
+                results.add(fileInformationForFile(loopFile));
+            }
+        }
+        return results;
+    }
+
     private static String md5sumFile(final File file)
             throws PwmUnrecoverableException, FileNotFoundException
     {
@@ -110,5 +133,56 @@ public class BuildChecksumMaker {
 
     private static void output(final String output) {
         System.out.println(output);
+    }
+
+    public static FileInformation fileInformationForFile(final File file)
+            throws IOException, PwmUnrecoverableException
+    {
+        if (file == null || !file.exists()) {
+            return null;
+        }
+        return new FileInformation(
+                file.getName(),
+                file.getAbsolutePath(),
+                new Date(file.lastModified()),
+                file.length(),
+                SecureHelper.hash(file, SecureHelper.HashAlgorithm.SHA1)
+        );
+    }
+
+    public static class FileInformation implements Serializable {
+        private final String filename;
+        private final String filepath;
+        private final Date modified;
+        private final long size;
+        private final String sha1sum;
+
+        public FileInformation(String filename, String filepath, Date modified, long size, String sha1sum) {
+            this.filename = filename;
+            this.filepath = filepath;
+            this.modified = modified;
+            this.size = size;
+            this.sha1sum = sha1sum;
+        }
+
+        public String getFilename() {
+            return filename;
+        }
+
+        public String getFilepath() {
+            return filepath;
+        }
+
+        public Date getModified() {
+            return modified;
+        }
+
+        public long getSize() {
+            return size;
+        }
+
+        public String getSha1sum() {
+            return sha1sum;
+        }
     }
 }

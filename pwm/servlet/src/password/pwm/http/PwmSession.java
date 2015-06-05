@@ -337,7 +337,7 @@ public class PwmSession implements Serializable {
     public void setSessionTimeout(final HttpSession session, final int maxSeconds)
             throws PwmUnrecoverableException
     {
-        if (session.getMaxInactiveInterval() < maxSeconds) {
+        if (maxSeconds > 0) {
             session.setMaxInactiveInterval(maxSeconds);
         }
     }

@@ -27,7 +27,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% ConfigGuideBean configGuideBean = (ConfigGuideBean) JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
 <% Map<String,String> DEFAULT_FORM = ConfigGuideServlet.defaultForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -111,65 +111,67 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    function handleFormActivity() {
-        PWM_GUIDE.updateForm();
-        clearHealthDiv();
-    }
-
-    function clearHealthDiv() {
-        PWM_MAIN.getObject('healthBody').innerHTML = PWM_VAR['originalHealthBody'];
-    }
-
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_VAR['originalHealthBody'] = PWM_MAIN.getObject('healthBody').innerHTML;
-        require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
-            dojoParser.parse();
-        });
-        checkIfNextEnabled();
-
-        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
-        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
-
-        PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
-        PWM_MAIN.addEventHandler('healthBody','click',function(){loadHealth()});
-
-        PWM_MAIN.addEventHandler('button-viewAdminMatches','click',function(){
-            PWM_MAIN.showWaitDialog({loadFunction:function(){
-                var url = 'ConfigGuide?processAction=viewAdminMatches';
-                var loadFunction = function(data){
-                    if (data['error']) {
-                        PWM_MAIN.showErrorDialog(data);
-                    } else {
-                        PWM_MAIN.showDialog({title:'Results',text:data['data']});
-                    }
-                };
-                PWM_MAIN.ajaxRequest(url,loadFunction);
-            }});
-        });
-    });
-
-    function checkIfNextEnabled() {
-        if (PWM_GLOBAL['pwm-health'] === 'GOOD' || PWM_GLOBAL['pwm-health'] === 'CONFIG') {
-            PWM_MAIN.getObject('button_next').disabled = false;
-        } else {
-            PWM_MAIN.getObject('button_next').disabled = true;
+    <script type="text/javascript">
+        function handleFormActivity() {
+            PWM_GUIDE.updateForm();
+            clearHealthDiv();
         }
-    }
 
-    function loadHealth() {
-        var options = {};
-        options['sourceUrl'] = 'ConfigGuide?processAction=ldapHealth';
-        options['showRefresh'] = false;
-        options['refreshTime'] = -1;
-        options['finishFunction'] = function(){
-            PWM_MAIN.closeWaitDialog();
+        function clearHealthDiv() {
+            PWM_MAIN.getObject('healthBody').innerHTML = PWM_VAR['originalHealthBody'];
+        }
+
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_VAR['originalHealthBody'] = PWM_MAIN.getObject('healthBody').innerHTML;
+            require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
+                dojoParser.parse();
+            });
             checkIfNextEnabled();
-        };
-        PWM_MAIN.showWaitDialog();
-        PWM_ADMIN.showAppHealth('healthBody', options);
-    }
-</script>
+
+            PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
+            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
+
+            PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
+            PWM_MAIN.addEventHandler('healthBody','click',function(){loadHealth()});
+
+            PWM_MAIN.addEventHandler('button-viewAdminMatches','click',function(){
+                PWM_MAIN.showWaitDialog({loadFunction:function(){
+                    var url = 'ConfigGuide?processAction=viewAdminMatches';
+                    var loadFunction = function(data){
+                        if (data['error']) {
+                            PWM_MAIN.showErrorDialog(data);
+                        } else {
+                            var html = PWM_CONFIG.convertListOfIdentitiesToHtml(data['data']);
+                            PWM_MAIN.showDialog({title:'Matches',text:html});
+                        }
+                    };
+                    PWM_MAIN.ajaxRequest(url,loadFunction);
+                }});
+            });
+        });
+
+        function checkIfNextEnabled() {
+            if (PWM_GLOBAL['pwm-health'] === 'GOOD' || PWM_GLOBAL['pwm-health'] === 'CONFIG') {
+                PWM_MAIN.getObject('button_next').disabled = false;
+            } else {
+                PWM_MAIN.getObject('button_next').disabled = true;
+            }
+        }
+
+        function loadHealth() {
+            var options = {};
+            options['sourceUrl'] = 'ConfigGuide?processAction=ldapHealth';
+            options['showRefresh'] = false;
+            options['refreshTime'] = -1;
+            options['finishFunction'] = function(){
+                PWM_MAIN.closeWaitDialog();
+                checkIfNextEnabled();
+            };
+            PWM_MAIN.showWaitDialog({loadFunction:function(){
+                PWM_ADMIN.showAppHealth('healthBody', options);
+            }});
+        }
+    </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/configguide.js"/>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>

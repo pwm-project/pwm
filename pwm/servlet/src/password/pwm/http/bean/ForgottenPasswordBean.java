@@ -24,10 +24,11 @@ package password.pwm.http.bean;
 
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
+import password.pwm.RecoveryVerificationMethod;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.option.MessageSendMethod;
-import password.pwm.config.option.RecoveryVerificationMethod;
+import password.pwm.config.option.RecoveryVerificationMethods;
 
 import java.io.Serializable;
 import java.util.*;
@@ -121,13 +122,15 @@ public class ForgottenPasswordBean implements PwmSessionBean {
     public static class Progress implements Serializable {
         private boolean tokenSent;
         private boolean allPassed;
-        private final Set<RecoveryVerificationMethod> satisfiedMethods = new HashSet<>();
+        private final Set<RecoveryVerificationMethods> satisfiedMethods = new HashSet<>();
 
         private MessageSendMethod tokenSendChoice;
         private String tokenSentAddress;
-        private RecoveryVerificationMethod inProgressVerificationMethod;
+        private RecoveryVerificationMethods inProgressVerificationMethod;
 
-        public Set<RecoveryVerificationMethod> getSatisfiedMethods() {
+        private transient RecoveryVerificationMethod naafRecoveryMethod;
+
+        public Set<RecoveryVerificationMethods> getSatisfiedMethods() {
             return satisfiedMethods;
         }
 
@@ -171,19 +174,27 @@ public class ForgottenPasswordBean implements PwmSessionBean {
             this.tokenSentAddress = tokenSentAddress;
         }
 
-        public RecoveryVerificationMethod getInProgressVerificationMethod() {
+        public RecoveryVerificationMethods getInProgressVerificationMethod() {
             return inProgressVerificationMethod;
         }
 
-        public void setInProgressVerificationMethod(RecoveryVerificationMethod inProgressVerificationMethod) {
+        public void setInProgressVerificationMethod(RecoveryVerificationMethods inProgressVerificationMethod) {
             this.inProgressVerificationMethod = inProgressVerificationMethod;
+        }
+
+        public void setNaafRecoveryMethod(RecoveryVerificationMethod naafRecoveryMethod) {
+            this.naafRecoveryMethod = naafRecoveryMethod;
+        }
+
+        public RecoveryVerificationMethod getNaafRecoveryMethod() {
+            return naafRecoveryMethod;
         }
     }
 
     public static class RecoveryFlags implements Serializable {
         private final boolean allowWhenLdapIntruderLocked;
-        private final Set<RecoveryVerificationMethod> requiredAuthMethods;
-        private final Set<RecoveryVerificationMethod> optionalAuthMethods;
+        private final Set<RecoveryVerificationMethods> requiredAuthMethods;
+        private final Set<RecoveryVerificationMethods> optionalAuthMethods;
         private final int minimumOptionalAuthMethods;
         private final MessageSendMethod tokenSendMethod;
 
@@ -197,8 +208,8 @@ public class ForgottenPasswordBean implements PwmSessionBean {
         }
 
         public RecoveryFlags(
-                final Set<RecoveryVerificationMethod> requiredAuthMethods,
-                final Set<RecoveryVerificationMethod> optionalAuthMethods,
+                final Set<RecoveryVerificationMethods> requiredAuthMethods,
+                final Set<RecoveryVerificationMethods> optionalAuthMethods,
                 final int minimumOptionalAuthMethods,
                 final boolean allowWhenLdapIntruderLocked,
                 final MessageSendMethod tokenSendMethod
@@ -211,7 +222,7 @@ public class ForgottenPasswordBean implements PwmSessionBean {
             this.tokenSendMethod = tokenSendMethod;
         }
 
-        public Set<RecoveryVerificationMethod> getRequiredAuthMethods() {
+        public Set<RecoveryVerificationMethods> getRequiredAuthMethods() {
             return requiredAuthMethods;
         }
 
@@ -224,7 +235,7 @@ public class ForgottenPasswordBean implements PwmSessionBean {
             return tokenSendMethod;
         }
 
-        public Set<RecoveryVerificationMethod> getOptionalAuthMethods() {
+        public Set<RecoveryVerificationMethods> getOptionalAuthMethods() {
             return optionalAuthMethods;
         }
 

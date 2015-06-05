@@ -23,7 +23,7 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     PwmRequest pwmRequest = null;
@@ -179,19 +179,6 @@
                     </td>
                     <td>
                         <p><pwm:display key="Long_Title_Admin"/></p>
-                    </td>
-                </tr>
-            </pwm:if>
-            <pwm:if test="showLogout">
-                <tr>
-                    <td class="menubutton_key">
-                        <a class="menubutton" href="<pwm:url url='../public/Logout'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
-                            <pwm:display key="Title_Logout"/>
-                        </a>
-                    </td>
-                    <td>
-                        <p><pwm:display key="Long_Title_Logout"/></p>
                     </td>
                 </tr>
             </pwm:if>

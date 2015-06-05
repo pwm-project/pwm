@@ -66,7 +66,10 @@ public class LdapOtpOperatorTest extends TestCase {
         //final File fileLocation = new File(password.pwm.tests.TestHelper.getParameter("pwmDBlocation"));
         final File configFileLocation = new File(password.pwm.tests.TestHelper.getParameter("pwmConfigurationLocation"));
         final ConfigurationReader reader = new ConfigurationReader(configFileLocation);
-        final PwmApplication pwmApplication = new PwmApplication(config, PwmApplication.MODE.RUNNING, null, true, configFileLocation);
+        final PwmApplication pwmApplication = new PwmApplication.PwmEnvironment(config, configFileLocation)
+                .setInitLogging(true)
+                .setApplicationMode(PwmApplication.MODE.RUNNING)
+                .createPwmApplication();
         config = reader.getConfiguration();
         operator = new LdapOtpOperator(pwmApplication);
     }

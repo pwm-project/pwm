@@ -559,13 +559,10 @@ public class ActivateUserServlet extends PwmServlet {
         {
             final UserDataReader dataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
             final String toAddress;
-            try {
-                toAddress = dataReader.readStringAttribute(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
-            } catch (ChaiOperationException e) {
-                final String errorMsg = "unable to read user email attribute due to ldap error, unable to send token: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
-                LOGGER.error(pwmSession.getLabel(), errorInformation);
-                throw new PwmOperationalException(errorInformation);
+            {
+                final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_ACTIVATION_VERIFICATION, locale);
+                final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest, userIdentity);
+                toAddress = macroMachine.expandMacros(emailItemBean.getTo());
             }
 
             final String toSmsNumber;

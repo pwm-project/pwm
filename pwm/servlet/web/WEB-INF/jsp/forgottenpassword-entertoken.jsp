@@ -21,7 +21,7 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
@@ -65,7 +65,9 @@
 <pwm:script>
     <script>
         PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.submitPostAction('button-goBack','ForgottenPassword','<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
+            PWM_MAIN.addEventHandler('button-goBack','click',function() {
+                PWM_MAIN.submitPostAction('ForgottenPassword', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
+            });
         });
     </script>
 </pwm:script>

@@ -83,28 +83,24 @@
             <pwm:display key="MenuItem_ConfigEditor" bundle="Admin"/>
         </a>
         <% if (adminUser) { %>
+        <a class="header-warning-button" href="<pwm:url url="/private/admin"/>">
+            <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
+            <pwm:display key="Title_Admin"/>
+        </a>
         <a class="header-warning-button" id="header_openLogViewerButton">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
             <pwm:display key="MenuItem_ViewLog" bundle="Config"/>
             &nbsp;
             <pwm:if test="showIcons"><span class="btn-icon fa fa-external-link"></span></pwm:if>
         </a>
-        <a class="header-admin-button" href="<pwm:url url="/private/admin"/>">
-            <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
-            <pwm:display key="Title_Admin"/>
-        </a>
         <% } %>
     </div>
     <div id="panel-header-healthData" class="header-warning-row header-warning-healthData"></div>
-    <% if (includeHeader) { %>
-    <div id="button-closeHeader">
+    <div id="button-closeHeader" title="<pwm:display key="Button_Hide"/>">
         <span class="fa fa-chevron-circle-right"></span>
     </div>
-    <% } %>
 </div>
-<% if (includeHeader) { %>
-<div id="button-openHeader">
+<div id="button-openHeader" title="<pwm:display key="Button_Show"/>">
     <span class="fa fa-chevron-circle-left"></span>
 </div>
-<% } %>
 <% } %>

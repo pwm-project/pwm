@@ -113,26 +113,38 @@ public interface LocalDB {
         /**
          * Used for various pwm operational data
          */
-        PWM_META,
-        SHAREDHISTORY_META,
-        SHAREDHISTORY_WORDS,
-        WORDLIST_META,
-        WORDLIST_WORDS,
-        SEEDLIST_META,
-        SEEDLIST_WORDS,
-        PWM_STATS,
-        EVENTLOG_EVENTS,
-        EMAIL_QUEUE,
-        SMS_QUEUE,
-        RESPONSE_STORAGE,
-        OTP_SECRET,
-        TOKENS,
-        INTRUDER,
-        AUDIT_EVENTS,
-        USER_CACHE,
-        TEMP,
-        SYSLOG_QUEUE,
-        CACHE,
+        PWM_META(true),
+        SHAREDHISTORY_META(true),
+        SHAREDHISTORY_WORDS(true),
+        WORDLIST_META(true),
+        WORDLIST_WORDS(true),
+        SEEDLIST_META(true),
+        SEEDLIST_WORDS(true),
+        PWM_STATS(true),
+        EVENTLOG_EVENTS(true),
+        EMAIL_QUEUE(true),
+        SMS_QUEUE(true),
+        RESPONSE_STORAGE(true),
+        OTP_SECRET(true),
+        TOKENS(true),
+        INTRUDER(true),
+        AUDIT_EVENTS(true),
+        USER_CACHE(true),
+        TEMP(false),
+        SYSLOG_QUEUE(true),
+        CACHE(false),
+
+        ;
+
+        private final boolean backup;
+
+        DB(final boolean backup) {
+            this.backup = backup;
+        }
+
+        public boolean isBackup() {
+            return backup;
+        }
     }
 
 

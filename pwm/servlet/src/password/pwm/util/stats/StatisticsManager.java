@@ -35,6 +35,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.client.PwmHttpClient;
@@ -458,7 +459,7 @@ public class StatisticsManager implements PwmService {
     }
 
     private void publishStatisticsToCloud()
-            throws URISyntaxException, IOException {
+            throws URISyntaxException, IOException, PwmUnrecoverableException {
         final StatsPublishBean statsPublishData;
         {
             final StatisticsBundle bundle = getStatBundleForKey(KEY_CUMULATIVE);

@@ -36,7 +36,7 @@
 <%@ page import="java.util.*" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+         contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final Locale locale = JspUtility.locale(request);
@@ -432,14 +432,10 @@
                         </tr>
                         <tr>
                             <td class="key">
-                                <a href="<pwm:url url='eventlog.jsp'/>">
-                                    Log Events in LocalDB
-                                </a>
+                                Log Events in LocalDB
                             </td>
                             <td>
-                                <a href="<pwm:url url='eventlog.jsp'/>">
-                                    <%= dashboard_pwmApplication.getLocalDBLogger().sizeToDebugString() %>
-                                </a>
+                                <%= dashboard_pwmApplication.getLocalDBLogger().sizeToDebugString() %>
                             </td>
                         </tr>
                         <tr>

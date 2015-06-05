@@ -22,7 +22,6 @@
 
 html, body {
     font-family: "Andale Mono","Lucida Console",Monaco,monospace;
-    font-size: 11px;
     color: #00cc00;
     height: 100%;
     margin: 0px;
@@ -57,6 +56,10 @@ html, body {
     background-color: #000000;
     background-image: url('MatrixText.jpg');
     background-repeat: repeat;
+}
+
+.header-warning-button {
+    color: #00cc00;
 }
 
 #header-company-logo {
@@ -153,4 +156,8 @@ input, button {
     font-family: "Andale Mono","Lucida Console",Monaco,monospace;;
     background-color: black;
     color: #00cc00;
+}
+
+.btn-icon {
+    display: none;
 }

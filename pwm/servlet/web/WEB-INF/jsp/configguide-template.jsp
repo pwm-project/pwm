@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.config.PwmSettingTemplate" %>
 <%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
 <%--
@@ -25,10 +26,10 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
-<% PwmSetting.Template selectedTemplate = configGuideBean.getSelectedTemplate(); %>
+<% PwmSettingTemplate selectedTemplate = configGuideBean.getSelectedTemplate(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -52,11 +53,13 @@
                 <% if (selectedTemplate == null) { %>
                 <option value="NOTSELECTED" selected="selected">-- Please select a template --</option>
                 <% } %>
-                <% for (final PwmSetting.Template loopTemplate : PwmSetting.Template.values()) { %>
+                <% for (final PwmSettingTemplate loopTemplate : PwmSettingTemplate.sortedValues(JspUtility.locale(request))) { %>
                 <% boolean selected = loopTemplate.equals(selectedTemplate); %>
+                <% if (selected || !loopTemplate.isHidden()) { %>
                 <option value="<%=loopTemplate.toString()%>"<% if (selected) { %> selected="selected"<% } %>>
                     <%=loopTemplate.getLabel(JspUtility.locale(request))%>
                 </option>
+                <% } %>
                 <% } %>
             </select>
         </form>

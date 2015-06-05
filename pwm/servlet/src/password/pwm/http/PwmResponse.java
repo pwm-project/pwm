@@ -116,7 +116,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         final String outputString = restResultBean.toJson();
         resp.setContentType(PwmConstants.ContentTypeValue.json.getHeaderValue());
         resp.getWriter().print(outputString);
-        resp.getWriter().flush();
+        resp.getWriter().close();
     }
 
     public void forwardToLoginPage()

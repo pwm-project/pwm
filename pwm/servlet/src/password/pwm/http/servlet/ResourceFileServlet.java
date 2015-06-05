@@ -131,6 +131,8 @@ public class ResourceFileServlet extends HttpServlet {
         if (files != null && !files.isEmpty()) {
             final FileValue.FileInformation fileInformation = files.keySet().iterator().next();
             final FileValue.FileContent fileContent = files.get(fileInformation);
+            LOGGER.debug("examining configured zip file resource for items name=" + fileInformation.getFilename() + ", size=" + fileContent.size());
+
             try {
                 final Map<String,FileResource> customFiles = makeMemoryFileMapFromZipInput(fileContent.getContents());
                 customFileBundle.clear();
@@ -186,7 +188,9 @@ public class ResourceFileServlet extends HttpServlet {
         PwmRequest pwmRequest = null;
         PwmApplication pwmApplication = null;
         try {
-            pwmRequest = PwmRequest.forRequest(request, response);
+            if (request.getSession(false) != null) {
+                pwmRequest = PwmRequest.forRequest(request, response);
+            }
             sessionLabel = pwmRequest.getSessionLabel();
             pwmApplication = pwmRequest.getPwmApplication();
             if (pwmAppStartupTime == null || !pwmAppStartupTime.equals(pwmApplication.getStartupTime())) {
@@ -793,6 +797,7 @@ public class ResourceFileServlet extends HttpServlet {
                 }
                 final byte[] contents = byteArrayOutputStream.toByteArray();
                 memoryMap.put(name,new MemoryFileResource(name,contents,lastModified));
+                LOGGER.trace("discovered file in configured resource bundle: " + entry.getName());
             }
         }
         return memoryMap;

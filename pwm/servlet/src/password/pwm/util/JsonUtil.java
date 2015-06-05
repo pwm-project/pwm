@@ -90,6 +90,11 @@ public class JsonUtil {
         }.getType());
     }
 
+    public static Map<String, Object> deserializeMap(final String jsonString) {
+        return JsonUtil.getGson().fromJson(jsonString, new TypeToken<Map<String, Object>>() {
+        }.getType());
+    }
+
     public static <T> T deserialize(final String json, final Class<T> classOfT) {
         return JsonUtil.getGson().fromJson(json, classOfT);
     }

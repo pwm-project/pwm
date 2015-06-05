@@ -30,7 +30,7 @@ TODO: support HOTP
 <%@ page import="password.pwm.http.bean.SetupOtpBean" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+         contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final SetupOtpBean otpBean = JspUtility.getPwmSession(pageContext).getSetupOtpBean();%>
 <% final int otpTokenLength = PwmRequest.forRequest(request,response).getPwmApplication().getOtpService().getSettings().getOtpTokenLength(); %>

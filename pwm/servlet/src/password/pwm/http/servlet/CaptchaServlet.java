@@ -174,7 +174,7 @@ public class CaptchaServlet extends PwmServlet {
                     Collections.singletonMap("Content-Type",PwmConstants.ContentTypeValue.form.getHeaderValue())
             );
             LOGGER.debug(pwmRequest, "sending reCaptcha verification request" );
-            final PwmHttpClient client = new PwmHttpClient(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
+            final PwmHttpClient client = new PwmHttpClient(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
             final PwmHttpClientResponse clientResponse = client.makeRequest(clientRequest);
 
             if (clientResponse.getStatusCode() != 200) {

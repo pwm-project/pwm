@@ -27,7 +27,6 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.bean.AboutApplicationBean;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -40,7 +39,6 @@ import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditManager;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.health.HealthMonitor;
-import password.pwm.http.servlet.AdminServlet;
 import password.pwm.ldap.LdapConnectionService;
 import password.pwm.token.TokenService;
 import password.pwm.util.*;
@@ -121,7 +119,6 @@ public class PwmApplication {
     private Date installTime = new Date();
     private ErrorInformation lastLocalDBFailure = null;
 
-    private final PwmEnvironment pwmEnvironment;
     private final File applicationPath;
     private final File webInfPath;
     private final File configurationFile;
@@ -155,7 +152,6 @@ public class PwmApplication {
     {
         verifyIfApplicationPathIsSetProperly(pwmEnvironment);
 
-        this.pwmEnvironment = pwmEnvironment;
         this.configuration = pwmEnvironment.config;
         this.applicationMode = pwmEnvironment.applicationMode;
         this.applicationPath = pwmEnvironment.applicationPath;
@@ -330,8 +326,8 @@ public class PwmApplication {
         }
 
         try {
-            AboutApplicationBean aboutApplicationBean = AdminServlet.makeInfoBean(this);
-            LOGGER.trace("application info: " + JsonUtil.serialize(aboutApplicationBean));
+            Map<PwmAboutProperty,String> infoMap = Helper.makeInfoBean(this);
+            LOGGER.trace("application info: " + JsonUtil.serializeMap(infoMap));
         } catch (Exception e) {
             LOGGER.error("error generating about application bean: " + e.getMessage());
         }
@@ -709,15 +705,12 @@ public class PwmApplication {
         return webInfPath;
     }
 
-    private void verifyIfApplicationPathIsSetProperly(final PwmEnvironment pwmEnvironment)
-            throws PwmUnrecoverableException
-    {
-        final File applicationPath = pwmEnvironment.applicationPath;
-        File webInfPath = pwmEnvironment.webInfPath;
+    public static void verifyApplicationPath(final File applicationPath) throws PwmUnrecoverableException {
 
         if (applicationPath == null) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, "unable to determine valid applicationPath"));
         }
+
         LOGGER.trace("examining applicationPath of " + applicationPath.getAbsolutePath() + "");
 
         if (!applicationPath.exists()) {
@@ -731,6 +724,27 @@ public class PwmApplication {
         if (!applicationPath.canWrite()) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, "unable to write to applicationPath " + applicationPath.getAbsolutePath() + ""));
         }
+
+        final File infoFile = new File(applicationPath.getAbsolutePath() + File.separator + PwmConstants.APPLICATION_PATH_INFO_FILE);
+        LOGGER.trace("checking " + infoFile.getAbsolutePath() + " status, (applicationPathType=" + PwmEnvironment.ApplicationPathType.derived + ")");
+        if (infoFile.exists()) {
+            final String errorMsg = "The file " + infoFile.getAbsolutePath() + " exists, and an applicationPath was not explicitly specified."
+                    + "  This happens when an applicationPath was previously configured, but is not now being specified."
+                    + "  An explicit applicationPath parameter must be specified, or the file can be removed if the applicationPath should be changed to the default /WEB-INF directory.";
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, errorMsg));
+        } else {
+            LOGGER.trace("marker file " + infoFile.getAbsolutePath() + " does not exist");
+        }
+
+    }
+
+    private void verifyIfApplicationPathIsSetProperly(final PwmEnvironment pwmEnvironment)
+            throws PwmUnrecoverableException
+    {
+        final File applicationPath = pwmEnvironment.applicationPath;
+        File webInfPath = pwmEnvironment.webInfPath;
+
+        verifyApplicationPath(applicationPath);
 
         boolean applicationPathIsWebInfPath = false;
         if (applicationPath.equals(webInfPath)) {
@@ -770,7 +784,7 @@ public class PwmApplication {
                         final FileOutputStream fos = new FileOutputStream(infoFile);
                         final Properties outputProperties = new Properties();
                         outputProperties.setProperty("lastApplicationPath", applicationPath.getAbsolutePath());
-                        outputProperties.store(fos, "Marker file to record a previously specified applicationPath");
+                        outputProperties.store(fos, "Marker file to record a previously configured applicationPath");
                     } catch (IOException e) {
                         LOGGER.warn("unable to write applicationPath marker properties file " + infoFile.getAbsolutePath() + "");
                     }

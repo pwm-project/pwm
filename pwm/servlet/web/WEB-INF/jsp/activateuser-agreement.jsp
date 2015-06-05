@@ -22,7 +22,7 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final ActivateUserBean activateUserBean = JspUtility.getPwmSession(pageContext).getActivateUserBean(); %>
 <html dir="<pwm:LocaleOrientation/>">

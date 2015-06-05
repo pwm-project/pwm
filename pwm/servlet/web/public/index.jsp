@@ -23,7 +23,7 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+         contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <% final PwmRequest index_pwmRequest = JspUtility.getPwmRequest(pageContext); %>

@@ -23,29 +23,30 @@
 package password.pwm.config.option;
 
 import password.pwm.config.Configuration;
-import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
-public enum RecoveryVerificationMethod implements ConfigurationOption {
-    PREVIOUS_AUTH(      false,  Display.Field_VerificationMethodPreviousAuth,       Config.Field_VerificationMethodPreviousAuth),
-    ATTRIBUTES(         true,   Display.Field_VerificationMethodAttributes,         Config.Field_VerificationMethodAttributes),
-    CHALLENGE_RESPONSES(true,   Display.Field_VerificationMethodChallengeResponses, Config.Field_VerificationMethodChallengeResponses),
-    TOKEN(              true,   Display.Field_VerificationMethodToken,              Config.Field_VerificationMethodToken),
-    OTP(                true,   Display.Field_VerificationMethodOTP,                Config.Field_VerificationMethodOTP),
-    REMOTE_RESPONSES(   false,  Display.Field_VerificationMethodRemoteResponses,    Config.Field_VerificationMethodRemoteResponses),
+public enum RecoveryVerificationMethods implements ConfigurationOption {
+    PREVIOUS_AUTH(      false,  Display.Field_VerificationMethodPreviousAuth),
+    ATTRIBUTES(         true,   Display.Field_VerificationMethodAttributes),
+    CHALLENGE_RESPONSES(true,   Display.Field_VerificationMethodChallengeResponses),
+    TOKEN(              true,   Display.Field_VerificationMethodToken),
+    OTP(                true,   Display.Field_VerificationMethodOTP),
+    REMOTE_RESPONSES(   false,  Display.Field_VerificationMethodRemoteResponses),
+    NAAF(               true,   Display.Field_VerificationMethodNAAF),
 
     ;
     
     private final boolean userSelectable;
     private final Display displayKey;
-    private final Config configDisplayKey;
 
-    RecoveryVerificationMethod(boolean userSelectable, Display displayKey, Config configDisplayKey) {
+    RecoveryVerificationMethods(boolean userSelectable, Display displayKey) {
         this.userSelectable = userSelectable;
         this.displayKey = displayKey;
-        this.configDisplayKey = configDisplayKey;
     }
 
     public boolean isUserSelectable() {
@@ -56,11 +57,14 @@ public enum RecoveryVerificationMethod implements ConfigurationOption {
         return displayKey;
     }
 
-    public Config getConfigDisplayKey() {
-        return configDisplayKey;
-    }
-
     public String getLabel(final Configuration configuration, final Locale locale) {
         return Display.getLocalizedMessage(locale, this.getDisplayKey(), configuration);
     }
+
+    public static RecoveryVerificationMethods[] availableValues() {
+        final List<RecoveryVerificationMethods> values = new ArrayList<>();
+        values.addAll(Arrays.asList(RecoveryVerificationMethods.values()));
+        return values.toArray(new RecoveryVerificationMethods[values.size()]);
+    }
+
 }

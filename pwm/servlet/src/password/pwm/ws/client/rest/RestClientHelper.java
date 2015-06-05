@@ -31,6 +31,7 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.util.logging.PwmLogger;
 
@@ -46,8 +47,7 @@ public class RestClientHelper {
             final String url,
             final String jsonRequestBody
     )
-            throws PwmOperationalException
-    {
+            throws PwmOperationalException, PwmUnrecoverableException {
         final HttpPost httpPost = new HttpPost(url);
         httpPost.setHeader("Accept", PwmConstants.AcceptValue.json.getHeaderValue());
         if (locale != null) {

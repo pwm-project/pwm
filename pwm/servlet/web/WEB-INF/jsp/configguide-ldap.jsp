@@ -26,7 +26,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% ConfigGuideBean configGuideBean = (ConfigGuideBean) JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
 <% Map<String,String> DEFAULT_FORM = ConfigGuideServlet.defaultForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -145,12 +145,10 @@
 <pwm:script>
     <script type="text/javascript">
         function handleFormActivity() {
-            require(["dijit/registry"],function(registry){
-                PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').value =
-                        PWM_MAIN.getObject('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').checked ? "true" : "false";
-                PWM_GUIDE.updateForm();
-                clearHealthDiv();
-            });
+            PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').value =
+                    PWM_MAIN.getObject('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').checked ? "true" : "false";
+            PWM_GUIDE.updateForm();
+            clearHealthDiv();
         }
 
         function clearHealthDiv() {
@@ -159,7 +157,7 @@
 
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_VAR['originalHealthBody'] = PWM_MAIN.getObject('healthBody').innerHTML;
-                clearHealthDiv();
+            clearHealthDiv();
             checkIfNextEnabled();
 
             PWM_MAIN.addEventHandler('configForm','input',function(){
@@ -191,6 +189,7 @@
         }
 
         function loadHealth() {
+            console.log('loadHealth()');
             var options = {};
             options['sourceUrl'] = 'ConfigGuide?processAction=ldapHealth';
             options['showRefresh'] = false;
@@ -199,8 +198,9 @@
                 PWM_MAIN.closeWaitDialog();
                 checkIfNextEnabled();
             };
-            PWM_MAIN.showWaitDialog();
-            PWM_ADMIN.showAppHealth('healthBody', options);
+            PWM_MAIN.showWaitDialog({loadFunction:function(){
+                PWM_ADMIN.showAppHealth('healthBody', options);
+            }});
         }
     </script>
 </pwm:script>

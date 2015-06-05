@@ -30,6 +30,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
@@ -58,12 +59,18 @@ public class VersionChecker implements PwmService {
 
     private PwmApplication pwmApplication;
     private VersionCheckInfoCache versionCheckInfoCache;
+    private STATUS status = STATUS.CLOSED;
 
     public VersionChecker() {
     }
 
     public void init(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {
+            status = STATUS.CLOSED;
+            return;
+        }
+
         if (pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN) {
             try {
                 final String versionChkInfoJson = pwmApplication.getLocalDB().get(LocalDB.DB.PWM_META,
@@ -76,6 +83,11 @@ public class VersionChecker implements PwmService {
             }
         }
 
+        if (pwmApplication.getApplicationMode() != PwmApplication.MODE.RUNNING && pwmApplication.getApplicationMode() != PwmApplication.MODE.CONFIGURATION ) {
+            LOGGER.trace("skipping init due to application mode");
+            return;
+        }
+
         if (versionCheckInfoCache != null && versionCheckInfoCache.getLastError() != null) {
             versionCheckInfoCache = null;
         }
@@ -83,10 +95,12 @@ public class VersionChecker implements PwmService {
         if (!isVersionCurrent()) {
             LOGGER.warn("this version of PWM is outdated, please check the project website for the current version");
         }
+
+        status = STATUS.OPEN;
     }
 
     public String currentVersion() {
-        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {
+        if (status() != STATUS.OPEN) {
             return Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, Display.Value_NotApplicable, pwmApplication.getConfig());
         }
 
@@ -102,9 +116,10 @@ public class VersionChecker implements PwmService {
     }
 
     public Date lastReadTimestamp() {
-        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {
+        if (status() != STATUS.OPEN) {
             return null;
         }
+
         try {
             final VersionCheckInfoCache versionCheckInfo = getVersionCheckInfo();
             if (versionCheckInfo != null) {
@@ -117,6 +132,10 @@ public class VersionChecker implements PwmService {
     }
 
     public boolean isVersionCurrent() {
+        if (status() != STATUS.OPEN) {
+            return true;
+        }
+
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {
             return true;
         }
@@ -178,7 +197,7 @@ public class VersionChecker implements PwmService {
         return versionCheckInfoCache;
     }
 
-    private Map<String,String> doCurrentVersionFetch() throws IOException, URISyntaxException {
+    private Map<String,String> doCurrentVersionFetch() throws IOException, URISyntaxException, PwmUnrecoverableException {
         final URI requestURI = new URI(VERSION_CHECK_URL);
         final HttpGet httpGet = new HttpGet(requestURI.toString());
         httpGet.setHeader("Accept", PwmConstants.ContentTypeValue.json.getHeaderValue());
@@ -193,7 +212,7 @@ public class VersionChecker implements PwmService {
     }
 
     public STATUS status() {
-        return STATUS.OPEN;
+        return status;
     }
 
     public void close() {

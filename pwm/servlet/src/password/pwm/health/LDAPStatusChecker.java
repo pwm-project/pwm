@@ -45,7 +45,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserStatusReader;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.TimeDuration;
@@ -465,12 +464,19 @@ public class LDAPStatusChecker implements HealthChecker {
         final Set<ChaiProvider.DIRECTORY_VENDOR> discoveredVendors = new HashSet<>(replicaVendorMap.values());
 
         if (discoveredVendors.size() >= 2) {
-            final String mapAsJson = JsonUtil.serializeMap(replicaVendorMap);
-            healthRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_VendorsNotSame, mapAsJson));
+            final StringBuilder vendorMsg = new StringBuilder();
+            for (final Iterator<String> iterator = replicaVendorMap.keySet().iterator(); iterator.hasNext(); ) {
+                final String key = iterator.next();
+                vendorMsg.append(key).append("=").append(replicaVendorMap.get(key).toString());
+                if (iterator.hasNext()) {
+                    vendorMsg.append(", ");
+                }
+            }
+            healthRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_VendorsNotSame, vendorMsg.toString()));
             // cache the error
             healthProperties.put(HealthMonitor.HealthProperty.LdapVendorSameCheck, healthRecords);
 
-            LOGGER.warn(PwmConstants.HEALTH_SESSION_LABEL,"multiple ldap vendors found: " + mapAsJson);
+            LOGGER.warn(PwmConstants.HEALTH_SESSION_LABEL,"multiple ldap vendors found: " + vendorMsg.toString());
         } else if (discoveredVendors.size() == 1) {
             if (!errorReachingServer) {
                 // cache the no errors

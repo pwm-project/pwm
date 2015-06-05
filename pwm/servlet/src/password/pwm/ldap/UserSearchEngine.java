@@ -317,7 +317,7 @@ public class UserSearchEngine {
 
             if (searchConfiguration.isEnableContextValidation()) {
                 for (final String searchContext : searchContexts) {
-                    validateSpecifiedContext(pwmApplication, ldapProfile, searchContext);
+                    validateSpecifiedContext(ldapProfile, searchContext);
                 }
             }
         } else {
@@ -326,7 +326,7 @@ public class UserSearchEngine {
 
         final long timeLimitMS = searchConfiguration.getSearchTimeout() != 0
                 ? searchConfiguration.getSearchTimeout()
-                : Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_SEARCH_TIMEOUT));
+                : (ldapProfile.readSettingAsLong(PwmSetting.LDAP_SEARCH_TIMEOUT) * 1000);
 
 
         final ChaiProvider chaiProvider = searchConfiguration.getChaiProvider() == null ?
@@ -408,13 +408,13 @@ public class UserSearchEngine {
         return returnMap;
     }
 
-    private static void validateSpecifiedContext(final PwmApplication pwmApplication, final LdapProfile profile, final String context)
+    private static void validateSpecifiedContext(final LdapProfile profile, final String context)
             throws PwmOperationalException
     {
-        final Collection<String> loginContexts = profile.getLoginContexts().keySet();
-        if (loginContexts == null || loginContexts.isEmpty()) {
+        if (profile.getLoginContexts() == null || profile.getLoginContexts().isEmpty()) {
             throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"context specified, but no selectable contexts are configured");
         }
+        final Collection<String> loginContexts = profile.getLoginContexts().keySet();
 
         for (final String loopContext : loginContexts) {
             if (loopContext.equals(context)) {
@@ -567,7 +567,6 @@ public class UserSearchEngine {
                 final Map<String,String> headerAttributeMap
         )
         {
-            final Date startTime = new Date();
             if (headerAttributeMap == null || headerAttributeMap.isEmpty() || results == null) {
                 return results;
             }

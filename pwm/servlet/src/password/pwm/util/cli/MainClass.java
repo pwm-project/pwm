@@ -119,20 +119,30 @@ public class MainClass {
     )
             throws Exception
     {
+
         final Map<String,Object> options = parseCommandOptions(parameters, args);
         final File applicationPath = figureApplicationPath(MAIN_OPTIONS);
+        out(PwmConstants.SERVLET_VERSION);
+        out("applicationPath=" + applicationPath.getAbsolutePath());
+        PwmApplication.verifyApplicationPath(applicationPath);
         final File configurationFile = locateConfigurationFile(applicationPath);
 
         final ConfigurationReader configReader = loadConfiguration(configurationFile);
         final Configuration config = configReader.getConfiguration();
-        final PwmApplication pwmApplication = parameters.needsPwmApplication
-                ? loadPwmApplication(applicationPath,config,configurationFile,parameters.readOnly)
-                : null;
-        final LocalDB localDB = parameters.needsLocalDB
-                ? pwmApplication == null
-                ? loadPwmDB(config, parameters.readOnly, applicationPath)
-                : pwmApplication.getLocalDB()
-                : null;
+
+        final PwmApplication pwmApplication;
+        final LocalDB localDB;
+        if (parameters.needsPwmApplication) {
+            pwmApplication = loadPwmApplication(applicationPath, config, configurationFile, parameters.readOnly);
+            localDB = pwmApplication.getLocalDB();
+        } else if (parameters.needsLocalDB) {
+            pwmApplication = null;
+            localDB = loadPwmDB(config, parameters.readOnly, applicationPath);
+        } else {
+            pwmApplication = null;
+            localDB = null;
+        }
+
 
         return new CliEnvironment(
                 configReader,
@@ -231,13 +241,36 @@ public class MainClass {
                     final List<String> argList = new LinkedList<>(Arrays.asList(args));
                     argList.remove(0);
 
+                    final CliEnvironment cliEnvironment;
                     try {
-                        final CliEnvironment cliEnvironment = createEnv(command.getCliParameters(), argList);
-                        command.execute(commandStr, cliEnvironment);
-                    } catch (CliException e) {
-                        System.out.println(e.getMessage());
+                        cliEnvironment = createEnv(command.getCliParameters(), argList);
+                    } catch (Exception e) {
+                        System.out.println("unable to establish operating environment: " + e.getMessage());
                         System.exit(-1);
                         return;
+                    }
+
+                    try {
+                        command.execute(commandStr, cliEnvironment);
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                        //System.exit(-1);
+                        return;
+                    }
+
+                    if (cliEnvironment.getPwmApplication() != null) {
+                        try {
+                            cliEnvironment.getPwmApplication().shutdown();
+                        } catch (Exception e) {
+                            System.out.println("error closing operating environment: " + e.getMessage());
+                        }
+                    }
+                    if (cliEnvironment.getLocalDB() != null) {
+                        try {
+                            cliEnvironment.getLocalDB().close();
+                        } catch (Exception e) {
+                            System.out.println("error closing LocalDB environment: " + e.getMessage());
+                        }
                     }
 
                     System.exit(0);
@@ -276,19 +309,12 @@ public class MainClass {
                         }
                     }
                 } else  if (arg.startsWith(OPT_APP_PATH)) {
-                    if (arg.length() < OPT_DEBUG_LEVEL.length() + 2) {
+                    if (arg.length() < OPT_APP_PATH.length() + 2) {
                         out(OPT_APP_PATH + " option must include value (example: -debugLevel=/tmp/applicationPath");
                         System.exit(-1);
                     } else {
-                        final String pathStr = arg.substring(OPT_DEBUG_LEVEL.length() + 1, arg.length());
-                        final File pathValue = new File(pathStr);
-                        if (!pathValue.exists()) {
-                            exitWithError(" specified applicationPath '" + pathStr + "' does not exist");
-                        }
-                        if (!pathValue.isDirectory()) {
-                            exitWithError(" specified applicationPath '" + pathStr + "' must be a directory");
-                        }
-                        MAIN_OPTIONS.applicationPath = pathValue;
+                        final String pathStr = arg.substring(OPT_APP_PATH.length() + 1, arg.length());
+                        MAIN_OPTIONS.applicationPath = new File(pathStr);
                         MAIN_OPTIONS.applicationPathType = PwmApplication.PwmEnvironment.ApplicationPathType.specified;
                     }
                 } else if (arg.equals(OPT_FORCE)) {
@@ -335,7 +361,7 @@ public class MainClass {
     }
 
     static ConfigurationReader loadConfiguration(final File configurationFile) throws Exception {
-        final ConfigurationReader reader = new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
+        final ConfigurationReader reader = new ConfigurationReader(configurationFile);
 
         if (reader.getConfigMode() == PwmApplication.MODE.ERROR) {
             final String errorMsg = reader.getConfigFileError() == null ? "error" : reader.getConfigFileError().toDebugStr();

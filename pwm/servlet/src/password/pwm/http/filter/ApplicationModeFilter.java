@@ -110,12 +110,12 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
 
         // block if public request and not running or in trial
         if (!PwmConstants.TRIAL_MODE) {
-            if (pwmURL.isPublicUrl() && !pwmURL.isLogoutURL() && !pwmURL.isCommandServletURL()) {
+            if (pwmURL.isPublicUrl() && !pwmURL.isLogoutURL() && !pwmURL.isCommandServletURL() && !pwmURL.isCaptchaURL())  {
                 if (mode == PwmApplication.MODE.CONFIGURATION) {
                     pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"public services are not available while configuration is open"));
                     return true;
                 }
-                if (pwmRequest.getPwmApplication().getApplicationMode() != PwmApplication.MODE.RUNNING) {
+                if (mode != PwmApplication.MODE.RUNNING) {
                     pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"public services are not available while application is not in running mode"));
                     return true;
                 }

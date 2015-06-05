@@ -628,7 +628,9 @@ public class PeopleSearchServlet extends PwmServlet {
                 bean.setLabel(formConfiguration.getLabel(pwmRequest.getLocale()));
                 bean.setType(formConfiguration.getType());
                 if (searchAttributes.contains(formConfiguration.getName())) {
-                    bean.setSearchable(true);
+                    if (formConfiguration.getType() != FormConfiguration.Type.userDN) {
+                        bean.setSearchable(true);
+                    }
                 }
                 if (formConfiguration.getType() == FormConfiguration.Type.userDN) {
                     if (searchResults.containsKey(formConfiguration.getName())) {

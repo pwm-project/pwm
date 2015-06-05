@@ -130,6 +130,41 @@ public abstract class PwmHttpRequestWrapper {
         return Collections.unmodifiableMap(outputMap);
     }
 
+    public Map<String, Object> readBodyAsJsonMap(boolean bypassInputValidation)
+            throws IOException, PwmUnrecoverableException
+    {
+        final String bodyString = readRequestBodyAsString();
+        final Map<String, Object> inputMap = JsonUtil.deserializeMap(bodyString);
+
+        final boolean trim = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_INPUT_TRIM));
+        final boolean passwordTrim = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_INPUT_PASSWORD_TRIM));
+        final int maxLength = Integer.parseInt(configuration.readAppProperty(AppProperty.HTTP_PARAM_MAX_READ_LENGTH));
+
+        final Map<String, Object> outputMap = new LinkedHashMap<>();
+        if (inputMap != null) {
+            for (final String key : inputMap.keySet()) {
+                if (key != null) {
+                    final boolean passwordType = key.toLowerCase().contains("password");
+                    final Object value;
+                    if (inputMap.get(key) instanceof String) {
+                        String stringValue = bypassInputValidation
+                                ? (String)inputMap.get(key) :
+                                Validator.sanitizeInputValue(configuration, (String)inputMap.get(key), maxLength);
+                        stringValue = passwordType && passwordTrim ? stringValue.trim() : stringValue;
+                        stringValue = !passwordType && trim ? stringValue.trim() : stringValue;
+                        value = stringValue;
+                    } else {
+                        value = inputMap.get(key);
+                    }
+
+                    final String sanitizedName = Validator.sanitizeInputValue(configuration, key, maxLength);
+                    outputMap.put(sanitizedName, value);
+                }
+            }
+        }
+
+        return Collections.unmodifiableMap(outputMap);
+    }
 
     public PasswordData readParameterAsPassword(final String name)
             throws PwmUnrecoverableException 

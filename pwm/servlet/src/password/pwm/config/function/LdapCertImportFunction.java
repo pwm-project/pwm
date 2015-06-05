@@ -33,6 +33,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Message;
 import password.pwm.util.X509Utils;
@@ -48,14 +49,16 @@ public class LdapCertImportFunction implements SettingUIFunction {
 
     @Override
     public String provideFunction(
-            PwmApplication pwmApplication,
-            PwmSession pwmSession,
+            PwmRequest pwmRequest,
             StoredConfiguration storedConfiguration,
             PwmSetting setting,
             String profile
     )
             throws PwmOperationalException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+
         final StringArrayValue ldapUrlsValue = (StringArrayValue)storedConfiguration.readSetting(PwmSetting.LDAP_SERVER_URLS,profile);
         final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
         try {
@@ -63,7 +66,7 @@ public class LdapCertImportFunction implements SettingUIFunction {
                 final List<String> ldapUrlStrings = ldapUrlsValue.toNativeObject();
                 for (final String ldapUrlString : ldapUrlStrings) {
                     final URI ldapURI = new URI(ldapUrlString);
-                    final X509Certificate[] certs = X509Utils.readLdapServerCerts(ldapURI);
+                    final X509Certificate[] certs = X509Utils.readRemoteCertificates(ldapURI);
                     if (certs != null) {
                         resultCertificates.addAll(Arrays.asList(certs));
                     }

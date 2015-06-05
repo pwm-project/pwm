@@ -286,27 +286,33 @@ public class TimeDuration implements Comparable, Serializable {
             sb.append(timeDetail.days);
             sb.append(" ");
             sb.append(timeDetail.days == 1 ? LocaleHelper.getLocalizedMessage(locale, Display.Display_Day, null) : LocaleHelper.getLocalizedMessage(locale,Display.Display_Days,null));
-            sb.append(", ");
         }
 
         //output number of hours
         if (timeDetail.hours > 0) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
             sb.append(timeDetail.hours);
             sb.append(" ");
             sb.append(timeDetail.hours == 1 ? LocaleHelper.getLocalizedMessage(locale,Display.Display_Hour,null) : LocaleHelper.getLocalizedMessage(locale,Display.Display_Hours,null));
-            sb.append(", ");
         }
 
         //output number of minutes
-        if (timeDetail.days > 0 || timeDetail.hours > 0 || timeDetail.minutes > 0) {
+        if (timeDetail.minutes > 0) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
             sb.append(timeDetail.minutes);
             sb.append(" ");
             sb.append(timeDetail.minutes == 1 ? LocaleHelper.getLocalizedMessage(locale,Display.Display_Minute,null) : LocaleHelper.getLocalizedMessage(locale,Display.Display_Minutes,null));
-            sb.append(", ");
         }
 
         //seconds
-        {
+        if (timeDetail.seconds > 0 || sb.toString().isEmpty()) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
             sb.append(timeDetail.seconds);
             sb.append(" ");
             sb.append(timeDetail.seconds == 1 ? LocaleHelper.getLocalizedMessage(locale,Display.Display_Second,null) : LocaleHelper.getLocalizedMessage(locale,Display.Display_Seconds,null));

@@ -28,7 +28,7 @@
     String destination = newUserBean.getTokenDisplayText();
 %>
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -68,7 +68,9 @@
 <pwm:script>
     <script>
         PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.submitPostAction('button-cancel','NewUser','<%=NewUserServlet.NewUserAction.reset%>');
+            PWM_MAIN.addEventHandler('button-cancel','click',function() {
+                PWM_MAIN.submitPostAction('NewUser', '<%=NewUserServlet.NewUserAction.reset%>');
+            });
         });
     </script>
 </pwm:script>

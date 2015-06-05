@@ -24,12 +24,13 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ page isErrorPage="true" %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_REQ_COUNTER); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <%@ include file="fragment/header.jsp" %>
+<% response.setHeader("Content-Encoding",""); //remove gzip encoding header %>
 <% final int statusCode = pageContext.getErrorData().getStatusCode(); %>
 <body class="nihilo" data-jsp-page="error-http.jsp">
 <div id="wrapper">
@@ -43,15 +44,15 @@
         <br/>
         <span id="message" class="message message-error">
             <% if (404 == statusCode) { %>
-            <%=PwmError.ERROR_HTTP_404.getLocalizedMessage(JspUtility.locale(request),null)%>
+            <%=PwmError.ERROR_HTTP_404.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,null)%>
             <% } else { %>
-            <%=PwmError.ERROR_UNKNOWN.getLocalizedMessage(JspUtility.locale(request),null)%>
+            <%=PwmError.ERROR_UNKNOWN.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,null)%>
             <% } %>
         </span>
         <br/>
         <br/>
         <% if (500 == statusCode) { %>
-        <textarea rows="10" style="width: 90%; font-size:small;" readonly="true">
+        <textarea rows="10" style="width: 98%; font-size:small;" readonly="true">
             <%=StringUtil.escapeHtml(pageContext.getErrorData().getThrowable().toString())%>
             <% for (final StackTraceElement stElement : pageContext.getErrorData().getThrowable().getStackTrace()) { %>
             <%=StringUtil.escapeHtml(stElement.toString())%>

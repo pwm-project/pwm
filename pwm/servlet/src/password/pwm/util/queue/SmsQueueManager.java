@@ -124,7 +124,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         }
     }
 
-    protected void shortenMessageIfNeeded(final SmsItemBean smsItem) {
+    protected void shortenMessageIfNeeded(final SmsItemBean smsItem) throws PwmUnrecoverableException {
         final Boolean shorten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SMS_USE_URL_SHORTENER);
         if (shorten) {
             final String message = smsItem.getMessage();

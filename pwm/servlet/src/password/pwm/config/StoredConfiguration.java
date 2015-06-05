@@ -358,7 +358,7 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    private static StoredValue defaultValue(final PwmSetting pwmSetting, final PwmSetting.Template template)
+    private static StoredValue defaultValue(final PwmSetting pwmSetting, final PwmSettingTemplate template)
     {
         try {
             return pwmSetting.getDefaultValue(template);
@@ -369,18 +369,18 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    public PwmSetting.Template getTemplate() {
+    public PwmSettingTemplate getTemplate() {
         final String propertyValue = readConfigProperty(ConfigProperty.PROPERTY_KEY_TEMPLATE);
         try {
-            return PwmSetting.Template.valueOf(propertyValue);
+            return PwmSettingTemplate.valueOf(propertyValue);
         } catch (IllegalArgumentException e) {
-            return PwmSetting.Template.DEFAULT;
+            return PwmSettingTemplate.DEFAULT;
         } catch (NullPointerException e) {
-            return PwmSetting.Template.DEFAULT;
+            return PwmSettingTemplate.DEFAULT;
         }
     }
 
-    public void setTemplate(PwmSetting.Template template) {
+    public void setTemplate(PwmSettingTemplate template) {
         writeConfigProperty(ConfigProperty.PROPERTY_KEY_TEMPLATE, template.toString());
     }
 
@@ -579,7 +579,7 @@ public class StoredConfiguration implements Serializable {
 
         final LinkedHashSet<ConfigRecordID> returnSet = new LinkedHashSet<>();
         boolean firstIter = true;
-        for (final String searchWord : searchTerm.split(" ")) {
+        for (final String searchWord : StringUtil.whitespaceSplit(searchTerm)) { // split on whitespace
             final LinkedHashSet<ConfigRecordID> loopResults = new LinkedHashSet<>();
             for (final PwmSetting loopSetting : PwmSetting.values()) {
                 if (loopSetting.getCategory().hasProfiles()) {
@@ -607,31 +607,38 @@ public class StoredConfiguration implements Serializable {
         return new ArrayList<>(returnSet);
     }
 
-    private boolean matchSetting(final PwmSetting setting, final StoredValue value, final String searchTerm, final Locale locale) {
+    public boolean matchSetting(final PwmSetting setting, final StoredValue value, final String searchTerm, final Locale locale) {
         if (setting.isHidden() || setting.getCategory().isHidden()) {
             return false;
         }
+
+        if (searchTerm == null || searchTerm.isEmpty()) {
+            return false;
+        }
+
+        final String lowerSearchTerm = searchTerm.toLowerCase();
+
         {
             final String key = setting.getKey();
-            if (key.toLowerCase().contains(searchTerm.toLowerCase())) {
+            if (key.toLowerCase().contains(lowerSearchTerm)) {
                 return true;
             }
         }
         {
             final String label = setting.getLabel(locale);
-            if (label.toLowerCase().contains(searchTerm.toLowerCase())) {
+            if (label.toLowerCase().contains(lowerSearchTerm)) {
                 return true;
             }
         }
         {
             final String descr = setting.getDescription(locale);
-            if (descr.toLowerCase().contains(searchTerm.toLowerCase())) {
+            if (descr.toLowerCase().contains(lowerSearchTerm)) {
                 return true;
             }
         }
         {
             final String menuLocationString = setting.toMenuLocationDebug(null,locale);
-            if (menuLocationString.toLowerCase().contains(searchTerm.toLowerCase())) {
+            if (menuLocationString.toLowerCase().contains(lowerSearchTerm)) {
                 return true;
             }
         }
@@ -641,8 +648,22 @@ public class StoredConfiguration implements Serializable {
         }
         {
             final String valueDebug = value.toDebugString(true, locale);
-            if (valueDebug.toLowerCase().contains(searchTerm.toLowerCase())) {
+            if (valueDebug.toLowerCase().contains(lowerSearchTerm)) {
                 return true;
+            }
+        }
+        if (PwmSettingSyntax.SELECT == setting.getSyntax()
+                || PwmSettingSyntax.OPTIONLIST == setting.getSyntax()
+                || PwmSettingSyntax.VERIFICATION_METHOD == setting.getSyntax()
+                ) {
+            for (final String key : setting.getOptions().keySet()) {
+                if (key.toLowerCase().contains(lowerSearchTerm)) {
+                    return true;
+                }
+                final String optionValue = setting.getOptions().get(key);
+                if (optionValue != null && optionValue.toLowerCase().contains(lowerSearchTerm)) {
+                    return true;
+                }
             }
         }
         return false;

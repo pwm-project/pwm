@@ -25,7 +25,7 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
@@ -45,17 +45,23 @@
         <jsp:param name="pwm.PageName" value="Title_LocaleSelect"/>
     </jsp:include>
     <div id="centerbody">
-        <br/>
-        <% for (final Locale locale : localeList) { %>
-        <% final String flagCode = localeselect_pwmApplication.getConfig().getKnownLocaleFlagMap().get(locale); %>
-        <div style="text-align: center; width: 100%">
-            <img alt="flag" src="<pwm:context/><pwm:url url='/public/resources/flags/png/'/><%=flagCode%>.png"/>
-            <a href="<pwm:context/>?<%=localeselect_pwmApplication.getConfig().readAppProperty(password.pwm.AppProperty.HTTP_PARAM_NAME_LOCALE)%>=<%=locale.toString()%>">
-                <%=locale.getDisplayName()%> - <%=locale.getDisplayName(locale)%>
-            </a>
+        <div style="margin-left: auto; margin-right: auto; padding: 30px">
+            <table class="noborder" style="width: auto">
+                <% for (final Locale locale : localeList) { %>
+                <tr>
+                    <td>
+                        <% final String flagCode = localeselect_pwmApplication.getConfig().getKnownLocaleFlagMap().get(locale); %>
+                        <img alt="flag" src="<pwm:context/><pwm:url url='/public/resources/flags/png/'/><%=flagCode%>.png"/>
+                    </td>
+                    <td>
+                        <a href="<pwm:context/>?<%=localeselect_pwmApplication.getConfig().readAppProperty(password.pwm.AppProperty.HTTP_PARAM_NAME_LOCALE)%>=<%=locale.toString()%>">
+                            <%=locale.getDisplayName()%> - <%=locale.getDisplayName(locale)%>
+                        </a>
+                    </td>
+                </tr>
+                <% } %>
+            </table>
         </div>
-        <br/>
-        <% } %>
     </div>
     <div class="push"></div>
 </div>

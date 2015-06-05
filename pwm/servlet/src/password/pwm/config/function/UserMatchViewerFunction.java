@@ -34,36 +34,38 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmSession;
+import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.Serializable;
 import java.util.*;
 
 public class UserMatchViewerFunction implements SettingUIFunction {
     private static final PwmLogger LOGGER = PwmLogger.forClass(UserMatchViewerFunction.class);
 
     @Override
-    public String provideFunction(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+    public Serializable provideFunction(
+            PwmRequest pwmRequest,
             final StoredConfiguration storedConfiguration,
             final PwmSetting setting,
             final String profile
     )
             throws Exception
     {
-        final Locale userLocale = pwmSession == null ? PwmConstants.DEFAULT_LOCALE : pwmSession.getSessionStateBean().getLocale();
-        final int maxResultSize = Integer.parseInt(
-                pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT));
-        final Map<String,List<String>> matchingUsers = discoverMatchingUsers(pwmApplication, maxResultSize, storedConfiguration, setting, profile);
-        return convertResultsToHtmlTable(
-                pwmApplication, userLocale, matchingUsers, maxResultSize
-        );
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+
+        final int maxResultSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT));
+        final Collection<UserIdentity> users = discoverMatchingUsers(pwmApplication, maxResultSize, storedConfiguration, setting, profile);
+
+        final HashMap<String,Object> output = new HashMap<>();
+        output.put("users", users);
+        output.put("sizeExceeded", users.size() >= maxResultSize);
+        return output;
     }
 
-    public Map<String,List<String>> discoverMatchingUsers(
+    public Collection<UserIdentity> discoverMatchingUsers(
             final PwmApplication pwmApplication,
             final int maxResultSize,
             final StoredConfiguration storedConfiguration,
@@ -74,7 +76,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
     {
         final Configuration config = new Configuration(storedConfiguration);
         final PwmApplication tempApplication = new PwmApplication.PwmEnvironment(config,pwmApplication.getApplicationPath())
-                .setApplicationMode(PwmApplication.MODE.CONFIGURATION)
+                .setApplicationMode(PwmApplication.MODE.NEW)
                 .setInitLogging(false)
                 .setConfigurationFile(null)
                 .setWebInfPath(pwmApplication.getWebInfPath())
@@ -91,8 +93,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
             }
         }
 
-        final Map<UserIdentity, Map<String, String>> results = LdapPermissionTester.discoverMatchingUsers(tempApplication, maxResultSize, permissions);
-        return sortResults(results);
+        return LdapPermissionTester.discoverMatchingUsers(tempApplication, maxResultSize, permissions).keySet();
     }
 
     public String convertResultsToHtmlTable(

@@ -29,7 +29,7 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final Locale locale = JspUtility.locale(request);
@@ -63,13 +63,16 @@
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
                 <% if (analysis_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) { %>
                 <div data-dojo-type="dijit.layout.ContentPane" title="Summary" class="tabContent">
-                    <div style="margin-left: auto; margin-right: auto" id="summaryTableWrapper">
-                        <table id="summaryTable" style="max-width:600px">
+                    <div style="max-height: 500px; overflow-y: auto" id="summaryTableWrapper">
+                        <table id="summaryTable">
                             <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
                         </table>
-                        <div class="noticebar">
-                            <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/>
-                        </div>
+                    </div>
+                    <div class="noticebar">
+                        <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/>
+                    </div>
+                    <div class="noticebar">
+                        <pwm:display key="Notice_ReportSummary" bundle="Admin"/>
                     </div>
                     <div style="text-align: center">
                         <form action="<pwm:url url="Administration"/>" method="post">
@@ -153,7 +156,7 @@
             </div>
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_EventStatistics" bundle="Admin"/>">
                 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_RawStatistics" bundle="Admin"/>" class="tabContent">
-                    <div style="max-height: 350px; overflow-y: auto">
+                    <div style="max-height: 500px; overflow-y: auto">
                         <table>
                             <tr>
                                 <td colspan="10" style="text-align: center">
@@ -192,6 +195,9 @@
                             </tr>
                             <% } %>
                         </table>
+                    </div>
+                    <div class="noticebar">
+                        <pwm:display key="Notice_EventStatistics" bundle="Admin"/>
                     </div>
                     <div style="text-align: center">
                         <form action="Administration" method="post" enctype="application/x-www-form-urlencoded">

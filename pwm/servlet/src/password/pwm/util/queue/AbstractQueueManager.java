@@ -95,6 +95,9 @@ public abstract class AbstractQueueManager implements PwmService {
     }
     
     public Date eldestItem() {
+        if (status != STATUS.OPEN) {
+            return null;
+        }
         final String jsonEvent = sendQueue.peekFirst();
         if (jsonEvent != null) {
             final QueueEvent event = JsonUtil.deserialize(jsonEvent, QueueEvent.class);

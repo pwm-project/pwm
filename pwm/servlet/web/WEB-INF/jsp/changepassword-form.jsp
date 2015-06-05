@@ -22,7 +22,7 @@
 
 <!DOCTYPE html>
 <%@ page import="password.pwm.bean.PasswordStatus" %>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PasswordStatus passwordStatus = JspUtility.getPwmSession(pageContext).getUserInfoBean().getPasswordState(); %>
 <html dir="<pwm:LocaleOrientation/>">

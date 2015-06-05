@@ -50,7 +50,7 @@
 %>
 <% if (selectableContextMode != SelectableContextMode.NONE && ldapProfiles.size() > 1) { %>
 <h2><label for="<%=PwmConstants.PARAM_LDAP_PROFILE%>"><pwm:display key="Field_LdapProfile"/></label></h2>
-<select name="<%=PwmConstants.PARAM_LDAP_PROFILE%>" id="<%=PwmConstants.PARAM_LDAP_PROFILE%>" id="select-updateLoginContexts" class="selectfield">
+<select name="<%=PwmConstants.PARAM_LDAP_PROFILE%>" id="<%=PwmConstants.PARAM_LDAP_PROFILE%>" class="selectfield">
     <% for (final String profileID : ldapProfiles.keySet()) { %>
     <% final String displayName = ldapProfiles.get(profileID).getDisplayName(JspUtility.locale(request)); %>
     <option value="<%=profileID%>"<%=(profileID.equals(selectedProfileParam))?" selected=\"selected\"":""%>><%=StringUtil.escapeHtml(

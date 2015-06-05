@@ -27,6 +27,7 @@ html, body {
     margin: 0;
     width: 100%;
     min-height: inherit;
+    min-width: 300px;
 }
 
 /* main content section, all content should be inside a centerbody div */

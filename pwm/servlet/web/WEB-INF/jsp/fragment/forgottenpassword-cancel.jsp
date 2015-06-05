@@ -1,5 +1,5 @@
 <%@ page import="password.pwm.http.servlet.ForgottenPasswordServlet" %>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -31,7 +31,9 @@
     <pwm:script>
         <script type="text/javascript">
             PWM_GLOBAL['startupFunctions'].push(function(){
-                PWM_MAIN.submitPostAction('button-sendReset','ForgottenPassword','<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>');
+                PWM_MAIN.addEventHandler('button-sendReset', 'click',function() {
+                    PWM_MAIN.submitPostAction('ForgottenPassword', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>');
+                });
             });
         </script>
     </pwm:script>

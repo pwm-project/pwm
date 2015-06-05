@@ -26,6 +26,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingTemplate;
 import password.pwm.error.PwmError;
 import password.pwm.health.HealthMessage;
 import password.pwm.i18n.Message;
@@ -46,8 +47,8 @@ public class CodeIntegrityChecker {
             CHECK_ENUM_METHODS.put(PwmSetting.class.getMethod("getDescription", Locale.class), new Object[]{
                     PwmConstants.DEFAULT_LOCALE
             });
-            CHECK_ENUM_METHODS.put(PwmSetting.class.getMethod("getDefaultValue", PwmSetting.Template.class), new Object[]{
-                    PwmSetting.Template.DEFAULT
+            CHECK_ENUM_METHODS.put(PwmSetting.class.getMethod("getDefaultValue", PwmSettingTemplate.class), new Object[]{
+                    PwmSettingTemplate.DEFAULT
             });
 
 

@@ -25,7 +25,7 @@
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
 <%@ page import="java.util.List" %>
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmRequest pwmRequest = PwmRequest.forRequest(request, response); %>
 <% final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean(); %>
@@ -85,7 +85,9 @@ this is handled this way so on browsers where hiding fields is not possible, the
             PWM_MAIN.addEventHandler('button_cancel', 'click', function(event){
                 PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('button_cancel'),event);
             });
-            PWM_MAIN.submitPostAction('button-goBack','ForgottenPassword','<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
+            PWM_MAIN.addEventHandler('button-goBack','click',function(){
+                PWM_MAIN.submitPostAction('ForgottenPassword','<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
+            });
         });
     </script>
 </pwm:script>

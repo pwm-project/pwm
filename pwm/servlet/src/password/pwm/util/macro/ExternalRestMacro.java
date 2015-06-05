@@ -26,7 +26,7 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.client.rest.RestClientHelper;
@@ -87,7 +87,7 @@ class ExternalRestMacro extends AbstractMacro {
             } else {
                 return "";
             }
-        } catch (PwmOperationalException e) {
+        } catch (PwmException e) {
             final String errorMsg = "error while executing external macro '" + matchValue + "', error: " + e.getMessage();
             LOGGER.error(errorMsg);
             throw new IllegalStateException(errorMsg);

@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.config.PwmSettingCategory" %>
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
+<%@ page import="password.pwm.config.PwmSettingTemplate" %>
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.event.AuditEvent" %>
@@ -38,7 +39,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_IDLE_TIMEOUT); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     PwmRequest pwmRequest = null;
@@ -285,7 +286,7 @@
                     </td>
                 </tr>
                 <% } %>
-                <% final Map<PwmSetting.Template,String> defaultValues = setting.getDefaultValueDebugStrings(true,userLocale); %>
+                <% final Map<PwmSettingTemplate,String> defaultValues = setting.getDefaultValueDebugStrings(true,userLocale); %>
                 <tr>
                     <td class="key" style="width: 100px">
                         Default
@@ -297,7 +298,7 @@
                             <tr><td><b>Template</b></td><td><b>Value</b></td></tr>
                             </thead>
                             <tbody>
-                            <% for (final PwmSetting.Template template : defaultValues.keySet()) { %>
+                            <% for (final PwmSettingTemplate template : defaultValues.keySet()) { %>
                             <tr><td><%=template.toString()%></td><td><pre><%=StringUtil.escapeHtml(defaultValues.get(template))%></pre></td></tr>
                             <% } %>
                             </tbody>

@@ -237,22 +237,29 @@ PWM_CONFIG.downloadConfig = function () {
 };
 
 PWM_CONFIG.downloadSupportBundle = function() {
+    var dialogText = '';
     if (PWM_VAR['config_localDBLogLevel'] != 'TRACE') {
-        PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Error'), text: PWM_CONFIG.showString("Warning_MakeSupportZipNoTrace")});
-    } else {
-        PWM_MAIN.showConfirmDialog({
-            text:PWM_CONFIG.showString("Warning_DownloadSupportZip"),
-            okAction:function(){
-                PWM_MAIN.showWaitDialog({
-                    loadFunction:function(){
-                        PWM_MAIN.goto('ConfigManager?processAction=generateSupportZip',{addFormID:true,hideDialog:true});
-                        setTimeout(function(){PWM_MAIN.closeWaitDialog()},5000);
-                    }
-                });
-
-            }
-        });
+        dialogText += PWM_CONFIG.showString("Warning_MakeSupportZipNoTrace");
+        dialogText += '<br/><br/>';
     }
+    dialogText += PWM_CONFIG.showString("Warning_DownloadSupportZip");
+
+    PWM_MAIN.showConfirmDialog({
+        text:dialogText,
+        okAction:function(){
+            PWM_MAIN.showWaitDialog({
+                loadFunction: function () {
+                    PWM_MAIN.goto('ConfigManager?processAction=generateSupportZip', {
+                        addFormID: true,
+                        hideDialog: true
+                    });
+                    setTimeout(function () {
+                        PWM_MAIN.closeWaitDialog()
+                    }, 5000);
+                }
+            });
+        }
+    });
 };
 
 PWM_CONFIG.uploadFile = function(options) {
@@ -431,4 +438,26 @@ PWM_CONFIG.initConfigHeader = function() {
     }
 
     console.log('initConfigHeader completed');
+};
+
+PWM_CONFIG.convertListOfIdentitiesToHtml = function(data) {
+    var html = '<div style="max-height: 500px; overflow-y: auto">';
+    var users = data['users'];
+    if (users && !PWM_MAIN.isEmpty(users)) {
+        html += '<table style="">';
+        html += '<thead><tr><td class="title" style="width: 75px">' + PWM_MAIN.showString('Field_LdapProfile') + '</td><td class="title" style="max-width: 275px">' + PWM_MAIN.showString('Field_UserDN') + '</td></tr></thead>';
+        html += '<tbody>';
+        for (var iter in users) {
+            var userIdentity = users[iter];
+            html += '<tr ><td style="width: 75px">' + userIdentity['ldapProfile'] + '</td><td style="max-width: 275px">' + userIdentity['userDN'] + '</td></tr>';
+        }
+        html += '</tbody></table>';
+    } else {
+        html += PWM_MAIN.showString('Display_SearchResultsNone');
+    }
+    html += '</div>';
+    if (data['sizeExceeded']) {
+        html += '<div class="noticebar">' + PWM_MAIN.showString('Display_SearchResultsExceeded') + '</div>';
+    }
+    return html;
 };

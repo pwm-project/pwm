@@ -95,8 +95,8 @@ public class UserReportCommand extends AbstractCliCommand {
 
 
         CliParameters cliParameters = new CliParameters();
-        cliParameters.commandName = "ExportUserReportCache";
-        cliParameters.description = "Dump a user report to the output file (csv format)";
+        cliParameters.commandName = "ExportUserReportDetail";
+        cliParameters.description = "Output user report details to the output file (csv format)";
         cliParameters.options = Collections.singletonList(outputFileOption);
 
         cliParameters.needsPwmApplication = true;

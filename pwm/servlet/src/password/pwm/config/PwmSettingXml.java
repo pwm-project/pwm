@@ -42,7 +42,6 @@ public class PwmSettingXml {
            "." + PwmSetting.class.getSimpleName()).replace(".","/") + ".xml";
 
     private static Document xmlDocCache = null;
-    //private static int counter;
 
     private static Document readXml() {
         //new Exception().printStackTrace();
@@ -86,7 +85,7 @@ public class PwmSettingXml {
         return (Element)xp.evaluateFirst(readXml());
     }
 
-    static Element readTemplateXml(final PwmSetting.Template template) {
+    static Element readTemplateXml(final PwmSettingTemplate template) {
         final XPathFactory xpfac = XPathFactory.instance();
         final XPathExpression xp = xpfac.compile("/settings/template[@key=\"" + template.toString() + "\"]");
         return (Element)xp.evaluateFirst(readXml());

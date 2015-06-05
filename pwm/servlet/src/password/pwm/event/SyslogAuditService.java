@@ -316,7 +316,7 @@ public class SyslogAuditService {
             if (certificates != null && certificates.length >= 1) {
                 try {
                     final SSLContext sc = SSLContext.getInstance("SSL");
-                    sc.init(null, new X509TrustManager[]{new X509Utils.PwmTrustManager(certificates)},
+                    sc.init(null, new X509TrustManager[]{new X509Utils.CertMatchingTrustManager(configuration, certificates)},
                             new java.security.SecureRandom());
                     return sc.getSocketFactory();
                 } catch (NoSuchAlgorithmException | KeyManagementException e) {

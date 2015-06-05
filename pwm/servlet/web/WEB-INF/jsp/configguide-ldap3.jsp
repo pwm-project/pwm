@@ -27,7 +27,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
 <% Map<String,String> DEFAULT_FORM = ConfigGuideServlet.defaultForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -136,8 +136,9 @@
             PWM_MAIN.closeWaitDialog();
             checkIfNextEnabled();
         };
-        PWM_MAIN.showWaitDialog();
-        PWM_ADMIN.showAppHealth('healthBody', options);
+        PWM_MAIN.showWaitDialog({loadFunction:function(){
+            PWM_ADMIN.showAppHealth('healthBody', options);
+        }});
     }
 </script>
 </pwm:script>

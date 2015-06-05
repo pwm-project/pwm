@@ -23,7 +23,7 @@
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="com.novell.ldapchai.cr.ChallengeSet" %>
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final ChallengeSet challengeSet = (ChallengeSet)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ForgottenPasswordChallengeSet); %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -77,7 +77,9 @@ this is handled this way so on browsers where hiding fields is not possible, the
 <pwm:script>
     <script>
         PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.submitPostAction('button-goBack','ForgottenPassword','<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
+            PWM_MAIN.addEventHandler('button-goBack','click',function() {
+                PWM_MAIN.submitPostAction('ForgottenPassword', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
+            });
         });
     </script>
 </pwm:script>

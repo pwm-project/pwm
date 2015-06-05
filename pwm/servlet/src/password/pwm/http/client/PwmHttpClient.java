@@ -18,28 +18,28 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.util.EntityUtils;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmSession;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.X509Utils;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -50,16 +50,43 @@ public class PwmHttpClient {
     private static int classCounter = 0;
 
     private final PwmApplication pwmApplication;
-    private final PwmSession pwmSession;
+    private final SessionLabel sessionLabel;
+    private final PwmHttpClientConfiguration pwmHttpClientConfiguration;
 
-    public PwmHttpClient(PwmApplication pwmApplication, PwmSession pwmSession) {
+    public PwmHttpClient(PwmApplication pwmApplication, SessionLabel sessionLabel) {
         this.pwmApplication = pwmApplication;
-        this.pwmSession = pwmSession;
+        this.sessionLabel = sessionLabel;
+        this.pwmHttpClientConfiguration = new PwmHttpClientConfiguration(null);
     }
 
-    public static HttpClient getHttpClient(final Configuration configuration) {
-        DefaultHttpClient httpClient;
-            httpClient = new DefaultHttpClient();
+    public PwmHttpClient(PwmApplication pwmApplication, SessionLabel sessionLabel, final PwmHttpClientConfiguration pwmHttpClientConfiguration) {
+        this.pwmApplication = pwmApplication;
+        this.sessionLabel = sessionLabel;
+        this.pwmHttpClientConfiguration = pwmHttpClientConfiguration;
+    }
+
+    public static HttpClient getHttpClient(final Configuration configuration)
+            throws PwmUnrecoverableException
+    {
+        return getHttpClient(configuration, new PwmHttpClientConfiguration(null));
+    }
+
+    public static HttpClient getHttpClient(final Configuration configuration, final PwmHttpClientConfiguration pwmHttpClientConfiguration)
+            throws PwmUnrecoverableException
+    {
+        final DefaultHttpClient httpClient;
+        try {
+            if (Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE))) {
+                httpClient = new DefaultHttpClient(makeConnectionManager(new X509Utils.PromiscuousTrustManager()));
+            } else if (pwmHttpClientConfiguration != null && pwmHttpClientConfiguration.getCertificates() != null) {
+                final TrustManager trustManager = new X509Utils.CertMatchingTrustManager(configuration,pwmHttpClientConfiguration.getCertificates());
+                httpClient = new DefaultHttpClient(makeConnectionManager(trustManager));
+            } else {
+                httpClient = new DefaultHttpClient();
+            }
+        } catch (Exception e) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error creating promiscuous https client: " + e.getMessage()));
+        }
         final String strValue = configuration.readSettingAsString(PwmSetting.HTTP_PROXY_URL);
         if (strValue != null && strValue.length() > 0) {
             final URI proxyURI = URI.create(strValue);
@@ -111,7 +138,7 @@ public class PwmHttpClient {
     }
 
     public PwmHttpClientResponse makeRequestImpl(final PwmHttpClientRequest clientRequest)
-            throws IOException, URISyntaxException {
+            throws IOException, URISyntaxException, PwmUnrecoverableException {
         final Date startTime = new Date();
         final int counter = classCounter++;
 
@@ -152,8 +179,8 @@ public class PwmHttpClient {
             }
         }
 
-        final HttpClient httpClient = getHttpClient(pwmApplication.getConfig());
-        LOGGER.trace(pwmSession, "preparing to send (id=" + counter + ") " + clientRequest.toDebugString());
+        final HttpClient httpClient = getHttpClient(pwmApplication.getConfig(), pwmHttpClientConfiguration);
+        LOGGER.trace(sessionLabel, "preparing to send (id=" + counter + ") " + clientRequest.toDebugString());
 
         final HttpResponse httpResponse = httpClient.execute(httpRequest);
         final String responseBody = EntityUtils.toString(httpResponse.getEntity());
@@ -172,35 +199,24 @@ public class PwmHttpClient {
         );
 
         final TimeDuration duration = TimeDuration.fromCurrent(startTime);
-        LOGGER.trace(pwmSession, "received response (id=" + counter + ") in " + duration.asCompactString() + ": " + httpClientResponse.toDebugString());
+        LOGGER.trace(sessionLabel, "received response (id=" + counter + ") in " + duration.asCompactString() + ": " + httpClientResponse.toDebugString());
         return httpClientResponse;
     }
 
-    private static ClientConnectionManager ccm()
+    private static ClientConnectionManager makeConnectionManager(TrustManager trustManager)
             throws NoSuchAlgorithmException, KeyManagementException
     {
-        SSLContext sslContext = SSLContext.getInstance("SSL");
+        final SSLContext sslContext = SSLContext.getInstance("SSL");
 
-        // set up a TrustManager that trusts everything
-        sslContext.init(null, new TrustManager[]{new X509TrustManager() {
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
-            }
+        sslContext.init(null, new TrustManager[]{trustManager}, new SecureRandom());
 
-            public void checkClientTrusted(X509Certificate[] certs, String authType) {
-            }
+        final SSLSocketFactory sf = new SSLSocketFactory(sslContext);
+        final HostnameVerifier hostnameVerifier = org.apache.http.conn.ssl.SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
 
-            public void checkServerTrusted(X509Certificate[] certs, String authType) {
-            }
-        }}, new SecureRandom());
-
-        SSLSocketFactory sf = new SSLSocketFactory(sslContext);
-        HostnameVerifier hostnameVerifier = org.apache.http.conn.ssl.SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
-
-        sf.setHostnameVerifier((X509HostnameVerifier) hostnameVerifier);        Scheme httpsScheme = new Scheme("https", 443, sf);
-        SchemeRegistry schemeRegistry = new SchemeRegistry();
+        sf.setHostnameVerifier((X509HostnameVerifier) hostnameVerifier);
+        final Scheme httpsScheme = new Scheme("https", 443, sf);
+        final SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(httpsScheme);
-
 
         return new SingleClientConnManager(schemeRegistry);
     }

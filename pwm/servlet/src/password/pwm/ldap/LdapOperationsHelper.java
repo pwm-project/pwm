@@ -372,7 +372,7 @@ public class LdapOperationsHelper {
 
         final X509Certificate[] ldapServerCerts = ldapProfile.readSettingAsCertificate(PwmSetting.LDAP_SERVER_CERTS);
         if (ldapServerCerts != null && ldapServerCerts.length > 0) {
-            final X509TrustManager tm = new X509Utils.PwmTrustManager(ldapServerCerts);
+            final X509TrustManager tm = new X509Utils.CertMatchingTrustManager(config, ldapServerCerts);
             chaiConfig.setTrustManager(new X509TrustManager[]{tm});
         }
 

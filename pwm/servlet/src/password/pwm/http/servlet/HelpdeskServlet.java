@@ -39,6 +39,8 @@ import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.HelpdeskClearResponseMode;
+import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.error.*;
@@ -183,7 +185,7 @@ public class HelpdeskServlet extends PwmServlet {
                     return;
 
                 case clientData:
-                    restClientData(pwmRequest, helpdeskProfile);
+                    restClientData(pwmRequest, helpdeskBean, helpdeskProfile);
                     return;
             }
         }
@@ -191,16 +193,34 @@ public class HelpdeskServlet extends PwmServlet {
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.HELPDESK_SEARCH);
     }
 
-    private void restClientData(final PwmRequest pwmRequest, final HelpdeskProfile helpdeskProfile)
-            throws IOException
-    {
-        final List<FormConfiguration> searchForm = helpdeskProfile.readSettingAsForm(PwmSetting.HELPDESK_SEARCH_FORM);
-        final Map<String,String> searchColumns = new LinkedHashMap<>();
-        for (final FormConfiguration formConfiguration : searchForm) {
-            searchColumns.put(formConfiguration.getName(),formConfiguration.getLabel(pwmRequest.getLocale()));
-        }
+    private void restClientData(final PwmRequest pwmRequest, final HelpdeskBean helpdeskBean, final HelpdeskProfile helpdeskProfile)
+            throws IOException, PwmUnrecoverableException {
         final HashMap<String,Object> returnValues = new HashMap<>();
-        returnValues.put("helpdesk_search_columns",searchColumns);
+        { // search page
+            final List<FormConfiguration> searchForm = helpdeskProfile.readSettingAsForm(PwmSetting.HELPDESK_SEARCH_FORM);
+            final Map<String, String> searchColumns = new LinkedHashMap<>();
+            for (final FormConfiguration formConfiguration : searchForm) {
+                searchColumns.put(formConfiguration.getName(), formConfiguration.getLabel(pwmRequest.getLocale()));
+            }
+            returnValues.put("helpdesk_search_columns", searchColumns);
+        }
+        { /// detail page
+            returnValues.put("helpdesk_setting_maskPasswords",helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_PASSWORD_MASKVALUE));
+            returnValues.put("helpdesk_setting_clearResponses",helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_CLEAR_RESPONSES,HelpdeskClearResponseMode.class));
+            returnValues.put("helpdesk_setting_PwUiMode",helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE,HelpdeskUIMode.class));
+            returnValues.put("helpdesk_setting_tokenSendMethod",helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class));
+
+
+            final HelpdeskBean.HelpdeskDetailInfo helpdeskDetailInfo = helpdeskBean.getHeldpdeskDetailInfo();
+            if (helpdeskDetailInfo != null) {
+                final UserInfoBean searchedUserInfo = helpdeskDetailInfo.getUserInfoBean();
+                if (searchedUserInfo != null && searchedUserInfo.getUserIdentity() != null) {
+                    final String obfuscatedDN = searchedUserInfo.getUserIdentity().toObfuscatedKey(pwmRequest.getConfig());
+                    returnValues.put("helpdesk_obfuscatedDN",obfuscatedDN);
+                    returnValues.put("helpdesk_username",searchedUserInfo.getUsername());
+                }
+            }
+        }
         final RestResultBean restResultBean = new RestResultBean(returnValues);
         LOGGER.trace(pwmRequest, "returning clientData: " + JsonUtil.serialize(restResultBean));
         pwmRequest.outputJsonResult(restResultBean);
@@ -661,6 +681,8 @@ public class HelpdeskServlet extends PwmServlet {
                     );
                     pwmRequest.getPwmApplication().getAuditManager().submit(auditRecord);
                 }
+
+                StatisticsManager.incrementStat(pwmRequest, Statistic.HELPDESK_VERIFY_OTP);
             }
 
             // add a delay to prevent continuous checks

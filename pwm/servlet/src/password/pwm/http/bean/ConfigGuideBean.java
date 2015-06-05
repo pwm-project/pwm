@@ -22,7 +22,7 @@
 
 package password.pwm.http.bean;
 
-import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.http.servlet.ConfigGuideServlet;
 
@@ -34,7 +34,7 @@ public class ConfigGuideBean implements PwmSessionBean {
 
     private ConfigGuideServlet.STEP step = ConfigGuideServlet.STEP.START;
     private StoredConfiguration storedConfiguration = StoredConfiguration.newStoredConfiguration();
-    private PwmSetting.Template selectedTemplate = null;
+    private PwmSettingTemplate selectedTemplate = null;
     private Map<String,String> formData = new HashMap<>();
     private X509Certificate[] ldapCertificates;
     private boolean certsTrustedbyKeystore = false;
@@ -92,12 +92,12 @@ public class ConfigGuideBean implements PwmSessionBean {
         this.useConfiguredCerts = useConfiguredCerts;
     }
 
-    public PwmSetting.Template getSelectedTemplate()
+    public PwmSettingTemplate getSelectedTemplate()
     {
         return selectedTemplate;
     }
 
-    public void setSelectedTemplate(PwmSetting.Template selectedTemplate)
+    public void setSelectedTemplate(PwmSettingTemplate selectedTemplate)
     {
         this.selectedTemplate = selectedTemplate;
     }

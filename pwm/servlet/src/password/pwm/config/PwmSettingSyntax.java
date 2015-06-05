@@ -51,7 +51,7 @@ public enum PwmSettingSyntax {
 
     private StoredValue.StoredValueFactory storedValueImpl;
 
-    private PwmSettingSyntax(StoredValue.StoredValueFactory storedValueImpl) {
+    PwmSettingSyntax(StoredValue.StoredValueFactory storedValueImpl) {
         this.storedValueImpl = storedValueImpl;
     }
 

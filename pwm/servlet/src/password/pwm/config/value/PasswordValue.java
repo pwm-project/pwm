@@ -159,7 +159,7 @@ public class PasswordValue implements StoredValue {
             throws PwmUnrecoverableException, UnsupportedEncodingException, NoSuchAlgorithmException
     {
         final SecretKey secretKey = SecureHelper.makeKey(key);
-        return SecureHelper.encryptToString(value, secretKey);
+        return SecureHelper.encryptToString(value, secretKey, false, SecureHelper.BlockAlgorithm.CONFIG);
     }
 
     public boolean requiresStoredUpdate()

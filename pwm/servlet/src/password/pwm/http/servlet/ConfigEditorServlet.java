@@ -29,7 +29,6 @@ import password.pwm.Validator;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
-import password.pwm.config.option.RecoveryVerificationMethod;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.config.value.X509CertificateValue;
@@ -77,7 +76,7 @@ public class ConfigEditorServlet extends PwmServlet {
         cancelEditing(HttpMethod.POST),
         uploadFile(HttpMethod.POST),
         setOption(HttpMethod.POST),
-        menuTreeData(HttpMethod.GET),
+        menuTreeData(HttpMethod.POST),
         settingData(HttpMethod.GET),
         testMacro(HttpMethod.POST),
 
@@ -127,6 +126,7 @@ public class ConfigEditorServlet extends PwmServlet {
     public static class TemplateInfo implements Serializable {
         public String description;
         public String key;
+        public boolean hidden;
     }
 
     protected ConfigEditorAction readProcessAction(final PwmRequest request)
@@ -253,16 +253,15 @@ public class ConfigEditorServlet extends PwmServlet {
         try {
             Class implementingClass = Class.forName(functionName);
             SettingUIFunction function = (SettingUIFunction) implementingClass.newInstance();
-            final String result = function.provideFunction(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), configManagerBean.getStoredConfiguration(), pwmSetting, profileID);
+            final Serializable result = function.provideFunction(pwmRequest, configManagerBean.getStoredConfiguration(), pwmSetting, profileID);
             RestResultBean restResultBean = new RestResultBean();
-            restResultBean.setSuccessMessage(result);
+            restResultBean.setSuccessMessage(Message.Success_Unknown.getLocalizedMessage(pwmRequest.getLocale(),pwmRequest.getConfig()));
+            restResultBean.setData(result);
             pwmRequest.outputJsonResult(restResultBean);
         } catch (Exception e) {
             final RestResultBean restResultBean;
             if (e instanceof PwmException) {
-                final String errorMsg = "error while loading data: " + ((PwmException) e).getErrorInformation().getDetailedErrorMsg();
-                final ErrorInformation errorInformation = new ErrorInformation(((PwmException) e).getError(), errorMsg);
-                restResultBean = RestResultBean.fromError(errorInformation, pwmRequest);
+                restResultBean = RestResultBean.fromError(((PwmException) e).getErrorInformation(), pwmRequest, true);
             } else {
                 restResultBean = new RestResultBean();
                 restResultBean.setError(true);
@@ -515,13 +514,13 @@ public class ConfigEditorServlet extends PwmServlet {
                 final String requestedTemplate = pwmRequest.readParameterAsString("template");
                 if (requestedTemplate != null && requestedTemplate.length() > 0) {
                     try {
-                        final PwmSetting.Template template = PwmSetting.Template.valueOf(requestedTemplate);
+                        final PwmSettingTemplate template = PwmSettingTemplate.valueOf(requestedTemplate);
                         configManagerBean.getStoredConfiguration().writeConfigProperty(
                                 StoredConfiguration.ConfigProperty.PROPERTY_KEY_TEMPLATE, template.toString());
                         LOGGER.trace("setting template to: " + requestedTemplate);
                     } catch (IllegalArgumentException e) {
                         configManagerBean.getStoredConfiguration().writeConfigProperty(
-                                StoredConfiguration.ConfigProperty.PROPERTY_KEY_TEMPLATE, PwmSetting.Template.DEFAULT.toString());
+                                StoredConfiguration.ConfigProperty.PROPERTY_KEY_TEMPLATE, PwmSettingTemplate.DEFAULT.toString());
                         LOGGER.error("unknown template set request: " + requestedTemplate);
                     }
                 }
@@ -556,7 +555,7 @@ public class ConfigEditorServlet extends PwmServlet {
         final RestResultBean restResultBean = new RestResultBean();
         final String searchTerm = valueMap.get("search");
         if (searchTerm != null && !searchTerm.isEmpty()) {
-            final ArrayList<StoredConfiguration.ConfigRecordID> searchResults = new ArrayList(configManagerBean.getStoredConfiguration().search(searchTerm, locale));
+            final ArrayList<StoredConfiguration.ConfigRecordID> searchResults = new ArrayList<>(configManagerBean.getStoredConfiguration().search(searchTerm, locale));
             final TreeMap<String, Map<String, Map<String, Object>>> returnData = new TreeMap<>();
 
             for (final StoredConfiguration.ConfigRecordID recordID : searchResults) {
@@ -565,8 +564,9 @@ public class ConfigEditorServlet extends PwmServlet {
                     final LinkedHashMap<String, Object> settingData = new LinkedHashMap<>();
                     settingData.put("category", setting.getCategory().toString());
                     settingData.put("value", configManagerBean.getStoredConfiguration().readSetting(setting, recordID.getProfileID()).toDebugString(true, pwmRequest.getLocale()));
-                    settingData.put("navigation", setting.getCategory().toMenuLocationDebug(null, locale));
+                    settingData.put("navigation", setting.getCategory().toMenuLocationDebug(recordID.getProfileID(), locale));
                     settingData.put("default", configManagerBean.getStoredConfiguration().isDefaultValue(setting, recordID.getProfileID()));
+                    settingData.put("profile",recordID.getProfileID());
 
                     final String returnCategory = settingData.get("navigation").toString();
                     if (!returnData.containsKey(returnCategory)) {
@@ -706,8 +706,11 @@ public class ConfigEditorServlet extends PwmServlet {
     {
         final Date startTime = new Date();
         final ArrayList<Map<String, Object>> navigationData = new ArrayList<>();
-        final boolean modifiedSettingsOnly = pwmRequest.readParameterAsBoolean("modifiedSettingsOnly");
-        final int level = pwmRequest.readParameterAsInt("level",-1);
+
+        final Map<String,Object> inputParameters = pwmRequest.readBodyAsJsonMap(false);
+        final boolean modifiedSettingsOnly = (boolean)inputParameters.get("modifiedSettingsOnly");
+        final double level = (double)inputParameters.get("level");
+        final String filterText = (String)inputParameters.get("text");
 
         { // root node
             final Map<String, Object> categoryInfo = new HashMap<>();
@@ -726,7 +729,7 @@ public class ConfigEditorServlet extends PwmServlet {
 
         final StoredConfiguration storedConfiguration = configManagerBean.getStoredConfiguration();
         for (final PwmSettingCategory loopCategory : PwmSettingCategory.sortedValues(pwmRequest.getLocale())) {
-            if (NavTreeHelper.categoryMatcher(loopCategory, storedConfiguration, modifiedSettingsOnly, level)) {
+            if (NavTreeHelper.categoryMatcher(loopCategory, storedConfiguration, modifiedSettingsOnly, (int)level, filterText)) {
                 final Map<String, Object> categoryInfo = new LinkedHashMap<>();
                 categoryInfo.put("id", loopCategory.getKey());
                 categoryInfo.put("name", loopCategory.getLabel(pwmRequest.getLocale()));
@@ -839,14 +842,15 @@ public class ConfigEditorServlet extends PwmServlet {
                 PwmSettingCategory category,
                 StoredConfiguration storedConfiguration,
                 final boolean modifiedOnly,
-                final int minLevel
+                final int minLevel,
+                final String text
         ) {
             if (category.isHidden()) {
                 return false;
             }
 
             for (PwmSettingCategory childCategory : category.getChildCategories()) {
-                if (categoryMatcher(childCategory, storedConfiguration, modifiedOnly, minLevel)) {
+                if (categoryMatcher(childCategory, storedConfiguration, modifiedOnly, minLevel, text)) {
                     return true;
                 }
             }
@@ -854,14 +858,14 @@ public class ConfigEditorServlet extends PwmServlet {
             if (category.hasProfiles()) {
                 for (String profileID : storedConfiguration.profilesForSetting(category.getProfileSetting())) {
                     for (final PwmSetting setting : category.getSettings()) {
-                        if (settingMatches(storedConfiguration,setting,profileID,modifiedOnly,minLevel)) {
+                        if (settingMatches(storedConfiguration,setting,profileID,modifiedOnly,minLevel,text)) {
                             return true;
                         }
                     }
                 }
             } else {
                 for (final PwmSetting setting : category.getSettings()) {
-                    if (settingMatches(storedConfiguration,setting,null,modifiedOnly,minLevel)) {
+                    if (settingMatches(storedConfiguration,setting,null,modifiedOnly,minLevel,text)) {
                         return true;
                     }
                 }
@@ -874,7 +878,8 @@ public class ConfigEditorServlet extends PwmServlet {
                 final PwmSetting setting,
                 final String profileID,
                 final boolean modifiedOnly,
-                final int level
+                final int level,
+                final String text
         ) {
             if (setting.isHidden()) {
                 return false;
@@ -886,12 +891,20 @@ public class ConfigEditorServlet extends PwmServlet {
                 }
             }
 
-            if (level < 0) {
-                return true;
+            if (level > 0 && setting.getLevel() > level) {
+                return false;
             }
 
-            if (setting.getLevel() <= level) {
+
+            if (text == null || text.isEmpty()) {
                 return true;
+            } else {
+                final StoredValue storedValue = storedConfiguration.readSetting(setting,profileID);
+                for (final String term : StringUtil.whitespaceSplit(text)) {
+                    if (storedConfiguration.matchSetting(setting, storedValue, term, PwmConstants.DEFAULT_LOCALE)) {
+                        return true;
+                    }
+                }
             }
 
             return false;
@@ -949,24 +962,14 @@ public class ConfigEditorServlet extends PwmServlet {
         }
         {
             final LinkedHashMap<String, Object> templateMap = new LinkedHashMap<>();
-            for (final PwmSetting.Template template : PwmSetting.Template.values()) {
+            for (final PwmSettingTemplate template : PwmSettingTemplate.sortedValues(pwmRequest.getLocale())) {
                 final TemplateInfo templateInfo = new TemplateInfo();
                 templateInfo.description = template.getLabel(locale);
                 templateInfo.key = template.toString();
+                templateInfo.hidden = template.isHidden();
                 templateMap.put(template.toString(), templateInfo);
             }
             returnMap.put("templates", templateMap);
-        }
-        {
-            final LinkedHashMap<String, Object> verificationMethodMap = new LinkedHashMap<>();
-            for (final RecoveryVerificationMethod recoveryVerificationMethod : RecoveryVerificationMethod.values()) {
-                final String displayLabel = LocaleHelper.getLocalizedMessage(
-                        pwmRequest.getLocale(),
-                        recoveryVerificationMethod.getConfigDisplayKey(),
-                        pwmRequest.getConfig());
-                verificationMethodMap.put(recoveryVerificationMethod.toString(),displayLabel);
-            }
-            returnMap.put("verificationMethods",verificationMethodMap);
         }
 
         final RestResultBean restResultBean = new RestResultBean();

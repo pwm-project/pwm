@@ -24,13 +24,14 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+         contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final ErrorInformation errorInformation = (ErrorInformation)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.PwmErrorInfo); %>
 <html dir="<pwm:LocaleOrientation/>">
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_REQ_COUNTER); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo" data-jsp-page="error.jsp">
 <div id="wrapper">

@@ -33,6 +33,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.event.SyslogAuditService;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Message;
 import password.pwm.util.X509Utils;
@@ -46,14 +47,16 @@ public class SyslogCertImportFunction implements SettingUIFunction {
 
     @Override
     public String provideFunction(
-            PwmApplication pwmApplication,
-            PwmSession pwmSession,
+            PwmRequest pwmRequest,
             StoredConfiguration storedConfiguration,
             PwmSetting setting,
             String profile
     )
             throws PwmOperationalException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+
         final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
 
         final String syslogConfigStr = (String)storedConfiguration.readSetting(PwmSetting.AUDIT_SYSLOG_SERVERS).toNativeObject();
@@ -61,7 +64,7 @@ public class SyslogCertImportFunction implements SettingUIFunction {
             final SyslogAuditService.SyslogConfig syslogConfig = SyslogAuditService.SyslogConfig.fromConfigString(syslogConfigStr);
             if (syslogConfig != null) {
                 try {
-                    final X509Certificate[] certs = X509Utils.readLdapServerCerts(syslogConfig.getHost(), syslogConfig.getPort());
+                    final X509Certificate[] certs = X509Utils.readRemoteCertificates(syslogConfig.getHost(), syslogConfig.getPort());
                     if (certs != null) {
                         resultCertificates.addAll(Arrays.asList(certs));
                     }

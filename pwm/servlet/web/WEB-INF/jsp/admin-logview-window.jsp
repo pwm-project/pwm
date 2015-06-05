@@ -27,7 +27,7 @@
 <%@ page import="password.pwm.util.logging.PwmLogLevel" %>
 <%@ page import="java.util.Date" %>
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_REQ_COUNTER); %>

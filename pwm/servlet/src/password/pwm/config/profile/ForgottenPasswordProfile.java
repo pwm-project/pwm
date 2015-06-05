@@ -26,15 +26,15 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.config.StoredValue;
-import password.pwm.config.option.RecoveryVerificationMethod;
+import password.pwm.config.option.RecoveryVerificationMethods;
 import password.pwm.config.value.VerificationMethodValue;
 
 import java.util.*;
 
 public class ForgottenPasswordProfile extends AbstractProfile {
 
-    private Set<RecoveryVerificationMethod> requiredRecoveryVerificationMethods;
-    private Set<RecoveryVerificationMethod> optionalRecoveryVerificationMethods;
+    private Set<RecoveryVerificationMethods> requiredRecoveryVerificationMethods;
+    private Set<RecoveryVerificationMethods> optionalRecoveryVerificationMethods;
 
     public ForgottenPasswordProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);
@@ -61,29 +61,29 @@ public class ForgottenPasswordProfile extends AbstractProfile {
         return ProfileType.ForgottenPassword;
     }
     
-    public Set<RecoveryVerificationMethod> requiredRecoveryAuthenticationMethods() {
+    public Set<RecoveryVerificationMethods> requiredRecoveryAuthenticationMethods() {
         if (requiredRecoveryVerificationMethods == null) {
             requiredRecoveryVerificationMethods = readRecoveryAuthMethods(VerificationMethodValue.EnabledState.required);
         }
         return requiredRecoveryVerificationMethods;
     }
 
-    public Set<RecoveryVerificationMethod> optionalRecoveryAuthenticationMethods() {
+    public Set<RecoveryVerificationMethods> optionalRecoveryAuthenticationMethods() {
         if (optionalRecoveryVerificationMethods == null) {
             optionalRecoveryVerificationMethods = readRecoveryAuthMethods(VerificationMethodValue.EnabledState.optional);
         }
         return optionalRecoveryVerificationMethods;
     }
     
-    private Set<RecoveryVerificationMethod> readRecoveryAuthMethods(final VerificationMethodValue.EnabledState enabledState) {
-        final Set<RecoveryVerificationMethod> result = new LinkedHashSet<>();
+    private Set<RecoveryVerificationMethods> readRecoveryAuthMethods(final VerificationMethodValue.EnabledState enabledState) {
+        final Set<RecoveryVerificationMethods> result = new LinkedHashSet<>();
         final StoredValue configValue = storedValueMap.get(PwmSetting.RECOVERY_VERIFICATION_METHODS);
         final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = (VerificationMethodValue.VerificationMethodSettings)configValue.toNativeObject();
 
-        for (final RecoveryVerificationMethod recoveryVerificationMethod : RecoveryVerificationMethod.values()) {
-            if (verificationMethodSettings.getMethodSettings().containsKey(recoveryVerificationMethod)) {
-                if (verificationMethodSettings.getMethodSettings().get(recoveryVerificationMethod).getEnabledState() == enabledState) {
-                    result.add(recoveryVerificationMethod);
+        for (final RecoveryVerificationMethods recoveryVerificationMethods : RecoveryVerificationMethods.availableValues()) {
+            if (verificationMethodSettings.getMethodSettings().containsKey(recoveryVerificationMethods)) {
+                if (verificationMethodSettings.getMethodSettings().get(recoveryVerificationMethods).getEnabledState() == enabledState) {
+                    result.add(recoveryVerificationMethods);
                 }
             }
         }

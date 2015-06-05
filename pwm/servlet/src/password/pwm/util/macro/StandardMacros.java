@@ -26,6 +26,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
@@ -67,6 +68,7 @@ public abstract class StandardMacros {
         defaultMacros.add(SiteHostMacro.class);
         defaultMacros.add(RandomCharMacro.class);
         defaultMacros.add(UUIDMacro.class);
+        defaultMacros.add(UserLdapProfileMacro.class);
         STANDARD_MACROS = Collections.unmodifiableList(defaultMacros);
     }
 
@@ -333,6 +335,30 @@ public abstract class StandardMacros {
             }
 
             return userInfoBean.getUsername();
+        }
+    }
+
+    public static class UserLdapProfileMacro extends AbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@User:LdapProfile@");
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
+        ) {
+            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+
+            if (userInfoBean != null) {
+                final UserIdentity userIdentity = userInfoBean.getUserIdentity();
+                if (userIdentity != null) {
+                    return userIdentity.getLdapProfileID();
+                }
+            }
+
+            return "";
         }
     }
 

@@ -27,7 +27,6 @@
 <%@ page import="password.pwm.config.ActionConfiguration" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.config.option.HelpdeskClearResponseMode" %>
 <%@ page import="password.pwm.config.option.HelpdeskUIMode" %>
 <%@ page import="password.pwm.config.option.MessageSendMethod" %>
 <%@ page import="password.pwm.config.option.ViewStatusFields" %>
@@ -79,7 +78,7 @@
         <table style="border:0">
             <tr>
                 <td style="border:0; width: 600px; max-width:600px; vertical-align: top">
-                    <div data-dojo-type="dijit.layout.TabContainer" style="max-width: 600px; height: 100%;" data-dojo-props="doLayout: false, persist: true" >
+                    <div id="panel-helpdesk-detail" data-dojo-type="dijit.layout.TabContainer" style="max-width: 600px; height: 100%;" data-dojo-props="doLayout: false, persist: true" >
                         <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Field_Profile"/>" class="tabContent">
                             <div style="max-height: 400px; overflow: auto;">
                                 <table class="nomargin">
@@ -506,97 +505,45 @@
                 </td>
                 <td style="border:0; width: 200px; max-width:200px; text-align: left; vertical-align: top">
                     <div style="border:0; margin-top: 25px; margin-left: 5px">
-                        <button name="button_continue" class="btn" id="button_continue" style="width:150px">
+                        <button name="button_continue" class="helpdesk-detail-btn btn" id="button_continue">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                             <pwm:display key="Button_GoBack"/>
                         </button>
-                        <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('button_continue','click',function(){
-                                        PWM_MAIN.goto('Helpdesk');
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
-                        <button name="button_refresh" class="btn" id="button_refresh" style="width:150px">
+                        <button name="button_refresh" class="helpdesk-detail-btn btn" id="button_refresh">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh"></span></pwm:if>
                             <pwm:display key="Display_CaptchaRefresh"/>
                         </button>
-                        <br/>
-                        <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('button_refresh','click',function(){
-                                        PWM_HELPDESK.refreshDetailPage();
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
                         <br/><br/>
                         <% if (SETTING_PW_UI_MODE != HelpdeskUIMode.none) { %>
-                        <button class="btn" id="helpdesk_ChangePasswordButton" style="width:150px">
+                        <button class="helpdesk-detail-btn btn" id="helpdesk_ChangePasswordButton">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-key"></span></pwm:if>
                             <pwm:display key="Button_ChangePassword"/>
                         </button>
-                        <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('helpdesk_ChangePasswordButton','click',function(){
-                                        initiateChangePasswordDialog();
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
-                        <br/>
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
                         <% if (helpdeskBean.getHeldpdeskDetailInfo().isIntruderLocked()) { %>
-                        <button id="helpdesk_unlockBtn" class="btn" style="width:150px">
+                        <button id="helpdesk_unlockBtn" class="helpdesk-detail-btn btn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
                             <pwm:display key="Button_Unlock"/>
                         </button>
-                        <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('helpdesk_unlockBtn','click',function(){
-                                        PWM_MAIN.showConfirmDialog({okAction:function() {
-                                            document.ldapUnlockForm.submit();
-                                        }});
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
                         <% } else { %>
-                        <button id="helpdesk_unlockBtn" class="btn" disabled="disabled" style="width:150px">
+                        <button id="helpdesk_unlockBtn" class="helpdesk-detail-btn btn" disabled="disabled">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
                             <pwm:display key="Button_Unlock"/>
                         </button>
                         <% } %>
-                        <br/>
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) { %>
                         <% if (responseInfoBean != null) { %>
-                        <button id="helpdesk_clearResponsesBtn" class="btn" style="width:150px">
-                           <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
-                            <pwm:display key="Button_ClearResponses"/>
-                        </button>
-                        <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('helpdesk_clearResponsesBtn','click',function(){
-                                        PWM_HELPDESK.doResponseClear();
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
-                        <br/>
-                        <% } else { %>
-                        <button id="helpdesk_clearResponsesBtn" class="btn" disabled="disabled" style="width:150px">
+                        <button id="helpdesk_clearResponsesBtn" class="helpdesk-detail-btn btn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
                             <pwm:display key="Button_ClearResponses"/>
                         </button>
-                        <br/>
+                        <% } else { %>
+                        <button id="helpdesk_clearResponsesBtn" class="helpdesk-detail-btn btn" disabled="disabled">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
+                            <pwm:display key="Button_ClearResponses"/>
+                        </button>
                         <pwm:script>
                             <script type="text/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
@@ -611,86 +558,41 @@
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_OTP_BUTTON) && pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) { %>
                         <% if (hasOtp) { %>
-                        <button id="helpdesk_clearOtpSecretBtn" class="btn" style="width:150px">
+                        <button id="helpdesk_clearOtpSecretBtn" class="helpdesk-detail-btn btn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
                             <pwm:display key="Button_HelpdeskClearOtpSecret"/>
                         </button>
-                        <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('helpdesk_clearOtpSecretBtn','click',function(){
-                                        PWM_MAIN.showConfirmDialog({okAction:function() {
-                                            document.clearOtpSecretForm.submit();
-                                        }});
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
                         <% } else { %>
-                        <button id="helpdesk_clearOtpSecretBtn" class="btn" disabled="disabled" style="width:150px">
+                        <button id="helpdesk_clearOtpSecretBtn" class="helpdesk-detail-btn btn" disabled="disabled">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
                             <pwm:display key="Button_HelpdeskClearOtpSecret"/>
                         </button>
                         <% } %>
-                        <br/>
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_OTP_VERIFY)) { %>
-                        <button id="helpdesk_verifyOtpButton" <%=hasOtp?"":" disabled=\"true\""%>class="btn" style="width:150px">
+                        <button id="helpdesk_verifyOtpButton" <%=hasOtp?"":" disabled=\"true\""%>class="helpdesk-detail-btn btn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-mobile-phone"></span></pwm:if>
                             Verify OTP
                         </button>
-                        <br/>
-                        <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('helpdesk_verifyOtpButton','click',function(){
-                                        PWM_HELPDESK.validateOtpCode('<%=obfuscatedDN%>');
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class) != MessageSendMethod.NONE) { %>
-                        <% boolean choiceFlag = helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class) == MessageSendMethod.CHOICE_SMS_EMAIL; %>
-                        <button id="sendTokenButton" class="btn" style="width:150px">
+                        <button id="sendTokenButton" class="helpdesk-detail-btn btn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-mobile-phone"></span></pwm:if>
                             Send Verification
                         </button>
-                        <br/>
-                        <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('sendTokenButton','click',function(){
-                                        PWM_HELPDESK.sendVerificationToken('<%=obfuscatedDN%>',<%=choiceFlag%>);
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
                         <% } %>
-                        <br/>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_DELETE_USER_BUTTON)) { %>
-                        <button class="btn" id="helpdesk_deleteUserButton" style="width:150px">
+                        <button class="helpdesk-detail-btn btn" id="helpdesk_deleteUserButton">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-user-times"></span></pwm:if>
                             <pwm:display key="Button_Delete"/>
                         </button>
-                        <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('helpdesk_deleteUserButton','click',function(){
-                                        PWM_HELPDESK.deleteUser('<%=StringUtil.escapeHtml(obfuscatedDN)%>')
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
-                        <br/>
                         <% } %>
                         <% final List<ActionConfiguration> actions = helpdeskProfile.readSettingAsAction(PwmSetting.HELPDESK_ACTIONS); %>
                         <% for (final ActionConfiguration loopAction : actions) { %>
-                        <button class="btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>">
+                        <button class="helpdesk-detail-btn btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-location-arrow"></span></pwm:if>
                             <%=StringUtil.escapeHtml(loopAction.getName())%>
                         </button>
-                        <br/>
                         <pwm:script>
                             <script type="text/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
@@ -713,45 +615,6 @@
     </div>
     <div class="push"></div>
 </div>
-<div style="display:none">
-    <form name="continueForm" id="continueForm" method="post" action="Helpdesk" enctype="application/x-www-form-urlencoded">
-        <input type="hidden" name="processAction" value="detail"/>
-        <input type="hidden" name="userKey" value="<%=StringUtil.escapeHtml(obfuscatedDN)%>"/>
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-    </form>
-    <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
-        <input type="hidden" name="processAction" value="doUnlock"/>
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-    </form>
-    <form name="clearOtpSecretForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
-        <input type="hidden" name="processAction" value="doClearOtpSecret"/>
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-    </form>
-</div>
-<pwm:script>
-    <script type="text/javascript">
-        function initiateChangePasswordDialog() {
-            if (PWM_VAR['helpdesk_setting_PwUiMode'] == 'autogen') {
-                PWM_HELPDESK.generatePasswordPopup();
-            } else if (PWM_VAR['helpdesk_setting_PwUiMode'] == 'random') {
-                PWM_HELPDESK.setRandomPasswordPopup();
-            } else {
-                PWM_HELPDESK.changePasswordPopup();
-            }
-        }
-
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
-                dojoParser.parse();
-                PWM_VAR['helpdesk_obfuscatedDN'] = '<%=StringUtil.escapeJS(obfuscatedDN)%>';
-                PWM_VAR['helpdesk_username'] = '<%=StringUtil.escapeJS(searchedUserInfo.getUsername())%>';
-                PWM_VAR['helpdesk_setting_clearResponses'] = '<%=helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_CLEAR_RESPONSES,HelpdeskClearResponseMode.class)%>';
-                PWM_VAR['helpdesk_setting_PwUiMode'] = '<%=helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE,HelpdeskUIMode.class) %>';
-                PWM_VAR['helpdesk_setting_maskPasswords'] = false;
-            });
-        });
-    </script>
-</pwm:script>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 <pwm:script-ref url="/public/resources/js/helpdesk.js"/>
 <pwm:script-ref url="/public/resources/js/changepassword.js"/>

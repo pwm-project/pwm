@@ -27,10 +27,11 @@
 <%@ page import="java.util.List" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+         contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_MOBILE_CSS); %>
 <%@ include file="fragment/header.jsp" %>
 <% final PwmRequest configeditor_pwmRequest = PwmRequest.forRequest(request, response); %>
 <% final ConfigManagerBean configManagerBean = configeditor_pwmRequest.getPwmSession().getConfigManagerBean(); %>

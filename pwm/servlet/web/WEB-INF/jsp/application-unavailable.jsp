@@ -24,7 +24,7 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%
     final ErrorInformation startupError = (ErrorInformation)request.getAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo.toString());
 %>

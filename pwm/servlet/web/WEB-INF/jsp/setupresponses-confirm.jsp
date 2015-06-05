@@ -26,7 +26,7 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+         contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final SetupResponsesBean responseBean = JspUtility.getPwmSession(pageContext).getSetupResponseBean(); %>
 <html dir="<pwm:LocaleOrientation/>">

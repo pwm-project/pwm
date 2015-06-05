@@ -118,7 +118,12 @@ public class LocalDBLogger implements PwmService {
         final PwmLogEvent loopEvent;
         try {
             loopEvent = readEvent(localDBListQueue.getLast());
-            return loopEvent.getDate().getTime();
+            if (loopEvent != null) {
+                final Date tailDate = loopEvent.getDate();
+                if (tailDate != null) {
+                    return tailDate.getTime();
+                }
+            }
         } catch (Exception e) {
             LOGGER.error("unexpected error attempting to determine tail event timestamp: " + e.getMessage());
         }

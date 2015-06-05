@@ -145,6 +145,7 @@ public abstract class PwmConstants {
         ConfigFilename,
         ConfigLastModified,
         ConfigHasPassword,
+        ConfigPasswordRememberTime,
         ApplicationPath,
 
         CaptchaClientUrl,
@@ -152,7 +153,10 @@ public abstract class PwmConstants {
         CaptchaPublicKey,
 
         ForgottenPasswordChallengeSet,
-        ForgottenPasswordOptionalPageView
+        ForgottenPasswordOptionalPageView,
+        ForgottenPasswordPrompts,
+        ForgottenPasswordInstructions,
+
     }
 
 
@@ -198,6 +202,7 @@ public abstract class PwmConstants {
         RECOVER_PASSWORD_TOKEN_CHOICE("forgottenpassword-tokenchoice.jsp"),
         RECOVER_PASSWORD_ENTER_TOKEN("forgottenpassword-entertoken.jsp"),
         RECOVER_PASSWORD_ENTER_OTP("forgottenpassword-enterotp.jsp"),
+        RECOVER_PASSWORD_NAAF("forgottenpassword-naaf.jsp"),
         SETUP_RESPONSES("setupresponses.jsp"),
         SETUP_RESPONSES_CONFIRM("setupresponses-confirm.jsp"),
         SETUP_RESPONSES_HELPDESK("setupresponses-helpdesk.jsp"),
@@ -359,6 +364,7 @@ public abstract class PwmConstants {
         ContentDisposition("content-disposition"),
         ContentTransferEncoding("Content-Transfer-Encoding"),
         Accept_Encoding("Accept-Encoding"),
+        Accept_Language("Accept-Language"),
         Authorization("Authorization"),
 
         XFrameOptions("X-Frame-Options"),

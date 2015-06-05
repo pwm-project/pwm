@@ -64,15 +64,19 @@
         </div>
         <div id="header-center-right">
             <%-- this section handles the home button link (if user is logged in) --%>
-            <a class="header-button" href="<pwm:value name="homeURL"/>" style="visibility: <%=showHome ? "inline" : "hidden"%>" id="HomeButton">
+            <% if (showHome) { %>
+            <a class="header-button" href="<pwm:value name="homeURL"/>" id="HomeButton">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-home"></span></pwm:if>
                 <pwm:display key="Button_Home"/>
             </a>
+            <% } %>
             <%-- this section handles the logout link (if user is logged in) --%>
-            <a class="header-button" href="<pwm:context/><pwm:url url='/public/Logout'/>" style="visibility: <%=showLogout ? "inline" : "hidden"%>" id="LogoutButton">
+            <% if (showLogout) { %>
+            <a class="header-button" href="<pwm:context/><pwm:url url='/public/Logout'/>" id="LogoutButton">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
                 <pwm:display key="Button_Logout"/>
             </a>
+            <% } %>
         </div>
     </div>
 </div>

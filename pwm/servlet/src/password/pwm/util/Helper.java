@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.csv.CSVPrinter;
+import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
@@ -39,6 +40,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.ConfigurationChecker;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
+import password.pwm.i18n.Display;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -520,10 +523,104 @@ public class
         }
         return false;
     }
-    
-    public static CSVPrinter makeCsvPrinter(final OutputStream outputStream) 
-            throws IOException 
+
+    public static CSVPrinter makeCsvPrinter(final OutputStream outputStream)
+            throws IOException
     {
         return new CSVPrinter(new OutputStreamWriter(outputStream,PwmConstants.DEFAULT_CHARSET), PwmConstants.DEFAULT_CSV_FORMAT);
+    }
+
+    private static String dateFormatForInfoBean(final Date date) {
+        if (date != null) {
+            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(date);
+        } else {
+            return LocaleHelper.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, Display.Value_NotApplicable, null);
+        }
+
+    }
+
+    public static Map<PwmAboutProperty,String> makeInfoBean(
+            final PwmApplication pwmApplication
+    ) {
+        final Map<PwmAboutProperty,String> aboutMap = new TreeMap<>();
+
+        // about page
+        aboutMap.put(PwmAboutProperty.app_version,                  PwmConstants.SERVLET_VERSION);
+        aboutMap.put(PwmAboutProperty.app_currentTime,              dateFormatForInfoBean(new Date()));
+        aboutMap.put(PwmAboutProperty.app_startTime,                dateFormatForInfoBean(pwmApplication.getStartupTime()));
+        aboutMap.put(PwmAboutProperty.app_installTime,              dateFormatForInfoBean(pwmApplication.getInstallTime()));
+        aboutMap.put(PwmAboutProperty.app_siteUrl,                  pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL));
+        aboutMap.put(PwmAboutProperty.app_instanceID,               pwmApplication.getInstanceID());
+        aboutMap.put(PwmAboutProperty.app_chaiApiVersion,           PwmConstants.CHAI_API_VERSION);
+
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {
+            if (pwmApplication.getVersionChecker() != null) {
+                aboutMap.put(PwmAboutProperty.app_currentPublishedVersion, pwmApplication.getVersionChecker().currentVersion());
+                aboutMap.put(PwmAboutProperty.app_currentPublishedVersionCheckTime, dateFormatForInfoBean(pwmApplication.getVersionChecker().lastReadTimestamp()));
+            }
+        }
+
+        aboutMap.put(PwmAboutProperty.app_wordlistSize,             Integer.toString(pwmApplication.getWordlistManager().size()));
+        aboutMap.put(PwmAboutProperty.app_seedlistSize,             Integer.toString(pwmApplication.getSeedlistManager().size()));
+        if (pwmApplication.getSharedHistoryManager() != null) {
+            aboutMap.put(PwmAboutProperty.app_sharedHistorySize,    Integer.toString(pwmApplication.getSharedHistoryManager().size()));
+            aboutMap.put(PwmAboutProperty.app_sharedHistoryOldestTime, dateFormatForInfoBean(pwmApplication.getSharedHistoryManager().getOldestEntryTime()));
+        }
+
+
+        if (pwmApplication.getEmailQueue() != null) {
+            aboutMap.put(PwmAboutProperty.app_emailQueueSize,       Integer.toString(pwmApplication.getEmailQueue().queueSize()));
+            aboutMap.put(PwmAboutProperty.app_emailQueueOldestTime, dateFormatForInfoBean(pwmApplication.getEmailQueue().eldestItem()));
+        }
+
+        if (pwmApplication.getSmsQueue() != null) {
+            aboutMap.put(PwmAboutProperty.app_smsQueueSize,         Integer.toString(pwmApplication.getSmsQueue().queueSize()));
+            aboutMap.put(PwmAboutProperty.app_smsQueueOldestTime,   dateFormatForInfoBean(pwmApplication.getSmsQueue().eldestItem()));
+        }
+
+        if (pwmApplication.getAuditManager() != null) {
+            aboutMap.put(PwmAboutProperty.app_syslogQueueSize,      Integer.toString(pwmApplication.getAuditManager().syslogQueueSize()));
+        }
+
+        if (pwmApplication.getLocalDB() != null) {
+            aboutMap.put(PwmAboutProperty.app_localDbLogSize,       Integer.toString(pwmApplication.getLocalDBLogger().getStoredEventCount()));
+            aboutMap.put(PwmAboutProperty.app_localDbLogOldestTime, dateFormatForInfoBean(pwmApplication.getLocalDBLogger().getTailDate()));
+
+            aboutMap.put(PwmAboutProperty.app_localDbStorageSize,   formatDiskSize(getFileDirectorySize(pwmApplication.getLocalDB().getFileLocation())));
+            aboutMap.put(PwmAboutProperty.app_localDbFreeSpace,     formatDiskSize(diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())));
+        }
+
+
+        { // java info
+            final Runtime runtime = Runtime.getRuntime();
+            aboutMap.put(PwmAboutProperty.java_memoryFree,          Long.toString(runtime.freeMemory()));
+            aboutMap.put(PwmAboutProperty.java_memoryAllocated,     Long.toString(runtime.totalMemory()));
+            aboutMap.put(PwmAboutProperty.java_memoryMax,           Long.toString(runtime.maxMemory()));
+            aboutMap.put(PwmAboutProperty.java_threadCount,         Integer.toString(Thread.activeCount()));
+
+            aboutMap.put(PwmAboutProperty.java_vmVendor,            System.getProperty("java.vm.vendor"));
+
+            aboutMap.put(PwmAboutProperty.java_runtimeVersion,      System.getProperty("java.runtime.version"));
+            aboutMap.put(PwmAboutProperty.java_vmVersion,           System.getProperty("java.vm.version"));
+            aboutMap.put(PwmAboutProperty.java_vmName,              System.getProperty("java.vm.name"));
+            aboutMap.put(PwmAboutProperty.java_vmLocation,          System.getProperty("java.home"));
+
+            aboutMap.put(PwmAboutProperty.java_osName,              System.getProperty("os.name"));
+            aboutMap.put(PwmAboutProperty.java_osVersion,           System.getProperty("os.version"));
+            aboutMap.put(PwmAboutProperty.java_randomAlgorithm,     PwmRandom.getInstance().getAlgorithm());
+        }
+
+        { // build info
+            aboutMap.put(PwmAboutProperty.build_Time,               PwmConstants.BUILD_TIME);
+            aboutMap.put(PwmAboutProperty.build_Number,             PwmConstants.BUILD_NUMBER);
+            aboutMap.put(PwmAboutProperty.build_Type,               PwmConstants.BUILD_TYPE);
+            aboutMap.put(PwmAboutProperty.build_User,               PwmConstants.BUILD_USER);
+            aboutMap.put(PwmAboutProperty.build_Revision,           PwmConstants.BUILD_REVISION);
+            aboutMap.put(PwmAboutProperty.build_JavaVendor,         PwmConstants.BUILD_JAVA_VENDOR);
+            aboutMap.put(PwmAboutProperty.build_JavaVersion,        PwmConstants.BUILD_JAVA_VERSION);
+            aboutMap.put(PwmAboutProperty.build_Version,            PwmConstants.BUILD_VERSION);
+        }
+
+        return Collections.unmodifiableMap(aboutMap);
     }
 }

@@ -135,10 +135,10 @@ PWM_PS.convertDetailResultToHtml = function(data) {
                 htmlBody += '<a href="mailto:' + value + '">' + value + '</a>';
             } else {
                 htmlBody += attributeData['value'];
-                if (attributeData['searchable'] == true) {
-                    var likeSearchID = 'link-' + attributeData['name'] + '-' + '-likeUserSearch';
-                    htmlBody += '<span id="' + likeSearchID + '" class="icon-likeUserSearch btn-icon fa fa-search"></span>';
-                }
+            }
+            if (attributeData['searchable'] == true) {
+                var likeSearchID = 'link-' + attributeData['name'] + '-' + '-likeUserSearch';
+                htmlBody += '<span id="' + likeSearchID + '" class="icon-likeUserSearch btn-icon fa fa-search"></span>';
             }
             htmlBody += '</div></td>'
         })(iter);

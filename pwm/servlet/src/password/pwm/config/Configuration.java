@@ -296,7 +296,7 @@ public class Configuration implements Serializable, SettingReader {
                 throw new IllegalArgumentException("may not read optionlist value for setting: " + setting.toString());
             }
 
-            final Set<E> returnSet = new HashSet<>();
+            final Set<E> returnSet = new LinkedHashSet<>();
             final Set<String> strValues = (Set<String>)value.toNativeObject();
             for (final String strValue : strValues) {
                 try {
@@ -620,7 +620,7 @@ public class Configuration implements Serializable, SettingReader {
         }
     }
 
-    public PwmSetting.Template getTemplate() {
+    public PwmSettingTemplate getTemplate() {
         return storedConfiguration.getTemplate();
     }
 

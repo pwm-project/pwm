@@ -244,7 +244,7 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
             i = i + j;
             (function(index) {
                 var elementID = "randomGen" + index;
-                dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><a style="text-decoration:none; color: black" href="#" id="' + elementID + '">&nbsp;</a></td>';
+                dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><a style="visibility:hidden" class="link-randomPasswordValue" href="#" id="' + elementID + '">&nbsp;</a></td>';
                 eventHandlers.push(function(){
                     PWM_MAIN.addEventHandler(elementID,'click',function(){
                         var value = PWM_MAIN.getObject(elementID).innerHTML;
@@ -296,11 +296,6 @@ PWM_CHANGEPW.beginFetchRandoms=function(randomConfig) {
     var fetchList = new Array();
     for (var counter = 0; counter < 20; counter++) {
         fetchList[counter] = 'randomGen' + counter;
-        var name ='randomGen' + counter;
-        var element = PWM_MAIN.getObject(name);
-        if (element != null) {
-            element.firstChild.nodeValue = '\u00A0';
-        }
     }
     fetchList.sort(function() {return 0.5 - Math.random()});
     fetchList.sort(function() {return 0.5 - Math.random()});
@@ -324,7 +319,8 @@ PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
             var elementID = randomConfig['fetchList'].pop();
             var element = PWM_MAIN.getObject(elementID);
             if (element != null) {
-                element.firstChild.nodeValue = password;
+                element.innerHTML = password;
+                PWM_MAIN.setStyle(elementID,'visibility','visible');
             }
             PWM_CHANGEPW.fetchRandoms(randomConfig);
         };

@@ -23,7 +23,7 @@
 
 <!DOCTYPE html>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.ALWAYS_EXPAND_MESSAGE_TEXT); %>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmRequest pwmRequest = PwmRequest.forRequest(request,response); %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -56,7 +56,7 @@
                 </button>
                 <% } %>
                 <pwm:if test="showCancel">
-                    <button  type="submit" id="button-cancel" name="button-cancel" class="btn">
+                    <button  type="button" id="button-cancel" name="button-cancel" class="btn">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
                         <pwm:display key="Button_Cancel"/>
                     </button>
@@ -70,8 +70,12 @@
     <script>
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.addEventHandler('newUserForm','input',function(){PWM_NEWUSER.validateNewUserForm()});
-            PWM_MAIN.submitPostAction('button-goBack','NewUser','<%=NewUserServlet.NewUserAction.profileChoice%>');
-            PWM_MAIN.submitPostAction('button-cancel','NewUser','<%=NewUserServlet.NewUserAction.reset%>');
+            PWM_MAIN.addEventHandler('button-goBack', 'click',function() {
+                PWM_MAIN.submitPostAction('NewUser', '<%=NewUserServlet.NewUserAction.profileChoice%>');
+            });
+            PWM_MAIN.addEventHandler('button-cancel','click',function() {
+                PWM_MAIN.submitPostAction('NewUser', '<%=NewUserServlet.NewUserAction.reset%>');
+            });
         });
     </script>
 </pwm:script>

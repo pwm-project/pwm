@@ -218,7 +218,9 @@ StringArrayValueHandler.draw = function(settingKey) {
     var syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
     if (syntax == 'PROFILE') {
         var divDescriptionElement = document.createElement("div");
-        divDescriptionElement.innerHTML = PWM_SETTINGS['settings'][settingKey]['description'];
+        var text = PWM_SETTINGS['settings'][settingKey]['description'];
+        text += '<br/>' + PWM_CONFIG.showString('Display_ProfileNamingRules');
+        divDescriptionElement.innerHTML = text;
         parentDivElement.appendChild(divDescriptionElement);
 
         var defaultProfileRow = document.createElement("tr");
@@ -571,7 +573,7 @@ FormTableHandler.redraw = function(keyName) {
     var parentDiv = 'table_setting_' + keyName;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
-    parentDivElement.innerHTML = '<table class="noborder" id="table-top-' + keyName + '"></table>';
+    parentDivElement.innerHTML = '<table class="noborder" style="margin-left: 0; width:auto" id="table-top-' + keyName + '"></table>';
     parentDiv = 'table-top-' + keyName;
     parentDivElement = PWM_MAIN.getObject(parentDiv);
 
@@ -608,9 +610,9 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         newTableRow.setAttribute("style", "border-width: 0");
 
         var htmlRow = '';
-        htmlRow += '<td style="width:180px"><div class="noWrapTextBox border" id="panel-name-' + inputID + '" ></div></td>';
+        htmlRow += '<td style="border:1px solid #D4D4D4; width:180px"><div class="noWrapTextBox" id="panel-name-' + inputID + '" ></div></td>';
         htmlRow += '<td style="width:1px" id="icon-editLabel-' + inputID + '"><span class="btn-icon fa fa-edit"></span></td>';
-        htmlRow += '<td style="width:170px"><div style="" class="noWrapTextBox border" id="' + inputID + 'label"><span>' + value['labels'][''] + '...</span></div></td>';
+        htmlRow += '<td style="border:1px solid #D4D4D4; width:170px"><div style="" class="noWrapTextBox " id="' + inputID + 'label"><span>' + value['labels'][''] + '</span></div></td>';
 
         var userDNtypeAllowed = options['type-userDN'] == 'show';
         var optionList = PWM_GLOBAL['formTypeOptions'];
@@ -1312,9 +1314,9 @@ ActionHandler.httpMethodOptions = [
     { label: "Put", value: "put" }
 ];
 ActionHandler.ldapMethodOptions = [
-    { label: "Replace", value: "replace" },
-    { label: "Add", value: "add" },
-    { label: "Remove", value: "remove" }
+    { label: "Replace (Remove all existing values)", value: "replace" },
+    { label: "Add (Append new value)", value: "add" },
+    { label: "Remove (Remove specified value)", value: "remove" }
 ];
 
 ActionHandler.init = function(keyName) {
@@ -2120,7 +2122,8 @@ ChallengeSettingHandler.deleteRow = function(keyName, localeKey, rowName) {
 };
 
 ChallengeSettingHandler.addRow = function(keyName, localeKey) {
-    PWM_VAR['clientSettingCache'][keyName][localeKey].push(ChallengeSettingHandler.defaultItem);
+    var newValues = PWM_MAIN.copyObject(ChallengeSettingHandler.defaultItem);
+    PWM_VAR['clientSettingCache'][keyName][localeKey].push(newValues);
     ChallengeSettingHandler.write(keyName);
     ChallengeSettingHandler.editLocale(keyName, localeKey);
 };
@@ -2274,22 +2277,26 @@ UserPermissionHandler.draw = function(keyName) {
     var hideMatch = 'hideMatch' in options && options['hideMatch'] == "true";
     if (!hideMatch) {
         buttonRowHtml += '<button id="button-' + keyName + '-viewMatches" class="btn">'
-        + '<span class="btn-icon fa fa-eye"></span>View Matches</button>';
+        + '<span class="btn-icon fa fa-user"></span>View Matches</button>';
     }
 
     parentDivElement.innerHTML = parentDivElement.innerHTML + buttonRowHtml;
 
     PWM_MAIN.addEventHandler('button-' + keyName + '-viewMatches','click',function(){
-        PWM_CFGEDIT.executeSettingFunction(keyName,'password.pwm.config.function.UserMatchViewerFunction')
+        var dataHandler = function(data) {
+            var html = PWM_CONFIG.convertListOfIdentitiesToHtml(data['data']);
+            PWM_MAIN.showDialog({title:'Matches',text:html});
+        };
+        PWM_CFGEDIT.executeSettingFunction(keyName,'password.pwm.config.function.UserMatchViewerFunction',null,dataHandler)
     });
 
     PWM_MAIN.addEventHandler('button-' + keyName + '-addFilterValue','click',function(){
-        PWM_VAR['clientSettingCache'][keyName].push(UserPermissionHandler.defaultFilterValue);
+        PWM_VAR['clientSettingCache'][keyName].push(PWM_MAIN.copyObject(UserPermissionHandler.defaultFilterValue));
         UserPermissionHandler.write(keyName, true);
     });
 
     PWM_MAIN.addEventHandler('button-' + keyName + '-addGroupValue','click',function(){
-        PWM_VAR['clientSettingCache'][keyName].push(UserPermissionHandler.defaultGroupValue);
+        PWM_VAR['clientSettingCache'][keyName].push(PWM_MAIN.copyObject(UserPermissionHandler.defaultGroupValue));
         UserPermissionHandler.write(keyName, true);
     });
 };
@@ -2604,8 +2611,6 @@ X509CertificateHandler.draw = function(keyName) {
 
     if (!PWM_MAIN.isEmpty(resultValue)) {
         htmlBody += '<button id="' + keyName + '_ClearButton" class="btn"><span class="btn-icon fa fa-times"></span>Clear</button>'
-    } else {
-        htmlBody += 'No certificates stored.<br/><br/>'
     }
     htmlBody += '<button id="' + keyName + '_AutoImportButton" class="btn"><span class="btn-icon fa fa-download"></span>Import From Server</button>'
     parentDivElement.innerHTML = htmlBody;
@@ -2630,18 +2635,9 @@ X509CertificateHandler.draw = function(keyName) {
             handleResetClick(keyName);
         });
     }
+    var importClassname = PWM_SETTINGS['settings'][keyName]['options']['ImportHandler'];
     PWM_MAIN.addEventHandler(keyName + '_AutoImportButton','click',function(){
-        switch (keyName) {
-            case 'ldap.serverCerts':
-                PWM_CFGEDIT.executeSettingFunction(keyName,'password.pwm.config.function.LdapCertImportFunction');
-                break;
-            case 'audit.syslog.certificates':
-                PWM_CFGEDIT.executeSettingFunction(keyName,'password.pwm.config.function.SyslogCertImportFunction');
-                break;
-
-            default:
-                alert('unhandled cert-import request for key=' + keyName);
-        }
+        PWM_CFGEDIT.executeSettingFunction(keyName,importClassname);
     });
 };
 
@@ -2657,39 +2653,45 @@ VerificationMethodHandler.init = function(settingKey) {
 };
 
 VerificationMethodHandler.draw = function(settingKey) {
+    var settingOptions = PWM_SETTINGS['settings'][settingKey]['options'];
     var parentDiv = 'table_setting_' + settingKey;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     var htmlBody = '<table class="">';
-    for (var method in PWM_SETTINGS['verificationMethods']) {
+    for (var method in settingOptions) {
         var id = settingKey + '-' + method;
-        var label = PWM_SETTINGS['verificationMethods'][method];
+        var label = settingOptions[method];
         htmlBody += '<tr><td>' + label + '</td><td><input id="input-range-' + id + '" type="range" min="0" max="2" value="0"/></td>';
         htmlBody += '<td><span id="label-' + id +'"></span></td></tr>';
     }
     htmlBody += '</table>';
-    htmlBody += '<br/><label>Minimum Optional Required <input style="width:30px;" id="input-minOptional-' + settingKey + '" type="number" value="0" class="configNumericInput""></label>';
+    htmlBody += '<br/><label>Minimum Optional Required <input min="0" style="width:30px;" id="input-minOptional-' + settingKey + '" type="number" value="0" class="configNumericInput""></label>';
     parentDivElement.innerHTML = htmlBody;
-    for (var method in PWM_SETTINGS['verificationMethods']) {
+    for (var method in settingOptions) {
         var id = settingKey + '-' + method;
         PWM_MAIN.addEventHandler('input-range-' + id,'change',function(){
             VerificationMethodHandler.updateLabels(settingKey);
             VerificationMethodHandler.write(settingKey);
         });
-        var enabledState = PWM_VAR['clientSettingCache'][settingKey]['methodSettings'][method]['enabledState'];
+
+        var enabledState = PWM_VAR['clientSettingCache'][settingKey]['methodSettings'][method]
+            && PWM_VAR['clientSettingCache'][settingKey]['methodSettings'][method]['enabledState'];
+
         var numberValue = 0;
-        switch (enabledState) {
-            case 'disabled':
-                numberValue = 0;
-                break;
-            case 'optional':
-                numberValue = 1;
-                break;
-            case 'required':
-                numberValue = 2;
-                break;
-            default:
-                alert('unknown value = VerificationMethodHandler.draw');
+        if (enabledState) {
+            switch (enabledState) {
+                case 'disabled':
+                    numberValue = 0;
+                    break;
+                case 'optional':
+                    numberValue = 1;
+                    break;
+                case 'required':
+                    numberValue = 2;
+                    break;
+                default:
+                    alert('unknown value = VerificationMethodHandler.draw = ' + method);
+            }
         }
         PWM_MAIN.getObject('input-range-' + id).value = numberValue;
     }
@@ -2703,10 +2705,11 @@ VerificationMethodHandler.draw = function(settingKey) {
 };
 
 VerificationMethodHandler.write = function(settingKey) {
+    var settingOptions = PWM_SETTINGS['settings'][settingKey]['options'];
     var values = {};
     values['minOptionalRequired'] = Number(PWM_MAIN.getObject('input-minOptional-' + settingKey).value);
     values['methodSettings'] = {};
-    for (var method in PWM_SETTINGS['verificationMethods']) {
+    for (var method in settingOptions) {
         var id = settingKey + '-' + method;
         var value = Number(PWM_MAIN.getObject('input-range-' + id).value);
 
@@ -2729,8 +2732,9 @@ VerificationMethodHandler.write = function(settingKey) {
 };
 
 VerificationMethodHandler.updateLabels = function(settingKey) {
+    var settingOptions = PWM_SETTINGS['settings'][settingKey]['options'];
     var optionalCount = 0;
-    for (var method in PWM_SETTINGS['verificationMethods']) {
+    for (var method in settingOptions) {
         var id = settingKey + '-' + method;
         var value = Number(PWM_MAIN.getObject('input-range-' + id).value);
         var label = '';
@@ -2943,3 +2947,5 @@ UILibrary.addAddLocaleButtonRow = function(parentDiv, keyName, addFunction, exis
         addFunction(value);
     });
 };
+
+

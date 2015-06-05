@@ -25,6 +25,7 @@ package password.pwm.config;
 import org.jdom2.Attribute;
 import org.jdom2.Element;
 import password.pwm.i18n.Config;
+import password.pwm.i18n.ConfigEditor;
 import password.pwm.i18n.LocaleHelper;
 
 import java.util.*;
@@ -82,6 +83,7 @@ public enum PwmSettingCategory {
 
     DATABASE                    (SETTINGS),
     REPORTING                   (SETTINGS),
+    NAAF                        (SETTINGS),
     
     SSO                         (SETTINGS),
     OAUTH                       (SSO),
@@ -125,6 +127,12 @@ public enum PwmSettingCategory {
     private static final Map<PwmSettingCategory,PwmSetting> CACHE_PROFILE_SETTING = new HashMap<>();
     private static List<PwmSettingCategory> cached_sortedSettings;
 
+    private String label;
+    private String description;
+    private Integer level;
+    private Boolean hidden;
+
+
     PwmSettingCategory(PwmSettingCategory parent) {
         this.parent = parent;
     }
@@ -150,33 +158,31 @@ public enum PwmSettingCategory {
     }
 
     public String getLabel(final Locale locale) {
-        final Element categoryElement = PwmSettingXml.readCategoryXml(this);
-        if (categoryElement == null) {
-            throw new IllegalStateException("missing descriptor element for category " + this.toString());
-        }
-        final Element labelElement = categoryElement.getChild("label");
-        if (labelElement == null) {
-            throw new IllegalStateException("missing descriptor label for category " + this.toString());
-        }
-        return labelElement.getText();
+        final String key = "Category_Label_" + this.getKey();
+        return LocaleHelper.getLocalizedMessage(locale, key, null, ConfigEditor.class);
     }
 
     public String getDescription(final Locale locale) {
-        Element categoryElement = PwmSettingXml.readCategoryXml(this);
-        Element description = categoryElement.getChild("description");
-        return description == null ? "" : description.getText();
+        final String key = "Category_Description_" + this.getKey();
+        return LocaleHelper.getLocalizedMessage(locale, key, null, ConfigEditor.class);
     }
 
     public int getLevel() {
-        final Element settingElement = PwmSettingXml.readCategoryXml(this);
-        final Attribute levelAttribute = settingElement.getAttribute("level");
-        return levelAttribute != null ? Integer.parseInt(levelAttribute.getValue()) : 0;
+        if (level == null) {
+            final Element settingElement = PwmSettingXml.readCategoryXml(this);
+            final Attribute levelAttribute = settingElement.getAttribute("level");
+            level = levelAttribute != null ? Integer.parseInt(levelAttribute.getValue()) : 0;
+        }
+        return level;
     }
 
     public boolean isHidden() {
-        final Element settingElement = PwmSettingXml.readCategoryXml(this);
-        final Attribute requiredAttribute = settingElement.getAttribute("hidden");
-        return requiredAttribute != null && "true".equalsIgnoreCase(requiredAttribute.getValue());
+        if (hidden == null) {
+            final Element settingElement = PwmSettingXml.readCategoryXml(this);
+            final Attribute hiddenElement = settingElement.getAttribute("hidden");
+            hidden = hiddenElement != null && "true".equalsIgnoreCase(hiddenElement.getValue());
+        }
+        return hidden;
     }
 
     public boolean isTopCategory() {
@@ -254,9 +260,15 @@ public enum PwmSettingCategory {
             nextCategory = nextCategory.getParent();
         }
 
-        if (profileID != null) {
-            sb.append(SEPARATOR);
-            sb.append(profileID);
+        if (this.hasProfiles()) {
+            if (profileID != null) {
+                sb.append(SEPARATOR);
+                sb.append(profileID);
+            } else {
+                final String NULL_PROFILE = LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationNullProfile, null);
+                sb.append(SEPARATOR);
+                sb.append(NULL_PROFILE);
+            }
         }
 
         return sb.toString();

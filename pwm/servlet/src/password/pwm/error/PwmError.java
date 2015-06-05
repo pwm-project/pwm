@@ -101,7 +101,7 @@ public enum PwmError {
     ERROR_INTRUDER_ADDRESS("Error_AddressIntruder", 5024, true),
     ERROR_INTRUDER_SESSION("Error_SessionIntruder", 5025, true),
     ERROR_BAD_SESSION_PASSWORD("Error_BadSessionPassword", 5026, false),
-    ERROR_UNAUTHORIZED("Error_Unauthorized", 5027, false),
+    ERROR_UNAUTHORIZED("Error_Unauthorized", 5027, true),
     ERROR_BAD_SESSION("Error_BadSession", 5028, false),
     ERROR_MISSING_REQUIRED_RESPONSE("Error_MissingRequiredResponse", 5029, false),
     ERROR_MISSING_RANDOM_RESPONSE("Error_MissingRandomResponse", 5030, false),
@@ -159,6 +159,8 @@ public enum PwmError {
     ERROR_MACRO_PARSE_ERROR("Error_MacroParseError",5080,true),
     ERROR_NO_PROFILE_ASSIGNED("Error_NoProfileAssigned",5081,true),
     ERROR_STARTUP_ERROR("Error_StartupError",5082,true),
+
+    ERROR_REMOTE_ERROR_VALUE("Error_RemoteErrorValue",6000,true),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100, false),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101, false),

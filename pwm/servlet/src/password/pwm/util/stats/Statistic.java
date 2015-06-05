@@ -89,6 +89,7 @@ public enum Statistic {
     HELPDESK_USER_LOOKUP                (Type.INCREMENTOR, "HelpdeskUserLookup", null),
     HELPDESK_TOKENS_SENT                (Type.INCREMENTOR, "HelpdeskTokenSent", null),
     HELPDESK_UNLOCK                     (Type.INCREMENTOR, "HelpdeskUnlock", null),
+    HELPDESK_VERIFY_OTP                 (Type.INCREMENTOR, "HelpdeskVerifyOTP", null),
     REST_STATUS                         (Type.INCREMENTOR, "RestStatus", null),
     REST_CHECKPASSWORD                  (Type.INCREMENTOR, "RestCheckPassword", null),
     REST_SETPASSWORD                    (Type.INCREMENTOR, "RestSetPassword", null),
@@ -153,8 +154,12 @@ public enum Statistic {
     }
 
     public String getLabel(final Locale locale) {
-        final String keyName = "Statistic_Label." + this.getKey();
-        return LocaleHelper.getLocalizedMessage(locale, keyName, null, Admin.class);
+        try {
+            final String keyName = "Statistic_Label." + this.getKey();
+            return LocaleHelper.getLocalizedMessage(locale, keyName, null, Admin.class);
+        } catch (MissingResourceException e) {
+            return "MISSING STATISTIC LABEL for " + this.getKey();
+        }
     }
 
     public String getDescription(final Locale locale) {

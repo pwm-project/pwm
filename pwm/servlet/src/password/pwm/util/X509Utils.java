@@ -22,6 +22,8 @@
 
 package password.pwm.util;
 
+import password.pwm.AppProperty;
+import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -39,35 +41,52 @@ import java.security.cert.X509Certificate;
 public abstract class X509Utils {
     private static final PwmLogger LOGGER = PwmLogger.forClass(X509Utils.class);
 
-    public static X509Certificate[] readLdapServerCerts(final URI ldapUri)
+    public static X509Certificate[] readRemoteCertificates(final URI uri)
             throws PwmOperationalException
     {
-        final String ldapHost = ldapUri.getHost();
-        final int ldapPort = ldapUri.getPort();
-        return readLdapServerCerts(ldapHost, ldapPort);
+        final String host = uri.getHost();
+        final int port = uri.getPort() > -1
+                ? uri.getPort()
+                : portForUriScheme(uri.getScheme());
+
+        return readRemoteCertificates(host, port);
     }
 
-    public static X509Certificate[] readLdapServerCerts(final String ldapHost, final int ldapPort)
+    private static int portForUriScheme(final String scheme) {
+        if (scheme == null) {
+            throw new NullPointerException("scheme cannot be null");
+        }
+        switch (scheme) {
+            case "http": return 80;
+            case "https": return 443;
+            case "ldap": return 389;
+            case "ldaps": return 636;
+        }
+        throw new IllegalArgumentException("unknown scheme: " + scheme);
+    }
+
+
+    public static X509Certificate[] readRemoteCertificates(final String host, final int port)
             throws PwmOperationalException
     {
-        LOGGER.debug("ServerCertReader: beginning certificate read procedure to import ldap certificates from host=" + ldapHost + ", port=" + ldapPort);
+        LOGGER.debug("ServerCertReader: beginning certificate read procedure to import certificates from host=" + host + ", port=" + port);
         final CertReaderTrustManager certReaderTm = new CertReaderTrustManager();
         try { // use custom trust manager to read the certificates
             final SSLContext ctx = SSLContext.getInstance("TLS");
             ctx.init(null, new TrustManager[]{certReaderTm}, new SecureRandom());
             final SSLSocketFactory factory = ctx.getSocketFactory();
-            final SSLSocket sslSock = (SSLSocket) factory.createSocket(ldapHost,ldapPort);
-            LOGGER.debug("ServerCertReader: socket established to host=" + ldapHost + ", port=" + ldapPort);
+            final SSLSocket sslSock = (SSLSocket) factory.createSocket(host,port);
+            LOGGER.debug("ServerCertReader: socket established to host=" + host + ", port=" + port);
             sslSock.isConnected();
-            LOGGER.debug("ServerCertReader: connected to host=" + ldapHost + ", port=" + ldapPort);
+            LOGGER.debug("ServerCertReader: connected to host=" + host + ", port=" + port);
             sslSock.getOutputStream().write("data!".getBytes());//write some data so the connection gets established
-            LOGGER.debug("ServerCertReader: data transfer completed host=" + ldapHost + ", port=" + ldapPort);
+            LOGGER.debug("ServerCertReader: data transfer completed host=" + host + ", port=" + port);
             sslSock.close();
-            LOGGER.debug("ServerCertReader: certificate information read from host=" + ldapHost + ", port=" + ldapPort);
+            LOGGER.debug("ServerCertReader: certificate information read from host=" + host + ", port=" + port);
         } catch (Exception e) {
             final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append("unable to read ldap server certificates from host=");
-            errorMsg.append(ldapHost).append(", port=").append(ldapPort);
+            errorMsg.append("unable to read server certificates from host=");
+            errorMsg.append(host).append(", port=").append(port);
             errorMsg.append(" error: ");
             errorMsg.append(e.getMessage());
             LOGGER.error("ServerCertReader: " + errorMsg);
@@ -79,7 +98,7 @@ public abstract class X509Utils {
             LOGGER.debug("ServerCertReader: unable to read certificates: null returned from CertReaderTrustManager.getCertificates()");
         } else {
             for (final X509Certificate certificate : certs) {
-                LOGGER.debug("ServerCertReader: read x509 Certificate from host=" + ldapHost + ", port=" + ldapPort + ": \n" + certificate.toString());
+                LOGGER.debug("ServerCertReader: read x509 Certificate from host=" + host + ", port=" + port + ": \n" + certificate.toString());
             }
         }
         LOGGER.debug("ServerCertReader: process completed");
@@ -121,11 +140,40 @@ public abstract class X509Utils {
         }
     }
 
-    public static class PwmTrustManager implements X509TrustManager {
-        final X509Certificate[] certificates;
+    public static class PromiscuousTrustManager implements X509TrustManager {
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+        }
 
-        public PwmTrustManager(final X509Certificate[] certificates) {
+        public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            logMsg(certs,authType);
+        }
+
+        public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            logMsg(certs,authType);
+        }
+
+        private static void logMsg(X509Certificate[] certs, String authType) {
+            if (certs != null) {
+                for (final X509Certificate cert : certs) {
+                    try {
+                        LOGGER.warn("blind trusting certificate during authType=" + authType + ", subject=" + cert.getSubjectDN().toString());
+                    } catch (Exception e) {
+                        LOGGER.error("error while decoding certificate: " + e.getMessage());
+                        throw new IllegalStateException(e);
+                    }
+                }
+            }
+        }
+    }
+
+    public static class CertMatchingTrustManager implements X509TrustManager {
+        final X509Certificate[] certificates;
+        final boolean validateTimestamps;
+
+        public CertMatchingTrustManager(final Configuration config, final X509Certificate[] certificates) {
             this.certificates = certificates;
+            validateTimestamps = config != null && Boolean.parseBoolean(config.readAppProperty(AppProperty.SECURITY_CERTIFICATES_VALIDATE_TIMESTAMPS));
         }
 
         @Override
@@ -135,15 +183,17 @@ public abstract class X509Utils {
         @Override
         public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
             if (x509Certificates == null) {
-                return;
+                final String errorMsg = "no certificates in configuration trust store for this operation";
+                throw new CertificateException(errorMsg);
             }
-
 
             for (X509Certificate loopCert : x509Certificates) {
                 boolean certTrusted = false;
                 for (X509Certificate storedCert : certificates) {
                     if (loopCert.equals(storedCert)) {
-                        //loopCert.checkValidity();
+                        if (validateTimestamps) {
+                            loopCert.checkValidity();
+                        }
                         certTrusted = true;
                     }
                 }
@@ -151,6 +201,7 @@ public abstract class X509Utils {
                     final String errorMsg = "server certificate {subject=" + loopCert.getSubjectDN().getName() + "} does not match a certificate in the configuration trust store.";
                     throw new CertificateException(errorMsg);
                 }
+                LOGGER.trace("trusting configured certificate: " + makeDebugText(loopCert));
             }
         }
 
@@ -167,11 +218,11 @@ public abstract class X509Utils {
         }
         return result;
     }
-    
+
     public static String makeDetailText(final X509Certificate x509Certificate)
-            throws CertificateEncodingException, PwmUnrecoverableException 
+            throws CertificateEncodingException, PwmUnrecoverableException
     {
-        return x509Certificate.toString() 
+        return x509Certificate.toString()
                 + "\n:MD5 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()),SecureHelper.HashAlgorithm.MD5)
                 + "\n:SHA1 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()),SecureHelper.HashAlgorithm.SHA1)
                 + "\n:SHA2-256 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()),SecureHelper.HashAlgorithm.SHA256)
@@ -179,5 +230,8 @@ public abstract class X509Utils {
 
 
     }
-    
+
+    public static String makeDebugText(final X509Certificate x509Certificate) {
+        return "subject=" + x509Certificate.getSubjectDN().getName() + ", serial=" + x509Certificate.getSerialNumber();
+    }
 }

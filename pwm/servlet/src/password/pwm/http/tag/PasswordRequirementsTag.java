@@ -264,7 +264,8 @@ public class PasswordRequirementsTag extends TagSupport {
             returnValues.add(getLocalString(Message.Requirement_ADComplexity, "", locale, config));
         } else if (ADPolicyLevel == ADPolicyComplexity.AD2008) {
             final int maxViolations = ruleHelper.readIntValue(PwmPasswordRule.ADComplexityMaxViolations);
-            returnValues.add(getLocalString(Message.Requirement_ADComplexity2008, String.valueOf(maxViolations), locale, config));
+            final int minGroups = 5 - maxViolations;
+            returnValues.add(getLocalString(Message.Requirement_ADComplexity2008, String.valueOf(minGroups), locale, config));
         }
 
         if (ruleHelper.readBooleanValue(PwmPasswordRule.UniqueRequired)) {
@@ -275,19 +276,12 @@ public class PasswordRequirementsTag extends TagSupport {
     }
 
     private static String getLocalString(final Message message, final int size, final Locale locale, final Configuration config) {
-        if (size > 1) {
-            try {
-                try {
-                    final Message pluralMessage = Message.valueOf(message.toString() + "PLURAL");
-                    return Message.getLocalizedMessage(locale, pluralMessage, config, String.valueOf(size));
-                } catch (IllegalArgumentException e) {/*noop*/ }
-            } catch (MissingResourceException e) {
-                LOGGER.error("unable to display requirement tag for message '" + message.toString() + "PLURAL': " + e.getMessage());
-            }
-        }
+        final Message effectiveMessage = size > 1 && message.getPluralMessage() != null
+                ? message.getPluralMessage()
+                : message;
 
         try {
-            return Message.getLocalizedMessage(locale, message, config, String.valueOf(size));
+            return Message.getLocalizedMessage(locale, effectiveMessage, config, String.valueOf(size));
         } catch (MissingResourceException e) {
             LOGGER.error("unable to display requirement tag for message '" + message.toString() + "': " + e.getMessage());
         }

@@ -40,6 +40,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.http.client.PwmHttpClient;
+import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
@@ -52,6 +53,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -381,7 +383,13 @@ public class OAuthConsumerServlet extends PwmServlet {
         bodyEntity.setContentType(PwmConstants.ContentTypeValue.form.getHeaderValue());
         httpPost.setEntity(bodyEntity);
 
-        final HttpResponse httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig()).execute(httpPost);
+        final X509Certificate[] certs = pwmRequest.getConfig().readSettingAsCertificate(PwmSetting.OAUTH_ID_CERTIFICATE);
+        final HttpResponse httpResponse;
+        if (certs == null || certs.length == 0) {
+            httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig()).execute(httpPost);
+        } else {
+            httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig(),new PwmHttpClientConfiguration(certs)).execute(httpPost);
+        }
         final String bodyResponse = EntityUtils.toString(httpResponse.getEntity());
 
         final StringBuilder debugOutput = new StringBuilder();

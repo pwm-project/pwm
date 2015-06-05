@@ -242,7 +242,7 @@ public class MacroMachine {
         final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, sessionLabel);
         final UserInfoBean userInfoBean = new UserInfoBean();
         userStatusReader.populateUserInfoBean(userInfoBean, userLocale, userIdentity);
-        return new MacroMachine(pwmApplication, sessionLabel, null, null, userDataReader);
+        return new MacroMachine(pwmApplication, sessionLabel, userInfoBean, null, userDataReader);
     }
 
     public static MacroMachine forNonUserSpecific(

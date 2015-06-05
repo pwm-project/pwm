@@ -23,6 +23,7 @@
 package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.*;
 import password.pwm.config.Configuration;
@@ -76,7 +77,7 @@ public class ConfigManagerServlet extends PwmServlet {
         importLocalDB(HttpMethod.POST),
         summary(HttpMethod.GET),
         viewLog(HttpMethod.GET),
-        
+
         ;
 
         private final HttpMethod method;
@@ -171,7 +172,7 @@ public class ConfigManagerServlet extends PwmServlet {
                     : PwmConstants.DEFAULT_DATETIME_FORMAT.format(lastModifyTime);
             pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigLastModified, output);
         }
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigHasPassword, LocaleHelper.booleanString(configurationReader.getStoredConfiguration().hasPassword(),pwmRequest.getLocale(),pwmRequest.getConfig()));
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigHasPassword, LocaleHelper.booleanString(configurationReader.getStoredConfiguration().hasPassword(), pwmRequest.getLocale(), pwmRequest.getConfig()));
     }
 
     void restUploadLocalDB(final PwmRequest pwmRequest)
@@ -349,12 +350,12 @@ public class ConfigManagerServlet extends PwmServlet {
             }
         }
 
+        final int persistentSeconds = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_PERSISTENT_LOGIN_SECONDS));
         if ((persistentLoginAccepted || passwordAccepted)) {
             configManagerBean.setPasswordVerified(true);
             pwmApplication.getIntruderManager().convenience().clearAddressAndSession(pwmSession);
             pwmApplication.getIntruderManager().clear(RecordType.USERNAME,CONFIGMANAGER_INTRUDER_USERNAME);
             if (persistentLoginEnabled && !persistentLoginAccepted && "on".equals(pwmRequest.readParameterAsString("remember"))) {
-                final int persistentSeconds = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_PERSISTENT_LOGIN_SECONDS));
                 if (persistentSeconds > 0) {
                     final Date expirationDate = new Date(System.currentTimeMillis() + (persistentSeconds * 1000));
                     final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo(expirationDate, persistentLoginValue);
@@ -386,6 +387,9 @@ public class ConfigManagerServlet extends PwmServlet {
         if (configManagerBean.getPrePasswordEntryUrl() == null) {
             configManagerBean.setPrePasswordEntryUrl(pwmRequest.getHttpServletRequest().getRequestURL().toString());
         }
+
+        final String time = new TimeDuration(persistentSeconds * 1000).asLongString(pwmRequest.getLocale());
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigPasswordRememberTime,time);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_LOGIN);
         return true;
     }
@@ -575,9 +579,20 @@ public class ConfigManagerServlet extends PwmServlet {
             zipOutput.flush();
         }
         {
-            final String aboutJson = JsonUtil.serialize(AdminServlet.makeInfoBean(pwmApplication), JsonUtil.Flag.PrettyPrint);
-            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "about.json"));
-            zipOutput.write(aboutJson.getBytes(PwmConstants.DEFAULT_CHARSET));
+            final Properties outputProps = new Properties() {
+                public synchronized Enumeration<Object> keys() {
+                    return Collections.enumeration(new TreeSet<>(super.keySet()));
+                }
+            };
+
+            final Map<PwmAboutProperty,String> infoBean = Helper.makeInfoBean(pwmApplication);
+            for (final PwmAboutProperty aboutProperty : infoBean.keySet()) {
+                outputProps.put(aboutProperty.toString(), infoBean.get(aboutProperty));
+            }
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            outputProps.store(baos,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "about.properties"));
+            zipOutput.write(baos.toByteArray());
             zipOutput.closeEntry();
             zipOutput.flush();
         }
@@ -607,24 +622,84 @@ public class ConfigManagerServlet extends PwmServlet {
             }
 
             // java threads
-            outputMap.put("threads",Thread.getAllStackTraces());
+            outputMap.put("threads", Thread.getAllStackTraces());
 
             final String recordJson = JsonUtil.serializeMap(outputMap, JsonUtil.Flag.PrettyPrint);
             zipOutput.write(recordJson.getBytes(PwmConstants.DEFAULT_CHARSET));
             zipOutput.closeEntry();
             zipOutput.flush();
         }
-        if (pwmApplication.getApplicationPath() != null) {
-            try {
-                zipOutput.putNextEntry(new ZipEntry(pathPrefix + "fileMd5sums.json"));
-                final Map<String,String> fileChecksums = BuildChecksumMaker.readDirectorySums(pwmApplication.getApplicationPath());
-                final String json = JsonUtil.serializeMap(fileChecksums, JsonUtil.Flag.PrettyPrint);
+        {
+            final List<BuildChecksumMaker.FileInformation> fileInformations = new ArrayList<>();
+            if (pwmApplication.getApplicationPath() != null) {
+                try {
+                    fileInformations.addAll(BuildChecksumMaker.readFileInformation(pwmApplication.getApplicationPath()));
+                } catch (Exception e) {
+                    LOGGER.error(pwmSession, "unable to generate appPath fileMd5sums during zip debug building: " + e.getMessage());
+                }
+            }
+            if (pwmApplication.getWebInfPath() != null && !pwmApplication.getWebInfPath().equals(pwmApplication.getApplicationPath())) {
+                try {
+                    fileInformations.addAll(BuildChecksumMaker.readFileInformation(pwmApplication.getWebInfPath()));
+                } catch (Exception e) {
+                    LOGGER.error(pwmSession, "unable to generate webInfPath fileMd5sums during zip debug building: " + e.getMessage());
+                }
+            }
+            {
+                zipOutput.putNextEntry(new ZipEntry(pathPrefix + "fileinformation.json"));
+                final String json = JsonUtil.serializeCollection(fileInformations, JsonUtil.Flag.PrettyPrint);
                 zipOutput.write(json.getBytes(PwmConstants.DEFAULT_CHARSET));
                 zipOutput.closeEntry();
                 zipOutput.flush();
-            } catch (Exception e) {
-                LOGGER.error(pwmSession,"unable to generate fileMd5sums during zip debug building: " + e.getMessage());
             }
+            {
+                zipOutput.putNextEntry(new ZipEntry(pathPrefix + "fileinformation.csv"));
+                final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                final CSVPrinter csvPrinter = Helper.makeCsvPrinter(byteArrayOutputStream);
+                {
+                    final List<String> headerRow = new ArrayList<>();
+                    headerRow.add("Filename");
+                    headerRow.add("Filepath");
+                    headerRow.add("Last Modified");
+                    headerRow.add("Size");
+                    headerRow.add("sha1sum");
+                    csvPrinter.printRecord(headerRow);
+                }
+                for (final BuildChecksumMaker.FileInformation fileInformation : fileInformations) {
+                    final List<String> headerRow = new ArrayList<>();
+                    headerRow.add(fileInformation.getFilename());
+                    headerRow.add(fileInformation.getFilepath());
+                    headerRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(fileInformation.getModified()));
+                    headerRow.add(String.valueOf(fileInformation.getSize()));
+                    headerRow.add(fileInformation.getSha1sum());
+                    csvPrinter.printRecord(headerRow);
+                }
+                csvPrinter.flush();
+                zipOutput.write(byteArrayOutputStream.toByteArray());
+                zipOutput.closeEntry();
+                zipOutput.flush();
+            }
+        }
+        {
+            final List<BuildChecksumMaker.FileInformation> fileInformation = new ArrayList<>();
+            if (pwmApplication.getApplicationPath() != null) {
+                try {
+                    fileInformation.addAll(BuildChecksumMaker.readFileInformation(pwmApplication.getApplicationPath()));
+                } catch (Exception e) {
+                    LOGGER.error(pwmSession, "unable to generate appPath fileMd5sums during zip debug building: " + e.getMessage());
+                }
+            }
+            if (pwmApplication.getWebInfPath() != null && !pwmApplication.getWebInfPath().equals(pwmApplication.getApplicationPath())) {
+                try {
+                    fileInformation.addAll(BuildChecksumMaker.readFileInformation(pwmApplication.getWebInfPath()));
+                } catch (Exception e) {
+                    LOGGER.error(pwmSession, "unable to generate webInfPath fileMd5sums during zip debug building: " + e.getMessage());
+                }
+            }
+            final String json = JsonUtil.serializeCollection(fileInformation, JsonUtil.Flag.PrettyPrint);
+            zipOutput.write(json.getBytes(PwmConstants.DEFAULT_CHARSET));
+            zipOutput.closeEntry();
+            zipOutput.flush();
         }
         {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + "debug.log"));
@@ -721,22 +796,5 @@ public class ConfigManagerServlet extends PwmServlet {
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigurationSummaryOutput,outputMap);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_SUMMARY);
     }
-
-    private void processViewLog(
-            final PwmRequest pwmRequest
-    )
-            throws PwmUnrecoverableException, IOException, ServletException
-    {
-
-        final PwmApplication.MODE configMode = pwmRequest.getPwmApplication().getApplicationMode();
-        if (configMode != PwmApplication.MODE.CONFIGURATION) {
-            if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"admin permission required"));
-            }
-        }
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ADMIN_LOGVIEW_WINDOW);
-    }
-
-
 }
 

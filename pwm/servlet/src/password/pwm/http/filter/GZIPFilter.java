@@ -64,8 +64,10 @@ public class GZIPFilter implements Filter {
         final String acceptEncoding = ((HttpServletRequest)servletRequest).getHeader(PwmConstants.HttpHeader.Accept_Encoding.getHttpName());
         if (acceptEncoding != null && acceptEncoding.contains("gzip") && isEnabled(servletRequest)) {
             GZIPHttpServletResponseWrapper gzipResponse = new GZIPHttpServletResponseWrapper((HttpServletResponse)servletResponse);
+            gzipResponse.addHeader("Content-Encoding", "gzip");
             filterChain.doFilter(servletRequest, gzipResponse);
             gzipResponse.finish();
+
         } else {
             filterChain.doFilter(servletRequest, servletResponse);
         }
@@ -87,7 +89,7 @@ public class GZIPFilter implements Filter {
             pwmApplication = ContextManager.getPwmApplication((HttpServletRequest) servletRequest);
             return Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_ENABLE_GZIP));
         } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unable to read http-gzip app-property, defaulting to non-gzip: " + e.getMessage());
+            LOGGER.trace("unable to read http-gzip app-property, defaulting to non-gzip: " + e.getMessage());
         }
         return false;
     }
@@ -100,7 +102,6 @@ public class GZIPFilter implements Filter {
 
         public GZIPHttpServletResponseWrapper(HttpServletResponse response) throws IOException {
             super(response);
-            response.addHeader("Content-Encoding", "gzip");
         }
 
         public void finish() throws IOException {

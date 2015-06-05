@@ -222,6 +222,7 @@ public enum Display implements PwmDisplayBundle {
     Field_VerificationMethodChallengeResponses,
     Field_VerificationMethodAttributes,
     Field_VerificationMethodRemoteResponses,
+    Field_VerificationMethodNAAF,
     Field_VerificationMethod,
     Long_Title_ActivateUser,
     Long_Title_Admin,

@@ -23,6 +23,7 @@
 package password.pwm.util;
 
 import password.pwm.PwmApplication;
+import password.pwm.error.PwmUnrecoverableException;
 
 import java.util.Properties;
 
@@ -44,7 +45,7 @@ public class BasicUrlShortener implements AbstractUrlShortener {
 		return configuration;
 	}
 	
-	public String shorten(String input, PwmApplication context) {
+	public String shorten(String input, PwmApplication context) throws PwmUnrecoverableException {
 		/* 
 		 * This function does nothing.
 		 * Real functionality has to be implemented by extending this class

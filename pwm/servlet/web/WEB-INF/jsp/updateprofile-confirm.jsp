@@ -1,3 +1,5 @@
+<%@ page import="password.pwm.config.FormConfiguration" %>
+<%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -22,7 +24,7 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+         contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -35,9 +37,20 @@
         <p><pwm:display key="Display_UpdateProfileConfirm"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded">
-            <jsp:include page="fragment/form.jsp"/>
-        </form>
+        <% final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.FormData); %>
+        <table>
+            <% for (final FormConfiguration formConfiguration : formDataMap.keySet()) { %>
+            <tr>
+                <td class="key">
+                    <%=formConfiguration.getLabel(JspUtility.locale(request))%>
+                </td>
+                <td>
+                    <%=formDataMap.get(formConfiguration)%>
+                </td>
+            </tr>
+            <% } %>
+
+        </table>
         <div class="buttonbar">
             <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <button id="confirmBtn" type="submit" class="btn" name="button">

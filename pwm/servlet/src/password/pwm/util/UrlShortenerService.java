@@ -103,14 +103,14 @@ public class UrlShortenerService implements PwmService {
     }
 
 // -------------------------- OTHER METHODS --------------------------
-    public String shortenUrl(String text) {
+    public String shortenUrl(String text) throws PwmUnrecoverableException {
         if (theShortener != null) {
             return theShortener.shorten(text, pwmApplication);
         }
         return text;
     }
     
-    public String shortenUrlInText(String text) {
+    public String shortenUrlInText(String text) throws PwmUnrecoverableException {
         final String urlRegex = pwmApplication.getConfig().readAppProperty(AppProperty.URL_SHORTNER_URL_REGEX);
         try {
             final Pattern p = Pattern.compile(urlRegex);
@@ -138,7 +138,7 @@ public class UrlShortenerService implements PwmService {
                 return result;
             }
         } catch (PatternSyntaxException e) {
-            LOGGER.error("Error compiling pattern: "+e.getMessage());
+            LOGGER.error("Error compiling pattern: " + e.getMessage());
         }
         return text;
     }

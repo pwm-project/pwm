@@ -21,8 +21,9 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
-<%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
+<%@ page import="password.pwm.RecoveryVerificationMethod" %>
+<%@ page import="java.util.List" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -33,17 +34,24 @@
     </jsp:include>
     <div id="centerbody">
         <%
-            final ForgottenPasswordBean fpb = JspUtility.getPwmSession(pageContext).getForgottenPasswordBean();
+            final List<RecoveryVerificationMethod.UserPrompt> prompts = (List<RecoveryVerificationMethod.UserPrompt>)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.ForgottenPasswordPrompts);
+            final String instructions = (String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.ForgottenPasswordInstructions);
         %>
-        <p>NAAF Auth</p>
+        <p><%=instructions%></p>
         <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <h2>Input something!</h2>
-            <input type="text" pattern="[0-9]*" id="userinput" name="userinput" class="inputfield" required="required" autofocus/>
+            <br/>
+            <% for (final RecoveryVerificationMethod.UserPrompt userPrompt : prompts) { %>
+            <div class="formFieldLabel">
+                <%= userPrompt.getDisplayPrompt() %>
+            </div>
+
+            <input type="password" id="naaf-<%=userPrompt.getIdentifier()%>" name="naaf-<%=userPrompt.getIdentifier()%>" class="inputfield passwordfield" required="required" autofocus/>
+            <% } %>
             <div class="buttonbar">
-                <button type="submit" class="btn" name="search" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
-                    <pwm:display key="Button_CheckCode"/>
+                <button type="submit" class="btn" name="submitBtn" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:display key="Button_Continue"/>
                 </button>
                 <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ForgottenPasswordOptionalPageView))) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >
@@ -53,7 +61,7 @@
                 <% } %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
-                <input type="hidden" id="processAction" name="processAction" value="enterOtp"/>
+                <input type="hidden" id="processAction" name="processAction" value="enterNaafResponse"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
@@ -63,7 +71,9 @@
 <pwm:script>
     <script>
         PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.submitPostAction('button-goBack','ForgottenPassword','<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
+            PWM_MAIN.addEventHandler('button-goBack','click',function() {
+                PWM_MAIN.submitPostAction('ForgottenPassword', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
+            });
         });
     </script>
 </pwm:script>

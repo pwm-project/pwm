@@ -90,7 +90,9 @@ public class PwmUrlTag extends PwmAbstractTag {
         if (addContext) {
             workingUrl = insertContext(pageContext, workingUrl);
         }
-        workingUrl = insertResourceNonce(pwmRequest.getPwmApplication(), workingUrl);
+        if (pwmRequest != null) {
+            workingUrl = insertResourceNonce(pwmRequest.getPwmApplication(), workingUrl);
+        }
         //workingUrl = injectFormID(pwmSession, workingUrl);
         outputURL = workingUrl;
         //} catch (PwmUnrecoverableException e) {

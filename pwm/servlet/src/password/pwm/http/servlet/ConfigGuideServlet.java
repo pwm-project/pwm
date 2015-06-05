@@ -56,6 +56,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.*;
@@ -147,7 +148,7 @@ public class ConfigGuideServlet extends PwmServlet {
     }
 
 
-    public static Map<String,String> defaultForm(PwmSetting.Template template) {
+    public static Map<String,String> defaultForm(PwmSettingTemplate template) {
         final Map<String,String> defaultLdapForm = new HashMap<>();
 
         try {
@@ -217,7 +218,7 @@ public class ConfigGuideServlet extends PwmServlet {
             try {
                 final URI ldapServerUri = new URI(ldapServerString);
                 if ("ldaps".equalsIgnoreCase(ldapServerUri.getScheme())) {
-                    configGuideBean.setLdapCertificates(X509Utils.readLdapServerCerts(ldapServerUri));
+                    configGuideBean.setLdapCertificates(X509Utils.readRemoteCertificates(ldapServerUri));
                     configGuideBean.setCertsTrustedbyKeystore(X509Utils.testIfLdapServerCertsInDefaultKeystore(ldapServerUri));
                 } else {
                     configGuideBean.setLdapCertificates(null);
@@ -358,6 +359,7 @@ public class ConfigGuideServlet extends PwmServlet {
                 if (records.isEmpty()) {
                     records.add(new HealthRecord(HealthStatus.GOOD, HealthTopic.LDAP, "LDAP Contextless Login Root validated"));
                 }
+                    /*
                 try {
                     final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
                     final Map<String, List<String>> results = userMatchViewerFunction.discoverMatchingUsers(
@@ -367,6 +369,7 @@ public class ConfigGuideServlet extends PwmServlet {
                             PwmSetting.QUERY_MATCH_PWM_ADMIN,
                             null
                     );
+
                     if (results.isEmpty()) {
                         records.add(new HealthRecord(HealthStatus.WARN, HealthTopic.LDAP, "No matching admin users"));
                     } else {
@@ -377,6 +380,7 @@ public class ConfigGuideServlet extends PwmServlet {
                 } catch (Exception e) {
                     records.add(new HealthRecord(HealthStatus.WARN, HealthTopic.LDAP, "Error during admin group validation: " + e.getMessage()));
                 }
+                    */
             }
             break;
 
@@ -406,23 +410,11 @@ public class ConfigGuideServlet extends PwmServlet {
             final PwmRequest pwmRequest,
             final ConfigGuideBean configGuideBean
     ) throws IOException, ServletException {
-        final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
-        final int maxResults = 1000;
+
         try {
-            final Map<String, List<String>> results = userMatchViewerFunction.discoverMatchingUsers(
-                    pwmRequest.getPwmApplication(),
-                    1000,
-                    configGuideBean.getStoredConfiguration(),
-                    PwmSetting.QUERY_MATCH_PWM_ADMIN,
-                    null
-            );
-            final String htmlResults = userMatchViewerFunction.convertResultsToHtmlTable(
-                    pwmRequest.getPwmApplication(),
-                    pwmRequest.getLocale(),
-                    results,
-                    maxResults
-            );
-            pwmRequest.outputJsonResult(new RestResultBean(htmlResults));
+            final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
+            final Serializable output = userMatchViewerFunction.provideFunction(pwmRequest, configGuideBean.getStoredConfiguration(), PwmSetting.QUERY_MATCH_PWM_ADMIN, null);
+            pwmRequest.outputJsonResult(new RestResultBean(output));
         } catch (PwmException e) {
             LOGGER.error(pwmRequest,e.getErrorInformation());
             pwmRequest.respondWithError(e.getErrorInformation());
@@ -448,7 +440,7 @@ public class ConfigGuideServlet extends PwmServlet {
 
         if (incomingFormData != null && incomingFormData.get(PARAM_TEMPLATE_NAME) != null && !incomingFormData.get(PARAM_TEMPLATE_NAME).isEmpty()) {
             try {
-                final PwmSetting.Template template = PwmSetting.Template.valueOf(incomingFormData.get(PARAM_TEMPLATE_NAME));
+                final PwmSettingTemplate template = PwmSettingTemplate.valueOf(incomingFormData.get(PARAM_TEMPLATE_NAME));
                 if (configGuideBean.getSelectedTemplate() != template) {
                     LOGGER.debug(pwmRequest, "resetting form defaults using " + template.toString() + " template");
                     final Map<String, String> defaultForm = defaultForm(template);
@@ -488,7 +480,7 @@ public class ConfigGuideServlet extends PwmServlet {
         }
 
         final boolean ldapSchemaPermitted = "LDAP".equals(configGuideBean.getFormData().get(PARAM_CR_STORAGE_PREF))
-                && configGuideBean.getSelectedTemplate() == PwmSetting.Template.NOVL;
+                && configGuideBean.getSelectedTemplate() == PwmSettingTemplate.NOVL;
 
         if ("NEXT".equals(requestedStep)) {
             step = configGuideBean.getStep().next();

@@ -26,7 +26,7 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
          id="PWM" version="3.0">
     <display-name>PWM Password Management</display-name>
-    <distributable/>
+    <!-- <distributable/> Clustering/Session replication is not supported -->
     <description>Password Management Servlet</description>
     <context-param>
         <description>
@@ -335,12 +335,8 @@
         <servlet-name>CommandServlet</servlet-name>
         <url-pattern>/public/CommandServlet</url-pattern>
         <url-pattern>/private/CommandServlet</url-pattern>
-        <url-pattern>/public/command</url-pattern>
-        <url-pattern>/private/command</url-pattern>
         <url-pattern>/public/CommandServlet/*</url-pattern>
         <url-pattern>/private/CommandServlet/*</url-pattern>
-        <url-pattern>/public/command/*</url-pattern>
-        <url-pattern>/private/command/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>NewUserServlet</servlet-name>
@@ -407,8 +403,7 @@
         <location>/WEB-INF/jsp/error-http.jsp</location>
     </error-page>
     <session-config>
-        <!-- Please use the Configuration to control the idle session timeout.
-        This value will be overridden.  -->
+        <!-- Please use the application configuration to control the idle session timeout.  This value will not be used.  -->
         <session-timeout>5</session-timeout>
         <cookie-config>
             <http-only>true</http-only>
@@ -422,6 +417,10 @@
         <jsp-property-group>
             <url-pattern>*.jsp</url-pattern>
             <trim-directive-whitespaces>true</trim-directive-whitespaces>
+        </jsp-property-group>
+        <jsp-property-group>
+            <url-pattern>*.jsp</url-pattern>
+            <page-encoding>UTF-8</page-encoding>
         </jsp-property-group>
     </jsp-config>
 </web-app>

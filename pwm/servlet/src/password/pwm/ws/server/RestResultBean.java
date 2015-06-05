@@ -101,12 +101,13 @@ public class RestResultBean implements Serializable {
             final ErrorInformation errorInformation,
             final PwmApplication pwmApplication,
             final Locale locale,
-            final Configuration config
+            final Configuration config,
+            final boolean forceDetail
     ) {
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setError(true);
         restResultBean.setErrorMessage(errorInformation.toUserStr(locale, config));
-        if (Helper.determineIfDetailErrorMsgShown(pwmApplication)) {
+        if (forceDetail || Helper.determineIfDetailErrorMsgShown(pwmApplication)) {
             restResultBean.setErrorDetail(errorInformation.toDebugStr());
         }
         restResultBean.setErrorCode(errorInformation.getError().getErrorCode());
@@ -120,20 +121,28 @@ public class RestResultBean implements Serializable {
         final PwmApplication pwmApplication = restRequestBean.getPwmApplication();
         final Configuration config = restRequestBean.getPwmApplication().getConfig();
         final Locale locale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
-        return fromError(errorInformation, pwmApplication, locale, config);
+        return fromError(errorInformation, pwmApplication, locale, config, false);
     }
 
     public static RestResultBean fromError(
             final ErrorInformation errorInformation
     ) {
-        return fromError(errorInformation, null,null,null);
+        return fromError(errorInformation, null, null, null, false);
+    }
+
+    public static RestResultBean fromError(
+            final ErrorInformation errorInformation,
+            final PwmRequest pwmRequest,
+            final boolean forceDetail
+    ) {
+        return fromError(errorInformation, pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getConfig(), forceDetail);
     }
 
     public static RestResultBean fromError(
             final ErrorInformation errorInformation,
             final PwmRequest pwmRequest
     ) {
-        return fromError(errorInformation, pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getConfig());
+        return fromError(errorInformation, pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getConfig(), false);
     }
 
     public static RestResultBean forSuccessMessage(

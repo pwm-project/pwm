@@ -167,7 +167,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     protected String makeChecksumString(final File wordlistFile)
             throws PwmUnrecoverableException, IOException {
         final StringBuilder checksumString = new StringBuilder();
-        checksumString.append("hash=").append(SecureHelper.md5sum(wordlistFile));
+        checksumString.append("hash=").append(SecureHelper.hash(wordlistFile));
         checksumString.append(",length=").append(wordlistFile.length());
         checksumString.append(",caseSensitive=").append(wordlistConfiguration.isCaseSensitive());
         return checksumString.toString();

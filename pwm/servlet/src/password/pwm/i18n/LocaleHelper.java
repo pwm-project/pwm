@@ -26,6 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.StoredValue;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.config.value.StringArrayValue;
@@ -344,7 +345,7 @@ public class LocaleHelper {
 
         final ConfigLocaleStats configLocaleStats = new ConfigLocaleStats();
         {
-            final StoredValue storedValue = PwmSetting.CHALLENGE_RANDOM_CHALLENGES.getDefaultValue(PwmSetting.Template.DEFAULT);
+            final StoredValue storedValue = PwmSetting.CHALLENGE_RANDOM_CHALLENGES.getDefaultValue(PwmSettingTemplate.DEFAULT);
             Map<String, List<ChallengeItemBean>> value = ((ChallengeValue) storedValue).toNativeObject();
 
             for (String localeStr : value.keySet()) {
@@ -491,7 +492,7 @@ public class LocaleHelper {
         private static List<Locale> knownLocales() {
             final List<Locale> knownLocales = new ArrayList<>();
             try {
-                final StringArrayValue stringArrayValue = (StringArrayValue) PwmSetting.KNOWN_LOCALES.getDefaultValue(PwmSetting.Template.DEFAULT);
+                final StringArrayValue stringArrayValue = (StringArrayValue) PwmSetting.KNOWN_LOCALES.getDefaultValue(PwmSettingTemplate.DEFAULT);
                 final List<String> rawValues = stringArrayValue.toNativeObject();
                 final Map<String,String> localeFlagMap = StringUtil.convertStringListToNameValuePair(rawValues, "::");
                 for (final String rawValue : localeFlagMap.keySet()) {

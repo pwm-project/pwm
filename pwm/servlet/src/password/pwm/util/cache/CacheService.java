@@ -30,6 +30,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 
@@ -43,7 +44,9 @@ public class CacheService implements PwmService {
     private MemoryCacheStore memoryCacheStore;
     private LocalDBCacheStore localDBCacheStore;
 
-    private STATUS status = STATUS.OPENING;
+    private STATUS status = STATUS.NEW;
+
+    private Date lastTraceOutput;
 
     @Override
     public STATUS status() {
@@ -52,7 +55,8 @@ public class CacheService implements PwmService {
 
     @Override
     public void init(PwmApplication pwmApplication)
-            throws PwmException {
+            throws PwmException
+    {
         final boolean enabled = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_ENABLE));
         if (!enabled) {
             LOGGER.debug("skipping cache service init due to app property setting");
@@ -116,6 +120,7 @@ public class CacheService implements PwmService {
         if (localDBCacheStore != null) {
             localDBCacheStore.store(cacheKey, expirationDate, payload);
         }
+        outputTraceInfo();
     }
 
     public String get(CacheKey cacheKey)
@@ -137,8 +142,19 @@ public class CacheService implements PwmService {
             payload = localDBCacheStore.read(cacheKey);
         }
 
+        outputTraceInfo();
+
+        return payload;
+    }
+
+    private void outputTraceInfo() {
+        if (lastTraceOutput == null || TimeDuration.fromCurrent(lastTraceOutput).isLongerThan(30 * 1000)) {
+            lastTraceOutput = new Date();
+        } else {
+            return;
+        }
+
         final StringBuilder traceOutput = new StringBuilder();
-        traceOutput.append("cache ").append(payload == null ? "MISS" : "HIT");
         if (memoryCacheStore != null) {
             final CacheStoreInfo info = memoryCacheStore.getCacheStoreInfo();
             traceOutput.append(", memCache=");
@@ -150,6 +166,5 @@ public class CacheService implements PwmService {
             traceOutput.append(JsonUtil.serialize(info));
         }
         LOGGER.trace(traceOutput);
-        return payload;
     }
 }

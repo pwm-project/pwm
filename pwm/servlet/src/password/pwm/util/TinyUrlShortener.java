@@ -27,6 +27,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import password.pwm.PwmApplication;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.util.logging.PwmLogger;
 
@@ -44,7 +45,7 @@ public class TinyUrlShortener extends BasicUrlShortener {
 		this.configuration = configuration;
 	}
 	
-	public String shorten(String input, PwmApplication context) {
+	public String shorten(String input, PwmApplication context) throws PwmUnrecoverableException {
 		try {
 			LOGGER.debug("Trying to shorten url: "+input);
 			final String encodedUrl = StringUtil.urlEncode(input);
@@ -61,7 +62,7 @@ public class TinyUrlShortener extends BasicUrlShortener {
     	    	LOGGER.error("Failed to get shorter URL: "+httpResponse.getStatusLine().getReasonPhrase());
     	    }
 		} catch (java.io.IOException e) {
-			LOGGER.error("IOException: "+e.getMessage());
+			LOGGER.error("IOException: " + e.getMessage());
 		}
 		return input;
 	}

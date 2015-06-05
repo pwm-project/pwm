@@ -23,11 +23,11 @@
 .setting_outline {
     background-color: #eaeaea;
     border-radius: 3px 3px 5px 5px;
-    /* box-shadow: 2px 2px 1px 1px #bfbfbf; */
+    /* box-shadow: 2px 2px 1px 1px #dcdcdc; */
     margin-bottom: 10px;
-    animation: fadein 1s;
-    -moz-animation: fadein 1s; /* Firefox */
-    -webkit-animation: fadein 1s; /* Safari and Chrome */
+    animation: fadein 0.5s;
+    -moz-animation: fadein 0.5s; /* Firefox */
+    -webkit-animation: fadein 0.5s; /* Safari and Chrome */
 }
 
 .setting_title {
@@ -207,6 +207,7 @@
 table {
     max-width: 100%;
     font-size: 12px;
+    border-color: #D4D4D4;
 }
 
 .modifiedNoticeIcon {
@@ -255,9 +256,9 @@ table {
     height: 85vh;
     width: 242px;
     position: fixed;
-    animation: fadein 1.5s;
-    -moz-animation: fadein 1.5s; /* Firefox */
-    -webkit-animation: fadein 1.5s; /* Safari and Chrome */
+    animation: fadein 0.5s;
+    -moz-animation: fadein 0.5s; /* Firefox */
+    -webkit-animation: fadein 0.5s; /* Safari and Chrome */
 }
 
 #navigationTree {
@@ -286,9 +287,9 @@ table {
     z-index: 2;
     background: white;
     width:850px;
-    animation: fadein 3s;
-    -moz-animation: fadein 3s; /* Firefox */
-    -webkit-animation: fadein 3s; /* Safari and Chrome */
+    animation: fadein 1.5s;
+    -moz-animation: fadein 1.5s; /* Firefox */
+    -webkit-animation: fadein 1.5s; /* Safari and Chrome */
 }
 
 .setting_item_value_wrapper {
@@ -329,7 +330,7 @@ table {
 }
 
 .pane-help {
-    border: 1px white solid;
+    border-bottom: 1px #d3d3d3 solid;
     padding: 5px;
     max-height: 250px;
     margin: 2px 2px 15px;

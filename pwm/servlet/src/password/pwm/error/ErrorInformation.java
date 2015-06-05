@@ -143,6 +143,10 @@ public class ErrorInformation implements Serializable {
             return userStrOverride;
         }
 
+        if (this.getError().getErrorCode() == 6000) {
+            return detailedErrorMsg;
+        }
+
         return this.getError().getLocalizedMessage(userLocale, config, fieldValues);
     }
 
