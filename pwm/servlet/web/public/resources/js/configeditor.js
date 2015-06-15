@@ -301,6 +301,18 @@ function handleResetClick(settingKey) {
 }
 
 PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
+    if (PWM_SETTINGS['var']['configUnlocked']) {
+        PWM_MAIN.showDialog({
+            title:'Notice - Configuration Status: Open',
+            text:PWM_CONFIG.showString('Display_ConfigOpenInfo'),
+            loadFunction:function(){
+                PWM_MAIN.addEventHandler('link-configManager','click',function(){
+                    PWM_MAIN.goto('/private/config/ConfigManager');
+                });
+            }
+        });
+    }
+
     PWM_MAIN.addEventHandler('homeSettingSearch',['input','focus'],function(){PWM_CFGEDIT.processSettingSearch(PWM_MAIN.getObject('searchResults'));});
     PWM_MAIN.addEventHandler('button-navigationExpandAll','click',function(){PWM_VAR['navigationTree'].expandAll()});
     PWM_MAIN.addEventHandler('button-navigationCollapseAll','click',function(){PWM_VAR['navigationTree'].collapseAll()});
@@ -313,6 +325,14 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
     });
     PWM_MAIN.addEventHandler('macroDoc_icon','click',function(){ PWM_CFGEDIT.showMacroHelp(); });
     PWM_MAIN.addEventHandler('settingFilter_icon','click',function(){ PWM_CFGEDIT.showSettingFilter(); });
+
+    PWM_MAIN.addEventHandler('button-closeMenu','click',function(){
+        PWM_CFGEDIT.closeMenuPanel();
+    });
+    PWM_MAIN.addEventHandler('button-openMenu','click',function(){
+        PWM_CFGEDIT.openMenuPanel();
+    });
+
 
     PWM_CONFIG.heartbeatCheck();
 
@@ -336,7 +356,7 @@ PWM_CFGEDIT.executeSettingFunction = function(setting, name, input, resultHandle
         }});
     };
 
-    var requestUrl = "ConfigEditor?processAction=executeSettingFunction&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+    var requestUrl = "ConfigEditor?processAction=executeSettingFunction";
     if (PWM_CFGEDIT.readCurrentProfile()) {
         requestUrl = PWM_MAIN.addParamToUrl(requestUrl,'profile',PWM_CFGEDIT.readCurrentProfile());
     }
@@ -754,13 +774,13 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
     }
     var htmlSettingBody = '';
     /*
-    htmlSettingBody += '<button id="button-expandAllHelp">Awesome</button>';
-    PWM_MAIN.addEventHandler('button-expandAllHelp','click',function(){
-        PWM_MAIN.doQuery('.pane-help',function(element){
-            console.log('hit!' );
-        });
-    });
-    */
+     htmlSettingBody += '<button id="button-expandAllHelp">Awesome</button>';
+     PWM_MAIN.addEventHandler('button-expandAllHelp','click',function(){
+     PWM_MAIN.doQuery('.pane-help',function(element){
+     console.log('hit!' );
+     });
+     });
+     */
 
     if (category == 'LDAP_PROFILE') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
@@ -1133,7 +1153,7 @@ PWM_CFGEDIT.drawHomePage = function() {
     templateSettingBody += '<div><select id="select-template">';
     for (var template in PWM_SETTINGS['templates']) {
         var templateInfo = PWM_SETTINGS['templates'][template];
-        var selected = PWM_VAR['currentTemplate'] == templateInfo['key'];
+        var selected = PWM_SETTINGS['var']['currentTemplate'] == templateInfo['key'];
         if (selected || !templateInfo['hidden']) {
             templateSettingBody += '<option value="' + templateInfo['key'] + '"';
             if (selected) {
@@ -1145,7 +1165,8 @@ PWM_CFGEDIT.drawHomePage = function() {
     templateSettingBody += '</select></div>';
 
     var notesSettingBody = '';
-    notesSettingBody += '<div><textarea id="configurationNotesTextarea">' + PWM_VAR['configurationNotes'] + '</textarea></div>';
+    var configNotes = 'configurationNotes' in PWM_SETTINGS['var'] ? PWM_SETTINGS['var']['configurationNotes'] : ''  ;
+    notesSettingBody += '<div><textarea id="configurationNotesTextarea">' + configNotes + '</textarea></div>';
 
     var templateSelectSetting = {};
     templateSelectSetting['key'] = 'templateSelect';
@@ -1169,19 +1190,18 @@ PWM_CFGEDIT.drawHomePage = function() {
     });
     PWM_MAIN.addEventHandler('configurationNotesTextarea','input',function(){
         var value = PWM_MAIN.getObject('configurationNotesTextarea').value;
-        PWM_VAR['configurationNotes'] = value;
+        PWM_SETTINGS['var']['configurationNotes'] = value;
         var url = "ConfigEditor?processAction=setOption&updateNotesText=true";
         PWM_MAIN.ajaxRequest(url,function(){console.log('saved config notes')},{content:value});
     });
 
     PWM_MAIN.setStyle('outline_' + templateSelectSetting['key'],'display','inherit');
     PWM_MAIN.setStyle('outline_' + notesSettings['key'],'display','inherit');
-
 };
 
 
 PWM_CFGEDIT.initConfigSettingsDefinition=function(nextFunction) {
-    var clientConfigUrl = PWM_GLOBAL['url-context'] + "/private/config/ConfigEditor?processAction=settingData&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+    var clientConfigUrl = PWM_GLOBAL['url-context'] + "/private/config/ConfigEditor?processAction=settingData";
     var loadFunction = function(data) {
         if (data['error'] == true) {
             console.error('unable to load ' + clientConfigUrl + ', error: ' + data['errorDetail'])
@@ -1285,4 +1305,16 @@ PWM_CFGEDIT.applyGotoSettingHandlers = function() {
             PWM_CFGEDIT.gotoSetting(null,linkValue,null);
         })
     });
+};
+
+PWM_CFGEDIT.closeMenuPanel = function() {
+    console.log('action closeHeader');
+    PWM_MAIN.setStyle('header-warning','display','none');
+    PWM_MAIN.setStyle('button-openMenu','display','inherit');
+};
+
+PWM_CFGEDIT.openMenuPanel = function() {
+    console.log('action openHeader');
+    PWM_MAIN.setStyle('header-warning','display','inherit');
+    PWM_MAIN.setStyle('button-openMenu','display','none');
 };

@@ -55,15 +55,15 @@
         <div data-dojo-type="dijit.layout.TabContainer" data-dojo-props="doLayout: false, persist: true">
             <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Display_SetupOtp_Android_Title"/>">
                 <pwm:display key="Display_SetupOtp_Android_Steps"/>
-                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" alt="QR Code" width="150" height="150"/>
+                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&pwmFormID=<pwm:FormID/>" alt="QR Code"/>
             </div>
             <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Display_SetupOtp_iPhone_Title"/>">
                 <pwm:display key="Display_SetupOtp_iPhone_Steps"/>
-                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" alt="QR code" width="150" height="150"/>
+                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&pwmFormID=<pwm:FormID/>" alt="QR code"/>
             </div>
             <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Display_SetupOtp_Other_Title"/>">
                 <pwm:display key="Display_SetupOtp_Other_Steps"/>
-                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" alt="QR code" width="150" height="150"/>
+                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&&pwmFormID=<pwm:FormID/>" alt="QR code"/>
                 <table border="0" style="width: 300px; margin-right: auto; margin-left: auto">
                     <tr valign="top">
                         <td><b><pwm:display key="Field_OTP_Identifier"/></b></td>

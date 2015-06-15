@@ -31,7 +31,9 @@
         <jsp:param name="pwm.PageName" value="Title_Login"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:display key="Display_Login"/></p>
+        <p>
+            <span class="panel-login-display-message"><pwm:display key="Display_Login"/></span>
+        </p>
 
         <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>

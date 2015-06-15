@@ -93,11 +93,8 @@ p {
 }
 
 #footer {
-    background-color: white;
-    color: #0a0a0a;
-    filter:alpha(opacity=75);
-    opacity: 0.75;
-
+    background-color: transparent;
+    color: white;
 }
 
 a {

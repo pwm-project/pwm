@@ -30,7 +30,8 @@ import password.pwm.util.PostChangePasswordAction;
 
 import java.util.*;
 
-public class LoginInfoBean implements PwmSessionBean {
+public class
+        LoginInfoBean implements PwmSessionBean {
     private transient PasswordData userCurrentPassword;
 
     private Map<Permission, Permission.PERMISSION_STATUS> permissions = new HashMap<>();

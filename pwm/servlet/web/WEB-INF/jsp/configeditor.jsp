@@ -20,29 +20,24 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.config.StoredConfiguration" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.bean.ConfigManagerBean" %>
-<%@ page import="password.pwm.util.StringUtil" %>
-<%@ page import="java.util.List" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_MOBILE_CSS); %>
 <%@ include file="fragment/header.jsp" %>
-<% final PwmRequest configeditor_pwmRequest = PwmRequest.forRequest(request, response); %>
-<% final ConfigManagerBean configManagerBean = configeditor_pwmRequest.getPwmSession().getConfigManagerBean(); %>
-<% final boolean configUnlocked = configeditor_pwmRequest.getPwmApplication().getApplicationMode() == PwmApplication.MODE.CONFIGURATION && !PwmConstants.TRIAL_MODE; %>
-<% final String configNotes = configManagerBean.getStoredConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES);%>
 <body class="nihilo">
 <style nonce="<pwm:value name="cspNonce"/>" type="text/css">
     html { overflow-y: scroll; } <%-- always add verticle scrollbar to page --%>
 </style>
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
+
     <div class="configeditor-header" id="header" >
         <div id="header-center-wide" style="min-width: 850px">
             <div id="header-title">
@@ -69,6 +64,7 @@
             </div>
         </div>
     </div>
+
     <div id="centerbody-config" class="centerbody-config">
         <div id="settingSearchPanel">
             <table class="noborder settingSearchPanelTable">
@@ -121,37 +117,40 @@
     <br/><br/>
     <div class="push"></div>
 </div>
+
+<%--
+<div id="header-warning" style="display: none">
+    <div class="header-warning-row header-warning-version"><%=PwmConstants.PWM_APP_NAME_VERSION%></div>
+    <div id="header-warning-message" class="header-warning-row header-warning-message">
+        configeditor
+    </div>
+    <div class="header-warning-row header-warning-buttons">
+        <a class="header-warning-button" id="header_configManagerButton">
+            <pwm:if test="showIcons"><span class="btn-icon fa fa-gears"></span></pwm:if>
+            <pwm:display key="MenuItem_ConfigManager" bundle="Admin"/>
+        </a>
+        <a class="header-warning-button" id="header_configEditorButton">
+            <pwm:if test="showIcons"><span class="btn-icon fa fa-edit"></span></pwm:if>
+            <pwm:display key="MenuItem_ConfigEditor" bundle="Admin"/>
+        </a>
+    </div>
+    <div id="button-closeMenu" title="<pwm:display key="Button_Hide"/>">
+        <span class="fa fa-chevron-circle-up"></span>
+    </div>
+</div>
+<div id="button-openMenu" title="<pwm:display key="Button_Show"/>">
+    <span class="fa fa-chevron-circle-down"></span>
+</div>
+--%>
 <pwm:script>
     <script type="text/javascript">
-        var PWM_VAR = PWM_VAR || {};
-        PWM_GLOBAL['setting_alwaysFloatMessages'] = true;
-        PWM_VAR['currentTemplate'] = '<%=configManagerBean.getStoredConfiguration().getTemplate()%>';
-        PWM_VAR['configurationNotes'] = '<%=configNotes==null?"":StringUtil.escapeJS(configNotes)%>';
-        PWM_VAR['ldapProfileIds'] = [];
-        <% for (final String id : (List<String>)configManagerBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_PROFILE_LIST).toNativeObject()) { %>
-        PWM_VAR['ldapProfileIds'].push('<%=StringUtil.escapeJS(id)%>');
-        <% } %>
-
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_CFGEDIT.initConfigEditor();
+                PWM_CONFIG.initConfigHeader();
 
-            <% if (configUnlocked) { %>
-            PWM_MAIN.showDialog({
-                title:'Notice - Configuration Status: Open',
-                text:PWM_CONFIG.showString('Display_ConfigOpenInfo'),
-                loadFunction:function(){
-                    PWM_MAIN.addEventHandler('link-configManager','click',function(){
-                        PWM_MAIN.goto('/private/config/ConfigManager');
-                    });
-                }
-            });
-
-            <% } %>
         });
     </script>
 </pwm:script>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings.js"/>

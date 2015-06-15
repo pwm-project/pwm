@@ -149,10 +149,6 @@ public class PwmSession implements Serializable {
         return getSessionBean(LoginInfoBean.class);
     }
 
-    public HelpdeskBean getHelpdeskBean() {
-        return getSessionBean(HelpdeskBean.class);
-    }
-
     public UpdateProfileBean getUpdateProfileBean() {
         return getSessionBean(UpdateProfileBean.class);
     }

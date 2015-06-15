@@ -179,7 +179,8 @@ public class UserStatusReader {
             final PwmSession pwmSession,
             final UserIdentity userIdentity
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException {
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
         final String userLdapProfile = userIdentity.getLdapProfileID();
         final ChaiProvider provider = pwmApplication.getProxyChaiProvider(userLdapProfile);
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
@@ -193,27 +194,16 @@ public class UserStatusReader {
         );
     }
 
-    public void populateUserInfoBean(
-            final UserInfoBean uiBean,
+    public UserInfoBean populateUserInfoBean(
             final Locale userLocale,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
         final ChaiProvider provider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-        populateUserInfoBean(uiBean, userLocale, userIdentity, provider, null);
-    }
-
-    public void populateUserInfoBean(
-            final UserInfoBean uiBean,
-            final Locale userLocale,
-            final UserIdentity userIdentity,
-            final PasswordData currentPassword
-    )
-            throws PwmUnrecoverableException
-    {
-        final ChaiProvider provider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-        populateUserInfoBean(uiBean, userLocale, userIdentity, provider, currentPassword);
+        final UserInfoBean userInfoBean = new UserInfoBean();
+        populateUserInfoBean(userInfoBean, userLocale, userIdentity, provider, null);
+        return userInfoBean;
     }
 
     public void populateUserInfoBean(

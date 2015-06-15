@@ -122,7 +122,6 @@ public class MainClass {
 
         final Map<String,Object> options = parseCommandOptions(parameters, args);
         final File applicationPath = figureApplicationPath(MAIN_OPTIONS);
-        out(PwmConstants.SERVLET_VERSION);
         out("applicationPath=" + applicationPath.getAbsolutePath());
         PwmApplication.verifyApplicationPath(applicationPath);
         final File configurationFile = locateConfigurationFile(applicationPath);
@@ -224,6 +223,7 @@ public class MainClass {
     public static void main(String[] args)
             throws Exception
     {
+        System.out.println(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " Command Line Utility");
         args = parseCommandOptions(args);
 
         initLog4j(MAIN_OPTIONS.pwmLogLevel);
@@ -231,7 +231,6 @@ public class MainClass {
         final String commandStr = args == null || args.length < 1 ? null : args[0];
 
         if (commandStr == null) {
-            System.out.println(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " Command Line Utility");
             System.out.println("");
             System.out.println(makeHelpTextOutput());
         } else {

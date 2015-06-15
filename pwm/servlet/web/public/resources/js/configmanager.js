@@ -129,6 +129,7 @@ PWM_CONFIG.uploadLocalDB=function() {
                     PWM_CONFIG.waitForRestart({location:'/'});
                 }});
             };
+            PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
             PWM_CONFIG.uploadFile(uploadOptions);
         }
     });
@@ -346,15 +347,23 @@ PWM_CONFIG.uploadFile = function(options) {
             dojo.connect(uploader, "onComplete", completeFunction);
             dojo.connect(uploader, "onError", errorFunction);
             dojo.connect(uploader, "onBegin", function () {
+                PWM_MAIN.clearDijitWidget(idName);
                 PWM_MAIN.showWaitDialog({title:"Uploading..."});
             });
             dojo.connect(uploader, "onProgress", function (data) {
                 var decimal = data['decimal'];
                 require(["dijit/registry"],function(registry){
                     var progressBar = registry.byId('progressBar');
-                    progressBar.set("maximum",100);
-                    progressBar.set("indeterminate",false);
-                    progressBar.set("value", decimal * 100);
+                    if (progressBar) {
+                        progressBar.set("maximum", 100);
+                        progressBar.set("indeterminate", false);
+                        progressBar.set("value", decimal * 100);
+                    }
+                    var html5Bar = PWM_MAIN.getObject("wait");
+                    if (html5Bar) {
+                        html5Bar.setAttribute("max",100);
+                        html5Bar.setAttribute("value", decimal * 100);
+                    }
                 });
             });
         }});
@@ -445,11 +454,13 @@ PWM_CONFIG.convertListOfIdentitiesToHtml = function(data) {
     var users = data['users'];
     if (users && !PWM_MAIN.isEmpty(users)) {
         html += '<table style="">';
-        html += '<thead><tr><td class="title" style="width: 75px">' + PWM_MAIN.showString('Field_LdapProfile') + '</td><td class="title" style="max-width: 275px">' + PWM_MAIN.showString('Field_UserDN') + '</td></tr></thead>';
+        html += '<thead><tr><td class="title" style="width: 75px">' + PWM_MAIN.showString('Field_LdapProfile') + '</td>';
+        html += '<td class="title" style="max-width: 375px">'+ PWM_MAIN.showString('Field_UserDN') + '</td></tr></thead>';
         html += '<tbody>';
         for (var iter in users) {
             var userIdentity = users[iter];
-            html += '<tr ><td style="width: 75px">' + userIdentity['ldapProfile'] + '</td><td style="max-width: 275px">' + userIdentity['userDN'] + '</td></tr>';
+            html += '<tr ><td style="width: 75px">' + userIdentity['ldapProfile'] + '</td><td title="' + userIdentity['userDN'] + '">';
+            html += '<div style="max-width: 375px; white-space: nowrap; overflow:hidden; text-overflow: ellipsis;">' + userIdentity['userDN'] + '</div></td></tr>';
         }
         html += '</tbody></table>';
     } else {

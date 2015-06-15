@@ -24,6 +24,7 @@ package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
 import password.pwm.bean.SmsItemBean;
@@ -970,6 +971,20 @@ public class ConfigEditorServlet extends PwmServlet {
                 templateMap.put(template.toString(), templateInfo);
             }
             returnMap.put("templates", templateMap);
+        }
+        {
+            final LinkedHashMap<String, Object> varMap = new LinkedHashMap<>();
+            final ConfigManagerBean configManagerBean = pwmRequest.getPwmSession().getConfigManagerBean();
+            varMap.put("ldapProfileIds", configManagerBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_PROFILE_LIST).toNativeObject());
+            varMap.put("currentTemplate",configManagerBean.getStoredConfiguration().getTemplate());
+            if (pwmRequest.getPwmApplication().getApplicationMode() == PwmApplication.MODE.CONFIGURATION && !PwmConstants.TRIAL_MODE) {
+                if (!configManagerBean.isConfigUnlockedWarningShown()) {
+                    varMap.put("configUnlocked",true);
+                    configManagerBean.setConfigUnlockedWarningShown(true);
+                }
+            }
+            varMap.put("configurationNotes", configManagerBean.getStoredConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES));
+            returnMap.put("var", varMap);
         }
 
         final RestResultBean restResultBean = new RestResultBean();

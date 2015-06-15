@@ -143,14 +143,15 @@ public class CrService implements PwmService {
             } catch (ChaiException e) {
                 LOGGER.error(sessionLabel,"error reading nmas c/r policy for user " + theUser.getEntryDN() + ": " + e.getMessage());
             }
+            LOGGER.debug(sessionLabel,"no detected c/r policy for user " + theUser.getEntryDN() + " in nmas");
         }
 
         // use PWM policies if PWM is configured and either its all that is configured OR the NMAS policy read was not successful
         final String challengeProfileID = determineChallengeProfileForUser(pwmApplication, sessionLabel, userIdentity, locale);
         final ChallengeProfile challengeProfile = config.getChallengeProfile(challengeProfileID, locale);
 
-        LOGGER.debug(sessionLabel,"no detected c/r policy for user " + theUser.getEntryDN() + " in ldap ");
-        LOGGER.trace(sessionLabel,"readUserChallengeProfile completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
+        LOGGER.trace(sessionLabel,"readUserChallengeProfile completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString() + " returned profile: "
+                + (challengeProfile == null ? "null" : challengeProfile.getIdentifier()));
         return challengeProfile;
     }
 

@@ -20,12 +20,11 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.http.bean.HelpdeskBean" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext); %>
-<% final HelpdeskBean helpdeskBean = pwmRequest.getPwmSession().getHelpdeskBean(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
@@ -34,7 +33,6 @@
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
     </jsp:include>
     <div id="centerbody" class="wide tall">
-        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <div id="panel-searchbar" class="searchbar">
             <table class="noborder" style="margin-left: auto; margin-right: auto; width:100px; table-layout: fixed" >
                 <tr>
@@ -42,8 +40,7 @@
                         <span class="fa fa-search"></span>
                     </td>
                     <td style="width:400px">
-                            <input type="search" id="username" name="username" class="helpdesk-input-username" style="width: 400px" <pwm:autofocus/>
-                                   value="<%=helpdeskBean.getSearchString()!=null?helpdeskBean.getSearchString():""%>" />
+                        <input type="search" id="username" name="username" class="helpdesk-input-username" style="width: 400px" <pwm:autofocus/> />
                     </td>
                     <td style="width:20px">
                         <div id="searchIndicator" style="display:none">

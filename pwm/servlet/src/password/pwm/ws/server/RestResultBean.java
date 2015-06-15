@@ -148,10 +148,12 @@ public class RestResultBean implements Serializable {
     public static RestResultBean forSuccessMessage(
             final Locale locale,
             final Configuration config,
-            final Message message
+            final Message message,
+            final String... fieldValues
+
     ) {
         final RestResultBean restResultBean = new RestResultBean();
-        final String msgText = Message.getLocalizedMessage(locale, message, config);
+        final String msgText = Message.getLocalizedMessage(locale, message, config, fieldValues);
         restResultBean.setSuccessMessage(msgText);
         return restResultBean;
     }

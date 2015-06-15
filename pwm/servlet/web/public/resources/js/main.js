@@ -781,6 +781,7 @@ PWM_MAIN.showDialog = function(options) {
     var idName = 'id' in options ? options['id'] : 'dialogPopup';
     var dialogClass = 'dialogClass' in options ? options['dialogClass'] : null;
     var okLabel = 'okLabel' in options ? options['okLabel'] : PWM_MAIN.showString('Button_OK');
+    var buttonHtml = 'buttonHtml' in options ? options['buttonHtml'] : '';
 
     var okAction = function(){
         if (closeOnOk) {
@@ -804,28 +805,27 @@ PWM_MAIN.showDialog = function(options) {
 
     var bodyText = '';
     bodyText += text;
-    if (showOk || showCancel) {
+
+    if (showOk || showCancel || buttonHtml.length > 0) {
         bodyText += '<div class="buttonbar">';
-    }
-    if (showOk) {
-        bodyText += '<button class="btn" id="dialog_ok_button">'
-            + '<span class="btn-icon fa fa-check-square-o"></span>'
-            + okLabel + '</button>  ';
-    }
-    if (showCancel) {
-        bodyText += '<button class="btn" id="dialog_cancel_button">'
-            + '<span class="btn-icon fa fa-times"></span>'
-            + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
+        if (showOk) {
+            bodyText += '<button class="btn" id="dialog_ok_button">'
+                + '<span class="btn-icon fa fa-check-square-o"></span>'
+                + okLabel + '</button>  ';
+        }
+        if (showCancel) {
+            bodyText += '<button class="btn" id="dialog_cancel_button">'
+                + '<span class="btn-icon fa fa-times"></span>'
+                + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
+        }
+        bodyText += buttonHtml;
+        bodyText += '</div>';
     }
 
     var dialogClassText = 'dialogBody';
     if (dialogClass) {
         dialogClassText += ' ' + dialogClass;
     }
-    if (showOk || showCancel) {
-        bodyText += '</div>';
-    }
-
     bodyText = '<div class="' + dialogClassText + '">' + bodyText + '</div>';
 
     if (html5Dialog) {
@@ -1173,9 +1173,6 @@ PWM_MAIN.messageDivFloatHandler = function() {
     }
 
     var doFloatDisplay = !(PWM_MAIN.elementInViewport(messageWrapperObj,false) || PWM_GLOBAL['messageStatus'] == '');
-    if (PWM_GLOBAL['setting_alwaysFloatMessages']) {
-        doFloatDisplay = PWM_GLOBAL['messageStatus'] != '';
-    }
 
     if (PWM_GLOBAL['message_scrollToggle'] != doFloatDisplay) {
         PWM_GLOBAL['message_scrollToggle'] = doFloatDisplay;
@@ -1540,6 +1537,10 @@ PWM_MAIN.IdleTimeoutHandler.initCountDownTimer = function(secondsRemaining) {
         on(document, "scroll", function(){PWM_MAIN.IdleTimeoutHandler.resetIdleCounter()});
     });
 };
+
+PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer = function() {
+    PWM_GLOBAL['idle_suspendTimeout'] = true;
+}
 
 PWM_MAIN.IdleTimeoutHandler.resetIdleCounter = function() {
     PWM_MAIN.IdleTimeoutHandler.lastActivityTime = new Date();

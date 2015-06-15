@@ -282,7 +282,7 @@
                                 Chai API Version
                             </td>
                             <td>
-                                <%= com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION %> (<%= com.novell.ldapchai.ChaiConstant.CHAI_API_BUILD_INFO %>)
+                                <%= com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION %>
                             </td>
                         </tr>
                         <tr>

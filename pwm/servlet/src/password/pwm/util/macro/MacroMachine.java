@@ -240,8 +240,7 @@ public class MacroMachine {
     {
         final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
         final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, sessionLabel);
-        final UserInfoBean userInfoBean = new UserInfoBean();
-        userStatusReader.populateUserInfoBean(userInfoBean, userLocale, userIdentity);
+        final UserInfoBean userInfoBean = userStatusReader.populateUserInfoBean(userLocale, userIdentity);
         return new MacroMachine(pwmApplication, sessionLabel, userInfoBean, null, userDataReader);
     }
 

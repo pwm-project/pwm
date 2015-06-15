@@ -102,10 +102,8 @@ public class RestTokenDataClient implements RestClient {
         final Map<String,Object> sendData = new LinkedHashMap<>();
         sendData.put(DATA_KEY_TOKENDATA, tokenDestinationData);
         if (userIdentity != null) {
-            final UserInfoBean userInfoBean = new UserInfoBean();
             UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, sessionLabel);
-            userStatusReader.populateUserInfoBean(
-                    userInfoBean,
+            final UserInfoBean userInfoBean = userStatusReader.populateUserInfoBean(
                     locale,
                     userIdentity
             );

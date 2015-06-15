@@ -33,7 +33,7 @@
 <%@ page import="password.pwm.config.profile.HelpdeskProfile" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordRule" %>
 <%@ page import="password.pwm.event.UserAuditRecord" %>
-<%@ page import="password.pwm.http.bean.HelpdeskBean" %>
+<%@ page import="password.pwm.http.servlet.helpdesk.HelpdeskDetailInfoBean" %>
 <%@ page import="password.pwm.http.tag.PasswordRequirementsTag" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.util.StringUtil" %>
@@ -46,20 +46,18 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
+    final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
     final PwmSession pwmSession = pwmRequest.getPwmSession();
     final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-    final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
     final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile(pwmApplication);
     final DateFormat dateFormatter = PwmConstants.DEFAULT_DATETIME_FORMAT;
     final HelpdeskUIMode SETTING_PW_UI_MODE = HelpdeskUIMode.valueOf(helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_SET_PASSWORD_MODE));
 
     // user info
-    final HelpdeskBean.HelpdeskDetailInfo helpdeskDetailInfo = helpdeskBean.getHeldpdeskDetailInfo();
-    final UserInfoBean searchedUserInfo = helpdeskDetailInfo.getUserInfoBean();
+    final HelpdeskDetailInfoBean helpdeskDetailInfoBean = (HelpdeskDetailInfoBean)pwmRequest.getAttribute(PwmConstants.REQUEST_ATTR.HelpdeskDetail);
+    final UserInfoBean searchedUserInfo = helpdeskDetailInfoBean.getUserInfoBean();
     final ResponseInfoBean responseInfoBean = searchedUserInfo.getResponseInfoBean();
-    final String obfuscatedDN = searchedUserInfo.getUserIdentity().toObfuscatedKey(pwmApplication.getConfig());
-    final String displayName = helpdeskDetailInfo.getUserDisplayName();
+    final String displayName = helpdeskDetailInfoBean.getUserDisplayName();
     final Set<ViewStatusFields> viewStatusFields = helpdeskProfile.readSettingAsOptionList(PwmSetting.HELPDESK_VIEW_STATUS_VALUES,ViewStatusFields.class);
     final boolean hasOtp = searchedUserInfo.getOtpUserRecord() != null;
 %>
@@ -74,6 +72,14 @@
         <% if (displayName != null && !displayName.isEmpty()) { %>
         <h2 style="text-align: center"><%=displayName%></h2>
         <% } %>
+        <pwm:script>
+            <script type="text/javascript">
+                PWM_GLOBAL['startupFunctions'].push(function(){
+                    PWM_VAR["helpdesk_obfuscatedDN"] = '<%=JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.HelpdeskObfuscatedDN)%>';
+                    PWM_VAR["helpdesk_username"] = '<%=JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.HelpdeskUsername)%>';
+                });
+            </script>
+        </pwm:script>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <table style="border:0">
             <tr>
@@ -82,13 +88,13 @@
                         <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Field_Profile"/>" class="tabContent">
                             <div style="max-height: 400px; overflow: auto;">
                                 <table class="nomargin">
-                                    <% for (FormConfiguration formItem : helpdeskBean.getHeldpdeskDetailInfo().getSearchDetails().keySet()) { %>
+                                    <% for (FormConfiguration formItem : helpdeskDetailInfoBean.getSearchDetails().keySet()) { %>
                                     <tr>
                                         <td class="key" id="key_<%=formItem.getName()%>">
                                             <%= formItem.getLabel(pwmSession.getSessionStateBean().getLocale())%>
                                         </td>
                                         <td id="value_<%=formItem.getName()%>">
-                                            <% final String loopValue = helpdeskBean.getHeldpdeskDetailInfo().getSearchDetails().get(formItem); %>
+                                            <% final String loopValue = helpdeskDetailInfoBean.getSearchDetails().get(formItem); %>
                                             <%= loopValue == null ? "" : StringUtil.escapeHtml(loopValue) %>
                                         </td>
                                     </tr>
@@ -164,7 +170,7 @@
                                         <pwm:display key="Field_AccountEnabled"/>
                                     </td>
                                     <td>
-                                        <%if (helpdeskBean.getHeldpdeskDetailInfo().isAccountEnabled()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                                        <%if (helpdeskDetailInfoBean.isAccountEnabled()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
                                     </td>
                                 </tr>
                                 <% } %>
@@ -174,7 +180,7 @@
                                         <pwm:display key="Field_AccountExpired"/>
                                     </td>
                                     <td>
-                                        <%if (helpdeskBean.getHeldpdeskDetailInfo().isAccountExpired()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
+                                        <%if (helpdeskDetailInfoBean.isAccountExpired()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
                                     </td>
                                 </tr>
                                 <% } %>
@@ -200,25 +206,25 @@
                                     <td class="key">
                                         <pwm:display key="Field_LastLoginTime"/>
                                     </td>
-                                    <% if (helpdeskBean.getHeldpdeskDetailInfo().getLastLoginTime() == null) { %>
+                                    <% if (helpdeskDetailInfoBean.getLastLoginTime() == null) { %>
                                     <td>
                                         <pwm:display key="Value_NotApplicable"/>
                                     </td>
                                     <% } else { %>
                                     <td class="timestamp">
-                                        <%= dateFormatter.format(helpdeskBean.getHeldpdeskDetailInfo().getLastLoginTime()) %>
+                                        <%= dateFormatter.format(helpdeskDetailInfoBean.getLastLoginTime()) %>
                                     </td>
                                     <% } %>
                                 </tr>
                                 <% } %>
                                 <% if (viewStatusFields.contains(ViewStatusFields.LastLoginTimeDelta)) { %>
-                                <% if (helpdeskBean.getHeldpdeskDetailInfo().getLastLoginTime() != null) { %>
+                                <% if (helpdeskDetailInfoBean.getLastLoginTime() != null) { %>
                                 <tr>
                                     <td class="key">
                                         <pwm:display key="Field_LastLoginTimeDelta"/>
                                     </td>
                                     <td>
-                                        <%= TimeDuration.fromCurrent(helpdeskBean.getHeldpdeskDetailInfo().getLastLoginTime()).asLongString(pwmSession.getSessionStateBean().getLocale()) %>
+                                        <%= TimeDuration.fromCurrent(helpdeskDetailInfoBean.getLastLoginTime()).asLongString(pwmSession.getSessionStateBean().getLocale()) %>
                                     </td>
                                 </tr>
                                 <% } %>
@@ -275,7 +281,7 @@
                                         <pwm:display key="Field_PasswordSetTimeDelta"/>
                                     </td>
                                     <td>
-                                        <%= helpdeskBean.getHeldpdeskDetailInfo().getPasswordSetDelta() %>
+                                        <%= helpdeskDetailInfoBean.getPasswordSetDelta() %>
                                     </td>
                                 </tr>
                                 <% } %>
@@ -300,7 +306,7 @@
                                     <td class="key">
                                         <pwm:display key="Field_PasswordLocked"/>
                                     </td>
-                                    <% if (helpdeskBean.getHeldpdeskDetailInfo().isIntruderLocked()) { %>
+                                    <% if (helpdeskDetailInfoBean.isIntruderLocked()) { %>
                                     <td class="health-WARN">
                                         <pwm:display key="Value_True"/>
                                     </td>
@@ -395,11 +401,11 @@
                                 <% } %>
                             </table>
                         </div>
-                        <% if (helpdeskBean.getHeldpdeskDetailInfo().getUserHistory() != null && !helpdeskBean.getHeldpdeskDetailInfo().getUserHistory().isEmpty()) { %>
+                        <% if (helpdeskDetailInfoBean.getUserHistory() != null && !helpdeskDetailInfoBean.getUserHistory().isEmpty()) { %>
                         <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_UserEventHistory"/>" class="tabContent">
                             <div style="max-height: 400px; overflow: auto;">
                                 <table class="nomargin">
-                                    <% for (final UserAuditRecord record : helpdeskBean.getHeldpdeskDetailInfo().getUserHistory()) { %>
+                                    <% for (final UserAuditRecord record : helpdeskDetailInfoBean.getUserHistory()) { %>
                                     <tr>
                                         <td class="key timestamp" style="width:50%">
                                             <%= dateFormatter.format(record.getTimestamp()) %>
@@ -521,7 +527,7 @@
                         </button>
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
-                        <% if (helpdeskBean.getHeldpdeskDetailInfo().isIntruderLocked()) { %>
+                        <% if (helpdeskDetailInfoBean.isIntruderLocked()) { %>
                         <button id="helpdesk_unlockBtn" class="helpdesk-detail-btn btn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
                             <pwm:display key="Button_Unlock"/>

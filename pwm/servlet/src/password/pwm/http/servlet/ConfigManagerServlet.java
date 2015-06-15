@@ -58,6 +58,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -113,8 +115,6 @@ public class ConfigManagerServlet extends PwmServlet {
         if (checkAuthentication(pwmRequest, configManagerBean)) {
             return;
         }
-
-        configManagerBean.setConfigLocked(pwmApplication.getApplicationMode() != PwmApplication.MODE.CONFIGURATION);
 
         final ConfigManagerAction processAction = readProcessAction(pwmRequest);
         if (processAction != null) {
@@ -548,7 +548,6 @@ public class ConfigManagerServlet extends PwmServlet {
             throws IOException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         { // kick off health check so that it might be faster later..
             Thread healthThread = new Thread() {
@@ -560,180 +559,20 @@ public class ConfigManagerServlet extends PwmServlet {
             healthThread.setDaemon(true);
             healthThread.start();
         }
-        final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
-        storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
-        {
-            zipOutput.putNextEntry(new ZipEntry(pathPrefix + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
-            storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
 
-            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            storedConfiguration.toXml(outputStream);
-            zipOutput.write(outputStream.toByteArray());
-            zipOutput.closeEntry();
-            zipOutput.flush();
-        }
-        {
-            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "configuration-debug.txt"));
-            zipOutput.write(storedConfiguration.toString(true).getBytes(PwmConstants.DEFAULT_CHARSET));
-            zipOutput.closeEntry();
-            zipOutput.flush();
-        }
-        {
-            final Properties outputProps = new Properties() {
-                public synchronized Enumeration<Object> keys() {
-                    return Collections.enumeration(new TreeSet<>(super.keySet()));
-                }
-            };
-
-            final Map<PwmAboutProperty,String> infoBean = Helper.makeInfoBean(pwmApplication);
-            for (final PwmAboutProperty aboutProperty : infoBean.keySet()) {
-                outputProps.put(aboutProperty.toString(), infoBean.get(aboutProperty));
-            }
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store(baos,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "about.properties"));
-            zipOutput.write(baos.toByteArray());
-            zipOutput.closeEntry();
-            zipOutput.flush();
-        }
-        {
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            pwmApplication.getAuditManager().outputVaultToCsv(baos, pwmRequest.getLocale(), true);
-            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "audit.csv"));
-            zipOutput.write(baos.toByteArray());
-            zipOutput.closeEntry();
-            zipOutput.flush();
-        }
-        {
-            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "info.json"));
-            final LinkedHashMap<String,Object> outputMap = new LinkedHashMap<>();
-
-            { // services info
-                final LinkedHashMap<String,Object> servicesMap = new LinkedHashMap<>();
-                for (final PwmService service : pwmApplication.getPwmServices()) {
-                    final LinkedHashMap<String,Object> serviceOutput = new LinkedHashMap<>();
-                    serviceOutput.put("name", service.getClass().getSimpleName());
-                    serviceOutput.put("status",service.status());
-                    serviceOutput.put("health",service.healthCheck());
-                    serviceOutput.put("serviceInfo",service.serviceInfo());
-                    servicesMap.put(service.getClass().getSimpleName(), serviceOutput);
-                }
-                outputMap.put("services",servicesMap);
-            }
-
-            // java threads
-            outputMap.put("threads", Thread.getAllStackTraces());
-
-            final String recordJson = JsonUtil.serializeMap(outputMap, JsonUtil.Flag.PrettyPrint);
-            zipOutput.write(recordJson.getBytes(PwmConstants.DEFAULT_CHARSET));
-            zipOutput.closeEntry();
-            zipOutput.flush();
-        }
-        {
-            final List<BuildChecksumMaker.FileInformation> fileInformations = new ArrayList<>();
-            if (pwmApplication.getApplicationPath() != null) {
-                try {
-                    fileInformations.addAll(BuildChecksumMaker.readFileInformation(pwmApplication.getApplicationPath()));
-                } catch (Exception e) {
-                    LOGGER.error(pwmSession, "unable to generate appPath fileMd5sums during zip debug building: " + e.getMessage());
-                }
-            }
-            if (pwmApplication.getWebInfPath() != null && !pwmApplication.getWebInfPath().equals(pwmApplication.getApplicationPath())) {
-                try {
-                    fileInformations.addAll(BuildChecksumMaker.readFileInformation(pwmApplication.getWebInfPath()));
-                } catch (Exception e) {
-                    LOGGER.error(pwmSession, "unable to generate webInfPath fileMd5sums during zip debug building: " + e.getMessage());
-                }
-            }
-            {
-                zipOutput.putNextEntry(new ZipEntry(pathPrefix + "fileinformation.json"));
-                final String json = JsonUtil.serializeCollection(fileInformations, JsonUtil.Flag.PrettyPrint);
-                zipOutput.write(json.getBytes(PwmConstants.DEFAULT_CHARSET));
+        for (final Class<? extends DebugItemGenerator> serviceClass : DEBUG_ZIP_ITEM_GENERATORS) {
+            try {
+                LOGGER.trace(pwmRequest, "beginning debug output of item " + serviceClass.getSimpleName());
+                final Object newInstance = serviceClass.newInstance();
+                final DebugItemGenerator newGeneratorItem = (DebugItemGenerator)newInstance;
+                zipOutput.putNextEntry(new ZipEntry(pathPrefix + newGeneratorItem.getFilename()));
+                newGeneratorItem.outputItem(pwmApplication, pwmRequest, zipOutput);
                 zipOutput.closeEntry();
                 zipOutput.flush();
+            } catch (Exception e) {
+                final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
+                LOGGER.error(pwmRequest, errorMsg);
             }
-            {
-                zipOutput.putNextEntry(new ZipEntry(pathPrefix + "fileinformation.csv"));
-                final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                final CSVPrinter csvPrinter = Helper.makeCsvPrinter(byteArrayOutputStream);
-                {
-                    final List<String> headerRow = new ArrayList<>();
-                    headerRow.add("Filename");
-                    headerRow.add("Filepath");
-                    headerRow.add("Last Modified");
-                    headerRow.add("Size");
-                    headerRow.add("sha1sum");
-                    csvPrinter.printRecord(headerRow);
-                }
-                for (final BuildChecksumMaker.FileInformation fileInformation : fileInformations) {
-                    final List<String> headerRow = new ArrayList<>();
-                    headerRow.add(fileInformation.getFilename());
-                    headerRow.add(fileInformation.getFilepath());
-                    headerRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(fileInformation.getModified()));
-                    headerRow.add(String.valueOf(fileInformation.getSize()));
-                    headerRow.add(fileInformation.getSha1sum());
-                    csvPrinter.printRecord(headerRow);
-                }
-                csvPrinter.flush();
-                zipOutput.write(byteArrayOutputStream.toByteArray());
-                zipOutput.closeEntry();
-                zipOutput.flush();
-            }
-        }
-        {
-            final List<BuildChecksumMaker.FileInformation> fileInformation = new ArrayList<>();
-            if (pwmApplication.getApplicationPath() != null) {
-                try {
-                    fileInformation.addAll(BuildChecksumMaker.readFileInformation(pwmApplication.getApplicationPath()));
-                } catch (Exception e) {
-                    LOGGER.error(pwmSession, "unable to generate appPath fileMd5sums during zip debug building: " + e.getMessage());
-                }
-            }
-            if (pwmApplication.getWebInfPath() != null && !pwmApplication.getWebInfPath().equals(pwmApplication.getApplicationPath())) {
-                try {
-                    fileInformation.addAll(BuildChecksumMaker.readFileInformation(pwmApplication.getWebInfPath()));
-                } catch (Exception e) {
-                    LOGGER.error(pwmSession, "unable to generate webInfPath fileMd5sums during zip debug building: " + e.getMessage());
-                }
-            }
-            final String json = JsonUtil.serializeCollection(fileInformation, JsonUtil.Flag.PrettyPrint);
-            zipOutput.write(json.getBytes(PwmConstants.DEFAULT_CHARSET));
-            zipOutput.closeEntry();
-            zipOutput.flush();
-        }
-        {
-            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "debug.log"));
-            final int maxCount = 100 * 1000;
-            final int maxSeconds = 30 * 1000;
-            final LocalDBLogger.SearchParameters searchParameters = new LocalDBLogger.SearchParameters(
-                    PwmLogLevel.TRACE,
-                    maxCount,
-                    null,
-                    null,
-                    maxSeconds,
-                    null
-            );
-            final LocalDBLogger.SearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents(
-                    searchParameters);
-            int counter = 0;
-            while (searchResults.hasNext()) {
-                final PwmLogEvent event = searchResults.next();
-                zipOutput.write(event.toLogString().getBytes(PwmConstants.DEFAULT_CHARSET));
-                zipOutput.write("\n".getBytes(PwmConstants.DEFAULT_CHARSET));
-                counter++;
-                if (counter % 100 == 0) {
-                    zipOutput.flush();
-                }
-            }
-            zipOutput.closeEntry();
-        }
-        {
-            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "health.json"));
-            final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
-            final String recordJson = JsonUtil.serializeCollection(records, JsonUtil.Flag.PrettyPrint);
-            zipOutput.write(recordJson.getBytes(PwmConstants.DEFAULT_CHARSET));
-            zipOutput.closeEntry();
-            zipOutput.flush();
         }
     }
 
@@ -795,6 +634,283 @@ public class ConfigManagerServlet extends PwmServlet {
         final LinkedHashMap<String,Object> outputMap = new LinkedHashMap<>(storedConfiguration.toOutputMap(pwmRequest.getLocale()));
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigurationSummaryOutput,outputMap);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_SUMMARY);
+    }
+
+    private static final List<Class<? extends DebugItemGenerator>> DEBUG_ZIP_ITEM_GENERATORS  = Collections.unmodifiableList(Arrays.asList(
+            ConfigurationFileItemGenerator.class,
+            ConfigurationDebugItemGenerator.class,
+            AboutItemGenerator.class,
+            EnvironmentItemGenerator.class,
+            AuditDebugItemGenerator.class,
+            InfoDebugItemGenerator.class,
+            HealthDebugItemGenerator.class,
+            ThreadDumpDebugItemGenerator.class,
+            FileInfoDebugItemGenerator.class,
+            LogDebugItemGenerator.class
+    ));
+
+    interface DebugItemGenerator {
+
+        String getFilename();
+
+        void outputItem(
+                PwmApplication pwmApplication,
+                PwmRequest pwmRequest,
+                OutputStream outputStream
+        ) throws Exception;
+    }
+
+    static class ConfigurationDebugItemGenerator implements DebugItemGenerator {
+        @Override
+        public String getFilename() {
+            return "configuration-debug.txt";
+        }
+
+        @Override
+        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        {
+            final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
+            storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
+
+            outputStream.write(storedConfiguration.toString(true).getBytes(PwmConstants.DEFAULT_CHARSET));
+        }
+    }
+
+    static class ConfigurationFileItemGenerator implements DebugItemGenerator {
+        @Override
+        public String getFilename() {
+            return PwmConstants.DEFAULT_CONFIG_FILE_FILENAME;
+        }
+
+        @Override
+        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        {
+            final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
+            storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
+
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            storedConfiguration.toXml(baos);
+            outputStream.write(baos.toByteArray());
+        }
+    }
+
+    static class AboutItemGenerator implements DebugItemGenerator {
+        @Override
+        public String getFilename() {
+            return "about.properties";
+        }
+
+        @Override
+        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        {
+            final Properties outputProps = new Properties() {
+                public synchronized Enumeration<Object> keys() {
+                    return Collections.enumeration(new TreeSet<>(super.keySet()));
+                }
+            };
+
+            final Map<PwmAboutProperty,String> infoBean = Helper.makeInfoBean(pwmApplication);
+            for (final PwmAboutProperty aboutProperty : infoBean.keySet()) {
+                outputProps.put(aboutProperty.toString().replace("_","."), infoBean.get(aboutProperty));
+            }
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            outputProps.store(baos,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            outputStream.write(baos.toByteArray());
+        }
+    }
+
+    static class EnvironmentItemGenerator implements DebugItemGenerator {
+        @Override
+        public String getFilename() {
+            return "environment.properties";
+        }
+
+        @Override
+        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        {
+            final Properties outputProps = new Properties() {
+                public synchronized Enumeration<Object> keys() {
+                    return Collections.enumeration(new TreeSet<>(super.keySet()));
+                }
+            };
+
+            // java threads
+            final Map<String,String> envProps = System.getenv();
+            for (final String key : envProps.keySet()) {
+                outputProps.put(key, envProps.get(key));
+            }
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            outputProps.store(baos,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            outputStream.write(baos.toByteArray());
+        }
+    }
+
+
+    static class AuditDebugItemGenerator implements DebugItemGenerator {
+        @Override
+        public String getFilename() {
+            return "audit.csv";
+        }
+
+        @Override
+        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        {
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            pwmApplication.getAuditManager().outputVaultToCsv(baos, pwmRequest.getLocale(), true);
+            outputStream.write(baos.toByteArray());
+        }
+    }
+
+    static class InfoDebugItemGenerator implements DebugItemGenerator {
+        @Override
+        public String getFilename() {
+            return "info.json";
+        }
+
+        @Override
+        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        {
+            final LinkedHashMap<String,Object> outputMap = new LinkedHashMap<>();
+
+            { // services info
+                final LinkedHashMap<String,Object> servicesMap = new LinkedHashMap<>();
+                for (final PwmService service : pwmApplication.getPwmServices()) {
+                    final LinkedHashMap<String,Object> serviceOutput = new LinkedHashMap<>();
+                    serviceOutput.put("name", service.getClass().getSimpleName());
+                    serviceOutput.put("status",service.status());
+                    serviceOutput.put("health",service.healthCheck());
+                    serviceOutput.put("serviceInfo",service.serviceInfo());
+                    servicesMap.put(service.getClass().getSimpleName(), serviceOutput);
+                }
+                outputMap.put("services",servicesMap);
+            }
+
+            final String recordJson = JsonUtil.serializeMap(outputMap, JsonUtil.Flag.PrettyPrint);
+            outputStream.write(recordJson.getBytes(PwmConstants.DEFAULT_CHARSET));
+        }
+    }
+
+
+    static class HealthDebugItemGenerator implements DebugItemGenerator {
+        @Override
+        public String getFilename() {
+            return "health.json";
+        }
+
+        @Override
+        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception {
+            final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
+            final String recordJson = JsonUtil.serializeCollection(records, JsonUtil.Flag.PrettyPrint);
+            outputStream.write(recordJson.getBytes(PwmConstants.DEFAULT_CHARSET));
+        }
+    }
+
+    static class ThreadDumpDebugItemGenerator implements DebugItemGenerator {
+        @Override
+        public String getFilename() {
+            return "threads.txt";
+        }
+
+        @Override
+        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception {
+
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            final PrintWriter writer = new PrintWriter( new OutputStreamWriter(baos, PwmConstants.DEFAULT_CHARSET) );
+            final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads(true,true);
+            for (final ThreadInfo threadInfo : threads) {
+                writer.write(threadInfo.toString());
+            }
+            writer.flush();
+            outputStream.write(baos.toByteArray());
+        }
+    }
+
+    static class FileInfoDebugItemGenerator implements DebugItemGenerator {
+        @Override
+        public String getFilename() {
+            return "fileinformation.csv";
+        }
+
+        @Override
+        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception {
+            final List<BuildChecksumMaker.FileInformation> fileInformations = new ArrayList<>();
+            if (pwmApplication.getApplicationPath() != null) {
+                try {
+                    fileInformations.addAll(BuildChecksumMaker.readFileInformation(pwmApplication.getApplicationPath()));
+                } catch (Exception e) {
+                    LOGGER.error(pwmRequest, "unable to generate appPath fileMd5sums during zip debug building: " + e.getMessage());
+                }
+            }
+            if (pwmApplication.getWebInfPath() != null && !pwmApplication.getWebInfPath().equals(pwmApplication.getApplicationPath())) {
+                try {
+                    fileInformations.addAll(BuildChecksumMaker.readFileInformation(pwmApplication.getWebInfPath()));
+                } catch (Exception e) {
+                    LOGGER.error(pwmRequest, "unable to generate webInfPath fileMd5sums during zip debug building: " + e.getMessage());
+                }
+            }
+            {
+                final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                final CSVPrinter csvPrinter = Helper.makeCsvPrinter(byteArrayOutputStream);
+                {
+                    final List<String> headerRow = new ArrayList<>();
+                    headerRow.add("Filename");
+                    headerRow.add("Filepath");
+                    headerRow.add("Last Modified");
+                    headerRow.add("Size");
+                    headerRow.add("sha1sum");
+                    csvPrinter.printRecord(headerRow);
+                }
+                for (final BuildChecksumMaker.FileInformation fileInformation : fileInformations) {
+                    final List<String> headerRow = new ArrayList<>();
+                    headerRow.add(fileInformation.getFilename());
+                    headerRow.add(fileInformation.getFilepath());
+                    headerRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(fileInformation.getModified()));
+                    headerRow.add(String.valueOf(fileInformation.getSize()));
+                    headerRow.add(fileInformation.getSha1sum());
+                    csvPrinter.printRecord(headerRow);
+                }
+                csvPrinter.flush();
+                outputStream.write(byteArrayOutputStream.toByteArray());
+            }
+        }
+    }
+
+    static class LogDebugItemGenerator implements DebugItemGenerator {
+        @Override
+        public String getFilename() {
+            return "debug.log";
+        }
+
+        @Override
+        public void outputItem(
+                final PwmApplication pwmApplication,
+                final PwmRequest pwmRequest,
+                final OutputStream outputStream
+        ) throws Exception {
+
+            final int maxCount = 100 * 1000;
+            final int maxSeconds = 30 * 1000;
+            final LocalDBLogger.SearchParameters searchParameters = new LocalDBLogger.SearchParameters(
+                    PwmLogLevel.TRACE,
+                    maxCount,
+                    null,
+                    null,
+                    maxSeconds,
+                    null
+            );
+            final LocalDBLogger.SearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents(
+                    searchParameters);
+            int counter = 0;
+            while (searchResults.hasNext()) {
+                final PwmLogEvent event = searchResults.next();
+                outputStream.write(event.toLogString().getBytes(PwmConstants.DEFAULT_CHARSET));
+                outputStream.write("\n".getBytes(PwmConstants.DEFAULT_CHARSET));
+                counter++;
+                if (counter % 1000 == 0) {
+                    outputStream.flush();
+                }
+            }
+        }
     }
 }
 

@@ -30,7 +30,6 @@ import password.pwm.Validator;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
@@ -45,7 +44,6 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.CASAuthenticationHelper;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
@@ -55,8 +53,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Authentication servlet filter.  This filter wraps all servlet requests and requests direct to *.jsp
@@ -407,39 +403,13 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             throws IOException, ServletException, PwmUnrecoverableException
 
     {
-        final Configuration config = pwmRequest.getConfig();
-        final OAuthConsumerServlet.Settings settings = OAuthConsumerServlet.Settings.fromConfiguration(config);
+        final OAuthConsumerServlet.Settings settings = OAuthConsumerServlet.Settings.fromConfiguration(pwmRequest.getConfig());
         if (!settings.oAuthIsConfigured()) {
             return false;
         }
 
         final String originalURL = pwmRequest.getURLwithQueryString();
-
-        final String state = OAuthConsumerServlet.makeStateStringForRequest(pwmRequest, originalURL);
-        final String redirectUri = OAuthConsumerServlet.figureOauthSelfEndPointUrl(pwmRequest);
-        final String code = config.readAppProperty(AppProperty.OAUTH_ID_REQUEST_TYPE);
-
-        final Map<String,String> urlParams = new HashMap<>();
-        urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID),settings.getClientID());
-        urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_RESPONSE_TYPE),code);
-        urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_STATE),state);
-        urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI),redirectUri);
-
-        final String redirectUrl = ServletHelper.appendAndEncodeUrlParameters(settings.getLoginURL(), urlParams);
-
-        LOGGER.trace(pwmRequest, "preparing to start oauth authentication request sequence, set originally requested url: " + originalURL);
-
-        try{
-            pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress(true);
-            pwmRequest.sendRedirect(redirectUrl);
-            LOGGER.debug(pwmRequest, "redirecting user to oauth id server, url: " + redirectUrl);
-        } catch (PwmUnrecoverableException e) {
-            final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
-            ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            LOGGER.error(pwmRequest, errorInformation);
-            pwmRequest.respondWithError(errorInformation);
-        }
-
+        OAuthConsumerServlet.redirectUserToOAuthServer(pwmRequest, originalURL);
         return true;
     }
 

@@ -294,7 +294,7 @@
     </servlet>
     <servlet>
         <servlet-name>HelpdeskServlet</servlet-name>
-        <servlet-class>password.pwm.http.servlet.HelpdeskServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.helpdesk.HelpdeskServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>LoginServlet</servlet-name>

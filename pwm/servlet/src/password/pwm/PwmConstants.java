@@ -65,7 +65,7 @@ public abstract class PwmConstants {
                 : servletVersion;
     }
 
-    public static final String CHAI_API_VERSION = com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION + " (" + com.novell.ldapchai.ChaiConstant.CHAI_API_BUILD_INFO + ")";
+    public static final String CHAI_API_VERSION = com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION;
 
     public static final String DEFAULT_CONFIG_FILE_FILENAME = readPwmConstantsBundle("defaultConfigFilename");
 
@@ -141,6 +141,10 @@ public abstract class PwmConstants {
         FormReadOnly,
         FormShowPasswordFields,
         FormData,
+
+        HelpdeskDetail,
+        HelpdeskObfuscatedDN,
+        HelpdeskUsername,
 
         ConfigFilename,
         ConfigLastModified,

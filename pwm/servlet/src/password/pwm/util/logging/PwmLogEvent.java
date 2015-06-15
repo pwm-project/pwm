@@ -29,7 +29,9 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.StringWriter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -261,6 +263,15 @@ public class PwmLogEvent implements Serializable, Comparable {
             }
         }
 
+        if (this.getThrowable() != null) {
+            output.append(" (stacktrace follows)\n");
+            final StringWriter sw = new StringWriter();
+            final PrintWriter pw = new PrintWriter(sw);
+            this.getThrowable().printStackTrace(pw);
+            pw.flush();
+            output.append(sw.toString());
+        }
+
         return output.toString();
     }
 
@@ -318,6 +329,7 @@ public class PwmLogEvent implements Serializable, Comparable {
     {
         return toLogString(true);
     }
+
     public String toLogString(final boolean includeTimeStamp)
     {
         final StringBuilder sb = new StringBuilder();

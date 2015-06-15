@@ -602,16 +602,24 @@ public class ForgottenPasswordServlet extends PwmServlet {
         final ForgottenPasswordBean.RecoveryFlags recoveryFlags = forgottenPasswordBean.getRecoveryFlags();
         final ForgottenPasswordBean.Progress progress = forgottenPasswordBean.getProgress();
 
-        LOGGER.trace(pwmRequest, "entering forgotten password progress engine:"
-                + " flags=" + JsonUtil.serialize(recoveryFlags)
-                + ", progress=" + JsonUtil.serialize(progress));
-
-
         // check for identified user;
         if (forgottenPasswordBean.getUserInfo() == null) {
             forwardToSearchPage(pwmRequest);
             return;
         }
+
+        final ForgottenPasswordProfile forgottenPasswordProfile = pwmRequest.getConfig().getForgottenPasswordProfiles().get(forgottenPasswordBean.getForgottenPasswordProfileID());
+        {
+            final Map<String, ForgottenPasswordProfile> profileIDList = pwmRequest.getConfig().getForgottenPasswordProfiles();
+            final String profileDebugMsg = forgottenPasswordProfile != null && profileIDList != null && profileIDList.size() > 1
+                    ? " profile=" + forgottenPasswordProfile.getIdentifier() + ", "
+                    : "";
+            LOGGER.trace(pwmRequest, "entering forgotten password progress engine: "
+                    + profileDebugMsg
+                    + "flags=" + JsonUtil.serialize(recoveryFlags) + ", "
+                    + "progress=" + JsonUtil.serialize(progress));
+        }
+
 
         // check for previous authentication
         if (recoveryFlags.getRequiredAuthMethods().contains(RecoveryVerificationMethods.PREVIOUS_AUTH) || recoveryFlags.getOptionalAuthMethods().contains(RecoveryVerificationMethods.PREVIOUS_AUTH)) {
@@ -685,7 +693,6 @@ public class ForgottenPasswordServlet extends PwmServlet {
             return;
         }
 
-        final ForgottenPasswordProfile forgottenPasswordProfile = pwmRequest.getConfig().getForgottenPasswordProfiles().get(forgottenPasswordBean.getForgottenPasswordProfileID());
         if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_UNLOCK)) {
             final PasswordStatus passwordStatus = forgottenPasswordBean.getUserInfo().getPasswordState();
 

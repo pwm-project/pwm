@@ -94,8 +94,8 @@ public class ActionExecutor {
     )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
-        final String attributeName = actionConfiguration.getAttributeName();
-        final String attributeValue = actionConfiguration.getAttributeValue();
+        String attributeName = actionConfiguration.getAttributeName();
+        String attributeValue = actionConfiguration.getAttributeValue();
 
         final ChaiUser theUser;
         if (settings.getChaiUser() != null) {
@@ -107,6 +107,16 @@ public class ActionExecutor {
                 throw new PwmUnrecoverableException(errorInformation);
             }
             theUser = pwmApplication.getProxiedChaiUser(settings.getUserIdentity());
+        }
+
+        if (settings.isExpandPwmMacros()) {
+            if (settings.getMacroMachine() == null) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"executor specified macro expansion but did not supply macro machine"));
+            }
+            final MacroMachine macroMachine = settings.getMacroMachine();
+
+            attributeName = macroMachine.expandMacros(attributeName);
+            attributeValue = macroMachine.expandMacros(attributeValue);
         }
 
         writeLdapAttribute(

@@ -236,6 +236,7 @@ public class LocalDBUtility {
                 }
             }
         } finally {
+            LOGGER.trace("import process completed");;
             if (csvReader != null) {csvReader.close();}
             statTimer.cancel();
         }

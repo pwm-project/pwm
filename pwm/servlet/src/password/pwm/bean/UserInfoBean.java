@@ -28,10 +28,7 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.otp.OTPUserRecord;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A bean that is stored in the user's session.   Only information that is particular to logged in user is stored in the
@@ -43,7 +40,7 @@ import java.util.Map;
  * then there should not be a {@link UserInfoBean} in the HTTP session.
  *
  * @author Jason D. Rivard
- * @see password.pwm.ldap.UserStatusReader#populateUserInfoBean(SessionLabel, UserInfoBean, java.util.Locale, UserIdentity, com.novell.ldapchai.provider.ChaiProvider)
+ * @see password.pwm.ldap.UserStatusReader#populateUserInfoBean(Locale, UserIdentity)
  */
 public class UserInfoBean implements PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------

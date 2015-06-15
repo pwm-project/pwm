@@ -27,20 +27,30 @@ var PWM_HELPDESK = PWM_HELPDESK || {};
 var PWM_VAR = PWM_VAR || {};
 
 PWM_HELPDESK.executeAction = function(actionName) {
-    PWM_MAIN.showWaitDialog({loadFunction:function() {
-        var url = "Helpdesk&processAction=executeAction&name=" + actionName;
-        var loadFunction = function(data) {
-            PWM_MAIN.closeWaitDialog();
-            if (data['error'] == true) {
-                PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Error'), text: data['errorDetail']});
-            } else {
-                PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Success'), text: data['successMessage'], nextAction: function () {
-                    PWM_HELPDESK.refreshDetailPage();
-                }});
-            }
-        };
-        PWM_MAIN.ajaxRequest(url,loadFunction);
-    }});
+    var body = PWM_VAR['actions'][actionName]['description'];
+    body += "<br/><br/>" + PWM_MAIN.showString('Confirm');
+    PWM_MAIN.showConfirmDialog({
+        title:PWM_MAIN.showString('Button_Confirm') + " " + actionName,
+        text:body,
+        okAction:function(){
+            var inputValues = {};
+            inputValues['userKey'] = PWM_VAR['helpdesk_obfuscatedDN'];
+            PWM_MAIN.showWaitDialog({loadFunction:function() {
+                var url = "Helpdesk?processAction=executeAction&name=" + actionName;
+                var loadFunction = function(data) {
+                    PWM_MAIN.closeWaitDialog();
+                    if (data['error'] == true) {
+                        PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Error'), text: data['errorDetail']});
+                    } else {
+                        PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Success'), text: data['successMessage'], nextAction: function () {
+                            PWM_HELPDESK.refreshDetailPage();
+                        }});
+                    }
+                };
+                PWM_MAIN.ajaxRequest(url,loadFunction,{content:inputValues});
+            }});
+        }
+    });
 };
 
 PWM_HELPDESK.doResponseClear = function() {
@@ -259,7 +269,7 @@ PWM_HELPDESK.processHelpdeskSearch = function() {
     validationProps['processResultsFunction'] = function(data) {
         var grid = PWM_VAR['heldesk_search_grid'];
         if (data['error']) {
-            PWM_MAIN.showError("error: " + data['errorMessage']);
+            PWM_MAIN.showErrorDialog(data);
             grid.refresh();
         } else {
             var gridData = data['data']['searchResults'];
@@ -313,36 +323,22 @@ PWM_HELPDESK.makeSearchGrid = function(nextAction) {
     });
 };
 
-PWM_HELPDESK.deleteUser = function(userKey) {
+PWM_HELPDESK.deleteUser = function() {
     PWM_MAIN.showConfirmDialog({
         text:PWM_MAIN.showString('Confirm_DeleteUser'),
         okAction:function(){
-            require(["dojo", "dijit/Dialog"], function (dojo) {
-                dojo.xhrPost({
-                    url: "Helpdesk?pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&processAction=deleteUser",
-                    preventCache: true,
-                    handleAs: "json",
-                    timeout: PWM_MAIN.ajaxTimeout,
-                    postData: 'userKey=' + userKey,
-                    load: function (data) {
-                        PWM_MAIN.closeWaitDialog();
-                        if (data['error'] == true) {
-                            PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Error'), text: data['errorDetail'],okAction: function(){
-                                PWM_MAIN.goto("/private/Helpdesk");
-                            } });
-                        } else {
-                            PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Success'), text: data['successMessage'], okAction: function () {
-                                PWM_MAIN.goto("/private/Helpdesk");
-                            }});
-                        }
-                    },
-                    error: function (errorObj) {
-                        PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Error'), text: 'error deleting user: ' + errorObj,okAction: function(){
-                            PWM_MAIN.goto("/private/Helpdesk");
-                        } });
-                    }
-                });
-            });
+            var url = "Helpdesk?processAction=deleteUser&userKey=" + PWM_VAR['helpdesk_obfuscatedDN'];
+            var loadFunction = function(data) {
+                PWM_MAIN.closeWaitDialog();
+                if (data['error'] == true) {
+                    PWM_MAIN.showErrorDialog(error);
+                } else {
+                    PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Success'), text: data['successMessage'], okAction: function () {
+                        PWM_MAIN.goto("/private/Helpdesk");
+                    }});
+                }
+            };
+            PWM_MAIN.ajaxRequest(url,loadFunction);
         }
     })
 };
@@ -390,12 +386,13 @@ PWM_HELPDESK.validateOtpCode = function(userKey) {
     });
 };
 
-PWM_HELPDESK.sendVerificationToken = function(userKey) {
+PWM_HELPDESK.sendVerificationToken = function() {
     var sendMethodSetting = PWM_VAR["helpdesk_setting_tokenSendMethod"];
     var choiceFlag = sendMethodSetting == 'CHOICE_SMS_EMAIL';
 
     var sendTokenAction = function(choice) {
         var sendContent = {};
+        sendContent['userKey'] = PWM_VAR['helpdesk_obfuscatedDN'];
         if (choiceFlag && choice) {
             sendContent['method'] = choice;
         }
@@ -405,8 +402,7 @@ PWM_HELPDESK.sendVerificationToken = function(userKey) {
                 if (!data['error']) {
                     var text = '<table><tr><td>Token Destination</td><td>' + data['data']['destination'] + '</td></tr>'
                         + '<tr><td>Token</td><td><pre>' + data['data']['token'] + '</pre></td></tr></table>';
-
-                    PWM_MAIN.showDialog({title:PWM_MAIN.showString('Title_Success'),text:text,width:600});
+                    PWM_MAIN.showDialog({title:PWM_MAIN.showString('Title_Success'),text:text});
                 } else {
                     PWM_MAIN.showErrorDialog(data);
                 }
@@ -415,33 +411,52 @@ PWM_HELPDESK.sendVerificationToken = function(userKey) {
         }});
     };
 
-    var confirmText = 'Are you sure you want to send the user a verification token?';
-    var dialoagLoadFunction = function(){};
     if (choiceFlag) {
-        confirmText += '<br/><br/><button class="btn" type="button" name="emailChoiceButton" id="emailChoiceButton">'
+        var confirmText = '<div style="text-align:center"><br/><br/><button class="btn" type="button" name="emailChoiceButton" id="emailChoiceButton">'
             + '<span class="btn-icon fa fa-file-text"></span>' + PWM_MAIN.showString('Button_Email') + '</button>'
-            + '<button class="btn" type="button" name="smsChoiceButton" id="smsChoiceButton">'
-            + '<span class="btn-icon fa fa-phone"></span>' + PWM_MAIN.showString('Button_SMS') + '</button>';
-        dialoagLoadFunction = function() {
+            + '<br/><br/><button class="btn" type="button" name="smsChoiceButton" id="smsChoiceButton">'
+            + '<span class="btn-icon fa fa-phone"></span>' + PWM_MAIN.showString('Button_SMS') + '</button></div>';
+        var dialoagLoadFunction = function() {
             PWM_MAIN.addEventHandler('emailChoiceButton','click',function(){sendTokenAction('email')});
             PWM_MAIN.addEventHandler('smsChoiceButton','click',function(){sendTokenAction('sms')});
-        }
+        };
+        PWM_MAIN.showConfirmDialog({
+            title:'Verification send method',
+            text:confirmText,
+            showOk: !choiceFlag,
+            okAction:function(){
+                sendTokenAction();
+            },
+            loadFunction:dialoagLoadFunction
+        });
+    } else {
+        PWM_MAIN.showConfirmDialog({
+            okAction:function(){
+                sendTokenAction();
+            }
+        });
     }
-    PWM_MAIN.showConfirmDialog({
-        text:confirmText,
-        showOk: !choiceFlag,
-        okAction:function(){
-            sendTokenAction();
-        },
-        loadFunction:dialoagLoadFunction
-    });
 };
 
 PWM_HELPDESK.initHelpdeskSearchPage = function() {
     PWM_HELPDESK.makeSearchGrid(function(){
         PWM_MAIN.addEventHandler('username', "keyup, input", function(){
             PWM_HELPDESK.processHelpdeskSearch();
+            var userPrefs = PWM_MAIN.readLocalStorage();
+            if (userPrefs) {
+                userPrefs['helpdesk-search-inputfield'] = PWM_MAIN.getObject('username').value;
+                PWM_MAIN.writeLocalStorage(userPrefs);
+            }
         });
+
+        var userPrefs = PWM_MAIN.readLocalStorage();
+        if (userPrefs) {
+            var oldValue = userPrefs['helpdesk-search-inputfield'];
+            if (oldValue) {
+                PWM_MAIN.getObject('username').value = oldValue;
+            }
+        }
+
         if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
             PWM_HELPDESK.processHelpdeskSearch();
         }
@@ -462,28 +477,26 @@ PWM_HELPDESK.initHelpdeskDetailPage = function() {
         PWM_HELPDESK.initiateChangePasswordDialog();
     });
     PWM_MAIN.addEventHandler('helpdesk_unlockBtn','click',function(){
-        PWM_MAIN.showConfirmDialog({okAction:function() {
-            PWM_MAIN.submitPostAction('Helpdesk', 'doUnlock', {userKey: PWM_VAR['helpdesk_obfuscatedDN']});
-        }});
+        PWM_HELPDESK.unlockIntruder();
     });
     PWM_MAIN.addEventHandler('helpdesk_clearResponsesBtn','click',function(){
         PWM_MAIN.showConfirmDialog({okAction:function(){
-             PWM_HELPDESK.doResponseClear();
+            PWM_HELPDESK.doResponseClear();
         }});
     });
     PWM_MAIN.addEventHandler('helpdesk_clearOtpSecretBtn','click',function(){
         PWM_MAIN.showConfirmDialog({okAction:function() {
-            PWM_MAIN.submitPostAction('Helpdesk', 'doClearOtpSecret', {userKey: PWM_VAR['helpdesk_obfuscatedDN']});
+            PWM_HELPDESK.doOtpClear();
         }});
     });
     PWM_MAIN.addEventHandler('helpdesk_verifyOtpButton','click',function(){
         PWM_HELPDESK.validateOtpCode(PWM_VAR['helpdesk_obfuscatedDN']);
     });
     PWM_MAIN.addEventHandler('sendTokenButton','click',function(){
-        PWM_HELPDESK.sendVerificationToken(PWM_VAR['helpdesk_obfuscatedDN']);
+        PWM_HELPDESK.sendVerificationToken();
     });
     PWM_MAIN.addEventHandler('helpdesk_deleteUserButton','click',function(){
-        PWM_HELPDESK.deleteUser(PWM_VAR['helpdesk_obfuscatedDN'])
+        PWM_HELPDESK.deleteUser();
     });
 
 };
@@ -516,6 +529,55 @@ PWM_HELPDESK.refreshDetailPage = function() {
         setTimeout(function(){
             PWM_MAIN.submitPostAction('Helpdesk', 'detail', {userKey: PWM_VAR['helpdesk_obfuscatedDN']});
         },1000);
+    }});
+};
+
+PWM_HELPDESK.unlockIntruder = function() {
+    PWM_MAIN.showConfirmDialog({
+        title: PWM_MAIN.showString('Button_Unlock'),
+        okAction:function() {
+            PWM_MAIN.showWaitDialog({
+                loadFunction:function(){
+                    var ajaxUrl = "Helpdesk?processAction=unlockIntruder&userKey=" + PWM_VAR['helpdesk_obfuscatedDN'];
+                    var load = function(data) {
+                        if (data['error'] == true) {
+                            PWM_MAIN.showErrorDialog(error);
+                        } else {
+                            PWM_MAIN.showDialog({
+                                title: PWM_MAIN.showString('Button_Unlock'),
+                                text: data['successMessage'],
+                                okAction:function(){
+                                    PWM_HELPDESK.refreshDetailPage();
+                                }
+                            });
+                        }
+                    };
+                    PWM_MAIN.ajaxRequest(ajaxUrl, load);
+                }
+            });
+        }
+    });
+};
+
+PWM_HELPDESK.doOtpClear = function() {
+    var inputValues = {};
+    inputValues['userKey'] = PWM_VAR['helpdesk_obfuscatedDN'];
+    PWM_MAIN.showWaitDialog({loadFunction:function() {
+        var url = "Helpdesk?processAction=clearOtpSecret";
+        var loadFunction = function(results) {
+            if (results['error'] != true) {
+                PWM_MAIN.showDialog({
+                    title: PWM_MAIN.showString('Button_HelpdeskClearOtpSecret'),
+                    text: results['successMessage'],
+                    okAction:function(){
+                        PWM_HELPDESK.refreshDetailPage();
+                    }
+                });
+            } else {
+                PWM_MAIN.showErrorDialog(results);
+            }
+        };
+        PWM_MAIN.ajaxRequest(url,loadFunction,{content:inputValues});
     }});
 };
 

@@ -22,7 +22,6 @@
 
 package password.pwm;
 
-import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
@@ -223,9 +222,6 @@ public class PwmApplication {
         // read the pwm installation date
         installTime = fetchInstallDate(startupTime);
         LOGGER.debug("this application instance first installed on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(installTime));
-
-        LOGGER.info(logEnvironment());
-        LOGGER.info(logDebugInfo());
 
         initServices();
 
@@ -481,29 +477,6 @@ public class PwmApplication {
         }
 
         return newInstanceID;
-    }
-
-    private static String logEnvironment() {
-        final Map<String,Object> envStats = new LinkedHashMap<>();
-        envStats.put("java.vm.vendor",System.getProperty("java.vm.vendor"));
-        envStats.put("java.vm.version",System.getProperty("java.vm.version"));
-        envStats.put("java.vm.name",System.getProperty("java.vm.name"));
-        envStats.put("java.home",System.getProperty("java.home"));
-
-        envStats.put("memmax",Runtime.getRuntime().maxMemory());
-        envStats.put("threads",Thread.activeCount());
-        envStats.put("chaiApi", ChaiConstant.CHAI_API_VERSION + ", b" + ChaiConstant.CHAI_API_BUILD_INFO);
-
-        return "environment info: " + JsonUtil.serializeMap(envStats);
-    }
-
-    private static String logDebugInfo() {
-        final Map<String,Object> debugStats = new LinkedHashMap<>();
-        debugStats.put("memfree",Runtime.getRuntime().freeMemory());
-        debugStats.put("memallocd",Runtime.getRuntime().totalMemory());
-        debugStats.put("memmax",Runtime.getRuntime().maxMemory());
-        debugStats.put("threads",Thread.activeCount());
-        return "debug info:" + JsonUtil.serializeMap(debugStats);
     }
 
     public StatisticsManager getStatisticsManager() {

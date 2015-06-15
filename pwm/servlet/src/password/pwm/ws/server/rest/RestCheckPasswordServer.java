@@ -39,6 +39,7 @@ import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
@@ -53,6 +54,7 @@ import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Date;
 
 @Path("/checkpassword")
 public class RestCheckPasswordServer extends AbstractRestServer {
@@ -125,6 +127,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
     public Response doOperation(JsonInput jsonInput)
             throws PwmUnrecoverableException
     {
+        final Date startTime = new Date();
         final RestRequestBean restRequestBean;
         try {
             final ServicePermissions servicePermissions = new ServicePermissions();
@@ -177,6 +180,8 @@ public class RestCheckPasswordServer extends AbstractRestServer {
             final JsonData jsonData = doPasswordRuleCheck(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), checkRequest);
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(jsonData);
+            final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
+            LOGGER.trace(restRequestBean.getPwmSession(), "REST /checkpassword response (" + timeDuration.asCompactString() + "): " + JsonUtil.serialize(jsonData));
             return restResultBean.asJsonResponse();
         } catch (PwmException e) {
             return RestResultBean.fromError(e.getErrorInformation(), restRequestBean).asJsonResponse();
@@ -225,7 +230,6 @@ public class RestCheckPasswordServer extends AbstractRestServer {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final long startTime = System.currentTimeMillis();
         final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile(pwmApplication);
         final boolean useProxy = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
         final boolean thirdParty = !checkRequest.getUserIdentity().equals(pwmSession.getUserInfoBean().getUserIdentity());
@@ -246,18 +250,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
                 checkRequest.getPassword2()
         );
 
-        final JsonData result = JsonData.fromPasswordCheckInfo(passwordCheckInfo);
-        {
-            final StringBuilder sb = new StringBuilder();
-            sb.append("real-time password validator called for ").append(checkRequest.getUserIdentity());
-            sb.append("\n");
-            sb.append("  process time: ").append((int) (System.currentTimeMillis() - startTime)).append("ms");
-            sb.append("\n");
-            sb.append("  passwordCheckInfo string: ").append(JsonUtil.serialize(result));
-            LOGGER.trace(pwmSession.getLabel(), sb.toString());
-        }
-
-        return result;
+        return JsonData.fromPasswordCheckInfo(passwordCheckInfo);
     }
 }
 

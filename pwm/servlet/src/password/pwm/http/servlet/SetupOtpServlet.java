@@ -24,8 +24,6 @@ package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import net.glxn.qrgen.QRCode;
-import net.glxn.qrgen.image.ImageType;
-import org.apache.commons.io.IOUtils;
 import password.pwm.*;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
@@ -47,7 +45,6 @@ import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
@@ -460,36 +457,28 @@ public class SetupOtpServlet extends PwmServlet {
             }
         }
 
-        int height = 200;
-        int width = 200;
-        try {
-            width = Integer.parseInt(pwmRequest.readParameterAsString("width"));
-        } catch (Exception e) {
-            LOGGER.error(pwmRequest, "error parsing width parameter for qrcode image: " + e.getMessage());
-        }
-        try {
-            height = Integer.parseInt(pwmRequest.readParameterAsString("height"));
-        } catch (Exception e) {
-            LOGGER.error(pwmRequest, "error parsing height parameter for qrcode image: " + e.getMessage());
-        }
+        final int height = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.OTP_QR_IMAGE_HEIGHT));
+        final int width = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.OTP_QR_IMAGE_WIDTH));
 
         final byte[] imageBytes;
         try {
-            final QRCode codeImage = QRCode.from(qrCodeContent).withCharset(PwmConstants.DEFAULT_CHARSET.toString());
-            final QRCode sizedImage = codeImage.withSize(width, height);
-            imageBytes = sizedImage.to(ImageType.PNG).stream().toByteArray();
+            imageBytes = QRCode.from(qrCodeContent)
+                    .withCharset(PwmConstants.DEFAULT_CHARSET.toString())
+                    .withSize(width, height)
+                    .stream()
+                    .toByteArray();
         } catch (Exception e) {
-            final String errorMsg = "error generating qrcode image: " + e.getMessage();
-            LOGGER.error(pwmRequest, errorMsg);
+            final String errorMsg = "error generating qrcode image: " + e.getMessage() + ", payload length=" + qrCodeContent.length();
+            LOGGER.error(pwmRequest, errorMsg, e);
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
         }
 
-        pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.png);
+        //pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.png);
 
         OutputStream outputStream = null;
         try {
             outputStream = pwmRequest.getPwmResponse().getOutputStream();
-            IOUtils.copy(new ByteArrayInputStream(imageBytes), outputStream);
+            outputStream.write(imageBytes);
             outputStream.flush();
         } catch (Exception e) {
             final String errorMsg = "error while sending qrcode image to http client: " + e.getMessage();

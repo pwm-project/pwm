@@ -391,7 +391,7 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
         },100);
     }
 
-    PWM_MAIN.showTooltip({
+    PWM_MAIN.showDijitTooltip({
         id: "strengthBox",
         text: PWM_MAIN.showString('Tooltip_PasswordStrength'),
         width: 350

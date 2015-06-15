@@ -150,7 +150,7 @@ public class AppDashboardData implements Serializable {
                     "chaiApiVersion",
                     Type.string,
                     l.forKey("Field_ChaiAPIVersion"),
-                    com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION + " (" + com.novell.ldapchai.ChaiConstant.CHAI_API_BUILD_INFO + ")"
+                    com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION
             ));
 
 

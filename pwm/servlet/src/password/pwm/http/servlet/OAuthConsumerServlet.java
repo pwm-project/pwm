@@ -56,6 +56,7 @@ import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class OAuthConsumerServlet extends PwmServlet {
@@ -65,6 +66,7 @@ public class OAuthConsumerServlet extends PwmServlet {
 
     private static class OAuthState implements Serializable {
         private final int stateID = oauthStateIDcounter++;
+        private final Date issueTime = new Date();
         private String sessionID;
         private String nextUrl;
     }
@@ -86,11 +88,11 @@ public class OAuthConsumerServlet extends PwmServlet {
         final Settings settings = Settings.fromConfiguration(pwmApplication.getConfig());
 
         final boolean userIsAuthenticated = pwmSession.getSessionStateBean().isAuthenticated();
+        final OAuthRequestState oAuthRequestState = readOAuthRequestState(pwmRequest);
 
         if (!userIsAuthenticated && !pwmSession.getSessionStateBean().isOauthInProgress()) {
-            final String requestStateStr = pwmRequest.readParameterAsString(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_STATE));
-            if (requestStateStr != null && requestStateStr.length() > 0) {
-                final String nextUrl = parseNextUrlFromState(requestStateStr, pwmRequest, false);
+            if (oAuthRequestState != null) {
+                final String nextUrl = oAuthRequestState.oAuthState.nextUrl;
                 LOGGER.debug(pwmSession, "received unrecognized oauth response, ignoring authcode and redirecting to embedded next url: " + nextUrl);
                 pwmRequest.sendRedirect(nextUrl);
                 return;
@@ -118,8 +120,7 @@ public class OAuthConsumerServlet extends PwmServlet {
         // mark the inprogress flag to false, if we get this far and fail user needs to start over.
         pwmSession.getSessionStateBean().setOauthInProgress(false);
 
-        final String requestStateStr = pwmRequest.readParameterAsString(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_STATE));
-        if (requestStateStr == null || requestStateStr.isEmpty()) {
+        if (oAuthRequestState == null) {
             final String errorMsg = "state parameter is missing from oauth request";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,errorMsg);
             LOGGER.error(pwmSession,errorMsg);
@@ -127,7 +128,21 @@ public class OAuthConsumerServlet extends PwmServlet {
             return;
         }
 
-        final String nextUrl = parseNextUrlFromState(requestStateStr, pwmRequest, true);
+        if (!oAuthRequestState.sessionMatch) {
+            LOGGER.debug(pwmSession, "oauth consumer reached but response is not for a request issued during the current session, will redirect back to oauth server for verification update");
+
+            try{
+                final String nextURL = oAuthRequestState.oAuthState.nextUrl;
+                redirectUserToOAuthServer(pwmRequest, nextURL);
+                return;
+            } catch (PwmUnrecoverableException e) {
+                final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
+                ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                pwmRequest.setResponseError(errorInformation);
+                LOGGER.error(errorInformation.toDebugStr());
+            }
+        }
+
         final String requestCodeStr = pwmRequest.readParameterAsString(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_CODE));
         LOGGER.trace(pwmSession,"received code from oauth server: " + requestCodeStr);
 
@@ -198,7 +213,8 @@ public class OAuthConsumerServlet extends PwmServlet {
             // recycle the session to prevent session fixation attack.
             pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded(true);
 
-            // see if there is a an original request url
+            // forward to nextUrl
+            final String nextUrl = oAuthRequestState.oAuthState.nextUrl;
             LOGGER.debug(pwmSession, "oauth authentication completed, redirecting to originally requested URL: " + nextUrl);
             pwmRequest.sendRedirect(nextUrl);
         } catch (PwmException e) {
@@ -546,41 +562,87 @@ public class OAuthConsumerServlet extends PwmServlet {
     )
             throws PwmUnrecoverableException
     {
-            OAuthState oAuthState = new OAuthState();
-            oAuthState.sessionID = pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey();
-            oAuthState.nextUrl = nextUrl;
+        OAuthState oAuthState = new OAuthState();
+        oAuthState.sessionID = pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey();
+        oAuthState.nextUrl = nextUrl;
 
-            LOGGER.trace(pwmRequest, "issuing oauth state id="
-                    + oAuthState.stateID + " with the next destination URL set to " + oAuthState.nextUrl);
+        LOGGER.trace(pwmRequest, "issuing oauth state id="
+                + oAuthState.stateID + " with the next destination URL set to " + oAuthState.nextUrl);
 
 
 
-            final String jsonValue = JsonUtil.serialize(oAuthState);
-            return SecureHelper.encryptToString(jsonValue, pwmRequest.getConfig().getSecurityKey(), true);
+        final String jsonValue = JsonUtil.serialize(oAuthState);
+        return SecureHelper.encryptToString(jsonValue, pwmRequest.getConfig().getSecurityKey(), true);
     }
 
-    public static String parseNextUrlFromState(
-            final String input,
+    public static class OAuthRequestState {
+        private OAuthState oAuthState;
+        private boolean sessionMatch;
+
+        public OAuthRequestState(OAuthState oAuthState, boolean sessionMatch) {
+            this.oAuthState = oAuthState;
+            this.sessionMatch = sessionMatch;
+        }
+    }
+
+    public static void redirectUserToOAuthServer(
             final PwmRequest pwmRequest,
-            final boolean validateSessionState
+            final String nextUrl
+    )
+            throws PwmUnrecoverableException, IOException
+    {
+
+        LOGGER.trace(pwmRequest, "preparing to redirect user to oauth authentication service, setting nextUrl to " + nextUrl);
+        pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress(true);
+
+        final Configuration config = pwmRequest.getConfig();
+        final OAuthConsumerServlet.Settings settings = OAuthConsumerServlet.Settings.fromConfiguration(config);
+        final String state = OAuthConsumerServlet.makeStateStringForRequest(pwmRequest, nextUrl);
+        final String redirectUri = OAuthConsumerServlet.figureOauthSelfEndPointUrl(pwmRequest);
+        final String code = config.readAppProperty(AppProperty.OAUTH_ID_REQUEST_TYPE);
+
+        final Map<String,String> urlParams = new LinkedHashMap<>();
+        urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID),settings.getClientID());
+        urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_RESPONSE_TYPE),code);
+        urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_STATE),state);
+        urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI), redirectUri);
+
+        final String redirectUrl = ServletHelper.appendAndEncodeUrlParameters(settings.getLoginURL(), urlParams);
+
+        try{
+            pwmRequest.sendRedirect(redirectUrl);
+            pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress(true);
+            LOGGER.debug(pwmRequest,"redirecting user to oauth id server, url: " + redirectUrl);
+        } catch (PwmUnrecoverableException e) {
+            final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
+            ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            pwmRequest.setResponseError(errorInformation);
+            LOGGER.error(errorInformation.toDebugStr());
+        }
+
+    }
+
+    public static OAuthRequestState readOAuthRequestState(
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException
     {
-            final String stateJson = SecureHelper.decryptStringValue(input, pwmRequest.getConfig().getSecurityKey(), true);
+        final String requestStateStr = pwmRequest.readParameterAsString(pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_OAUTH_STATE));
+        if (requestStateStr != null) {
+            final String stateJson = SecureHelper.decryptStringValue(requestStateStr, pwmRequest.getConfig().getSecurityKey(), true);
             final OAuthState oAuthState = JsonUtil.deserialize(stateJson, OAuthState.class);
+            if (oAuthState != null) {
+                final boolean sessionMatch = oAuthState.sessionID.equals(pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey());
+                LOGGER.trace(pwmRequest, "read state while parsing oauth consumer request id="
+                        + oAuthState.stateID + ", issueTime="
+                        + PwmConstants.DEFAULT_DATETIME_FORMAT.format(oAuthState.issueTime) + ", nextUrl="
+                        + oAuthState.nextUrl + ", sessionIDmatch=" + sessionMatch);
 
-            if (validateSessionState) {
-                if (oAuthState == null || !oAuthState.sessionID.equals(pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey())) {
-                    final String errorMsg = "state value does not match current session key value";
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR, errorMsg);
-                    LOGGER.error(pwmRequest, errorMsg);
-                    throw new PwmUnrecoverableException(errorInformation);
-                }
+                return new OAuthRequestState(oAuthState, sessionMatch);
             }
+        }
 
-            LOGGER.trace(pwmRequest, "while parsing oauth state id="
-                    + oAuthState.stateID + ", determined the next destination URL to be " + oAuthState.nextUrl);
 
-            return oAuthState.nextUrl;
+        return null;
     }
 }

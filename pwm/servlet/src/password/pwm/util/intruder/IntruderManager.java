@@ -546,11 +546,9 @@ public class IntruderManager implements Serializable, PwmService {
         }
 
         try {
-            final UserInfoBean userInfoBean = new UserInfoBean();
             final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, null);
             MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, null, userIdentity);
-            userStatusReader.populateUserInfoBean(
-                    userInfoBean,
+            final UserInfoBean userInfoBean = userStatusReader.populateUserInfoBean(
                     PwmConstants.DEFAULT_LOCALE,
                     userIdentity
             );

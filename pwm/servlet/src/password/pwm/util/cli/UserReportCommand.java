@@ -70,7 +70,7 @@ public class UserReportCommand extends AbstractCliCommand {
         userReport.outputToCsv(outputFileStream, true, PwmConstants.DEFAULT_LOCALE);
 
         try { outputFileStream.close(); } catch (Exception e) { /* nothing */ }
-        out("report complete.");
+        out("report output complete.");
     }
 
     @Override

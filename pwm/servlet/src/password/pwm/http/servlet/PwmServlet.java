@@ -101,7 +101,7 @@ public abstract class PwmServlet extends HttpServlet {
             if (processAction != null) {
                 if (!processAction.permittedMethods().contains(method)) {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,
-                            "incorrect request method " + method.toString());
+                            "incorrect request method " + method.toString() + " on request to " + pwmRequest.getURLwithQueryString());
                     LOGGER.error(pwmRequest.getPwmSession(), errorInformation.toDebugStr());
                     pwmRequest.respondWithError(errorInformation, false);
                     return;

@@ -91,7 +91,7 @@ public class NewUserProfile extends AbstractProfile {
         final LdapProfile defaultLdapProfile = config.getDefaultLdapProfile();
         final String configuredNewUserPasswordDN = readSettingAsString(PwmSetting.NEWUSER_PASSWORD_POLICY_USER);
         if (configuredNewUserPasswordDN == null || configuredNewUserPasswordDN.length() < 1) {
-            final String errorMsg = "setting " + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug(this.getIdentifier(),PwmConstants.DEFAULT_LOCALE) + " must have a value";
+            final String errorMsg = "the setting " + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug(this.getIdentifier(),PwmConstants.DEFAULT_LOCALE) + " must have a value";
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg));
         } else {
 
@@ -110,7 +110,7 @@ public class NewUserProfile extends AbstractProfile {
                 lookupDN = configuredNewUserPasswordDN;
             }
 
-            if (lookupDN == null || lookupDN.isEmpty()) {
+            if (lookupDN.isEmpty()) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,"user ldap dn in setting " + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE) + " can not be resolved"));
             } else {
                 try {

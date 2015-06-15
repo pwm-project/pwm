@@ -84,8 +84,8 @@ public class SessionFilter extends AbstractPwmFilter {
 
         try {
             chain.doFilter();
-        } catch (Exception e) {
-            LOGGER.warn(pwmRequest.getPwmSession(), "unhandled exception", e);
+        } catch (IOException e) {
+            LOGGER.trace(pwmRequest.getPwmSession(), "IO exception during servlet processing: " + e.getMessage());
             throw new ServletException(e);
         } catch (Throwable e) {
             LOGGER.warn(pwmRequest.getPwmSession(), "unhandled exception " + e.getMessage(), e);

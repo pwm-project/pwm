@@ -154,9 +154,8 @@ public class ForgottenUsernameServlet extends PwmServlet {
             pwmApplication.getIntruderManager().convenience().checkUserIdentity(userIdentity);
 
 
-            final UserInfoBean forgottenUserInfo = new UserInfoBean();
             final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmSession.getLabel());
-            userStatusReader.populateUserInfoBean(forgottenUserInfo, pwmRequest.getLocale(), userIdentity);
+            final UserInfoBean forgottenUserInfo = userStatusReader.populateUserInfoBean(pwmRequest.getLocale(), userIdentity);
 
 
             // send username
