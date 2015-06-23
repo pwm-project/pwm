@@ -126,7 +126,16 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         sendRedirect(loginServletURL);
     }
 
-    public void writeCookie(final String cookieName, final Serializable cookieValue, final int seconds, final boolean httpOnly, final String path)
+
+    public void writeEncryptedCookie(final String cookieName, final Serializable cookieValue, final String path)
+            throws PwmUnrecoverableException
+    {
+        final String jsonValue = JsonUtil.serialize(cookieValue);
+        final String encryptedValue = SecureHelper.encryptToString(jsonValue, pwmRequest.getConfig().getSecurityKey(), true);
+        pwmRequest.getPwmResponse().writeCookie(cookieName, encryptedValue, -1, true, path);
+    }
+
+    public void writeEncryptedCookie(final String cookieName, final Serializable cookieValue, final int seconds, final boolean httpOnly, final String path)
             throws PwmUnrecoverableException
     {
         final String jsonValue = JsonUtil.serialize(cookieValue);

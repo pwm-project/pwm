@@ -185,7 +185,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         final AuthRecord authRecord = new AuthRecord(authTime, userGuid);
 
         try {
-            pwmRequest.getPwmResponse().writeCookie(cookieName, authRecord, cookieAgeSeconds, true, pwmRequest.getContextPath());
+            pwmRequest.getPwmResponse().writeEncryptedCookie(cookieName, authRecord, cookieAgeSeconds, true, pwmRequest.getContextPath());
             LOGGER.debug(pwmRequest,"wrote auth record cookie to user browser for use during forgotten password");
         } catch (PwmUnrecoverableException e) {
             LOGGER.error(pwmRequest, "error while setting authentication record cookie: " + e.getMessage());
@@ -220,42 +220,53 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
-        //try to authenticate user with basic auth
-        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            final BasicAuthInfo authInfo = BasicAuthInfo.parseAuthHeader(pwmApplication, pwmRequest);
-            if (authInfo != null) {
-                try {
-                    authUserUsingBasicHeader(pwmRequest, authInfo);
-                } catch (ChaiUnavailableException e) {
-                    StatisticsManager.incrementStat(pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT);
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage());
-                    pwmRequest.respondWithError(errorInformation);
-                    return;
-                } catch (PwmException e) {
-                    pwmRequest.respondWithError(e.getErrorInformation());
+        boolean bypassSSOAuth = false;
+        {
+            final String ssoBypassParamName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_SSO_ENABLE);
+            if (pwmRequest.hasParameter(ssoBypassParamName) && !pwmRequest.readParameterAsBoolean(ssoBypassParamName)) {
+                bypassSSOAuth = true;
+                LOGGER.trace(pwmRequest, "bypassing sso authentication due to parameter " + pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_SSO_ENABLE) + "=true");
+            }
+        }
+
+        if (!bypassSSOAuth) {
+            //try to authenticate user with basic auth
+            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+                final BasicAuthInfo authInfo = BasicAuthInfo.parseAuthHeader(pwmApplication, pwmRequest);
+                if (authInfo != null) {
+                    try {
+                        authUserUsingBasicHeader(pwmRequest, authInfo);
+                    } catch (ChaiUnavailableException e) {
+                        StatisticsManager.incrementStat(pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT);
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage());
+                        pwmRequest.respondWithError(errorInformation);
+                        return;
+                    } catch (PwmException e) {
+                        pwmRequest.respondWithError(e.getErrorInformation());
+                        return;
+                    }
+                }
+            }
+
+            // attempt sso header authentication
+            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+                if (processAuthHeader(pwmRequest)) {
                     return;
                 }
             }
-        }
 
-        // attempt sso header authentication
-        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            if (processAuthHeader(pwmRequest)) {
-                return;
+            // try to authenticate user with CAS
+            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+                if (processCASAuthentication(pwmRequest)) {
+                    return;
+                }
             }
-        }
 
-        // try to authenticate user with CAS
-        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            if (processCASAuthentication(pwmRequest)) {
-                return;
-            }
-        }
-
-        // process OAuth
-        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            if (processOAuthAuthenticationRequest(pwmRequest)) {
-                return;
+            // process OAuth
+            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+                if (processOAuthAuthenticationRequest(pwmRequest)) {
+                    return;
+                }
             }
         }
 

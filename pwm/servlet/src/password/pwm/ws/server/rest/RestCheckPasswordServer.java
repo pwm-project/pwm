@@ -139,6 +139,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
+        LOGGER.trace("beginning check password operation for user " + restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity());
 
         if (jsonInput.password1 == null || jsonInput.password1.length() < 1) {
             final String errorMessage = "missing field 'password1'";
@@ -184,10 +185,12 @@ public class RestCheckPasswordServer extends AbstractRestServer {
             LOGGER.trace(restRequestBean.getPwmSession(), "REST /checkpassword response (" + timeDuration.asCompactString() + "): " + JsonUtil.serialize(jsonData));
             return restResultBean.asJsonResponse();
         } catch (PwmException e) {
+            LOGGER.debug(restRequestBean.getPwmSession(), "REST /checkpassword error during execution: " + e.getMessage(), e);
             return RestResultBean.fromError(e.getErrorInformation(), restRequestBean).asJsonResponse();
         } catch (Exception e) {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
+            LOGGER.error(restRequestBean.getPwmSession(),errorInformation.toDebugStr(),e);
             return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
     }
@@ -231,8 +234,9 @@ public class RestCheckPasswordServer extends AbstractRestServer {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile(pwmApplication);
-        final boolean useProxy = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
-        final boolean thirdParty = !checkRequest.getUserIdentity().equals(pwmSession.getUserInfoBean().getUserIdentity());
+        final boolean useProxy = helpdeskProfile != null && helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
+        final boolean thirdParty = checkRequest.getUserIdentity() != null
+                && !checkRequest.getUserIdentity().canonicalEquals(pwmSession.getUserInfoBean().getUserIdentity(), pwmApplication);
 
         final ChaiUser user = useProxy && thirdParty
                 ? pwmApplication.getProxiedChaiUser(checkRequest.getUserIdentity())
@@ -253,5 +257,3 @@ public class RestCheckPasswordServer extends AbstractRestServer {
         return JsonData.fromPasswordCheckInfo(passwordCheckInfo);
     }
 }
-
-

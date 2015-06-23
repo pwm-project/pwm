@@ -185,7 +185,7 @@ public class OAuthConsumerServlet extends PwmServlet {
             try {
                 final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest);
                 final UserIdentity resolvedIdentity = userSearchEngine.resolveUsername(oauthSuppliedUsername, null, null);
-                if (resolvedIdentity != null && resolvedIdentity.equals(pwmSession.getUserInfoBean().getUserIdentity())) {
+                if (resolvedIdentity != null && resolvedIdentity.canonicalEquals(pwmSession.getUserInfoBean().getUserIdentity(),pwmApplication)) {
                     LOGGER.debug(pwmSession, "verified incoming oauth code for already authenticated session does resolve to same as logged in user");
                 } else {
                     final String errorMsg = "incoming oauth code for already authenticated session does not resolve to same as logged in user ";

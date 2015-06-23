@@ -37,7 +37,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.health.ConfigurationChecker;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
@@ -502,7 +501,7 @@ public class
             }
         }
 
-        final String errorMsg = testURI + " is not a match for any configured redirect whitelist, see setting: " + ConfigurationChecker.settingToOutputText(PwmSetting.SECURITY_REDIRECT_WHITELIST);
+        final String errorMsg = testURI + " is not a match for any configured redirect whitelist, see setting: " + PwmSetting.SECURITY_REDIRECT_WHITELIST.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE);
         throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_REDIRECT_ILLEGAL,errorMsg));
     }
 
@@ -623,4 +622,26 @@ public class
 
         return Collections.unmodifiableMap(aboutMap);
     }
+
+    public static int portForUriSchema(final URI uri) {
+        final int port = uri.getPort();
+        if (port < 1) {
+            return portForUriScheme(uri.getScheme());
+        }
+        return port;
+    }
+
+    private static int portForUriScheme(final String scheme) {
+        if (scheme == null) {
+            throw new NullPointerException("scheme cannot be null");
+        }
+        switch (scheme) {
+            case "http": return 80;
+            case "https": return 443;
+            case "ldap": return 389;
+            case "ldaps": return 636;
+        }
+        throw new IllegalArgumentException("unknown scheme: " + scheme);
+    }
+
 }

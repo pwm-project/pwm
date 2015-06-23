@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
+<%@ page import="password.pwm.config.FormUtility" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.http.ContextManager" %>
@@ -62,8 +63,9 @@
     <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="hidden" class="inputfield"
            name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
     <% } else if (loopConfiguration.getType().equals(FormConfiguration.Type.checkbox)) { %>
+    <% final boolean checked = FormUtility.checkboxValueIsChecked(formDataMap.get(loopConfiguration)); %>
     <label class="checkboxWrapper">
-        <input id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" type="checkbox" <pwm:autofocus/>/>
+        <input id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" type="checkbox" <%=checked?"checked":""%> <pwm:autofocus/>/>
         <%=loopConfiguration.getLabel(formLocale)%>
     </label>
     <% } else { %>
@@ -85,7 +87,7 @@
         <%= currentValue %>
         </span>
     <% } else if (loopConfiguration.getType() == FormConfiguration.Type.select) { %>
-    <select id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" style="width:20%;margin-left: 5px" <pwm:autofocus/> >
+    <select id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" class="inputfield selectfield" <pwm:autofocus/> >
         <% for (final String optionName : loopConfiguration.getSelectOptions().keySet()) {%>
         <option value="<%=optionName%>" <%if(optionName.equals(currentValue)){%>selected="selected"<%}%>>
             <%=loopConfiguration.getSelectOptions().get(optionName)%>

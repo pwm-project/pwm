@@ -35,10 +35,7 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.ActionConfiguration;
-import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.*;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.MessageSendMethod;
@@ -50,7 +47,6 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.servlet.PwmServlet;
-import password.pwm.http.servlet.UpdateProfileServlet;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
@@ -368,7 +364,7 @@ public class HelpdeskServlet extends PwmServlet {
             return;
         }
 
-        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig());
+        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig()).canonicalized(pwmRequest.getPwmApplication());
         processDetailRequest(pwmRequest, helpdeskProfile, userIdentity);
         final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
                 AuditEvent.HELPDESK_VIEW_DETAIL,
@@ -390,13 +386,16 @@ public class HelpdeskServlet extends PwmServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        if (pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity().equals(userIdentity)) {
+        final UserIdentity actorUserIdentity = pwmRequest.getUserInfoIfLoggedIn().canonicalized(pwmRequest.getPwmApplication());
+
+        if (actorUserIdentity.canonicalEquals(userIdentity, pwmRequest.getPwmApplication())) {
             final String errorMsg = "cannot select self";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,errorMsg);
             LOGGER.debug(pwmRequest, errorInformation);
             pwmRequest.respondWithError(errorInformation, false);
             return;
         }
+        LOGGER.trace(pwmRequest, "helpdesk detail view request for user details of " + userIdentity.toString() + " by actor " + actorUserIdentity.toString());
 
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = makeHelpdeskDetailInfo(pwmRequest, helpdeskProfile, userIdentity);
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.HelpdeskDetail, helpdeskDetailInfoBean);
@@ -541,7 +540,7 @@ public class HelpdeskServlet extends PwmServlet {
             for (final FormConfiguration formConfiguration : detailFormConfig) {
                 formData.put(formConfiguration,"");
             }
-            UpdateProfileServlet.populateFormFromLdap(detailFormConfig, pwmRequest.getPwmSession().getLabel(), formData, userDataReader);
+            FormUtility.populateFormMapFromLdap(detailFormConfig, pwmRequest.getPwmSession().getLabel(), formData, userDataReader);
             detailInfo.setSearchDetails(formData);
         }
 

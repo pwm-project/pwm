@@ -28,6 +28,7 @@ import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
+import password.pwm.util.Helper;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.stream.StreamSource;
@@ -56,6 +57,17 @@ public class PwmSettingXml {
             } catch (IOException e) {
                 throw new IllegalStateException("unable to load " + SETTING_XML_FILENAME + ": " + e.getMessage());
             }
+
+            // clear cached dom after 30 seconds.
+            final Thread t = new Thread("PwmSettingXml static cache clear thread") {
+                @Override
+                public void run() {
+                    Helper.pause(30 * 1000);
+                    xmlDocCache = null;
+                }
+            };
+            t.setDaemon(false);
+            t.start();
         }
         return xmlDocCache;
     }

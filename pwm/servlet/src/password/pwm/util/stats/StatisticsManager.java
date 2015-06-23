@@ -325,14 +325,18 @@ public class StatisticsManager implements PwmService {
     }
 
     private void resetDailyStats() {
-        final Map<String,String> emailValues = new LinkedHashMap<>();
-        for (final Statistic statistic : Statistic.values()) {
-            final String key = statistic.getLabel(PwmConstants.DEFAULT_LOCALE);
-            final String value = statsDaily.getStatistic(statistic);
-            emailValues.put(key,value);
-        }
+        try {
+            final Map<String, String> emailValues = new LinkedHashMap<>();
+            for (final Statistic statistic : Statistic.values()) {
+                final String key = statistic.getLabel(PwmConstants.DEFAULT_LOCALE);
+                final String value = statsDaily.getStatistic(statistic);
+                emailValues.put(key, value);
+            }
 
-        AlertHandler.alertDailyStats(pwmApplication, emailValues);
+            AlertHandler.alertDailyStats(pwmApplication, emailValues);
+        } catch (Exception e) {
+            LOGGER.error("error while generating daily alert statistics: " + e.getMessage());
+        }
 
         currentDailyKey = new DailyKey(new Date());
         statsDaily = new StatisticsBundle();

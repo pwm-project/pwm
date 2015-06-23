@@ -67,8 +67,6 @@ import java.util.zip.ZipOutputStream;
 public class ConfigManagerServlet extends PwmServlet {
     final static private PwmLogger LOGGER = PwmLogger.forClass(ConfigManagerServlet.class);
 
-    private static final String CONFIGMANAGER_INTRUDER_USERNAME = "ConfigurationManagerLogin";
-
     public enum ConfigManagerAction implements ProcessAction {
         lockConfiguration(HttpMethod.POST),
         startEditing(HttpMethod.POST),
@@ -343,7 +341,7 @@ public class ConfigManagerServlet extends PwmServlet {
                 } else{
                     LOGGER.trace(pwmRequest, "configuration password is not correct");
                     pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-                    pwmApplication.getIntruderManager().mark(RecordType.USERNAME, CONFIGMANAGER_INTRUDER_USERNAME, pwmSession.getLabel());
+                    pwmApplication.getIntruderManager().mark(RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmSession.getLabel());
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_WRONGPASSWORD);
                     pwmRequest.setResponseError(errorInformation);
                 }
@@ -354,7 +352,7 @@ public class ConfigManagerServlet extends PwmServlet {
         if ((persistentLoginAccepted || passwordAccepted)) {
             configManagerBean.setPasswordVerified(true);
             pwmApplication.getIntruderManager().convenience().clearAddressAndSession(pwmSession);
-            pwmApplication.getIntruderManager().clear(RecordType.USERNAME,CONFIGMANAGER_INTRUDER_USERNAME);
+            pwmApplication.getIntruderManager().clear(RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME);
             if (persistentLoginEnabled && !persistentLoginAccepted && "on".equals(pwmRequest.readParameterAsString("remember"))) {
                 if (persistentSeconds > 0) {
                     final Date expirationDate = new Date(System.currentTimeMillis() + (persistentSeconds * 1000));

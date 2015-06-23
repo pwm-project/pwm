@@ -107,14 +107,14 @@
                         <b>Proxy/Admin LDAP DN</b>
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
-                        <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>"/>
+                        <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>"  value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN)%>"/>
                     </div>
                     &nbsp;<br/>
                     <div class="setting_item">
                         <b>Password</b>
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
-                        <input class="configStringInput" type="password" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" />
+                        <input class="configStringInput" type="password" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_PW)%>"/>
                     </div>
                 </div>
             </div>

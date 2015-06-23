@@ -45,25 +45,11 @@ public abstract class X509Utils {
             throws PwmOperationalException
     {
         final String host = uri.getHost();
-        final int port = uri.getPort() > -1
-                ? uri.getPort()
-                : portForUriScheme(uri.getScheme());
+        final int port = Helper.portForUriSchema(uri);
 
         return readRemoteCertificates(host, port);
     }
 
-    private static int portForUriScheme(final String scheme) {
-        if (scheme == null) {
-            throw new NullPointerException("scheme cannot be null");
-        }
-        switch (scheme) {
-            case "http": return 80;
-            case "https": return 443;
-            case "ldap": return 389;
-            case "ldaps": return 636;
-        }
-        throw new IllegalArgumentException("unknown scheme: " + scheme);
-    }
 
 
     public static X509Certificate[] readRemoteCertificates(final String host, final int port)
@@ -105,9 +91,9 @@ public abstract class X509Utils {
         return certs;
     }
 
-    public static boolean testIfLdapServerCertsInDefaultKeystore(final URI ldapUri) {
-        final String ldapHost = ldapUri.getHost();
-        final int ldapPort = ldapUri.getPort();
+    public static boolean testIfLdapServerCertsInDefaultKeystore(final URI serverURI) {
+        final String ldapHost = serverURI.getHost();
+        final int ldapPort = serverURI.getPort();
         try { // use default socket factory to test if certs work with it
             final SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
             final SSLSocket sslSock = (SSLSocket) factory.createSocket(ldapHost,ldapPort);

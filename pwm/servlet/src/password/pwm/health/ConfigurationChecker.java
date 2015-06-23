@@ -32,6 +32,7 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.Profile;
+import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
@@ -45,29 +46,51 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 public class ConfigurationChecker implements HealthChecker {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigurationChecker.class);
 
-    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication)
-    {
+    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication) {
         if (pwmApplication.getConfig() == null) {
             return Collections.emptyList();
         }
 
         final Configuration config = pwmApplication.getConfig();
+
+        final List<HealthRecord> records = new ArrayList<>();
+
+        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
+            records.add(HealthRecord.forMessage(HealthMessage.Config_ConfigMode));
+        }
+
+        if (config.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
+            for (final NewUserProfile newUserProfile : config.getNewUserProfiles().values()) {
+                try {
+                    newUserProfile.getNewUserPasswordPolicy(pwmApplication, PwmConstants.DEFAULT_LOCALE);
+                } catch (PwmUnrecoverableException e) {
+                    records.add(new HealthRecord(HealthStatus.WARN,HealthTopic.Configuration,e.getMessage()));
+                }
+            }
+        }
+
+        records.addAll(doHealthCheck(config, PwmConstants.DEFAULT_LOCALE));
+
+        return records;
+    }
+
+    public List<HealthRecord> doHealthCheck(final Configuration config, final Locale locale)
+    {
+
+
         final List<HealthRecord> records = new ArrayList<>();
 
         if (config.readSettingAsBoolean(PwmSetting.HIDE_CONFIGURATION_HEALTH_WARNINGS)) {
             return records;
         }
 
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
-            records.add(HealthRecord.forMessage(HealthMessage.Config_ConfigMode));
-        }
-
         final String siteUrl = config.readSettingAsString(PwmSetting.PWM_SITE_URL);
-        final String SEPARATOR = LocaleHelper.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, Config.Display_SettingNavigationSeparator, null);
+        final String SEPARATOR = LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationSeparator, null);
         try {
             if (siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(
                     PwmSetting.PWM_SITE_URL.getDefaultValue(config.getTemplate()).toNativeObject())) {
@@ -102,27 +125,25 @@ public class ConfigurationChecker implements HealthChecker {
             }
         }
 
-        {
-            for (final LdapProfile ldapProfile : config.getLdapProfiles().values()) {
-                final List<String> ldapServerURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
-                if (ldapServerURLs != null && !ldapServerURLs.isEmpty()) {
-                    for (final String urlStringValue : ldapServerURLs) {
-                        try {
-                            final URI url = new URI(urlStringValue);
-                            final boolean secure = "ldaps".equalsIgnoreCase(url.getScheme());
-                            if (!secure) {
-                                records.add(HealthRecord.forMessage(
-                                        HealthMessage.Config_LDAPUnsecure,
-                                        settingToOutputText(PwmSetting.LDAP_SERVER_URLS, ldapProfile)
-                                ));
-                            }
-                        } catch (URISyntaxException e) {
-                            records.add(HealthRecord.forMessage(HealthMessage.Config_ParseError,
-                                    e.getMessage(),
-                                    settingToOutputText(PwmSetting.LDAP_SERVER_URLS, ldapProfile),
-                                    urlStringValue
+        for (final LdapProfile ldapProfile : config.getLdapProfiles().values()) {
+            final List<String> ldapServerURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
+            if (ldapServerURLs != null && !ldapServerURLs.isEmpty()) {
+                for (final String urlStringValue : ldapServerURLs) {
+                    try {
+                        final URI url = new URI(urlStringValue);
+                        final boolean secure = "ldaps".equalsIgnoreCase(url.getScheme());
+                        if (!secure) {
+                            records.add(HealthRecord.forMessage(
+                                    HealthMessage.Config_LDAPUnsecure,
+                                    settingToOutputText(PwmSetting.LDAP_SERVER_URLS, ldapProfile)
                             ));
                         }
+                    } catch (URISyntaxException e) {
+                        records.add(HealthRecord.forMessage(HealthMessage.Config_ParseError,
+                                e.getMessage(),
+                                settingToOutputText(PwmSetting.LDAP_SERVER_URLS, ldapProfile),
+                                urlStringValue
+                        ));
                     }
                 }
             }
@@ -183,6 +204,15 @@ public class ConfigurationChecker implements HealthChecker {
             }
         }
 
+        for (final String profileID : config.getPasswordProfileIDs()) {
+            try {
+                final PwmPasswordPolicy pwmPasswordPolicy = config.getPasswordPolicy(profileID, locale);
+                records.addAll(pwmPasswordPolicy.health(locale));
+            } catch (Exception e) {
+                LOGGER.error("unexpected error during password policy health check: " + e.getMessage(),e);
+            }
+        }
+
         /*
         if (config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
             if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
@@ -195,18 +225,10 @@ public class ConfigurationChecker implements HealthChecker {
             }
         }
         */
-        
-        
-        if (config.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
-            for (final NewUserProfile newUserProfile : config.getNewUserProfiles().values()) {
-                try {
-                    newUserProfile.getNewUserPasswordPolicy(pwmApplication, PwmConstants.DEFAULT_LOCALE);
-                } catch (PwmUnrecoverableException e) {
-                    records.add(new HealthRecord(HealthStatus.WARN,HealthTopic.Configuration,e.getMessage()));
-                }
-            }
-        }
-        
+
+
+
+
 
         if (!config.hasDbConfigured()) {
             if (config.helper().shouldHaveDbConfigured()) {
@@ -233,13 +255,13 @@ public class ConfigurationChecker implements HealthChecker {
         return records;
     }
 
-    public static String settingToOutputText(
+    private static String settingToOutputText(
             final PwmSetting setting
     ) {
         return settingToOutputText(setting,null);
     }
 
-    public static String settingToOutputText(
+    private static String settingToOutputText(
             final PwmSetting setting,
             final Profile profile
     ) {

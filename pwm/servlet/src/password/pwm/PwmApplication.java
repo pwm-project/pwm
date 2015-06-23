@@ -44,6 +44,7 @@ import password.pwm.util.*;
 import password.pwm.util.cache.CacheService;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.intruder.IntruderManager;
+import password.pwm.util.intruder.RecordType;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.logging.LocalDBLogger;
@@ -326,6 +327,12 @@ public class PwmApplication {
             LOGGER.trace("application info: " + JsonUtil.serializeMap(infoMap));
         } catch (Exception e) {
             LOGGER.error("error generating about application bean: " + e.getMessage());
+        }
+
+        try {
+            this.getIntruderManager().clear(RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME);
+        } catch (Exception e) {
+            LOGGER.debug("error while clearing configmanager-intruder-username from intruder table: " + e.getMessage());
         }
 
         LOGGER.trace("completed post init tasks in " + TimeDuration.fromCurrent(startTime).asCompactString());

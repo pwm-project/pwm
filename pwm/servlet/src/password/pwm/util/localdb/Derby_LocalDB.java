@@ -99,7 +99,22 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
 
             return connection;
         } catch (Throwable e) {
-            final String errorMsg = "error opening DB: " + e.getMessage();
+            final String errorMsg;
+            if (e instanceof SQLException) {
+                SQLException sqlException = (SQLException)e;
+                SQLException nextException = sqlException.getNextException();
+                if (nextException != null) {
+                    if ("XSDB6".equals(nextException.getSQLState())) {
+                        errorMsg = "unable to open LocalDB, the LocalDB is already opened in a different instance: " + nextException.getMessage();
+                    } else {
+                        errorMsg = "unable to open LocalDB, error=" + e.getMessage() + ", nextError=" + nextException.getMessage();
+                    }
+                } else {
+                    errorMsg = "unable to open LocalDB, error=" + e.getMessage();
+                }
+            } else {
+                errorMsg = "error opening DB: " + e.getMessage();
+            }
             LOGGER.error(errorMsg, e);
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,errorMsg));
         }

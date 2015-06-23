@@ -23,6 +23,7 @@
 package password.pwm.config;
 
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.SearchHelper;
@@ -32,6 +33,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
@@ -47,7 +49,6 @@ public class FormUtility {
     private static final PwmLogger LOGGER = PwmLogger.forClass(FormUtility.class);
 
     final private static String NEGATIVE_CACHE_HIT = "NEGATIVE_CACHE_HIT";
-
 
     public static Map<FormConfiguration, String> readFormValuesFromMap(
             final Map<String,String> inputMap,
@@ -86,12 +87,41 @@ public class FormUtility {
                     throw new PwmDataValidationException(error);
                 }
             }
-            if (value != null && !formItem.isReadonly()) {
-                returnMap.put(formItem,value);
+
+            if (formItem.getType() == FormConfiguration.Type.checkbox) {
+                final String parsedValue = parseInputValueToFormValue(formItem, value);
+                returnMap.put(formItem, parsedValue);
+            } else if (value != null && !formItem.isReadonly()) {
+                final String parsedValue = parseInputValueToFormValue(formItem, value);
+                returnMap.put(formItem, parsedValue);
             }
+
         }
 
         return returnMap;
+    }
+
+    private static String parseInputValueToFormValue(final FormConfiguration formConfiguration, final String input) {
+        if (formConfiguration.getType() == FormConfiguration.Type.checkbox) {
+            final boolean bValue = checkboxValueIsChecked(input);
+            return bValue ? "TRUE" : "FALSE";
+        }
+
+        return input;
+    }
+
+    public static boolean checkboxValueIsChecked(final String value) {
+        boolean bValue = false;
+        if (value != null) {
+            if (Boolean.parseBoolean(value)) {
+                bValue = true;
+            } else if ("on".equalsIgnoreCase(value)) {
+                bValue = true;
+            } else if ("checked".equalsIgnoreCase(value)) {
+                bValue = true;
+            }
+        }
+        return bValue;
     }
 
     public static Map<String,String> asStringMap(Map<FormConfiguration, String> input) {
@@ -313,5 +343,42 @@ public class FormUtility {
 
         sb.append(")");
         return sb.toString();
+    }
+
+    public static void populateFormMapFromLdap(
+            final List<FormConfiguration> formFields,
+            final SessionLabel sessionLabel,
+            final Map<FormConfiguration, String> formMap,
+            final UserDataReader userDataReader
+    )
+            throws PwmUnrecoverableException
+    {
+        final List<String> formFieldNames = FormConfiguration.convertToListOfNames(formFields);
+        LOGGER.trace(sessionLabel, "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection(formFieldNames));
+        final Map<String,String> userData = new LinkedHashMap<>();
+        try {
+            userData.putAll(userDataReader.readStringAttributes(formFieldNames, true));
+        } catch (Exception e) {
+            PwmError error = null;
+            if (e instanceof ChaiException) {
+                error = PwmError.forChaiError(((ChaiException) e).getErrorCode());
+            }
+            if (error == null || error == PwmError.ERROR_UNKNOWN) {
+                error = PwmError.ERROR_LDAP_DATA_ERROR;
+            }
+
+            final ErrorInformation errorInformation = new ErrorInformation(error,"error reading current profile values: " + e.getMessage());
+            LOGGER.error(sessionLabel,errorInformation.getDetailedErrorMsg());
+            throw new PwmUnrecoverableException(errorInformation);
+        }
+
+        for (final FormConfiguration formItem : formFields) {
+            final String attrName = formItem.getName();
+            if (userData.containsKey(attrName)) {
+                final String value = parseInputValueToFormValue(formItem, userData.get(attrName));
+                formMap.put(formItem, value);
+                LOGGER.trace(sessionLabel, "loaded value for form item '" + attrName + "' with value=" + value);
+            }
+        }
     }
 }

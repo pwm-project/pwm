@@ -79,6 +79,8 @@ public abstract class PwmConstants {
     public static final long VERSION_CHECK_FAIL_RETRY_MS = Long.parseLong(readPwmConstantsBundle("versionCheckFailRetryMs"));
     public static final long STATISTICS_PUBLISH_FREQUENCY_MS = Long.parseLong(readPwmConstantsBundle("statisticsPublishFrequencyMs"));
 
+    public static final String CONFIGMANAGER_INTRUDER_USERNAME = "ConfigurationManagerLogin";
+
     public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
     public static final Charset DEFAULT_CHARSET = Charset.forName("UTF8");
 
@@ -207,6 +209,7 @@ public abstract class PwmConstants {
         RECOVER_PASSWORD_ENTER_TOKEN("forgottenpassword-entertoken.jsp"),
         RECOVER_PASSWORD_ENTER_OTP("forgottenpassword-enterotp.jsp"),
         RECOVER_PASSWORD_NAAF("forgottenpassword-naaf.jsp"),
+        RECOVER_PASSWORD_REMOTE("forgottenpassword-remote.jsp"),
         SETUP_RESPONSES("setupresponses.jsp"),
         SETUP_RESPONSES_CONFIRM("setupresponses-confirm.jsp"),
         SETUP_RESPONSES_HELPDESK("setupresponses-helpdesk.jsp"),

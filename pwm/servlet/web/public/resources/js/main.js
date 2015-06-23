@@ -1868,14 +1868,28 @@ PWM_MAIN.convertSecondsToDisplayTimeDuration = function(amount, fullLength) {
 };
 
 PWM_MAIN.setStyle = function(elementID, property, value) {
-    try {
-        var element = PWM_MAIN.getObject(elementID);
-        if (element) {
-            element.style.setProperty(property, value, null);
+
+    require(["dojo"],function(dojo) {
+        if (dojo.isIE <= 8) { // IE8 and below cant handle the css associated with the locale select menu
+            try {
+                var element = PWM_MAIN.getObject(elementID);
+                if (element) {
+                    element.style[property] = value;
+                }
+            } catch (e) {
+                console.error('error while setting ie8 style, elementID=' + elementID + ", property=" + property + ", value=" + value + ", error: " + e);
+            }
+        } else {
+            try {
+                var element = PWM_MAIN.getObject(elementID);
+                if (element) {
+                    element.style.setProperty(property, value, null);
+                }
+            } catch (e) {
+                console.error('error while setting style, elementID=' + elementID + ", property=" + property + ", value=" + value + ", error: " + e);
+            }
         }
-    } catch (e) {
-        console.error('error while setting style, elementID=' + elementID + ", property=" + property + ", value=" + value + ", error: " + e);
-    }
+    });
 };
 
 PWM_MAIN.addCssClass = function(elementID, className) {

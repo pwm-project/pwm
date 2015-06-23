@@ -58,6 +58,8 @@ public enum HealthMessage {
     Config_MissingDB                        (HealthStatus.CAUTION,  HealthTopic.Configuration),
     Config_MissingLDAPResponseAttr          (HealthStatus.CAUTION,  HealthTopic.Configuration),
     Config_URLNotSecure                     (HealthStatus.CAUTION,  HealthTopic.Configuration),
+    Config_PasswordPolicyProblem            (HealthStatus.CONFIG,   HealthTopic.Configuration),
+    Config_UserPermissionValidity           (HealthStatus.CONFIG,   HealthTopic.Configuration),
     Config_NoRecoveryEnabled                (HealthStatus.CAUTION,  HealthTopic.Configuration),
     LDAP_VendorsNotSame                     (HealthStatus.CONFIG,   HealthTopic.LDAP),
     LDAP_OK                                 (HealthStatus.GOOD,     HealthTopic.LDAP),

@@ -244,7 +244,7 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
             i = i + j;
             (function(index) {
                 var elementID = "randomGen" + index;
-                dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><a style="visibility:hidden" class="link-randomPasswordValue" href="#" id="' + elementID + '">&nbsp;</a></td>';
+                dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><div style="visibility:hidden" class="link-randomPasswordValue" href="#" id="' + elementID + '">&nbsp;</div></td>';
                 eventHandlers.push(function(){
                     PWM_MAIN.addEventHandler(elementID,'click',function(){
                         var value = PWM_MAIN.getObject(elementID).innerHTML;

@@ -29,6 +29,8 @@ import com.novell.ldapchai.util.PasswordRuleHelper;
 import com.novell.ldapchai.util.StringHelper;
 import password.pwm.config.UserPermission;
 import password.pwm.config.option.ADPolicyComplexity;
+import password.pwm.health.HealthMessage;
+import password.pwm.health.HealthRecord;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -58,13 +60,11 @@ public class PwmPasswordPolicy implements Profile,Serializable {
     public static PwmPasswordPolicy createPwmPasswordPolicy(
             final Map<String, String> policyMap,
             final ChaiPasswordPolicy chaiPasswordPolicy
-    )
-    {
+    ) {
         return new PwmPasswordPolicy(policyMap, chaiPasswordPolicy);
     }
 
-    public String getIdentifier()
-    {
+    public String getIdentifier() {
         return profileID;
     }
 
@@ -83,7 +83,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
             }
             newDefaultPolicy = createPwmPasswordPolicy(defaultPolicyMap, null);
         } catch (Throwable t) {
-            LOGGER.fatal("error initializing PwmPasswordPolicy class: " + t.getMessage(),t);
+            LOGGER.fatal("error initializing PwmPasswordPolicy class: " + t.getMessage(), t);
         }
         defaultPolicy = newDefaultPolicy;
     }
@@ -153,28 +153,23 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         return policyMap.get(rule.getKey());
     }
 
-    public void setProfileID(String profileID)
-    {
+    public void setProfileID(String profileID) {
         this.profileID = profileID;
     }
 
-    public List<UserPermission> getUserPermissions()
-    {
+    public List<UserPermission> getUserPermissions() {
         return userPermissions;
     }
 
-    public void setUserPermissions(List<UserPermission> userPermissions)
-    {
+    public void setUserPermissions(List<UserPermission> userPermissions) {
         this.userPermissions = userPermissions;
     }
 
-    public String getRuleText()
-    {
+    public String getRuleText() {
         return ruleText;
     }
 
-    public void setRuleText(String ruleText)
-    {
+    public void setRuleText(String ruleText) {
         this.ruleText = ruleText;
     }
 
@@ -276,7 +271,6 @@ public class PwmPasswordPolicy implements Profile,Serializable {
     public static PwmPasswordPolicy createPwmPasswordPolicy(final Map<String, String> policyMap) {
         return createPwmPasswordPolicy(policyMap, null);
     }
-
 
 
 // -------------------------- INNER CLASSES --------------------------
@@ -383,5 +377,34 @@ public class PwmPasswordPolicy implements Profile,Serializable {
     @Override
     public List<UserPermission> getPermissionMatches() {
         throw new UnsupportedOperationException();
+    }
+
+    public List<HealthRecord> health(final Locale locale) {
+        final RuleHelper ruleHelper = this.getRuleHelper();
+        final List<HealthRecord> returnList = new ArrayList<>();
+        final Map<PwmPasswordRule, PwmPasswordRule> rulePairs = new LinkedHashMap<>();
+        rulePairs.put(PwmPasswordRule.MinimumLength, PwmPasswordRule.MaximumLength);
+        rulePairs.put(PwmPasswordRule.MinimumLowerCase, PwmPasswordRule.MaximumLowerCase);
+        rulePairs.put(PwmPasswordRule.MinimumUpperCase, PwmPasswordRule.MaximumUpperCase);
+        rulePairs.put(PwmPasswordRule.MinimumNumeric, PwmPasswordRule.MaximumNumeric);
+        rulePairs.put(PwmPasswordRule.MinimumSpecial, PwmPasswordRule.MaximumSpecial);
+        rulePairs.put(PwmPasswordRule.MinimumAlpha, PwmPasswordRule.MaximumAlpha);
+        rulePairs.put(PwmPasswordRule.MinimumNonAlpha, PwmPasswordRule.MaximumNonAlpha);
+        rulePairs.put(PwmPasswordRule.MinimumUnique, PwmPasswordRule.MaximumUnique);
+
+        for (final PwmPasswordRule minRule : rulePairs.keySet()) {
+            final PwmPasswordRule maxRule = rulePairs.get(minRule);
+
+            final int minValue = ruleHelper.readIntValue(minRule);
+            final int maxValue = ruleHelper.readIntValue(maxRule);
+            if (maxValue > 0 && minValue > maxValue) {
+                final String detailMsg = minRule.getLabel(locale, null) + " (" + minValue + ")"
+                        + " > "
+                        + maxRule.getLabel(locale, null) + " (" + maxValue + ")";
+                returnList.add(HealthRecord.forMessage(HealthMessage.Config_PasswordPolicyProblem, profileID, detailMsg));
+            }
+        }
+
+        return Collections.unmodifiableList(returnList);
     }
 }

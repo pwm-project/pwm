@@ -2065,9 +2065,9 @@
     </setting>
     <setting key="newUser.form" level="1" required="true">
         <default>
-            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"placeholder":"username@example.com","selectOptions":{}}</value>
-            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"placeholder":"username@example.com","selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
         </default>
         <options>
             <option value="unique">show</option>

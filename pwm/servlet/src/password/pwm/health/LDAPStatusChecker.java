@@ -38,6 +38,8 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingSyntax;
+import password.pwm.config.UserPermission;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.ErrorInformation;
@@ -112,6 +114,8 @@ public class LDAPStatusChecker implements HealthChecker {
 
         returnRecords.addAll(checkVendorSameness(pwmApplication));
 
+        //returnRecords.addAll(checkUserPermissionValues(pwmApplication));
+
         return returnRecords;
     }
 
@@ -129,8 +133,8 @@ public class LDAPStatusChecker implements HealthChecker {
 
         if (proxyUserDN.equalsIgnoreCase(testUserDN)) {
             returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_ProxyTestSameUser,
-                    ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile),
-                    ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_PROXY_USER_DN,ldapProfile)
+                    PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
+                    PwmSetting.LDAP_PROXY_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE)
             ));
             return returnRecords;
         }
@@ -153,13 +157,13 @@ public class LDAPStatusChecker implements HealthChecker {
 
             } catch (ChaiUnavailableException e) {
                 returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnavailable,
-                        ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile),
+                        PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
                         e.getMessage()
                 ));
                 return returnRecords;
             } catch (Throwable e) {
                 returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnexpected,
-                        ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile),
+                        PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
                         e.getMessage()
                 ));
                 return returnRecords;
@@ -169,7 +173,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 theUser.readObjectClass();
             } catch (ChaiException e) {
                 returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserError,
-                        ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile),
+                        PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
                         e.getMessage()
                 ));
                 return returnRecords;
@@ -199,13 +203,13 @@ public class LDAPStatusChecker implements HealthChecker {
                         userPassword = newPassword;
                     } catch (ChaiPasswordPolicyException e) {
                         returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserPolicyError,
-                                ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile),
+                                PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
                                 e.getMessage()
                         ));
                         return returnRecords;
                     } catch (Exception e) {
                         returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnexpected,
-                                ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile),
+                                PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
                                 e.getMessage()
                         ));
                         return returnRecords;
@@ -215,7 +219,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
             if (userPassword == null) {
                 returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserNoTempPass,
-                        ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile)
+                        PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE)
                 ));
                 return returnRecords;
             }
@@ -395,7 +399,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 returnList.add(HealthRecord.forMessage(
                         HealthMessage.Config_ParseError,
                         e.getMessage(),
-                        ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_SERVER_URLS,ldapProfile),
+                        PwmSetting.LDAP_SERVER_URLS.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
                         loopURL
                 ));
             }
@@ -520,7 +524,7 @@ public class LDAPStatusChecker implements HealthChecker {
                         final String url = chaiConfiguration.getSetting(ChaiSetting.BIND_URLS);
                         final HealthRecord record = HealthRecord.forMessage(
                                 HealthMessage.LDAP_Ad_History_Asn_Missing,
-                                ConfigurationChecker.settingToOutputText(PwmSetting.AD_ENFORCE_PW_HISTORY_ON_SET, null),
+                                PwmSetting.AD_ENFORCE_PW_HISTORY_ON_SET.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE),
                                 url
                         );
                         healthRecords.add(record);
@@ -541,6 +545,122 @@ public class LDAPStatusChecker implements HealthChecker {
         return healthRecords;
     }
 
+    private static List<HealthRecord> checkUserPermissionValues(final PwmApplication pwmApplication) {
+        final List<HealthRecord> returnList = new ArrayList<>();
+        final Configuration config= pwmApplication.getConfig();
+        for (final PwmSetting pwmSetting : PwmSetting.values()) {
+            if (!pwmSetting.isHidden() && pwmSetting.getSyntax() == PwmSettingSyntax.USER_PERMISSION) {
+                if (!pwmSetting.getCategory().hasProfiles()) {
+                    final List<UserPermission> userPermissions = config.readSettingAsUserPermission(pwmSetting);
+                    for (final UserPermission userPermission : userPermissions) {
+                        try {
+                            returnList.addAll(checkUserPermission(pwmApplication, userPermission, pwmSetting));
+                        } catch (PwmUnrecoverableException e) {
+                            LOGGER.error(e.getMessage(),e);
+                        }
+                    }
+                }
+            }
+        }
+        return returnList;
+    }
+
+    private static List<HealthRecord> checkUserPermission(
+            final PwmApplication pwmApplication,
+            final UserPermission userPermission,
+            final PwmSetting pwmSetting
+    )
+            throws PwmUnrecoverableException
+    {
+        final String settingDebugName = pwmSetting.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE);
+        final List<HealthRecord> returnList = new ArrayList<>();
+        final Configuration config = pwmApplication.getConfig();
+        final List<String> ldapProfilesToCheck = new ArrayList<>();
+        {
+            final String configuredLdapProfileID = userPermission.getLdapProfileID();
+            if (configuredLdapProfileID == null || configuredLdapProfileID.isEmpty() || configuredLdapProfileID.equals(PwmConstants.PROFILE_ID_ALL)) {
+                ldapProfilesToCheck.addAll(config.getLdapProfiles().keySet());
+            } else {
+                if (config.getLdapProfiles().keySet().contains(configuredLdapProfileID)) {
+                    ldapProfilesToCheck.add(configuredLdapProfileID);
+                } else {
+                    return Collections.singletonList(
+                            HealthRecord.forMessage(HealthMessage.Config_UserPermissionValidity,
+                                    settingDebugName,
+                                    "specified ldap profile ID invalid: " + configuredLdapProfileID
+                            ));
+                }
+            }
+        }
+
+        for (final String ldapProfileID : ldapProfilesToCheck) {
+            switch (userPermission.getType()) {
+                case ldapGroup: {
+                    final String groupDN = userPermission.getLdapBase();
+                    if (groupDN != null && !isExampleDN(groupDN)) {
+                        final String errorMsg = validateDN(pwmApplication, groupDN, ldapProfileID);
+                        if (errorMsg != null) {
+                            returnList.add(HealthRecord.forMessage(HealthMessage.Config_UserPermissionValidity, settingDebugName, "groupDN: " + errorMsg));
+                        }
+                    }
+                }
+                break;
+
+                case ldapQuery: {
+                    final String baseDN = userPermission.getLdapBase();
+                    if (baseDN != null && !isExampleDN(baseDN)) {
+                        final String errorMsg = validateDN(pwmApplication, baseDN, ldapProfileID);
+                        if (errorMsg != null) {
+                            returnList.add(HealthRecord.forMessage(HealthMessage.Config_UserPermissionValidity, settingDebugName, "baseDN: " + errorMsg));
+                        }
+                    }
+                }
+                break;
+            }
+        }
+        return returnList;
+    }
+
+    private static String validateDN(final PwmApplication pwmApplication, final String dnValue, final String ldapProfileID)
+            throws PwmUnrecoverableException
+    {
+        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(ldapProfileID);
+        try {
+            if (!isExampleDN(dnValue)) {
+                final ChaiEntry baseDNEntry = ChaiFactory.createChaiEntry(dnValue, chaiProvider);
+                if (!baseDNEntry.isValid()) {
+                    return "DN '" + dnValue + "' is invalid";
+                } else {
+                    final String canonicalDN = baseDNEntry.readCanonicalDN();
+                    if (!dnValue.equals(canonicalDN)) {
+                        return "DN '" + dnValue + "' is not the correct canonical value";
+                    }
+                }
+            }
+        } catch (ChaiUnavailableException e) {
+            throw PwmUnrecoverableException.fromChaiException(e);
+        } catch (ChaiException e) {
+            LOGGER.error("error while evaluating ldap DN '" + dnValue + "', error: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private static boolean isExampleDN(final String dnValue) {
+        if (dnValue == null) {
+            return false;
+        }
+        final String[] EXAMPLE_SUFFIXES = new String[]{
+                "DC=site,DC=example,DC=net",
+                "ou=groups,o=example"
+        };
+        for (final String suffix : EXAMPLE_SUFFIXES) {
+            if (dnValue.endsWith(suffix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static HealthData healthForNewConfiguration(
             final PwmApplication pwmApplication,
             final Configuration config,
@@ -550,7 +670,7 @@ public class LDAPStatusChecker implements HealthChecker {
             boolean fullTest
 
     )
-                throws PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final PwmApplication tempApplication = new PwmApplication.PwmEnvironment(config, pwmApplication.getApplicationPath())
                 .setApplicationMode(PwmApplication.MODE.NEW)

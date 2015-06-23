@@ -28,9 +28,11 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.i18n.Display;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.report.ReportSummaryData;
 
 import java.util.*;
@@ -42,7 +44,7 @@ public abstract class AlertHandler {
     public static void alertDailyStats(
             final PwmApplication pwmApplication,
             final Map<String, String> dailyStatistics
-    ) {
+    ) throws PwmUnrecoverableException {
         if (!checkIfEnabled(pwmApplication, PwmSetting.EVENTS_ALERT_DAILY_SUMMARY)) {
             return;
         }
@@ -57,7 +59,7 @@ public abstract class AlertHandler {
             makeEmailBody(pwmApplication, dailyStatistics, locale, textBody, htmlBody);
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, textBody.toString(), htmlBody.toString());
             LOGGER.debug("sending daily summary email to " + toAddress);
-            pwmApplication.getEmailQueue().submitEmail(emailItem, null, null);
+            pwmApplication.getEmailQueue().submitEmail(emailItem, null, MacroMachine.forNonUserSpecific(pwmApplication,null));
         }
     }
 

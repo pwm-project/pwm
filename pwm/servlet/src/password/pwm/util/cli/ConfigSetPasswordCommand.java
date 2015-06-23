@@ -26,8 +26,6 @@ import password.pwm.PwmConstants;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.StoredConfiguration;
 
-import java.io.Console;
-import java.io.File;
 import java.util.Collections;
 
 public class ConfigSetPasswordCommand extends AbstractCliCommand {
@@ -36,16 +34,13 @@ public class ConfigSetPasswordCommand extends AbstractCliCommand {
     public void doCommand()
             throws Exception
     {
-        final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
+        final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
         final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
         final String password;
         if (cliEnvironment.getOptions().containsKey(PASSWORD_OPTIONNAME)) {
             password = (String)cliEnvironment.getOptions().get(PASSWORD_OPTIONNAME);
         } else {
-            final Console console = System.console();
-            console.writer().write("enter password:");
-            console.writer().flush();
-            password = new String(console.readPassword());
+            password = promptForPassword();
         }
         storedConfiguration.setPassword(password);
         configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), PwmConstants.CLI_SESSION_LABEL);
@@ -77,6 +72,7 @@ public class ConfigSetPasswordCommand extends AbstractCliCommand {
         cliParameters.description = "Sets the configuration password";
         cliParameters.options = Collections.singletonList(passwordValueOption);
         cliParameters.needsPwmApplication = true;
+        cliParameters.needsLocalDB = false;
         cliParameters.readOnly = true;
         return cliParameters;
     }

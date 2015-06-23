@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.config.FormConfiguration;
+import password.pwm.config.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -111,9 +112,9 @@ public class RestProfileServer extends AbstractRestServer {
                 final UserDataReader userDataReader = LdapUserDataReader.selfProxiedReader(
                         restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(),
                         restRequestBean.getUserIdentity());
-                UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession().getLabel(),formData,userDataReader);
+                FormUtility.populateFormMapFromLdap(formFields, restRequestBean.getPwmSession().getLabel(), formData, userDataReader);
             } else {
-                UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession().getLabel(),formData,restRequestBean.getPwmSession().getSessionManager().getUserDataReader(restRequestBean.getPwmApplication()));
+                FormUtility.populateFormMapFromLdap(formFields, restRequestBean.getPwmSession().getLabel(), formData, restRequestBean.getPwmSession().getSessionManager().getUserDataReader(restRequestBean.getPwmApplication()));
             }
 
             for (FormConfiguration formConfig : formData.keySet()) {

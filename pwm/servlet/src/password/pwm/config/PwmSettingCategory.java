@@ -180,7 +180,18 @@ public enum PwmSettingCategory {
         if (hidden == null) {
             final Element settingElement = PwmSettingXml.readCategoryXml(this);
             final Attribute hiddenElement = settingElement.getAttribute("hidden");
-            hidden = hiddenElement != null && "true".equalsIgnoreCase(hiddenElement.getValue());
+            if (hiddenElement != null && "true".equalsIgnoreCase(hiddenElement.getValue())) {
+                hidden = true;
+            } else {
+                for (final PwmSettingCategory parentCategory : getParents()) {
+                    if (parentCategory.isHidden()) {
+                        hidden = true;
+                    }
+                }
+            }
+            if (hidden == null) {
+                hidden = false;
+            }
         }
         return hidden;
     }

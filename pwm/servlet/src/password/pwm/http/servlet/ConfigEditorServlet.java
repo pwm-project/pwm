@@ -539,6 +539,23 @@ public class ConfigEditorServlet extends PwmServlet {
         returnObj.put("html", configManagerBean.getStoredConfiguration().changeLogAsDebugString(locale, true));
         returnObj.put("modified", configManagerBean.getStoredConfiguration().isModified());
 
+        /*
+        try {
+            final ConfigurationChecker configurationChecker = new ConfigurationChecker();
+            final Configuration config = new Configuration(configManagerBean.getConfiguration());
+            final List<HealthRecord> healthRecords = configurationChecker.doHealthCheck(
+                    config,
+                    pwmRequest.getLocale()
+            );
+            final List<password.pwm.ws.server.rest.bean.HealthRecord> healthRecordBeans = password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords(healthRecords, locale,
+                    config);
+
+            returnObj.put("health", healthRecordBeans);
+        } catch (Exception e) {
+            LOGGER.error(pwmRequest, "error generating health records: " + e.getMessage());
+        }
+        */
+
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(returnObj);
         pwmRequest.outputJsonResult(restResultBean);

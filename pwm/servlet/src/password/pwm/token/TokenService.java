@@ -540,7 +540,7 @@ public class TokenService implements PwmService {
             final String tokenName,
             final String userEnteredCode
     )
-            throws PwmOperationalException
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         TokenPayload tokenPayload;
         try {
@@ -566,7 +566,7 @@ public class TokenService implements PwmService {
 
         // check current session identity
         if (tokenPayload.getUserIdentity() != null && sessionUserIdentity != null) {
-            if (!tokenPayload.getUserIdentity().equals(sessionUserIdentity)) {
+            if (!tokenPayload.getUserIdentity().canonicalEquals(sessionUserIdentity, pwmApplication)) {
                 final String errorMsg = "user in session '" + sessionUserIdentity + "' entered code for user '" + tokenPayload.getUserIdentity()+ "', counting as invalid attempt";
                 throw new PwmOperationalException(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
             }

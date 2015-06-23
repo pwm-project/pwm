@@ -746,8 +746,12 @@ FormTableHandler.addRow = function(keyName) {
 };
 
 FormTableHandler.showOptionsDialog = function(keyName, iteration) {
+    var type = PWM_VAR['clientSettingCache'][keyName][iteration]['type'];
     var options = 'options' in PWM_SETTINGS['settings'][keyName] ? PWM_SETTINGS['settings'][keyName]['options'] : {};
+    var showRequired = options['required'] != 'hide' && type != 'checkbox';
+    var showConfirmation = type != 'checkbox' && type != 'select';
     var showUnique = options['unique'] == 'show';
+    var showReadOnly = options['readonly'] == 'show';
     require(["dijit/Dialog","dijit/form/Textarea","dijit/form/CheckBox","dijit/form/NumberSpinner"],function(){
         var inputID = 'value_' + keyName + '_' + iteration + "_";
         var bodyText = '<div style="max-height: 500px; overflow-y: auto"><table class="noborder">';
@@ -758,13 +762,15 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '</td>';
 
         bodyText += '</tr><tr>';
-        if (options['required'] != 'hide') {
+        if (showRequired) {
             bodyText += '<td id="' + inputID + '-label-required" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Required') + '">Required</td><td><input type="checkbox" id="' + inputID + 'required' + '"/></td>';
             bodyText += '</tr><tr>';
         }
-        bodyText += '<td id="' + inputID + '-label-confirm" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Confirm') + '">Confirm</td><td><input type="checkbox" id="' + inputID + 'confirmationRequired' + '"/></td>';
-        bodyText += '</tr><tr>';
-        if (options['readonly'] == 'show') {
+        if (showConfirmation) {
+            bodyText += '<td id="' + inputID + '-label-confirm" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Confirm') + '">Confirm</td><td><input type="checkbox" id="' + inputID + 'confirmationRequired' + '"/></td>';
+            bodyText += '</tr><tr>';
+        }
+        if (showReadOnly) {
             bodyText += '<td id="' + inputID + '-label-readOnly" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_ReadOnly') + '">Read Only</td><td><input type="checkbox" id="' + inputID + 'readonly' + '"/></td>';
             bodyText += '</tr><tr>';
         }
@@ -807,14 +813,16 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
                 FormTableHandler.showDescriptionDialog(keyName, iteration);
             });
 
-            PWM_MAIN.clearDijitWidget(inputID + "required");
-            new dijit.form.CheckBox({
-                checked: PWM_VAR['clientSettingCache'][keyName][iteration]['required'],
-                onChange: function () {
-                    PWM_VAR['clientSettingCache'][keyName][iteration]['required'] = this.checked;
-                    FormTableHandler.write(keyName)
-                }
-            }, inputID + "required");
+            if (showRequired) {
+                PWM_MAIN.clearDijitWidget(inputID + "required");
+                new dijit.form.CheckBox({
+                    checked: PWM_VAR['clientSettingCache'][keyName][iteration]['required'],
+                    onChange: function () {
+                        PWM_VAR['clientSettingCache'][keyName][iteration]['required'] = this.checked;
+                        FormTableHandler.write(keyName)
+                    }
+                }, inputID + "required");
+            }
 
             PWM_MAIN.clearDijitWidget(inputID + "confirmationRequired");
             new dijit.form.CheckBox({
@@ -837,17 +845,6 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             }
 
             if (showUnique) {
-                PWM_MAIN.clearDijitWidget(inputID + "unique");
-                new dijit.form.CheckBox({
-                    checked: PWM_VAR['clientSettingCache'][keyName][iteration]['unique'],
-                    onChange: function () {
-                        PWM_VAR['clientSettingCache'][keyName][iteration]['unique'] = this.checked;
-                        FormTableHandler.write(keyName)
-                    }
-                }, inputID + "unique");
-            }
-
-            if (PWM_SETTINGS['settings'][keyName]['options']['unique'] == 'show') {
                 PWM_MAIN.clearDijitWidget(inputID + "unique");
                 new dijit.form.CheckBox({
                     checked: PWM_VAR['clientSettingCache'][keyName][iteration]['unique'],
@@ -2993,3 +2990,88 @@ UILibrary.manageNumericInput = function(elementID, readFunction) {
         }
     });
 };
+
+ActionHandler.showHeadersDialog = function(keyName, iteration) {
+    var addValue = function(keyName, iteration) {
+        var body = '<table class="noborder">';
+        body += '<tr><td>Name</td><td><input class="configStringInput" id="newHeaderName" style="width:300px"/></td></tr>';
+        body += '<tr><td>Value</td><td><input class="configStringInput" id="newHeaderValue" style="width:300px"/></td></tr>';
+        body += '</table>';
+
+        var updateFunction = function(){
+            PWM_MAIN.getObject('dialog_ok_button').disabled = true;
+            PWM_VAR['newHeaderName'] = PWM_MAIN.getObject('newHeaderName').value;
+            PWM_VAR['newHeaderValue'] = PWM_MAIN.getObject('newHeaderValue').value;
+            if (PWM_VAR['newHeaderName'].length > 0 && PWM_VAR['newHeaderValue'].length > 0) {
+                PWM_MAIN.getObject('dialog_ok_button').disabled = false;
+            }
+        };
+
+        PWM_MAIN.showConfirmDialog({
+            title:'New Header',
+            text:body,
+            showClose:true,
+            loadFunction:function(){
+                PWM_MAIN.addEventHandler('newHeaderName','input',function(){
+                    updateFunction();
+                });
+                PWM_MAIN.addEventHandler('newHeaderValue','input',function(){
+                    updateFunction();
+                });
+                updateFunction();
+            },okAction:function(){
+                var headers = PWM_VAR['clientSettingCache'][keyName][iteration]['headers'];
+                headers[PWM_VAR['newHeaderName']] = PWM_VAR['newHeaderValue'];
+                ActionHandler.write(keyName);
+                ActionHandler.showHeadersDialog(keyName, iteration);
+            },cancelAction:function(){
+                ActionHandler.showHeadersDialog(keyName, iteration);
+            }
+        });
+
+    };
+
+    var settingValue = PWM_VAR['clientSettingCache'][keyName][iteration];
+    require(["dijit/Dialog","dijit/form/ValidationTextBox","dijit/form/Button","dijit/form/TextBox"],function(Dialog,ValidationTextBox,Button,TextBox){
+        var inputID = 'value_' + keyName + '_' + iteration + "_" + "headers_";
+
+        var bodyText = '';
+        bodyText += '<table class="noborder">';
+        bodyText += '<tr><td><b>Name</b></td><td><b>Value</b></td></tr>';
+        for (var iter in settingValue['headers']) {
+            (function(headerName) {
+                var value = settingValue['headers'][headerName];
+                var optionID = inputID + headerName;
+                bodyText += '<tr><td class="border">' + headerName + '</td><td class="border">' + value + '</td>';
+                bodyText += '<td style="width:15px;"><span class="delete-row-icon action-icon fa fa-times" id="button-' + optionID + '-deleteRow"></span></td>';
+                bodyText += '</tr>';
+            }(iter));
+        }
+        bodyText += '</table>';
+
+        PWM_MAIN.showDialog({
+            title: 'HTTP Headers for webservice ' + settingValue['name'],
+            text: bodyText,
+            buttonHtml:'<button id="button-' + inputID + '-addHeader" class="btn"><span class="btn-icon fa fa-plus-square"></span>Add Header</button>',
+            okAction: function() {
+                ActionHandler.showOptionsDialog(keyName,iteration);
+            },
+            loadFunction: function() {
+                for (var iter in settingValue['headers']) {
+                    (function(headerName) {
+                        var headerID = inputID + headerName;
+                        PWM_MAIN.addEventHandler('button-' + headerID + '-deleteRow', 'click', function () {
+                            delete settingValue['headers'][headerName];
+                            ActionHandler.write(keyName);
+                            ActionHandler.showHeadersDialog(keyName, iteration);
+                        });
+                    }(iter));
+                }
+                PWM_MAIN.addEventHandler('button-' + inputID + '-addHeader','click',function(){
+                    ActionHandler.addHeader(keyName, iteration);
+                });
+            }
+        });
+    });
+};
+

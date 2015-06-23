@@ -87,12 +87,14 @@
             <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
             <pwm:display key="Title_Admin"/>
         </a>
+        <pwm:if test="forcedPageView" negate="true">
         <a class="header-warning-button" id="header_openLogViewerButton">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
             <pwm:display key="MenuItem_ViewLog" bundle="Config"/>
             &nbsp;
             <pwm:if test="showIcons"><span class="btn-icon fa fa-external-link"></span></pwm:if>
         </a>
+        </pwm:if>
         <% } %>
     </div>
     <div id="panel-header-healthData" class="header-warning-row header-warning-healthData"></div>

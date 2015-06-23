@@ -337,14 +337,7 @@ public class Configuration implements Serializable, SettingReader {
     }
 
     public PwmLogLevel getEventLogLocalDBLevel() {
-        final String value = readSettingAsString(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL);
-        for (final PwmLogLevel logLevel : PwmLogLevel.values()) {
-            if (logLevel.toString().equalsIgnoreCase(value)) {
-                return logLevel;
-            }
-        }
-
-        return PwmLogLevel.TRACE;
+        return readSettingAsEnum(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL, PwmLogLevel.class);
     }
 
     public List<String> getChallengeProfileIDs() {

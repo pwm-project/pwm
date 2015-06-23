@@ -246,7 +246,7 @@ public class NewUserServlet extends PwmServlet {
 
         if (newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_SMS_VERIFICATION)) {
             if (!newUserBean.isSmsTokenIssued()) {
-                initializeToken(pwmRequest, NewUserBean.NewUserVerificationPhase.EMAIL);
+                initializeToken(pwmRequest, NewUserBean.NewUserVerificationPhase.SMS);
             }
 
             if (!newUserBean.isSmsTokenPassed()) {
@@ -508,7 +508,12 @@ public class NewUserServlet extends PwmServlet {
 
         // set up the user creation attributes
         final Map<String, String> createAttributes = new LinkedHashMap<>();
-        createAttributes.putAll(FormUtility.asStringMap(newUserForm.getFormData()));
+        for (final FormConfiguration formConfiguration : newUserForm.getFormData().keySet()) {
+            final String value = newUserForm.getFormData().get(formConfiguration);
+            if (value != null && !value.isEmpty()) {
+                createAttributes.put(formConfiguration.getName(), value);
+            }
+        }
 
         // read the creation object classes from configuration
         final Set<String> createObjectClasses = new LinkedHashSet<>(

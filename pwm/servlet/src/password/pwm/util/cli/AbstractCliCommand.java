@@ -22,6 +22,7 @@
 
 package password.pwm.util.cli;
 
+import java.io.Console;
 import java.io.IOException;
 import java.util.Scanner;
 
@@ -79,4 +80,19 @@ public abstract class AbstractCliCommand implements CliCommand  {
     }
 
     abstract void doCommand() throws Exception;
+
+    String promptForPassword() {
+        final Console console = System.console();
+        console.writer().write("enter password:");
+        console.writer().flush();
+        final String password = new String(console.readPassword());
+        console.writer().write("verify password:");
+        console.writer().flush();
+        final String verify  = new String(console.readPassword());
+        if (!password.equals(verify)) {
+            out("verify password incorrect, exiting...");
+            System.exit(-1);
+        }
+        return password;
+    }
 }

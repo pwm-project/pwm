@@ -44,6 +44,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
+import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.X509Utils;
@@ -194,7 +195,7 @@ public class ConfigGuideServlet extends PwmServlet {
             pwmSession.getSessionStateBean().setTheme(null);
         }
 
-        final ConfigGuideBean configGuideBean = (ConfigGuideBean)pwmSession.getSessionBean(ConfigGuideBean.class);
+        final ConfigGuideBean configGuideBean = pwmSession.getSessionBean(ConfigGuideBean.class);
 
         if (pwmApplication.getApplicationMode() != PwmApplication.MODE.NEW) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"ConfigGuide unavailable unless in NEW mode");
@@ -205,7 +206,8 @@ public class ConfigGuideServlet extends PwmServlet {
 
         if (!configGuideBean.getFormData().containsKey(PARAM_APP_SITEURL)) {
             final URI uri = URI.create(pwmRequest.getHttpServletRequest().getRequestURL().toString());
-            final String newUri = uri.getScheme() + "://" + uri.getHost() + ":" + uri.getPort() + pwmRequest.getContextPath();
+            final int port = Helper.portForUriSchema(uri);
+            final String newUri = uri.getScheme() + "://" + uri.getHost() + ":" + port + pwmRequest.getContextPath();
             configGuideBean.getFormData().put(PARAM_APP_SITEURL,newUri);
         }
 

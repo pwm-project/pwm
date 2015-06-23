@@ -1470,6 +1470,33 @@ public class ForgottenPasswordServlet extends PwmServlet {
         pwmRequest.addFormInfoToRequestAttr(PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM,false,false);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
     }
+
+    static class Na implements RecoveryVerificationMethod {
+        @Override
+        public List<UserPrompt> getCurrentPrompts() throws PwmUnrecoverableException {
+            return null;
+        }
+
+        @Override
+        public String getCurrentDisplayInstructions() {
+            return null;
+        }
+
+        @Override
+        public ErrorInformation respondToPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+            return null;
+        }
+
+        @Override
+        public VerificationState getVerificationState() {
+            return null;
+        }
+
+        @Override
+        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean, SessionLabel sessionLabel, Locale locale) throws PwmUnrecoverableException {
+
+        }
+    }
 }
 
 

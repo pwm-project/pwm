@@ -81,6 +81,7 @@ public enum AppProperty {
     HTTP_PARAM_NAME_THEME                           ("http.parameter.theme"),
     HTTP_PARAM_NAME_LOCALE                          ("http.parameter.locale"),
     HTTP_PARAM_NAME_PASSWORD_EXPIRED                ("http.parameter.passwordExpired"),
+    HTTP_PARAM_NAME_SSO_ENABLE("http.parameter.ssoBypass"),
     HTTP_PARAM_MAX_READ_LENGTH                      ("http.parameter.maxReadLength"),
     HTTP_PARAM_OAUTH_ACCESS_TOKEN                   ("http.parameter.oauth.accessToken"),
     HTTP_PARAM_OAUTH_ATTRIBUTES                     ("http.parameter.oauth.attributes"),

@@ -133,8 +133,8 @@ public class UserStatusReader {
             if (ldapPasswordExpirationTime != null) {
                 TimeDuration expirationInterval = TimeDuration.fromCurrent(ldapPasswordExpirationTime);
                 LOGGER.trace(sessionLabel, "read password expiration time: "
-                        + PwmConstants.DEFAULT_DATETIME_FORMAT.format(ldapPasswordExpirationTime)
-                        + ", " + expirationInterval.asCompactString() + " from now"
+                                + PwmConstants.DEFAULT_DATETIME_FORMAT.format(ldapPasswordExpirationTime)
+                                + ", " + expirationInterval.asCompactString() + " from now"
                 );
                 final long diff = ldapPasswordExpirationTime.getTime() - System.currentTimeMillis();
 
@@ -259,12 +259,7 @@ public class UserStatusReader {
         final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), provider);
         final UserDataReader userDataReader = new LdapUserDataReader(userIdentity, theUser);
 
-        try {
-            uiBean.setUserIdentity(new UserIdentity(theUser.readCanonicalDN(),userIdentity.getLdapProfileID()));
-        } catch (ChaiOperationException e) {
-            LOGGER.warn(sessionLabel, "error reading canonical DN: " + e.getMessage());
-            uiBean.setUserIdentity(userIdentity);
-        }
+        uiBean.setUserIdentity(userIdentity.canonicalized(pwmApplication));
 
         populateLocaleSpecificUserInfoBean(uiBean, userLocale);
 

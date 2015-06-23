@@ -260,6 +260,14 @@ public class LocaleHelper {
         return locale.toLanguageTag();
     }
 
+    public static String booleanString(final boolean input, PwmRequest pwmRequest) {
+        final Display key = input ? Display.Value_True : Display.Value_False;
+
+        return pwmRequest == null
+                ? Display.getLocalizedMessage(null, key, null)
+                : Display.getLocalizedMessage(pwmRequest.getLocale(), key, pwmRequest.getConfig());
+    }
+
     public static String booleanString(final boolean input, Locale locale, Configuration configuration) {
         Display key = input ? Display.Value_True : Display.Value_False;
         return Display.getLocalizedMessage(locale, key, configuration);

@@ -1192,7 +1192,7 @@ public enum PwmSetting {
         if (hidden == null) {
             final Element settingElement = PwmSettingXml.readSettingXml(this);
             final Attribute requiredAttribute = settingElement.getAttribute("hidden");
-            hidden = requiredAttribute != null && "true".equalsIgnoreCase(requiredAttribute.getValue());
+            hidden = requiredAttribute != null && "true".equalsIgnoreCase(requiredAttribute.getValue()) || this.getCategory().isHidden();
         }
         return hidden;
     }

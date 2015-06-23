@@ -393,10 +393,6 @@ public class LdapOperationsHelper {
             chaiConfig.setSetting(ChaiSetting.AD_SET_POLICY_HINTS_ON_PW_SET,"true");
         }
 
-        // enable caching
-        //chaiConfig.setSetting(ChaiSetting.CACHE_ENABLE, "true");
-        //chaiConfig.setSetting(ChaiSetting.CACHE_MAXIMUM_SIZE, "5000");
-
         // write out any configured values;
         final String rawValue = config.readAppProperty(AppProperty.LDAP_CHAI_SETTINGS);
         final String[] rawValues = rawValue != null ? rawValue.split(AppProperty.VALUE_SEPARATOR) : new String[0];

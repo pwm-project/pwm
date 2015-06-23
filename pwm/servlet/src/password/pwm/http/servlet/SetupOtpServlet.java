@@ -473,10 +473,9 @@ public class SetupOtpServlet extends PwmServlet {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
         }
 
-        //pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.png);
-
         OutputStream outputStream = null;
         try {
+            pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.png);
             outputStream = pwmRequest.getPwmResponse().getOutputStream();
             outputStream.write(imageBytes);
             outputStream.flush();

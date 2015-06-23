@@ -39,6 +39,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_IDLE_TIMEOUT); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
+<% final boolean advancedMode = JspUtility.getPwmRequest(pageContext).hasParameter("advanced"); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
@@ -72,8 +73,9 @@
                 <% } %>
                 <% } %>
             </ol>
-            <% if (pwmRequest.readParameterAsBoolean("advanced")) { %>
-            <li><a href="#settingSummary">Setting Summary</a></li>
+            <% if (advancedMode) { %>
+            <li><a href="#settingStatistics">Setting Statistics</a></li>
+            <li><a href="#appProperties">Application Properties</a></li>
             <% } %>
             <li><a href="#displayStrings">Display Strings</a></li>
             <ol>
@@ -320,12 +322,12 @@
         <% } %>
         <% } %>
         <% } %>
-        <% if (pwmRequest.readParameterAsBoolean("advanced")) { %>
-        <h2><a id="settingSummary">Setting Summary</a></h2>
+        <% if (advancedMode) { %>
+        <h2><a id="settingStatistics">Setting Statistics</a></h2>
         <% Map<PwmSetting.SettingStat,Object> settingStats = PwmSetting.getStats(); %>
         <table>
             <tr>
-                <td class="key">
+                <td>
                     Total Settings
                 </td>
                 <td>
@@ -333,7 +335,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="key">
+                <td>
                     Settings that are part of a Profile
                 </td>
                 <td>
@@ -343,7 +345,7 @@
             <% Map<PwmSettingSyntax,Integer> syntaxCounts = (Map<PwmSettingSyntax,Integer>)settingStats.get(PwmSetting.SettingStat.syntaxCounts); %>
             <% for (final PwmSettingSyntax loopSyntax : syntaxCounts.keySet()) { %>
             <tr>
-                <td class="key" style="width: auto; white-space: nowrap">
+                <td>
                     Settings with syntax type <%= loopSyntax.toString() %>
                 </td>
                 <td>
@@ -352,6 +354,31 @@
             </tr>
             <% } %>
         </table>
+
+        <h2><a id="appProperties">Application Properties</a></h2>
+        <table>
+            <tr>
+                <td class="key" style="text-align: left">
+                    Key
+                </td>
+                <td class="key" style="text-align: left">
+                    Default Value
+                </td>
+            </tr>
+            <% for (final AppProperty appProperty : AppProperty.values()) { %>
+            <tr>
+                <td style="width: auto; white-space: nowrap; text-align: left">
+                    <%=appProperty.getKey()%>
+                </td>
+                <td>
+                    <%=appProperty.getDefaultValue()%>
+                </td>
+            </tr>
+            <% } %>
+        </table>
+
+
+
         <% } %>
         <h1><a id="displayStrings">Display Strings</a></h1>
         <% for (PwmLocaleBundle bundle : PwmLocaleBundle.values()) { %>

@@ -20,13 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<!--
-
-TODO: focus on input field
-TODO: show/hide the entered code.
-TODO: support HOTP
-
--->
 <%@ page import="password.pwm.http.bean.SetupOtpBean" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -47,9 +40,9 @@ TODO: support HOTP
         <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
               enctype="application/x-www-form-urlencoded" id="setupOtpSecret" class="pwm-form">
             <div style="width:100%; text-align: center">
-                <input type="text" pattern="[0-9]*" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield" maxlength="<%=otpTokenLength%>" type="text"
+                <input type="text" pattern="^[0-9]*$" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield passwordfield" maxlength="<%=otpTokenLength%>" type="text"
                        id="<%= PwmConstants.PARAM_OTP_TOKEN%>" required="required" style="max-width: 100px"
-                       autofocus/>
+                       autofocus title="0-9"/>
             </div>
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="testOtpSecret"/>

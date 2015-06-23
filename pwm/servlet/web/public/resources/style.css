@@ -71,6 +71,11 @@ form {
     display: inline;
 }
 
+.link-randomPasswordValue {
+    cursor: pointer;
+    font-family: monospace;
+}
+
 #form {
     border-radius: 3px;
     -moz-border-radius: 3px;
@@ -152,6 +157,10 @@ table td.key {
     margin: 5px;
     height: 18px;
     padding-left: 4px;
+}
+
+.selectfield {
+    height: auto;
 }
 
 .noticebar {
@@ -721,7 +730,7 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 .panel-orgChart-parent .panel-orgChart-person {border-left: 5px solid #697374;}
 .panel-orgChart-parent .panel-orgChart-person:hover {border-left: 5px solid #697374;}
 .panel-orgChart-parent { margin-left: 5px }
-.panel-orgChart-person { position: relative; background: #eaeaea; padding: 6px; width: 220px; height: 70px; margin-right: 10px; margin-bottom: 10px; border:  1px solid transparent; cursor:pointer; }
+.panel-orgChart-person { position: relative; background: #eaeaea; padding: 6px; width: 220px; height: 70px; margin-right: 10px; margin-bottom: 10px; border: 1px solid transparent; cursor:pointer; }
 .panel-orgChart-sibling { float: left; display: block; }
 .panel-orgChart-siblings { margin-left: 40px; }
 .img-orgChart-userPhoto { width: 40px; height: 40px; float: left; border-radius: 2px; margin-right: 6px; margin-bottom: 35px; border: 1px solid #D4D4D4; }

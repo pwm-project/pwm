@@ -116,8 +116,8 @@ public abstract class PwmHttpRequestWrapper {
                     final boolean passwordType = key.toLowerCase().contains("password");
                     String value;
                     value = bypassInputValidation 
-                            ? inputMap.get(key) : 
-                            Validator.sanitizeInputValue(configuration, inputMap.get(key), maxLength);
+                            ? inputMap.get(key)
+                            : Validator.sanitizeInputValue(configuration, inputMap.get(key), maxLength);
                     value = passwordType && passwordTrim ? value.trim() : value;
                     value = !passwordType && trim ? value.trim() : value;
                     
@@ -170,7 +170,7 @@ public abstract class PwmHttpRequestWrapper {
             throws PwmUnrecoverableException 
     {
         final int maxLength = Integer.parseInt(configuration.readAppProperty(AppProperty.HTTP_PARAM_MAX_READ_LENGTH));
-        final boolean trim = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_INPUT_TRIM));
+        final boolean trim = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_INPUT_PASSWORD_TRIM));
         
         final String rawValue = httpServletRequest.getParameter(name);
         if (rawValue != null && !rawValue.isEmpty()) {

@@ -134,6 +134,10 @@ public class SessionManager implements Serializable {
                 LOGGER.error(pwmSession.getLabel(), "error while closing user connection: " + e.getMessage());
             }
         }
+
+        if (userDataReader != null) {
+            userDataReader = null;
+        }
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -184,8 +188,16 @@ public class SessionManager implements Serializable {
         }
 
         if (userDataReader == null) {
+            /*
             userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication,
                     pwmSession.getUserInfoBean().getUserIdentity());
+                    */
+            final UserIdentity userIdentity = pwmSession.getUserInfoBean().getUserIdentity();
+            try {
+                userDataReader = LdapUserDataReader.selfProxiedReader(pwmApplication, pwmSession, userIdentity);
+            } catch (ChaiUnavailableException e) {
+                throw PwmUnrecoverableException.fromChaiException(e);
+            }
         }
         return userDataReader;
     }

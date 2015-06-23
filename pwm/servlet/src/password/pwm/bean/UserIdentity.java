@@ -22,6 +22,9 @@
 
 package password.pwm.bean;
 
+import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiException;
+import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -39,6 +42,7 @@ public class UserIdentity implements Serializable, Comparable {
     private static final String DELIM_SEPARATOR = "|";
 
     private transient String obfuscatedValue;
+    private transient boolean canonicalized;
 
     private String userDN;
     private String ldapProfile;
@@ -71,7 +75,7 @@ public class UserIdentity implements Serializable, Comparable {
     }
 
     public String toString() {
-        return "UserIdentity: " + JsonUtil.serialize(this);
+        return "UserIdentity" + JsonUtil.serialize(this);
     }
 
     public String toObfuscatedKey(final Configuration configuration)
@@ -147,6 +151,18 @@ public class UserIdentity implements Serializable, Comparable {
         return fromDelimitedKey(key);
     }
 
+    public boolean canonicalEquals(final UserIdentity otherIdentity, final PwmApplication pwmApplication)
+            throws PwmUnrecoverableException
+    {
+        if (otherIdentity == null) {
+            return false;
+        }
+
+        final UserIdentity thisCanonicalIdentity = this.canonicalized(pwmApplication);
+        final UserIdentity otherCanonicalIdentity = otherIdentity.canonicalized(pwmApplication);
+        return thisCanonicalIdentity.equals(otherCanonicalIdentity);
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -176,5 +192,24 @@ public class UserIdentity implements Serializable, Comparable {
         String otherStr = (otherIdentity.ldapProfile == null ? "_" : otherIdentity.ldapProfile) + otherIdentity.userDN;
 
         return thisStr.compareTo(otherStr);
+    }
+
+    public UserIdentity canonicalized(final PwmApplication pwmApplication)
+            throws PwmUnrecoverableException
+    {
+        if (this.canonicalized) {
+            return this;
+        }
+
+        final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser(this);
+        final String userDN;
+        try {
+            userDN = chaiUser.readCanonicalDN();
+        } catch (ChaiException e) {
+            throw PwmUnrecoverableException.fromChaiException(e);
+        }
+        final UserIdentity canonicalziedIdentity = new UserIdentity(userDN, this.getLdapProfileID());
+        canonicalziedIdentity.canonicalized = true;
+        return canonicalziedIdentity;
     }
 }

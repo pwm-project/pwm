@@ -34,6 +34,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 public class SecureHelper {
 
@@ -67,6 +68,7 @@ public class SecureHelper {
 
     public enum BlockAlgorithm {
         AES("AES"),
+        AES_SHA2("AES"),
         AES_CHECKSUM("AES/CBC/PKCS5Padding"),
         CONFIG("AES"),
 
@@ -148,7 +150,24 @@ public class SecureHelper {
 
             final Cipher cipher = Cipher.getInstance(blockAlgorithm.getAlgName());
             cipher.init(Cipher.ENCRYPT_MODE, key, cipher.getParameters());
-            return cipher.doFinal(value.getBytes(PwmConstants.DEFAULT_CHARSET));
+            final byte[] encryptedBytes = cipher.doFinal(value.getBytes(PwmConstants.DEFAULT_CHARSET));
+            if (blockAlgorithm.equals(BlockAlgorithm.AES_SHA2)) {
+                final byte[] hashChecksum;
+                {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    baos.write(key.getEncoded());
+                    baos.write(encryptedBytes);
+                    hashChecksum = hashToBytes(new ByteArrayInputStream(baos.toByteArray()),HashAlgorithm.SHA256);
+                }
+                final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                baos.write(hashChecksum);
+                baos.write(encryptedBytes);
+                return baos.toByteArray();
+
+            } else {
+                return encryptedBytes;
+            }
+
         } catch (Exception e) {
             final String errorMsg = "unexpected error performing simple crypt operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);
@@ -211,7 +230,7 @@ public class SecureHelper {
     }
 
     public static String decryptBytes(
-            final byte[] value,
+            byte[] value,
             final SecretKey key,
             final BlockAlgorithm blockAlgorithm
     )
@@ -222,6 +241,26 @@ public class SecureHelper {
                 return null;
             }
 
+            if (blockAlgorithm == BlockAlgorithm.AES_SHA2) {
+                final int CHECKSUM_SIZE = 32;
+                if (value.length <= CHECKSUM_SIZE) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CRYPT_ERROR,"incoming AES_SHA2 data is missing checksum"));
+                }
+                final byte[] suppliedChecksum = Arrays.copyOfRange(value, 0, CHECKSUM_SIZE);
+                final byte[] suppliedPayload = Arrays.copyOfRange(value, CHECKSUM_SIZE, value.length);
+                final byte[] computedChecksum;
+                {
+                    final byte[] keyBytes = key.getEncoded();
+                    final byte[] payloadPlusKeyBytes = new byte[keyBytes.length + suppliedPayload.length];
+                    System.arraycopy(keyBytes, 0, payloadPlusKeyBytes, 0, keyBytes.length);
+                    System.arraycopy(suppliedPayload, 0, payloadPlusKeyBytes, keyBytes.length, suppliedPayload.length);
+                    computedChecksum = hashToBytes(new ByteArrayInputStream(payloadPlusKeyBytes), HashAlgorithm.SHA256);
+                }
+                if (!Arrays.equals(suppliedChecksum,computedChecksum)) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CRYPT_ERROR,"incoming AES_SHA2 data has incorrect checksum"));
+                }
+                value = suppliedPayload;
+            }
             final Cipher cipher = Cipher.getInstance(blockAlgorithm.getAlgName());
             cipher.init(Cipher.DECRYPT_MODE, key);
             final byte[] decrypted = cipher.doFinal(value);
@@ -345,6 +384,17 @@ public class SecureHelper {
     )
             throws PwmUnrecoverableException
     {
+        return Helper.byteArrayToHexString(hashToBytes(is,algorithm));
+    }
+
+
+
+    public static byte[] hashToBytes(
+            final InputStream is,
+            final HashAlgorithm algorithm
+    )
+            throws PwmUnrecoverableException
+    {
 
         final InputStream bis = is instanceof BufferedInputStream ? is : new BufferedInputStream(is);
 
@@ -370,9 +420,7 @@ public class SecureHelper {
             }
             bis.close();
 
-            final byte[] bytes = messageDigest.digest();
-
-            return Helper.byteArrayToHexString(bytes);
+            return messageDigest.digest();
         } catch (IOException e) {
             final String errorMsg = "unexepected error during hash operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);

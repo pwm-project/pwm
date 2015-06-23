@@ -1,4 +1,6 @@
 <%@ page import="password.pwm.config.FormConfiguration" %>
+<%@ page import="password.pwm.i18n.LocaleHelper" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -29,6 +31,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
+<% final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);%>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_UpdateProfileConfirm"/>
@@ -45,7 +48,14 @@
                     <%=formConfiguration.getLabel(JspUtility.locale(request))%>
                 </td>
                 <td>
-                    <%=formDataMap.get(formConfiguration)%>
+                    <%
+                        final String value = formDataMap.get(formConfiguration);
+                        if (formConfiguration.getType() == FormConfiguration.Type.checkbox) {
+                    %>
+                    <%= LocaleHelper.booleanString(Boolean.parseBoolean(value),pwmRequest)%>
+                    <% } else { %>
+                    <%=StringUtil.escapeHtml(value)%>
+                    <% } %>
                 </td>
             </tr>
             <% } %>
