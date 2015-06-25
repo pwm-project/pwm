@@ -375,8 +375,11 @@ public class ChangePasswordServlet extends PwmServlet {
         if (pwmSession.getUserInfoBean().getPasswordState().isWarnPeriod()) {
             if (!pwmRequest.getPwmSession().getSessionStateBean().isSkippedRequireNewPassword()) {
                 if (!changePasswordBean.isWarnPassed()) {
-                    pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_WARN);
-                    return;
+                    if (pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationType() != AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
+                        LOGGER.trace(pwmRequest, "pasword expiration is within password warn period, forwarding user to warning page");
+                        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_WARN);
+                        return;
+                    }
                 }
             }
         }

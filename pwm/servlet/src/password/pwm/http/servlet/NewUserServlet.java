@@ -851,7 +851,9 @@ public class NewUserServlet extends PwmServlet {
             break;
 
             case EMAIL: {
-                final String toAddress = tokenPayloadMap.get(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
+                final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(
+                        PwmSetting.EMAIL_NEWUSER_VERIFICATION, pwmSession.getSessionStateBean().getLocale());
+                final String toAddress = macroMachine.expandMacros(configuredEmailSetting.getTo());
 
                 final RestTokenDataClient.TokenDestinationData inputTokenDestData = new RestTokenDataClient.TokenDestinationData(
                         toAddress, null, null);
@@ -881,8 +883,6 @@ public class NewUserServlet extends PwmServlet {
                 newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.EMAIL);
                 newUserBean.setTokenDisplayText(outputDestTokenData.getDisplayValue());
 
-                final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(
-                        PwmSetting.EMAIL_NEWUSER_VERIFICATION, pwmSession.getSessionStateBean().getLocale());
                 final EmailItemBean emailItemBean = new EmailItemBean(
                         outputDestTokenData.getEmail(),
                         configuredEmailSetting.getFrom(),

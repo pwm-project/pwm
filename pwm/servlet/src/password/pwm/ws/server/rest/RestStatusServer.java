@@ -23,15 +23,12 @@
 package password.pwm.ws.server.rest;
 
 import password.pwm.PwmService;
-import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.PublicUserInfoBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
-import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.tag.PasswordRequirementsTag;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
@@ -49,68 +46,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.Serializable;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Date;
 
 @Path("/status")
 public class RestStatusServer extends AbstractRestServer {
     public static final PwmLogger LOGGER = PwmLogger.forClass(RestStatusServer.class);
-
-    public static class JsonStatusData implements Serializable {
-        public String userDN;
-        public String ldapProfile;
-        public String userID;
-        public String userEmailAddress;
-        public Date passwordExpirationTime;
-        public Date passwordLastModifiedTime;
-        public boolean requiresNewPassword;
-        public boolean requiresResponseConfig;
-        public boolean requiresUpdateProfile;
-        public boolean requiresInteraction;
-
-        public PasswordStatus passwordStatus;
-        public Map<String,String> passwordPolicy;
-        public List<String> passwordRules;
-        public Map<String,String> attributes;
-
-        public static JsonStatusData fromUserInfoBean(final UserInfoBean userInfoBean, final Configuration config, final Locale locale) {
-            final JsonStatusData jsonStatusData = new JsonStatusData();
-            jsonStatusData.userDN = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().getUserDN();
-            jsonStatusData.ldapProfile = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().getLdapProfileID();
-            jsonStatusData.userID = userInfoBean.getUsername();
-            jsonStatusData.userEmailAddress = userInfoBean.getUserEmailAddress();
-            jsonStatusData.passwordExpirationTime = userInfoBean.getPasswordExpirationTime();
-            jsonStatusData.passwordLastModifiedTime = userInfoBean.getPasswordLastModifiedTime();
-            jsonStatusData.passwordStatus = userInfoBean.getPasswordState();
-
-            jsonStatusData.requiresNewPassword = userInfoBean.isRequiresNewPassword();
-            jsonStatusData.requiresResponseConfig = userInfoBean.isRequiresResponseConfig();
-            jsonStatusData.requiresUpdateProfile = userInfoBean.isRequiresResponseConfig();
-            jsonStatusData.requiresInteraction = userInfoBean.isRequiresNewPassword()
-                    || userInfoBean.isRequiresResponseConfig()
-                    || userInfoBean.isRequiresUpdateProfile()
-                    || userInfoBean.getPasswordState().isWarnPeriod();
-
-
-            jsonStatusData.passwordPolicy = new HashMap<>();
-            for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
-                jsonStatusData.passwordPolicy.put(rule.name(),userInfoBean.getPasswordPolicy().getValue(rule));
-            }
-
-            jsonStatusData.passwordRules = PasswordRequirementsTag.getPasswordRequirementsStrings(
-                    userInfoBean.getPasswordPolicy(),
-                    config,
-                    locale
-            );
-
-            if (userInfoBean.getCachedAttributeValues() != null && !userInfoBean.getCachedAttributeValues().isEmpty()) {
-                jsonStatusData.attributes = Collections.unmodifiableMap(userInfoBean.getCachedAttributeValues());
-            }
-
-            return jsonStatusData;
-        }
-    }
 
     @GET
     @Produces(MediaType.TEXT_HTML)
@@ -150,7 +91,7 @@ public class RestStatusServer extends AbstractRestServer {
                 userInfoBean = restRequestBean.getPwmSession().getUserInfoBean();
             }
             final RestResultBean restResultBean = new RestResultBean();
-            restResultBean.setData(JsonStatusData.fromUserInfoBean(
+            restResultBean.setData(PublicUserInfoBean.fromUserInfoBean(
                     userInfoBean,
                     restRequestBean.getPwmApplication().getConfig(),
                     restRequestBean.getPwmSession().getSessionStateBean().getLocale()

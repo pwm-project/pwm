@@ -31,6 +31,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
+import password.pwm.bean.PublicUserInfoBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -42,7 +43,6 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.client.rest.RestClientHelper;
-import password.pwm.ws.server.rest.RestStatusServer;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -536,8 +536,8 @@ public class PwmPasswordRuleValidator {
             sendData.put("policy",policyData);
         }
         if (uiBean != null) {
-            final RestStatusServer.JsonStatusData jsonStatusData = RestStatusServer.JsonStatusData.fromUserInfoBean(uiBean, pwmApplication.getConfig(), locale);
-            sendData.put("userInfo", jsonStatusData);
+            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(uiBean, pwmApplication.getConfig(), locale);
+            sendData.put("userInfo", publicUserInfoBean);
         }
 
         final String jsonRequestBody = JsonUtil.serializeMap(sendData);

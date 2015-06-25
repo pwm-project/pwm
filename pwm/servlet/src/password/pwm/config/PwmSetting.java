@@ -1002,6 +1002,8 @@ public enum PwmSetting {
             "external.pwcheck.urls", PwmSettingSyntax.STRING, PwmSettingCategory.REST_CLIENT),
     EXTERNAL_MACROS_REST_URLS(
             "external.macros.urls", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
+    EXTERNAL_MACROS_REMOTE_RESPONSES_URL(
+            "external.remoteResponses.url", PwmSettingSyntax.STRING, PwmSettingCategory.REST_CLIENT),
     CACHED_USER_ATTRIBUTES(
             "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
 
@@ -1160,14 +1162,22 @@ public enum PwmSetting {
 
     public String getLabel(final Locale locale) {
         final String key = "Setting_Label_" + this.getKey();
-        return LocaleHelper.getLocalizedMessage(locale, key, null, ConfigEditor.class);
+        try {
+            return LocaleHelper.getLocalizedMessage(locale, key, null, ConfigEditor.class);
+        } catch (MissingResourceException e) {
+            return "MISSING_SETTING_LABEL-" + key;
+        }
     }
 
     public String getDescription(final Locale locale) {
         final String key = "Setting_Description_" + this.getKey();
-        final String storedText = LocaleHelper.getLocalizedMessage(locale, key, null, ConfigEditor.class);
-        final MacroMachine macroMachine = MacroMachine.forStatic();
-        return macroMachine.expandMacros(storedText);
+        try {
+            final String storedText = LocaleHelper.getLocalizedMessage(locale, key, null, ConfigEditor.class);
+            final MacroMachine macroMachine = MacroMachine.forStatic();
+            return macroMachine.expandMacros(storedText);
+        } catch (MissingResourceException e) {
+            return "MISSING_DESCRIPTION_LABEL-" + key;
+        }
     }
 
     public String getPlaceholder(final Locale locale) {

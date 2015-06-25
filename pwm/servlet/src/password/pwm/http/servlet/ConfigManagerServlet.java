@@ -636,7 +636,8 @@ public class ConfigManagerServlet extends PwmServlet {
 
     private static final List<Class<? extends DebugItemGenerator>> DEBUG_ZIP_ITEM_GENERATORS  = Collections.unmodifiableList(Arrays.asList(
             ConfigurationFileItemGenerator.class,
-            ConfigurationDebugItemGenerator.class,
+            ConfigurationDebugJsonItemGenerator.class,
+            ConfigurationDebugTextItemGenerator.class,
             AboutItemGenerator.class,
             EnvironmentItemGenerator.class,
             AuditDebugItemGenerator.class,
@@ -658,7 +659,23 @@ public class ConfigManagerServlet extends PwmServlet {
         ) throws Exception;
     }
 
-    static class ConfigurationDebugItemGenerator implements DebugItemGenerator {
+    static class ConfigurationDebugJsonItemGenerator implements DebugItemGenerator {
+        @Override
+        public String getFilename() {
+            return "configuration-debug.json";
+        }
+
+        @Override
+        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        {
+            final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
+            storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
+
+            outputStream.write(storedConfiguration.toString(true).getBytes(PwmConstants.DEFAULT_CHARSET));
+        }
+    }
+
+    static class ConfigurationDebugTextItemGenerator implements DebugItemGenerator {
         @Override
         public String getFilename() {
             return "configuration-debug.txt";
@@ -670,7 +687,25 @@ public class ConfigManagerServlet extends PwmServlet {
             final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
             storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
 
-            outputStream.write(storedConfiguration.toString(true).getBytes(PwmConstants.DEFAULT_CHARSET));
+            final StringWriter writer = new StringWriter();
+            writer.write("Configuration Debug Output for "
+                    + PwmConstants.PWM_APP_NAME + " "
+                    + PwmConstants.SERVLET_VERSION + "\n");
+            writer.write("Timestamp: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(storedConfiguration.modifyTime()) + "\n");
+            writer.write("This file is encoded using " + PwmConstants.DEFAULT_CHARSET.displayName() + "\n");
+
+            writer.write("\n");
+            final Map<String,String> modifiedSettings = storedConfiguration.getModifiedSettingDebugValues(PwmConstants.DEFAULT_LOCALE, true);
+            for (final String key : modifiedSettings.keySet()) {
+                final String value = modifiedSettings.get(key);
+                writer.write(">> Setting > " + key);
+                writer.write("\n");
+                writer.write(value);
+                writer.write("\n");
+                writer.write("\n");
+            }
+
+            outputStream.write(writer.toString().getBytes(PwmConstants.DEFAULT_CHARSET));
         }
     }
 
@@ -886,14 +921,14 @@ public class ConfigManagerServlet extends PwmServlet {
                 final OutputStream outputStream
         ) throws Exception {
 
-            final int maxCount = 100 * 1000;
-            final int maxSeconds = 30 * 1000;
+            final int maxCount = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MANAGER_ZIPDEBUG_MAXLOGLINES));
+            final int maxSeconds = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MANAGER_ZIPDEBUG_MAXLOGSECONDS));
             final LocalDBLogger.SearchParameters searchParameters = new LocalDBLogger.SearchParameters(
                     PwmLogLevel.TRACE,
                     maxCount,
                     null,
                     null,
-                    maxSeconds,
+                    (maxSeconds * 1000),
                     null
             );
             final LocalDBLogger.SearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents(
@@ -908,6 +943,7 @@ public class ConfigManagerServlet extends PwmServlet {
                     outputStream.flush();
                 }
             }
+            LOGGER.trace("output " + counter + " lines to " + this.getFilename());
         }
     }
 }

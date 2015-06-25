@@ -2668,7 +2668,8 @@ VerificationMethodHandler.draw = function(settingKey) {
     for (var method in settingOptions) {
         var id = settingKey + '-' + method;
         var label = settingOptions[method];
-        htmlBody += '<tr><td>' + label + '</td><td><input id="input-range-' + id + '" type="range" min="0" max="2" value="0"/></td>';
+        var title = PWM_CONFIG.showString('VerificationMethodDetail_' + method);
+        htmlBody += '<tr><td title="' + title + '"><span style="cursor:pointer")">' + label + '</span></td><td><input id="input-range-' + id + '" type="range" min="0" max="2" value="0"/></td>';
         htmlBody += '<td><span id="label-' + id +'"></span></td></tr>';
     }
     htmlBody += '</table>';

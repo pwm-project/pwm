@@ -27,6 +27,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.SearchHelper;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.Validator;
 import password.pwm.bean.SessionLabel;
@@ -215,7 +216,8 @@ public class FormUtility {
         searchConfiguration.setFilter(filter.toString());
 
         int resultSearchSizeLimit = 1 + (excludeDN == null ? 0 : excludeDN.size());
-        final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS(30 * 1000);
+        final long cacheLifetimeMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_FORM_UNIQUE_VALUE_LIFETIME_MS));
+        final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS(cacheLifetimeMS);
 
         try {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, SessionLabel.SYSTEM_LABEL);

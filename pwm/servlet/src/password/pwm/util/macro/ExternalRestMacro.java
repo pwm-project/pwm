@@ -25,12 +25,12 @@ package password.pwm.util.macro;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.PublicUserInfoBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.PwmException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.client.rest.RestClientHelper;
-import password.pwm.ws.server.rest.RestStatusServer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -69,8 +69,8 @@ class ExternalRestMacro extends AbstractMacro {
         final String inputString = matchValue.substring(11,matchValue.length() -1);
         final Map<String,Object> sendData = new HashMap<>();
         if (userInfoBean != null) {
-            final RestStatusServer.JsonStatusData jsonStatusData = RestStatusServer.JsonStatusData.fromUserInfoBean(userInfoBean,pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE);
-            sendData.put("userInfo",jsonStatusData);
+            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(userInfoBean, pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE);
+            sendData.put("userInfo", publicUserInfoBean);
         }
         sendData.put("input",inputString);
 

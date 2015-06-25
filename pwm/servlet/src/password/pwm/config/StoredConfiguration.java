@@ -393,6 +393,16 @@ public class StoredConfiguration implements Serializable {
         return setting.getKey() + "=" + storedValue.toDebugString(false, null);
     }
 
+    public Map<String,String> getModifiedSettingDebugValues(final Locale locale, final boolean prettyPrint) {
+        final Map<String,String> returnObj = new LinkedHashMap<>();
+        for (SettingValueRecord record : this.modifiedSettings()) {
+            final String label = record.getSetting().toMenuLocationDebug(record.getProfile(),locale);
+            final String value = record.getStoredValue().toDebugString(true, locale);
+            returnObj.put(label,value);
+        }
+        return returnObj;
+    }
+
     List<SettingValueRecord> modifiedSettings() {
         final List<SettingValueRecord> returnObj = new ArrayList<>();
         domModifyLock.readLock().lock();
@@ -505,13 +515,8 @@ public class StoredConfiguration implements Serializable {
         final List<String> errorStrings = new ArrayList<>();
 
         for (final PwmSetting loopSetting : PwmSetting.values()) {
-            final StringBuilder errorPrefix = new StringBuilder();
-            errorPrefix.append(loopSetting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
-            errorPrefix.append("-");
-            errorPrefix.append(loopSetting.getLabel(PwmConstants.DEFAULT_LOCALE));
 
             if (loopSetting.getCategory().hasProfiles()) {
-                errorPrefix.append("-");
                 for (final String profile : profilesForSetting(loopSetting)) {
                     final String errorAppend = profile;
                     final StoredValue loopValue = readSetting(loopSetting,profile);
@@ -519,23 +524,22 @@ public class StoredConfiguration implements Serializable {
                     try {
                         final List<String> errors = loopValue.validateValue(loopSetting);
                         for (final String loopError : errors) {
-                            errorStrings.add(errorPrefix + errorAppend + " " + loopError);
+                            errorStrings.add(loopSetting.toMenuLocationDebug(profile,PwmConstants.DEFAULT_LOCALE) + errorAppend + " " + loopError);
                         }
                     } catch (Exception e) {
-                        LOGGER.error("unexpected error during validate value for " + errorPrefix + errorAppend + ", error: " + e.getMessage(),e);
+                        LOGGER.error("unexpected error during validate value for " + loopSetting.toMenuLocationDebug(profile,PwmConstants.DEFAULT_LOCALE) + errorAppend + ", error: " + e.getMessage(),e);
                     }
                 }
             } else {
-                errorPrefix.append(" ");
                 final StoredValue loopValue = readSetting(loopSetting);
 
                 try {
                     final List<String> errors = loopValue.validateValue(loopSetting);
                     for (final String loopError : errors) {
-                        errorStrings.add(errorPrefix + loopError);
+                        errorStrings.add(loopSetting.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE) + loopError);
                     }
                 } catch (Exception e) {
-                    LOGGER.error("unexpected error during validate value for " + errorPrefix + ", error: " + e.getMessage(),e);
+                    LOGGER.error("unexpected error during validate value for " + loopSetting.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE) + ", error: " + e.getMessage(),e);
                 }
             }
         }

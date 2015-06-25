@@ -2994,6 +2994,9 @@
     <setting key="external.macros.urls" level="2">
         <default />
     </setting>
+    <setting key="external.remoteResponses.url" level="2">
+        <default />
+    </setting>
     <setting key="external.destToken.urls" level="2">
         <default />
     </setting>

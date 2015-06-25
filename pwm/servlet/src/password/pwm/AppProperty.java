@@ -34,6 +34,7 @@ public enum AppProperty {
     CACHE_ENABLE                                    ("cache.enable"),
     CACHE_MEMORY_MAX_ITEMS                          ("cache.memory.maxItems"),
     CACHE_PWRULECHECK_LIFETIME_MS                   ("cache.pwRuleCheckLifetimeMS"),
+    CACHE_FORM_UNIQUE_VALUE_LIFETIME_MS             ("cache.uniqueFormValueLifetimeMS"),
     CLIENT_ACTIVITY_MAX_EPS_RATE                    ("client.ajax.activityMaxEpsRate"),
     CLIENT_AJAX_PW_WAIT_CHECK_SECONDS               ("client.ajax.changePasswordWaitCheckSeconds"),
     CLIENT_AJAX_TYPING_TIMEOUT                      ("client.ajax.typingTimeout"),
@@ -52,6 +53,8 @@ public enum AppProperty {
     CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT           ("configEditor.queryFilter.testLimit"),
     CONFIG_EDITOR_IDLE_TIMEOUT                      ("configEditor.idleTimeoutSeconds"),
     CONFIG_GUIDE_IDLE_TIMEOUT                       ("configGuide.idleTimeoutSeconds"),
+    CONFIG_MANAGER_ZIPDEBUG_MAXLOGLINES             ("configManager.zipDebug.maxLogLines"),
+    CONFIG_MANAGER_ZIPDEBUG_MAXLOGSECONDS           ("configManager.zipDebug.maxLogSeconds"),
     FORM_EMAIL_REGEX                                ("form.email.regexTest"),
     HTTP_RESOURCES_MAX_CACHE_ITEMS                  ("http.resources.maxCacheItems"),
     HTTP_RESOURCES_MAX_CACHE_BYTES                  ("http.resources.maxCacheBytes"),
@@ -81,7 +84,7 @@ public enum AppProperty {
     HTTP_PARAM_NAME_THEME                           ("http.parameter.theme"),
     HTTP_PARAM_NAME_LOCALE                          ("http.parameter.locale"),
     HTTP_PARAM_NAME_PASSWORD_EXPIRED                ("http.parameter.passwordExpired"),
-    HTTP_PARAM_NAME_SSO_ENABLE("http.parameter.ssoBypass"),
+    HTTP_PARAM_NAME_SSO_ENABLE                      ("http.parameter.ssoBypass"),
     HTTP_PARAM_MAX_READ_LENGTH                      ("http.parameter.maxReadLength"),
     HTTP_PARAM_OAUTH_ACCESS_TOKEN                   ("http.parameter.oauth.accessToken"),
     HTTP_PARAM_OAUTH_ATTRIBUTES                     ("http.parameter.oauth.attributes"),
@@ -104,7 +107,7 @@ public enum AppProperty {
     MACRO_LDAP_ATTR_CHAR_MAX_LENGTH                 ("macro.ldapAttr.maxLength"),
     NAAF_ID                                         ("naaf.id"),
     NAAF_SECRET                                     ("naaf.secret"),
-    NAAF_SALT_LENGTH                                ("naaf.salf.length"),
+    NAAF_SALT_LENGTH                                ("naaf.salt.length"),
 
     
     /** Time intruder records exist in the intruder table before being deleted. */
@@ -152,6 +155,7 @@ public enum AppProperty {
     
     TOTP_INTERVAL                                   ("otp.totp.intervalSeconds"),
     OTP_TOKEN_LENGTH                                ("otp.token.length"),
+    OTP_SALT_CHARLENGTH                             ("otp.salt.charLength"),
     OTP_RECOVERY_TOKEN_MACRO                        ("otp.recovery.macro"),
     OTP_RECOVERY_HASH_COUNT                         ("otp.recoveryHash.iterations"),
     OTP_RECOVERY_HASH_METHOD                        ("otp.recoveryHash.method"),

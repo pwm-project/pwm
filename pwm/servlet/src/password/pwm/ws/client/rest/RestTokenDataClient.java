@@ -25,6 +25,7 @@ package password.pwm.ws.client.rest;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.PublicUserInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
@@ -36,7 +37,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.ws.server.rest.RestStatusServer;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -108,8 +108,8 @@ public class RestTokenDataClient implements RestClient {
                     userIdentity
             );
 
-            final RestStatusServer.JsonStatusData jsonStatusData = RestStatusServer.JsonStatusData.fromUserInfoBean(userInfoBean,pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE);
-            sendData.put(RestClient.DATA_KEY_USERINFO, jsonStatusData);
+            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(userInfoBean, pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE);
+            sendData.put(RestClient.DATA_KEY_USERINFO, publicUserInfoBean);
         }
 
 

@@ -102,7 +102,7 @@ PWM_PS.convertDetailResultToHtml = function(data) {
     }
     htmlBody += '</div>'; //3
     if (data['hasOrgChart']) {
-        htmlBody += '<div class="icon-peoplesearch-orgChart" id="icon-peoplesearch-orgChart"></div>';
+        htmlBody += '<div class="icon-peoplesearch-orgChart" id="icon-peoplesearch-orgChart" title="' + PWM_MAIN.showString('Title_OrgChart') + '"></div>';
     }
     htmlBody += '</div>';
 
@@ -138,7 +138,7 @@ PWM_PS.convertDetailResultToHtml = function(data) {
             }
             if (attributeData['searchable'] == true) {
                 var likeSearchID = 'link-' + attributeData['name'] + '-' + '-likeUserSearch';
-                htmlBody += '<span id="' + likeSearchID + '" class="icon-likeUserSearch btn-icon fa fa-search"></span>';
+                htmlBody += '<span id="' + likeSearchID + '" class="icon-likeUserSearch btn-icon fa fa-search" title="' + PWM_MAIN.showString('Button_Search') + '"></span>';
             }
             htmlBody += '</div></td>'
         })(iter);

@@ -129,6 +129,7 @@ public class ForgottenPasswordBean implements PwmSessionBean {
         private RecoveryVerificationMethods inProgressVerificationMethod;
 
         private transient RecoveryVerificationMethod naafRecoveryMethod;
+        private transient RecoveryVerificationMethod remoteRecoveryMethod;
 
         public Set<RecoveryVerificationMethods> getSatisfiedMethods() {
             return satisfiedMethods;
@@ -188,6 +189,14 @@ public class ForgottenPasswordBean implements PwmSessionBean {
 
         public RecoveryVerificationMethod getNaafRecoveryMethod() {
             return naafRecoveryMethod;
+        }
+
+        public RecoveryVerificationMethod getRemoteRecoveryMethod() {
+            return remoteRecoveryMethod;
+        }
+
+        public void setRemoteRecoveryMethod(RecoveryVerificationMethod remoteRecoveryMethod) {
+            this.remoteRecoveryMethod = remoteRecoveryMethod;
         }
     }
 

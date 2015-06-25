@@ -137,7 +137,7 @@ public class PwmHttpClient {
         }
     }
 
-    public PwmHttpClientResponse makeRequestImpl(final PwmHttpClientRequest clientRequest)
+    PwmHttpClientResponse makeRequestImpl(final PwmHttpClientRequest clientRequest)
             throws IOException, URISyntaxException, PwmUnrecoverableException {
         final Date startTime = new Date();
         final int counter = classCounter++;

@@ -173,7 +173,8 @@ public class OtpService implements PwmService {
             final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
             if (settings.getOtpStorageFormat().supportsHashedRecoveryCodes()) {
                 LOGGER.trace(sessionLabel, "hashing the recovery codes");
-                recoveryInfo.setSalt(PwmRandom.getInstance().alphaNumericString(32));
+                final int saltCharLength = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.OTP_SALT_CHARLENGTH));
+                recoveryInfo.setSalt(PwmRandom.getInstance().alphaNumericString(saltCharLength));
                 recoveryInfo.setHashCount(settings.getRecoveryHashIterations());
                 recoveryInfo.setHashMethod(settings.getRecoveryHashMethod());
             } else {

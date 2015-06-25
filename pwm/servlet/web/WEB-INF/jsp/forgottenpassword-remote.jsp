@@ -61,7 +61,7 @@
                 <% } %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
-                <input type="hidden" id="processAction" name="processAction" value="enterNaafResponse"/>
+                <input type="hidden" id="processAction" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.enterRemoteResponse%>"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

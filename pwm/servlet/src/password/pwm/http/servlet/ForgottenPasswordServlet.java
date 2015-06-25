@@ -48,6 +48,9 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ForgottenPasswordBean;
+import password.pwm.http.client.PwmHttpClient;
+import password.pwm.http.client.PwmHttpClientRequest;
+import password.pwm.http.client.PwmHttpClientResponse;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapUserDataReader;
@@ -59,10 +62,7 @@ import password.pwm.ldap.auth.AuthenticationUtility;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.PasswordData;
-import password.pwm.util.PostChangePasswordAction;
-import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.*;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -105,6 +105,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
         tokenChoice(HttpMethod.POST),
         verificationChoice(HttpMethod.POST),
         enterNaafResponse(HttpMethod.POST),
+        enterRemoteResponse(HttpMethod.POST),
 
         ;
 
@@ -208,6 +209,10 @@ public class ForgottenPasswordServlet extends PwmServlet {
 
                 case enterNaafResponse:
                     this.processEnterNaaf(pwmRequest);
+                    break;
+
+                case enterRemoteResponse:
+                    this.processEnterRemote(pwmRequest);
                     break;
 
             }
@@ -457,6 +462,45 @@ public class ForgottenPasswordServlet extends PwmServlet {
         }
     }
 
+    private void processEnterRemote(final PwmRequest pwmRequest)
+            throws PwmUnrecoverableException, IOException, ServletException
+    {
+        final String PREFIX = "remote-";
+        final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
+        final RecoveryVerificationMethod remoteRecoveryMethod = forgottenPasswordBean.getProgress().getRemoteRecoveryMethod();
+
+        final Map<String,String> remoteResponses = new LinkedHashMap<>();
+        {
+            final Map<String,String> inputMap = pwmRequest.readParametersAsMap();
+            for (final String name : inputMap.keySet()) {
+                if (name != null && name.startsWith(PREFIX)) {
+                    final String strippedName = name.substring(PREFIX.length(), name.length());
+                    final String value = inputMap.get(name);
+                    remoteResponses.put(strippedName, value);
+                }
+            }
+        }
+
+        final ErrorInformation errorInformation = remoteRecoveryMethod.respondToPrompts(remoteResponses);
+
+        if (remoteRecoveryMethod.getVerificationState() == RecoveryVerificationMethod.VerificationState.COMPLETE) {
+            forgottenPasswordBean.getProgress().getSatisfiedMethods().add(RecoveryVerificationMethods.REMOTE_RESPONSES);
+        }
+
+        if (remoteRecoveryMethod.getVerificationState() == RecoveryVerificationMethod.VerificationState.FAILED) {
+            forgottenPasswordBean.getProgress().setNaafRecoveryMethod(null);
+            pwmRequest.respondWithError(errorInformation,true);
+            handleUserVerificationBadAttempt(pwmRequest, forgottenPasswordBean, errorInformation);
+            LOGGER.debug(pwmRequest, "unsuccessful remote response verification input: " + errorInformation.toDebugStr());
+            return;
+        }
+
+        if (errorInformation != null) {
+            pwmRequest.setResponseError(errorInformation);
+            handleUserVerificationBadAttempt(pwmRequest, forgottenPasswordBean, errorInformation);
+        }
+    }
+
     private void processEnterOtpToken(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
@@ -618,6 +662,10 @@ public class ForgottenPasswordServlet extends PwmServlet {
                     + profileDebugMsg
                     + "flags=" + JsonUtil.serialize(recoveryFlags) + ", "
                     + "progress=" + JsonUtil.serialize(progress));
+        }
+
+        if (forgottenPasswordProfile == null) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NO_PROFILE_ASSIGNED));
         }
 
 
@@ -1411,7 +1459,32 @@ public class ForgottenPasswordServlet extends PwmServlet {
             }
             break;
 
-            case NAAF:
+            case REMOTE_RESPONSES: {
+                final RecoveryVerificationMethod remoteMethod;
+                if (forgottenPasswordBean.getProgress().getRemoteRecoveryMethod() == null) {
+                    remoteMethod = new RemoteVerificationMethod();
+                    remoteMethod.init(
+                            pwmRequest.getPwmApplication(),
+                            forgottenPasswordBean.getUserInfo(),
+                            pwmRequest.getSessionLabel(),
+                            pwmRequest.getLocale()
+                    );
+                    forgottenPasswordBean.getProgress().setRemoteRecoveryMethod(remoteMethod);
+                } else {
+                    remoteMethod = forgottenPasswordBean.getProgress().getRemoteRecoveryMethod();
+                }
+
+                final List<RecoveryVerificationMethod.UserPrompt> prompts = remoteMethod.getCurrentPrompts();
+                final String displayInstructions = remoteMethod.getCurrentDisplayInstructions();
+
+                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordPrompts, new ArrayList<>(prompts));
+                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordInstructions, displayInstructions);
+                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_REMOTE);
+            }
+            break;
+
+
+            case NAAF: {
                 final RecoveryVerificationMethod naafMethod;
                 if (forgottenPasswordBean.getProgress().getNaafRecoveryMethod() == null) {
                     naafMethod = new PwmNAAFVerificationMethod();
@@ -1432,8 +1505,8 @@ public class ForgottenPasswordServlet extends PwmServlet {
                 pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordPrompts, new ArrayList<>(prompts));
                 pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordInstructions, displayInstructions);
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_NAAF);
-
-                break;
+            }
+            break;
 
             default:
                 throw new UnsupportedOperationException("unexpected method during forward: " + method.toString());
@@ -1471,32 +1544,113 @@ public class ForgottenPasswordServlet extends PwmServlet {
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
     }
 
-    static class Na implements RecoveryVerificationMethod {
+    public static class RemoteVerificationMethod implements RecoveryVerificationMethod {
+
+        private String remoteSesionID = PwmRandom.getInstance().randomUUID().toString();
+
+        private RemoteVerificationResponseBean lastResponse;
+        private PwmHttpClient pwmHttpClient;
+        private PwmApplication pwmApplication;
+
+        private UserInfoBean userInfoBean;
+        private SessionLabel sessionLabel;
+        private Locale locale;
+        private String url;
+
         @Override
         public List<UserPrompt> getCurrentPrompts() throws PwmUnrecoverableException {
-            return null;
+            if (lastResponse == null || lastResponse.getUserPrompts() == null) {
+                return null;
+            }
+
+            final List<UserPrompt> returnObj = new ArrayList<>();
+            for (final UserPromptBean userPromptBean : lastResponse.getUserPrompts()) {
+                returnObj.add(userPromptBean);
+            }
+            return returnObj;
         }
 
         @Override
         public String getCurrentDisplayInstructions() {
-            return null;
+            return lastResponse == null
+                    ? ""
+                    : lastResponse.getDisplayInstructions();
         }
 
         @Override
         public ErrorInformation respondToPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+            sendRemoteRequest(answers);
+            if (lastResponse != null) {
+                final String errorMsg = lastResponse.getErrorMessage();
+                if (errorMsg != null && !errorMsg.isEmpty()) {
+                    return new ErrorInformation(PwmError.ERROR_REMOTE_ERROR_VALUE,errorMsg);
+                }
+            }
             return null;
         }
 
         @Override
         public VerificationState getVerificationState() {
-            return null;
+            return lastResponse == null
+                    ? VerificationState.INPROGRESS
+                    : lastResponse.getVerificationState();
         }
 
         @Override
         public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean, SessionLabel sessionLabel, Locale locale) throws PwmUnrecoverableException {
+            pwmHttpClient = new PwmHttpClient(pwmApplication, sessionLabel);
+            this.userInfoBean = userInfoBean;
+            this.sessionLabel = sessionLabel;
+            this.locale = locale;
+            this.pwmApplication = pwmApplication;
+            this.url = pwmApplication.getConfig().readSettingAsString(PwmSetting.EXTERNAL_MACROS_REMOTE_RESPONSES_URL);
 
+            if (url == null || url.isEmpty()) {
+                final String errorMsg = PwmSetting.EXTERNAL_MACROS_REMOTE_RESPONSES_URL.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE)
+                        + " must be configured for remote responses";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
+                LOGGER.error(sessionLabel,errorInformation);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+
+            sendRemoteRequest(null);
+        }
+
+        private void sendRemoteRequest(final Map<String,String> userResponses) throws PwmUnrecoverableException {
+            lastResponse = null;
+
+            final Map<String,String> headers = new LinkedHashMap<>();
+            headers.put(PwmConstants.HttpHeader.Content_Type.getHttpName(), PwmConstants.ContentTypeValue.json.getHeaderValue());
+            headers.put(PwmConstants.HttpHeader.Accept_Language.getHttpName(), locale.toLanguageTag());
+
+            RemoteVerificationRequestBean remoteVerificationRequestBean = new RemoteVerificationRequestBean();
+            remoteVerificationRequestBean.setResponseSessionID(this.remoteSesionID);
+            remoteVerificationRequestBean.setUserInfo(PublicUserInfoBean.fromUserInfoBean(userInfoBean, pwmApplication.getConfig(), locale));
+            remoteVerificationRequestBean.setUserResponses(userResponses);
+
+            PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
+                    HttpMethod.POST,
+                    url,
+                    JsonUtil.serialize(remoteVerificationRequestBean),
+                    headers
+            );
+
+            try {
+                final PwmHttpClientResponse response = pwmHttpClient.makeRequest(pwmHttpClientRequest);
+                final String responseBodyStr = response.getBody();
+                this.lastResponse = JsonUtil.deserialize(responseBodyStr, RemoteVerificationResponseBean.class);
+            } catch (PwmException e) {
+                LOGGER.error(sessionLabel,e.getErrorInformation());
+                throw new PwmUnrecoverableException(e.getErrorInformation());
+            } catch (Exception e) {
+                final String errorMsg = "error reading remote responses web service response: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
+                LOGGER.error(sessionLabel,errorInformation);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
         }
     }
+
 }
 
 

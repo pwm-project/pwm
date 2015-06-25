@@ -88,7 +88,17 @@ public class SessionFilter extends AbstractPwmFilter {
             LOGGER.trace(pwmRequest.getPwmSession(), "IO exception during servlet processing: " + e.getMessage());
             throw new ServletException(e);
         } catch (Throwable e) {
-            LOGGER.warn(pwmRequest.getPwmSession(), "unhandled exception " + e.getMessage(), e);
+            if (e instanceof ServletException
+                    && e.getCause() != null
+                    && e.getCause() instanceof NoClassDefFoundError
+                    && e.getCause().getMessage() != null
+                    && e.getCause().getMessage().contains("JaxbAnnotationIntrospector")
+                    ) {
+                LOGGER.debug("ignoring JaxbAnnotationIntrospector NoClassDefFoundError: " + e.getMessage()); // this is a jersey 1.18 bug that occurs once per execution
+            } else {
+                LOGGER.warn(pwmRequest.getPwmSession(), "unhandled exception " + e.getMessage(), e);
+            }
+
             throw new ServletException(e);
         }
     }
