@@ -141,8 +141,8 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
         return 2;
     }
 
-    public String toDebugString(boolean prettyFormat, Locale locale) {
-        if (prettyFormat && values != null && !values.isEmpty()) {
+    public String toDebugString(Locale locale) {
+        if (values != null && !values.isEmpty()) {
             final StringBuilder sb = new StringBuilder();
             int counter = 0;
             for (final UserPermission userPermission : values) {
@@ -174,7 +174,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
             }
             return sb.toString();
         } else {
-            return JsonUtil.serializeCollection(values);
+            return null;
         }
     }
 }

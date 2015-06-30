@@ -33,8 +33,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
-import password.pwm.util.PwmRandom;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;

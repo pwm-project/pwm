@@ -25,7 +25,7 @@ package password.pwm.bean;
 import password.pwm.config.ShortcutItem;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.i18n.Message;
-import password.pwm.util.PwmRandom;
+import password.pwm.util.secure.PwmRandom;
 
 import java.util.Date;
 import java.util.Locale;

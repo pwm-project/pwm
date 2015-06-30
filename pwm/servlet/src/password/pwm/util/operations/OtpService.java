@@ -38,7 +38,6 @@ import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.PwmRandom;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -49,6 +48,7 @@ import password.pwm.util.operations.otp.LocalDbOtpOperator;
 import password.pwm.util.operations.otp.OtpOperator;
 import password.pwm.util.otp.OTPUserRecord;
 import password.pwm.util.otp.PasscodeGenerator;
+import password.pwm.util.secure.PwmRandom;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -76,7 +76,7 @@ public class OtpService implements PwmService {
     public void init(PwmApplication pwmApplication) throws PwmException {
         this.pwmApplication = pwmApplication;
         operatorMap.put(DataStorageMethod.LDAP, new LdapOtpOperator(pwmApplication));
-        operatorMap.put(DataStorageMethod.LOCALDB, new LocalDbOtpOperator(pwmApplication.getLocalDB(), pwmApplication.getConfig()));
+        operatorMap.put(DataStorageMethod.LOCALDB, new LocalDbOtpOperator(pwmApplication));
         operatorMap.put(DataStorageMethod.DB, new DbOtpOperator(pwmApplication));
         settings = OtpSettings.fromConfig(pwmApplication.getConfig());
     }

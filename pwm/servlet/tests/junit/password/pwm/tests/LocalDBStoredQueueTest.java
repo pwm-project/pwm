@@ -24,10 +24,10 @@ package password.pwm.tests;
 
 import junit.framework.TestCase;
 import password.pwm.util.Helper;
-import password.pwm.util.PwmRandom;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.localdb.LocalDBStoredQueue;
+import password.pwm.util.secure.PwmRandom;
 
 import java.io.File;
 import java.util.Iterator;

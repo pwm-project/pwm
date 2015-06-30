@@ -31,7 +31,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.SecureHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -131,7 +130,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             throws PwmUnrecoverableException
     {
         final String jsonValue = JsonUtil.serialize(cookieValue);
-        final String encryptedValue = SecureHelper.encryptToString(jsonValue, pwmRequest.getConfig().getSecurityKey(), true);
+        final String encryptedValue = pwmRequest.getPwmApplication().getSecureService().encryptToString(jsonValue);
         pwmRequest.getPwmResponse().writeCookie(cookieName, encryptedValue, -1, true, path);
     }
 
@@ -139,7 +138,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             throws PwmUnrecoverableException
     {
         final String jsonValue = JsonUtil.serialize(cookieValue);
-        final String encryptedValue = SecureHelper.encryptToString(jsonValue, pwmRequest.getConfig().getSecurityKey(), true);
+        final String encryptedValue = pwmRequest.getPwmApplication().getSecureService().encryptToString(jsonValue);
         pwmRequest.getPwmResponse().writeCookie(cookieName, encryptedValue, seconds, httpOnly, path);
     }
 

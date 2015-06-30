@@ -48,10 +48,11 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.servlet.ResourceFileServlet;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.util.SecureHelper;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.secure.PwmHashAlgorithm;
+import password.pwm.util.secure.SecureHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -473,6 +474,6 @@ public class RestAppDataServer extends AbstractRestServer {
             inputString.append(pwmSession.getLoginInfoBean().getLocalAuthTime());
         }
 
-        return SecureHelper.hash(inputString.toString(), SecureHelper.HashAlgorithm.SHA1).toLowerCase();
+        return SecureHelper.hash(inputString.toString(), PwmHashAlgorithm.SHA1).toLowerCase();
     }
 }

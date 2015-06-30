@@ -32,10 +32,10 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.util.PwmRandom;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
 
 import java.net.MalformedURLException;
 import java.net.URL;

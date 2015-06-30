@@ -23,14 +23,16 @@
 package password.pwm.config.value;
 
 import org.jdom2.Element;
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.SecureHelper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
+import password.pwm.util.secure.SecureHelper;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -101,7 +103,7 @@ public class FileValue extends AbstractValue implements StoredValue {
         public String sha1sum()
                 throws PwmUnrecoverableException
         {
-            return SecureHelper.hash(new ByteArrayInputStream(contents), SecureHelper.HashAlgorithm.SHA1);
+            return SecureHelper.hash(new ByteArrayInputStream(contents), PwmHashAlgorithm.SHA1);
         }
 
         public int size()
@@ -195,14 +197,16 @@ public class FileValue extends AbstractValue implements StoredValue {
 
     @Override
     public String toDebugString(
-            boolean prettyFormat,
             Locale locale
     )
     {
         final List<Map<String, Object>> output = asMetaData();
-        return prettyFormat
-                ? JsonUtil.serialize((Serializable)output, JsonUtil.Flag.PrettyPrint)
-                : JsonUtil.serialize((Serializable)output);
+        return JsonUtil.serialize((Serializable)output, JsonUtil.Flag.PrettyPrint);
+    }
+
+    @Override
+    public Serializable toDebugJsonObject(Locale locale) {
+        return (Serializable)asMetaData();
     }
 
     public List<Map<String, Object>> asMetaData()
@@ -246,6 +250,6 @@ public class FileValue extends AbstractValue implements StoredValue {
 
     @Override
     public String valueHash() throws PwmUnrecoverableException {
-        return SecureHelper.hash(JsonUtil.serializeCollection(toInfoMap()));
+        return SecureHelper.hash(JsonUtil.serializeCollection(toInfoMap()), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
     }
 }

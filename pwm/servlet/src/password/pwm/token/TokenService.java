@@ -41,16 +41,19 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.auth.SessionAuthenticator;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.SecureHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
-import javax.crypto.SecretKey;
 import java.util.*;
 
 /**
@@ -75,7 +78,6 @@ public class TokenService implements PwmService {
     private long maxTokenAgeMS;
     private long maxTokenPurgeAgeMS;
     private TokenMachine tokenMachine;
-    private SecretKey secretKey;
     private long counter;
 
     private ServiceInfo serviceInfo = new ServiceInfo(Collections.<DataStorageMethod>emptyList());
@@ -128,7 +130,6 @@ public class TokenService implements PwmService {
         }
 
         try {
-            secretKey = configuration.getSecurityKey();
             DataStorageMethod usedStorageMethod = null;
             switch (storageMethod) {
                 case STORE_LOCALDB:
@@ -467,7 +468,7 @@ public class TokenService implements PwmService {
             throws PwmUnrecoverableException, PwmOperationalException
     {
         final String jsonPayload = JsonUtil.serialize(tokenPayload);
-        return SecureHelper.encryptToString(jsonPayload, secretKey, true);
+        return pwmApplication.getSecureService().encryptToString(jsonPayload);
     }
 
     TokenPayload fromEncryptedString(final String inputString)
@@ -475,7 +476,7 @@ public class TokenService implements PwmService {
     {
         final String deWhiteSpacedToken = inputString.replaceAll("\\s","");
         try {
-            final String decryptedString = SecureHelper.decryptStringValue(deWhiteSpacedToken, secretKey, true);
+            final String decryptedString = pwmApplication.getSecureService().decryptStringValue(deWhiteSpacedToken);
             return JsonUtil.deserialize(decryptedString, TokenPayload.class);
         } catch (PwmUnrecoverableException e) {
             final String errorMsg = "unable to decrypt user supplied token value: " + e.getErrorInformation().toDebugStr();

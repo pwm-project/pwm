@@ -28,9 +28,9 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.ClosableIterator;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.SecureHelper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.SecureHelper;
 
 class RecordManagerImpl implements RecordManager {
     private static final PwmLogger LOGGER = PwmLogger.forClass(RecordManagerImpl.class);

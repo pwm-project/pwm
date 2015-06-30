@@ -12,10 +12,11 @@ import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.http.client.PwmHttpClientResponse;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmRandom;
-import password.pwm.util.SecureHelper;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
+import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.SecureHelper;
 
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
@@ -61,9 +62,9 @@ public class NAAFEndPoint {
     {
         LOGGER.debug("establishing endpoint connection to " + endpointURL);
         final String m1 = id + salt;
-        final String m1Hash = SecureHelper.hash(m1, SecureHelper.HashAlgorithm.SHA256).toLowerCase();
+        final String m1Hash = SecureHelper.hash(m1, PwmHashAlgorithm.SHA256).toLowerCase();
         final String m2 = secret + m1Hash;
-        final String m2Hash = SecureHelper.hash(m2, SecureHelper.HashAlgorithm.SHA256).toLowerCase();
+        final String m2Hash = SecureHelper.hash(m2, PwmHashAlgorithm.SHA256).toLowerCase();
 
         final HashMap<String, Object> initConnectMap = new HashMap<>();
         initConnectMap.put("salt", salt);

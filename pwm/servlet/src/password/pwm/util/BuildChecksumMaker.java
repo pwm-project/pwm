@@ -23,6 +23,8 @@
 package password.pwm.util;
 
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.secure.PwmHashAlgorithm;
+import password.pwm.util.secure.SecureHelper;
 
 import java.io.*;
 import java.util.*;
@@ -146,7 +148,7 @@ public class BuildChecksumMaker {
                 file.getAbsolutePath(),
                 new Date(file.lastModified()),
                 file.length(),
-                SecureHelper.hash(file, SecureHelper.HashAlgorithm.SHA1)
+                SecureHelper.hash(file, PwmHashAlgorithm.SHA1)
         );
     }
 

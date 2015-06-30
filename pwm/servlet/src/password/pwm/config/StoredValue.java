@@ -37,8 +37,11 @@ public interface StoredValue extends Serializable {
 
     List<String> validateValue(PwmSetting pwm);
 
+    Serializable toDebugJsonObject(
+            Locale locale
+    );
+
     String toDebugString(
-            boolean prettyFormat,
             Locale locale
     );
 

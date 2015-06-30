@@ -38,6 +38,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.*;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 

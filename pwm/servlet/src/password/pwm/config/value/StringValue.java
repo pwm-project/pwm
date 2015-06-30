@@ -91,7 +91,6 @@ public class StringValue extends AbstractValue implements StoredValue {
 
     @Override
     public String toDebugString(
-            boolean prettyFormat,
             Locale locale
     )
     {

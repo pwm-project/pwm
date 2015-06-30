@@ -22,23 +22,28 @@
 
 package password.pwm.config.value;
 
+import password.pwm.PwmConstants;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.SecureHelper;
+import password.pwm.util.secure.SecureHelper;
 
 import java.io.Serializable;
 import java.util.Locale;
 
 public abstract class AbstractValue implements StoredValue {
     public String toString() {
-        return toDebugString(false, null);
+        return toDebugString(null);
     }
 
-    public String toDebugString(boolean prettyFormat, Locale locale) {
-        return prettyFormat
-                ? JsonUtil.serialize((Serializable)this.toNativeObject(), JsonUtil.Flag.PrettyPrint)
-                : JsonUtil.serialize((Serializable)this.toNativeObject());
+    @Override
+    public String toDebugString(Locale locale) {
+        return JsonUtil.serialize((Serializable) this.toNativeObject(), JsonUtil.Flag.PrettyPrint);
+    }
+
+    @Override
+    public Serializable toDebugJsonObject(Locale locale) {
+        return (Serializable)this.toNativeObject();
     }
 
     public boolean requiresStoredUpdate()
@@ -54,6 +59,6 @@ public abstract class AbstractValue implements StoredValue {
 
     @Override
     public String valueHash() throws PwmUnrecoverableException {
-        return SecureHelper.hash(JsonUtil.serialize((Serializable)this.toNativeObject()));
+        return SecureHelper.hash(JsonUtil.serialize((Serializable)this.toNativeObject()), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
     }
 }

@@ -288,7 +288,7 @@
                     </td>
                 </tr>
                 <% } %>
-                <% final Map<PwmSettingTemplate,String> defaultValues = setting.getDefaultValueDebugStrings(true,userLocale); %>
+                <% final Map<PwmSettingTemplate,String> defaultValues = setting.getDefaultValueDebugStrings(userLocale); %>
                 <tr>
                     <td class="key" style="width: 100px">
                         Default

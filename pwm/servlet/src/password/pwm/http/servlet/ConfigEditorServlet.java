@@ -581,7 +581,7 @@ public class ConfigEditorServlet extends PwmServlet {
                     final PwmSetting setting = (PwmSetting) recordID.getRecordID();
                     final LinkedHashMap<String, Object> settingData = new LinkedHashMap<>();
                     settingData.put("category", setting.getCategory().toString());
-                    settingData.put("value", configManagerBean.getStoredConfiguration().readSetting(setting, recordID.getProfileID()).toDebugString(true, pwmRequest.getLocale()));
+                    settingData.put("value", configManagerBean.getStoredConfiguration().readSetting(setting, recordID.getProfileID()).toDebugString(pwmRequest.getLocale()));
                     settingData.put("navigation", setting.getCategory().toMenuLocationDebug(recordID.getProfileID(), locale));
                     settingData.put("default", configManagerBean.getStoredConfiguration().isDefaultValue(setting, recordID.getProfileID()));
                     settingData.put("profile",recordID.getProfileID());

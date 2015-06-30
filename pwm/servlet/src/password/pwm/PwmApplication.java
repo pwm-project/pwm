@@ -40,7 +40,10 @@ import password.pwm.event.SystemAuditRecord;
 import password.pwm.health.HealthMonitor;
 import password.pwm.ldap.LdapConnectionService;
 import password.pwm.token.TokenService;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.UrlShortenerService;
 import password.pwm.util.cache.CacheService;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.intruder.IntruderManager;
@@ -57,6 +60,8 @@ import password.pwm.util.operations.OtpService;
 import password.pwm.util.queue.EmailQueueManager;
 import password.pwm.util.queue.SmsQueueManager;
 import password.pwm.util.report.ReportService;
+import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.SecureService;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 import password.pwm.wordlist.SeedlistManager;
@@ -126,6 +131,7 @@ public class PwmApplication {
     private MODE applicationMode;
 
     private static final List<Class<? extends PwmService>> PWM_SERVICE_CLASSES  = Collections.unmodifiableList(Arrays.asList(
+            SecureService.class,
             LdapConnectionService.class,
             DatabaseAccessorImpl.class,
             SharedHistoryManager.class,
@@ -214,7 +220,7 @@ public class PwmApplication {
         this.localDBLogger = PwmLogManager.initializeLocalDBLogger(this);
 
         // log the loaded configuration
-        LOGGER.info("loaded configuration: \n" + configuration.toString());
+        LOGGER.info("configuration load completed");
 
         // read the pwm servlet instance id
         instanceID = fetchInstanceID(localDB, this);
@@ -277,6 +283,9 @@ public class PwmApplication {
 
     private void postInitTasks() {
         final Date startTime = new Date();
+
+        LOGGER.debug("loaded configuration: \n" + configuration.toDebugString());
+
         // detect if config has been modified since previous startup
         try {
             final String previousHash = readAppAttribute(AppAttribute.CONFIG_HASH);
@@ -500,6 +509,10 @@ public class PwmApplication {
 
     public CacheService getCacheService() {
         return (CacheService)pwmServices.get(CacheService.class);
+    }
+
+    public SecureService getSecureService() {
+        return (SecureService)pwmServices.get(SecureService.class);
     }
 
     public void sendSmsUsingQueue(

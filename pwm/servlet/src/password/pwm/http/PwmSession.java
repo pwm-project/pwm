@@ -37,9 +37,9 @@ import password.pwm.http.bean.*;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 

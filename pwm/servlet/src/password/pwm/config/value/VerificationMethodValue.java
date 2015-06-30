@@ -112,19 +112,16 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     }
 
     @Override
-    public String toDebugString(boolean prettyFormat, Locale locale) {
+    public String toDebugString(Locale locale) {
         if (value == null) {
             return "No Verification Methods";
-        }
-        if (!prettyFormat) {
-            return super.toDebugString(prettyFormat, locale);
         }
         final StringBuilder out = new StringBuilder();
         for (final RecoveryVerificationMethods method : value.getMethodSettings().keySet()) {
             out.append(" ").append(method.toString()).append(": ").append(value.getMethodSettings().get(method).getEnabledState());
             out.append("\n");
         }
-        out.append("  Minimum Optional Methods Required: " + value.getMinOptionalRequired());
+        out.append("  Minimum Optional Methods Required: ").append(value.getMinOptionalRequired());
         return out.toString();
     }
 }

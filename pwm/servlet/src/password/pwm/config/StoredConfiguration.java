@@ -39,6 +39,8 @@ import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.*;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.SecureHelper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -283,7 +285,7 @@ public class StoredConfiguration implements Serializable {
                 recordMap.put("profile", settingValueRecord.getProfile());
             }
             if (settingValueRecord.getStoredValue() != null) {
-                recordMap.put("value", settingValueRecord.getStoredValue().toDebugString(true,locale));
+                recordMap.put("value", settingValueRecord.getStoredValue().toDebugString(locale));
             }
             final SettingMetaData settingMetaData = readSettingMetadata(settingValueRecord.getSetting(), settingValueRecord.getProfile());
             if (settingMetaData != null) {
@@ -384,20 +386,16 @@ public class StoredConfiguration implements Serializable {
         writeConfigProperty(ConfigProperty.PROPERTY_KEY_TEMPLATE, template.toString());
     }
 
-    public String toString() {
-        return toString(false);
-    }
-
     public String toString(final PwmSetting setting, final String profileID ) {
         final StoredValue storedValue = readSetting(setting, profileID);
-        return setting.getKey() + "=" + storedValue.toDebugString(false, null);
+        return setting.getKey() + "=" + storedValue.toDebugString(null);
     }
 
     public Map<String,String> getModifiedSettingDebugValues(final Locale locale, final boolean prettyPrint) {
         final Map<String,String> returnObj = new LinkedHashMap<>();
         for (SettingValueRecord record : this.modifiedSettings()) {
             final String label = record.getSetting().toMenuLocationDebug(record.getProfile(),locale);
-            final String value = record.getStoredValue().toDebugString(true, locale);
+            final String value = record.getStoredValue().toDebugString(locale);
             returnObj.put(label,value);
         }
         return returnObj;
@@ -440,7 +438,7 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    public String toString(final boolean linebreaks) {
+    public Serializable toJsonDebugObject() {
         domModifyLock.readLock().lock();
         try {
             final TreeMap<String,Object> outputObject = new TreeMap<>();
@@ -449,7 +447,7 @@ public class StoredConfiguration implements Serializable {
                 if (setting.getSyntax() != PwmSettingSyntax.PROFILE && !setting.getCategory().hasProfiles()) {
                     if (!isDefaultValue(setting,null)) {
                         final StoredValue value = readSetting(setting);
-                        outputObject.put(setting.getKey(), value.toDebugString(false, null));
+                        outputObject.put(setting.getKey(), value.toDebugJsonObject(null));
                     }
                 }
             }
@@ -458,11 +456,11 @@ public class StoredConfiguration implements Serializable {
                 if (category.hasProfiles()) {
                     final TreeMap<String,Object> profiles = new TreeMap<>();
                     for (final String profileID : this.profilesForSetting(category.getProfileSetting())) {
-                        final TreeMap<String,String> profileObject = new TreeMap<>();
+                        final TreeMap<String,Object> profileObject = new TreeMap<>();
                         for (final PwmSetting profileSetting : category.getSettings()) {
                             if (!isDefaultValue(profileSetting, profileID)) {
                                 final StoredValue value = readSetting(profileSetting, profileID);
-                                profileObject.put(profileSetting.getKey(), value.toDebugString(false, null));
+                                profileObject.put(profileSetting.getKey(), value.toDebugJsonObject(null));
                             }
                         }
                         profiles.put(profileID,profileObject);
@@ -471,9 +469,7 @@ public class StoredConfiguration implements Serializable {
                 }
             }
 
-            return linebreaks
-                    ? JsonUtil.serialize(outputObject, JsonUtil.Flag.PrettyPrint)
-                    : JsonUtil.serialize(outputObject);
+            return outputObject;
         } finally {
             domModifyLock.readLock().unlock();
         }
@@ -651,8 +647,8 @@ public class StoredConfiguration implements Serializable {
             return false;
         }
         {
-            final String valueDebug = value.toDebugString(true, locale);
-            if (valueDebug.toLowerCase().contains(lowerSearchTerm)) {
+            final String valueDebug = value.toDebugString(locale);
+            if (valueDebug != null && valueDebug.toLowerCase().contains(lowerSearchTerm)) {
                 return true;
             }
         }
@@ -823,7 +819,7 @@ public class StoredConfiguration implements Serializable {
         }
 
 
-        final String result = SecureHelper.hash(sb.toString());
+        final String result = SecureHelper.hash(sb.toString(), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
         LOGGER.trace("computed setting checksum in " + TimeDuration.fromCurrent(startTime).asCompactString());
         return result;
     }
@@ -1239,7 +1235,7 @@ public class StoredConfiguration implements Serializable {
                         final StoredValue currentValue = readSetting((PwmSetting) configRecordID.recordID, configRecordID.profileID);
                         final PwmSetting pwmSetting = (PwmSetting) configRecordID.recordID;
                         final String keyName = pwmSetting.toMenuLocationDebug(configRecordID.getProfileID(), locale);
-                        final String debugValue = currentValue.toDebugString(asHtml, locale);
+                        final String debugValue = currentValue.toDebugString(locale);
                         outputMap.put(keyName,debugValue);
                     }
                     break;

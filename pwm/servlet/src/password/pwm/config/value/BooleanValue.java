@@ -30,6 +30,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.util.JsonUtil;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -76,15 +77,16 @@ public class BooleanValue implements StoredValue {
         return value;
     }
 
-    public String toDebugString(boolean prettyFormat, Locale locale) {
+    public String toDebugString(Locale locale) {
         locale = locale == null ? PwmConstants.DEFAULT_LOCALE : locale;
-        if (prettyFormat) {
-            return value
-                    ? Display.getLocalizedMessage(locale,Display.Value_True,null)
-                    : Display.getLocalizedMessage(locale,Display.Value_False,null);
-        } else {
-            return Boolean.toString(value);
-        }
+        return value
+                ? Display.getLocalizedMessage(locale,Display.Value_True,null)
+                : Display.getLocalizedMessage(locale,Display.Value_False,null);
+    }
+
+    @Override
+    public Serializable toDebugJsonObject(Locale locale) {
+        return value;
     }
 
     @Override

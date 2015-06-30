@@ -572,7 +572,7 @@ public class OAuthConsumerServlet extends PwmServlet {
 
 
         final String jsonValue = JsonUtil.serialize(oAuthState);
-        return SecureHelper.encryptToString(jsonValue, pwmRequest.getConfig().getSecurityKey(), true);
+        return pwmRequest.getPwmApplication().getSecureService().encryptToString(jsonValue);
     }
 
     public static class OAuthRequestState {
@@ -629,7 +629,7 @@ public class OAuthConsumerServlet extends PwmServlet {
     {
         final String requestStateStr = pwmRequest.readParameterAsString(pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_OAUTH_STATE));
         if (requestStateStr != null) {
-            final String stateJson = SecureHelper.decryptStringValue(requestStateStr, pwmRequest.getConfig().getSecurityKey(), true);
+            final String stateJson = pwmRequest.getPwmApplication().getSecureService().decryptStringValue(requestStateStr);
             final OAuthState oAuthState = JsonUtil.deserialize(stateJson, OAuthState.class);
             if (oAuthState != null) {
                 final boolean sessionMatch = oAuthState.sessionID.equals(pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey());

@@ -46,11 +46,9 @@ import password.pwm.util.otp.OTPUserRecord;
 public class LdapOtpOperator extends AbstractOtpOperator {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(LdapOtpOperator.class);
-    private PwmApplication pwmApplication;
 
     public LdapOtpOperator(PwmApplication pwmApplication) {
-        this.pwmApplication = pwmApplication;
-        setConfig(pwmApplication.getConfig());
+        setPwmApplication(pwmApplication);
     }
 
     /**
@@ -63,7 +61,7 @@ public class LdapOtpOperator extends AbstractOtpOperator {
      */
     @Override
     public OTPUserRecord readOtpUserConfiguration(UserIdentity userIdentity, String userGUID) throws PwmUnrecoverableException {
-        Configuration config = getConfig();
+        Configuration config = getPwmApplication().getConfig();
         String ldapStorageAttribute = config.readSettingAsString(PwmSetting.OTP_SECRET_LDAP_ATTRIBUTE);
         if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
             final String errorMsg = "ldap storage attribute is not configured, unable to read OTP secret";
@@ -110,7 +108,7 @@ public class LdapOtpOperator extends AbstractOtpOperator {
             final String userGuid,
             final OTPUserRecord otpConfig
     ) throws PwmUnrecoverableException {
-        Configuration config = getConfig();
+        Configuration config = pwmApplication.getConfig();
         final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.OTP_SECRET_LDAP_ATTRIBUTE);
         if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
             final String errorMsg = "ldap storage attribute is not configured, unable to write OTP secret";
@@ -163,7 +161,7 @@ public class LdapOtpOperator extends AbstractOtpOperator {
             final UserIdentity userIdentity,
             final String userGuid
     ) throws PwmUnrecoverableException {
-        Configuration config = getConfig();
+        Configuration config = pwmApplication.getConfig();
         final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.OTP_SECRET_LDAP_ATTRIBUTE);
         if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
             final String errorMsg = "ldap storage attribute is not configured, unable to clear OTP secret";

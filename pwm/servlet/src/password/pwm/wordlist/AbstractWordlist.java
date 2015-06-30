@@ -33,12 +33,13 @@ import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.util.Helper;
-import password.pwm.util.SecureHelper;
 import password.pwm.util.Sleeper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
+import password.pwm.util.secure.SecureHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -167,7 +168,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     protected String makeChecksumString(final File wordlistFile)
             throws PwmUnrecoverableException, IOException {
         final StringBuilder checksumString = new StringBuilder();
-        checksumString.append("hash=").append(SecureHelper.hash(wordlistFile));
+        checksumString.append("hash=").append(SecureHelper.hash(wordlistFile, PwmHashAlgorithm.SHA1));
         checksumString.append(",length=").append(wordlistFile.length());
         checksumString.append(",caseSensitive=").append(wordlistConfiguration.isCaseSensitive());
         return checksumString.toString();

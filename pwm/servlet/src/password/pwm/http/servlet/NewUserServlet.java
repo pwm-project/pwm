@@ -1128,8 +1128,7 @@ public class NewUserServlet extends PwmServlet {
             final PasswordData passwordData;
             if (payloadMap.containsKey(FIELD_PASSWORD1)) {
                 final String rawPassword = payloadMap.get(FIELD_PASSWORD1);
-                final String realPassword = SecureHelper.decryptStringValue(rawPassword,
-                        pwmRequest.getConfig().getSecurityKey(), true);
+                final String realPassword = pwmRequest.getPwmApplication().getSecureService().decryptStringValue(rawPassword);
                 passwordData = new PasswordData(realPassword);
             } else {
                 passwordData = null;
@@ -1147,10 +1146,8 @@ public class NewUserServlet extends PwmServlet {
             final Map<String, String> payloadMap = new LinkedHashMap<>();
             payloadMap.put(TOKEN_PAYLOAD_ATTR, pwmRequest.getPwmSession().getNewUserBean().getProfileID());
             payloadMap.putAll(FormUtility.asStringMap(newUserForm.getFormData()));
-            final String encryptedPassword = SecureHelper.encryptToString(
-                    newUserForm.getNewUserPassword().getStringValue(),
-                    pwmRequest.getConfig().getSecurityKey(),
-                    true
+            final String encryptedPassword = pwmRequest.getPwmApplication().getSecureService().encryptToString(
+                    newUserForm.getNewUserPassword().getStringValue()
             );
             payloadMap.put(FIELD_PASSWORD1, encryptedPassword);
             return payloadMap;

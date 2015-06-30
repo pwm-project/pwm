@@ -24,20 +24,20 @@ package password.pwm.wordlist;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.Sleeper;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
 
-import java.io.ByteArrayInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -50,6 +50,7 @@ public class SharedHistoryManager implements Wordlist {
 
     private static final String KEY_OLDEST_ENTRY = "oldest_entry";
     private static final String KEY_VERSION = "version";
+    private static final String KEY_SALT = "salt";
 
     private static final int MIN_CLEANER_FREQUENCY = 1000 * 60 * 60; // 1 hour
     private static final int MAX_CLEANER_FREQUENCY = 1000 * 60 * 60 * 24; // 1 day
@@ -375,8 +376,10 @@ public class SharedHistoryManager implements Wordlist {
         settings.hashIterations = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_SHAREDHISTORY_HASH_ITERATIONS));
         settings.version = "2" + "_" + settings.hashName + "_" + settings.hashIterations + "_" + settings.caseInsensitive;
 
+        final int SALT_LENGTH = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_SHAREDHISTORY_SALT_LENGTH));
         this.localDB = pwmApplication.getLocalDB();
 
+        boolean needsClearing = false;
         if (localDB == null) {
             LOGGER.info("LocalDB is not available, will remain closed");
             status = STATUS.CLOSED;
@@ -385,31 +388,25 @@ public class SharedHistoryManager implements Wordlist {
 
         if (settings.maxAgeMs < 1) {
             LOGGER.debug("max age=" + settings.maxAgeMs + ", will remain closed");
+            needsClearing = true;
+        }
 
+        {
+            this.salt = localDB.get(META_DB, KEY_SALT);
+            if (salt == null || salt.length() < SALT_LENGTH) {
+                LOGGER.warn("stored global salt value is not present, creating new salt");
+                this.salt = PwmRandom.getInstance().alphaNumericString(SALT_LENGTH);
+                localDB.put(META_DB, KEY_SALT,this.salt);
+                needsClearing = true;
+            }
+        }
+
+        if (needsClearing) {
             LOGGER.trace("clearing wordlist");
             try {
                 localDB.truncate(WORDS_DB);
             } catch (Exception e) {
                 LOGGER.error("error during wordlist truncate", e);
-            }
-        }
-
-        {
-            final PasswordData securityKey = pwmApplication.getConfig().readSettingAsPassword(PwmSetting.PWM_SECURITY_KEY);
-            if (securityKey == null) {
-                LOGGER.info("securityKey is not available, will remain closed");
-                status = STATUS.CLOSED;
-                return;
-            }
-            try {
-                this.salt = SecureHelper.hash(
-                        new ByteArrayInputStream(securityKey.getStringValue().getBytes(PwmConstants.DEFAULT_CHARSET)),
-                        SecureHelper.DEFAULT_HASH_ALGORITHM);
-            } catch (PwmUnrecoverableException e) {
-                LOGGER.info(
-                        "unable to create hash-derived salt value from security key, will remain closed; error: " + e.getMessage());
-                status = STATUS.CLOSED;
-                return;
             }
         }
 

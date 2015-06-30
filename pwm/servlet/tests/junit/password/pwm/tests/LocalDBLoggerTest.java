@@ -31,13 +31,13 @@ import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.Helper;
 import password.pwm.util.Percent;
-import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
+import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.stats.EventRateMeter;
 
 import java.io.File;

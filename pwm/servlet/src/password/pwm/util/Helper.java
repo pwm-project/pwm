@@ -43,6 +43,7 @@ import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.secure.PwmRandom;
 
 import java.io.*;
 import java.lang.reflect.Method;
@@ -559,6 +560,9 @@ public class
             }
         }
 
+        aboutMap.put(PwmAboutProperty.app_secureBlockAlgorithm,     pwmApplication.getSecureService().getDefaultBlockAlgorithm().getLabel());
+        aboutMap.put(PwmAboutProperty.app_secureHashAlgorithm,      pwmApplication.getSecureService().getDefaultHashAlorithm().toString());
+
         aboutMap.put(PwmAboutProperty.app_wordlistSize,             Integer.toString(pwmApplication.getWordlistManager().size()));
         aboutMap.put(PwmAboutProperty.app_seedlistSize,             Integer.toString(pwmApplication.getSeedlistManager().size()));
         if (pwmApplication.getSharedHistoryManager() != null) {
@@ -644,4 +648,19 @@ public class
         throw new IllegalArgumentException("unknown scheme: " + scheme);
     }
 
+    public static <E extends Enum<E>> E readEnumFromString(Class<E> enumClass, E defaultValue, String input) {
+        if (input == null) {
+            return defaultValue;
+        }
+
+        try {
+            Method valueOfMethod = enumClass.getMethod("valueOf",String.class);
+            Object result = valueOfMethod.invoke(null,input);
+            return (E)result;
+        } catch (Exception e) {
+            LOGGER.warn("unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName(),e);
+        }
+
+        return defaultValue;
+    }
 }

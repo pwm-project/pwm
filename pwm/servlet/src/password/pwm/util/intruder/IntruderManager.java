@@ -51,6 +51,7 @@ import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -328,7 +329,7 @@ public class IntruderManager implements Serializable, PwmService {
                 }
 
                 if (recordType == RecordType.USER_ID) {
-                    final UserIdentity userIdentity = UserIdentity.fromKey(subject, pwmApplication.getConfig());
+                    final UserIdentity userIdentity = UserIdentity.fromKey(subject, pwmApplication);
                     final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
                             AuditEvent.INTRUDER_USER,
                             userIdentity,

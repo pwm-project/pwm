@@ -39,8 +39,11 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -541,7 +544,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         final String strValue = this.readCookie(cookieName);
 
         if (strValue != null && !strValue.isEmpty()) {
-            final String decryptedCookie = SecureHelper.decryptStringValue(strValue, getConfig().getSecurityKey(), true);
+            final String decryptedCookie = pwmApplication.getSecureService().decryptStringValue(strValue);
             return JsonUtil.deserialize(decryptedCookie, returnClass);
         }
         

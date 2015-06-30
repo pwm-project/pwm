@@ -42,6 +42,7 @@ import password.pwm.http.client.PwmHttpClient;
 import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 

@@ -90,18 +90,14 @@ public class OptionListValue extends AbstractValue  implements StoredValue {
         return Collections.emptyList();
     }
 
-    public String toDebugString(boolean prettyFormat, Locale locale) {
-        if (prettyFormat && values != null && !values.isEmpty()) {
-            final StringBuilder sb = new StringBuilder();
-            for (Iterator valueIterator = values.iterator() ; valueIterator.hasNext();) {
-                sb.append(valueIterator.next());
-                if (valueIterator.hasNext()) {
-                    sb.append("\n");
-                }
+    public String toDebugString(Locale locale) {
+        final StringBuilder sb = new StringBuilder();
+        for (Iterator valueIterator = values.iterator() ; valueIterator.hasNext();) {
+            sb.append(valueIterator.next());
+            if (valueIterator.hasNext()) {
+                sb.append("\n");
             }
-            return sb.toString();
-        } else {
-            return JsonUtil.serializeCollection(values);
         }
+        return sb.toString();
     }
 }

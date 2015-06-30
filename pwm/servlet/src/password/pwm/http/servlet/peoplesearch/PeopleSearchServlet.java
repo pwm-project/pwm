@@ -40,7 +40,6 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.PwmServlet;
 import password.pwm.ldap.*;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.SecureHelper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.cache.CacheKey;
 import password.pwm.util.cache.CachePolicy;
@@ -315,7 +314,7 @@ public class PeopleSearchServlet extends PwmServlet {
             return;
         }
         final boolean asParent = Boolean.parseBoolean(requestInputMap.get("asParent"));
-        final UserIdentity userIdentity = UserIdentity.fromObfuscatedKey(userKey, pwmRequest.getConfig());
+        final UserIdentity userIdentity = UserIdentity.fromObfuscatedKey(userKey, pwmRequest.getPwmApplication());
 
         final UserIdentity parentIdentity;
         try {
@@ -323,7 +322,7 @@ public class PeopleSearchServlet extends PwmServlet {
                 parentIdentity = userIdentity;
             } else {
                 final UserDetailBean userDetailBean = makeUserDetailRequestImpl(pwmRequest, peopleSearchConfiguration, userKey);
-                parentIdentity = UserIdentity.fromObfuscatedKey(userDetailBean.getOrgChartParentKey(), pwmRequest.getConfig());
+                parentIdentity = UserIdentity.fromObfuscatedKey(userDetailBean.getOrgChartParentKey(), pwmRequest.getPwmApplication());
             }
 
             final OrgChartData orgChartData = makeOrgChartData(pwmRequest, parentIdentity);
@@ -421,7 +420,7 @@ public class PeopleSearchServlet extends PwmServlet {
             throws PwmUnrecoverableException, IOException, ServletException, PwmOperationalException, ChaiUnavailableException
     {
         final Date startTime = new Date();
-        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig());
+        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication());
 
         final CacheKey cacheKey = makeCacheKey(pwmRequest, "detail", userIdentity.toDelimitedKey());
         {
@@ -465,14 +464,14 @@ public class PeopleSearchServlet extends PwmServlet {
             if (parentDN != null && !parentDN.isEmpty()) {
                 userDetailBean.setHasOrgChart(true);
                 final UserIdentity parentIdentity = new UserIdentity(parentDN,userIdentity.getLdapProfileID());
-                userDetailBean.setOrgChartParentKey(parentIdentity.toObfuscatedKey(pwmRequest.getConfig()));
+                userDetailBean.setOrgChartParentKey(parentIdentity.toObfuscatedKey(pwmRequest.getPwmApplication()));
             } else {
                 final String childAttr = pwmRequest.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_ORGCHART_CHILD_ATTRIBUTE);
                 final String childDN = searchResults.get(childAttr);
                 if (childDN != null && !childDN.isEmpty()) {
                     userDetailBean.setHasOrgChart(true);
                     // no parent so use self as parent.
-                    userDetailBean.setOrgChartParentKey(userIdentity.toObfuscatedKey(pwmRequest.getConfig()));
+                    userDetailBean.setOrgChartParentKey(userIdentity.toObfuscatedKey(pwmRequest.getPwmApplication()));
                 }
             }
         }
@@ -526,7 +525,7 @@ public class PeopleSearchServlet extends PwmServlet {
             throw PwmUnrecoverableException.fromChaiException(e);
         }
 
-        return "PeopleSearch?processAction=photo&userKey=" + userIdentity.toObfuscatedKey(pwmApplication.getConfig());
+        return "PeopleSearch?processAction=photo&userKey=" + userIdentity.toObfuscatedKey(pwmApplication);
     }
 
     private static String figureDisplaynameValue(
@@ -571,7 +570,7 @@ public class PeopleSearchServlet extends PwmServlet {
         }
 
 
-        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig());
+        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication());
         try {
             checkIfUserIdentityViewable(pwmRequest, userIdentity);
         } catch (PwmOperationalException e) {
@@ -639,7 +638,7 @@ public class PeopleSearchServlet extends PwmServlet {
                         for (final UserIdentity loopIdentity : identityValues) {
                             final String displayValue = figureDisplaynameValue(pwmRequest, loopIdentity);
                             final UserReferenceBean userReference = new UserReferenceBean();
-                            userReference.setUserKey(loopIdentity.toObfuscatedKey(pwmRequest.getConfig()));
+                            userReference.setUserKey(loopIdentity.toObfuscatedKey(pwmRequest.getPwmApplication()));
                             userReference.setDisplayName(displayValue);
                             userReferences.put(displayValue, userReference);
                         }
@@ -777,7 +776,7 @@ public class PeopleSearchServlet extends PwmServlet {
             throws PwmUnrecoverableException
     {
         final OrgChartReferenceBean orgChartReferenceBean = new OrgChartReferenceBean();
-        orgChartReferenceBean.setUserKey(userIdentity.toObfuscatedKey(pwmRequest.getConfig()));
+        orgChartReferenceBean.setUserKey(userIdentity.toObfuscatedKey(pwmRequest.getPwmApplication()));
         orgChartReferenceBean.setPhotoURL(figurePhotoURL(pwmRequest, userIdentity));
 
             final List<String> displayLabels = figureDisplaynames(pwmRequest, userIdentity);
@@ -852,10 +851,11 @@ public class PeopleSearchServlet extends PwmServlet {
         } else {
             userIdentity = null;
         }
+        final String keyString = operationIdentifer + "|" + pwmRequest.getPwmApplication().getSecureService().hash(dataIdentifer);
         return CacheKey.makeCacheKey(
                 this.getClass(),
                 userIdentity,
-                operationIdentifer + "|" + SecureHelper.hash(dataIdentifer, SecureHelper.HashAlgorithm.SHA1));
+                keyString);
     }
 
     private static class PeopleSearchConfiguration {

@@ -130,4 +130,43 @@ public class ActionValue extends AbstractValue implements StoredValue {
 
         return Collections.emptyList();
     }
+
+    public String toDebugString(Locale locale) {
+        final StringBuilder sb = new StringBuilder();
+        int counter = 0;
+        for (final ActionConfiguration actionConfiguration : values) {
+            sb.append("Action");
+            if (values.size() > 1) {
+                sb.append(counter);
+            }
+            sb.append("-");
+            sb.append(actionConfiguration.getType() == null ? ActionConfiguration.Type.ldap.toString() : actionConfiguration.getType().toString());
+            sb.append(": [");
+            switch (actionConfiguration.getType()) {
+                case webservice: {
+                    sb.append("WebService: ");
+                    sb.append("method=" + actionConfiguration.getMethod());
+                    sb.append(" url=" + actionConfiguration.getUrl());
+                    sb.append(" headers=" + JsonUtil.serializeMap(actionConfiguration.getHeaders()));
+                    sb.append(" body=" + actionConfiguration.getBody());
+                }
+                break;
+
+                case ldap: {
+                    sb.append("LDAP: ");
+                    sb.append("method=" + actionConfiguration.getLdapMethod());
+                    sb.append(" attribute=" + actionConfiguration.getAttributeName());
+                    sb.append(" value=" + actionConfiguration.getAttributeValue());
+
+                }
+            }
+            sb.append("]");
+            counter++;
+            if (counter != values.size()) {
+                sb.append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
 }

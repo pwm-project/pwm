@@ -118,21 +118,20 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
     }
 
     @Override
-    public String toDebugString(boolean prettyFormat, Locale locale) {
-        if (prettyFormat && values != null && !values.isEmpty()) {
-            final StringBuilder sb = new StringBuilder();
-            for (final String localeKey : values.keySet()) {
-                if (!values.get(localeKey).isEmpty()) {
-                    sb.append("Locale: ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append("\n");
-                    for (final String value : values.get(localeKey)) {
-                        sb.append("  ").append(value).append("\n");
-                    }
+    public String toDebugString(Locale locale) {
+        if (values == null) {
+            return "";
+        }
+        final StringBuilder sb = new StringBuilder();
+        for (final String localeKey : values.keySet()) {
+            if (!values.get(localeKey).isEmpty()) {
+                sb.append("Locale: ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append("\n");
+                for (final String value : values.get(localeKey)) {
+                    sb.append("  ").append(value).append("\n");
                 }
             }
-            return sb.toString();
-        } else {
-            return JsonUtil.serializeMap(values);
         }
+        return sb.toString();
     }
 
 }

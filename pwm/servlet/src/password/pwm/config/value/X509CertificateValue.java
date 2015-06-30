@@ -23,16 +23,18 @@
 package password.pwm.config.value;
 
 import org.jdom2.Element;
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.SecureHelper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.X509Utils;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
+import password.pwm.util.secure.SecureHelper;
 
 import java.io.ByteArrayInputStream;
+import java.io.Serializable;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -111,8 +113,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
         return Collections.emptyList();
     }
 
-    public String toDebugString(boolean prettyFormat, Locale locale) {
-        if (prettyFormat) {
+    public String toDebugString(Locale locale) {
             final StringBuilder sb = new StringBuilder();
             int counter = 0;
             for (X509Certificate cert : certificates) {
@@ -120,21 +121,23 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
                 sb.append(" Subject: ").append(cert.getSubjectDN().toString()).append("\n");
                 sb.append(" Serial: ").append(X509Utils.hexSerial(cert)).append("\n");
                 sb.append(" Issuer: ").append(cert.getIssuerDN().toString()).append("\n");
-                sb.append(" IssueDate: ").append(cert.getNotBefore().toString()).append("\n");
-                sb.append(" ExpireDate: ").append(cert.getNotAfter().toString()).append("\n");
+                sb.append(" IssueDate: ").append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(cert.getNotBefore())).append("\n");
+                sb.append(" ExpireDate: ").append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(cert.getNotAfter())).append("\n");
                 try {
                     sb.append(" MD5 Hash: ").append(SecureHelper.hash(new ByteArrayInputStream(cert.getEncoded()),
-                            SecureHelper.HashAlgorithm.MD5)).append("\n");
+                            PwmHashAlgorithm.MD5)).append("\n");
                     sb.append(" SHA1 Hash: ").append(SecureHelper.hash(new ByteArrayInputStream(cert.getEncoded()),
-                            SecureHelper.HashAlgorithm.SHA1)).append("\n");
+                            PwmHashAlgorithm.SHA1)).append("\n");
                 } catch (PwmUnrecoverableException | CertificateEncodingException e) {
                     LOGGER.warn("error generating hash for certificate: " + e.getMessage());
                 }
             }
             return sb.toString();
-        } else {
-            return JsonUtil.serializeCollection(this.toInfoMap(false));
-        }
+    }
+
+    @Override
+    public Serializable toDebugJsonObject(Locale locale) {
+        return (Serializable)toInfoMap(false);
     }
 
     public List<Map<String,Object>> toInfoMap(final boolean includeDetail) {
@@ -158,11 +161,11 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
         map.put("expireDate",cert.getNotAfter());
         try {
             map.put("md5Hash", SecureHelper.hash(new ByteArrayInputStream(cert.getEncoded()),
-                    SecureHelper.HashAlgorithm.MD5));
+                    PwmHashAlgorithm.MD5));
             map.put("sha1Hash", SecureHelper.hash(new ByteArrayInputStream(cert.getEncoded()),
-                    SecureHelper.HashAlgorithm.SHA1));
+                    PwmHashAlgorithm.SHA1));
             map.put("sha512Hash", SecureHelper.hash(new ByteArrayInputStream(cert.getEncoded()),
-                    SecureHelper.HashAlgorithm.SHA512));
+                    PwmHashAlgorithm.SHA512));
             if (includeDetail) {
                 map.put("detail",X509Utils.makeDetailText(cert));
             }

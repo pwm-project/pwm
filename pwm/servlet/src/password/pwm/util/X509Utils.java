@@ -29,6 +29,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
+import password.pwm.util.secure.SecureHelper;
 
 import javax.net.ssl.*;
 import java.io.ByteArrayInputStream;
@@ -65,8 +67,8 @@ public abstract class X509Utils {
             LOGGER.debug("ServerCertReader: socket established to host=" + host + ", port=" + port);
             sslSock.isConnected();
             LOGGER.debug("ServerCertReader: connected to host=" + host + ", port=" + port);
-            sslSock.getOutputStream().write("data!".getBytes());//write some data so the connection gets established
-            LOGGER.debug("ServerCertReader: data transfer completed host=" + host + ", port=" + port);
+            sslSock.startHandshake();
+            LOGGER.debug("ServerCertReader: handshake completed to host=" + host + ", port=" + port);
             sslSock.close();
             LOGGER.debug("ServerCertReader: certificate information read from host=" + host + ", port=" + port);
         } catch (Exception e) {
@@ -209,10 +211,10 @@ public abstract class X509Utils {
             throws CertificateEncodingException, PwmUnrecoverableException
     {
         return x509Certificate.toString()
-                + "\n:MD5 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()),SecureHelper.HashAlgorithm.MD5)
-                + "\n:SHA1 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()),SecureHelper.HashAlgorithm.SHA1)
-                + "\n:SHA2-256 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()),SecureHelper.HashAlgorithm.SHA256)
-                + "\n:SHA2-512 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()),SecureHelper.HashAlgorithm.SHA512);
+                + "\n:MD5 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()), PwmHashAlgorithm.MD5)
+                + "\n:SHA1 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()), PwmHashAlgorithm.SHA1)
+                + "\n:SHA2-256 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()), PwmHashAlgorithm.SHA256)
+                + "\n:SHA2-512 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()), PwmHashAlgorithm.SHA512);
 
 
     }

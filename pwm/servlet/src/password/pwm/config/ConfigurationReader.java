@@ -33,6 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.*;
@@ -188,7 +189,7 @@ public class ConfigurationReader {
             saveInProgress = true;
 
             storedConfiguration.toXml(new FileOutputStream(configFile, false));
-            LOGGER.info("saved configuration " + storedConfiguration.toString(true));
+            LOGGER.info("saved configuration " + JsonUtil.serialize(storedConfiguration.toJsonDebugObject()));
             if (pwmApplication != null) {
                 final String actualChecksum = storedConfiguration.settingChecksum();
                 pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.CONFIG_HASH, actualChecksum);

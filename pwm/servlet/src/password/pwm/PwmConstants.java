@@ -24,6 +24,8 @@ package password.pwm;
 
 import org.apache.commons.csv.CSVFormat;
 import password.pwm.bean.SessionLabel;
+import password.pwm.util.secure.PwmBlockAlgorithm;
+import password.pwm.util.secure.PwmHashAlgorithm;
 
 import java.nio.charset.Charset;
 import java.text.DateFormat;
@@ -128,6 +130,9 @@ public abstract class PwmConstants {
 
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
     public static final String SESSION_ATTR_CONTEXT_GUID = "ContextInstanceGUID";
+
+    public static final PwmBlockAlgorithm IN_MEMORY_PASSWORD_ENCRYPT_METHOD = PwmBlockAlgorithm.AES;
+    public static final PwmHashAlgorithm SETTING_CHECKSUM_HASH_METHOD = PwmHashAlgorithm.SHA256;
 
     public static enum REQUEST_ATTR {
         PwmErrorInfo,

@@ -44,9 +44,9 @@ import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
-import password.pwm.util.PwmRandom;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
 import java.util.List;

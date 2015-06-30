@@ -36,13 +36,13 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.LocaleHelper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.SecureHelper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmSecurityKey;
 
-import javax.crypto.SecretKey;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
@@ -66,20 +66,12 @@ public class Configuration implements Serializable, SettingReader {
         this.storedConfiguration = storedConfiguration;
     }
 
-// ------------------------ CANONICAL METHODS ------------------------
-
-    public String toString() {
+    public String toDebugString() {
         final StringBuilder outputText = new StringBuilder();
         outputText.append("  ");
-        outputText.append(storedConfiguration.toString(true));
+        outputText.append(JsonUtil.serialize(storedConfiguration.toJsonDebugObject()));
         return outputText.toString().replaceAll("\n","\n  ");
     }
-
-    public String toString(final PwmSetting pwmSetting) {
-        return this.storedConfiguration.readSetting(pwmSetting).toDebugString(false,PwmConstants.DEFAULT_LOCALE);
-    }
-
-// -------------------------- OTHER METHODS --------------------------
 
     public List<FormConfiguration> readSettingAsForm(final PwmSetting setting) {
         final StoredValue value = readStoredValue(setting);
@@ -488,15 +480,11 @@ public class Configuration implements Serializable, SettingReader {
         return (X509Certificate[])readStoredValue(setting).toNativeObject();
     }
 
-    public String toDebugString() {
-        return storedConfiguration.toString(true);
-    }
-
     public String getNotes() {
         return storedConfiguration.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES);
     }
 
-    public SecretKey getSecurityKey() throws PwmUnrecoverableException {
+    public PwmSecurityKey getSecurityKey() throws PwmUnrecoverableException {
         final PasswordData configValue = readSettingAsPassword(PwmSetting.PWM_SECURITY_KEY);
         if (configValue == null) {
             final String errorMsg = "Security Key value is not configured";
@@ -504,15 +492,15 @@ public class Configuration implements Serializable, SettingReader {
             throw new PwmUnrecoverableException(errorInfo);
         }
 
-        final String rawValue = configValue.getStringValue();
-        if (rawValue.length() < 32) {
+        final int minSecurityKeyLength = Integer.parseInt(readAppProperty(AppProperty.SECURITY_CONFIG_MIN_SECURITY_KEY_LENGTH));
+        if (configValue.getStringValue().length() < minSecurityKeyLength) {
             final String errorMsg = "Security Key must be greater than 32 characters in length";
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
             throw new PwmUnrecoverableException(errorInfo);
         }
 
         try {
-            return SecureHelper.makeKey(rawValue);
+            return new PwmSecurityKey(configValue.getStringValue());
         } catch (Exception e) {
             final String errorMsg = "unexpected error generating Security Key crypto: " + e.getMessage();
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);

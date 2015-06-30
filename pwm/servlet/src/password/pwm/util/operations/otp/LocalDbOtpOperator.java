@@ -27,6 +27,7 @@
  */
 package password.pwm.util.operations.otp;
 
+import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -49,9 +50,9 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDbOtpOperator.class);
     private final LocalDB localDB;
 
-    public LocalDbOtpOperator(LocalDB localDB, Configuration config) {
-        this.localDB = localDB;
-        setConfig(config);
+    public LocalDbOtpOperator(PwmApplication pwmApplication) {
+        this.localDB = pwmApplication.getLocalDB();
+        setPwmApplication(pwmApplication);
     }
 
     @Override
@@ -69,7 +70,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
 
         OTPUserRecord otpConfig = null;
         try {
-            Configuration config = this.getConfig();
+            Configuration config = this.getPwmApplication().getConfig();
             String value = localDB.get(LocalDB.DB.OTP_SECRET, userGUID);
             if (value != null && value.length() > 0) {
                 if (config.readSettingAsBoolean(PwmSetting.OTP_SECRET_ENCRYPT)) {
@@ -115,7 +116,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
         }
 
         try {
-            Configuration config = this.getConfig();
+            Configuration config = this.getPwmApplication().getConfig();
             String value = composeOtpAttribute(otpConfig);
             if (config.readSettingAsBoolean(PwmSetting.OTP_SECRET_ENCRYPT)) {
                 LOGGER.debug(pwmSession,"Encrypting OTP secret for storage");

@@ -25,6 +25,8 @@ public enum PwmAboutProperty {
     app_localDbStorageSize,
     app_localDbFreeSpace,
     app_configurationRestartCounter,
+    app_secureBlockAlgorithm,
+    app_secureHashAlgorithm,
 
     build_Time,
     build_Number,

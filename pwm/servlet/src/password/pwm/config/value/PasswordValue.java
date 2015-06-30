@@ -32,9 +32,11 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.SecureHelper;
+import password.pwm.util.secure.PwmBlockAlgorithm;
+import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.SecureHelper;
 
-import javax.crypto.SecretKey;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
@@ -95,8 +97,8 @@ public class PasswordValue implements StoredValue {
                     newPasswordValue.requiresStoredUpdate = true;
                 } else {
                     try {
-                        final SecretKey secretKey = SecureHelper.makeKey(key);
-                        newPasswordValue.value = new PasswordData(SecureHelper.decryptStringValue(rawValue, secretKey, false, SecureHelper.BlockAlgorithm.CONFIG));
+                        final PwmSecurityKey secretKey = new PwmSecurityKey(key);
+                        newPasswordValue.value = new PasswordData(SecureHelper.decryptStringValue(rawValue, secretKey, PwmBlockAlgorithm.CONFIG));
                         return newPasswordValue;
                     } catch (Exception e) {
                         final String errorMsg = "unable to decode encrypted password value for setting: " + e.getMessage();
@@ -151,15 +153,21 @@ public class PasswordValue implements StoredValue {
         return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
 
-    public String toDebugString(boolean prettyFormat, Locale locale) {
+    @Override
+    public String toDebugString(Locale locale) {
+        return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
+    }
+
+    @Override
+    public Serializable toDebugJsonObject(Locale locale) {
         return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
 
     private static String encryptValue(final String key, final String value)
             throws PwmUnrecoverableException, UnsupportedEncodingException, NoSuchAlgorithmException
     {
-        final SecretKey secretKey = SecureHelper.makeKey(key);
-        return SecureHelper.encryptToString(value, secretKey, false, SecureHelper.BlockAlgorithm.CONFIG);
+        final PwmSecurityKey secretKey = new PwmSecurityKey(key);
+        return SecureHelper.encryptToString(value, secretKey, PwmBlockAlgorithm.CONFIG);
     }
 
     public boolean requiresStoredUpdate()
@@ -169,6 +177,6 @@ public class PasswordValue implements StoredValue {
 
     @Override
     public String valueHash() throws PwmUnrecoverableException {
-        return value == null ? "" : SecureHelper.hash(JsonUtil.serialize(value.getStringValue()));
+        return value == null ? "" : SecureHelper.hash(JsonUtil.serialize(value.getStringValue()), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
     }
 }

@@ -51,9 +51,11 @@ import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
+import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.SecureHelper;
 import password.pwm.ws.server.RestResultBean;
 
-import javax.crypto.SecretKey;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -106,7 +108,6 @@ public class ConfigManagerServlet extends PwmServlet {
     protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
@@ -283,18 +284,18 @@ public class ConfigManagerServlet extends PwmServlet {
             LOGGER.debug(pwmRequest, "security not available, persistent login not possible.");
         } else {
             persistentLoginEnabled = true;
-            final SecretKey securityKey = pwmRequest.getConfig().getSecurityKey();
+            final PwmSecurityKey securityKey = pwmRequest.getConfig().getSecurityKey();
 
             if (PwmApplication.MODE.RUNNING == pwmRequest.getPwmApplication().getApplicationMode()) {
                 persistentLoginValue = SecureHelper.hash(
                         storedConfig.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH)
                                 + pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey(),
-                        SecureHelper.DEFAULT_HASH_ALGORITHM);
+                        PwmHashAlgorithm.SHA512);
 
             } else {
                 persistentLoginValue = SecureHelper.hash(
                         storedConfig.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH),
-                        SecureHelper.DEFAULT_HASH_ALGORITHM);
+                        PwmHashAlgorithm.SHA512);
             }
 
             {
@@ -304,7 +305,7 @@ public class ConfigManagerServlet extends PwmServlet {
                 );
                 if (securityKey != null && cookieStr != null && !cookieStr.isEmpty()) {
                     try {
-                        final String jsonStr = SecureHelper.decryptStringValue(cookieStr, securityKey);
+                        final String jsonStr = pwmApplication.getSecureService().decryptStringValue(cookieStr);
                         final PersistentLoginInfo persistentLoginInfo = JsonUtil.deserialize(jsonStr, PersistentLoginInfo.class);
                         if (persistentLoginInfo != null && persistentLoginValue != null) {
                             if (persistentLoginInfo.getExpireDate().after(new Date())) {
@@ -358,8 +359,7 @@ public class ConfigManagerServlet extends PwmServlet {
                     final Date expirationDate = new Date(System.currentTimeMillis() + (persistentSeconds * 1000));
                     final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo(expirationDate, persistentLoginValue);
                     final String jsonPersistentLoginInfo = JsonUtil.serialize(persistentLoginInfo);
-                    final String cookieValue = SecureHelper.encryptToString(jsonPersistentLoginInfo,
-                            pwmRequest.getConfig().getSecurityKey());
+                    final String cookieValue = pwmApplication.getSecureService().encryptToString(jsonPersistentLoginInfo);
                     pwmRequest.getPwmResponse().writeCookie(
                             PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN,
                             cookieValue,
@@ -670,8 +670,8 @@ public class ConfigManagerServlet extends PwmServlet {
         {
             final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
             storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
-
-            outputStream.write(storedConfiguration.toString(true).getBytes(PwmConstants.DEFAULT_CHARSET));
+            final String jsonOutput = JsonUtil.serialize(storedConfiguration.toJsonDebugObject(), JsonUtil.Flag.PrettyPrint);
+            outputStream.write(jsonOutput.getBytes(PwmConstants.DEFAULT_CHARSET));
         }
     }
 

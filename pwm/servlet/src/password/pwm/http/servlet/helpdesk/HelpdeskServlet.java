@@ -232,7 +232,7 @@ public class HelpdeskServlet extends PwmServlet {
             pwmRequest.respondWithError(errorInformation, false);
             return;
         }
-        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig());
+        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication());
         LOGGER.debug(pwmRequest, "received executeAction request for user " + userIdentity.toString());
 
         final List<ActionConfiguration> actionConfigurations = helpdeskProfile.readSettingAsAction(PwmSetting.HELPDESK_ACTIONS);
@@ -310,7 +310,7 @@ public class HelpdeskServlet extends PwmServlet {
             return;
         }
 
-        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmApplication.getConfig());
+        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmApplication);
         LOGGER.info(pwmSession, "received deleteUser request by " + pwmSession.getUserInfoBean().getUserIdentity().toString() + " for user " + userIdentity.toString());
 
         // check if user should be seen by actor
@@ -364,7 +364,7 @@ public class HelpdeskServlet extends PwmServlet {
             return;
         }
 
-        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig()).canonicalized(pwmRequest.getPwmApplication());
+        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication()).canonicalized(pwmRequest.getPwmApplication());
         processDetailRequest(pwmRequest, helpdeskProfile, userIdentity);
         final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
                 AuditEvent.HELPDESK_VIEW_DETAIL,
@@ -401,7 +401,7 @@ public class HelpdeskServlet extends PwmServlet {
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.HelpdeskDetail, helpdeskDetailInfoBean);
 
         if (helpdeskDetailInfoBean != null && helpdeskDetailInfoBean.getUserInfoBean() != null) {
-            final String obfuscatedDN = helpdeskDetailInfoBean.getUserInfoBean().getUserIdentity().toObfuscatedKey(pwmRequest.getConfig());
+            final String obfuscatedDN = helpdeskDetailInfoBean.getUserInfoBean().getUserIdentity().toObfuscatedKey(pwmRequest.getPwmApplication());
             pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.HelpdeskObfuscatedDN, obfuscatedDN);
             pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.HelpdeskUsername, helpdeskDetailInfoBean.getUserInfoBean().getUsername());
         }
@@ -571,7 +571,7 @@ public class HelpdeskServlet extends PwmServlet {
             pwmRequest.respondWithError(errorInformation, false);
             return;
         }
-        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig());
+        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication());
 
         if (!helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, "password unlock request, but helpdesk unlock is not enabled");
@@ -639,7 +639,7 @@ public class HelpdeskServlet extends PwmServlet {
             pwmRequest.respondWithError(errorInformation, false);
             return;
         }
-        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig());
+        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication());
 
         if (!helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_OTP_VERIFY)) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, "password unlock request, but helpdesk otp verify is not enabled");
@@ -724,19 +724,22 @@ public class HelpdeskServlet extends PwmServlet {
             pwmRequest.respondWithError(errorInformation, false);
             return;
         }
-        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig());
+        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication());
 
 
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = makeHelpdeskDetailInfo(pwmRequest, helpdeskProfile, userIdentity);
         final UserInfoBean userInfoBean = helpdeskDetailInfoBean.getUserInfoBean();
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
+        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmRequest.getPwmApplication(), userIdentity);
+        final MacroMachine macroMachine = new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfoBean, null, userDataReader);
         final String configuredTokenString = config.readAppProperty(AppProperty.HELPDESK_TOKEN_VALUE);
         final String tokenKey = macroMachine.expandMacros(configuredTokenString);
+        final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_HELPDESK_TOKEN, pwmRequest.getLocale());
 
+        final String destEmailAddress = macroMachine.expandMacros(emailItemBean.getTo());
         final StringBuilder destDisplayString = new StringBuilder();
-        if (userInfoBean.getUserEmailAddress() != null && !userInfoBean.getUserEmailAddress().isEmpty()) {
+        if (destEmailAddress != null && !destEmailAddress.isEmpty()) {
             if (tokenSendMethod == MessageSendMethod.BOTH || tokenSendMethod == MessageSendMethod.EMAILFIRST || tokenSendMethod == MessageSendMethod.EMAILONLY) {
-                destDisplayString.append(userInfoBean.getUserEmailAddress());
+                destDisplayString.append(destEmailAddress);
             }
         }
         if (userInfoBean.getUserSmsNumber() != null && !userInfoBean.getUserSmsNumber().isEmpty()) {
@@ -750,7 +753,6 @@ public class HelpdeskServlet extends PwmServlet {
 
         LOGGER.debug(pwmRequest, "generated token code for " + userIdentity.toDelimitedKey());
 
-        final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_HELPDESK_TOKEN, pwmRequest.getLocale());
         final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_HELPDESK_TOKEN_TEXT, pwmRequest.getLocale());
 
         try {
@@ -760,7 +762,7 @@ public class HelpdeskServlet extends PwmServlet {
                     macroMachine,
                     emailItemBean,
                     tokenSendMethod,
-                    userInfoBean.getUserEmailAddress(),
+                    destEmailAddress,
                     userInfoBean.getUserSmsNumber(),
                     smsMessage,
                     tokenKey
@@ -792,7 +794,7 @@ public class HelpdeskServlet extends PwmServlet {
             pwmRequest.respondWithError(errorInformation, false);
             return;
         }
-        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig());
+        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication());
 
         if (!helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_OTP_BUTTON)) {
             final String errorMsg = "clear otp request, but helpdesk clear otp button is not enabled";

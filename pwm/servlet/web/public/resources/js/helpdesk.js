@@ -442,19 +442,19 @@ PWM_HELPDESK.initHelpdeskSearchPage = function() {
     PWM_HELPDESK.makeSearchGrid(function(){
         PWM_MAIN.addEventHandler('username', "keyup, input", function(){
             PWM_HELPDESK.processHelpdeskSearch();
-            var userPrefs = PWM_MAIN.readLocalStorage();
-            if (userPrefs) {
-                userPrefs['helpdesk-search-inputfield'] = PWM_MAIN.getObject('username').value;
-                PWM_MAIN.writeLocalStorage(userPrefs);
+            try {
+                var helpdeskFieldUsername = PWM_MAIN.getObject('username').value;
+                sessionStorage.setItem("helpdesk_field_username",helpdeskFieldUsername);
+            } catch (e) {
+                console.log('error writing username field from sessionStorage: ' + e);
             }
         });
 
-        var userPrefs = PWM_MAIN.readLocalStorage();
-        if (userPrefs) {
-            var oldValue = userPrefs['helpdesk-search-inputfield'];
-            if (oldValue) {
-                PWM_MAIN.getObject('username').value = oldValue;
-            }
+        try {
+            var helpdeskFieldUsername = sessionStorage.getItem("helpdesk_field_username");
+            PWM_MAIN.getObject('username').value = helpdeskFieldUsername;
+        } catch (e) {
+            console.log('error reading username field from sessionStorage: ' + e);
         }
 
         if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {

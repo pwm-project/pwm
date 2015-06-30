@@ -1122,14 +1122,14 @@ public enum PwmSetting {
         return defaultValues.get(templates);
     }
 
-    public Map<PwmSettingTemplate, String> getDefaultValueDebugStrings(final boolean prettyPrint, final Locale locale)
+    public Map<PwmSettingTemplate, String> getDefaultValueDebugStrings(final Locale locale)
             throws PwmOperationalException, PwmUnrecoverableException {
         final Map<PwmSettingTemplate, String> returnObj = new LinkedHashMap<>();
-        final String defaultDebugStr = this.getDefaultValue(PwmSettingTemplate.DEFAULT).toDebugString(prettyPrint, locale);
+        final String defaultDebugStr = this.getDefaultValue(PwmSettingTemplate.DEFAULT).toDebugString(locale);
         returnObj.put(PwmSettingTemplate.DEFAULT, defaultDebugStr);
         for (final PwmSettingTemplate template : PwmSettingTemplate.values()) {
             if (template != PwmSettingTemplate.DEFAULT) {
-                final String debugStr = this.getDefaultValue(template).toDebugString(prettyPrint, locale);
+                final String debugStr = this.getDefaultValue(template).toDebugString(locale);
                 if (!defaultDebugStr.equals(debugStr)) {
                     returnObj.put(template, debugStr);
                 }

@@ -94,7 +94,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue {
         final Pattern pattern = pwmSetting.getRegExPattern();
         for (final String loopValue : values) {
             final Matcher matcher = pattern.matcher(loopValue);
-            if (loopValue != null && loopValue.length() > 0 && !matcher.matches()) {
+            if (loopValue.length() > 0 && !matcher.matches()) {
                 return Collections.singletonList("incorrect value format for value '" + loopValue + "'");
             }
         }
@@ -102,8 +102,8 @@ public class StringArrayValue extends AbstractValue implements StoredValue {
         return Collections.emptyList();
     }
 
-    public String toDebugString(boolean prettyFormat, Locale locale) {
-        if (prettyFormat && values != null && !values.isEmpty()) {
+    public String toDebugString(Locale locale) {
+        if (values != null && !values.isEmpty()) {
             final StringBuilder sb = new StringBuilder();
             for (Iterator valueIterator = values.iterator() ; valueIterator.hasNext();) {
                 sb.append(valueIterator.next());
@@ -113,7 +113,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue {
             }
             return sb.toString();
         } else {
-            return JsonUtil.serializeCollection(values);
+            return "";
         }
     }
 }

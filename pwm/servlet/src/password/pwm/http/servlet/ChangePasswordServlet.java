@@ -372,16 +372,10 @@ public class ChangePasswordServlet extends PwmServlet {
             return;
         }
 
-        if (pwmSession.getUserInfoBean().getPasswordState().isWarnPeriod()) {
-            if (!pwmRequest.getPwmSession().getSessionStateBean().isSkippedRequireNewPassword()) {
-                if (!changePasswordBean.isWarnPassed()) {
-                    if (pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationType() != AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
-                        LOGGER.trace(pwmRequest, "pasword expiration is within password warn period, forwarding user to warning page");
-                        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_WARN);
-                        return;
-                    }
-                }
-            }
+        if (warnPageShouldBeShown(pwmRequest, changePasswordBean)) {
+            LOGGER.trace(pwmRequest, "pasword expiration is within password warn period, forwarding user to warning page");
+            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_WARN);
+            return;
         }
 
         final String agreementMsg = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, pwmRequest.getLocale());
@@ -640,9 +634,35 @@ public class ChangePasswordServlet extends PwmServlet {
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);
         }
     }
-    
-    protected void forwardToFormPage(final PwmRequest pwmRequest) 
-            throws ServletException, PwmUnrecoverableException, IOException 
+
+    private boolean warnPageShouldBeShown(final PwmRequest pwmRequest, final ChangePasswordBean changePasswordBean) {
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+
+        if (pwmSession.getUserInfoBean().isRequiresNewPassword()) {
+            return false;
+        }
+
+        if (!pwmSession.getUserInfoBean().getPasswordState().isWarnPeriod()) {
+            return false;
+        }
+
+        if (pwmRequest.getPwmSession().getSessionStateBean().isSkippedRequireNewPassword()) {
+            return false;
+        }
+
+        if (changePasswordBean.isWarnPassed()) {
+            return false;
+        }
+
+        if (pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
+            return false;
+        }
+
+        return true;
+    }
+
+    protected void forwardToFormPage(final PwmRequest pwmRequest)
+            throws ServletException, PwmUnrecoverableException, IOException
     {
         pwmRequest.addFormInfoToRequestAttr(PwmSetting.PASSWORD_REQUIRE_FORM,false,false);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_FORM);

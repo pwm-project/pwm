@@ -50,11 +50,8 @@ public class DbOtpOperator extends AbstractOtpOperator {
 
     final static private PwmLogger LOGGER = PwmLogger.forClass(DbOtpOperator.class);
 
-    final PwmApplication pwmApplication;
-
     public DbOtpOperator(PwmApplication pwmApplication) {
-        this.pwmApplication = pwmApplication;
-        super.setConfig(pwmApplication.getConfig());
+        super.setPwmApplication(pwmApplication);
     }
     
     @Override
@@ -69,7 +66,7 @@ public class DbOtpOperator extends AbstractOtpOperator {
             final DatabaseAccessorImpl databaseAccessor = pwmApplication.getDatabaseAccessor();
             String value = databaseAccessor.get(DatabaseTable.OTP, userGUID);
             if (value != null && value.length() > 0) {
-                if (getConfig().readSettingAsBoolean(PwmSetting.OTP_SECRET_ENCRYPT)) {
+                if (getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.OTP_SECRET_ENCRYPT)) {
                     value = decryptAttributeValue(value);
                 }
                 if (value != null) {
@@ -108,7 +105,7 @@ public class DbOtpOperator extends AbstractOtpOperator {
         
         try {
             String value = composeOtpAttribute(otpConfig);
-            if (getConfig().readSettingAsBoolean(PwmSetting.OTP_SECRET_ENCRYPT)) {
+            if (getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.OTP_SECRET_ENCRYPT)) {
                 LOGGER.debug("Encrypting OTP secret for storage");
                 value = encryptAttributeValue(value);
             }

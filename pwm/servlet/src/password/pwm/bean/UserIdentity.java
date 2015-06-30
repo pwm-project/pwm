@@ -31,9 +31,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.SecureHelper;
 
-import javax.crypto.SecretKey;
 import java.io.Serializable;
 import java.util.StringTokenizer;
 
@@ -78,7 +76,7 @@ public class UserIdentity implements Serializable, Comparable {
         return "UserIdentity" + JsonUtil.serialize(this);
     }
 
-    public String toObfuscatedKey(final Configuration configuration)
+    public String toObfuscatedKey(final PwmApplication pwmApplication)
             throws PwmUnrecoverableException
     {
         final String cachedValue = obfuscatedValue;
@@ -86,9 +84,8 @@ public class UserIdentity implements Serializable, Comparable {
             return cachedValue;
         }
         try {
-            final SecretKey secretKey = configuration.getSecurityKey();
             final String jsonValue = JsonUtil.serialize(this);
-            final String localValue = CRYPO_HEADER + SecureHelper.encryptToString(jsonValue, secretKey, true);
+            final String localValue = CRYPO_HEADER + pwmApplication.getSecureService().encryptToString(jsonValue);
             this.obfuscatedValue = localValue;
             return localValue;
         } catch (Exception e) {
@@ -104,7 +101,7 @@ public class UserIdentity implements Serializable, Comparable {
         return this.getUserDN() + ((this.getLdapProfileID() != null && !this.getLdapProfileID().isEmpty()) ? " (" + this.getLdapProfileID() + ")" : "");
     }
 
-    public static UserIdentity fromObfuscatedKey(final String key, final Configuration configuration) throws PwmUnrecoverableException {
+    public static UserIdentity fromObfuscatedKey(final String key, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
         if (key == null || key.length() < 1) {
             return null;
         }
@@ -115,8 +112,7 @@ public class UserIdentity implements Serializable, Comparable {
 
         try {
             final String input = key.substring(CRYPO_HEADER.length(),key.length());
-            final SecretKey secretKey = configuration.getSecurityKey();
-            final String jsonValue = SecureHelper.decryptStringValue(input, secretKey, true);
+            final String jsonValue = pwmApplication.getSecureService().decryptStringValue(input);
             return JsonUtil.deserialize(jsonValue,UserIdentity.class);
         } catch (Exception e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error reversing obfuscated user key: " + e.getMessage()));
@@ -139,13 +135,13 @@ public class UserIdentity implements Serializable, Comparable {
         return new UserIdentity(userDN,profileID);
     }
 
-    public static UserIdentity fromKey(final String key, final Configuration configuration) throws PwmUnrecoverableException {
+    public static UserIdentity fromKey(final String key, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
         if (key == null || key.length() < 1) {
             return null;
         }
 
         if (key.startsWith(CRYPO_HEADER)) {
-            return fromObfuscatedKey(key,configuration);
+            return fromObfuscatedKey(key, pwmApplication);
         }
 
         return fromDelimitedKey(key);

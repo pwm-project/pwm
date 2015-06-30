@@ -23,6 +23,8 @@
 package password.pwm.util.operations.otp;
 
 import com.google.gson.JsonSyntaxException;
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.OTPStorageFormat;
@@ -30,14 +32,15 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.SecureHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.otp.OTPPamUtil;
 import password.pwm.util.otp.OTPUrlUtil;
 import password.pwm.util.otp.OTPUserRecord;
-
-import javax.crypto.SecretKey;
+import password.pwm.util.secure.PwmBlockAlgorithm;
+import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.SecureHelper;
 
 /**
  *
@@ -46,7 +49,7 @@ import javax.crypto.SecretKey;
 public abstract class AbstractOtpOperator implements OtpOperator {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(AbstractOtpOperator.class);
-    private Configuration config;
+    protected PwmApplication pwmApplication;
 
     /**
      * Compose a single line of OTP information.
@@ -58,6 +61,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
     public String composeOtpAttribute(OTPUserRecord otpUserRecord) throws PwmUnrecoverableException {
         String value = "";
         if (otpUserRecord != null) {
+            final Configuration config = pwmApplication.getConfig();
             final OTPStorageFormat format = config.readSettingAsEnum(PwmSetting.OTP_SECRET_STORAGEFORMAT,OTPStorageFormat.class);
             switch (format) {
                 case PWM:
@@ -90,8 +94,14 @@ public abstract class AbstractOtpOperator implements OtpOperator {
      * @throws PwmOperationalException
      */
     public String encryptAttributeValue(String unencrypted) throws PwmUnrecoverableException, PwmOperationalException {
-        SecretKey key = config.getSecurityKey();
-        return SecureHelper.encryptToString(unencrypted, key);
+        final PwmBlockAlgorithm pwmBlockAlgorithm = figureBlockAlg();
+        final PwmSecurityKey pwmSecurityKey = pwmApplication.getConfig().getSecurityKey();
+        return SecureHelper.encryptToString(unencrypted, pwmSecurityKey, pwmBlockAlgorithm);
+    }
+
+    public PwmBlockAlgorithm figureBlockAlg() {
+        final String otpEncryptionAlgString = pwmApplication.getConfig().readAppProperty(AppProperty.OTP_ENCRYPTION_ALG);
+        return Helper.readEnumFromString(PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, otpEncryptionAlgString);
     }
 
     /**
@@ -103,8 +113,9 @@ public abstract class AbstractOtpOperator implements OtpOperator {
      * @throws PwmOperationalException
      */
     public String decryptAttributeValue(String encrypted) throws PwmUnrecoverableException, PwmOperationalException {
-        SecretKey key = config.getSecurityKey();
-        return SecureHelper.decryptStringValue(encrypted, key);
+        final PwmBlockAlgorithm pwmBlockAlgorithm = figureBlockAlg();
+        final PwmSecurityKey pwmSecurityKey = pwmApplication.getConfig().getSecurityKey();
+        return SecureHelper.decryptStringValue(encrypted, pwmSecurityKey, pwmBlockAlgorithm);
     }
 
     /**
@@ -153,20 +164,11 @@ public abstract class AbstractOtpOperator implements OtpOperator {
         return otpconfig;
     }
 
-    /**
-     *
-     * @return
-     */
-    public Configuration getConfig() {
-        return config;
+    public PwmApplication getPwmApplication() {
+        return pwmApplication;
     }
 
-    /**
-     *
-     * @param config
-     */
-    public void setConfig(Configuration config) {
-        this.config = config;
+    public void setPwmApplication(PwmApplication pwmApplication) {
+        this.pwmApplication = pwmApplication;
     }
-
 }

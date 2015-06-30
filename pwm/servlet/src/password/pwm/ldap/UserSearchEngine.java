@@ -98,7 +98,7 @@ public class UserSearchEngine {
         {
             UserIdentity inputIdentity = null;
             try {
-                inputIdentity = UserIdentity.fromKey(username, pwmApplication.getConfig());
+                inputIdentity = UserIdentity.fromKey(username, pwmApplication);
             } catch (PwmException e) { /* input is not a userIdentity */ }
 
             if (inputIdentity != null) {
@@ -625,7 +625,7 @@ public class UserSearchEngine {
                 for (final String attribute : this.getHeaderAttributeMap().keySet()) {
                     rowMap.put(attribute,this.getResults().get(userIdentity).get(attribute));
                 }
-                rowMap.put("userKey",userIdentity.toObfuscatedKey(pwmApplication.getConfig()));
+                rowMap.put("userKey",userIdentity.toObfuscatedKey(pwmApplication));
                 rowMap.put("id",idCounter);
                 outputList.add(rowMap);
                 idCounter++;

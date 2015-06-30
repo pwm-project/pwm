@@ -182,25 +182,24 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
         return new ChallengeItemBean(challengeText, minLength, maxLength, adminDefined);
     }
 
-    public String toDebugString(boolean prettyFormat, Locale locale) {
-        if (prettyFormat && values != null && !values.isEmpty()) {
-            final StringBuilder sb = new StringBuilder();
-            for (final String localeKey : values.keySet()) {
-                final List<ChallengeItemBean> challengeItems = values.get(localeKey);
-                sb.append("Locale: ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append("\n");
-                for (ChallengeItemBean challengeItemBean : challengeItems) {
-                    sb.append(" ChallengeItem: [AdminDefined: ").append(challengeItemBean.isAdminDefined());
-                    sb.append(" MinLength:").append(challengeItemBean.getMinLength());
-                    sb.append(" MaxLength:").append(challengeItemBean.getMaxLength());
-                    sb.append(" MaxQuestionCharsInAnswer:").append(challengeItemBean.getMaxQuestionCharsInAnswer());
-                    sb.append(" EnforceWordlist:").append(challengeItemBean.isEnforceWordlist());
-                    sb.append("]\n");
-                    sb.append("  Text:").append(challengeItemBean.getText()).append("\n");
-                }
-            }
-            return sb.toString();
-        } else {
-            return JsonUtil.serializeMap(values);
+    public String toDebugString(Locale locale) {
+        if (values == null) {
+            return "No Actions";
         }
+        final StringBuilder sb = new StringBuilder();
+        for (final String localeKey : values.keySet()) {
+            final List<ChallengeItemBean> challengeItems = values.get(localeKey);
+            sb.append("Locale: ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append("\n");
+            for (ChallengeItemBean challengeItemBean : challengeItems) {
+                sb.append(" ChallengeItem: [AdminDefined: ").append(challengeItemBean.isAdminDefined());
+                sb.append(" MinLength:").append(challengeItemBean.getMinLength());
+                sb.append(" MaxLength:").append(challengeItemBean.getMaxLength());
+                sb.append(" MaxQuestionCharsInAnswer:").append(challengeItemBean.getMaxQuestionCharsInAnswer());
+                sb.append(" EnforceWordlist:").append(challengeItemBean.isEnforceWordlist());
+                sb.append("]\n");
+                sb.append("  Text:").append(challengeItemBean.getText()).append("\n");
+            }
+        }
+        return sb.toString();
     }
 }

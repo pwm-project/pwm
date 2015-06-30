@@ -130,8 +130,8 @@ public class FormValue extends AbstractValue implements StoredValue {
         return needsXmlUpdate;
     }
 
-    public String toDebugString(boolean prettyFormat, Locale locale) {
-        if (prettyFormat && values != null && !values.isEmpty()) {
+    public String toDebugString(Locale locale) {
+        if (values != null && !values.isEmpty()) {
             final StringBuilder sb = new StringBuilder();
             for (final FormConfiguration formRow : values) {
                 sb.append("FormItem Name:").append(formRow.getName()).append("\n");
@@ -152,7 +152,7 @@ public class FormValue extends AbstractValue implements StoredValue {
             }
             return sb.toString();
         } else {
-            return JsonUtil.serializeCollection(values);
+            return "";
         }
     }
 
