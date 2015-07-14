@@ -48,6 +48,7 @@ import password.pwm.util.*;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Serializable;
@@ -59,13 +60,19 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class OAuthConsumerServlet extends PwmServlet {
+@WebServlet(
+        name="OAuthConsumerServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PUBLIC + "/oauth"
+        }
+)
+public class OAuthConsumerServlet extends AbstractPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(OAuthConsumerServlet.class);
-    private static int oauthStateIDcounter = 0;
+    private static int oauthStateIdCounter = 0;
 
 
     private static class OAuthState implements Serializable {
-        private final int stateID = oauthStateIDcounter++;
+        private final int stateID = oauthStateIdCounter++;
         private final Date issueTime = new Date();
         private String sessionID;
         private String nextUrl;
@@ -147,22 +154,34 @@ public class OAuthConsumerServlet extends PwmServlet {
         LOGGER.trace(pwmSession,"received code from oauth server: " + requestCodeStr);
 
         final OAuthResolveResults resolveResults;
-        {
+        try {
             resolveResults = makeOAuthResolveRequest(pwmRequest, settings, requestCodeStr);
-            if (resolveResults == null || resolveResults.getAccessToken() == null || resolveResults.getAccessToken().isEmpty()) {
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,"OAuth server did not respond with an access token");
+        } catch (IOException | PwmException e) {
+            final ErrorInformation errorInformation;
+            final String errorMsg = "unexpected error communicating with oauth server: " + e.toString();
+            if (e instanceof PwmException) {
+                errorInformation = new ErrorInformation(((PwmException) e).getError(),errorMsg);
+            } else {
+                errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            }
+            pwmRequest.setResponseError(errorInformation);
+            LOGGER.error(errorInformation.toDebugStr());
+            return;
+        }
+
+        if (resolveResults == null || resolveResults.getAccessToken() == null || resolveResults.getAccessToken().isEmpty()) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,"OAuth server did not respond with an access token");
+            LOGGER.error(pwmRequest, errorInformation);
+            pwmRequest.respondWithError(errorInformation);
+            return;
+        }
+
+        if (resolveResults.getExpiresSeconds() > 0) {
+            if (resolveResults.getRefreshToken() == null || resolveResults.getRefreshToken().isEmpty()) {
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,"OAuth server gave expiration for access token, but did not provide a refresh token");
                 LOGGER.error(pwmRequest, errorInformation);
                 pwmRequest.respondWithError(errorInformation);
                 return;
-            }
-
-            if (resolveResults.getExpiresSeconds() > 0) {
-                if (resolveResults.getRefreshToken() == null || resolveResults.getRefreshToken().isEmpty()) {
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,"OAuth server gave expiration for access token, but did not provide a refresh token");
-                    LOGGER.error(pwmRequest, errorInformation);
-                    pwmRequest.respondWithError(errorInformation);
-                    return;
-                }
             }
         }
 
@@ -429,7 +448,7 @@ public class OAuthConsumerServlet extends PwmServlet {
             final URI requestUri = new URI(req.getRequestURL().toString());
             redirect_uri = requestUri.getScheme() + "://" + requestUri.getHost()
                     + (requestUri.getPort() > 0 ? ":" + requestUri.getPort() : "")
-                    + req.getContextPath() + "/public/" + PwmConstants.URL_SERVLET_OAUTH_CONSUMER;
+                    + PwmServletDefinition.OAuthConsumer.servletUrl();
         } catch (URISyntaxException e) {
             throw new IllegalStateException("unable to parse inbound request uri while generating oauth redirect: " + e.getMessage());
         }

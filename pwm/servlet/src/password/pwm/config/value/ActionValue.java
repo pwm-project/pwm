@@ -30,6 +30,7 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.*;
 
@@ -64,7 +65,7 @@ public class ActionValue extends AbstractValue implements StoredValue {
 
             public ActionValue fromXmlElement(
                     Element settingElement,
-                    final String input
+                    final PwmSecurityKey input
             )
                     throws PwmOperationalException
             {

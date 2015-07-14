@@ -24,7 +24,7 @@ package password.pwm.util;
 
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.secure.PwmHashAlgorithm;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.SecureEngine;
 
 import java.io.*;
 import java.util.*;
@@ -130,7 +130,7 @@ public class BuildChecksumMaker {
             throws PwmUnrecoverableException, FileNotFoundException
     {
         final InputStream is = new FileInputStream(file);
-        return SecureHelper.md5sum(is);
+        return SecureEngine.md5sum(is);
     }
 
     private static void output(final String output) {
@@ -148,7 +148,7 @@ public class BuildChecksumMaker {
                 file.getAbsolutePath(),
                 new Date(file.lastModified()),
                 file.length(),
-                SecureHelper.hash(file, PwmHashAlgorithm.SHA1)
+                SecureEngine.hash(file, PwmHashAlgorithm.SHA1)
         );
     }
 

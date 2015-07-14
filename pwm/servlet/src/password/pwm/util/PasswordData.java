@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.SecureEngine;
 
 /*
  * A in-memory password value wrapper.  Instances of this class cannot be serialized.  The actual password value is encrypted using a
@@ -58,7 +58,7 @@ public class PasswordData {
             final byte[] randomBytes = new byte[1024 * 10];
             PwmRandom.getInstance().nextBytes(randomBytes);
             newKey = new PwmSecurityKey(randomBytes);
-            newKeyHash = SecureHelper.hash(randomBytes, PwmHashAlgorithm.SHA512);
+            newKeyHash = SecureEngine.hash(randomBytes, PwmHashAlgorithm.SHA512);
         } catch (Exception e) {
             LOGGER.fatal("can't initialize PasswordData handler: " + e.getMessage(),e);
             e.printStackTrace();
@@ -83,7 +83,7 @@ public class PasswordData {
         if (passwordData.isEmpty()) {
             throw new NullPointerException("password data can not be empty");
         }
-        this.passwordData = SecureHelper.encryptToBytes(passwordData, staticKey, PwmConstants.IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
+        this.passwordData = SecureEngine.encryptToBytes(passwordData, staticKey, PwmConstants.IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
         this.keyHash = staticKeyHash;
     }
 
@@ -107,7 +107,7 @@ public class PasswordData {
             throws PwmUnrecoverableException
     {
         checkCurrentStatus();
-        return SecureHelper.decryptBytes(passwordData, staticKey, PwmConstants.IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
+        return SecureEngine.decryptBytes(passwordData, staticKey, PwmConstants.IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
     }
 
     @Override
@@ -155,7 +155,7 @@ public class PasswordData {
 
     public String hash() throws PwmUnrecoverableException {
         if (passwordHashCache == null) {
-            passwordHashCache = SecureHelper.hash(this.getStringValue(), PwmHashAlgorithm.SHA1);
+            passwordHashCache = SecureEngine.hash(this.getStringValue(), PwmHashAlgorithm.SHA1);
         }
         return passwordHashCache;
     }

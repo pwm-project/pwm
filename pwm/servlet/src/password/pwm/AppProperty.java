@@ -62,12 +62,17 @@ public enum AppProperty {
     HTTP_RESOURCES_ENABLE_GZIP                      ("http.resources.gzip.enable"),
     HTTP_RESOURCES_ENABLE_PATH_NONCE                ("http.resources.pathNonceEnable"),
     HTTP_RESOURCES_NONCE_PATH_PREFIX                ("http.resources.pathNoncePrefix"),
+    HTTP_RESOURCES_ZIP_FILES                        ("http.resources.zipFiles"),
     HTTP_COOKIE_THEME_NAME                          ("http.cookie.theme.name"),
     HTTP_COOKIE_THEME_AGE                           ("http.cookie.theme.age"),
     HTTP_COOKIE_LOCALE_NAME                         ("http.cookie.locale.name"),
     HTTP_COOKIE_AUTHRECORD_NAME                     ("http.cookie.authRecord.name"),
     HTTP_COOKIE_AUTHRECORD_AGE                      ("http.cookie.authRecord.age"),
     HTTP_COOKIE_MAX_READ_LENGTH                     ("http.cookie.maxReadLength"),
+    HTTP_COOKIE_CAPTCHA_SKIP_NAME                   ("http.cookie.captchaSkip.name"),
+    HTTP_COOKIE_CAPTCHA_SKIP_AGE                    ("http.cookie.captchaSkip.age"),
+    HTTP_COOKIE_INSTANCE_GUID_NAME                  ("http.cookie.instanceGUID.name"),
+    HTTP_COOKIE_INSTANCE_GUID_AGE                   ("http.cookie.instanceGUID.age"),
     HTTP_BASIC_AUTH_CHARSET                         ("http.basicAuth.charset"),
     HTTP_BODY_MAXREAD_LENGTH                        ("http.body.maxReadLength"),
     HTTP_ENABLE_GZIP                                ("http.gzip.enable"),
@@ -215,7 +220,7 @@ public enum AppProperty {
     private final String key;
     private String defaultValue;
 
-    private AppProperty(String key) {
+    AppProperty(String key) {
         this.key = key;
     }
 

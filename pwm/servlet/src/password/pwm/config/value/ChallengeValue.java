@@ -31,6 +31,7 @@ import password.pwm.cr.ChallengeItemBean;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.*;
 
@@ -62,7 +63,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
 
             public ChallengeValue fromXmlElement(
                     final Element settingElement,
-                    final String input
+                    final PwmSecurityKey input
             )
             {
                 final List valueElements = settingElement.getChildren("value");

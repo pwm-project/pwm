@@ -39,14 +39,43 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-public class SecureHelper {
+public class SecureEngine {
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(SecureHelper.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(SecureEngine.class);
 
     private static final int HASH_BUFFER_SIZE = 1024;
 
     public enum Flag {
         URL_SAFE,
+    }
+
+    enum HmacAlgorithm {
+        HMAC_SHA_256("HmacSHA256",PwmSecurityKey.Type.HMAC_256,32),
+        HMAC_SHA_512("HmacSHA512",PwmSecurityKey.Type.HMAC_512,64),
+
+        ;
+
+        private final String algorithmName;
+        private final PwmSecurityKey.Type keyType;
+        private final int length;
+
+        HmacAlgorithm(String algorithmName, PwmSecurityKey.Type keyType, int length) {
+            this.algorithmName = algorithmName;
+            this.keyType = keyType;
+            this.length = length;
+        }
+
+        public String getAlgorithmName() {
+            return algorithmName;
+        }
+
+        public PwmSecurityKey.Type getKeyType() {
+            return keyType;
+        }
+
+        public int getLength() {
+            return length;
+        }
     }
 
     public static String encryptToString(
@@ -81,14 +110,14 @@ public class SecureHelper {
                 return null;
             }
 
-            final SecretKey aesKey = key.getKey(PwmSecurityKey.Type.AES);
+            final SecretKey aesKey = key.getKey(blockAlgorithm.getBlockKey());
             final Cipher cipher = Cipher.getInstance(blockAlgorithm.getAlgName());
             cipher.init(Cipher.ENCRYPT_MODE, aesKey, cipher.getParameters());
             final byte[] encryptedBytes = cipher.doFinal(value.getBytes(PwmConstants.DEFAULT_CHARSET));
 
             final byte[] output;
-            if (blockAlgorithm.equals(PwmBlockAlgorithm.AES_HMAC)) {
-                final byte[] hashChecksum = hmac(key, encryptedBytes);
+            if (blockAlgorithm.getHmacAlgorithm() != null) {
+                final byte[] hashChecksum = hmac(blockAlgorithm.getHmacAlgorithm(), key, encryptedBytes);
                 output = appendByteArrays(blockAlgorithm.getPrefix(), hashChecksum, encryptedBytes);
             } else {
                 output = appendByteArrays(blockAlgorithm.getPrefix(), encryptedBytes);
@@ -140,15 +169,16 @@ public class SecureHelper {
 
             value = verifyAndStripPrefix(blockAlgorithm, value);
 
-            final SecretKey aesKey = key.getKey(PwmSecurityKey.Type.AES);
-            if (blockAlgorithm == PwmBlockAlgorithm.AES_HMAC) {
-                final int CHECKSUM_SIZE = 32;
+            final SecretKey aesKey = key.getKey(blockAlgorithm.getBlockKey());
+            if (blockAlgorithm.getHmacAlgorithm() != null) {
+                final HmacAlgorithm hmacAlgorithm = blockAlgorithm.getHmacAlgorithm();
+                final int CHECKSUM_SIZE = hmacAlgorithm.getLength();
                 if (value.length <= CHECKSUM_SIZE) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, "incoming " + blockAlgorithm.toString()  + " data is missing checksum"));
                 }
                 final byte[] inputChecksum = Arrays.copyOfRange(value, 0, CHECKSUM_SIZE);
                 final byte[] inputPayload = Arrays.copyOfRange(value, CHECKSUM_SIZE, value.length);
-                final byte[] computedChecksum = hmac(key, inputPayload);
+                final byte[] computedChecksum = hmac(hmacAlgorithm, key, inputPayload);
                 if (!Arrays.equals(inputChecksum, computedChecksum)) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, "incoming " + blockAlgorithm.toString()  + " data has incorrect checksum"));
                 }
@@ -224,14 +254,19 @@ public class SecureHelper {
         return Helper.byteArrayToHexString(hashToBytes(is, algorithm));
     }
 
-    static byte[] hmac(final PwmSecurityKey pwmSecurityKey, final byte[] input)
+    static byte[] hmac(
+            final HmacAlgorithm hmacAlgorithm,
+            final PwmSecurityKey pwmSecurityKey,
+            final byte[] input
+    )
             throws PwmUnrecoverableException
     {
         try {
-            final Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
-            final SecretKey secret_key = pwmSecurityKey.getKey(PwmSecurityKey.Type.HMAC_256);
-            sha256_HMAC.init(secret_key);
-            return sha256_HMAC.doFinal(input);
+
+            final Mac mac = Mac.getInstance(hmacAlgorithm.getAlgorithmName());
+            final SecretKey secret_key = pwmSecurityKey.getKey(hmacAlgorithm.getKeyType());
+            mac.init(secret_key);
+            return mac.doFinal(input);
         } catch (GeneralSecurityException e) {
             final String errorMsg = "error during hmac operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);

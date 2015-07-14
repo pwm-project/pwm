@@ -34,11 +34,9 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -74,7 +72,7 @@ public class PasswordValue implements StoredValue {
 
             public PasswordValue fromXmlElement(
                     final Element settingElement,
-                    final String key
+                    final PwmSecurityKey key
             )
                     throws PwmOperationalException, PwmUnrecoverableException
             {
@@ -97,8 +95,7 @@ public class PasswordValue implements StoredValue {
                     newPasswordValue.requiresStoredUpdate = true;
                 } else {
                     try {
-                        final PwmSecurityKey secretKey = new PwmSecurityKey(key);
-                        newPasswordValue.value = new PasswordData(SecureHelper.decryptStringValue(rawValue, secretKey, PwmBlockAlgorithm.CONFIG));
+                        newPasswordValue.value = new PasswordData(SecureEngine.decryptStringValue(rawValue, key, PwmBlockAlgorithm.CONFIG));
                         return newPasswordValue;
                     } catch (Exception e) {
                         final String errorMsg = "unable to decode encrypted password value for setting: " + e.getMessage();
@@ -133,14 +130,14 @@ public class PasswordValue implements StoredValue {
         return 0;
     }
 
-    public List<Element> toXmlValues(final String valueElementName, final String key) {
+    public List<Element> toXmlValues(final String valueElementName, final PwmSecurityKey key) {
         if (value == null) {
             final Element valueElement = new Element(valueElementName);
             return Collections.singletonList(valueElement);
         }
         final Element valueElement = new Element(valueElementName);
         try {
-            final String encodedValue = encryptValue(key,value.getStringValue());
+            final String encodedValue = SecureEngine.encryptToString(value.getStringValue(), key, PwmBlockAlgorithm.CONFIG);
             valueElement.addContent(encodedValue);
         } catch (Exception e) {
             valueElement.addContent("");
@@ -163,13 +160,6 @@ public class PasswordValue implements StoredValue {
         return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
 
-    private static String encryptValue(final String key, final String value)
-            throws PwmUnrecoverableException, UnsupportedEncodingException, NoSuchAlgorithmException
-    {
-        final PwmSecurityKey secretKey = new PwmSecurityKey(key);
-        return SecureHelper.encryptToString(value, secretKey, PwmBlockAlgorithm.CONFIG);
-    }
-
     public boolean requiresStoredUpdate()
     {
         return requiresStoredUpdate;
@@ -177,6 +167,6 @@ public class PasswordValue implements StoredValue {
 
     @Override
     public String valueHash() throws PwmUnrecoverableException {
-        return value == null ? "" : SecureHelper.hash(JsonUtil.serialize(value.getStringValue()), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
+        return value == null ? "" : SecureEngine.hash(JsonUtil.serialize(value.getStringValue()), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
     }
 }

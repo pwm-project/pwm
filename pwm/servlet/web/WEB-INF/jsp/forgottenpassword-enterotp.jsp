@@ -23,6 +23,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.util.otp.OTPUserRecord" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
@@ -44,7 +45,7 @@
         <% } else { %>
         <p><pwm:display key="Display_RecoverOTP" /></p>
         <% } %>
-        <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
+        <form action="<pwm:url url='<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>'/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>
             <input type="text" pattern="[0-9]*" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield" required="required" autofocus/>
@@ -59,7 +60,6 @@
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <% } %>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
                 <input type="hidden" id="processAction" name="processAction" value="enterOtp"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
@@ -72,7 +72,7 @@
     <script>
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.addEventHandler('button-goBack','click',function() {
-               PWM_MAIN.submitPostAction('ForgottenPassword', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
+               PWM_MAIN.submitPostAction('<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
             });
         });
     </script>

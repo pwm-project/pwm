@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -107,8 +107,6 @@ public class RestStatisticsServer extends AbstractRestServer {
             final RestResultBean resultBean = new RestResultBean();
             resultBean.setData(jsonOutput);
             return resultBean.asJsonResponse();
-        //} catch (PwmException e) {
-        //    return RestResultBean.fromError(e.getErrorInformation(),restRequestBean).asJsonResponse();
         } catch (Exception e) {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
@@ -164,14 +162,5 @@ public class RestStatisticsServer extends AbstractRestServer {
             LOGGER.error("unable to read service permissions, defaulting to non-public; error: " + e.getMessage());
         }
         return servicePermissions;
-    }
-
-    @GET
-    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    public Response doPwmAppDashboardJsonGet(
-    )
-    {
-        final ServicePermissions servicePermissions = figurePermissions();
-        return null;
     }
 }

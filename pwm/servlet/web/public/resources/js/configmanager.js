@@ -266,11 +266,12 @@ PWM_CONFIG.downloadSupportBundle = function() {
 PWM_CONFIG.uploadFile = function(options) {
     options = options === undefined ? {} : options;
 
-    var body = '<div id="uploadFormWrapper"><form action="UploadForm" enctype="multipart/form-data">';
+    var body = '<div id="uploadFormWrapper">';
     body += '<div id="fileList"></div>';
-    body += '<input name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
-    body += '<input type="submit" id="uploadButton" name="Upload"/>';
-    body += '<br/></form></div><br/><br/>';
+    body += '<input style="width:95%" class="btn" name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
+    body += '<div class="buttonbar">';
+    body += '<button class="btn" type="submit" id="uploadButton" name="Upload"><span class="fa fa-upload"></span> Upload</button>';
+    body += '</div></div>';
 
     var currentUrl = window.location.pathname;
     var uploadUrl = 'url' in options ? options['url'] : currentUrl;
@@ -301,17 +302,78 @@ PWM_CONFIG.uploadFile = function(options) {
         PWM_MAIN.showErrorDialog(data,{text:errorText});
     };
 
+    var progressFunction = function(data) {
+        if (data.lengthComputable) {
+            var decimal = data.loaded / data.total;
+            console.log('upload progress: ' + decimal);
+            require(["dijit/registry"],function(registry){
+                var progressBar = registry.byId('progressBar');
+                if (progressBar) {
+                    progressBar.set("maximum", 100);
+                    progressBar.set("indeterminate", false);
+                    progressBar.set("value", decimal * 100);
+                }
+                var html5Bar = PWM_MAIN.getObject("wait");
+                if (html5Bar) {
+                    html5Bar.setAttribute("max", 100);
+                    html5Bar.setAttribute("value", decimal * 100);
+                }
+            });
+        } else {
+            console.log('progressFunction: no data');
+            return;
+        }
+    };
+
+    var uploadFunction = function() {
+        var files = PWM_MAIN.getObject('uploadFile').files;
+        if (!files[0]) {
+            alert('File not selected');
+        }
+        var xhr = new XMLHttpRequest();
+        var fd = new FormData();
+        xhr.onreadystatechange = function() {
+            console.log('on ready state change');
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                // Every thing ok, file uploaded
+                console.log(xhr.responseText); // handle response.
+                completeFunction(xhr.responseText);
+            }
+        };
+        xhr.upload.addEventListener('progress',progressFunction,false);
+        xhr.upload.onprogress = progressFunction;
+        xhr.open("POST", uploadUrl, true);
+        fd.append("uploadFile", files[0]);
+        xhr.send(fd);
+        PWM_GLOBAL['inhibitHealthUpdate'] = true;
+        PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
+        PWM_MAIN.getObject('centerbody').innerHTML = 'Upload in progress...';
+        PWM_MAIN.showWaitDialog({title:'Uploading...'});
+    };
+
     completeFunction = 'completeFunction' in options ? options['completeFunction'] : completeFunction;
 
 
-    require(["dojo","dijit/Dialog","dojox/form/Uploader","dojox/form/uploader/FileList","dijit/form/Button"],function(
-        dojo,Dialog,Uploader,FileList,Button){
+    require(["dojo"],function(dojo){
 
         if(dojo.isIE <= 9){ // IE9 and below no workie
             PWM_MAIN.showDialog({title:PWM_MAIN.showString("Title_Error"),text:PWM_CONFIG.showString("Warning_UploadIE9")});
             return;
         }
 
+        PWM_MAIN.showDialog({
+            title:title,
+            showClose:true,
+            showOk:false,
+            text:body,
+            loadFunction:function(){
+                PWM_MAIN.addEventHandler('uploadButton','click',uploadFunction);
+            }
+        });
+
+
+
+        /*
         PWM_MAIN.showWaitDialog({loadFunction:function() {
             console.log('uploading file to url ' + uploadUrl);
 
@@ -367,6 +429,7 @@ PWM_CONFIG.uploadFile = function(options) {
                 });
             });
         }});
+        */
     });
 };
 
@@ -416,11 +479,6 @@ PWM_CONFIG.heartbeatCheck = function() {
 
 PWM_CONFIG.initConfigHeader = function() {
     // header initialization
-    if (PWM_MAIN.getObject('header_configManagerButton')) {
-        PWM_MAIN.addEventHandler('header_configManagerButton', 'click', function () {
-            PWM_MAIN.goto('/private/config/ConfigManager');
-        });
-    }
     if (PWM_MAIN.getObject('header_configEditorButton')) {
         PWM_MAIN.addEventHandler('header_configEditorButton', 'click', function () {
             PWM_CONFIG.startConfigurationEditor();

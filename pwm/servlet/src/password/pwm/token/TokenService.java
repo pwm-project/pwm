@@ -50,7 +50,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.secure.PwmRandom;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.SecureEngine;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -94,7 +94,7 @@ public class TokenService implements PwmService {
         final long count = counter++;
         final StringBuilder guid = new StringBuilder();
         try {
-            guid.append(SecureHelper.md5sum(pwmApplication.getInstanceID() + pwmApplication.getStartupTime().toString()));
+            guid.append(SecureEngine.md5sum(pwmApplication.getInstanceID() + pwmApplication.getStartupTime().toString()));
             guid.append("-");
             guid.append(count);
         } catch (Exception e) {
@@ -435,7 +435,7 @@ public class TokenService implements PwmService {
     }
 
     static String makeTokenHash(final String tokenKey) throws PwmUnrecoverableException {
-        return SecureHelper.md5sum(tokenKey) + "-hash";
+        return SecureEngine.md5sum(tokenKey) + "-hash";
     }
 
     private static boolean tokensAreUsedInConfig(final Configuration configuration) {

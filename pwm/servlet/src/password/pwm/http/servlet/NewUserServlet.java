@@ -65,6 +65,7 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
@@ -74,7 +75,16 @@ import java.util.*;
  *
  * @author Jason D. Rivard
  */
-public class NewUserServlet extends PwmServlet {
+@WebServlet(
+        name="NewUserServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PUBLIC + "/newuser",
+                PwmConstants.URL_PREFIX_PUBLIC + "/newuser/*",
+                PwmConstants.URL_PREFIX_PUBLIC + "/NewUser",
+                PwmConstants.URL_PREFIX_PUBLIC + "/NewUser/*"
+        }
+)
+public class NewUserServlet extends AbstractPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(NewUserServlet.class);
 
     private static final String FIELD_PASSWORD1 = "password1";
@@ -86,7 +96,7 @@ public class NewUserServlet extends PwmServlet {
         Form,
     }
 
-    public enum NewUserAction implements PwmServlet.ProcessAction {
+    public enum NewUserAction implements AbstractPwmServlet.ProcessAction {
         profileChoice(HttpMethod.POST),
         checkProgress(HttpMethod.GET),
         complete(HttpMethod.GET),

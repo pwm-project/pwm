@@ -25,6 +25,7 @@ package password.pwm.config;
 import org.jdom2.Element;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
 import java.util.List;
@@ -37,13 +38,9 @@ public interface StoredValue extends Serializable {
 
     List<String> validateValue(PwmSetting pwm);
 
-    Serializable toDebugJsonObject(
-            Locale locale
-    );
+    Serializable toDebugJsonObject(Locale locale);
 
-    String toDebugString(
-            Locale locale
-    );
+    String toDebugString(Locale locale);
 
     boolean requiresStoredUpdate();
 
@@ -52,7 +49,7 @@ public interface StoredValue extends Serializable {
     interface StoredValueFactory {
         StoredValue fromJson(final String input);
 
-        StoredValue fromXmlElement(final Element settingElement, final String key)
+        StoredValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
                 throws PwmException;
     }
 

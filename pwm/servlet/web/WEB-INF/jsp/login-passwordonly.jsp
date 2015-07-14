@@ -44,7 +44,7 @@
                     <pwm:display key="Button_Login"/>
                 </button>
                 <input type="hidden" name="processAction" value="login">
-                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
@@ -52,6 +52,7 @@
     </div>
     <div class="push"></div>
 </div>
+<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

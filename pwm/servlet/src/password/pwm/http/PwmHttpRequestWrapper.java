@@ -22,10 +22,13 @@
 
 package password.pwm.http;
 
+import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
 import password.pwm.config.Configuration;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
@@ -34,11 +37,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
+import java.io.*;
 import java.util.*;
 
 public abstract class PwmHttpRequestWrapper {
@@ -71,36 +70,38 @@ public abstract class PwmHttpRequestWrapper {
         return readRequestBodyAsString(maxChars);
     }
 
-    public String readRequestBodyAsString(final int maxChars) 
-            throws IOException 
+    public String readRequestBodyAsString(final int maxChars)
+            throws IOException, PwmUnrecoverableException
     {
-        final int BUFFER_SIZE = 1024;
-        final StringBuilder inputData = new StringBuilder();
+        final StringWriter stringWriter = new StringWriter();
+        final Reader readerStream = new InputStreamReader(
+                getHttpServletRequest().getInputStream(),
+                PwmConstants.DEFAULT_CHARSET
+        );
+
         try {
-            final BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(
-                            this.getHttpServletRequest().getInputStream(), 
-                            Charset.forName("UTF8")
-                    )
-            );
-            final char[] charBuffer = new char[BUFFER_SIZE];
-            int bytesRead;
-            while ((bytesRead = reader.read(charBuffer)) > 0 && inputData.length() < maxChars) {
-                inputData.append(charBuffer, 0, bytesRead);
-            }
+            IOUtils.copy(readerStream, stringWriter);
         } catch (Exception e) {
-            LOGGER.error("error reading request body stream: " + e.getMessage());
+            final String errorMsg = "error reading request body stream: " + e.getMessage();
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
+        } finally {
+            IOUtils.closeQuietly(readerStream);
         }
-        return inputData.toString();
+
+        final String stringValue = stringWriter.toString();
+        if (stringValue.length() > maxChars) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"input request body is to big, size=" + stringValue.length() + ", max=" + maxChars));
+        }
+        return stringValue;
     }
 
     public Map<String, String> readBodyAsJsonStringMap()
             throws IOException, PwmUnrecoverableException {
         return readBodyAsJsonStringMap(false);
     }
-    
+
     public Map<String, String> readBodyAsJsonStringMap(boolean bypassInputValidation)
-            throws IOException, PwmUnrecoverableException 
+            throws IOException, PwmUnrecoverableException
     {
         final String bodyString = readRequestBodyAsString();
         final Map<String, String> inputMap = JsonUtil.deserializeStringMap(bodyString);
@@ -115,12 +116,12 @@ public abstract class PwmHttpRequestWrapper {
                 if (key != null) {
                     final boolean passwordType = key.toLowerCase().contains("password");
                     String value;
-                    value = bypassInputValidation 
+                    value = bypassInputValidation
                             ? inputMap.get(key)
                             : Validator.sanitizeInputValue(configuration, inputMap.get(key), maxLength);
                     value = passwordType && passwordTrim ? value.trim() : value;
                     value = !passwordType && trim ? value.trim() : value;
-                    
+
                     final String sanitizedName = Validator.sanitizeInputValue(configuration, key, maxLength);
                     outputMap.put(sanitizedName, value);
                 }
@@ -167,11 +168,11 @@ public abstract class PwmHttpRequestWrapper {
     }
 
     public PasswordData readParameterAsPassword(final String name)
-            throws PwmUnrecoverableException 
+            throws PwmUnrecoverableException
     {
         final int maxLength = Integer.parseInt(configuration.readAppProperty(AppProperty.HTTP_PARAM_MAX_READ_LENGTH));
         final boolean trim = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_INPUT_PASSWORD_TRIM));
-        
+
         final String rawValue = httpServletRequest.getParameter(name);
         if (rawValue != null && !rawValue.isEmpty()) {
             final String decodedValue = decodeStringToDefaultCharSet(rawValue);
@@ -231,8 +232,8 @@ public abstract class PwmHttpRequestWrapper {
     public List<String> readParameterAsStrings(
             final String name,
             final int maxLength
-    ) 
-            throws PwmUnrecoverableException 
+    )
+            throws PwmUnrecoverableException
     {
         final HttpServletRequest req = this.getHttpServletRequest();
         final boolean trim = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_INPUT_TRIM));

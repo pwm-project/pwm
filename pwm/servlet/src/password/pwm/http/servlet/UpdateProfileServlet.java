@@ -49,6 +49,7 @@ import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.*;
 
@@ -57,11 +58,18 @@ import java.util.*;
  *
  * @author Jason D. Rivard
  */
-public class UpdateProfileServlet extends PwmServlet {
+@WebServlet(
+        name="UpdateProfileServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PRIVATE + "/updateprofile",
+                PwmConstants.URL_PREFIX_PRIVATE + "/UpdateProfile"
+        }
+)
+public class UpdateProfileServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(UpdateProfileServlet.class);
 
-    public enum UpdateProfileAction implements PwmServlet.ProcessAction {
+    public enum UpdateProfileAction implements AbstractPwmServlet.ProcessAction {
         updateProfile(HttpMethod.POST),
         agree(HttpMethod.POST),
         confirm(HttpMethod.POST),

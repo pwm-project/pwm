@@ -30,7 +30,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.SecureEngine;
 
 import javax.net.ssl.*;
 import java.io.ByteArrayInputStream;
@@ -211,10 +211,10 @@ public abstract class X509Utils {
             throws CertificateEncodingException, PwmUnrecoverableException
     {
         return x509Certificate.toString()
-                + "\n:MD5 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()), PwmHashAlgorithm.MD5)
-                + "\n:SHA1 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()), PwmHashAlgorithm.SHA1)
-                + "\n:SHA2-256 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()), PwmHashAlgorithm.SHA256)
-                + "\n:SHA2-512 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()), PwmHashAlgorithm.SHA512);
+                + "\n:MD5 checksum: " + SecureEngine.hash(new ByteArrayInputStream(x509Certificate.getEncoded()), PwmHashAlgorithm.MD5)
+                + "\n:SHA1 checksum: " + SecureEngine.hash(new ByteArrayInputStream(x509Certificate.getEncoded()), PwmHashAlgorithm.SHA1)
+                + "\n:SHA2-256 checksum: " + SecureEngine.hash(new ByteArrayInputStream(x509Certificate.getEncoded()), PwmHashAlgorithm.SHA256)
+                + "\n:SHA2-512 checksum: " + SecureEngine.hash(new ByteArrayInputStream(x509Certificate.getEncoded()), PwmHashAlgorithm.SHA512);
 
 
     }

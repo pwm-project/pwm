@@ -25,6 +25,7 @@
 <%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.http.PwmURL" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%
     boolean includeHeader = false;
     boolean adminUser = false;
@@ -74,7 +75,7 @@
     <% } %>
     </div>
     <div class="header-warning-row header-warning-buttons">
-        <a class="header-warning-button" id="header_configManagerButton">
+        <a class="header-warning-button" id="header_configManagerButton" href="<pwm:url addContext="true" url="<%=PwmServletDefinition.ConfigManager.servletUrl()%>"/>">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-gears"></span></pwm:if>
             <pwm:display key="MenuItem_ConfigManager" bundle="Admin"/>
         </a>

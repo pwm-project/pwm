@@ -63,11 +63,6 @@
     </div>
     <div class="push"></div>
 </div>
-<form action="<pwm:url url='Helpdesk'/>" id="loadDetailsForm" name="loadDetailsForm" method="post" enctype="application/x-www-form-urlencoded">
-    <input type="hidden" name="processAction" value="detail"/>
-    <input type="hidden" name="userKey" id="userKey" value=""/>
-    <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-</form>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 <pwm:script-ref url="/public/resources/js/helpdesk.js"/>
 </body>

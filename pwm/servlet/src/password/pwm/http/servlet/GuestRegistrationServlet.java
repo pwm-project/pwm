@@ -60,6 +60,7 @@ import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -70,7 +71,15 @@ import java.util.*;
  *
  * @author Jason D. Rivard, Menno Pieters
  */
-public class GuestRegistrationServlet extends PwmServlet {
+
+@WebServlet(
+        name="GuestRegistrationServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PRIVATE + "/guestregistration",
+                PwmConstants.URL_PREFIX_PRIVATE + "/GuestRegistration",
+        }
+)
+public class GuestRegistrationServlet extends AbstractPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(GuestRegistrationServlet.class);
 
     public static final String HTTP_PARAM_EXPIRATION_DATE = "expirationDateFormInput";
@@ -81,7 +90,7 @@ public class GuestRegistrationServlet extends PwmServlet {
         
     }
 
-    public enum GuestRegistrationAction implements PwmServlet.ProcessAction {
+    public enum GuestRegistrationAction implements AbstractPwmServlet.ProcessAction {
         create,
         search,
         update,

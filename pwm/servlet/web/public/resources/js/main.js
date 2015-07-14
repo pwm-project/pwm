@@ -154,15 +154,6 @@ PWM_MAIN.initPage = function() {
         });
     });
 
-    if (PWM_MAIN.getObject('button_cancel')) {
-        PWM_MAIN.getObject('button_cancel').style.visibility = 'visible';
-        PWM_MAIN.addEventHandler('button_cancel', 'click', function () {
-            PWM_MAIN.showWaitDialog({loadFunction:function() {
-                PWM_MAIN.goto(PWM_GLOBAL['url-command'] + '?processAction=continue');
-            }});
-        });
-    }
-
     if (PWM_MAIN.getObject('ldapProfile')) {
         PWM_MAIN.addEventHandler('ldapProfile', 'click', function () {
             PWM_MAIN.updateLoginContexts()
@@ -232,8 +223,6 @@ PWM_MAIN.initPage = function() {
 
     ShowHidePasswordHandler.initAllForms();
 
-    PWM_MAIN.preloadResources();
-
     console.log('initPage completed');
 };
 
@@ -265,6 +254,16 @@ PWM_MAIN.applyFormAttributes = function() {
                 });
                 linkElement.removeAttribute('href');
             }
+        });
+    });
+
+    // handle html5 form attribute in JS in case browser (IE) doesn't support it.
+    PWM_MAIN.doQuery("button[type=submit][form]",function(element){
+        console.log('added event handler for submit button with form attribute ' + element.id);
+        PWM_MAIN.addEventHandler(element,'click',function(e){
+            PWM_MAIN.stopEvent(e);
+            var formID = element.getAttribute('form');
+            PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject(formID));
         });
     });
 };
@@ -609,75 +608,56 @@ PWM_MAIN.clearDijitWidget = function (widgetName) {
     });
 };
 
+
 PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
-    if (PWM_MAIN.getObject(attachNode) == null) {
-        return;
-    }
+    var localeData = PWM_GLOBAL['localeInfo'];
+    var localeIterator = function(f) {
+        for (var iter in localeData)
+            f(iter);
 
-    require(["dojo","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator","dojo/domReady!"],function(dojo,dijitMenu,dijitMenuItem,dijitMenuSeparator){
-        if(dojo.isIE <= 8){ // IE8 and below cant handle the css associated with the locale select menu
-            dojo.connect(PWM_MAIN.getObject(attachNode),"click",function(){
-                PWM_MAIN.goto("/public/localeselect.jsp");
-            });
-        } else {
+    };
 
-            for (var iter in PWM_GLOBAL['localeFlags']) {
-                (function(localeKey){
-                    var flagCode = PWM_GLOBAL['localeFlags'][localeKey];
-                    if (flagCode && flagCode.length > 0) {
-                        var cssBody = 'background-image: url(' + PWM_GLOBAL['url-context'] + '/public/resources/flags/png/' + flagCode + '.png)';
-                        var cssSelector = '.flagLang_' + localeKey;
-                        PWM_MAIN.createCSSClass(cssSelector, cssBody);
-                    }
-                })(iter);
+    var bodyHtml = '<div><table class="noborder" style="width:auto;margin-right:auto;margin-left:auto">';
+    localeIterator(function(localeKey){
+        var loopDisplayName = localeData[localeKey];
+        var flagCode = PWM_GLOBAL['localeFlags'][localeKey];
+        var flagUrl = PWM_GLOBAL['url-resources'] + '/flags/png/' + flagCode + '.png';
+        bodyHtml += '<tr style="cursor:pointer" id="locale-row-' + localeKey + '">';
+        bodyHtml += '<td><img src="' + flagUrl + '"/></td>';
+        bodyHtml += '<td>' + loopDisplayName + '</td>';
+        bodyHtml += '</tr>';
+    });
+    bodyHtml += '</table></div>';
+
+    PWM_MAIN.addEventHandler(attachNode,'click',function(){
+        PWM_MAIN.showDialog({
+            showClose:true,
+            showOk:false,
+            text:bodyHtml,
+            title:PWM_MAIN.showString('Title_LocaleSelect'),
+            loadFunction:function(){
+                localeIterator(function(localeKey) {
+                    PWM_MAIN.addEventHandler('locale-row-' + localeKey, 'click', function () {
+                        require(["dojo"], function (dojo) {
+                            var nextUrl = window.location.toString();
+                            if (window.location.toString().indexOf('?') > 0) {
+                                var params = dojo.queryToObject(window.location.search.substring(1, window.location.search.length));
+                                params['locale'] = localeKey;
+                                nextUrl = window.location.toString().substring(0, window.location.toString().indexOf('?') + 1)
+                                    + dojo.objectToQuery(params);
+                            } else {
+                                nextUrl = PWM_MAIN.addParamToUrl(nextUrl, 'locale', localeKey)
+                            }
+                            PWM_MAIN.goto(nextUrl);
+                        });
+                    });
+                });
             }
-
-
-            var localeData = PWM_GLOBAL['localeInfo'];
-            var pMenu = new dijitMenu({
-                targetNodeIds: [attachNode],
-                leftClickToOpen: true
-            });
-            pMenu.startup();
-
-            var loopFunction = function(pMenu, localeKey, localeDisplayName, localeIconClass) {
-                pMenu.addChild(new dijitMenuItem({
-                    label: localeDisplayName,
-                    iconClass: localeIconClass,
-                    onClick: function() {
-                        var nextUrl = window.location.toString();
-                        if (window.location.toString().indexOf('?') > 0) {
-                            var params = dojo.queryToObject(window.location.search.substring(1,window.location.search.length));
-                            params['locale'] = localeKey;
-                            nextUrl = window.location.toString().substring(0, window.location.toString().indexOf('?') + 1)
-                                + dojo.objectToQuery(params);
-                        } else {
-                            nextUrl = PWM_MAIN.addParamToUrl(nextUrl, 'locale', localeKey)
-                        }
-                        PWM_MAIN.goto(nextUrl);
-                    }
-                }));
-            };
-
-            for (var localeKey in localeData) {
-                var loopDisplayName = localeData[localeKey];
-                var loopIconClass = "flagLang_" + (localeKey == '' ? 'en' : localeKey);
-                var loopKey = localeKey == '' ? 'default' : localeKey;
-                loopFunction(pMenu, loopKey, loopDisplayName, loopIconClass);
-            }
-
-            pMenu.addChild(new dijitMenuSeparator());
-            pMenu.addChild(new dijitMenuItem({
-                label: PWM_MAIN.showString('Title_LocaleSelect'),
-                onClick: function() {
-                    PWM_MAIN.showWaitDialog({loadFunction:function() {
-                        window.location = PWM_GLOBAL['url-context'] + '/public/localeselect.jsp'
-                    }});
-                }
-            }));
-        }
+        });
     });
 };
+
+
 
 PWM_MAIN.showErrorDialog = function(error, options) {
     options = options === undefined ? {} : options;

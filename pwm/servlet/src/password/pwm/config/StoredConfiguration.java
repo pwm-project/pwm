@@ -40,7 +40,8 @@ import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.*;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.SecureEngine;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -123,11 +124,11 @@ public class StoredConfiguration implements Serializable {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static StoredConfiguration newStoredConfiguration() {
+    public static StoredConfiguration newStoredConfiguration() throws PwmUnrecoverableException {
         return new StoredConfiguration();
     }
 
-    public static StoredConfiguration copy(final StoredConfiguration input) {
+    public static StoredConfiguration copy(final StoredConfiguration input) throws PwmUnrecoverableException {
         final StoredConfiguration copy = new StoredConfiguration();
         copy.document = input.document.clone();
         return copy;
@@ -164,7 +165,7 @@ public class StoredConfiguration implements Serializable {
      * for that value so that the xml dom can be updated.
      * @param storedConfiguration stored configuration to check
      */
-    private static void checkIfXmlRequiresUpdate(final StoredConfiguration storedConfiguration) {
+    private static void checkIfXmlRequiresUpdate(final StoredConfiguration storedConfiguration) throws PwmUnrecoverableException {
         for (final PwmSetting setting : PwmSetting.values()) {
             if (setting.getSyntax() != PwmSettingSyntax.PROFILE && !setting.getCategory().hasProfiles()) {
                 final StoredValue value = storedConfiguration.readSetting(setting);
@@ -204,8 +205,7 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    public StoredConfiguration()
-    {
+    public StoredConfiguration() throws PwmUnrecoverableException {
         ConfigurationCleaner.cleanup(this);
         final String createTime = PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
         document.getRootElement().setAttribute(XML_ATTRIBUTE_CREATE_TIME,createTime);
@@ -676,7 +676,9 @@ public class StoredConfiguration implements Serializable {
 
     public StoredValue readSetting(final PwmSetting setting, final String profileID) {
         if (profileID == null && setting.getCategory().hasProfiles()) {
-            throw new IllegalArgumentException("reading of setting " + setting.getKey() + " requires a non-null profileID");
+            IllegalArgumentException e = new IllegalArgumentException("reading of setting " + setting.getKey() + " requires a non-null profileID");
+            LOGGER.error("error",e);
+            throw e;
         }
         if (profileID != null && !setting.getCategory().hasProfiles()) {
             throw new IllegalStateException("cannot read setting key " + setting.getKey() + " with non-null profileID");
@@ -757,8 +759,7 @@ public class StoredConfiguration implements Serializable {
             final PwmSetting setting,
             final StoredValue value,
             final UserIdentity userIdentity
-    )
-    {
+    ) throws PwmUnrecoverableException {
         writeSetting(setting, null, value, userIdentity);
     }
 
@@ -767,7 +768,7 @@ public class StoredConfiguration implements Serializable {
             final String profileID,
             final StoredValue value,
             final UserIdentity userIdentity
-    ) {
+    ) throws PwmUnrecoverableException {
         if (profileID == null && setting.getCategory().hasProfiles()) {
             throw new IllegalArgumentException("reading of setting " + setting.getKey() + " requires a non-null profileID");
         }
@@ -819,7 +820,7 @@ public class StoredConfiguration implements Serializable {
         }
 
 
-        final String result = SecureHelper.hash(sb.toString(), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
+        final String result = SecureEngine.hash(sb.toString(), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
         LOGGER.trace("computed setting checksum in " + TimeDuration.fromCurrent(startTime).asCompactString());
         return result;
     }
@@ -917,7 +918,7 @@ public class StoredConfiguration implements Serializable {
 
 
     private static class ConfigurationCleaner {
-        private static void cleanup(final StoredConfiguration configuration) {
+        private static void cleanup(final StoredConfiguration configuration) throws PwmUnrecoverableException {
             updateProperitiesWithoutType(configuration);
             updateMandatoryElements(configuration.document);
             profilizeNonProfiledSettings(configuration);
@@ -998,7 +999,7 @@ public class StoredConfiguration implements Serializable {
         }
 
 
-        private static void profilizeNonProfiledSettings(final StoredConfiguration storedConfiguration) {
+        private static void profilizeNonProfiledSettings(final StoredConfiguration storedConfiguration) throws PwmUnrecoverableException {
             final String NEW_PROFILE_NAME = "default";
             final Document document = storedConfiguration.document;
             for (final PwmSetting setting : PwmSetting.values()) {
@@ -1064,7 +1065,7 @@ public class StoredConfiguration implements Serializable {
             }
         }
 
-        private static void migrateAppProperties(final StoredConfiguration storedConfiguration) {
+        private static void migrateAppProperties(final StoredConfiguration storedConfiguration) throws PwmUnrecoverableException {
             final Document document = storedConfiguration.document;
             final XPathExpression xPathExpression = XPathBuilder.xpathForAppProperties();
             final List<Element> appPropertiesElements = (List<Element>)xPathExpression.evaluate(document);
@@ -1089,11 +1090,11 @@ public class StoredConfiguration implements Serializable {
             }
         }
 
-        private static void updateDeprecatedSettings(final StoredConfiguration storedConfiguration) {
+        private static void updateDeprecatedSettings(final StoredConfiguration storedConfiguration) throws PwmUnrecoverableException {
             final UserIdentity actor = new UserIdentity("UpgradeProcessor", null);
             for (final String profileID : storedConfiguration.profilesForSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY)) {
                 if (!storedConfiguration.isDefaultValue(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID)) {
-                    boolean ad2003Enabled = (boolean) storedConfiguration.readSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY).toNativeObject();
+                    boolean ad2003Enabled = (boolean) storedConfiguration.readSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY,profileID).toNativeObject();
                     final StoredValue value;
                     if (ad2003Enabled) {
                         value = new StringValue(ADPolicyComplexity.AD2003.toString());
@@ -1209,8 +1210,12 @@ public class StoredConfiguration implements Serializable {
         return changeLog.changeLogAsDebugString(locale, asHtml);
     }
 
-    public String getKey() {
-        return createTime() + StoredConfiguration.class.getSimpleName();
+    private PwmSecurityKey cachedKey = null;
+    public PwmSecurityKey getKey() throws PwmUnrecoverableException {
+        if (cachedKey == null) {
+            cachedKey = new PwmSecurityKey(createTime() + StoredConfiguration.class.getSimpleName());
+        }
+        return cachedKey;
     }
 
     public boolean isModified() {

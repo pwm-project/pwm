@@ -22,7 +22,6 @@
 
 package password.pwm.http.filter;
 
-import password.pwm.PwmConstants;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -30,11 +29,11 @@ import password.pwm.config.option.ApplicationPage;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Set;
 
@@ -118,26 +117,21 @@ public class CaptchaFilter extends AbstractPwmFilter {
     )
             throws IOException, PwmUnrecoverableException
     {
-        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final SessionStateBean sessionStateBean = pwmRequest.getPwmSession().getSessionStateBean();
 
-                // store the original requested url
+        // store the original requested url
         if (sessionStateBean.getPreCaptchaRequestURL() == null) {
-            final String urlToStore = req.getRequestURI() +
-                    (req.getQueryString() != null
-                            ? ('?' + req.getQueryString())
-                            : ""
-                    );
+            final String urlToStore = pwmRequest.getURLwithQueryString();
             sessionStateBean.setPreCaptchaRequestURL(urlToStore);
         }
 
-        final String captchaServletURL = req.getContextPath() + "/public/" + PwmConstants.URL_SERVLET_CAPTCHA;
-        pwmRequest.sendRedirect(captchaServletURL);
+        pwmRequest.sendRedirect(PwmServletDefinition.Captcha);
     }
 
     private boolean checkIfCaptchaEnabled(
             final PwmRequest pwmRequest
-    ) throws PwmUnrecoverableException
+    )
+            throws PwmUnrecoverableException
     {
         final Configuration config = pwmRequest.getPwmApplication().getConfig();
         final PasswordData privateKey = config.readSettingAsPassword(PwmSetting.RECAPTCHA_KEY_PRIVATE);

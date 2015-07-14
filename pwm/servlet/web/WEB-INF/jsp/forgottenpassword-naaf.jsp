@@ -23,6 +23,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ page import="password.pwm.RecoveryVerificationMethod" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="java.util.List" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
@@ -38,7 +39,7 @@
             final String instructions = (String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.ForgottenPasswordInstructions);
         %>
         <p><%=instructions%></p>
-        <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
+        <form action="<pwm:url url='<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>'/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br/>
             <% for (final RecoveryVerificationMethod.UserPrompt userPrompt : prompts) { %>
@@ -59,7 +60,6 @@
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <% } %>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
                 <input type="hidden" id="processAction" name="processAction" value="enterNaafResponse"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
@@ -72,7 +72,7 @@
     <script>
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.addEventHandler('button-goBack','click',function() {
-                PWM_MAIN.submitPostAction('ForgottenPassword', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
+                PWM_MAIN.submitPostAction('<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
             });
         });
     </script>

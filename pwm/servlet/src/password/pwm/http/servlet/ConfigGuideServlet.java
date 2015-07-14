@@ -54,6 +54,7 @@ import password.pwm.ws.server.rest.bean.HealthData;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,7 +63,14 @@ import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
-public class ConfigGuideServlet extends PwmServlet {
+
+@WebServlet(
+        name = "ConfigGuideServlet",
+        urlPatterns = {
+            PwmConstants.URL_PREFIX_PRIVATE + "/config/ConfigGuide"
+        }
+)
+public class ConfigGuideServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigGuideServlet.class.getName());
 
@@ -115,7 +123,7 @@ public class ConfigGuideServlet extends PwmServlet {
         }
     }
 
-    public enum ConfigGuideAction implements PwmServlet.ProcessAction {
+    public enum ConfigGuideAction implements AbstractPwmServlet.ProcessAction {
         ldapHealth(HttpMethod.GET),
         updateForm(HttpMethod.POST),
         gotoStep(HttpMethod.POST),

@@ -46,7 +46,7 @@ import password.pwm.event.HelpdeskAuditRecord;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.servlet.PwmServlet;
+import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
@@ -66,6 +66,7 @@ import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.*;
 
@@ -76,11 +77,19 @@ import java.util.*;
  *  @author BoAnSen
  *
  * */
-public class HelpdeskServlet extends PwmServlet {
+
+@WebServlet(
+        name="HelpdeskServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PRIVATE + "/helpdesk",
+                PwmConstants.URL_PREFIX_PRIVATE + "/Helpdesk",
+        }
+)
+public class HelpdeskServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(HelpdeskServlet.class);
 
-    public enum HelpdeskAction implements PwmServlet.ProcessAction {
+    public enum HelpdeskAction implements AbstractPwmServlet.ProcessAction {
         unlockIntruder(HttpMethod.POST),
         clearOtpSecret(HttpMethod.POST),
         search(HttpMethod.POST),

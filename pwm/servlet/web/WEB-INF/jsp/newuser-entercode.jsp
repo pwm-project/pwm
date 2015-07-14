@@ -53,7 +53,6 @@
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
                     <pwm:display key="Button_CheckCode"/>
                 </button>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
                 <button type="button" name="button-cancel" class="btn" id="button-cancel">

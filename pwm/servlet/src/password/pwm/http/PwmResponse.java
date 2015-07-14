@@ -118,13 +118,6 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         resp.getWriter().close();
     }
 
-    public void forwardToLoginPage()
-            throws IOException
-    {
-        final String loginServletURL = pwmRequest.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
-        sendRedirect(loginServletURL);
-    }
-
 
     public void writeEncryptedCookie(final String cookieName, final Serializable cookieValue, final String path)
             throws PwmUnrecoverableException

@@ -45,6 +45,7 @@ import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
@@ -57,10 +58,17 @@ import java.util.Map;
  *
  * @author Jason D. Rivard, Menno Pieters
  */
-public class SetupOtpServlet extends PwmServlet {
+@WebServlet(
+        name="SetupOtpServlet",
+        urlPatterns={
+                PwmConstants.URL_PREFIX_PRIVATE + "setupotp",
+                PwmConstants.URL_PREFIX_PRIVATE + "SetupOtp"
+        }
+)
+public class SetupOtpServlet extends AbstractPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SetupOtpServlet.class);
 
-    public enum SetupOtpAction implements PwmServlet.ProcessAction {
+    public enum SetupOtpAction implements AbstractPwmServlet.ProcessAction {
         clearOtp(HttpMethod.POST),
         testOtpSecret(HttpMethod.POST),
         toggleSeen(HttpMethod.POST),
@@ -413,29 +421,6 @@ public class SetupOtpServlet extends PwmServlet {
         return true;
     }
 
-    private static class AjaxValidationBean {
-
-        final private int version = 1;
-        private String message;
-        private boolean success;
-
-        private AjaxValidationBean(String message, boolean success) {
-            this.message = message;
-            this.success = success;
-        }
-
-        public int getVersion() {
-            return version;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public boolean isSuccess() {
-            return success;
-        }
-    }
 
     private void handleQrImageRequest(
             final PwmRequest pwmRequest,

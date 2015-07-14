@@ -35,14 +35,24 @@ import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 
-public class LogoutServlet extends PwmServlet {
+@WebServlet(
+        name="LogoutServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PUBLIC + "/logout",
+                PwmConstants.URL_PREFIX_PRIVATE+ "/logout",
+                PwmConstants.URL_PREFIX_PUBLIC + "/Logout",
+                PwmConstants.URL_PREFIX_PRIVATE+ "/Logout",
+        }
+)
+public class LogoutServlet extends AbstractPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LogoutServlet.class);
 
-    public enum LogoutAction implements PwmServlet.ProcessAction {
+    public enum LogoutAction implements AbstractPwmServlet.ProcessAction {
         showLogout,
         ;
 

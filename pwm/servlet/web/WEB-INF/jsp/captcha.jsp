@@ -68,9 +68,8 @@
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
                     <pwm:display key="Button_Verify"/>
                 </button>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
             </div>
         </form>
     </div>
@@ -87,6 +86,7 @@
         });
     </script>
 </pwm:script>
+<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

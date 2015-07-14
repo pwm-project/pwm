@@ -40,7 +40,7 @@ import password.pwm.util.otp.OTPUrlUtil;
 import password.pwm.util.otp.OTPUserRecord;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.SecureEngine;
 
 /**
  *
@@ -96,7 +96,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
     public String encryptAttributeValue(String unencrypted) throws PwmUnrecoverableException, PwmOperationalException {
         final PwmBlockAlgorithm pwmBlockAlgorithm = figureBlockAlg();
         final PwmSecurityKey pwmSecurityKey = pwmApplication.getConfig().getSecurityKey();
-        return SecureHelper.encryptToString(unencrypted, pwmSecurityKey, pwmBlockAlgorithm);
+        return SecureEngine.encryptToString(unencrypted, pwmSecurityKey, pwmBlockAlgorithm);
     }
 
     public PwmBlockAlgorithm figureBlockAlg() {
@@ -115,7 +115,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
     public String decryptAttributeValue(String encrypted) throws PwmUnrecoverableException, PwmOperationalException {
         final PwmBlockAlgorithm pwmBlockAlgorithm = figureBlockAlg();
         final PwmSecurityKey pwmSecurityKey = pwmApplication.getConfig().getSecurityKey();
-        return SecureHelper.decryptStringValue(encrypted, pwmSecurityKey, pwmBlockAlgorithm);
+        return SecureEngine.decryptStringValue(encrypted, pwmSecurityKey, pwmBlockAlgorithm);
     }
 
     /**

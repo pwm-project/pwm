@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmSecurityKey;
 
 public class ValueFactory {
 
@@ -52,7 +53,7 @@ public class ValueFactory {
         }
     }
 
-    public static StoredValue fromXmlValues(final PwmSetting setting, final Element settingElement, final String key)
+    public static StoredValue fromXmlValues(final PwmSetting setting, final Element settingElement, final PwmSecurityKey key)
             throws PwmUnrecoverableException, PwmOperationalException
     {
         try {

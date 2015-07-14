@@ -103,9 +103,8 @@
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:display key="Button_ChangePassword"/>
                 </button>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
-                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 <% } %>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </div>
@@ -120,6 +119,7 @@
     });
 </script>
 </pwm:script>
+<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <pwm:script-ref url="/public/resources/js/changepassword.js"/>
 <%@ include file="fragment/footer.jsp" %>
 </body>

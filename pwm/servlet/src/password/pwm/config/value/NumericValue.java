@@ -26,6 +26,7 @@ import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +46,7 @@ public class NumericValue extends AbstractValue implements StoredValue {
                 return new NumericValue(JsonUtil.deserialize(value, Long.class));
             }
 
-            public NumericValue fromXmlElement(final Element settingElement, final String input)
+            public NumericValue fromXmlElement(final Element settingElement, final PwmSecurityKey input)
             {
                 final Element valueElement = settingElement.getChild("value");
                 final String value = valueElement.getText();

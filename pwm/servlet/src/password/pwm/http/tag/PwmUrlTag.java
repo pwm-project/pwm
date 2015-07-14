@@ -29,7 +29,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.servlet.ResourceFileServlet;
 import password.pwm.util.Helper;
 import password.pwm.util.ServletHelper;
 
@@ -145,7 +144,7 @@ public class PwmUrlTag extends PwmAbstractTag {
 
     static String insertResourceNonce(final PwmApplication pwmApplication, final String urlString) {
         if (pwmApplication != null && urlString.contains(RESOURCE_URL)) {
-            final String nonce = ResourceFileServlet.makeResourcePathNonce(pwmApplication);
+            final String nonce = pwmApplication.getResourceServletService().getResourceNonce();
             if (nonce != null && nonce.length() > 0) {
                 return urlString.replaceFirst(RESOURCE_URL, RESOURCE_URL + nonce);
             }

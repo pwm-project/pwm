@@ -49,6 +49,8 @@ import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,14 +58,20 @@ import java.util.Collections;
 import java.util.List;
 
 
-public class CaptchaServlet extends PwmServlet {
+@WebServlet(
+        name="CaptchaServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PUBLIC + "/captcha",
+                PwmConstants.URL_PREFIX_PUBLIC + "/Captcha"
+        }
+)
+public class CaptchaServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(CaptchaServlet.class.getName());
 
-    private static final String SKIP_COOKIE_NAME = "captcha-key";
     private static final String COOKIE_SKIP_INSTANCE_VALUE = "INSTANCEID";
 
-    public enum CaptchaAction implements PwmServlet.ProcessAction {
+    public enum CaptchaAction implements AbstractPwmServlet.ProcessAction {
         doVerify,
         ;
 
@@ -87,11 +95,9 @@ public class CaptchaServlet extends PwmServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
         if (checkRequestForCaptchaSkipCookie(pwmRequest)) {
             pwmSession.getSessionStateBean().setPassedCaptcha(true);
-            LOGGER.debug(pwmSession, "browser has a valid " + SKIP_COOKIE_NAME + " cookie value of " + figureSkipCookieValue(pwmApplication) + ", skipping captcha check");
             forwardToOriginalLocation(pwmRequest);
             return;
         }
@@ -177,7 +183,7 @@ public class CaptchaServlet extends PwmServlet {
             final PwmHttpClient client = new PwmHttpClient(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel());
             final PwmHttpClientResponse clientResponse = client.makeRequest(clientRequest);
 
-            if (clientResponse.getStatusCode() != 200) {
+            if (clientResponse.getStatusCode() != HttpServletResponse.SC_OK) {
                 throw new PwmUnrecoverableException(new ErrorInformation(
                         PwmError.ERROR_CAPTCHA_API_ERROR,
                         "unexpected HTTP status code (" + clientResponse.getStatusCode() + ")"
@@ -225,7 +231,7 @@ public class CaptchaServlet extends PwmServlet {
             String destURL = ssBean.getPreCaptchaRequestURL();
             ssBean.setPreCaptchaRequestURL(null);
 
-            if (destURL == null || destURL.contains(PwmConstants.URL_SERVLET_LOGIN)) { // fallback, shouldn't need to be used.
+            if (pwmRequest.getURL().isLoginServlet()) { // fallback, shouldn't need to be used.
                 destURL = pwmRequest.getHttpServletRequest().getContextPath();
             }
 
@@ -240,27 +246,29 @@ public class CaptchaServlet extends PwmServlet {
     )
             throws PwmUnrecoverableException
     {
-        final String cookieValue = figureSkipCookieValue(pwmRequest.getPwmApplication());
+        final String cookieValue = figureSkipCookieValue(pwmRequest);
+        final int captchaSkipCookieLifetimeSeconds = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_AGE));
+        final String captchaSkipCookieName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME);
         if (cookieValue != null) {
             pwmRequest.getPwmResponse().writeCookie(
-                    SKIP_COOKIE_NAME,
+                    captchaSkipCookieName,
                     cookieValue,
-                    60 * 60 * 24 * 365,
+                    captchaSkipCookieLifetimeSeconds,
                     true
             );
         }
     }
 
-    private static String figureSkipCookieValue(final PwmApplication pwmApplication)
+    private static String figureSkipCookieValue(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException
     {
-        String cookieValue = pwmApplication.getConfig().readSettingAsString(PwmSetting.CAPTCHA_SKIP_COOKIE);
+        String cookieValue = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAPTCHA_SKIP_COOKIE);
         if (cookieValue == null || cookieValue.trim().length() < 1) {
             return null;
         }
 
         if (cookieValue.equals(COOKIE_SKIP_INSTANCE_VALUE)) {
-            cookieValue = pwmApplication.getInstanceID();
+            cookieValue = pwmRequest.getPwmApplication().getInstanceID();
         }
 
         return cookieValue != null && cookieValue.trim().length() > 0 ? cookieValue : null;
@@ -269,10 +277,12 @@ public class CaptchaServlet extends PwmServlet {
     private static boolean checkRequestForCaptchaSkipCookie(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException
     {
-        final String allowedSkipValue = figureSkipCookieValue(pwmRequest.getPwmApplication());
+        final String allowedSkipValue = figureSkipCookieValue(pwmRequest);
+        final String captchaSkipCookieName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME);
         if (allowedSkipValue != null) {
-            final String cookieValue = ServletHelper.readCookie(pwmRequest.getHttpServletRequest(), SKIP_COOKIE_NAME);
+            final String cookieValue = ServletHelper.readCookie(pwmRequest.getHttpServletRequest(), captchaSkipCookieName);
             if (allowedSkipValue.equals(cookieValue)) {
+                LOGGER.debug(pwmRequest, "browser has a valid " + captchaSkipCookieName+ " cookie value of " + figureSkipCookieValue(pwmRequest) + ", skipping captcha check");
                 return true;
             }
         }

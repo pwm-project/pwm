@@ -29,6 +29,7 @@ import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -50,7 +51,7 @@ public class BooleanValue implements StoredValue {
                 return new BooleanValue(JsonUtil.deserialize(value, Boolean.class));
             }
 
-            public BooleanValue fromXmlElement(final Element settingElement, final String input)
+            public BooleanValue fromXmlElement(final Element settingElement, final PwmSecurityKey input)
             {
                 final Element valueElement = settingElement.getChild("value");
                 final String value = valueElement.getText();

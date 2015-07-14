@@ -36,6 +36,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.servlet.OAuthConsumerServlet;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.PasswordChangeProgressChecker;
@@ -297,7 +298,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
         //user is not authenticated so forward to LoginPage.
         LOGGER.trace(pwmSession.getLabel(), "user requested resource requiring authentication (" + req.getRequestURI() + "), but is not authenticated; redirecting to LoginServlet");
-        pwmRequest.getPwmResponse().forwardToLoginPage();
+        pwmRequest.sendRedirect(PwmServletDefinition.Login);
     }
 
     public static void authUserUsingBasicHeader(
@@ -442,7 +443,11 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         if (pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
             if (!pwmURL.isChangePasswordURL()) {
                 LOGGER.debug(pwmRequest, "user is authenticated via forgotten password mechanism, redirecting to change password servlet");
-                pwmRequest.sendRedirect(pwmRequest.getHttpServletRequest().getContextPath() + "/public/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
+                pwmRequest.sendRedirect(
+                        pwmRequest.getContextPath()
+                                + PwmConstants.URL_PREFIX_PUBLIC
+                                + "/"
+                                + PwmServletDefinition.ChangePassword.servletUrlName());
                 return true;
             } else {
                 return false;
@@ -461,7 +466,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         if (uiBean.isRequiresResponseConfig()) {
             if (!pwmURL.isSetupResponsesURL()) {
                 LOGGER.debug(pwmRequest, "user is required to setup responses, redirecting to setup responses servlet");
-                pwmRequest.sendRedirect(pwmRequest.getHttpServletRequest().getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES);
+                pwmRequest.sendRedirect(PwmServletDefinition.SetupResponses);
                 return true;
             } {
                 return false;
@@ -471,7 +476,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         if (uiBean.isRequiresOtpConfig() && !pwmSession.getSessionStateBean().isSkippedOtpSetup()) {
             if (!pwmURL.isSetupOtpSecretURL()) {
                 LOGGER.debug(pwmRequest, "user is required to setup OTP configuration, redirecting to OTP setup page");
-                pwmRequest.sendRedirect(pwmRequest.getHttpServletRequest().getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_OTP_SECRET);
+                pwmRequest.sendRedirect(PwmServletDefinition.SetupOtp);
                 return true;
             } else {
                 return false;
@@ -481,7 +486,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         if (uiBean.isRequiresUpdateProfile()) {
             if (!pwmURL.isProfileUpdateURL()) {
                 LOGGER.debug(pwmRequest, "user is required to update profile, redirecting to profile update servlet");
-                pwmRequest.sendRedirect(pwmRequest.getHttpServletRequest().getContextPath() + "/private/" + PwmConstants.URL_SERVLET_UPDATE_PROFILE);
+                pwmRequest.sendRedirect(PwmServletDefinition.UpdateProfile);
                 return true;
             } else {
                 return false;
@@ -491,7 +496,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         if (uiBean.isRequiresNewPassword() && !pwmSession.getSessionStateBean().isSkippedRequireNewPassword()) {
             if (!pwmURL.isChangePasswordURL()) {
                 LOGGER.debug(pwmRequest, "user password requires changing, redirecting to change password servlet");
-                pwmRequest.sendRedirect(pwmRequest.getHttpServletRequest().getContextPath() + "/public/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
+                pwmRequest.sendRedirect(PwmServletDefinition.ChangePassword);
                 return true;
             } else {
                 return false;

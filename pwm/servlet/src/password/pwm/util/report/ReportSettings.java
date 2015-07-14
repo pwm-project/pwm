@@ -29,7 +29,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -131,6 +131,6 @@ class ReportSettings implements Serializable {
     public String getSettingsHash() 
             throws PwmUnrecoverableException 
     {
-        return SecureHelper.hash(JsonUtil.serialize(this), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
+        return SecureEngine.hash(JsonUtil.serialize(this), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
     }
 }

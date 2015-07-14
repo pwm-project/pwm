@@ -29,10 +29,7 @@ import password.pwm.config.SettingUIFunction;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.X509CertificateValue;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.PwmOperationalException;
+import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Message;
@@ -54,8 +51,7 @@ public class LdapCertImportFunction implements SettingUIFunction {
             PwmSetting setting,
             String profile
     )
-            throws PwmOperationalException
-    {
+            throws PwmOperationalException, PwmUnrecoverableException {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 

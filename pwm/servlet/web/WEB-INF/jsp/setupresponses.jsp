@@ -46,8 +46,7 @@
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:display key="Button_SetResponses"/>
                 </button>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
-                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
@@ -63,6 +62,7 @@
     </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/responses.js"/>
-<%@ include file="fragment/footer.jsp" %>
+<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
+4<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

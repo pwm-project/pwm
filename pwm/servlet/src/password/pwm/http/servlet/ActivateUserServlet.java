@@ -57,6 +57,7 @@ import password.pwm.util.stats.Statistic;
 import password.pwm.ws.client.rest.RestTokenDataClient;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.*;
 
@@ -65,13 +66,22 @@ import java.util.*;
  *
  * @author Jason D. Rivard
  */
-public class ActivateUserServlet extends PwmServlet {
+@WebServlet(
+        name="ActivateUserServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PUBLIC + "/activateuser",
+                PwmConstants.URL_PREFIX_PUBLIC + "/activateuser/*",
+                PwmConstants.URL_PREFIX_PUBLIC + "/ActivateUser",
+                PwmConstants.URL_PREFIX_PUBLIC + "/ActivateUser/*",
+        }
+)
+public class ActivateUserServlet extends AbstractPwmServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ActivateUserServlet.class);
     private static final String TOKEN_NAME = ActivateUserServlet.class.getName();
 
-    public enum ActivateUserAction implements PwmServlet.ProcessAction {
+    public enum ActivateUserAction implements AbstractPwmServlet.ProcessAction {
         activate(HttpMethod.POST),
         enterCode(HttpMethod.POST, HttpMethod.GET),
         reset(HttpMethod.POST),
@@ -352,7 +362,9 @@ public class ActivateUserServlet extends PwmServlet {
 
             //ensure a change password is triggered
             pwmSession.getLoginInfoBean().setAuthenticationType(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
+            pwmSession.getLoginInfoBean().getAuthenticationFlags().add(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
             pwmSession.getUserInfoBean().setRequiresNewPassword(true);
+
 
             // mark the event log
             pwmApplication.getAuditManager().submit(AuditEvent.ACTIVATE_USER, pwmSession.getUserInfoBean(), pwmSession);

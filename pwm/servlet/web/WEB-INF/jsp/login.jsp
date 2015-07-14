@@ -39,7 +39,7 @@
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <h2><label for="username"><pwm:display key="Field_Username"/></label></h2>
-            <input type="text" name="username" id="username" class="inputfield" <pwm:autofocus/> required="required">
+            <input type="text" name="username" id="username" class="inputfield" <pwm:autofocus/> required="required"/>
 
             <h2><label for="password"><pwm:display key="Field_Password"/></label></h2>
             <input type="<pwm:value name="passwordFieldType"/>" name="password" id="password" required="required" class="inputfield passwordfield"/>
@@ -49,10 +49,9 @@
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-in"></span></pwm:if>
                     <pwm:display key="Button_Login"/>
                 </button>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="processAction" value="login">
                 <pwm:if test="forwardUrlDefined">
-                    <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                    <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 </pwm:if>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
@@ -63,7 +62,7 @@
                 <pwm:if test="forgottenPasswordEnabled">
                     <tr style="border:0">
                         <td style="border:0" class="menubutton_key">
-                            <a class="menubutton" id="Title_ForgottenPassword" href="<pwm:context/><pwm:url url='/public/ForgottenPassword'/>">
+                            <a class="menubutton" id="Title_ForgottenPassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenPassword.servletUrl()%>'/>">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
                                 <pwm:display key="Title_ForgottenPassword"/>
                             </a>
@@ -117,6 +116,9 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:if test="forwardUrlDefined">
+    <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
+</pwm:if>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){

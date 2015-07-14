@@ -45,9 +45,8 @@
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:display key="Button_Update"/>
                 </button>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="processAction" value="updateProfile"/>
-                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
@@ -62,6 +61,7 @@
 </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/updateprofile.js"/>
+<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

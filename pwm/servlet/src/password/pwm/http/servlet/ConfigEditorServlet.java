@@ -53,16 +53,24 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.bean.HealthData;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
-public class ConfigEditorServlet extends PwmServlet {
+@WebServlet(
+        name = "ConfigEditorServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PRIVATE + "/config/ConfigEditor",
+                PwmConstants.URL_PREFIX_PRIVATE + "/config/ConfigEditor/*",
+        }
+)
+public class ConfigEditorServlet extends AbstractPwmServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigEditorServlet.class);
 
-    public enum ConfigEditorAction implements PwmServlet.ProcessAction {
+    public enum ConfigEditorAction implements AbstractPwmServlet.ProcessAction {
         readSetting(HttpMethod.POST),
         writeSetting(HttpMethod.POST),
         resetSetting(HttpMethod.POST),

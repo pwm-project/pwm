@@ -20,6 +20,7 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   -->
+
 <!--
   This file contains metadata about the PwmSetting java enum.  This file is not intended to be
   modified by administrators.  Any changes must match the compiled PwmSettings.java enum object.
@@ -160,11 +161,6 @@
     <setting key="display.showCancelButton" level="1" required="true">
         <default>
             <value>true</value>
-        </default>
-    </setting>
-    <setting key="display.showResetButton" level="1" required="true" hidden="true">
-        <default>
-            <value>false</value>
         </default>
     </setting>
     <setting key="display.showSuccessPage" level="1" required="true">

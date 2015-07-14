@@ -179,7 +179,7 @@ PWM_RESPONSES.initSimpleRandomElements = function() {
         PWM_MAIN.addEventHandler(element.id,"focusin",function(){
             PWM_VAR['focusInValues'][element.id] = element.selectedIndex;
         });
-        PWM_MAIN.addEventHandler(element.id,"click,blur",function(){
+        PWM_MAIN.addEventHandler(element.id,"click",function(){
             if (PWM_VAR['focusInValues'][element.id] != element.selectedIndex) {
                 var selectedIndex = element.selectedIndex;
                 var selectedValue = element.options[selectedIndex].value;
@@ -189,8 +189,15 @@ PWM_RESPONSES.initSimpleRandomElements = function() {
                     responseElement.value = '';
                     responseElement.disabled = false;
                     responseElement.readonly = false;
-                    responseElement.focus();
                     PWM_RESPONSES.makeSelectOptionsDistinct();
+
+                    require(["dojo/has"], function(has){
+                        // ios safari seems to behave poorly when moving the focus away from an open drop down list
+                        if(!has("ios") && !has("safari")){
+                            responseElement.focus();
+                        }
+                    });
+
                 }
             }
         });

@@ -3,7 +3,7 @@
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.X509Utils" %>
 <%@ page import="password.pwm.util.secure.PwmHashAlgorithm" %>
-<%@ page import="password.pwm.util.secure.SecureHelper" %>
+<%@ page import="password.pwm.util.secure.SecureEngine" %>
 <%@ page import="java.io.ByteArrayInputStream" %>
 <%@ page import="java.security.cert.X509Certificate" %>
 <%--
@@ -70,8 +70,8 @@
                     <div>
                         <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
                             <% int counter=0;for (X509Certificate certificate : configGuideBean.getLdapCertificates()) {%>
-                            <% final String md5sum = SecureHelper.hash(new ByteArrayInputStream(certificate.getEncoded()), PwmHashAlgorithm.MD5); %>
-                            <% final String sha1sum = SecureHelper.hash(new ByteArrayInputStream(certificate.getEncoded()), PwmHashAlgorithm.SHA1); %>
+                            <% final String md5sum = SecureEngine.hash(new ByteArrayInputStream(certificate.getEncoded()), PwmHashAlgorithm.MD5); %>
+                            <% final String sha1sum = SecureEngine.hash(new ByteArrayInputStream(certificate.getEncoded()), PwmHashAlgorithm.SHA1); %>
                             <table style="width:100%" id="table_certificate0">
                                 <tr><td colspan="2" class="key" style="text-align: center">
                                     Certificate <%=counter%>&nbsp;<a style="font-size: smaller" href="#" id="button-showCert_<%=md5sum%>">(details)</a>

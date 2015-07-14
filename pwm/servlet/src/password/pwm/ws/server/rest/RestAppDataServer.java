@@ -45,14 +45,13 @@ import password.pwm.event.UserAuditRecord;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.servlet.ResourceFileServlet;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.PwmHashAlgorithm;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.SecureEngine;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -370,7 +369,7 @@ public class RestAppDataServer extends AbstractRestServer {
         settingMap.put("url-context", contextPath);
         settingMap.put("url-logout", contextPath + "/public/Logout?idle=true");
         settingMap.put("url-command", contextPath + "/public/CommandServlet");
-        settingMap.put("url-resources", contextPath + "/public/resources" + ResourceFileServlet.makeResourcePathNonce(pwmApplication));
+        settingMap.put("url-resources", contextPath + "/public/resources" + pwmApplication.getResourceServletService().getResourceNonce());
         settingMap.put("url-restservice", contextPath + "/public/rest");
         settingMap.put("url-setupresponses",contextPath + "/private/SetupResponses");
 
@@ -474,6 +473,6 @@ public class RestAppDataServer extends AbstractRestServer {
             inputString.append(pwmSession.getLoginInfoBean().getLocalAuthTime());
         }
 
-        return SecureHelper.hash(inputString.toString(), PwmHashAlgorithm.SHA1).toLowerCase();
+        return SecureEngine.hash(inputString.toString(), PwmHashAlgorithm.SHA1).toLowerCase();
     }
 }

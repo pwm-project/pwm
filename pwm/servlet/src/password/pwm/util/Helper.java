@@ -561,7 +561,7 @@ public class
         }
 
         aboutMap.put(PwmAboutProperty.app_secureBlockAlgorithm,     pwmApplication.getSecureService().getDefaultBlockAlgorithm().getLabel());
-        aboutMap.put(PwmAboutProperty.app_secureHashAlgorithm,      pwmApplication.getSecureService().getDefaultHashAlorithm().toString());
+        aboutMap.put(PwmAboutProperty.app_secureHashAlgorithm,      pwmApplication.getSecureService().getDefaultHashAlgorithm().toString());
 
         aboutMap.put(PwmAboutProperty.app_wordlistSize,             Integer.toString(pwmApplication.getWordlistManager().size()));
         aboutMap.put(PwmAboutProperty.app_seedlistSize,             Integer.toString(pwmApplication.getSeedlistManager().size()));
@@ -662,5 +662,13 @@ public class
         }
 
         return defaultValue;
+    }
+
+    public static Properties newSortedProperties() {
+        return new Properties() {
+            public synchronized Enumeration<Object> keys() {
+                return Collections.enumeration(new TreeSet<>(super.keySet()));
+            }
+        };
     }
 }

@@ -46,7 +46,6 @@
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 
                 <% if (pwmRequest.getConfig().getNewUserProfiles().keySet().size() > 1) { %>

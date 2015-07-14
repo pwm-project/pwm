@@ -54,6 +54,7 @@ import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
@@ -66,11 +67,19 @@ import java.util.Map;
  *
  * @author Jason D. Rivard
  */
-public class SetupResponsesServlet extends PwmServlet {
+
+@WebServlet(
+        name="SetupResponsesServlet",
+        urlPatterns={
+                PwmConstants.URL_PREFIX_PRIVATE + "/setupresponses",
+                PwmConstants.URL_PREFIX_PRIVATE + "/SetupReponses",
+        }
+)
+public class SetupResponsesServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(SetupResponsesServlet.class);
 
-    public enum SetupResponsesAction implements PwmServlet.ProcessAction {
+    public enum SetupResponsesAction implements AbstractPwmServlet.ProcessAction {
         validateResponses(HttpMethod.POST),
         setResponses(HttpMethod.POST),
         setHelpdeskResponses(HttpMethod.POST),
@@ -211,7 +220,7 @@ public class SetupResponsesServlet extends PwmServlet {
             );
             pwmApplication.getAuditManager().submit(auditRecord);
 
-            pwmRequest.sendRedirect(pwmRequest.getHttpServletRequest().getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES);
+            pwmRequest.sendRedirect(PwmServletDefinition.SetupResponses.servletUrl());
         } catch (PwmOperationalException e) {
             LOGGER.debug(pwmSession, e.getErrorInformation());
             pwmRequest.setResponseError(e.getErrorInformation());

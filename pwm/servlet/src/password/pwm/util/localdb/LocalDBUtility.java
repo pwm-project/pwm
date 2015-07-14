@@ -222,7 +222,6 @@ public class LocalDBUtility {
                 final String value = record.get(2);
                 transactionMap.get(db).put(key, value);
                 int cachedTransactions = 0;
-                importLineCounter++;
                 for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
                     cachedTransactions += transactionMap.get(loopDB).size();
                 }
@@ -236,9 +235,9 @@ public class LocalDBUtility {
                 }
             }
         } finally {
-            LOGGER.trace("import process completed");;
-            if (csvReader != null) {csvReader.close();}
+            LOGGER.trace("import process completed");
             statTimer.cancel();
+            if (csvReader != null) {csvReader.close();}
         }
 
         for (final LocalDB.DB loopDB : LocalDB.DB.values()) {

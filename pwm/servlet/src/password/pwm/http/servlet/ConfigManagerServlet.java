@@ -53,10 +53,11 @@ import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.SecureEngine;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
@@ -66,7 +67,14 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class ConfigManagerServlet extends PwmServlet {
+@WebServlet(
+        name = "ConfigManagerServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PRIVATE + "/config/manager",
+                PwmConstants.URL_PREFIX_PRIVATE + "/config/ConfigManager"
+        }
+)
+public class ConfigManagerServlet extends AbstractPwmServlet {
     final static private PwmLogger LOGGER = PwmLogger.forClass(ConfigManagerServlet.class);
 
     public enum ConfigManagerAction implements ProcessAction {
@@ -287,13 +295,13 @@ public class ConfigManagerServlet extends PwmServlet {
             final PwmSecurityKey securityKey = pwmRequest.getConfig().getSecurityKey();
 
             if (PwmApplication.MODE.RUNNING == pwmRequest.getPwmApplication().getApplicationMode()) {
-                persistentLoginValue = SecureHelper.hash(
+                persistentLoginValue = SecureEngine.hash(
                         storedConfig.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH)
                                 + pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey(),
                         PwmHashAlgorithm.SHA512);
 
             } else {
-                persistentLoginValue = SecureHelper.hash(
+                persistentLoginValue = SecureEngine.hash(
                         storedConfig.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH),
                         PwmHashAlgorithm.SHA512);
             }
@@ -640,6 +648,7 @@ public class ConfigManagerServlet extends PwmServlet {
             ConfigurationDebugTextItemGenerator.class,
             AboutItemGenerator.class,
             EnvironmentItemGenerator.class,
+            AppPropertiesItemGenerator.class,
             AuditDebugItemGenerator.class,
             InfoDebugItemGenerator.class,
             HealthDebugItemGenerator.class,
@@ -747,7 +756,7 @@ public class ConfigManagerServlet extends PwmServlet {
                 outputProps.put(aboutProperty.toString().replace("_","."), infoBean.get(aboutProperty));
             }
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store(baos,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            outputProps.store(baos, PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
             outputStream.write(baos.toByteArray());
         }
     }
@@ -761,11 +770,7 @@ public class ConfigManagerServlet extends PwmServlet {
         @Override
         public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
         {
-            final Properties outputProps = new Properties() {
-                public synchronized Enumeration<Object> keys() {
-                    return Collections.enumeration(new TreeSet<>(super.keySet()));
-                }
-            };
+            final Properties outputProps = Helper.newSortedProperties();
 
             // java threads
             final Map<String,String> envProps = System.getenv();
@@ -778,6 +783,28 @@ public class ConfigManagerServlet extends PwmServlet {
         }
     }
 
+    static class AppPropertiesItemGenerator implements DebugItemGenerator {
+        @Override
+        public String getFilename() {
+            return "appProperties.properties";
+        }
+
+        @Override
+        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        {
+
+            final Configuration config = pwmRequest.getConfig();
+            final Properties outputProps = Helper.newSortedProperties();
+
+            for (final AppProperty appProperty : AppProperty.values()) {
+                outputProps.setProperty(appProperty.getKey(), config.readAppProperty(appProperty));
+            }
+
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            outputProps.store(baos,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            outputStream.write(baos.toByteArray());
+        }
+    }
 
     static class AuditDebugItemGenerator implements DebugItemGenerator {
         @Override

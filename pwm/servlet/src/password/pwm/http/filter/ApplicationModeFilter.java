@@ -30,6 +30,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -89,7 +90,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
                 return false;
             } else {
                 LOGGER.debug("unable to find a valid configuration, redirecting " + pwmURL + " to ConfigGuide");
-                pwmRequest.getPwmResponse().sendRedirect(pwmRequest.getContextPath() + "/private/config/" + PwmConstants.URL_SERVLET_CONFIG_GUIDE);
+                pwmRequest.sendRedirect(PwmServletDefinition.ConfigGuide);
                 return true;
             }
         }

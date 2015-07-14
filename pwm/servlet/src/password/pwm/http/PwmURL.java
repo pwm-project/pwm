@@ -23,6 +23,7 @@
 package password.pwm.http;
 
 import password.pwm.PwmConstants;
+import password.pwm.http.servlet.PwmServletDefinition;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
@@ -48,7 +49,7 @@ public class PwmURL {
     }
 
     public boolean isLoginServlet() {
-        return checkIfStartsWithURL("/private/" + PwmConstants.URL_SERVLET_LOGIN);
+        return isPwmServletURL(PwmServletDefinition.Login);
     }
 
     public boolean isResourceURL() {
@@ -60,45 +61,43 @@ public class PwmURL {
     }
 
     public boolean isLogoutURL() {
-        return checkIfStartsWithURL("/private/" + PwmConstants.URL_SERVLET_LOGOUT)
-                || checkIfStartsWithURL("/public/" + PwmConstants.URL_SERVLET_LOGOUT);
+        return isPwmServletURL(PwmServletDefinition.Logout);
     }
 
     public boolean isCaptchaURL() {
-        return checkIfStartsWithURL("/public/" + PwmConstants.URL_SERVLET_CAPTCHA);
+        return isPwmServletURL(PwmServletDefinition.Captcha);
     }
 
     public boolean isForgottenPasswordServlet() {
-        return checkIfStartsWithURL("/public/" + PwmConstants.URL_SERVLET_RECOVER_PASSWORD);
+        return isPwmServletURL(PwmServletDefinition.ForgottenPassword);
     }
 
     public boolean isForgottenUsernameServlet() {
-        return checkIfStartsWithURL("/public/" + PwmConstants.URL_SERVLET_RECOVER_USERNAME);
+        return isPwmServletURL(PwmServletDefinition.ForgottenUsername);
     }
 
     public boolean isUserActivationServlet() {
-        return checkIfStartsWithURL("/public/" + PwmConstants.URL_SERVLET_USER_ACTIVATION);
+        return isPwmServletURL(PwmServletDefinition.ActivateUser);
     }
 
     public boolean isNewUserRegistrationServlet() {
-        return checkIfStartsWithURL("/public/" + PwmConstants.URL_SERVLET_NEW_USER);
+        return isPwmServletURL(PwmServletDefinition.NewUser);
     }
 
     public boolean isOauthConsumer() {
-        return checkIfStartsWithURL("/public/" + PwmConstants.URL_SERVLET_OAUTH_CONSUMER);
+        return isPwmServletURL(PwmServletDefinition.OAuthConsumer);
     }
 
     public boolean isPrivateUrl() {
-        return checkIfStartsWithURL("/private/");
+        return checkIfStartsWithURL(PwmConstants.URL_PREFIX_PRIVATE + "/");
     }
 
     public boolean isPublicUrl() {
-        return checkIfStartsWithURL("/public/");
+        return checkIfStartsWithURL(PwmConstants.URL_PREFIX_PUBLIC + "/");
     }
 
     public boolean isCommandServletURL() {
-        return checkIfStartsWithURL("/private/" + PwmConstants.URL_SERVLET_COMMAND)
-                || checkIfStartsWithURL("/public/" + PwmConstants.URL_SERVLET_COMMAND);
+        return isPwmServletURL(PwmServletDefinition.Command);
     }
 
     public boolean isWebServiceURL() {
@@ -110,24 +109,27 @@ public class PwmURL {
     }
 
     public boolean isConfigGuideURL() {
-        return checkIfStartsWithURL("/private/config/" + PwmConstants.URL_SERVLET_CONFIG_GUIDE);
+        return isPwmServletURL(PwmServletDefinition.ConfigGuide);
+    }
+
+    public boolean isPwmServletURL(final PwmServletDefinition pwmServletDefinition) {
+        return checkIfStartsWithURL(pwmServletDefinition.urlPatterns());
     }
 
     public boolean isChangePasswordURL() {
-        return checkIfStartsWithURL("/private/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD,
-                "/public/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
+        return isPwmServletURL(PwmServletDefinition.ChangePassword);
     }
 
     public boolean isSetupResponsesURL() {
-        return checkIfStartsWithURL("/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES);
+        return isPwmServletURL(PwmServletDefinition.SetupResponses);
     }
 
     public boolean isSetupOtpSecretURL() {
-        return checkIfStartsWithURL("/private/" + PwmConstants.URL_SERVLET_SETUP_OTP_SECRET);
+        return isPwmServletURL(PwmServletDefinition.SetupOtp);
     }
 
     public boolean isProfileUpdateURL() {
-        return checkIfStartsWithURL("/private/" + PwmConstants.URL_SERVLET_UPDATE_PROFILE);
+        return isPwmServletURL(PwmServletDefinition.UpdateProfile);
     }
 
     public String toString() {

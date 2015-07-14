@@ -58,9 +58,6 @@ public class ServletHelper {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ServletHelper.class);
 
-
-
-
     public static String debugHttpHeaders(final HttpServletRequest req) {
         final StringBuilder sb = new StringBuilder();
 
@@ -83,29 +80,6 @@ public class ServletHelper {
         return sb.toString();
     }
 
-
-    public static String readRequestBody(final HttpServletRequest request)
-            throws IOException, PwmUnrecoverableException
-    {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-        final int maxChars = Integer.parseInt(
-                pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_BODY_MAXREAD_LENGTH));
-        return readRequestBody(request, maxChars);
-    }
-
-    public static String readRequestBody(final HttpServletRequest request, final int maxChars) throws IOException {
-        final StringBuilder inputData = new StringBuilder();
-        String line;
-        try {
-            final BufferedReader reader = request.getReader();
-            while (((line = reader.readLine()) != null) && inputData.length() < maxChars) {
-                inputData.append(line);
-            }
-        } catch (Exception e) {
-            LOGGER.error("error reading request body stream: " + e.getMessage());
-        }
-        return inputData.toString();
-    }
 
     public static void addPwmResponseHeaders(
             final PwmRequest pwmRequest,
@@ -172,7 +146,6 @@ public class ServletHelper {
                 resp.setHeader(PwmConstants.HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate, proxy-revalidate");
             }
 
-            //resp.setHeader("Content-Security-Policy","default-src 'self' 'unsafe-inline' 'unsafe-eval'");
             if (fromServlet && pwmSession != null) {
                 final String contentPolicy = pwmApplication.getConfig().readSettingAsString(PwmSetting.SECURITY_CSP_HEADER);
                 if (contentPolicy != null && !contentPolicy.isEmpty()) {
@@ -182,7 +155,19 @@ public class ServletHelper {
                 }
             }
 
-            resp.setHeader(PwmConstants.HttpHeader.Server,null);
+            final String instanceCookieName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_INSTANCE_GUID_NAME);
+            if (instanceCookieName != null && instanceCookieName.length() > 0) {
+                resp.writeCookie(
+                        instanceCookieName,
+                        pwmApplication.getInstanceNonce(),
+                        Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_INSTANCE_GUID_AGE)),
+                        true,
+                        pwmRequest.getContextPath()
+                );
+
+            }
+
+            resp.setHeader(PwmConstants.HttpHeader.Server, null);
         }
     }
 

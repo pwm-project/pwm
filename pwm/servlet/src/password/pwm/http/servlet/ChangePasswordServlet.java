@@ -62,6 +62,7 @@ import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.*;
 
@@ -70,12 +71,21 @@ import java.util.*;
  *
  * @author Jason D. Rivard.
  */
-public class ChangePasswordServlet extends PwmServlet {
-// ------------------------------ FIELDS ------------------------------
+
+@WebServlet(
+        name="ChangePasswordServlet",
+        urlPatterns={
+                PwmConstants.URL_PREFIX_PRIVATE + "/changepassword",
+                PwmConstants.URL_PREFIX_PUBLIC + "/changepassword",
+                PwmConstants.URL_PREFIX_PRIVATE + "/ChangePassword",
+                PwmConstants.URL_PREFIX_PUBLIC + "/ChangePassword"
+        }
+)
+public class ChangePasswordServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ChangePasswordServlet.class);
 
-    public enum ChangePasswordAction implements PwmServlet.ProcessAction {
+    public enum ChangePasswordAction implements AbstractPwmServlet.ProcessAction {
         checkProgress(HttpMethod.POST),
         complete(HttpMethod.GET),
         change(HttpMethod.POST),
@@ -387,7 +397,7 @@ public class ChangePasswordServlet extends PwmServlet {
             return;
         }
 
-        if (determineIfCurrentPasswordRequired(pwmApplication,pwmSession) && !changePasswordBean.isCurrentPasswordPassed()) {
+        if (determineIfCurrentPasswordRequired(pwmApplication, pwmSession) && !changePasswordBean.isCurrentPasswordPassed()) {
             forwardToFormPage(pwmRequest);
             return;
         }
@@ -638,10 +648,6 @@ public class ChangePasswordServlet extends PwmServlet {
     private boolean warnPageShouldBeShown(final PwmRequest pwmRequest, final ChangePasswordBean changePasswordBean) {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        if (pwmSession.getUserInfoBean().isRequiresNewPassword()) {
-            return false;
-        }
-
         if (!pwmSession.getUserInfoBean().getPasswordState().isWarnPeriod()) {
             return false;
         }
@@ -651,6 +657,10 @@ public class ChangePasswordServlet extends PwmServlet {
         }
 
         if (changePasswordBean.isWarnPassed()) {
+            return false;
+        }
+
+        if (pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationFlags().contains(AuthenticationType.AUTH_FROM_PUBLIC_MODULE)) {
             return false;
         }
 

@@ -38,14 +38,22 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.*;
 
-public class ShortcutServlet extends PwmServlet {
+@WebServlet(
+        name="ShortcutServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PRIVATE + "/shortcuts",
+                PwmConstants.URL_PREFIX_PRIVATE + "/Shortcuts",
+        }
+)
+public class ShortcutServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ShortcutServlet.class);
 
-    public enum ShortcutAction implements PwmServlet.ProcessAction {
+    public enum ShortcutAction implements AbstractPwmServlet.ProcessAction {
         selectShortcut,
         ;
 

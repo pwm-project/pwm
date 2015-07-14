@@ -23,6 +23,8 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -37,7 +39,7 @@
             String destination = fpb.getProgress().getTokenSentAddress();
         %>
         <p><pwm:display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
-        <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post"4
+        <form action="<pwm:url url='<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>'/>" method="post"
               enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>
@@ -48,29 +50,33 @@
                     <pwm:display key="Button_CheckCode"/>
                 </button>
                 <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ForgottenPasswordOptionalPageView))) { %>
-                <button type="button" id="button-goBack" name="button-goBack" class="btn" >
+                <button type="submit" id="button-goBack" name="button-goBack" class="btn" form="form-goBack">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <% } %>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
-                <input type="hidden" id="processAction" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.enterCode%>"/>
-                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-                <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
+                <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.enterCode%>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                <pwm:if test="showCancel">
+                    <button type="submit" name="button" class="btn" id="button-sendReset" form="form-cancel">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
+                        <pwm:display key="Button_Cancel"/>
+                    </button>
+                </pwm:if>
+
             </div>
         </form>
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script>
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('button-goBack','click',function() {
-                PWM_MAIN.submitPostAction('ForgottenPassword', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
-            });
-        });
-    </script>
-</pwm:script>
+<form id="form-goBack" action="<pwm:url url='<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>'/>" method="post">
+    <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>"/>
+    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+</form>
+<form id="form-cancel" action="<pwm:url url='<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>'/>" method="post">
+    <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
+    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+</form>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

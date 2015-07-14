@@ -39,6 +39,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,7 +53,14 @@ import java.util.Map;
  *
  * @author Jason D. Rivard
  */
-public class LoginServlet extends PwmServlet {
+@WebServlet(
+        name="LoginServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PRIVATE + "/login",
+                PwmConstants.URL_PREFIX_PRIVATE + "/Login"
+        }
+)
+public class LoginServlet extends AbstractPwmServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(LoginServlet.class.getName());

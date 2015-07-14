@@ -1,9 +1,10 @@
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -22,15 +23,10 @@
 
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<pwm:if test="showReset">
-  <button type="reset" class="btn" name="reset" id="button-resetForm">
-    <pwm:if test="showIcons"><span class="btn-icon fa fa-recycle"></span></pwm:if>
-    <pwm:display key="Button_Reset"/>
-  </button>
-  <pwm:script>
-    <script type="text/javascript">
-      PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.addEventHandler('button-resetForm','click',function(){ PWM_MAIN.handleFormClear();return false; });
-      });
-    </script></pwm:script>
+<pwm:if test="showCancel">
+<pwm:if test="forcedPageView" negate="true">
+  <form id="form-hidden-cancel" action="<pwm:url addContext="true" url='<%=PwmServletDefinition.Command.servletUrl()%>'/>" method="get">
+    <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="continue"/>
+  </form>
+</pwm:if>
 </pwm:if>

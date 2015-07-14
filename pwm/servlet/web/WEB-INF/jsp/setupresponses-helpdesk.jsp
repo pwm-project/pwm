@@ -51,7 +51,6 @@
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:display key="Button_SetResponses"/>
                 </button>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

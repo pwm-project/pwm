@@ -38,7 +38,7 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.SecureEngine;
 
 import java.util.Collections;
 import java.util.List;
@@ -195,7 +195,7 @@ public class UserCacheService implements PwmService {
         private static StorageKey fromUserGUID(final String userGUID)
                 throws PwmUnrecoverableException
         {
-            return new StorageKey(SecureHelper.md5sum(userGUID));
+            return new StorageKey(SecureEngine.md5sum(userGUID));
         }
     }
 

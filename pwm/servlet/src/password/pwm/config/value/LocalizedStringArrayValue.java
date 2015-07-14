@@ -29,6 +29,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -55,7 +56,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
                 }
             }
 
-            public LocalizedStringArrayValue fromXmlElement(final Element settingElement, final String key)
+            public LocalizedStringArrayValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
             {
                 final List valueElements = settingElement.getChildren("value");
                 final Map<String, List<String>> values = new TreeMap<>();

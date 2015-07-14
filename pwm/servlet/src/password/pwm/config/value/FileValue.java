@@ -32,7 +32,8 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.SecureEngine;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -97,13 +98,13 @@ public class FileValue extends AbstractValue implements StoredValue {
         public String md5sum()
                 throws PwmUnrecoverableException
         {
-            return SecureHelper.md5sum(new ByteArrayInputStream(contents));
+            return SecureEngine.md5sum(new ByteArrayInputStream(contents));
         }
 
         public String sha1sum()
                 throws PwmUnrecoverableException
         {
-            return SecureHelper.hash(new ByteArrayInputStream(contents), PwmHashAlgorithm.SHA1);
+            return SecureEngine.hash(new ByteArrayInputStream(contents), PwmHashAlgorithm.SHA1);
         }
 
         public int size()
@@ -121,7 +122,7 @@ public class FileValue extends AbstractValue implements StoredValue {
     {
         return new StoredValueFactory() {
 
-            public FileValue fromXmlElement(Element settingElement, final String input)
+            public FileValue fromXmlElement(Element settingElement, final PwmSecurityKey input)
                     throws PwmOperationalException
             {
                 final List valueElements = settingElement.getChildren("value");
@@ -250,6 +251,6 @@ public class FileValue extends AbstractValue implements StoredValue {
 
     @Override
     public String valueHash() throws PwmUnrecoverableException {
-        return SecureHelper.hash(JsonUtil.serializeCollection(toInfoMap()), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
+        return SecureEngine.hash(JsonUtil.serializeCollection(toInfoMap()), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
     }
 }

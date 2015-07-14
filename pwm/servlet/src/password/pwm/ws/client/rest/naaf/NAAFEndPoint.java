@@ -1,3 +1,25 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://code.google.com/p/pwm/
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2015 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package password.pwm.ws.client.rest.naaf;
 
 import password.pwm.AppProperty;
@@ -16,7 +38,7 @@ import password.pwm.util.ServletHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmRandom;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
@@ -62,9 +84,9 @@ public class NAAFEndPoint {
     {
         LOGGER.debug("establishing endpoint connection to " + endpointURL);
         final String m1 = id + salt;
-        final String m1Hash = SecureHelper.hash(m1, PwmHashAlgorithm.SHA256).toLowerCase();
+        final String m1Hash = SecureEngine.hash(m1, PwmHashAlgorithm.SHA256).toLowerCase();
         final String m2 = secret + m1Hash;
-        final String m2Hash = SecureHelper.hash(m2, PwmHashAlgorithm.SHA256).toLowerCase();
+        final String m2Hash = SecureEngine.hash(m2, PwmHashAlgorithm.SHA256).toLowerCase();
 
         final HashMap<String, Object> initConnectMap = new HashMap<>();
         initConnectMap.put("salt", salt);

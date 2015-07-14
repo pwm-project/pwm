@@ -31,7 +31,8 @@ import password.pwm.util.StringUtil;
 import password.pwm.util.X509Utils;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.SecureEngine;
 
 import java.io.ByteArrayInputStream;
 import java.io.Serializable;
@@ -46,7 +47,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
 
     public static StoredValueFactory factory() {
         return new StoredValueFactory() {
-            public X509CertificateValue fromXmlElement(final Element settingElement, final String key) {
+            public X509CertificateValue fromXmlElement(final Element settingElement, final PwmSecurityKey key) {
                 final List<X509Certificate> certificates = new ArrayList<>();
                 final List<Element> valueElements = settingElement.getChildren("value");
                 for (final Element loopValueElement : valueElements) {
@@ -124,9 +125,9 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
                 sb.append(" IssueDate: ").append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(cert.getNotBefore())).append("\n");
                 sb.append(" ExpireDate: ").append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(cert.getNotAfter())).append("\n");
                 try {
-                    sb.append(" MD5 Hash: ").append(SecureHelper.hash(new ByteArrayInputStream(cert.getEncoded()),
+                    sb.append(" MD5 Hash: ").append(SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()),
                             PwmHashAlgorithm.MD5)).append("\n");
-                    sb.append(" SHA1 Hash: ").append(SecureHelper.hash(new ByteArrayInputStream(cert.getEncoded()),
+                    sb.append(" SHA1 Hash: ").append(SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()),
                             PwmHashAlgorithm.SHA1)).append("\n");
                 } catch (PwmUnrecoverableException | CertificateEncodingException e) {
                     LOGGER.warn("error generating hash for certificate: " + e.getMessage());
@@ -160,11 +161,11 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
         map.put("issueDate",cert.getNotBefore());
         map.put("expireDate",cert.getNotAfter());
         try {
-            map.put("md5Hash", SecureHelper.hash(new ByteArrayInputStream(cert.getEncoded()),
+            map.put("md5Hash", SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()),
                     PwmHashAlgorithm.MD5));
-            map.put("sha1Hash", SecureHelper.hash(new ByteArrayInputStream(cert.getEncoded()),
+            map.put("sha1Hash", SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()),
                     PwmHashAlgorithm.SHA1));
-            map.put("sha512Hash", SecureHelper.hash(new ByteArrayInputStream(cert.getEncoded()),
+            map.put("sha512Hash", SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()),
                     PwmHashAlgorithm.SHA512));
             if (includeDetail) {
                 map.put("detail",X509Utils.makeDetailText(cert));

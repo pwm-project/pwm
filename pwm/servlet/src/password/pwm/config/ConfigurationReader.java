@@ -63,7 +63,7 @@ public class ConfigurationReader {
 
     private volatile boolean saveInProgress;
 
-    public ConfigurationReader(final File configFile) {
+    public ConfigurationReader(final File configFile) throws PwmUnrecoverableException {
         this.configFile = configFile;
 
         this.configFileChecksum = readFileChecksum(configFile);
@@ -90,7 +90,7 @@ public class ConfigurationReader {
         return storedConfiguration;
     }
 
-    public Configuration getConfiguration() {
+    public Configuration getConfiguration() throws PwmUnrecoverableException {
         if (configuration == null) {
             configuration = new Configuration(this.storedConfiguration == null ? StoredConfiguration.newStoredConfiguration() : this.storedConfiguration);
             storedConfiguration.lock();

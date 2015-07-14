@@ -38,6 +38,7 @@ import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditManager;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.health.HealthMonitor;
+import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.ldap.LdapConnectionService;
 import password.pwm.token.TokenService;
 import password.pwm.util.Helper;
@@ -113,6 +114,7 @@ public class PwmApplication {
 
 
     private String instanceID = DEFAULT_INSTANCE_ID;
+    private String instanceNonce = PwmRandom.getInstance().randomUUID().toString();
     private final Configuration configuration;
 
     private LocalDB localDB;
@@ -149,7 +151,8 @@ public class PwmApplication {
             ReportService.class,
             CrService.class,
             OtpService.class,
-            CacheService.class
+            CacheService.class,
+            ResourceServletService.class
     ));
 
 
@@ -436,6 +439,10 @@ public class PwmApplication {
         return (LdapConnectionService)pwmServices.get(LdapConnectionService.class);
     }
 
+    public ResourceServletService getResourceServletService() {
+        return (ResourceServletService)pwmServices.get(ResourceServletService.class);
+    }
+
     public Configuration getConfig() {
         if (configuration == null) {
             return null;
@@ -652,7 +659,7 @@ public class PwmApplication {
     }
 
     public String getInstanceNonce() {
-        return Long.toString(getStartupTime().getTime(),36);
+        return instanceNonce;
     }
 
     public String readAppAttribute(final AppAttribute appAttribute) {

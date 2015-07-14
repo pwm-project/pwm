@@ -56,7 +56,7 @@
             <form action="<pwm:context/>/public/<pwm:url url='ActivateUser'/>" method="post"
                   enctype="application/x-www-form-urlencoded" style="display: inline;">
                 <input type="hidden" name="processAction" value="reset"/>
-                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>
@@ -82,6 +82,7 @@
         });
     </script>
 </pwm:script>
+<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

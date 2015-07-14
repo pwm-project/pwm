@@ -28,6 +28,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.*;
 
@@ -55,7 +56,7 @@ public class OptionListValue extends AbstractValue  implements StoredValue {
                 }
             }
 
-            public OptionListValue fromXmlElement(Element settingElement, final String key)
+            public OptionListValue fromXmlElement(Element settingElement, final PwmSecurityKey key)
                     throws PwmOperationalException
             {
                 final List valueElements = settingElement.getChildren("value");

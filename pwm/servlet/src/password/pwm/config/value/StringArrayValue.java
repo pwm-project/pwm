@@ -27,6 +27,7 @@ import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -56,7 +57,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue {
                 }
             }
 
-            public StringArrayValue fromXmlElement(final Element settingElement, final String key)
+            public StringArrayValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
             {
                 final List valueElements = settingElement.getChildren("value");
                 final List<String> values = new ArrayList<>();

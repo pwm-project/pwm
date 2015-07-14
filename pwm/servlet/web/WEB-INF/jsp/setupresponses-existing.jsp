@@ -70,7 +70,7 @@
                 <input type="hidden" name="processAction" value="clearExisting"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+            <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
         </div>
     </div>
     <div class="push"></div>
@@ -87,6 +87,7 @@
     }
 </script>
 </pwm:script>
+<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

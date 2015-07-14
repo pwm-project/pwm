@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ import password.pwm.util.ClosableIterator;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.SecureEngine;
 
 class RecordManagerImpl implements RecordManager {
     private static final PwmLogger LOGGER = PwmLogger.forClass(RecordManagerImpl.class);
@@ -135,7 +135,7 @@ class RecordManagerImpl implements RecordManager {
     private String makeKey(final String subject) throws PwmOperationalException {
         final String md5sum;
         try {
-            md5sum = SecureHelper.md5sum(subject);
+            md5sum = SecureEngine.md5sum(subject);
         } catch (PwmUnrecoverableException e) {
             throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"error generating md5sum for intruder record: " + e.getMessage());
         }

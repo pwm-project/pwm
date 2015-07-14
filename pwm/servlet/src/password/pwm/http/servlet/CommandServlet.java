@@ -39,6 +39,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.Date;
 
@@ -47,7 +48,23 @@ import java.util.Date;
  *
  * @author Jason D. Rivard
  */
-public class CommandServlet extends PwmServlet {
+
+@WebServlet(
+        name="CommandServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PUBLIC + "/command",
+                PwmConstants.URL_PREFIX_PRIVATE + "/command",
+                PwmConstants.URL_PREFIX_PUBLIC + "/command/*",
+                PwmConstants.URL_PREFIX_PRIVATE + "/command/*",
+                PwmConstants.URL_PREFIX_PUBLIC + "/CommandServlet",
+                PwmConstants.URL_PREFIX_PRIVATE + "/CommandServlet",
+                PwmConstants.URL_PREFIX_PUBLIC + "/CommandServlet/*",
+                PwmConstants.URL_PREFIX_PRIVATE + "/CommandServlet/*",
+        }
+)
+
+
+public class CommandServlet extends AbstractPwmServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(CommandServlet.class);
@@ -133,7 +150,7 @@ public class CommandServlet extends PwmServlet {
             final boolean forceLogoutOnChange = config.readSettingAsBoolean(PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE);
             if (forceLogoutOnChange && pwmSession.getSessionStateBean().isPasswordModified()) {
                 LOGGER.trace(pwmSession, "logging out user; password has been modified");
-                pwmRequest.sendRedirect(PwmConstants.URL_SERVLET_LOGOUT);
+                pwmRequest.sendRedirect(PwmServletDefinition.Logout);
                 return;
             }
         }
@@ -223,7 +240,7 @@ public class CommandServlet extends PwmServlet {
             }
 
             if (pwmRequest.getPwmSession().getUserInfoBean().isRequiresUpdateProfile()) {
-                pwmRequest.sendRedirect(PwmConstants.URL_SERVLET_UPDATE_PROFILE);
+                pwmRequest.sendRedirect(PwmServletDefinition.UpdateProfile);
             } else {
                 redirectToForwardURL(pwmRequest);
             }
@@ -253,7 +270,7 @@ public class CommandServlet extends PwmServlet {
             }
 
             if (pwmRequest.getPwmSession().getUserInfoBean().isRequiresResponseConfig()) {
-                pwmRequest.sendRedirect(PwmConstants.URL_SERVLET_SETUP_RESPONSES);
+                pwmRequest.sendRedirect(PwmServletDefinition.SetupResponses);
             } else {
                 redirectToForwardURL(pwmRequest);
             }
@@ -270,7 +287,7 @@ public class CommandServlet extends PwmServlet {
 
             final PwmSession pwmSession = pwmRequest.getPwmSession();
             if (pwmSession.getUserInfoBean().isRequiresNewPassword() && !pwmSession.getSessionStateBean().isSkippedRequireNewPassword()) {
-                pwmRequest.sendRedirect(PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
+                pwmRequest.sendRedirect(PwmServletDefinition.ChangePassword.servletUrlName());
             } else {
                 redirectToForwardURL(pwmRequest);
             }

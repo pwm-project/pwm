@@ -30,6 +30,7 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.*;
 
@@ -60,7 +61,7 @@ public class FormValue extends AbstractValue implements StoredValue {
                 }
             }
 
-            public FormValue fromXmlElement(Element settingElement, final String key)
+            public FormValue fromXmlElement(Element settingElement, final PwmSecurityKey key)
                     throws PwmOperationalException
             {
                 final boolean oldType = PwmSettingSyntax.LOCALIZED_STRING_ARRAY.toString().equals(

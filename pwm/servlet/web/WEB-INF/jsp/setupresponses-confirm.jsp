@@ -83,13 +83,14 @@
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <input type="hidden" name="processAction" value="changeResponses"/>
-                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>
     </div>
     <div class="push"></div>
 </div>
+<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

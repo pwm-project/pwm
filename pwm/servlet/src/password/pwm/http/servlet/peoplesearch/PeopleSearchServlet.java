@@ -37,7 +37,7 @@ import password.pwm.config.UserPermission;
 import password.pwm.error.*;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.servlet.PwmServlet;
+import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.ldap.*;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
@@ -50,6 +50,7 @@ import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -58,7 +59,16 @@ import java.io.Serializable;
 import java.net.URLConnection;
 import java.util.*;
 
-public class PeopleSearchServlet extends PwmServlet {
+@WebServlet(
+        name="PeopleSearchServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PRIVATE + "/peoplesearch",
+                PwmConstants.URL_PREFIX_PUBLIC + "/peoplesearch",
+                PwmConstants.URL_PREFIX_PRIVATE + "/PeopleSearch",
+                PwmConstants.URL_PREFIX_PUBLIC + "/PeopleSearch",
+        }
+)
+public class PeopleSearchServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PeopleSearchServlet.class);
 
@@ -779,8 +789,8 @@ public class PeopleSearchServlet extends PwmServlet {
         orgChartReferenceBean.setUserKey(userIdentity.toObfuscatedKey(pwmRequest.getPwmApplication()));
         orgChartReferenceBean.setPhotoURL(figurePhotoURL(pwmRequest, userIdentity));
 
-            final List<String> displayLabels = figureDisplaynames(pwmRequest, userIdentity);
-            orgChartReferenceBean.setDisplayNames(displayLabels);
+        final List<String> displayLabels = figureDisplaynames(pwmRequest, userIdentity);
+        orgChartReferenceBean.setDisplayNames(displayLabels);
 
         orgChartReferenceBean.setHasMoreNodes(false);
         try {
@@ -878,7 +888,7 @@ public class PeopleSearchServlet extends PwmServlet {
                     && !getPhotoAttribute().isEmpty())
                     ||
                     (getPhotoUrlOverride() != null
-                    && !getPhotoUrlOverride().isEmpty());
+                            && !getPhotoUrlOverride().isEmpty());
         }
 
         public boolean orgChartIsEnabled() {

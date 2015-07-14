@@ -32,6 +32,7 @@ import password.pwm.config.UserPermission;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,7 +66,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
                 }
             }
 
-            public UserPermissionValue fromXmlElement(Element settingElement, final String key)
+            public UserPermissionValue fromXmlElement(Element settingElement, final PwmSecurityKey key)
                     throws PwmOperationalException
             {
                 final boolean newType = "2".equals(

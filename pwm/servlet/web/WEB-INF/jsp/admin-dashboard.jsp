@@ -25,7 +25,6 @@
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.health.HealthRecord" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.servlet.ResourceFileServlet" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
@@ -645,8 +644,8 @@
                             ResourceFileServlet Cache
                         </td>
                         <td>
-                            <%= numberFormat.format(ResourceFileServlet.itemsInCache(session.getServletContext())) %> items
-                            (<%= numberFormat.format(ResourceFileServlet.bytesInCache(session.getServletContext())) %> bytes)
+                            <%= numberFormat.format(dashboard_pwmApplication.getResourceServletService().itemsInCache()) %> items
+                            (<%= numberFormat.format(dashboard_pwmApplication.getResourceServletService().bytesInCache()) %> bytes)
                         </td>
                     </tr>
                     <tr>
@@ -654,7 +653,7 @@
                             ResourceFileServlet Cache Hit Ratio
                         </td>
                         <td>
-                            <%= ResourceFileServlet.cacheHitRatio(session.getServletContext()).pretty(2) %>
+                            <%= dashboard_pwmApplication.getResourceServletService().cacheHitRatio().pretty(2) %>
                         </td>
                     </tr>
                     <% Map<ContextManager.DebugKey,String> debugInfoMap = ContextManager.getContextManager(session).getDebugData(); %>

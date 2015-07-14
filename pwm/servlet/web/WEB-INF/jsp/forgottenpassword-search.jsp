@@ -1,3 +1,5 @@
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -32,7 +34,7 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:display key="Display_ForgottenPassword"/></p>
-        <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded"
+        <form action="<pwm:url url='<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>'/>" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm" class="pwm-form" id="searchForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
@@ -40,19 +42,27 @@
             <jsp:include page="fragment/form.jsp"/>
 
             <div class="buttonbar">
-                <input type="hidden" name="processAction" value="search"/>
+                <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.search%>"/>
                 <button type="submit" class="btn" name="search" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-search"></span></pwm:if>
                     <pwm:display key="Button_Search"/>
                 </button>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
-                <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
+                <pwm:if test="showCancel">
+                    <button type="submit" name="button" class="btn" id="button-cancelButton" form="form-cancelButton">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
+                        <pwm:display key="Button_Cancel"/>
+                    </button>
+                </pwm:if>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
     </div>
     <div class="push"></div>
 </div>
+<form id="form-cancelButton" action="<pwm:url url='<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>'/>" method="post">
+    <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
+    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+</form>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

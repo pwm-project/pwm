@@ -300,13 +300,19 @@
                             <tr><td><b>Template</b></td><td><b>Value</b></td></tr>
                             </thead>
                             <tbody>
-                            <% for (final PwmSettingTemplate template : defaultValues.keySet()) { %>
-                            <tr><td><%=template.toString()%></td><td><pre><%=StringUtil.escapeHtml(defaultValues.get(template))%></pre></td></tr>
+                            <%
+                                for (final PwmSettingTemplate template : defaultValues.keySet()) {
+                                    final String defaultValue = defaultValues.values().iterator().next();
+                            %>
+                            <tr><td><%=template.toString()%></td><td><pre><%=defaultValue == null ? "" : StringUtil.escapeHtml(defaultValue)%></pre></td></tr>
                             <% } %>
                             </tbody>
                         </table>
-                        <% } else if (defaultValues.size() == 1) { %>
-                        <pre><%=StringUtil.escapeHtml(defaultValues.values().iterator().next())%></pre>
+                        <%
+                        } else if (defaultValues.size() == 1) {
+                            final String defaultValue = defaultValues.values().iterator().next();
+                        %>
+                        <pre><%=defaultValue == null ? "" : StringUtil.escapeHtml(defaultValue)%></pre>
                         <% } %>
                     </td>
                 </tr>

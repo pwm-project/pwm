@@ -99,7 +99,9 @@ public class PwmHttpResponseWrapper {
 
     public void writeCookie(final String cookieName, final String cookieValue, final int seconds, final boolean httpOnly, final String path) {
         final Cookie theCookie = new Cookie(cookieName, StringUtil.urlEncode(cookieValue));
-        theCookie.setMaxAge(seconds);
+        if (seconds > 0) {
+            theCookie.setMaxAge(seconds);
+        }
         theCookie.setHttpOnly(httpOnly);
         if (path != null) {
             theCookie.setPath(path);

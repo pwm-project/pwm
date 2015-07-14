@@ -511,7 +511,7 @@
                 </td>
                 <td style="border:0; width: 200px; max-width:200px; text-align: left; vertical-align: top">
                     <div style="border:0; margin-top: 25px; margin-left: 5px">
-                        <button name="button_continue" class="helpdesk-detail-btn btn" id="button_continue">
+                        <button name="button_continue" class="helpdesk-detail-btn btn" id="button_continue" autofocus>
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                             <pwm:display key="Button_GoBack"/>
                         </button>

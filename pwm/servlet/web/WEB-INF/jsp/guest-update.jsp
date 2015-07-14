@@ -85,8 +85,7 @@
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="update"/>
                 <input type="submit" name="Update" class="btn" value="<pwm:display key="Button_Update"/>" id="submitBtn"/>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
-                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
@@ -100,6 +99,7 @@
     });
 </script>
 </pwm:script>
+<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

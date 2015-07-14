@@ -47,13 +47,22 @@ import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.*;
 
-public class ForgottenUsernameServlet extends PwmServlet {
+@WebServlet(
+        name="ForgottenUsernameServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PUBLIC + "/forgottenusername",
+                PwmConstants.URL_PREFIX_PUBLIC + "/ForgottenUsername",
+
+        }
+)
+public class ForgottenUsernameServlet extends AbstractPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ForgottenUsernameServlet.class);
 
-    public enum ForgottenUsernameAction implements PwmServlet.ProcessAction {
+    public enum ForgottenUsernameAction implements AbstractPwmServlet.ProcessAction {
         search,
         ;
 

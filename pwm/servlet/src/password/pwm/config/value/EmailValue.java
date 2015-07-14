@@ -30,6 +30,7 @@ import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.*;
 
@@ -60,7 +61,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
 
             public EmailValue fromXmlElement(
                     Element settingElement,
-                    final String input
+                    final PwmSecurityKey input
             )
                     throws PwmOperationalException
             {

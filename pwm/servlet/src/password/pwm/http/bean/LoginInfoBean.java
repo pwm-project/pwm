@@ -36,6 +36,7 @@ public class
 
     private Map<Permission, Permission.PERMISSION_STATUS> permissions = new HashMap<>();
     private AuthenticationType authenticationType = AuthenticationType.UNAUTHENTICATED;
+    private List<AuthenticationType> authenticationFlags = new ArrayList<>();
     private Date localAuthTime;
     private Map<String, PostChangePasswordAction> postChangePasswordActions = new HashMap<>();
 
@@ -161,5 +162,9 @@ public class
 
     public void setAuthRecordCookieSet(boolean authRecordCookieSet) {
         this.authRecordCookieSet = authRecordCookieSet;
+    }
+
+    public List<AuthenticationType> getAuthenticationFlags() {
+        return authenticationFlags;
     }
 }

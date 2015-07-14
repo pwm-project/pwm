@@ -619,7 +619,7 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
     require(["dojo"],function(dojo){
         var parentDiv = dojo.byId(parentDivID);
         if (PWM_GLOBAL['inhibitHealthUpdate'] == true) {
-            parentDiv.innerHTML = '';
+            try { parentDiv.innerHTML = ''; } catch (e) { console.log('unable to update health div' + e) };
             return;
         }
 

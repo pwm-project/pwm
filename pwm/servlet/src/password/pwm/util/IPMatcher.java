@@ -1,35 +1,30 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://code.google.com/p/pwm/
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2015 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package password.pwm.util;
 
 import java.net.Inet6Address;
 import java.net.UnknownHostException;
 
-/**
- * Quickly tests whether a given IP address matches an IP range. An
- * {@code IPMatcher} is initialized with a particular IP range specification.
- * Calls to {@link IPMatcher#match(String) match} method will then quickly
- * determine whether a given IP falls within that range.
- * <p>
- * Supported range specifications are:
- * <p>
- * <ul>
- * <li>Full IPv4 address, e.g. {@code 12.34.56.78}</li>
- * <li>Full IPv6 address, e.g. {@code 2001:18e8:3:171:218:8bff:fe2a:56a4}</li>
- * <li>Partial IPv4 address, e.g. {@code 12.34} (which matches any IP starting
- * {@code 12.34})</li>
- * <li>IPv4 network/netmask, e.g. {@code 18.25.0.0/255.255.0.0}</li>
- * <li>IPv4 or IPv6 CIDR slash notation, e.g. {@code 18.25.0.0/16},
- * {@code 2001:18e8:3:171::/64}</li>
- * </ul>
- *
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE and NOTICE files at the root of the source
- * tree and available online at
- *
- * http://www.dspace.org/license/
- *
- * @version $Revision$
- * @author Robert Tansley
- */
 public class IPMatcher
 {
     /** Network to match */

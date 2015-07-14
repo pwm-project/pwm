@@ -37,17 +37,25 @@ import password.pwm.util.report.ReportService;
 import password.pwm.util.stats.StatisticsManager;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-public class AdminServlet extends PwmServlet {
+@WebServlet(
+        name = "AdminServlet",
+        urlPatterns = {
+            PwmConstants.URL_PREFIX_PRIVATE + "/admin/administration",
+            PwmConstants.URL_PREFIX_PRIVATE + "/admin/Administration",
+        }
+)
+public class AdminServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(AdminServlet.class);
 
-    public enum AdminAction implements PwmServlet.ProcessAction {
+    public enum AdminAction implements AbstractPwmServlet.ProcessAction {
         changePage(HttpMethod.POST),
         viewLogWindow(HttpMethod.GET),
         downloadAuditLogCsv(HttpMethod.POST),

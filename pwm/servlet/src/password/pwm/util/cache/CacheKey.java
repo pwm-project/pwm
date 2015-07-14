@@ -25,7 +25,7 @@ package password.pwm.util.cache;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.secure.PwmHashAlgorithm;
-import password.pwm.util.secure.SecureHelper;
+import password.pwm.util.secure.SecureEngine;
 
 public class CacheKey {
     private final String cacheKey;
@@ -45,7 +45,7 @@ public class CacheKey {
         if (hash != null) {
             return hash;
         }
-        hash = SecureHelper.hash(this.cacheKey, PwmHashAlgorithm.SHA256);
+        hash = SecureEngine.hash(this.cacheKey, PwmHashAlgorithm.SHA256);
         return hash;
     }
 

@@ -246,10 +246,7 @@ PWM_HELPDESK.setRandomPasswordPopup = function() {
 
 PWM_HELPDESK.loadSearchDetails = function(userKey) {
     PWM_MAIN.showWaitDialog({loadFunction:function() {
-        setTimeout(function () {
-            PWM_MAIN.getObject("userKey").value = userKey;
-            PWM_MAIN.getObject("loadDetailsForm").submit();
-        }, 10);
+        PWM_MAIN.submitPostAction('helpdesk','detail',{userKey:userKey});
     }});
 };
 
@@ -334,7 +331,7 @@ PWM_HELPDESK.deleteUser = function() {
                     PWM_MAIN.showErrorDialog(error);
                 } else {
                     PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Success'), text: data['successMessage'], okAction: function () {
-                        PWM_MAIN.goto("/private/Helpdesk");
+                        PWM_MAIN.goto("/private/helpdesk");
                     }});
                 }
             };
@@ -352,7 +349,7 @@ PWM_HELPDESK.validateOtpCode = function(userKey) {
             userKey:userKey,
             code:PWM_MAIN.getObject('otpCode').value
         };
-        var url = 'Helpdesk?processAction=validateOtpCode';
+        var url = 'helpdesk?processAction=validateOtpCode';
         var loadFunction = function(data) {
             PWM_MAIN.getObject('icon-working').style.display = 'none';
             var passed =  data['data'];
@@ -397,7 +394,7 @@ PWM_HELPDESK.sendVerificationToken = function() {
             sendContent['method'] = choice;
         }
         PWM_MAIN.showWaitDialog({loadFunction:function(){
-            var url = 'Helpdesk?processAction=sendVerificationToken';
+            var url = 'helpdesk?processAction=sendVerificationToken';
             var loadFunction = function(data) {
                 if (!data['error']) {
                     var text = '<table><tr><td>Token Destination</td><td>' + data['data']['destination'] + '</td></tr>'
@@ -468,7 +465,7 @@ PWM_HELPDESK.initHelpdeskDetailPage = function() {
         dojoParser.parse();
     });
     PWM_MAIN.addEventHandler('button_continue','click',function() {
-        PWM_MAIN.goto('Helpdesk');
+        PWM_MAIN.goto('helpdesk');
     });
     PWM_MAIN.addEventHandler('button_refresh','click',function(){
         PWM_HELPDESK.refreshDetailPage();
@@ -505,7 +502,7 @@ PWM_HELPDESK.initPage = function() {
     var applicationData = PWM_MAIN.getObject("application-info");
     var jspName = applicationData ? applicationData.getAttribute("data-jsp-name") : "";
     if ("helpdesk.jsp" == jspName || "helpdesk-detail.jsp" == jspName) {
-        PWM_MAIN.ajaxRequest("Helpdesk?processAction=clientData",function(data){
+        PWM_MAIN.ajaxRequest("helpdesk?processAction=clientData",function(data){
             if (data['error']) {
                 PWM_MAIN.showErrorDialog(data);
                 return;
@@ -527,7 +524,7 @@ PWM_HELPDESK.initPage = function() {
 PWM_HELPDESK.refreshDetailPage = function() {
     PWM_MAIN.showWaitDialog({loadFunction:function(){
         setTimeout(function(){
-            PWM_MAIN.submitPostAction('Helpdesk', 'detail', {userKey: PWM_VAR['helpdesk_obfuscatedDN']});
+            PWM_MAIN.submitPostAction('helpdesk', 'detail', {userKey: PWM_VAR['helpdesk_obfuscatedDN']});
         },1000);
     }});
 };
@@ -538,7 +535,7 @@ PWM_HELPDESK.unlockIntruder = function() {
         okAction:function() {
             PWM_MAIN.showWaitDialog({
                 loadFunction:function(){
-                    var ajaxUrl = "Helpdesk?processAction=unlockIntruder&userKey=" + PWM_VAR['helpdesk_obfuscatedDN'];
+                    var ajaxUrl = "helpdesk?processAction=unlockIntruder&userKey=" + PWM_VAR['helpdesk_obfuscatedDN'];
                     var load = function(data) {
                         if (data['error'] == true) {
                             PWM_MAIN.showErrorDialog(error);
@@ -563,7 +560,7 @@ PWM_HELPDESK.doOtpClear = function() {
     var inputValues = {};
     inputValues['userKey'] = PWM_VAR['helpdesk_obfuscatedDN'];
     PWM_MAIN.showWaitDialog({loadFunction:function() {
-        var url = "Helpdesk?processAction=clearOtpSecret";
+        var url = "helpdesk?processAction=clearOtpSecret";
         var loadFunction = function(results) {
             if (results['error'] != true) {
                 PWM_MAIN.showDialog({

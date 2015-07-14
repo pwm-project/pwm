@@ -125,8 +125,7 @@ public abstract class PwmConstants {
     public static final String DEFAULT_BAD_PASSWORD_ATTEMPT = readPwmConstantsBundle("defaultBadPasswordAttempt");
 
     public static final String CONTEXT_ATTR_CONTEXT_MANAGER = "ContextManager";
-    public static final String CONTEXT_ATTR_RESOURCE_CACHE = "ResourceFileServlet-Cache";
-    public static final String CONTEXT_ATTR_RESOURCE_HIT_AVG = "ResourceFileServlet-HitAvg";
+    public static final String CONTEXT_ATTR_RESOURCE_DATA = "ResourceFileServlet-Data";
 
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
     public static final String SESSION_ATTR_CONTEXT_GUID = "ContextInstanceGUID";
@@ -134,7 +133,7 @@ public abstract class PwmConstants {
     public static final PwmBlockAlgorithm IN_MEMORY_PASSWORD_ENCRYPT_METHOD = PwmBlockAlgorithm.AES;
     public static final PwmHashAlgorithm SETTING_CHECKSUM_HASH_METHOD = PwmHashAlgorithm.SHA256;
 
-    public static enum REQUEST_ATTR {
+    public enum REQUEST_ATTR {
         PwmErrorInfo,
         PwmRequest,
         OriginalUri,
@@ -180,7 +179,7 @@ public abstract class PwmConstants {
 
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle("log.removedValue");
 
-    public static enum JSP_URL {
+    public enum JSP_URL {
 
         INIT("init.jsp"),
         ERROR("error.jsp"),
@@ -250,7 +249,7 @@ public abstract class PwmConstants {
         private String path;
         private static final String JSP_ROOT_URL = "/WEB-INF/jsp/";
 
-        private JSP_URL(String path) {
+        JSP_URL(String path) {
             this.path = path;
         }
 
@@ -261,23 +260,9 @@ public abstract class PwmConstants {
 
     public static final String URL_JSP_CONFIG_GUIDE = "WEB-INF/jsp/configguide-%1%.jsp";
 
-    public static final String URL_SERVLET_LOGIN = "Login";
-    public static final String URL_SERVLET_OAUTH_CONSUMER = "oauth";
-    public static final String URL_SERVLET_LOGOUT = "Logout";
-    public static final String URL_SERVLET_CHANGE_PASSWORD = "ChangePassword";
-    public static final String URL_SERVLET_UPDATE_PROFILE = "UpdateProfile";
-    public static final String URL_SERVLET_SETUP_RESPONSES = "SetupResponses";
-    public static final String URL_SERVLET_SETUP_OTP_SECRET = "SetupOtp";
-    public static final String URL_SERVLET_RECOVER_PASSWORD = "ForgottenPassword";
-    public static final String URL_SERVLET_RECOVER_USERNAME = "ForgottenUsername";
-    public static final String URL_SERVLET_NEW_USER = "NewUser";
-    public static final String URL_SERVLET_USER_ACTIVATION = "ActivateUser";
-    public static final String URL_SERVLET_GUEST_REGISTRATION = "GuestRegistration";
-    public static final String URL_SERVLET_GUEST_UPDATE = "GuestUpdate";
-    public static final String URL_SERVLET_CAPTCHA = "Captcha";
-    public static final String URL_SERVLET_COMMAND = "CommandServlet";
-    public static final String URL_SERVLET_CONFIG_MANAGER = "ConfigManager";
-    public static final String URL_SERVLET_CONFIG_GUIDE = "ConfigGuide";
+    public static final String URL_PREFIX_PRIVATE = "/private";
+    public static final String URL_PREFIX_PUBLIC = "/public";
+
 
     public static final String PARAM_ACTION_REQUEST = "processAction";
     public static final String PARAM_VERIFICATION_KEY = "session_verification_key";
@@ -370,6 +355,7 @@ public abstract class PwmConstants {
         Content_Encoding("Content-Encoding"),
         Location("Location"),
         ContentSecurityPolicy("Content-Security-Policy"),
+        If_None_Match("If-None-Match"),
         Server("Server"),
         Cache_Control("Cache-Control"),
         WWW_Authenticate("WWW-Authenticate"),

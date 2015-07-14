@@ -22,6 +22,7 @@
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="com.novell.ldapchai.cr.ChallengeSet" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -40,7 +41,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
     <div id="centerbody">
         <p><pwm:display key="Display_RecoverPassword"/></p>
 
-        <form name="responseForm" action="<pwm:url url='ForgottenPassword'/>" method="post"
+        <form name="responseForm" action="<pwm:url url='<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>'/>" method="post"
               enctype="application/x-www-form-urlencoded" class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
@@ -66,7 +67,6 @@ this is handled this way so on browsers where hiding fields is not possible, the
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <% } %>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/forgottenpassword-cancel.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
@@ -78,7 +78,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
     <script>
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.addEventHandler('button-goBack','click',function() {
-                PWM_MAIN.submitPostAction('ForgottenPassword', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
+                PWM_MAIN.submitPostAction('<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
             });
         });
     </script>

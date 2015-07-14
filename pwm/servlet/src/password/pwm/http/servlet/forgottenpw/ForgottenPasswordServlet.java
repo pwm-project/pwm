@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet;
+package password.pwm.http.servlet.forgottenpw;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Challenge;
@@ -48,10 +48,9 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ForgottenPasswordBean;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
 import password.pwm.http.filter.AuthenticationFilter;
+import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
@@ -74,13 +73,13 @@ import password.pwm.util.operations.OtpService;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.otp.OTPUserRecord;
-import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.client.rest.RestTokenDataClient;
 import password.pwm.ws.client.rest.naaf.PwmNAAFVerificationMethod;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.*;
 
@@ -89,7 +88,18 @@ import java.util.*;
  *
  * @author Jason D. Rivard
  */
-public class ForgottenPasswordServlet extends PwmServlet {
+
+
+@WebServlet(
+        name="ForgottenPasswordServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PUBLIC + "/forgottenpassword",
+                PwmConstants.URL_PREFIX_PUBLIC + "/forgottenpassword/*",
+                PwmConstants.URL_PREFIX_PUBLIC + "/ForgottenPassword",
+                PwmConstants.URL_PREFIX_PUBLIC + "/ForgottenPassword/*",
+        }
+)
+public class ForgottenPasswordServlet extends AbstractPwmServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ForgottenPasswordServlet.class);
@@ -98,7 +108,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
 
 
 
-    public enum ForgottenPasswordAction implements PwmServlet.ProcessAction {
+    public enum ForgottenPasswordAction implements AbstractPwmServlet.ProcessAction {
         search(HttpMethod.POST),
         checkResponses(HttpMethod.POST),
         checkAttributes(HttpMethod.POST),
@@ -818,6 +828,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
         try {
             SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
             sessionAuthenticator.authUserWithUnknownPassword(userIdentity,AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
+            pwmSession.getLoginInfoBean().getAuthenticationFlags().add(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
 
             LOGGER.info(pwmSession, "user successfully supplied password recovery responses, forward to change password page: " + theUser.getEntryDN());
 
@@ -832,7 +843,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
             pwmSession.getUserInfoBean().setRequiresNewPassword(true);
 
             // redirect user to change password screen.
-            pwmRequest.sendRedirect(PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
+            pwmRequest.sendRedirect(PwmServletDefinition.ChangePassword.servletUrlName());
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn(pwmSession,
                     "unexpected error authenticating during forgotten password recovery process user: " + e.getMessage());
@@ -874,6 +885,8 @@ public class ForgottenPasswordServlet extends PwmServlet {
         try {
             SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
             sessionAuthenticator.authUserWithUnknownPassword(userIdentity,AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
+            pwmSession.getLoginInfoBean().getAuthenticationFlags().add(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
+
 
             LOGGER.info(pwmRequest, "user successfully supplied password recovery responses, emailing new password to: " + theUser.getEntryDN());
 
@@ -1546,113 +1559,6 @@ public class ForgottenPasswordServlet extends PwmServlet {
     {
         pwmRequest.addFormInfoToRequestAttr(PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM,false,false);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
-    }
-
-    public static class RemoteVerificationMethod implements RecoveryVerificationMethod {
-
-        private String remoteSesionID = PwmRandom.getInstance().randomUUID().toString();
-
-        private RemoteVerificationResponseBean lastResponse;
-        private PwmHttpClient pwmHttpClient;
-        private PwmApplication pwmApplication;
-
-        private UserInfoBean userInfoBean;
-        private SessionLabel sessionLabel;
-        private Locale locale;
-        private String url;
-
-        @Override
-        public List<UserPrompt> getCurrentPrompts() throws PwmUnrecoverableException {
-            if (lastResponse == null || lastResponse.getUserPrompts() == null) {
-                return null;
-            }
-
-            final List<UserPrompt> returnObj = new ArrayList<>();
-            for (final UserPromptBean userPromptBean : lastResponse.getUserPrompts()) {
-                returnObj.add(userPromptBean);
-            }
-            return returnObj;
-        }
-
-        @Override
-        public String getCurrentDisplayInstructions() {
-            return lastResponse == null
-                    ? ""
-                    : lastResponse.getDisplayInstructions();
-        }
-
-        @Override
-        public ErrorInformation respondToPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
-            sendRemoteRequest(answers);
-            if (lastResponse != null) {
-                final String errorMsg = lastResponse.getErrorMessage();
-                if (errorMsg != null && !errorMsg.isEmpty()) {
-                    return new ErrorInformation(PwmError.ERROR_REMOTE_ERROR_VALUE,errorMsg);
-                }
-            }
-            return null;
-        }
-
-        @Override
-        public VerificationState getVerificationState() {
-            return lastResponse == null
-                    ? VerificationState.INPROGRESS
-                    : lastResponse.getVerificationState();
-        }
-
-        @Override
-        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean, SessionLabel sessionLabel, Locale locale) throws PwmUnrecoverableException {
-            pwmHttpClient = new PwmHttpClient(pwmApplication, sessionLabel);
-            this.userInfoBean = userInfoBean;
-            this.sessionLabel = sessionLabel;
-            this.locale = locale;
-            this.pwmApplication = pwmApplication;
-            this.url = pwmApplication.getConfig().readSettingAsString(PwmSetting.EXTERNAL_MACROS_REMOTE_RESPONSES_URL);
-
-            if (url == null || url.isEmpty()) {
-                final String errorMsg = PwmSetting.EXTERNAL_MACROS_REMOTE_RESPONSES_URL.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE)
-                        + " must be configured for remote responses";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
-                LOGGER.error(sessionLabel,errorInformation);
-                throw new PwmUnrecoverableException(errorInformation);
-            }
-
-            sendRemoteRequest(null);
-        }
-
-        private void sendRemoteRequest(final Map<String,String> userResponses) throws PwmUnrecoverableException {
-            lastResponse = null;
-
-            final Map<String,String> headers = new LinkedHashMap<>();
-            headers.put(PwmConstants.HttpHeader.Content_Type.getHttpName(), PwmConstants.ContentTypeValue.json.getHeaderValue());
-            headers.put(PwmConstants.HttpHeader.Accept_Language.getHttpName(), locale.toLanguageTag());
-
-            RemoteVerificationRequestBean remoteVerificationRequestBean = new RemoteVerificationRequestBean();
-            remoteVerificationRequestBean.setResponseSessionID(this.remoteSesionID);
-            remoteVerificationRequestBean.setUserInfo(PublicUserInfoBean.fromUserInfoBean(userInfoBean, pwmApplication.getConfig(), locale));
-            remoteVerificationRequestBean.setUserResponses(userResponses);
-
-            PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
-                    HttpMethod.POST,
-                    url,
-                    JsonUtil.serialize(remoteVerificationRequestBean),
-                    headers
-            );
-
-            try {
-                final PwmHttpClientResponse response = pwmHttpClient.makeRequest(pwmHttpClientRequest);
-                final String responseBodyStr = response.getBody();
-                this.lastResponse = JsonUtil.deserialize(responseBodyStr, RemoteVerificationResponseBean.class);
-            } catch (PwmException e) {
-                LOGGER.error(sessionLabel,e.getErrorInformation());
-                throw new PwmUnrecoverableException(e.getErrorInformation());
-            } catch (Exception e) {
-                final String errorMsg = "error reading remote responses web service response: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
-                LOGGER.error(sessionLabel,errorInformation);
-                throw new PwmUnrecoverableException(errorInformation);
-            }
-        }
     }
 
 }
