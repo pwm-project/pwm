@@ -49,6 +49,8 @@ import password.pwm.http.bean.SetupResponsesBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
@@ -57,10 +59,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * User interaction servlet for setting up secret question/answer
@@ -72,7 +71,7 @@ import java.util.Map;
         name="SetupResponsesServlet",
         urlPatterns={
                 PwmConstants.URL_PREFIX_PRIVATE + "/setupresponses",
-                PwmConstants.URL_PREFIX_PRIVATE + "/SetupReponses",
+                PwmConstants.URL_PREFIX_PRIVATE + "/SetupResponses",
         }
 )
 public class SetupResponsesServlet extends AbstractPwmServlet {
@@ -291,6 +290,7 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
     )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
+        final Date startTime = new Date();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final String responseModeParam = pwmRequest.readParameterAsString("responseMode");
@@ -313,7 +313,11 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
         }
 
         final ValidationResponseBean validationResponseBean = new ValidationResponseBean(userMessage,success);
-        pwmRequest.outputJsonResult(new RestResultBean(validationResponseBean));
+        final RestResultBean restResultBean = new RestResultBean(validationResponseBean);
+        LOGGER.trace(pwmRequest,"completed rest validate response in "
+                + TimeDuration.fromCurrent(startTime).asCompactString()
+                + ", result=" + JsonUtil.serialize(restResultBean));
+        pwmRequest.outputJsonResult(restResultBean);
     }
 
     private void handleSetupResponses(

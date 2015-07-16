@@ -931,6 +931,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
         } finally {
             pwmSession.clearForgottenPasswordBean();
             pwmSession.unauthenticateUser();
+            pwmSession.getSessionStateBean().setPasswordModified(false);
         }
     }
 

@@ -153,9 +153,13 @@ public class HealthMonitor implements PwmService {
             }
         }
         for (final PwmService service : pwmApplication.getPwmServices()) {
-            final List<HealthRecord> loopResults = service.healthCheck();
-            if (loopResults != null) {
-                newResults.addAll(loopResults);
+            try {
+                final List<HealthRecord> loopResults = service.healthCheck();
+                if (loopResults != null) {
+                    newResults.addAll(loopResults);
+                }
+            } catch (Exception e) {
+                LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
             }
         }
         final Set<HealthRecord> sortedRecordList = new TreeSet<>();

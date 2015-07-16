@@ -179,7 +179,7 @@ PWM_RESPONSES.initSimpleRandomElements = function() {
         PWM_MAIN.addEventHandler(element.id,"focusin",function(){
             PWM_VAR['focusInValues'][element.id] = element.selectedIndex;
         });
-        PWM_MAIN.addEventHandler(element.id,"click",function(){
+        PWM_MAIN.addEventHandler(element.id,"click,blur",function(){
             if (PWM_VAR['focusInValues'][element.id] != element.selectedIndex) {
                 var selectedIndex = element.selectedIndex;
                 var selectedValue = element.options[selectedIndex].value;

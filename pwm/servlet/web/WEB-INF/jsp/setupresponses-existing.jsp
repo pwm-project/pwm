@@ -61,7 +61,7 @@
         <% } %>
         <br/>
         <div class="buttonbar">
-            <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="clearExistingForm" id="clearExistingForm"
+            <form style="display: inline" action="<pwm:url url='<%=PwmServletDefinition.SetupResponses.servletUrlName()%>'/>" method="post" name="clearExistingForm" id="clearExistingForm"
                   enctype="application/x-www-form-urlencoded" onsubmit="confirmContinue();return false">
                 <button type="submit" name="confirm_btn" class="btn" id="confirm_btn" value="">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>

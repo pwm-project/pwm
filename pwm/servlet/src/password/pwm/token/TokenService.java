@@ -286,8 +286,17 @@ public class TokenService implements PwmService {
 
         if (storageMethod == TokenStorageMethod.STORE_LDAP) {
             if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
-                if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION)) {
-                    returnRecords.add(HealthRecord.forMessage(HealthMessage.CryptoTokenWithNewUserVerification));
+                for (final NewUserProfile newUserProfile : configuration.getNewUserProfiles().values()) {
+                    if (newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION)) {
+                        final String label = PwmSetting.NEWUSER_EMAIL_VERIFICATION.toMenuLocationDebug(newUserProfile.getIdentifier(),PwmConstants.DEFAULT_LOCALE);
+                        final String label2 = PwmSetting.TOKEN_STORAGEMETHOD.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE);
+                        returnRecords.add(HealthRecord.forMessage(HealthMessage.CryptoTokenWithNewUserVerification, label, label2));
+                    }
+                    if (newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_SMS_VERIFICATION)) {
+                        final String label = PwmSetting.NEWUSER_SMS_VERIFICATION.toMenuLocationDebug(newUserProfile.getIdentifier(),PwmConstants.DEFAULT_LOCALE);
+                        final String label2 = PwmSetting.TOKEN_STORAGEMETHOD.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE);
+                        returnRecords.add(HealthRecord.forMessage(HealthMessage.CryptoTokenWithNewUserVerification, label, label2));
+                    }
                 }
             }
         }

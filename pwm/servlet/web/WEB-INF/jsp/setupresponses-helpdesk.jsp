@@ -21,6 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -38,7 +39,7 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:display key="Display_SetupHelpdeskResponses"/></p>
-        <form action="<pwm:url url='SetupResponses'/>" method="post" name="form-setupResponses"
+        <form action="<pwm:url url='<%=PwmServletDefinition.SetupResponses.servletUrlName()%>'/>" method="post" name="form-setupResponses"
               enctype="application/x-www-form-urlencoded" id="form-setupResponses" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
             <div id="pwm-setupResponsesDiv">

@@ -257,23 +257,24 @@ public class PwmApplication {
         for (final Class<? extends PwmService> serviceClass : PWM_SERVICE_CLASSES) {
             final Date startTime = new Date();
             final PwmService newServiceInstance;
+            final String serviceName = serviceClass.getName();
             try {
                 final Object newInstance = serviceClass.newInstance();
                 newServiceInstance = (PwmService)newInstance;
             } catch (Exception e) {
-                final String errorMsg = "unexpected error instantiating service class '" + serviceClass.getName() + "', error: " + e.toString();
+                final String errorMsg = "unexpected error instantiating service class '" + serviceName + "', error: " + e.toString();
                 LOGGER.fatal(errorMsg,e);
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,errorMsg));
             }
 
             try {
-                LOGGER.debug("initializing service " + serviceClass.getName());
+                LOGGER.debug("initializing service " + serviceName);
                 newServiceInstance.init(this);
-                LOGGER.debug("completed initialization of service " + serviceClass.getName() + " in " + TimeDuration.fromCurrent(startTime).asCompactString() + ", status=" + newServiceInstance.status());
+                LOGGER.debug("completed initialization of service " + serviceName + " in " + TimeDuration.fromCurrent(startTime).asCompactString() + ", status=" + newServiceInstance.status());
             } catch (PwmException e) {
-                LOGGER.warn("error instantiating service class '" + serviceClass.getName() + "', service will remain unavailable, error: " + e.getMessage());
+                LOGGER.warn("error instantiating service class '" + serviceName + "', service will remain unavailable, error: " + e.getMessage());
             } catch (Exception e) {
-                String errorMsg = "unexpected error instantiating service class '" + serviceClass.getName() + "', cannot load, error: " + e.getMessage();
+                String errorMsg = "unexpected error instantiating service class '" + serviceName + "', cannot load, error: " + e.getMessage();
                 if (e.getCause() != null) {
                     errorMsg += ", cause: " + e.getCause();
                 }

@@ -45,6 +45,7 @@ import password.pwm.event.UserAuditRecord;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.intruder.RecordType;
@@ -367,11 +368,11 @@ public class RestAppDataServer extends AbstractRestServer {
 
         final String contextPath = request.getContextPath();
         settingMap.put("url-context", contextPath);
-        settingMap.put("url-logout", contextPath + "/public/Logout?idle=true");
+        settingMap.put("url-logout", contextPath + "/public/logout?idle=true");
         settingMap.put("url-command", contextPath + "/public/CommandServlet");
         settingMap.put("url-resources", contextPath + "/public/resources" + pwmApplication.getResourceServletService().getResourceNonce());
         settingMap.put("url-restservice", contextPath + "/public/rest");
-        settingMap.put("url-setupresponses",contextPath + "/private/SetupResponses");
+        settingMap.put("url-setupresponses",contextPath + PwmServletDefinition.SetupResponses.servletUrl());
 
         {
             String passwordGuideText = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,pwmSession.getSessionStateBean().getLocale());

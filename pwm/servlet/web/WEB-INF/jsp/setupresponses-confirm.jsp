@@ -67,7 +67,7 @@
         <% } %>
         <br/>
         <div class="buttonbar">
-            <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="changeResponses"
+            <form style="display: inline" action="<pwm:url url='<%=PwmServletDefinition.SetupResponses.servletUrlName()%>'/>" method="post" name="changeResponses"
                   enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <button type="submit" name="confirm_btn" class="btn" id="confirm_btn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
@@ -76,7 +76,7 @@
                 <input type="hidden" name="processAction" value="confirmResponses"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="confirmResponses"
+            <form style="display: inline" action="<pwm:url url='<%=PwmServletDefinition.SetupResponses.servletUrlName()%>'/>" method="post" name="confirmResponses"
                   enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <button type="submit" name="change_btn" class="btn" id="change_btn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
