@@ -137,6 +137,7 @@ public enum AppProperty {
     LDAP_PASSWORD_REPLICA_CHECK_INIT_DELAY_MS       ("ldap.password.replicaCheck.initialDelayMS"),
     LDAP_PASSWORD_REPLICA_CHECK_CYCLE_DELAY_MS      ("ldap.password.replicaCheck.cycleDelayMS"),
     LDAP_GUID_PATTERN                               ("ldap.guid.pattern"),
+    LDAP_BROWSER_MAX_ENTRIES                        ("ldap.browser.maxEntries"),
     LOGGING_PATTERN                                 ("logging.pattern"),
     LOGGING_FILE_MAX_SIZE                           ("logging.file.maxSize"),
     LOGGING_FILE_MAX_ROLLOVER                       ("logging.file.maxRollover"),
