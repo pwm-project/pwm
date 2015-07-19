@@ -182,10 +182,6 @@ public enum PwmSetting {
             "ldap.guidAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
     LDAP_LOGIN_CONTEXTS(
             "ldap.selectableContexts", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_PROFILE),
-    LDAP_PROFILE_DISPLAY_NAME(
-            "ldap.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.LDAP_PROFILE),
-    LDAP_PROFILE_ENABLED(
-            "ldap.profile.enabled", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_PROFILE),
     LDAP_NAMING_ATTRIBUTE(
             "ldap.namingAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
@@ -196,6 +192,10 @@ public enum PwmSetting {
             "ldap.group.label.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
     LDAP_SEARCH_TIMEOUT(
             "ldap.search.timeoutSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.LDAP_PROFILE),
+    LDAP_PROFILE_DISPLAY_NAME(
+            "ldap.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.LDAP_PROFILE),
+    LDAP_PROFILE_ENABLED(
+            "ldap.profile.enabled", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_PROFILE),
 
 
     // ldap global settings

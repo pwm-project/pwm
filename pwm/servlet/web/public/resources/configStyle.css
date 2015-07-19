@@ -20,6 +20,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+body {
+    background-color: white;
+}
 
 .border {
     border: 1px solid #D4D4D4 !important;
@@ -536,4 +539,12 @@ button {
     top: 3px;
     right: 4px;
     cursor: pointer
+}
+
+.navigableDN {
+    cursor: pointer;
+}
+
+.selectableDN {
+    cursor: pointer;
 }

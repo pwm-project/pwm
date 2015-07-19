@@ -53,38 +53,38 @@ public class CertificateChecker implements HealthChecker {
             if (setting.getSyntax() == PwmSettingSyntax.X509CERT) {
                 if (setting != PwmSetting.LDAP_SERVER_CERTS) {
                     final X509Certificate[] certs = configuration.readSettingAsCertificate(setting);
-                    returnList.addAll(doHealthCheck(configuration,setting,certs));
+                    returnList.addAll(doHealthCheck(configuration,setting,null,certs));
                 }
             }
         }
         for (final LdapProfile ldapProfile : configuration.getLdapProfiles().values()) {
            final X509Certificate[] certificates = configuration.getLdapProfiles().get(ldapProfile.getIdentifier()).readSettingAsCertificate(PwmSetting.LDAP_SERVER_CERTS);
-            returnList.addAll(doHealthCheck(configuration,PwmSetting.LDAP_SERVER_CERTS,certificates));
+            returnList.addAll(doHealthCheck(configuration,PwmSetting.LDAP_SERVER_CERTS,ldapProfile.getIdentifier(),certificates));
         }
         return Collections.unmodifiableList(returnList);
     }
 
-    private static List<HealthRecord> doHealthCheck(Configuration configuration, PwmSetting setting, X509Certificate[] certificates) {
+    private static List<HealthRecord> doHealthCheck(Configuration configuration, PwmSetting setting, final String profileID, X509Certificate[] certificates) {
         final long warnDurationMs = 1000 * Long.parseLong(configuration.readAppProperty(AppProperty.HEALTH_CERTIFICATE_WARN_SECONDS));
 
         if (certificates != null) {
             final List<HealthRecord> returnList = new ArrayList<>();
             for (final X509Certificate certificate : certificates) {
-                returnList.addAll(doHealthCheck(certificate, warnDurationMs));
+                try {
+                    checkCertificate(certificate, warnDurationMs);
+                    return Collections.emptyList();
+                } catch (PwmOperationalException e) {
+                    final String errorDetail = e.getErrorInformation().getDetailedErrorMsg();
+                    final HealthRecord record = HealthRecord.forMessage(HealthMessage.Config_Certificate,
+                            setting.toMenuLocationDebug(profileID,PwmConstants.DEFAULT_LOCALE),
+                            errorDetail
+                    );
+                    return Collections.singletonList(record);
+                }
             }
             return returnList;
         }
         return Collections.emptyList();
-    }
-
-    private static List<HealthRecord> doHealthCheck(X509Certificate certificate, final long warnDurationMs) {
-        try {
-            checkCertificate(certificate, warnDurationMs);
-            return Collections.emptyList();
-        } catch (PwmOperationalException e) {
-            final HealthRecord record = new HealthRecord(HealthStatus.WARN, HealthTopic.Configuration,e.getErrorInformation().toDebugStr());
-            return Collections.singletonList(record);
-        }
     }
 
     public static void checkCertificate(final X509Certificate certificate, final long warnDurationMs)

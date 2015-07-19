@@ -57,13 +57,11 @@
                     <div class="setting_item">
                         <b>Configuration Password</b>
                         <br/>
-                        <span class="fa fa-chevron-circle-right"></span>
                         <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" class="configStringInput passwordfield" style="width:200px" <pwm:autofocus/>/>
                     </div>
                     <div class="setting_item">
                         <b>Verify Configuration Password</b>
                         <br/>
-                        <span class="fa fa-chevron-circle-right"></span>
                         <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" class="configStringInput passwordfield" style="width:200px"/>
                         <div style="display: inline; padding-top:45px;">
                             <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"

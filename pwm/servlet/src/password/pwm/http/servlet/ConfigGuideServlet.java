@@ -31,6 +31,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
 import password.pwm.config.function.UserMatchViewerFunction;
 import password.pwm.config.profile.LdapProfile;
@@ -42,12 +43,10 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigGuideBean;
+import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
-import password.pwm.util.Helper;
-import password.pwm.util.PasswordData;
-import password.pwm.util.ServletHelper;
-import password.pwm.util.X509Utils;
+import password.pwm.util.*;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.bean.HealthData;
@@ -59,7 +58,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.net.URI;
+import java.net.*;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
@@ -67,7 +66,8 @@ import java.util.*;
 @WebServlet(
         name = "ConfigGuideServlet",
         urlPatterns = {
-            PwmConstants.URL_PREFIX_PRIVATE + "/config/ConfigGuide"
+                PwmConstants.URL_PREFIX_PRIVATE + "/config/config-guide",
+                PwmConstants.URL_PREFIX_PRIVATE + "/config/ConfigGuide"
         }
 )
 public class ConfigGuideServlet extends AbstractPwmServlet {
@@ -84,9 +84,9 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     public static final String PARAM_LDAP_ADMIN_DN = "ldap-user-dn";
     public static final String PARAM_LDAP_ADMIN_PW = "ldap-user-pw";
 
-    public static final String PARAM_LDAP2_CONTEXT = "ldap2-context";
-    public static final String PARAM_LDAP2_TEST_USER = "ldap2-testUser";
-    public static final String PARAM_LDAP2_ADMIN_GROUP = "ldap2-adminGroup";
+    public static final String PARAM_LDAP_CONTEXT = "ldap-context";
+    public static final String PARAM_LDAP_TEST_USER = "ldap-testUser";
+    public static final String PARAM_LDAP_ADMIN_GROUP = "ldap-adminGroup";
 
     public static final String PARAM_CR_STORAGE_PREF = "cr_storage-pref";
 
@@ -99,10 +99,11 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     public enum STEP {
         START,
         TEMPLATE,
-        LDAP,
-        LDAPCERT,
-        LDAP2,
-        LDAP3,
+        LDAP_SERVER,
+        LDAP_CERT,
+        LDAP_ADMIN,
+        LDAP_CONTEXT,
+        LDAP_TESTUSER,
         CR_STORAGE,
         LDAP_SCHEMA,
         APP,
@@ -131,6 +132,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         uploadConfig(HttpMethod.POST),
         extendSchema(HttpMethod.POST),
         viewAdminMatches(HttpMethod.POST),
+        browseLdap(HttpMethod.POST),
         ;
 
         private final HttpMethod method;
@@ -171,12 +173,12 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             defaultLdapForm.put(PARAM_LDAP_ADMIN_DN, (String)PwmSetting.LDAP_PROXY_USER_DN.getDefaultValue(template).toNativeObject());
             defaultLdapForm.put(PARAM_LDAP_ADMIN_PW, "");
 
-            defaultLdapForm.put(PARAM_LDAP2_CONTEXT, ((List<String>)PwmSetting.LDAP_CONTEXTLESS_ROOT.getDefaultValue(template).toNativeObject()).get(0));
-            defaultLdapForm.put(PARAM_LDAP2_TEST_USER, (String)PwmSetting.LDAP_TEST_USER_DN.getDefaultValue(template).toNativeObject());
+            defaultLdapForm.put(PARAM_LDAP_CONTEXT, ((List<String>)PwmSetting.LDAP_CONTEXTLESS_ROOT.getDefaultValue(template).toNativeObject()).get(0));
+            defaultLdapForm.put(PARAM_LDAP_TEST_USER, (String)PwmSetting.LDAP_TEST_USER_DN.getDefaultValue(template).toNativeObject());
             {
                 List<UserPermission> userPermissions = (List<UserPermission>)PwmSetting.QUERY_MATCH_PWM_ADMIN.getDefaultValue(template).toNativeObject();
                 final String groupDN = userPermissions != null && userPermissions.size() > 0 ? userPermissions.get(0).getLdapBase() : "";
-                defaultLdapForm.put(PARAM_LDAP2_ADMIN_GROUP,groupDN);
+                defaultLdapForm.put(PARAM_LDAP_ADMIN_GROUP,groupDN);
             }
 
             defaultLdapForm.put(PARAM_CR_STORAGE_PREF, (String) PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.getDefaultValue(template).toNativeObject());
@@ -198,7 +200,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
-        if (((ConfigGuideBean)pwmSession.getSessionBean(ConfigGuideBean.class)).getStep() == STEP.START) {
+        if ((pwmSession.getSessionBean(ConfigGuideBean.class)).getStep() == STEP.START) {
             pwmSession.clearSessionBeans();
             pwmSession.getSessionStateBean().setTheme(null);
         }
@@ -223,7 +225,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
                 pwmRequest.getHttpServletRequest().getSession(),
                 Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_GUIDE_IDLE_TIMEOUT)));
 
-        if (configGuideBean.getStep() == STEP.LDAPCERT) {
+        if (configGuideBean.getStep() == STEP.LDAP_CERT) {
             final String ldapServerString = ((List<String>) configGuideBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE_KEY).toNativeObject()).get(0);
             try {
                 final URI ldapServerUri = new URI(ldapServerString);
@@ -270,6 +272,9 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
                 case viewAdminMatches:
                     restViewAdminMatches(pwmRequest, configGuideBean);
                     return;
+
+                case browseLdap:
+                    restBrowseLdap(pwmRequest, configGuideBean);
             }
         }
 
@@ -349,14 +354,25 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         final Configuration tempConfiguration = new Configuration(configGuideBean.getStoredConfiguration());
         final PwmApplication tempApplication = new PwmApplication.PwmEnvironment(tempConfiguration, pwmRequest.getPwmApplication().getApplicationPath())
                 .setApplicationMode(PwmApplication.MODE.NEW)
-                .setInitLogging(false)
+                .setInternalRuntimeInstance(true)
                 .setWebInfPath(pwmRequest.getPwmApplication().getWebInfPath())
                 .createPwmApplication();
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
         final List<HealthRecord> records = new ArrayList<>();
         final LdapProfile ldapProfile = tempConfiguration.getDefaultLdapProfile();
         switch (configGuideBean.getStep()) {
-            case LDAP: {
+            case LDAP_SERVER: {
+                try {
+                    checkLdapServer(configGuideBean);
+                    records.add(password.pwm.health.HealthRecord.forMessage(HealthMessage.LDAP_OK));
+                } catch (Exception e) {
+                    records.add(new HealthRecord(HealthStatus.WARN, HealthTopic.LDAP, "Can not connect to remote server: " + e.getMessage()));
+                }
+            }
+            break;
+
+
+            case LDAP_ADMIN: {
                 records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, ldapProfile, false));
                 if (records.isEmpty()) {
                     records.add(password.pwm.health.HealthRecord.forMessage(HealthMessage.LDAP_OK));
@@ -364,15 +380,14 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             }
             break;
 
-            case LDAP2: {
+            case LDAP_CONTEXT: {
                 records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, ldapProfile, true));
                 if (records.isEmpty()) {
                     records.add(new HealthRecord(HealthStatus.GOOD, HealthTopic.LDAP, "LDAP Contextless Login Root validated"));
                 }
-                    /*
                 try {
                     final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
-                    final Map<String, List<String>> results = userMatchViewerFunction.discoverMatchingUsers(
+                    final Collection<UserIdentity> results = userMatchViewerFunction.discoverMatchingUsers(
                             pwmRequest.getPwmApplication(),
                             2,
                             configGuideBean.getStoredConfiguration(),
@@ -390,12 +405,11 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
                 } catch (Exception e) {
                     records.add(new HealthRecord(HealthStatus.WARN, HealthTopic.LDAP, "Error during admin group validation: " + e.getMessage()));
                 }
-                    */
             }
             break;
 
-            case LDAP3: {
-                final String testUserValue = configGuideBean.getFormData().get(PARAM_LDAP2_TEST_USER);
+            case LDAP_TESTUSER: {
+                final String testUserValue = configGuideBean.getFormData().get(PARAM_LDAP_TEST_USER);
                 if (testUserValue != null && !testUserValue.isEmpty()) {
                     records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, ldapProfile, false));
                     records.addAll(ldapStatusChecker.doLdapTestUserCheck(tempConfiguration, ldapProfile, tempApplication));
@@ -435,6 +449,32 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         }
     }
 
+    private void restBrowseLdap(
+            final PwmRequest pwmRequest,
+            final ConfigGuideBean configGuideBean
+    ) throws IOException, ServletException, PwmUnrecoverableException {
+        final StoredConfiguration storedConfiguration = StoredConfiguration.copy(configGuideBean.getStoredConfiguration());
+        if (configGuideBean.getStep() == STEP.LDAP_ADMIN) {
+            storedConfiguration.resetSetting(PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE_KEY, null);
+            storedConfiguration.resetSetting(PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, null);
+        }
+
+        final Date startTime = new Date();
+        final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(true);
+        final String profile = inputMap.get("profile");
+        final String dn = inputMap.containsKey("dn") ? inputMap.get("dn") : "";
+
+        final LdapBrowser ldapBrowser = new LdapBrowser(storedConfiguration);
+        final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse(profile, dn);
+        ldapBrowser.close();
+
+        LOGGER.trace(pwmRequest, "performed ldapBrowse operation in "
+                + TimeDuration.fromCurrent(startTime).asCompactString()
+                + ", result=" + JsonUtil.serialize(result));
+
+        pwmRequest.outputJsonResult(new RestResultBean(result));
+    }
+
     private void restUpdateLdapForm(
             final PwmRequest pwmRequest,
             final ConfigGuideBean configGuideBean
@@ -457,11 +497,11 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
                     configGuideBean.getFormData().putAll(defaultForm);
                     configGuideBean.setSelectedTemplate(template);
                     storedConfiguration.setTemplate(template);
-                    {   
+                    {
                         final String settingValue = AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey() + "=true";
-                                storedConfiguration.writeSetting(
-                                        PwmSetting.APP_PROPERTY_OVERRIDES,
-                                        new StringArrayValue(Collections.singletonList(settingValue)),
+                        storedConfiguration.writeSetting(
+                                PwmSetting.APP_PROPERTY_OVERRIDES,
+                                new StringArrayValue(Collections.singletonList(settingValue)),
                                 null);
                     }
                 }
@@ -545,11 +585,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             throws PwmUnrecoverableException
     {
         {
-            final String ldapServerIP = ldapForm.get(PARAM_LDAP_HOST);
-            final String ldapServerPort = ldapForm.get(PARAM_LDAP_PORT);
-            final boolean ldapServerSecure = "true".equalsIgnoreCase(ldapForm.get(PARAM_LDAP_SECURE));
-
-            final String newLdapURI = "ldap" + (ldapServerSecure ? "s" : "") +  "://" + ldapServerIP + ":" + ldapServerPort;
+            final String newLdapURI = getLdapUrlFromFormConfig(ldapForm);
             final StringArrayValue newValue = new StringArrayValue(Collections.singletonList(newLdapURI));
             storedConfiguration.writeSetting(PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE_KEY, newValue, null);
         }
@@ -569,22 +605,22 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             if (ldapAdminDN != null && ldapAdminDN.contains(",")) {
                 contextDN = ldapAdminDN.substring(ldapAdminDN.indexOf(",") + 1,ldapAdminDN.length());
             }
-            ldapForm.put(PARAM_LDAP2_CONTEXT, contextDN);
+            ldapForm.put(PARAM_LDAP_CONTEXT, contextDN);
         }
-        storedConfiguration.writeSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_KEY, new StringArrayValue(Collections.singletonList(ldapForm.get(PARAM_LDAP2_CONTEXT))), null);
+        storedConfiguration.writeSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_KEY, new StringArrayValue(Collections.singletonList(ldapForm.get(PARAM_LDAP_CONTEXT))), null);
 
         {  // set context based on ldap dn
-            final String ldapContext = ldapForm.get(PARAM_LDAP2_CONTEXT);
+            final String ldapContext = ldapForm.get(PARAM_LDAP_CONTEXT);
             storedConfiguration.writeSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_KEY, new StringArrayValue(Collections.singletonList(ldapContext)), null);
         }
 
         {  // set context based on ldap dn
-            final String ldapTestUserDN = ldapForm.get(PARAM_LDAP2_TEST_USER);
+            final String ldapTestUserDN = ldapForm.get(PARAM_LDAP_TEST_USER);
             storedConfiguration.writeSetting(PwmSetting.LDAP_TEST_USER_DN, LDAP_PROFILE_KEY, new StringValue(ldapTestUserDN), null);
         }
 
         {  // set admin query
-            final String groupDN = ldapForm.get(PARAM_LDAP2_ADMIN_GROUP);
+            final String groupDN = ldapForm.get(PARAM_LDAP_ADMIN_GROUP);
             final List<UserPermission> userPermissions = Collections.singletonList(new UserPermission(UserPermission.Type.ldapGroup, null, null, groupDN));
             storedConfiguration.writeSetting(PwmSetting.QUERY_MATCH_PWM_ADMIN, new UserPermissionValue(userPermissions), null);
         }
@@ -687,5 +723,32 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
             LOGGER.error(pwmRequest, e.getMessage(), e);
         }
+    }
+
+    private static String getLdapUrlFromFormConfig(final Map<String,String> ldapForm) {
+        final String ldapServerIP = ldapForm.get(PARAM_LDAP_HOST);
+        final String ldapServerPort = ldapForm.get(PARAM_LDAP_PORT);
+        final boolean ldapServerSecure = "true".equalsIgnoreCase(ldapForm.get(PARAM_LDAP_SECURE));
+
+        return "ldap" + (ldapServerSecure ? "s" : "") +  "://" + ldapServerIP + ":" + ldapServerPort;
+
+    }
+
+    private void checkLdapServer(ConfigGuideBean configGuideBean) throws PwmOperationalException, IOException {
+        final Map<String,String> formData = configGuideBean.getFormData();
+        final String host = formData.get(PARAM_LDAP_HOST);
+        final int port = Integer.parseInt(formData.get(PARAM_LDAP_PORT));
+        if (Boolean.parseBoolean(formData.get(PARAM_LDAP_SECURE))) {
+            X509Utils.readRemoteCertificates(host,port);
+        } else {
+            InetAddress addr = InetAddress.getByName(host);
+            SocketAddress sockaddr = new InetSocketAddress(addr, port);
+            Socket sock = new Socket();
+
+            // this method will block for the defined number of milliseconds
+            int timeout = 2000;
+            sock.connect(sockaddr, timeout);
+        }
+
     }
 }

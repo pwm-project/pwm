@@ -61,8 +61,8 @@
                     <div class="setting_item">
                         <b>LDAP Contextless Login Root</b>
                         <br/>
-                        <span class="fa fa-chevron-circle-right"></span>
-                        <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>" name="<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT))%>" placeholder="<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT)%>" required autofocus/>
+                        <button type="button" class="btn" id="button-browse-context"><span class="btn-icon fa fa-sitemap"></span>Browse</button>
+                        <input style="width:400px" class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_CONTEXT%>" name="<%=ConfigGuideServlet.PARAM_LDAP_CONTEXT%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_CONTEXT))%>" placeholder="<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_CONTEXT)%>" required autofocus/>
                     </div>
                 </div>
             </div>
@@ -77,8 +77,8 @@
                     <div class="setting_item">
                         <b>Administrator Group DN</b>
                         <br/>
-                        <span class="fa fa-chevron-circle-right"></span>
-                        <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP2_ADMIN_GROUP%>" name="<%=ConfigGuideServlet.PARAM_LDAP2_ADMIN_GROUP%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_ADMIN_GROUP))%>" placeholder="<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_ADMIN_GROUP)%>" required/>
+                        <button type="button" class="btn" id="button-browse-adminGroup"><span class="btn-icon fa fa-sitemap"></span>Browse</button>
+                        <input style="width:400px;" class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP))%>" placeholder="<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP)%>" required/>
                         <button type="button" id="button-viewAdminMatches" class="btn">
                             <span class="btn-icon fa fa-eye"></span>
                             View Matches
@@ -148,6 +148,19 @@
                     PWM_MAIN.ajaxRequest(url,loadFunction);
                 }});
             });
+
+            PWM_MAIN.addEventHandler('button-browse-context','click',function(){
+                UILibrary.editLdapDN(function(value){
+                    PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_CONTEXT%>').value = value;
+                    handleFormActivity();
+                })
+            });
+            PWM_MAIN.addEventHandler('button-browse-adminGroup','click',function(){
+                UILibrary.editLdapDN(function(value){
+                    PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP%>').value = value;
+                    handleFormActivity();
+                })
+            });
         });
 
         function checkIfNextEnabled() {
@@ -174,6 +187,7 @@
     </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/configguide.js"/>
+<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 <%@ include file="fragment/footer.jsp" %>

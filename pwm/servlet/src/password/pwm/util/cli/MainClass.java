@@ -378,7 +378,7 @@ public class MainClass {
         final PwmApplication pwmApplication = new PwmApplication.PwmEnvironment(config, applicationPath)
                 .setApplicationMode(mode)
                 .setApplicationPathType(MAIN_OPTIONS.applicationPathType)
-                .setInitLogging(false)
+                .setInternalRuntimeInstance(true)
                 .setConfigurationFile(configurationFile)
                 .setWebInfPath(null)
                 .createPwmApplication();

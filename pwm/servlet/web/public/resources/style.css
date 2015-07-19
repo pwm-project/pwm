@@ -694,6 +694,7 @@ progress[value] {
 .dialogBody { width: 500px; max-width: 500px; }
 .dialogBody.narrow { width: 350px; max-width: 350px; }
 .dialogBody.wide { width: 95%; max-width: 100%; min-width: 800px; }
+.dialogBody.auto { width: auto }
 .WaitDialogBlank { height: 46px; width: 46px; margin-left: auto; margin-right: auto; background-image: url('wait.gif');}
 #dialogPopup_underlay { background-color: #222222; }
 #idleDialog_underlay { background-color: #111111; }

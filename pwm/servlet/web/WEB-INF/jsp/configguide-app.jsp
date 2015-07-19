@@ -61,7 +61,6 @@
                         <div id="titlePane_<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" style="padding-left: 5px; padding-top: 5px">
                             <b>Site URL</b>
                             <br/>
-                            <span class="fa fa-chevron-circle-right"></span>
                             <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" name="<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_APP_SITEURL))%>" required autofocus/>
                         </div>
                     </div>

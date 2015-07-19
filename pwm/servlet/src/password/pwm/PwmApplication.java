@@ -129,6 +129,7 @@ public class PwmApplication {
     private final File applicationPath;
     private final File webInfPath;
     private final File configurationFile;
+    private final PwmEnvironment pwmEnvironment;
 
     private MODE applicationMode;
 
@@ -159,6 +160,7 @@ public class PwmApplication {
     private PwmApplication(final PwmEnvironment pwmEnvironment)
             throws PwmUnrecoverableException
     {
+        this.pwmEnvironment = pwmEnvironment;
         verifyIfApplicationPathIsSetProperly(pwmEnvironment);
 
         this.configuration = pwmEnvironment.config;
@@ -168,20 +170,20 @@ public class PwmApplication {
         this.webInfPath = pwmEnvironment.webInfPath;
 
         try {
-            initialize(pwmEnvironment.initLogging);
+            initialize();
         } catch (PwmUnrecoverableException e) {
             LOGGER.fatal(e.getMessage());
             throw e;
         }
     }
 
-    private void initialize(final boolean initLogging)
+    private void initialize()
             throws PwmUnrecoverableException
     {
         final Date startTime = new Date();
 
         // initialize log4j
-        if (initLogging) {
+        if (!pwmEnvironment.internalRuntimeInstance) {
             final String log4jFileName = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE);
             final File log4jFile = Helper.figureFilepath(log4jFileName, applicationPath);
             final String consoleLevel, fileLevel;
@@ -219,7 +221,10 @@ public class PwmApplication {
                         + ", configurationFile=" + (configurationFile == null ? "null" : configurationFile.getAbsolutePath())
         );
 
-        this.localDB = Initializer.initializeLocalDB(this);
+        if (!pwmEnvironment.internalRuntimeInstance) {
+            this.localDB = Initializer.initializeLocalDB(this);
+        }
+
         this.localDBLogger = PwmLogManager.initializeLocalDBLogger(this);
 
         // log the loaded configuration
@@ -235,20 +240,22 @@ public class PwmApplication {
 
         initServices();
 
-        final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
-        LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
-        StatisticsManager.incrementStat(this,Statistic.PWM_STARTUPS);
-        LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE);
+        if (!pwmEnvironment.internalRuntimeInstance) {
+            final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
+            LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
+            StatisticsManager.incrementStat(this,Statistic.PWM_STARTUPS);
+            LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE);
 
-        final Thread postInitThread = new Thread(){
-            @Override
-            public void run() {
-                postInitTasks();
-            }
-        };
-        postInitThread.setDaemon(true);
-        postInitThread.setName(Helper.makeThreadName(this, PwmApplication.class));
-        postInitThread.start();
+            final Thread postInitThread = new Thread() {
+                @Override
+                public void run() {
+                    postInitTasks();
+                }
+            };
+            postInitThread.setDaemon(true);
+            postInitThread.setName(Helper.makeThreadName(this, PwmApplication.class));
+            postInitThread.start();
+        }
     }
 
     private void initServices()
@@ -799,7 +806,7 @@ public class PwmApplication {
 
         private Configuration config;
         private File applicationPath;
-        private boolean initLogging;
+        private boolean internalRuntimeInstance;
         private File configurationFile;
         private File webInfPath;
         private ApplicationPathType applicationPathType = ApplicationPathType.derived;
@@ -819,11 +826,6 @@ public class PwmApplication {
             return this;
         }
 
-        public PwmEnvironment setInitLogging(boolean initLogging) {
-            this.initLogging = initLogging;
-            return this;
-        }
-
         public PwmEnvironment setConfigurationFile(File configurationFile) {
             this.configurationFile = configurationFile;
             return this;
@@ -839,12 +841,30 @@ public class PwmApplication {
             return this;
         }
 
+        public PwmEnvironment setInternalRuntimeInstance(boolean internalRuntimeInstance) {
+            this.internalRuntimeInstance = internalRuntimeInstance;
+            return this;
+        }
+
         public PwmApplication createPwmApplication()
                 throws PwmUnrecoverableException
         {
             return new PwmApplication(this);
         }
     }
+
+    public PwmApplication makePwmRuntimeInstance(
+            final Configuration configuration
+    ) throws PwmUnrecoverableException {
+        return new PwmApplication.PwmEnvironment(configuration,this.getApplicationPath())
+                .setApplicationMode(PwmApplication.MODE.NEW)
+                .setInternalRuntimeInstance(true)
+                .setConfigurationFile(null)
+                .setWebInfPath(this.getWebInfPath())
+                .createPwmApplication();
+    }
+
 }
+
 
 

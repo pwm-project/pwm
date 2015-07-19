@@ -252,6 +252,10 @@ public class ConfigurationChecker implements HealthChecker {
             records.add(HealthRecord.forMessage(HealthMessage.Config_UsingLocalDBResponseStorage, settingToOutputText(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE)));
         }
 
+        if (config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_WRITE_PREFERENCE).contains(DataStorageMethod.LOCALDB)) {
+            records.add(HealthRecord.forMessage(HealthMessage.Config_UsingLocalDBResponseStorage, settingToOutputText(PwmSetting.OTP_SECRET_WRITE_PREFERENCE)));
+        }
+
         return records;
     }
 

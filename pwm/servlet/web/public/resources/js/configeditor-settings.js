@@ -317,6 +317,7 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
 };
 
 StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
+    var isLdapDN = PWM_SETTINGS['settings'][settingKey]['options']['ldapDNsyntax'] == 'true';
     var okAction = function(value) {
         if (iteration > -1) {
             PWM_VAR['clientSettingCache'][settingKey][iteration] = value;
@@ -332,7 +333,13 @@ StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
     editorOptions['placeholder'] = PWM_SETTINGS['settings'][settingKey]['placeholder'];
     editorOptions['completeFunction'] = okAction;
     editorOptions['value'] = iteration > -1 ? PWM_VAR['clientSettingCache'][settingKey][iteration] : '';
-    UILibrary.stringEditorDialog(editorOptions);
+    var isLdapDN = PWM_SETTINGS['settings'][settingKey]['options']['ldapDNsyntax'] == 'true';
+    if (isLdapDN) {
+        UILibrary.editLdapDN(okAction);
+    } else {
+        UILibrary.stringEditorDialog(editorOptions);
+    }
+
 };
 
 StringArrayValueHandler.move = function(settingKey, moveUp, iteration) {
@@ -2183,26 +2190,25 @@ UserPermissionHandler.draw = function(keyName) {
             var currentProfileValue = ('ldapProfileID' in resultValue[rowKey]) ? resultValue[rowKey]['ldapProfileID'] : "";
             htmlBody += '</div><table class="noborder">'
                 + '<td style="width:200px" id="' + inputID + '_profileHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Profile') + '</td>'
+                + '<td></td>'
                 + '<td><input style="width: 200px;" class="configStringInput" id="' + inputID + '-profile" list="' + inputID + '-datalist" value="' +  currentProfileValue + '"/>'
                 + '<datalist id="' + inputID + '-datalist"/></td>'
                 + '</tr>';
 
             if (resultValue[rowKey]['type'] != 'ldapGroup') {
-                var currentQueryValue = ('ldapQuery' in resultValue[rowKey]) ? resultValue[rowKey]['ldapQuery'] : "";
                 htmlBody += '<tr>'
                     + '<td><span id="' + inputID + '_FilterHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Filter') + '</span></td>'
-                    + '<td><input style="width: 420px;" class="configStringInput" id="' + inputID + '-query" value="' + currentQueryValue + '"></input></td>'
+                    + '<td id="icon-edit-query-' + inputID + '"><div title="Edit Value" class="btn-icon fa fa-edit"></div></td>'
+                    + '<td><div style="width: 350px;" class="configStringPanel noWrapTextBox border" id="' + inputID + '-query"></div></td>'
                     + '</tr>';
             }
 
-            var currentBaseValue = ('ldapBase' in resultValue[rowKey]) ? resultValue[rowKey]['ldapBase'] : "";
             htmlBody += '<tr>'
                 + '<td><span id="' + inputID + '_BaseHeader' + '">'
                 + PWM_CONFIG.showString((resultValue[rowKey]['type'] == 'ldapGroup') ?  'Setting_Permission_Base_Group' : 'Setting_Permission_Base')
                 + '</span></td>'
-
-                + '<td><input style="width: 420px;" class="configStringInput" id="' + inputID + '-base" value="' + currentBaseValue + '"></input></td>'
-                + '</td>'
+                + '<td id="icon-edit-base-' + inputID + '"><div title="Edit Value" class="btn-icon fa fa-edit"></div></td>'
+                + '<td><div style="width: 350px;" class="configStringPanel noWrapTextBox border" id="' + inputID + '-base">&nbsp;</div></td>'
                 + '</tr>';
 
 
@@ -2231,24 +2237,42 @@ UserPermissionHandler.draw = function(keyName) {
                 });
 
                 if (resultValue[rowKey]['type'] != 'ldapGroup') {
-                    var queryInput = PWM_MAIN.getObject(inputID + "-query");
-                    queryInput.disabled = false;
-                    queryInput.required = true;
+                    UILibrary.addTextValueToElement(inputID + '-query', PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery']);
+                    var queryEditor = function(){
+                        UILibrary.stringEditorDialog({
+                            value:PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery'],
+                            completeFunction:function(value) {
+                                PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery'] = value;
+                                UserPermissionHandler.write(keyName,true);
+                            }
+                        });
+                    };
 
-                    PWM_MAIN.addEventHandler(inputID + "-query",'input',function(){
-                        PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery'] = this.value;
-                        UserPermissionHandler.write(keyName);
+                    PWM_MAIN.addEventHandler(inputID + "-query",'click',function(){
+                        queryEditor();
+                    });
+                    PWM_MAIN.addEventHandler('icon-edit-query-' + inputID,'click',function(){
+                        queryEditor();
                     });
                 }
 
-                var queryInput = PWM_MAIN.getObject(inputID + "-base");
-                queryInput.disabled = false;
-                queryInput.required = true;
-
-                PWM_MAIN.addEventHandler(inputID + "-base",'input',function(){
-                    PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapBase'] = this.value;
-                    UserPermissionHandler.write(keyName);
+                var currentBaseValue = ('ldapBase' in resultValue[rowKey]) ? resultValue[rowKey]['ldapBase'] : "";
+                var baseEditor = function(){
+                    UILibrary.editLdapDN(function(value) {
+                        PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapBase'] = value;
+                        UserPermissionHandler.write(keyName,true);
+                    });
+                };
+                if (currentBaseValue && currentBaseValue.length > 0) {
+                    UILibrary.addTextValueToElement(inputID + '-base', currentBaseValue);
+                }
+                PWM_MAIN.addEventHandler(inputID + '-base','click',function(){
+                    baseEditor();
                 });
+                PWM_MAIN.addEventHandler('icon-edit-base-' + inputID,'click',function(){
+                    baseEditor();
+                });
+
 
                 var deleteButtonID = 'button-' + inputID + '-deleteRow';
                 var hasID = PWM_MAIN.getObject(deleteButtonID) ? "YES" : "NO";
@@ -2485,19 +2509,26 @@ StringValueHandler.init = function(settingKey) {
             });
         });
 
+
+        var isLdapDN = settingData['options']['ldapDNsyntax'] == 'true';
         var editor = function(){
-            UILibrary.stringEditorDialog({
-                title:'Edit Value - ' + settingData['label'],
-                textarea:('TEXT_AREA' == settingData['syntax']),
-                regex:'pattern' in settingData ? settingData['pattern'] : '.+',
-                placeholder:settingData['placeholder'],
-                value:value,
-                completeFunction:function(value){
-                    PWM_CFGEDIT.writeSetting(settingKey,value,function(){
-                        StringValueHandler.init(settingKey);
-                    });
-                }
-            });
+            var writeBackFunc = function(value){
+                PWM_CFGEDIT.writeSetting(settingKey,value,function(){
+                    StringValueHandler.init(settingKey);
+                });
+            };
+            if (isLdapDN) {
+                UILibrary.editLdapDN(writeBackFunc);
+            } else {
+                UILibrary.stringEditorDialog({
+                    title:'Edit Value - ' + settingData['label'],
+                    textarea:('TEXT_AREA' == settingData['syntax']),
+                    regex:'pattern' in settingData ? settingData['pattern'] : '.+',
+                    placeholder:settingData['placeholder'],
+                    value:value,
+                    completeFunction:writeBackFunc
+                });
+            }
         };
 
         PWM_MAIN.addEventHandler('button-' + settingKey,'click',function(){
@@ -2841,238 +2872,5 @@ FileValueHandler.uploadFile = function(keyName) {
         }});
     };
     PWM_CONFIG.uploadFile(options);
-};
-
-// -------------------------- common elements handler ------------------------------------
-
-
-var UILibrary = {};
-UILibrary.stringEditorDialog = function(options){
-    options = options === undefined ? {} : options;
-    var title = 'title' in options ? options['title'] : 'Edit Value';
-    var completeFunction = 'completeFunction' in options ? options['completeFunction'] : function() {alert('no string editor dialog complete function')};
-    var regexString = 'regex' in options && options['regex'] ? options['regex'] : '.+';
-    var initialValue = 'value' in options ? options['value'] : '';
-    var placeholder = 'placeholder' in options ? options['placeholder'] : '';
-    var textarea = 'textarea' in options ? options['textarea'] : false;
-
-    var regexObject = new RegExp(regexString);
-    var text = '';
-    text += '<div style="visibility: hidden;" id="panel-valueWarning"><span class="fa fa-warning message-error"></span>&nbsp;' + PWM_CONFIG.showString('Warning_ValueIncorrectFormat') + '</div>';
-    text += '<br/>';
-
-    if (textarea) {
-        text += '<textarea style="max-width: 480px; width: 480px; height:300px; max-height:300px; overflow-y: auto" class="configStringInput" autofocus required id="addValueDialog_input"></textarea>';
-    } else {
-        text += '<input style="width: 480px" class="configStringInput" autofocus required id="addValueDialog_input"/>';
-    }
-
-    var inputFunction = function() {
-        PWM_MAIN.getObject('dialog_ok_button').disabled = true;
-        PWM_MAIN.getObject('panel-valueWarning').style.visibility = 'hidden';
-
-        var value = PWM_MAIN.getObject('addValueDialog_input').value;
-        if (value.length > 0) {
-            var passedValidation = regexObject  != null && regexObject.test(value);
-
-            if (passedValidation) {
-                PWM_MAIN.getObject('dialog_ok_button').disabled = false;
-                PWM_VAR['temp-dialogInputValue'] = PWM_MAIN.getObject('addValueDialog_input').value;
-            } else {
-                PWM_MAIN.getObject('panel-valueWarning').style.visibility = 'visible';
-            }
-        }
-    };
-
-    var okFunction = function() {
-        var value = PWM_VAR['temp-dialogInputValue'];
-        completeFunction(value);
-    };
-
-    PWM_MAIN.showDialog({
-        title:title,
-        text:text,
-        okAction:okFunction,
-        showCancel:true,
-        showClose: true,
-        allowMove: true,
-        loadFunction:function(){
-            PWM_MAIN.getObject('addValueDialog_input').value = initialValue;
-            if (regexString && regexString.length > 1) {
-                PWM_MAIN.getObject('addValueDialog_input').setAttribute('pattern',regexString);
-            }
-            if (placeholder && placeholder.length > 1) {
-                PWM_MAIN.getObject('addValueDialog_input').setAttribute('placeholder',placeholder);
-            }
-            inputFunction();
-            PWM_MAIN.addEventHandler('addValueDialog_input','input',function(){
-                inputFunction();
-            });
-        }
-    });
-};
-
-UILibrary.addTextValueToElement = function(elementID, input) {
-    var element = PWM_MAIN.getObject(elementID);
-    if (element) {
-        element.innerHTML = '';
-        element.appendChild(document.createTextNode(input));
-    }
-};
-
-UILibrary.addAddLocaleButtonRow = function(parentDiv, keyName, addFunction, existingLocales) {
-    var availableLocales = PWM_GLOBAL['localeInfo'];
-
-    var tableRowElement = document.createElement('tr');
-    tableRowElement.setAttribute("style","border-width: 0");
-
-    var bodyHtml = '';
-    bodyHtml += '<td style="border-width: 0" colspan="5">';
-    bodyHtml += '<select id="' + keyName + '-addLocaleValue">';
-
-    var localesAdded = 0;
-    for (var localeIter in availableLocales) {
-        if (localeIter != PWM_GLOBAL['defaultLocale']) {
-            if (!existingLocales || (existingLocales.indexOf(localeIter) == -1)) {
-                localesAdded++;
-                var labelText = availableLocales[localeIter] + " (" + localeIter + ")";
-                bodyHtml += '<option value="' + localeIter + '">' + labelText + '</option>';
-            }
-        }
-    }
-    bodyHtml += '</select>';
-
-    bodyHtml += '<button type="button" class="btn" id="' + keyName + '-addLocaleButton"><span class="btn-icon fa fa-plus-square"></span>Add Locale</button>'
-
-    bodyHtml += '</td>';
-    if (localesAdded == 0) {
-        bodyHtml = '<td style="border-width: 0" colspan="5"><span class="footnote">All locales present</span></td>';
-    }
-    tableRowElement.innerHTML = bodyHtml;
-    PWM_MAIN.getObject(parentDiv).appendChild(tableRowElement);
-
-    PWM_MAIN.addEventHandler(keyName + '-addLocaleButton','click',function(){
-        var value = PWM_MAIN.getObject(keyName + "-addLocaleValue").value;
-        addFunction(value);
-    });
-};
-
-UILibrary.manageNumericInput = function(elementID, readFunction) {
-    var element = PWM_MAIN.getObject(elementID);
-    if (!element) {
-        return;
-    }
-    var validChecker = function(value) {
-        if (!value) {
-            return false;
-        }
-        if (value.match('^[0-9]*$') == null) {
-            return false;
-        }
-        if (element.hasAttribute('min')) {
-            if (value < parseInt(element.getAttribute('min'))) {
-                return false;
-            }
-        }
-        if (element.hasAttribute('max')) {
-            if (value > parseInt(element.getAttribute('max'))) {
-                return false;
-            }
-        }
-        return true;
-    };
-    PWM_MAIN.addEventHandler(elementID,'input',function(){
-        var value = element.value;
-        if (validChecker(value)) {
-            console.log('valid numerical input value: ' + value);
-            readFunction(value);
-        } else {
-            console.log('invalid numerical input value: ' + value);
-        }
-    });
-};
-
-ActionHandler.showHeadersDialog = function(keyName, iteration) {
-    var addValue = function(keyName, iteration) {
-        var body = '<table class="noborder">';
-        body += '<tr><td>Name</td><td><input class="configStringInput" id="newHeaderName" style="width:300px"/></td></tr>';
-        body += '<tr><td>Value</td><td><input class="configStringInput" id="newHeaderValue" style="width:300px"/></td></tr>';
-        body += '</table>';
-
-        var updateFunction = function(){
-            PWM_MAIN.getObject('dialog_ok_button').disabled = true;
-            PWM_VAR['newHeaderName'] = PWM_MAIN.getObject('newHeaderName').value;
-            PWM_VAR['newHeaderValue'] = PWM_MAIN.getObject('newHeaderValue').value;
-            if (PWM_VAR['newHeaderName'].length > 0 && PWM_VAR['newHeaderValue'].length > 0) {
-                PWM_MAIN.getObject('dialog_ok_button').disabled = false;
-            }
-        };
-
-        PWM_MAIN.showConfirmDialog({
-            title:'New Header',
-            text:body,
-            showClose:true,
-            loadFunction:function(){
-                PWM_MAIN.addEventHandler('newHeaderName','input',function(){
-                    updateFunction();
-                });
-                PWM_MAIN.addEventHandler('newHeaderValue','input',function(){
-                    updateFunction();
-                });
-                updateFunction();
-            },okAction:function(){
-                var headers = PWM_VAR['clientSettingCache'][keyName][iteration]['headers'];
-                headers[PWM_VAR['newHeaderName']] = PWM_VAR['newHeaderValue'];
-                ActionHandler.write(keyName);
-                ActionHandler.showHeadersDialog(keyName, iteration);
-            },cancelAction:function(){
-                ActionHandler.showHeadersDialog(keyName, iteration);
-            }
-        });
-
-    };
-
-    var settingValue = PWM_VAR['clientSettingCache'][keyName][iteration];
-    require(["dijit/Dialog","dijit/form/ValidationTextBox","dijit/form/Button","dijit/form/TextBox"],function(Dialog,ValidationTextBox,Button,TextBox){
-        var inputID = 'value_' + keyName + '_' + iteration + "_" + "headers_";
-
-        var bodyText = '';
-        bodyText += '<table class="noborder">';
-        bodyText += '<tr><td><b>Name</b></td><td><b>Value</b></td></tr>';
-        for (var iter in settingValue['headers']) {
-            (function(headerName) {
-                var value = settingValue['headers'][headerName];
-                var optionID = inputID + headerName;
-                bodyText += '<tr><td class="border">' + headerName + '</td><td class="border">' + value + '</td>';
-                bodyText += '<td style="width:15px;"><span class="delete-row-icon action-icon fa fa-times" id="button-' + optionID + '-deleteRow"></span></td>';
-                bodyText += '</tr>';
-            }(iter));
-        }
-        bodyText += '</table>';
-
-        PWM_MAIN.showDialog({
-            title: 'HTTP Headers for webservice ' + settingValue['name'],
-            text: bodyText,
-            buttonHtml:'<button id="button-' + inputID + '-addHeader" class="btn"><span class="btn-icon fa fa-plus-square"></span>Add Header</button>',
-            okAction: function() {
-                ActionHandler.showOptionsDialog(keyName,iteration);
-            },
-            loadFunction: function() {
-                for (var iter in settingValue['headers']) {
-                    (function(headerName) {
-                        var headerID = inputID + headerName;
-                        PWM_MAIN.addEventHandler('button-' + headerID + '-deleteRow', 'click', function () {
-                            delete settingValue['headers'][headerName];
-                            ActionHandler.write(keyName);
-                            ActionHandler.showHeadersDialog(keyName, iteration);
-                        });
-                    }(iter));
-                }
-                PWM_MAIN.addEventHandler('button-' + inputID + '-addHeader','click',function(){
-                    ActionHandler.addHeader(keyName, iteration);
-                });
-            }
-        });
-    });
 };
 

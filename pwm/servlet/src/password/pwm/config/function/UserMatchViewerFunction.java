@@ -35,7 +35,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.util.logging.PwmLogger;
 
@@ -77,7 +76,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
         final Configuration config = new Configuration(storedConfiguration);
         final PwmApplication tempApplication = new PwmApplication.PwmEnvironment(config,pwmApplication.getApplicationPath())
                 .setApplicationMode(PwmApplication.MODE.NEW)
-                .setInitLogging(false)
+                .setInternalRuntimeInstance(true)
                 .setConfigurationFile(null)
                 .setWebInfPath(pwmApplication.getWebInfPath())
                 .createPwmApplication();
@@ -96,58 +95,6 @@ public class UserMatchViewerFunction implements SettingUIFunction {
         return LdapPermissionTester.discoverMatchingUsers(tempApplication, maxResultSize, permissions).keySet();
     }
 
-    public String convertResultsToHtmlTable(
-            final PwmApplication pwmApplication,
-            final Locale userLocale,
-            final Map<String,List<String>> sortedMap,
-            final int maxResultSize
-    )
-    {
-        final StringBuilder output = new StringBuilder();
-        final Configuration config = pwmApplication.getConfig();
-
-        if (sortedMap.isEmpty()) {
-            output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,Display.Display_SearchResultsNone,pwmApplication.getConfig()));
-        } else {
-            output.append("<table>");
-            output.append("<tr><td class=\"title\">");
-            output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,Display.Field_LdapProfile,pwmApplication.getConfig()));
-            output.append("</td><td class=\"title\">");
-            output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,Display.Field_UserDN,pwmApplication.getConfig()));
-            output.append("</td></tr>");
-
-            for (final String loopProfile : sortedMap.keySet()) {
-                final String profileName = config.getLdapProfiles().get(loopProfile).getDisplayName(userLocale);
-                for (final String loopDN : sortedMap.get(loopProfile)) {
-                    output.append("<tr><td>");
-                    output.append(profileName);
-                    output.append("</td><td>");
-                    output.append(loopDN);
-                    output.append("</td></tr>");
-                }
-            }
-            output.append("</table>");
-            if (sortedMap.size() >= maxResultSize) {
-                output.append("<br/>");
-                output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,Display.Display_SearchResultsExceeded,pwmApplication.getConfig()));
-            }
-        }
-
-        return output.toString();
-    }
-
-    private Map<String,List<String>> sortResults(final Map<UserIdentity, Map<String, String>> results) {
-        final Map<String,List<String>> sortedMap = new TreeMap<>();
-
-        for (final UserIdentity userIdentity : results.keySet()) {
-            if (!sortedMap.containsKey(userIdentity.getLdapProfileID())) {
-                sortedMap.put(userIdentity.getLdapProfileID(), new ArrayList<String>());
-            }
-            sortedMap.get(userIdentity.getLdapProfileID()).add(userIdentity.getUserDN());
-        }
-
-        return sortedMap;
-    }
 
     private void testIfLdapDNIsValid(final PwmApplication pwmApplication, final String baseDN, final String profileID)
             throws PwmOperationalException, PwmUnrecoverableException {

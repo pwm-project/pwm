@@ -105,21 +105,21 @@
                         </td>
                         <td>
                             <%=StringUtil.escapeHtml(
-                                    configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT))%>
+                                    configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_CONTEXT))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>Administrator Search Filter</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_ADMIN_GROUP))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>LDAP Test User DN</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_TEST_USER))%>
                         </td>
                     </tr>
                     <tr>

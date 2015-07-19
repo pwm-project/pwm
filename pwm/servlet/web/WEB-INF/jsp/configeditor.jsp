@@ -64,7 +64,6 @@
             </div>
         </div>
     </div>
-
     <div id="centerbody-config" class="centerbody-config">
         <div id="settingSearchPanel">
             <table class="noborder settingSearchPanelTable">
@@ -152,6 +151,7 @@
     </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
+<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>

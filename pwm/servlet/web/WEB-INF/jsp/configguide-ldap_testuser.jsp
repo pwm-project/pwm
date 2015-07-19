@@ -61,11 +61,11 @@
                     <br/><br/>
                     This setting is optional but recommended.  If you do not wish to configure an LDAP Test User DN at this time, you can leave this setting blank and configure a test user later.
                     <div class="setting_item">
-                        <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" style="padding-left: 5px; padding-top: 5px">
+                        <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_TEST_USER%>" style="padding-left: 5px; padding-top: 5px">
                             <b>LDAP Test User DN</b>
                             <br/>
-                            <span class="fa fa-chevron-circle-right"></span>
-                            <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" name="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER))%>" autofocus/>
+                            <button type="button" class="btn" id="button-browse-testUser"><span class="btn-icon fa fa-sitemap"></span>Browse</button>
+                            <input style="width:400px" class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_TEST_USER%>" name="<%=ConfigGuideServlet.PARAM_LDAP_TEST_USER%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_TEST_USER))%>" autofocus/>
                         </div>
                     </div>
                 </div>
@@ -115,10 +115,17 @@
 
         PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
         PWM_MAIN.addEventHandler('healthBody','click',function(){loadHealth()});
+
+        PWM_MAIN.addEventHandler('button-browse-testUser','click',function(){
+            UILibrary.editLdapDN(function(value){
+                PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_TEST_USER%>').value = value;
+                handleFormActivity();
+            })
+        });
     });
 
     function checkIfNextEnabled() {
-        var fieldValue = PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>').value;
+        var fieldValue = PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_TEST_USER%>').value;
         PWM_MAIN.getObject('button_next').disabled = false;
         if (fieldValue.length && fieldValue.length > 0) {
             if (PWM_GLOBAL['pwm-health'] !== 'GOOD' && PWM_GLOBAL['pwm-health'] !== 'CONFIG') {
@@ -143,6 +150,7 @@
 </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/configguide.js"/>
+<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 <%@ include file="fragment/footer.jsp" %>

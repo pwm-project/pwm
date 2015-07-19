@@ -25,7 +25,7 @@ package password.pwm.http.bean;
 import password.pwm.config.StoredConfiguration;
 
 public class ConfigManagerBean implements PwmSessionBean {
-    private StoredConfiguration configuration;
+    private StoredConfiguration storedConfiguration;
     private boolean passwordVerified;
     private boolean configUnlockedWarningShown;
 
@@ -35,11 +35,11 @@ public class ConfigManagerBean implements PwmSessionBean {
     }
 
     public StoredConfiguration getStoredConfiguration() {
-        return configuration;
+        return storedConfiguration;
     }
 
-    public void setConfiguration(final StoredConfiguration configuration) {
-        this.configuration = configuration;
+    public void setConfiguration(final StoredConfiguration storedConfiguration) {
+        this.storedConfiguration = storedConfiguration;
     }
 
     public boolean isPasswordVerified() {
@@ -58,10 +58,6 @@ public class ConfigManagerBean implements PwmSessionBean {
     public void setPrePasswordEntryUrl(String prePasswordEntryUrl)
     {
         this.prePasswordEntryUrl = prePasswordEntryUrl;
-    }
-
-    public StoredConfiguration getConfiguration() {
-        return configuration;
     }
 
     public boolean isConfigUnlockedWarningShown() {

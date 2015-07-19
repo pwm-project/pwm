@@ -219,7 +219,7 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
             );
             pwmApplication.getAuditManager().submit(auditRecord);
 
-            pwmRequest.sendRedirect(PwmServletDefinition.SetupResponses.servletUrl());
+            pwmRequest.sendRedirect(PwmServletDefinition.SetupResponses);
         } catch (PwmOperationalException e) {
             LOGGER.debug(pwmSession, e.getErrorInformation());
             pwmRequest.setResponseError(e.getErrorInformation());

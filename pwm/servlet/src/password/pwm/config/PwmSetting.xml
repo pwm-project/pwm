@@ -387,6 +387,9 @@
         <default template="AD">
             <value><![CDATA[cn=administrator,cn=users,dc=site,dc=example,dc=net]]></value>
         </default>
+        <options>
+            <option value="ldapDNsyntax">true</option>
+        </options>
     </setting>
     <setting key="ldap.proxy.password" level="0">
     </setting>
@@ -397,6 +400,9 @@
         <default template="AD">
             <value><![CDATA[cn=users,dc=site,dc=example,dc=net]]></value>
         </default>
+        <options>
+            <option value="ldapDNsyntax">true</option>
+        </options>
     </setting>
     <setting key="ldap.selectableContexts" level="2">
         <regex>^.+:::.+$</regex>
@@ -406,6 +412,9 @@
         <default>
             <value />
         </default>
+        <options>
+            <option value="ldapDNsyntax">true</option>
+        </options>
     </setting>
     <setting key="pwmAdmin.queryMatch" level="0" required="true">
         <default syntaxVersion="2">
@@ -2053,6 +2062,9 @@
         <default>
             <value><![CDATA[ou=users,o=example]]></value>
         </default>
+        <options>
+            <option value="ldapDNsyntax">true</option>
+        </options>
     </setting>
     <setting key="display.newuser.agreement" level="1">
         <default>
@@ -2116,6 +2128,9 @@
         <default>
             <value><![CDATA[ou=guests,o=example]]></value>
         </default>
+        <options>
+            <option value="ldapDNsyntax">true</option>
+        </options>
     </setting>
     <setting key="guest.adminGroup" level="1" required="true">
         <default syntaxVersion="2">
@@ -2342,6 +2357,9 @@
     </setting>
     <setting key="peopleSearch.searchBase" level="2">
         <default />
+        <options>
+            <option value="ldapDNsyntax">true</option>
+        </options>
     </setting>
     <setting key="peopleSearch.result.form" level="1" required="true">
         <default>
@@ -2618,6 +2636,9 @@
     </setting>
     <setting key="helpdesk.searchBase" level="1">
         <default />
+        <options>
+            <option value="ldapDNsyntax">true</option>
+        </options>
     </setting>
     <setting key="helpdesk.result.limit" level="2" required="true">
         <default>

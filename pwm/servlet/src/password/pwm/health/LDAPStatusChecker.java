@@ -674,7 +674,7 @@ public class LDAPStatusChecker implements HealthChecker {
     {
         final PwmApplication tempApplication = new PwmApplication.PwmEnvironment(config, pwmApplication.getApplicationPath())
                 .setApplicationMode(PwmApplication.MODE.NEW)
-                .setInitLogging(false)
+                .setInternalRuntimeInstance(true)
                 .setWebInfPath(pwmApplication.getWebInfPath())
                 .createPwmApplication();
 

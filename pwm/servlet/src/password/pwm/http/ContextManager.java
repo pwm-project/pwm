@@ -188,7 +188,6 @@ public class ContextManager implements Serializable {
         try {
             pwmApplication = new PwmApplication.PwmEnvironment(configuration, applicationPath)
                     .setApplicationMode(mode)
-                    .setInitLogging(true)
                     .setConfigurationFile(configurationFile)
                     .setWebInfPath(webInfPath)
                     .setApplicationPathType(applicationPathType).createPwmApplication();

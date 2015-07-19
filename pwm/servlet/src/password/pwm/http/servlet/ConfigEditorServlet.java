@@ -43,6 +43,7 @@ import password.pwm.i18n.Config;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
+import password.pwm.ldap.LdapBrowser;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
@@ -88,6 +89,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         menuTreeData(HttpMethod.POST),
         settingData(HttpMethod.GET),
         testMacro(HttpMethod.POST),
+        browseLdap(HttpMethod.POST),
 
         ;
 
@@ -239,6 +241,10 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
 
                 case testMacro:
                     restTestMacro(pwmRequest);
+                    return;
+
+                case browseLdap:
+                    restBrowseLdap(pwmRequest);
                     return;
             }
         }
@@ -1040,4 +1046,23 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             pwmRequest.respondWithError(e.getErrorInformation());
         }
     }
+
+    private void restBrowseLdap(final PwmRequest pwmRequest) throws IOException, ServletException, PwmUnrecoverableException {
+        final Date startTime = new Date();
+        final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(true);
+        final String profile = inputMap.get("profile");
+        final String dn = inputMap.containsKey("dn") ? inputMap.get("dn") : "";
+
+        final LdapBrowser ldapBrowser = new LdapBrowser(pwmRequest.getPwmSession().getConfigManagerBean().getStoredConfiguration());
+        final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse(profile, dn);
+        ldapBrowser.close();
+
+        LOGGER.trace(pwmRequest, "performed ldapBrowse operation in "
+                + TimeDuration.fromCurrent(startTime).asCompactString()
+                + ", result=" + JsonUtil.serialize(result));
+
+        pwmRequest.outputJsonResult(new RestResultBean(result));
+    }
+
+
 }

@@ -64,7 +64,6 @@
                         </tr>
                         <tr>
                             <td colspan="2">
-                                <span class="fa fa-chevron-circle-right"></span>
                                 <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" name="<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>" <pwm:autofocus/> />
                             </td>
                         </tr>
@@ -79,12 +78,10 @@
                         </tr>
                         <tr>
                             <td>
-                                <span class="fa fa-chevron-circle-right"></span>
                                 <input class="configNumericInput" type="number" id="<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" name="<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>"/>
                             </td>
                             <td>
                                 <% boolean secureChecked = "true".equalsIgnoreCase(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_SECURE));%>
-                                <span class="fa fa-chevron-circle-right"></span>
                                 <label class="checkboxWrapper">
                                     <input type="checkbox" id="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" name="nope" <%=secureChecked ? "checked" : ""%>/> Secure
                                     <input type="hidden" id="<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" name="<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" value="uninitialized"/>
@@ -92,30 +89,6 @@
                             </td>
                         </tr>
                     </table>
-                </div>
-            </div>
-            <br/>
-            <div id="outline_ldap-user" class="setting_outline">
-                <div id="titlePaneHeader-ldap-credentials" class="setting_title">
-                    LDAP Credentials
-                </div>
-                <div class="setting_body">
-                    Enter the credentials for your ldap server.  You must enter the fully qualified LDAP DN of the
-                    admin account here.  In most cases, you should use an account created specially for this purpose, with sufficient rights to
-                    administer the users that will be logging into this system.
-                    <div class="setting_item">
-                        <b>Proxy/Admin LDAP DN</b>
-                        <br/>
-                        <span class="fa fa-chevron-circle-right"></span>
-                        <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>"  value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN)%>"/>
-                    </div>
-                    &nbsp;<br/>
-                    <div class="setting_item">
-                        <b>Password</b>
-                        <br/>
-                        <span class="fa fa-chevron-circle-right"></span>
-                        <input class="configStringInput" type="password" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_PW)%>"/>
-                    </div>
                 </div>
             </div>
         </form>

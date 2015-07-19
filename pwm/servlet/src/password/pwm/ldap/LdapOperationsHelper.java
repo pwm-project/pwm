@@ -343,7 +343,7 @@ public class LdapOperationsHelper {
     )
             throws PwmUnrecoverableException
     {
-        final ChaiConfiguration chaiConfig = new ChaiConfiguration(ldapURLs, userDN, userPassword.getStringValue());
+        final ChaiConfiguration chaiConfig = new ChaiConfiguration(ldapURLs, userDN, userPassword == null ? null : userPassword.getStringValue());
 
         chaiConfig.setSetting(ChaiSetting.PROMISCUOUS_SSL, config.readAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE));
         chaiConfig.setSetting(ChaiSetting.EDIRECTORY_ENABLE_NMAS, Boolean.toString(config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS)));

@@ -1318,3 +1318,7 @@ PWM_CFGEDIT.openMenuPanel = function() {
     PWM_MAIN.setStyle('header-warning','display','inherit');
     PWM_MAIN.setStyle('button-openMenu','display','none');
 };
+
+
+
+
