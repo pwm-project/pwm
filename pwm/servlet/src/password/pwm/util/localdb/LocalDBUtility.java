@@ -82,15 +82,13 @@ public class LocalDBUtility {
         statTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                final String percentStr;
                 if (showLineCount) {
                     final float percentComplete = (float) exportLineCounter / (float) totalLines;
-                    percentStr = DecimalFormat.getPercentInstance().format(percentComplete);
+                    final String percentStr = DecimalFormat.getPercentInstance().format(percentComplete);
+                    writeStringToOut(debugOutput," exported " + exportLineCounter + " records, " + percentStr + " complete");
                 } else {
-                    percentStr = "n/a";
+                    writeStringToOut(debugOutput," exported " + exportLineCounter + " records");
                 }
-
-                writeStringToOut(debugOutput," exported " + exportLineCounter + " records, " + percentStr + " complete");
             }
         },30 * 1000, 30 * 1000);
 
@@ -114,15 +112,15 @@ public class LocalDBUtility {
                     }
                 }
             }
+        } catch (IOException e) {
+            writeStringToOut(debugOutput,"IO error during localDB export: " + e.getMessage());
         } finally {
-            if (csvPrinter != null) {
-                csvPrinter.printComment("export completed at " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-                csvPrinter.close();
-            }
+            csvPrinter.printComment("export completed at " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            csvPrinter.close();
+            statTimer.cancel();
         }
 
         writeStringToOut(debugOutput, "export complete, exported " + exportLineCounter + " records in " + TimeDuration.fromCurrent(startTime).asLongString());
-        statTimer.cancel();
     }
 
     private static void writeStringToOut(final Appendable out, final String string) {

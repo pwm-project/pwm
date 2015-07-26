@@ -30,60 +30,54 @@ import java.util.Locale;
 public enum AuditEvent {
 
     // system events
-    STARTUP(Message.EventLog_Startup, Type.SYSTEM, false),
-    SHUTDOWN(Message.EventLog_Shutdown, Type.SYSTEM, false),
-    FATAL_EVENT(Message.EventLog_FatalEvent, Type.SYSTEM, false),
-    MODIFY_CONFIGURATION(Message.EventLog_ModifyConfiguration, Type.SYSTEM, false),
-    INTRUDER_LOCK(Message.EventLog_IntruderLockout, Type.SYSTEM, true),
-    INTRUDER_ATTEMPT(Message.EventLog_IntruderAttempt, Type.SYSTEM, false),
+    STARTUP(Message.EventLog_Startup, Type.SYSTEM),
+    SHUTDOWN(Message.EventLog_Shutdown, Type.SYSTEM),
+    FATAL_EVENT(Message.EventLog_FatalEvent, Type.SYSTEM),
+    MODIFY_CONFIGURATION(Message.EventLog_ModifyConfiguration, Type.SYSTEM),
+    INTRUDER_LOCK(Message.EventLog_IntruderLockout, Type.SYSTEM),
+    INTRUDER_ATTEMPT(Message.EventLog_IntruderAttempt, Type.SYSTEM),
 
     // user events not stored in user event history
-    AUTHENTICATE(Message.EventLog_Authenticate, Type.USER, false),
-    AGREEMENT_PASSED(Message.EventLog_AgreementPassed, Type.USER, false),
-    TOKEN_ISSUED(Message.EventLog_TokenIssued, Type.USER, false),
-    TOKEN_CLAIMED(Message.EventLog_TokenClaimed, Type.USER, false),
-    CLEAR_RESPONSES(Message.EventLog_ClearResponses, Type.USER, false),
+    AUTHENTICATE(Message.EventLog_Authenticate, Type.USER),
+    AGREEMENT_PASSED(Message.EventLog_AgreementPassed, Type.USER),
+    TOKEN_ISSUED(Message.EventLog_TokenIssued, Type.USER),
+    TOKEN_CLAIMED(Message.EventLog_TokenClaimed, Type.USER),
+    CLEAR_RESPONSES(Message.EventLog_ClearResponses, Type.USER),
 
     // user events stored in user event history
-    CHANGE_PASSWORD(Message.EventLog_ChangePassword, Type.USER, true),
-    UNLOCK_PASSWORD(Message.EventLog_UnlockPassword, Type.USER, true),
-    RECOVER_PASSWORD(Message.EventLog_RecoverPassword, Type.USER, true),
-    SET_RESPONSES(Message.EventLog_SetupResponses, Type.USER, true),
-    SET_OTP_SECRET(Message.Eventlog_SetupOtpSecret, Type.USER, true),
-    ACTIVATE_USER(Message.EventLog_ActivateUser, Type.USER, true),
-    CREATE_USER(Message.EventLog_CreateUser, Type.USER, true),
-    UPDATE_PROFILE(Message.EventLog_UpdateProfile, Type.USER, true),
-    INTRUDER_USER(Message.EventLog_IntruderUser, Type.USER, true),
+    CHANGE_PASSWORD(Message.EventLog_ChangePassword, Type.USER),
+    UNLOCK_PASSWORD(Message.EventLog_UnlockPassword, Type.USER),
+    RECOVER_PASSWORD(Message.EventLog_RecoverPassword, Type.USER),
+    SET_RESPONSES(Message.EventLog_SetupResponses, Type.USER),
+    SET_OTP_SECRET(Message.Eventlog_SetupOtpSecret, Type.USER),
+    ACTIVATE_USER(Message.EventLog_ActivateUser, Type.USER),
+    CREATE_USER(Message.EventLog_CreateUser, Type.USER),
+    UPDATE_PROFILE(Message.EventLog_UpdateProfile, Type.USER),
+    INTRUDER_USER(Message.EventLog_IntruderUser, Type.USER),
 
     // helpdesk events
-    HELPDESK_SET_PASSWORD(Message.EventLog_HelpdeskSetPassword, Type.HELPDESK, true),
-    HELPDESK_UNLOCK_PASSWORD(Message.EventLog_HelpdeskUnlockPassword, Type.HELPDESK, true),
-    HELPDESK_CLEAR_RESPONSES(Message.EventLog_HelpdeskClearResponses, Type.HELPDESK, true),
-    HELPDESK_CLEAR_OTP_SECRET(Message.EventLog_HelpdeskClearOtpSecret, Type.HELPDESK, true),
-    HELPDESK_ACTION(Message.EventLog_HelpdeskAction, Type.HELPDESK, true),
-    HELPDESK_DELETE_USER(Message.EventLog_HelpdeskDeleteUser, Type.HELPDESK, false),
-    HELPDESK_VIEW_DETAIL(Message.EventLog_HelpdeskViewDetail, Type.HELPDESK, false),
-    HELPDESK_VERIFY_OTP(Message.EventLog_HelpdeskViewDetail, Type.HELPDESK, false),
+    HELPDESK_SET_PASSWORD(Message.EventLog_HelpdeskSetPassword, Type.HELPDESK),
+    HELPDESK_UNLOCK_PASSWORD(Message.EventLog_HelpdeskUnlockPassword, Type.HELPDESK),
+    HELPDESK_CLEAR_RESPONSES(Message.EventLog_HelpdeskClearResponses, Type.HELPDESK),
+    HELPDESK_CLEAR_OTP_SECRET(Message.EventLog_HelpdeskClearOtpSecret, Type.HELPDESK),
+    HELPDESK_ACTION(Message.EventLog_HelpdeskAction, Type.HELPDESK),
+    HELPDESK_DELETE_USER(Message.EventLog_HelpdeskDeleteUser, Type.HELPDESK),
+    HELPDESK_VIEW_DETAIL(Message.EventLog_HelpdeskViewDetail, Type.HELPDESK),
+    HELPDESK_VERIFY_OTP(Message.EventLog_HelpdeskViewDetail, Type.HELPDESK),
 
 
     ;
 
     final private Message message;
-    final private boolean storeOnUser;
     private Type type;
 
-    AuditEvent(final Message message, final Type type, boolean storeOnUser) {
+    AuditEvent(final Message message, final Type type) {
         this.message = message;
-        this.storeOnUser = storeOnUser;
         this.type = type;
     }
 
     public Message getMessage() {
         return message;
-    }
-
-    public boolean isStoreOnUser() {
-        return storeOnUser;
     }
 
     public static AuditEvent forKey(final String key) {

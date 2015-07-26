@@ -182,11 +182,6 @@ public class NewUserBean implements PwmSessionBean {
     	NONE,
     	EMAIL,
     	SMS,
-        ;
-
-        public String getTokenName() {
-            return NewUserServlet.class.getName() + "_" + this.toString();
-        }
     }
 
     public Date getCreateStartTime()

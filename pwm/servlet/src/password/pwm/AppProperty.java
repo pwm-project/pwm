@@ -101,6 +101,7 @@ public enum AppProperty {
     HTTP_PARAM_OAUTH_REFRESH_TOKEN                  ("http.parameter.oauth.refreshToken"),
     HTTP_PARAM_OAUTH_STATE                          ("http.parameter.oauth.state"),
     HTTP_PARAM_OAUTH_GRANT_TYPE                     ("http.parameter.oauth.grantType"),
+    HTTP_DOWNLOAD_BUFFER_SIZE                       ("http.download.buffer.size"),
     HTTP_SESSION_RECYCLE_AT_AUTH                    ("http.session.recycleAtAuth"),
     HTTP_SESSION_VALIDATION_KEY_LENGTH              ("http.session.validationKeyLength"),
     LOCALDB_COMPRESSION_ENABLED                     ("localdb.compression.enabled"),

@@ -36,6 +36,7 @@ import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.*;
 import password.pwm.health.*;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
@@ -90,6 +91,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         settingData(HttpMethod.GET),
         testMacro(HttpMethod.POST),
         browseLdap(HttpMethod.POST),
+        copyProfile(HttpMethod.POST),
 
         ;
 
@@ -244,7 +246,11 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                     return;
 
                 case browseLdap:
-                    restBrowseLdap(pwmRequest);
+                    restBrowseLdap(pwmRequest, configManagerBean);
+                    return;
+
+                case copyProfile:
+                    restCopyProfile(pwmRequest, configManagerBean);
                     return;
             }
         }
@@ -1026,7 +1032,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
 
     private void restTestMacro(final PwmRequest pwmRequest) throws IOException, ServletException {
         try {
-            final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(true);
+            final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(PwmHttpRequestWrapper.Flag.BypassValidation);
             if (inputMap == null || !inputMap.containsKey("input")) {
                 pwmRequest.outputJsonResult(new RestResultBean("missing input"));
                 return;
@@ -1047,13 +1053,15 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         }
     }
 
-    private void restBrowseLdap(final PwmRequest pwmRequest) throws IOException, ServletException, PwmUnrecoverableException {
+    private void restBrowseLdap(final PwmRequest pwmRequest, final ConfigManagerBean configManagerBean)
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
         final Date startTime = new Date();
-        final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(true);
+        final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(PwmHttpRequestWrapper.Flag.BypassValidation);
         final String profile = inputMap.get("profile");
         final String dn = inputMap.containsKey("dn") ? inputMap.get("dn") : "";
 
-        final LdapBrowser ldapBrowser = new LdapBrowser(pwmRequest.getPwmSession().getConfigManagerBean().getStoredConfiguration());
+        final LdapBrowser ldapBrowser = new LdapBrowser(configManagerBean.getStoredConfiguration());
         final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse(profile, dn);
         ldapBrowser.close();
 
@@ -1064,5 +1072,30 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         pwmRequest.outputJsonResult(new RestResultBean(result));
     }
 
+    private void restCopyProfile(final PwmRequest pwmRequest, final ConfigManagerBean configManagerBean)
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(PwmHttpRequestWrapper.Flag.BypassValidation);
+
+        final String settingKey = inputMap.get("setting");
+        final PwmSetting setting = PwmSetting.forKey(settingKey);
+        PwmSettingCategory category = null;
+        for (final PwmSettingCategory loopCategory : PwmSettingCategory.values()) {
+            if (loopCategory.hasProfiles()) {
+                if (loopCategory.getProfileSetting() == setting) {
+                    category = loopCategory;
+                }
+            }
+        }
+
+        final String sourceID = inputMap.get("sourceID");
+        final String destinationID = inputMap.get("destinationID");
+        try {
+            configManagerBean.getStoredConfiguration().copyProfileID(category, sourceID, destinationID, pwmRequest.getUserInfoIfLoggedIn());
+            pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest,Message.Success_Unknown));
+        } catch (PwmUnrecoverableException e) {
+            pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest));
+        }
+    }
 
 }

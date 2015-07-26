@@ -571,6 +571,8 @@ public enum PwmSetting {
 
     EVENTS_USER_STORAGE_METHOD(
             "events.user.storageMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.USER_HISTORY),
+    EVENTS_USER_EVENT_TYPES(
+            "events.user.eventList", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.USER_HISTORY),
     EVENTS_LDAP_ATTRIBUTE(
             "events.ldap.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.USER_HISTORY),
     EVENTS_LDAP_MAX_EVENTS(

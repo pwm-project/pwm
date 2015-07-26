@@ -52,6 +52,7 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.token.TokenType;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
 import password.pwm.util.*;
@@ -405,7 +406,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                 final NewUserTokenData newUserTokenData = NewUserFormUtils.fromTokenPayload(pwmRequest, tokenPayload);
                 newUserBean.setProfileID(newUserTokenData.profileID);
                 final NewUserBean.NewUserForm newUserFormFromToken = newUserTokenData.formData;
-                if (NewUserBean.NewUserVerificationPhase.EMAIL.getTokenName().equals(tokenPayload.getName())) {
+                if (TokenType.NEWUSER_EMAIL.matchesName(tokenPayload.getName())) {
                     LOGGER.debug(pwmRequest, "email token passed");
 
                     try {
@@ -421,7 +422,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                     newUserBean.setEmailTokenIssued(true);
                     newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
                     tokenPassed = true;
-                } else if (NewUserBean.NewUserVerificationPhase.SMS.getTokenName().equals(tokenPayload.getName())) {
+                } else if (TokenType.NEWUSER_SMS.matchesName(tokenPayload.getName())) {
                     if (newUserBean.getNewUserForm() != null && newUserBean.getNewUserForm().isConsistentWith(newUserFormFromToken)) {
                         LOGGER.debug(pwmRequest, "SMS token passed");
                         newUserBean.setSmsTokenPassed(true);
@@ -832,7 +833,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                 final String tokenKey;
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
-                            NewUserBean.NewUserVerificationPhase.SMS.getTokenName(),
+                            TokenType.NEWUSER_SMS,
                             tokenPayloadMap,
                             null,
                             Collections.singleton(outputDestTokenData.getSms())
@@ -877,7 +878,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                 final String tokenKey;
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
-                            NewUserBean.NewUserVerificationPhase.EMAIL.getTokenName(),
+                            TokenType.NEWUSER_EMAIL,
                             tokenPayloadMap,
                             null,
                             Collections.singleton(outputDestTokenData.getEmail())

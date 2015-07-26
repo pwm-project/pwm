@@ -51,14 +51,13 @@ import password.pwm.util.macro.MacroMachine;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.util.*;
 
 public class AuditManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(AuditManager.class);
 
     private STATUS status = STATUS.NEW;
-    private Settings settings = new Settings();
+    private AuditSettings settings;
     private ServiceInfo serviceInfo = new ServiceInfo(Collections.<DataStorageMethod>emptyList());
 
     private SyslogAuditService syslogManager;
@@ -189,10 +188,7 @@ public class AuditManager implements PwmService {
         this.status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
-        settings.systemEmailAddresses = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_EMAIL_SYSTEM_TO);
-        settings.userEmailAddresses = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_EMAIL_USER_TO);
-        settings.alertFromAddress = pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_EMAILFROM);
-        settings.permittedEvents = figurePermittedEvents(pwmApplication.getConfig());
+        settings = new AuditSettings(pwmApplication.getConfig());
 
         if (pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
             this.status = STATUS.CLOSED;
@@ -317,20 +313,20 @@ public class AuditManager implements PwmService {
         if (record == null || record.getEventCode() == null) {
             return;
         }
-        if (settings.alertFromAddress == null || settings.alertFromAddress.length() < 1) {
+        if (settings.getAlertFromAddress() == null || settings.getAlertFromAddress().length() < 1) {
             return;
         }
 
         switch (record.getEventCode().getType()) {
             case SYSTEM:
-                for (final String toAddress : settings.systemEmailAddresses) {
-                    sendAsEmail(pwmApplication, null, record, toAddress, settings.alertFromAddress);
+                for (final String toAddress : settings.getSystemEmailAddresses()) {
+                    sendAsEmail(pwmApplication, null, record, toAddress, settings.getAlertFromAddress());
                 }
                 break;
 
             case USER:
-                for (final String toAddress : settings.userEmailAddresses) {
-                    sendAsEmail(pwmApplication, null, record, toAddress, settings.alertFromAddress);
+                for (final String toAddress : settings.getUserEmailAddresses()) {
+                    sendAsEmail(pwmApplication, null, record, toAddress, settings.getAlertFromAddress());
                 }
                 break;
         }
@@ -350,8 +346,7 @@ public class AuditManager implements PwmService {
 
         final StringBuilder body = new StringBuilder();
         final String jsonRecord = JsonUtil.serialize(record);
-        HashMap<String,Serializable> mapRecord = new HashMap<>();
-        mapRecord = JsonUtil.deserialize(jsonRecord,mapRecord.getClass());
+        final Map<String,Object> mapRecord = JsonUtil.deserializeMap(jsonRecord);
 
         for (final String key : mapRecord.keySet()) {
             body.append(key);
@@ -396,7 +391,7 @@ public class AuditManager implements PwmService {
             return;
         }
 
-        if (!settings.permittedEvents.contains(auditRecord.getEventCode())) {
+        if (!settings.getPermittedEvents().contains(auditRecord.getEventCode())) {
             LOGGER.debug("discarding event, " + auditRecord.getEventCode() + " are being ignored; event=" + jsonRecord);
             return;
         }
@@ -413,8 +408,10 @@ public class AuditManager implements PwmService {
         sendAsEmail(auditRecord);
 
         // add to user ldap record
-        if (auditRecord instanceof UserAuditRecord && auditRecord.getEventCode().isStoreOnUser()) {
-            userHistoryStore.updateUserHistory((UserAuditRecord)auditRecord);
+        if (auditRecord instanceof UserAuditRecord) {
+            if (settings.getUserStoredEvents().contains(auditRecord.getEventCode())) {
+                userHistoryStore.updateUserHistory((UserAuditRecord) auditRecord);
+        }
         }
 
         // send to syslog
@@ -492,13 +489,6 @@ public class AuditManager implements PwmService {
         return counter;
     }
 
-    private static class Settings {
-        private List<String> systemEmailAddresses = new ArrayList<>();
-        private List<String> userEmailAddresses = new ArrayList<>();
-        private String alertFromAddress = "";
-        private Set<AuditEvent> permittedEvents = new HashSet<>();
-    }
-
     public ServiceInfo serviceInfo()
     {
         return serviceInfo;
@@ -506,12 +496,5 @@ public class AuditManager implements PwmService {
 
     public int syslogQueueSize() {
         return syslogManager != null ? syslogManager.queueSize() : 0;
-    }
-
-    private static Set<AuditEvent> figurePermittedEvents(final Configuration configuration) {
-        final Set<AuditEvent> eventSet = new HashSet<>();
-        eventSet.addAll(configuration.readSettingAsOptionList(PwmSetting.AUDIT_SYSTEM_EVENTS,AuditEvent.class));
-        eventSet.addAll(configuration.readSettingAsOptionList(PwmSetting.AUDIT_USER_EVENTS,AuditEvent.class));
-        return Collections.unmodifiableSet(eventSet);
     }
 }

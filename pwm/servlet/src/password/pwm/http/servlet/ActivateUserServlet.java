@@ -46,6 +46,7 @@ import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.token.TokenType;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
 import password.pwm.util.PostChangePasswordAction;
@@ -79,7 +80,6 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ActivateUserServlet.class);
-    private static final String TOKEN_NAME = ActivateUserServlet.class.getName();
 
     public enum ActivateUserAction implements AbstractPwmServlet.ProcessAction {
         activate(HttpMethod.POST),
@@ -622,7 +622,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final String tokenKey;
         final TokenPayload tokenPayload;
         try {
-            tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, destinationValues);
+            tokenPayload = pwmApplication.getTokenService().createTokenPayload(TokenType.ACTIVATION, tokenMapData, userIdentity, destinationValues);
             tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmRequest.getSessionLabel());
             LOGGER.debug(pwmSession.getLabel(), "generated activate user tokenKey code for session");
         } catch (PwmOperationalException e) {
@@ -649,7 +649,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
                     pwmSession,
                     activateUserBean.getUserIdentity(),
-                    TOKEN_NAME,
+                    TokenType.ACTIVATION,
                     userEnteredCode
             );
             if (tokenPayload != null) {

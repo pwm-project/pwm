@@ -90,7 +90,7 @@ public class TokenService implements PwmService {
     {
     }
 
-    public synchronized TokenPayload createTokenPayload(final String name, final Map<String, String> data, final UserIdentity userIdentity, final Set<String> dest) {
+    public synchronized TokenPayload createTokenPayload(final TokenType name, final Map<String, String> data, final UserIdentity userIdentity, final Set<String> dest) {
         final long count = counter++;
         final StringBuilder guid = new StringBuilder();
         try {
@@ -100,7 +100,7 @@ public class TokenService implements PwmService {
         } catch (Exception e) {
             LOGGER.error("error making payload guid: " + e.getMessage(),e);
         }
-        return new TokenPayload(name, data, userIdentity, dest, guid.toString());
+        return new TokenPayload(name.name(), data, userIdentity, dest, guid.toString());
     }
 
     public void init(final PwmApplication pwmApplication)
@@ -502,7 +502,7 @@ public class TokenService implements PwmService {
     public TokenPayload processUserEnteredCode(
             final PwmSession pwmSession,
             final UserIdentity sessionUserIdentity,
-            final String tokenName,
+            final TokenType tokenType,
             final String userEnteredCode
     )
             throws PwmOperationalException, PwmUnrecoverableException
@@ -512,7 +512,7 @@ public class TokenService implements PwmService {
                     pwmApplication,
                     pwmSession,
                     sessionUserIdentity,
-                    tokenName,
+                    tokenType,
                     userEnteredCode
             );
             if (tokenPayload.getDest() != null) {
@@ -547,7 +547,7 @@ public class TokenService implements PwmService {
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final UserIdentity sessionUserIdentity,
-            final String tokenName,
+            final TokenType tokenType,
             final String userEnteredCode
     )
             throws PwmOperationalException, PwmUnrecoverableException
@@ -567,8 +567,8 @@ public class TokenService implements PwmService {
 
         LOGGER.trace(pwmSession, "retrieved tokenPayload: " + JsonUtil.serialize(tokenPayload));
 
-        if (tokenName != null && pwmApplication.getTokenService().supportsName()) {
-            if (!tokenName.equals(tokenPayload.getName()) ) {
+        if (tokenType != null && pwmApplication.getTokenService().supportsName()) {
+            if (!tokenType.matchesName(tokenPayload.getName()) ) {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token/name format");
                 throw new PwmOperationalException(errorInformation);
             }

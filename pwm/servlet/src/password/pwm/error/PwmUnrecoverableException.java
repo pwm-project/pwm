@@ -52,5 +52,9 @@ public class PwmUnrecoverableException extends PwmException {
         }
         return new PwmUnrecoverableException(errorInformation);
     }
+
+    public static PwmUnrecoverableException newException(final PwmError error, final String message) {
+        return new PwmUnrecoverableException(new ErrorInformation(error, message));
+    }
 }
 

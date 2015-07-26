@@ -191,9 +191,9 @@ UILibrary.editLdapDN = function(nextFunction, options) {
         }
         body += '<div style="text-align: center">';
         if (currentDN && currentDN.length > 0 ) {
-            body += currentDN;
+            body += '<div class="selectableDN" data-dn="' + currentDN + '"><a><code>' + currentDN + '</code></a></div>';
         } else {
-            body += '[root]';
+            body += '<code>[root]</code>';
         }
         body += '</div><br/>';
 
@@ -240,11 +240,15 @@ UILibrary.editLdapDN = function(nextFunction, options) {
         }
 
         body += '<div class="buttonbar"><button class="btn" id="button-editDN"><span class="btn-icon fa fa-edit"></span>Edit Text</button>';
+        body += '<button class="btn" id="button-refresh"><span class="btn-icon fa fa-refresh"></span>Refresh</button>';
         body += '<button class="btn" id="button-clearDN"><span class="btn-icon fa fa-times"></span>Clear Value</button></div>';
 
         PWM_MAIN.showDialog({title:'LDAP Browser',dialogClass:'auto',showOk:false,showClose:true,text:body,loadFunction:function(){
             PWM_MAIN.addEventHandler('button-editDN','click',function(){
                 UILibrary.stringEditorDialog({value:currentDN,completeFunction:nextFunction});
+            });
+            PWM_MAIN.addEventHandler('button-refresh','click',function(){
+                UILibrary.editLdapDN(nextFunction,{profile:profile,currentDN:currentDN});
             });
             PWM_MAIN.addEventHandler('button-clearDN','click',function(){
                 nextFunction('');

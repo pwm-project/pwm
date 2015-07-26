@@ -46,6 +46,10 @@ public abstract class PwmHttpRequestWrapper {
     private final HttpServletRequest httpServletRequest;
     private final Configuration configuration;
 
+    public enum Flag {
+        BypassValidation
+    }
+
     protected PwmHttpRequestWrapper(HttpServletRequest request, final Configuration configuration) {
         this.httpServletRequest = request;
         this.configuration = configuration;
@@ -95,14 +99,10 @@ public abstract class PwmHttpRequestWrapper {
         return stringValue;
     }
 
-    public Map<String, String> readBodyAsJsonStringMap()
-            throws IOException, PwmUnrecoverableException {
-        return readBodyAsJsonStringMap(false);
-    }
-
-    public Map<String, String> readBodyAsJsonStringMap(boolean bypassInputValidation)
+    public Map<String, String> readBodyAsJsonStringMap(final Flag... flags)
             throws IOException, PwmUnrecoverableException
     {
+        boolean bypassInputValidation = flags != null && Arrays.asList(flags).contains(Flag.BypassValidation);
         final String bodyString = readRequestBodyAsString();
         final Map<String, String> inputMap = JsonUtil.deserializeStringMap(bodyString);
 

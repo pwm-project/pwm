@@ -59,6 +59,7 @@ import password.pwm.ldap.UserStatusReader;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.AuthenticationUtility;
 import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.token.TokenType;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
 import password.pwm.util.JsonUtil;
@@ -103,10 +104,6 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ForgottenPasswordServlet.class);
-
-    private static final String TOKEN_NAME = ForgottenPasswordServlet.class.getName();
-
-
 
     public enum ForgottenPasswordAction implements AbstractPwmServlet.ProcessAction {
         search(HttpMethod.POST),
@@ -406,7 +403,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             final TokenPayload tokenPayload = pwmRequest.getPwmApplication().getTokenService().processUserEnteredCode(
                     pwmRequest.getPwmSession(),
                     forgottenPasswordBean.getUserInfo() == null ? null : forgottenPasswordBean.getUserInfo().getUserIdentity(),
-                    TOKEN_NAME,
+                    TokenType.FORGOTTEN_PW,
                     userEnteredCode
             );
             if (tokenPayload != null) {
@@ -1009,7 +1006,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
         final String tokenKey;
         TokenPayload tokenPayload;
         try {
-            tokenPayload = pwmRequest.getPwmApplication().getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, destinationValues);
+            tokenPayload = pwmRequest.getPwmApplication().getTokenService().createTokenPayload(TokenType.FORGOTTEN_PW, tokenMapData, userIdentity, destinationValues);
             tokenKey = pwmRequest.getPwmApplication().getTokenService().generateNewToken(tokenPayload, pwmRequest.getSessionLabel());
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());

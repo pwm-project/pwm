@@ -301,7 +301,7 @@ public class StoredConfiguration implements Serializable {
 
         final HashMap<String,Object> outputObj = new HashMap<>();
         outputObj.put("settings",settingData);
-        outputObj.put("template",this.getTemplate().toString());
+        outputObj.put("template", this.getTemplate().toString());
 
         return Collections.unmodifiableMap(outputObj);
     }
@@ -752,6 +752,31 @@ public class StoredConfiguration implements Serializable {
         } finally {
             domModifyLock.writeLock().unlock();
         }
+    }
+
+    public void copyProfileID(final PwmSettingCategory category, final String sourceID, final String destinationID, final UserIdentity userIdentity)
+            throws PwmUnrecoverableException
+    {
+        if (!category.hasProfiles()) {
+            throw PwmUnrecoverableException.newException(PwmError.ERROR_INVALID_CONFIG, "can not copy profile ID for category " + category + ", category does not have profiles");
+        }
+        final List<String> existingProfiles = this.profilesForSetting(category.getProfileSetting());
+        if (!existingProfiles.contains(sourceID)) {
+            throw PwmUnrecoverableException.newException(PwmError.ERROR_INVALID_CONFIG, "can not copy profile ID for category, source profileID '" + sourceID + "' does not exist");
+        }
+        if (existingProfiles.contains(destinationID)) {
+            throw PwmUnrecoverableException.newException(PwmError.ERROR_INVALID_CONFIG, "can not copy profile ID for category, destination profileID '" + destinationID+ "' already exists");
+        }
+        for (final PwmSetting pwmSetting : category.getSettings()) {
+            if (!isDefaultValue(pwmSetting, sourceID)) {
+                final StoredValue value = readSetting(pwmSetting, sourceID);
+                writeSetting(pwmSetting, destinationID, value, userIdentity);
+            }
+        }
+        final List<String> newProfileIDList = new ArrayList<>();
+        newProfileIDList.addAll(existingProfiles);
+        newProfileIDList.add(destinationID);
+        writeSetting(category.getProfileSetting(), new StringArrayValue(newProfileIDList), userIdentity);
     }
 
 

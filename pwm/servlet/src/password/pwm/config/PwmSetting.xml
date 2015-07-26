@@ -1610,6 +1610,49 @@
             <option value="LDAP">LDAP</option>
         </options>
     </setting>
+    <setting key="events.user.eventList" level="1">
+        <default>
+            <value>CHANGE_PASSWORD</value>
+            <value>UNLOCK_PASSWORD</value>
+            <value>RECOVER_PASSWORD</value>
+            <value>SET_RESPONSES</value>
+            <value>SET_OTP_SECRET</value>
+            <value>ACTIVATE_USER</value>
+            <value>CREATE_USER</value>
+            <value>UPDATE_PROFILE</value>
+            <value>INTRUDER_USER</value>
+            <value>CLEAR_RESPONSES</value>
+            <value>HELPDESK_SET_PASSWORD</value>
+            <value>HELPDESK_UNLOCK_PASSWORD</value>
+            <value>HELPDESK_CLEAR_RESPONSES</value>
+            <value>HELPDESK_CLEAR_OTP_SECRET</value>
+            <value>HELPDESK_ACTION</value>
+            <value>HELPDESK_VERIFY_OTP</value>
+        </default>
+        <options>
+            <option value="AUTHENTICATE">Authenticate</option>
+            <option value="AGREEMENT_PASSED">Agreement Passed</option>
+            <option value="CHANGE_PASSWORD">Change Password</option>
+            <option value="UNLOCK_PASSWORD">Unlock Password</option>
+            <option value="RECOVER_PASSWORD">Recover Password</option>
+            <option value="SET_RESPONSES">Set Responses</option>
+            <option value="SET_OTP_SECRET">Set OTP</option>
+            <option value="ACTIVATE_USER">Activate User</option>
+            <option value="CREATE_USER">New User</option>
+            <option value="UPDATE_PROFILE">Update Profile</option>
+            <option value="INTRUDER_USER">Intruder Lock User</option>
+            <option value="TOKEN_ISSUED">Token Issued</option>
+            <option value="TOKEN_CLAIMED">Token Claimed</option>
+            <option value="CLEAR_RESPONSES">Clear Responses</option>
+            <option value="HELPDESK_SET_PASSWORD">Helpdesk Set Password</option>
+            <option value="HELPDESK_UNLOCK_PASSWORD">Helpdesk Unlock Password</option>
+            <option value="HELPDESK_CLEAR_RESPONSES">Helpdesk Clear Responses</option>
+            <option value="HELPDESK_CLEAR_OTP_SECRET">Helpdesk Clear OTP</option>
+            <option value="HELPDESK_VIEW_DETAIL">Helpdesk View Detail</option>
+            <option value="HELPDESK_ACTION">Helpdesk Action</option>
+            <option value="HELPDESK_VERIFY_OTP">Helpdesk Verify OTP</option>
+        </options>
+    </setting>
     <setting key="events.ldap.attribute" level="2">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>

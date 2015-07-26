@@ -38,10 +38,7 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.value.*;
 import password.pwm.error.*;
 import password.pwm.health.*;
-import password.pwm.http.ContextManager;
-import password.pwm.http.HttpMethod;
-import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
+import password.pwm.http.*;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaManager;
@@ -460,7 +457,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         }
 
         final Date startTime = new Date();
-        final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(true);
+        final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(PwmHttpRequestWrapper.Flag.BypassValidation);
         final String profile = inputMap.get("profile");
         final String dn = inputMap.containsKey("dn") ? inputMap.get("dn") : "";
 

@@ -265,30 +265,41 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
     valueRow.setAttribute("style", "border-width: 0");
     valueRow.setAttribute("id",inputID + "_row");
 
-    var rowHtml = '<td id="button-' + inputID + '" style="border-width:0; width: 15px"><span class="fa fa-edit"/></ta>';
+    var rowHtml = '';
+    if (syntax != 'PROFILE') {
+        rowHtml = '<td id="button-' + inputID + '" style="border-width:0; width: 15px"><span class="fa fa-edit"/></td>';
+    }
     rowHtml += '<td style=""><div class="configStringPanel" id="' + inputID + '"></div></td>';
 
+    if (syntax == 'PROFILE') {
+        var copyButtonID = 'button-' + settingKey + '-' + iteration + '-copy';
+        rowHtml += '<td style="border:0; padding:0; width:10px" title="Copy">';
+        rowHtml += '<span id="' + copyButtonID + '" class="action-icon fa fa-copy"></span>';
+        rowHtml += '</td>';
+    }
+
     var downButtonID = 'button-' + settingKey + '-' + iteration + '-moveDown';
-    rowHtml += '<td style="border:0">';
+    rowHtml += '<td style="border:0; padding:0; width:10px" title="Move Down">';
     if (itemCount > 1 && iteration != (itemCount -1)) {
         rowHtml += '<span id="' + downButtonID + '" class="action-icon fa fa-chevron-down"></span>';
     }
     rowHtml += '</td>';
 
     var upButtonID = 'button-' + settingKey + '-' + iteration + '-moveUp';
-    rowHtml += '<td style="border:0">';
+    rowHtml += '<td style="border:0; padding:0; width:10px" title="Move Up">';
     if (itemCount > 1 && iteration != 0) {
         rowHtml += '<span id="' + upButtonID + '" class="action-icon fa fa-chevron-up"></span>';
     }
     rowHtml += '</td>';
 
     var deleteButtonID = 'button-' + settingKey + '-' + iteration + '-delete';
-    rowHtml += '<td style="border:0">';
+    rowHtml += '<td style="border:0; padding:0; width:10px" title="Delete">';
 
     if (itemCount > 1 || (!settingInfo['required'] && (syntax != 'PROFILE'))) {
         rowHtml += '<span id="' + deleteButtonID + '" class="delete-row-icon action-icon fa fa-times"></span>';
     }
     rowHtml += '</td>';
+
 
     valueRow.innerHTML = rowHtml;
     parentDivElement.appendChild(valueRow);
@@ -300,6 +311,30 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
         });
         PWM_MAIN.addEventHandler('button-' + inputID,'click',function(){
             StringArrayValueHandler.valueHandler(settingKey,iteration);
+        });
+    } else {
+        PWM_MAIN.addEventHandler(copyButtonID,'click',function(){
+            var editorOptions = {};
+            editorOptions['title'] = 'Copy Profile - New Profile ID';
+            editorOptions['regex'] = PWM_SETTINGS['settings'][settingKey]['pattern'];
+            editorOptions['placeholder'] = PWM_SETTINGS['settings'][settingKey]['placeholder'];
+            editorOptions['completeFunction'] = function(newValue){
+                var options = {};
+                options['setting'] = settingKey;
+                options['sourceID'] = value;
+                options['destinationID'] = newValue;
+                var resultFunction = function(data){
+                    if (data['error']) {
+                        PWM_MAIN.showErrorDialog(data);
+                    } else {
+                        PWM_MAIN.goto('ConfigEditor');
+                    }
+                };
+                PWM_MAIN.showWaitDialog({loadFunction:function(){
+                    PWM_MAIN.ajaxRequest("ConfigEditor?processAction=copyProfile",resultFunction,{content:options});
+                }});
+            };
+            UILibrary.stringEditorDialog(editorOptions);
         });
     }
 
