@@ -52,9 +52,9 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.SessionAuthenticator;
-import password.pwm.token.TokenType;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
+import password.pwm.token.TokenType;
 import password.pwm.util.*;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -91,7 +91,7 @@ public class NewUserServlet extends AbstractPwmServlet {
     private static final String FIELD_PASSWORD1 = "password1";
     private static final String FIELD_PASSWORD2 = "password2";
     private static final String TOKEN_PAYLOAD_ATTR = "_______profileID";
-    
+
     public enum Page {
         ProfileSelect,
         Form,
@@ -145,7 +145,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             pwmRequest.respondWithError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
             return;
         }
-        
+
         // convert a url command like /pwm/public/NewUserServlet/12321321 to redirect with a process action.
         if (action == null) {
             if (pwmRequest.convertURLtokenCommand()) {
@@ -458,17 +458,17 @@ public class NewUserServlet extends AbstractPwmServlet {
 
 
     private void handleProfileChoiceRequest(final PwmRequest pwmRequest, final NewUserBean newUserBean)
-            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException 
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
         final Set<String> profileIDs = pwmRequest.getConfig().getNewUserProfiles().keySet();
         final String requestedProfileID = pwmRequest.readParameterAsString("profile");
-        
+
         if (requestedProfileID == null || requestedProfileID.isEmpty()) {
             newUserBean.setProfileID(null);
         } if (profileIDs.contains(requestedProfileID)) {
             newUserBean.setProfileID(requestedProfileID);
         }
-        
+
         this.advancedToNextStage(pwmRequest, newUserBean);
     }
 
@@ -806,7 +806,7 @@ public class NewUserServlet extends AbstractPwmServlet {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        
+
         if (pwmApplication.getConfig().getTokenStorageMethod() == TokenStorageMethod.STORE_LDAP) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{
                     "cannot generate new user tokens when storage type is configured as STORE_LDAP."}));
@@ -1081,10 +1081,10 @@ public class NewUserServlet extends AbstractPwmServlet {
             this.formData = formData;
         }
     }
-    
+
     private static class NewUserFormUtils {
-        
-        
+
+
         static NewUserBean.NewUserForm readFromRequest(PwmRequest pwmRequest)
                 throws PwmDataValidationException, PwmUnrecoverableException
         {
@@ -1125,12 +1125,23 @@ public class NewUserServlet extends AbstractPwmServlet {
             final Locale userLocale = pwmRequest.getLocale();
 
             final Map<String, String> payloadMap = tokenPayload.getData();
-            final String profileID = payloadMap.get(TOKEN_PAYLOAD_ATTR);
-            payloadMap.remove(TOKEN_PAYLOAD_ATTR);
 
-            final NewUserProfile newUserProfile = pwmRequest.getConfig().getNewUserProfiles().get(profileID);
-            if (newUserProfile == null) {
-                throw new PwmOperationalException(PwmError.ERROR_TOKEN_INCORRECT,"token data references an invalid new user profileID");
+            final NewUserProfile newUserProfile;
+            {
+                final String profileID = payloadMap.get(TOKEN_PAYLOAD_ATTR);
+                payloadMap.remove(TOKEN_PAYLOAD_ATTR);
+                if (profileID == null || profileID.isEmpty()) {
+                    // typically missing because issued with code before newuser profile existed, so assume  only profile
+                    if (pwmRequest.getConfig().getNewUserProfiles().size() > 1) {
+                        throw new PwmOperationalException(PwmError.ERROR_TOKEN_INCORRECT, "token data missing reference to new user profileID");
+                    }
+                    newUserProfile = pwmRequest.getConfig().getNewUserProfiles().values().iterator().next();
+                } else {
+                    if (!pwmRequest.getConfig().getNewUserProfiles().keySet().contains(profileID)) {
+                        throw new PwmOperationalException(PwmError.ERROR_TOKEN_INCORRECT, "token data references an invalid new user profileID");
+                    }
+                    newUserProfile = pwmRequest.getConfig().getNewUserProfiles().get(profileID);
+                }
             }
 
             final List<FormConfiguration> newUserFormDefinition = newUserProfile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
@@ -1138,14 +1149,24 @@ public class NewUserServlet extends AbstractPwmServlet {
                     newUserFormDefinition, userLocale);
             final PasswordData passwordData;
             if (payloadMap.containsKey(FIELD_PASSWORD1)) {
-                final String rawPassword = payloadMap.get(FIELD_PASSWORD1);
-                final String realPassword = pwmRequest.getPwmApplication().getSecureService().decryptStringValue(rawPassword);
-                passwordData = new PasswordData(realPassword);
+                final String passwordInToken = payloadMap.get(FIELD_PASSWORD1);
+                String decryptedPassword = passwordInToken;
+                try {
+                    decryptedPassword = pwmRequest.getPwmApplication().getSecureService().decryptStringValue(passwordInToken);
+                } catch (PwmUnrecoverableException e) {
+                    final boolean allowUnencryptedPassword = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.NEWUSER_TOKEN_ALLOW_PLAIN_PW));
+                    if (allowUnencryptedPassword && e.getError() == PwmError.ERROR_CRYPT_ERROR) {
+                        LOGGER.warn(pwmRequest, "error decrypting password in tokenPayload, will use raw password value: " + e.getMessage());
+                    } else {
+                        throw e;
+                    }
+                }
+                passwordData = new PasswordData(decryptedPassword);
             } else {
                 passwordData = null;
             }
             final NewUserBean.NewUserForm newUserForm = new NewUserBean.NewUserForm(userFormValues, passwordData, passwordData);
-            return new NewUserTokenData(profileID,newUserForm);
+            return new NewUserTokenData(newUserProfile.getIdentifier(), newUserForm);
         }
 
         static Map<String, String> toTokenPayload(
@@ -1164,7 +1185,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             return payloadMap;
         }
     }
-    
+
     public static NewUserProfile getNewUserProfile(final PwmRequest pwmRequest) {
         final String profileID = pwmRequest.getPwmSession().getNewUserBean().getProfileID();
         if (profileID == null) {
@@ -1172,9 +1193,9 @@ public class NewUserServlet extends AbstractPwmServlet {
         }
         return pwmRequest.getConfig().getNewUserProfiles().get(profileID);
     }
-    
-    void forwardToFormPage(final PwmRequest pwmRequest) 
-            throws ServletException, PwmUnrecoverableException, IOException 
+
+    void forwardToFormPage(final PwmRequest pwmRequest)
+            throws ServletException, PwmUnrecoverableException, IOException
     {
         final List<FormConfiguration> formConfiguration = getFormDefinition(pwmRequest);
         pwmRequest.addFormInfoToRequestAttr(formConfiguration, null, false, true);

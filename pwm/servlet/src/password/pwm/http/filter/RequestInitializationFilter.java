@@ -73,7 +73,7 @@ public class RequestInitializationFilter implements Filter {
                 checkIfSessionRecycleNeeded(pwmRequest);
             //}
         } catch (Throwable e) {
-            LOGGER.error("can't load application: " + e.getMessage());
+            LOGGER.error("can't load application: " + e.getMessage(),e);
             if (!(new PwmURL(req).isResourceURL())) {
                 ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE);
                 try {

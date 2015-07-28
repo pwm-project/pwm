@@ -965,7 +965,20 @@ public class PasswordUtility {
             return;
         }
 
-        pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, userInfoBean, null);
+        final MacroMachine macroMachine = userInfoBean == null
+                ? null
+                : new MacroMachine(
+                pwmApplication,
+                pwmSession.getLabel(),
+                userInfoBean,
+                null,
+                LdapUserDataReader.appProxiedReader(
+                        pwmApplication,
+                        userInfoBean.getUserIdentity()
+                )
+        );
+
+        pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, userInfoBean, macroMachine);
     }
 
     public static Date determinePwdLastModified(

@@ -1926,7 +1926,6 @@ ChallengeSettingHandler.draw = function(settingKey) {
         (function(localeKey) {
             var multiValues = resultValue[localeKey];
             var rowCount = PWM_MAIN.itemCount(multiValues);
-            var editJsText = 'ChallengeSettingHandler.editLocale(\'' + settingKey + '\',\'' + localeKey + '\')';
 
             bodyText += '<table class="noborder"><tr><td>';
             bodyText += '<table style="cursor: pointer; table-layout: fixed">';
@@ -1936,7 +1935,7 @@ ChallengeSettingHandler.draw = function(settingKey) {
             }
 
             bodyText += '<tr>';
-            bodyText += '<td style="width:100%" onclick="' + editJsText + '"> ';
+            bodyText += '<td style="width:100%" id="button-edit-' + settingKey + '-' + localeKey + '">';
             if (rowCount > 0) {
                 for (var iteration in multiValues) {
                     var id = 'panel-value-' + settingKey + '-' + localeKey + '-' + iteration;
@@ -1974,6 +1973,10 @@ ChallengeSettingHandler.draw = function(settingKey) {
 
     for (var localeName in resultValue) {
         (function(localeKey) {
+            PWM_MAIN.addEventHandler('button-edit-' + settingKey + '-' + localeKey,'click',function(){
+                ChallengeSettingHandler.editLocale(settingKey,localeKey);
+            });
+
             var multiValues = resultValue[localeKey];
             var rowCount = PWM_MAIN.itemCount(multiValues);
             if (rowCount > 0) {
@@ -2192,7 +2195,7 @@ ChallengeSettingHandler.write = function(keyName, nextFunction) {
 
 var UserPermissionHandler = {};
 UserPermissionHandler.defaultFilterValue = {type:'ldapFilter',ldapQuery:"(objectClass=*)",ldapBase:""};
-UserPermissionHandler.defaultGroupValue = {type:'ldapGroup',ldapBase:"cn=exampleGroup,ou=container,o=organization"};
+UserPermissionHandler.defaultGroupValue = {type:'ldapGroup',ldapBase:""};
 
 UserPermissionHandler.init = function(keyName) {
     console.log('UserPermissionHandler init for ' + keyName);
@@ -2215,12 +2218,12 @@ UserPermissionHandler.draw = function(keyName) {
     for (var iteration in resultValue) {
         (function(rowKey) {
             var inputID = "value-" + keyName + "-" + rowKey;
-            htmlBody += '<div class="setting_item_value_wrapper" style="float:left; width: 570px;"><div style="width:100%; text-align:center">';
-            if (resultValue[rowKey]['type'] == 'ldapGroup') {
-                htmlBody += 'LDAP Group';
-            } else {
-                htmlBody += 'LDAP Filter';
+
+            if (htmlBody.length > 0) {
+                htmlBody += '<br/><br/><div style="clear:both; text-align:center"><span class="fa fa-plus"></span></div>'
             }
+
+            htmlBody += '<div class="setting_item_value_wrapper" style="float:left; width: 570px;"><div style="width:100%; text-align:center">';
 
             var currentProfileValue = ('ldapProfileID' in resultValue[rowKey]) ? resultValue[rowKey]['ldapProfileID'] : "";
             htmlBody += '</div><table class="noborder">'

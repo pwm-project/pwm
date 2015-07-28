@@ -122,9 +122,6 @@
                     <h3>Type</h3>
                 </td>
                 <td>
-                    <h3>Stored In User History</h3>
-                </td>
-                <td>
                     <h3>Resource Key</h3>
                 </td>
                 <td>
@@ -138,9 +135,6 @@
                 </td>
                 <td>
                     <%= auditEvent.getType() %>
-                </td>
-                <td>
-                    <%= auditEvent.isStoreOnUser() %>
                 </td>
                 <td>
                     <%= auditEvent.getMessage().getKey() %>

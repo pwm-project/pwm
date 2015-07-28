@@ -214,8 +214,7 @@
                     <div style="height:100%; width: 100%">
                         <div id="statsChartOptionsDiv" style="width:580px; text-align: center; margin:0 auto;">
                             <label for="statsChartSelect">Statistic</label>
-                            <select name="statsChartSelect" id="statsChartSelect" data-dojo-type="dijit.form.Select" style="width: 300px;" data-dojo-props="maxHeight: -1"
-                                    onchange="refreshChart()">
+                            <select name="statsChartSelect" id="statsChartSelect" data-dojo-type="dijit.form.Select" style="width: 300px;" data-dojo-props="maxHeight: -1">
                                 <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
                                 <option value="<%=loopStat %>"><%=loopStat.getLabel(locale)%></option>
                                 <% } %>
@@ -268,6 +267,7 @@
                 PWM_MAIN.addEventHandler('reportStartButton','click',function(){ PWM_ADMIN.reportAction('start') });
                 PWM_MAIN.addEventHandler('reportStopButton','click',function(){ PWM_ADMIN.reportAction('stop') });
                 PWM_MAIN.addEventHandler('reportClearButton','click',function(){ PWM_ADMIN.reportAction('clear') });
+                PWM_MAIN.addEventHandler('statsChartSelect','change',function(){ refreshChart() })
 
             });
         });

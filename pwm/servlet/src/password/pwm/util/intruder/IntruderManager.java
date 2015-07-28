@@ -43,6 +43,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
+import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.*;
 import password.pwm.util.db.DatabaseDataStore;
@@ -336,7 +337,7 @@ public class IntruderManager implements Serializable, PwmService {
                             sessionLabel
                     );
                     pwmApplication.getAuditManager().submit(auditRecord);
-                    sendAlert(manager.readIntruderRecord(subject));
+                    sendAlert(manager.readIntruderRecord(subject), sessionLabel);
                 }
 
                 manager.markAlerted(subject);
@@ -367,7 +368,7 @@ public class IntruderManager implements Serializable, PwmService {
         }
     }
 
-    private void sendAlert(final IntruderRecord intruderRecord) {
+    private void sendAlert(final IntruderRecord intruderRecord, final SessionLabel sessionLabel) {
         if (intruderRecord == null) {
             return;
         }
@@ -375,7 +376,7 @@ public class IntruderManager implements Serializable, PwmService {
         if (intruderRecord.getType() == RecordType.USER_ID) {
             try {
                 final UserIdentity identity = UserIdentity.fromDelimitedKey(intruderRecord.getSubject());
-                sendIntruderNoticeEmail(pwmApplication, identity);
+                sendIntruderNoticeEmail(pwmApplication, sessionLabel, identity);
             } catch (PwmUnrecoverableException e) {
                 LOGGER.error("unable to send intruder mail, can't read userDN/ldapProfile from stored record: " + e.getMessage());
             }
@@ -536,6 +537,7 @@ public class IntruderManager implements Serializable, PwmService {
 
     private static void sendIntruderNoticeEmail(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity
     )
     {
@@ -548,12 +550,19 @@ public class IntruderManager implements Serializable, PwmService {
 
         try {
             final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, null);
-            MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, null, userIdentity);
             final UserInfoBean userInfoBean = userStatusReader.populateUserInfoBean(
                     PwmConstants.DEFAULT_LOCALE,
                     userIdentity
             );
-            pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, userInfoBean, null);
+
+            final MacroMachine macroMachine = new MacroMachine(
+                    pwmApplication,
+                    sessionLabel,
+                    userInfoBean,
+                    null,
+                    LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity));
+
+            pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, userInfoBean, macroMachine);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage());
         }

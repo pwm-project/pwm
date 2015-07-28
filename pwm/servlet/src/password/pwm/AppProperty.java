@@ -145,6 +145,7 @@ public enum AppProperty {
     LOGGING_FILE_PATH                               ("logging.file.path"),
     LOGGING_DEV_OUTPUT                              ("logging.devOutput.enable"),
     NEWUSER_LDAP_USE_TEMP_PW                        ("newUser.ldap.useTempPassword"),
+    NEWUSER_TOKEN_ALLOW_PLAIN_PW                    ("newUser.token.allowPlainPassword"),
     NMAS_THREADS_MAX_COUNT                          ("nmas.threads.maxCount"),
     NMAS_THREADS_MIN_SECONDS                        ("nmas.threads.minSeconds"),
     NMAS_THREADS_MAX_SECONDS                        ("nmas.threads.maxSeconds"),
