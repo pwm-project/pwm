@@ -325,13 +325,16 @@ public abstract class PwmHttpRequestWrapper {
     public String readCookie(final String cookieName) {
         final int maxChars = Integer.parseInt(configuration.readAppProperty(AppProperty.HTTP_COOKIE_MAX_READ_LENGTH));
         final Cookie[] cookies = this.getHttpServletRequest().getCookies();
-        for (final Cookie cookie : cookies) {
-            if (cookie.getName() != null && cookie.getName().equals(cookieName)) {
-                final String rawCookieValue = cookie.getValue();
-                final String decodedCookieValue = StringUtil.urlDecode(rawCookieValue);
-                return Validator.sanitizeInputValue(configuration, decodedCookieValue, maxChars);
+        if (cookies != null) {
+            for (final Cookie cookie : cookies) {
+                if (cookie.getName() != null && cookie.getName().equals(cookieName)) {
+                    final String rawCookieValue = cookie.getValue();
+                    final String decodedCookieValue = StringUtil.urlDecode(rawCookieValue);
+                    return Validator.sanitizeInputValue(configuration, decodedCookieValue, maxChars);
+                }
             }
         }
+
         return null;
     }
 
