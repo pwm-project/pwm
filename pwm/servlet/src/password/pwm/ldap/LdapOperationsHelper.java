@@ -379,7 +379,6 @@ public class LdapOperationsHelper {
         final String idleTimeoutMsString = config.readAppProperty(AppProperty.LDAP_CONNECTION_TIMEOUT);
         chaiConfig.setSetting(ChaiSetting.LDAP_CONNECT_TIMEOUT,idleTimeoutMsString);
 
-        /*
         // set the watchdog idle timeout.
         final int idleTimeoutMs = (int)config.readSettingAsLong(PwmSetting.LDAP_IDLE_TIMEOUT) * 1000;
         if (idleTimeoutMs > 0) {
@@ -389,7 +388,7 @@ public class LdapOperationsHelper {
         } else {
             chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "false");
         }
-        */
+
         chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "false");
 
         if (config.readSettingAsBoolean(PwmSetting.AD_ENFORCE_PW_HISTORY_ON_SET)) {

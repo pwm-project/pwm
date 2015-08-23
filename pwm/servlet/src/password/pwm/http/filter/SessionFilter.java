@@ -37,7 +37,10 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.ServletHelper;
+import password.pwm.util.StringUtil;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 
@@ -98,12 +101,6 @@ public class SessionFilter extends AbstractPwmFilter {
 
             throw new ServletException(e);
         }
-
-        System.out.println(
-                pwmRequest.getPwmApplication().getSecureService().encryptToString(
-                        JsonUtil.serialize(pwmRequest.getPwmSession().getLoginInfoBean())
-                )
-        );
     }
 
     private boolean handleStandardRequestOperations(
