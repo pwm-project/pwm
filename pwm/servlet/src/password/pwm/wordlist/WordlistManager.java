@@ -12,7 +12,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  S  ee the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -22,16 +22,15 @@
 
 package password.pwm.wordlist;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.File;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -43,12 +42,6 @@ import java.util.TreeMap;
 public class WordlistManager extends AbstractWordlist implements Wordlist {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(WordlistManager.class);
-
-// ------------------------------ FIELDS ------------------------------
-
-    boolean backwards;
-
-// -------------------------- STATIC METHODS --------------------------
 
     public WordlistManager() {
     }
@@ -65,16 +58,11 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
 
     public void init(final PwmApplication pwmApplication) throws PwmException {
         super.init(pwmApplication);
-        final String setting = pwmApplication.getConfig().readSettingAsString(PwmSetting.WORDLIST_FILENAME);
-        final File wordlistFile = setting == null || setting.length() < 1 ? null : Helper.figureFilepath(setting, pwmApplication.getWebInfPath());
         final boolean caseSensitive = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
-        final int loadFactor = PwmConstants.DEFAULT_WORDLIST_LOADFACTOR;
         final int checkSize = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_WORDLIST_WORDSIZE);
-        final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(wordlistFile, loadFactor, caseSensitive, checkSize);
+        final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(caseSensitive, checkSize);
 
         this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Wordlist";
-        this.META_DB = LocalDB.DB.WORDLIST_META;
-        this.WORD_DB = LocalDB.DB.WORDLIST_WORDS;
 
         final Thread t = new Thread(new Runnable() {
             public void run()
@@ -94,8 +82,19 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
     }
 
     @Override
-    protected String makeVersionString()
-    {
-        return VALUE_VERSION + JsonUtil.serialize(wordlistConfiguration);
+    protected PwmApplication.AppAttribute getMetaDataAppAttribute() {
+        return PwmApplication.AppAttribute.WORDLIST_METADATA;
     }
+
+    @Override
+    protected LocalDB.DB getWordlistDB() {
+        return LocalDB.DB.WORDLIST_WORDS;
+    }
+
+    @Override
+    protected AppProperty getBuiltInWordlistLocationProperty() {
+        return AppProperty.WORDLIST_BUILTIN_PATH;
+    }
+
+
 }

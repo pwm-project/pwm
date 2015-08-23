@@ -558,7 +558,7 @@ public class PasswordUtility {
     private static void invokePostChangePasswordActions(final PwmSession pwmSession, final String newPassword)
             throws PwmUnrecoverableException
     {
-        final List<PostChangePasswordAction> postChangePasswordActions = pwmSession.getLoginInfoBean().removePostChangePasswordActions();
+        final List<PostChangePasswordAction> postChangePasswordActions = pwmSession.getUserSessionDataCacheBean().removePostChangePasswordActions();
         if (postChangePasswordActions == null || postChangePasswordActions.isEmpty()) {
             LOGGER.trace(pwmSession, "no post change password actions pending from previous operations");
             return;

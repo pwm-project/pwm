@@ -22,9 +22,9 @@
 
 package password.pwm.wordlist;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
@@ -32,7 +32,6 @@ import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
@@ -55,7 +54,7 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
             final int seedCount = size();
             if (seedCount > 1000) {
                 final int randomKey = PwmRandom.getInstance().nextInt(size());
-                final Object obj = localDB.get(WORD_DB, String.valueOf(randomKey));
+                final Object obj = localDB.get(getWordlistDB(), String.valueOf(randomKey));
                 if (obj != null) {
                     returnValue = obj.toString();
                 }
@@ -76,27 +75,11 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
         return txItem;
     }
 
-    @Override
-    protected void checkPopulation() throws Exception {
-        final boolean isComplete = VALUE_STATUS.COMPLETE.equals(VALUE_STATUS.forString(localDB.get(META_DB, KEY_STATUS)));
-        if (!isComplete) {
-            LOGGER.info(DEBUG_LABEL + " prior population did not complete, clearing wordlist");
-            localDB.truncate(META_DB);
-            localDB.truncate(WORD_DB);
-        }
-        super.checkPopulation();
-    }
-
     public void init(final PwmApplication pwmApplication) throws PwmException {
         super.init(pwmApplication);
-        final String setting = pwmApplication.getConfig().readSettingAsString(PwmSetting.SEEDLIST_FILENAME);
-        final File seedlistFile = setting == null || setting.length() < 1 ? null : Helper.figureFilepath(setting, pwmApplication.getWebInfPath());
-        final int loadFactor = PwmConstants.DEFAULT_WORDLIST_LOADFACTOR;
-        final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(seedlistFile, loadFactor, true, 0);
+        final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(true, 0);
 
         this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Seedist";
-        this.META_DB = LocalDB.DB.SEEDLIST_META;
-        this.WORD_DB = LocalDB.DB.SEEDLIST_WORDS;
 
         final Thread t = new Thread(new Runnable() {
             public void run() {
@@ -109,8 +92,17 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
     }
 
     @Override
-    protected String makeVersionString()
-    {
-        return VALUE_VERSION;
+    protected PwmApplication.AppAttribute getMetaDataAppAttribute() {
+        return PwmApplication.AppAttribute.SEEDLIST_METADATA;
+    }
+
+    @Override
+    protected LocalDB.DB getWordlistDB() {
+        return LocalDB.DB.SEEDLIST_WORDS;
+    }
+
+    @Override
+    protected AppProperty getBuiltInWordlistLocationProperty() {
+        return AppProperty.SEEDLIST_BUILTIN_PATH;
     }
 }

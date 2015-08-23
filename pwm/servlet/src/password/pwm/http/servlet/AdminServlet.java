@@ -31,7 +31,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.bean.AdminBean;
+import password.pwm.http.PwmURL;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.report.ReportService;
 import password.pwm.util.stats.StatisticsManager;
@@ -47,8 +47,9 @@ import java.util.Collections;
 @WebServlet(
         name = "AdminServlet",
         urlPatterns = {
-            PwmConstants.URL_PREFIX_PRIVATE + "/admin/administration",
-            PwmConstants.URL_PREFIX_PRIVATE + "/admin/Administration",
+                PwmConstants.URL_PREFIX_PRIVATE + "/admin",
+                PwmConstants.URL_PREFIX_PRIVATE + "/admin/*",
+                PwmConstants.URL_PREFIX_PRIVATE + "/admin/Administration",
         }
 )
 public class AdminServlet extends AbstractPwmServlet {
@@ -56,7 +57,6 @@ public class AdminServlet extends AbstractPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(AdminServlet.class);
 
     public enum AdminAction implements AbstractPwmServlet.ProcessAction {
-        changePage(HttpMethod.POST),
         viewLogWindow(HttpMethod.GET),
         downloadAuditLogCsv(HttpMethod.POST),
         downloadUserReportCsv(HttpMethod.POST),
@@ -102,22 +102,17 @@ public class AdminServlet extends AbstractPwmServlet {
             return;
         }
 
-        final AdminBean adminBean = pwmRequest.getPwmSession().getSessionBean(AdminBean.class);
         final AdminAction action = readProcessAction(pwmRequest);
         if (action != null) {
             switch(action) {
-                case changePage:
-                    handleChangePageRequest(pwmRequest, adminBean);
-                    break;
-
                 case viewLogWindow:
                     processViewLog(pwmRequest);
                     return;
-                
+
                 case downloadAuditLogCsv:
                     downloadAuditLogCsv(pwmRequest);
                     return;
-                
+
                 case downloadUserReportCsv:
                     downloadUserReportCsv(pwmRequest);
                     return;
@@ -132,22 +127,7 @@ public class AdminServlet extends AbstractPwmServlet {
             }
         }
 
-        pwmRequest.forwardToJsp(adminBean.getCurrentPage().getJspURL());
-    }
-
-    private void handleChangePageRequest(final PwmRequest pwmRequest, final AdminBean adminBean)
-            throws PwmUnrecoverableException
-    {
-        final String requestedPage = pwmRequest.readParameterAsString("page");
-        if (requestedPage != null) {
-            try {
-                adminBean.setCurrentPage(Page.valueOf(requestedPage));
-            } catch (IllegalArgumentException e) {
-                LOGGER.error(pwmRequest, "request to change page to unknown page name: " + requestedPage);
-            }
-        } else {
-            LOGGER.error(pwmRequest, "request to change page to but no page parameter: ");
-        }
+        forwardToJsp(pwmRequest);
     }
 
     private void processViewLog(
@@ -239,25 +219,50 @@ public class AdminServlet extends AbstractPwmServlet {
         }
     }
 
+    public void forwardToJsp(final PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException {
+        final Page currentPage = Page.forUrl(pwmRequest.getURL());
+        if (currentPage != null) {
+            pwmRequest.forwardToJsp(currentPage.getJspURL());
+            return;
+        }
+        pwmRequest.sendRedirect(pwmRequest.getContextPath() + PwmServletDefinition.Admin.servletUrl() + Page.dashboard.getUrlSuffix());
+    }
+
 
     public enum Page {
-        dashboard(PwmConstants.JSP_URL.ADMIN_DASHBOARD),
-        analysis(PwmConstants.JSP_URL.ADMIN_ANALYSIS),
-        activity(PwmConstants.JSP_URL.ADMIN_ACTIVITY),
-        tokenlookup(PwmConstants.JSP_URL.ADMIN_TOKEN_LOOKUP),
-        viewLog(PwmConstants.JSP_URL.ADMIN_LOGVIEW),
-        urlReference(PwmConstants.JSP_URL.ADMIN_URLREFERENCE),
-        
-        ;
-        
-        private final PwmConstants.JSP_URL jspURL;
+        dashboard(PwmConstants.JSP_URL.ADMIN_DASHBOARD,"/dashboard"),
+        analysis(PwmConstants.JSP_URL.ADMIN_ANALYSIS,"/analysis"),
+        activity(PwmConstants.JSP_URL.ADMIN_ACTIVITY,"/activity"),
+        tokenLookup(PwmConstants.JSP_URL.ADMIN_TOKEN_LOOKUP,"/tokens"),
+        viewLog(PwmConstants.JSP_URL.ADMIN_LOGVIEW,"/logs"),
+        urlReference(PwmConstants.JSP_URL.ADMIN_URLREFERENCE,"/urls"),
 
-        Page(PwmConstants.JSP_URL jspURL) {
+        ;
+
+        private final PwmConstants.JSP_URL jspURL;
+        private final String urlSuffix;
+
+        Page(PwmConstants.JSP_URL jspURL, String urlSuffix) {
             this.jspURL = jspURL;
+            this.urlSuffix = urlSuffix;
         }
 
         public PwmConstants.JSP_URL getJspURL() {
             return jspURL;
+        }
+
+        public String getUrlSuffix() {
+            return urlSuffix;
+        }
+
+        public static Page forUrl(final PwmURL pwmURL) {
+            final String url = pwmURL.toString();
+            for (final Page page : Page.values()) {
+                if (url.endsWith(page.urlSuffix)) {
+                    return page;
+                }
+            }
+            return null;
         }
     }
 }

@@ -31,19 +31,23 @@ import com.novell.ldapchai.util.ChaiUtility;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
-import password.pwm.config.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
 import java.util.*;
 
 public class LdapBrowser {
-    final StoredConfiguration storedConfiguration;
+    final static private PwmLogger LOGGER = PwmLogger.forClass(LdapBrowser.class);
+    final StoredConfigurationImpl storedConfiguration;
 
     private Map<String,ChaiProvider> providerCache = new HashMap<>();
 
-    public LdapBrowser(StoredConfiguration storedConfiguration) throws PwmUnrecoverableException {
+    public LdapBrowser(StoredConfigurationImpl storedConfiguration) throws PwmUnrecoverableException {
         this.storedConfiguration = storedConfiguration;
     }
 
@@ -52,6 +56,8 @@ public class LdapBrowser {
             return doBrowseImpl(figureLdapProfileID(profile), dn);
         } catch (ChaiUnavailableException | ChaiOperationException e) {
             throw PwmUnrecoverableException.fromChaiException(e);
+        } catch (Exception e) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_LDAP_DATA_ERROR,e.getMessage()));
         }
     }
 
@@ -131,7 +137,9 @@ public class LdapBrowser {
             final String profile,
             final String dn
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, ChaiOperationException {
+            throws ChaiUnavailableException, PwmUnrecoverableException, ChaiOperationException
+    {
+
         final HashMap<String, Boolean> returnMap = new HashMap<>();
         final ChaiProvider chaiProvider = getChaiProvider(profile);
         if ((dn == null || dn.isEmpty()) && chaiProvider.getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
@@ -152,7 +160,7 @@ public class LdapBrowser {
 
             }
             for (final String resultDN : results.keySet()) {
-                boolean hasSubs;
+                boolean hasSubs = false;
                 if (results.get(resultDN).containsKey("subordinateCount")) { // only eDir actually returns this operational attribute
                     Integer subordinateCount = Integer.parseInt(results.get(resultDN).get("subordinateCount").iterator().next());
                     hasSubs = subordinateCount > 0;
@@ -162,8 +170,12 @@ public class LdapBrowser {
                     searchHelper.setMaxResults(1);
                     searchHelper.setAttributes(Collections.<String>emptyList());
                     searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.ONE);
-                    final Map<String, Map<String, String>> subSearchResults = chaiProvider.search(resultDN, searchHelper);
-                    hasSubs = !subSearchResults.isEmpty();
+                    try {
+                        final Map<String, Map<String, String>> subSearchResults = chaiProvider.search(resultDN, searchHelper);
+                        hasSubs = !subSearchResults.isEmpty();
+                    } catch (Exception e) {
+                        LOGGER.debug("error during subordinate entry count of " + dn + ", error: " + e.getMessage());
+                    }
                 }
                 returnMap.put(resultDN, hasSubs);
             }

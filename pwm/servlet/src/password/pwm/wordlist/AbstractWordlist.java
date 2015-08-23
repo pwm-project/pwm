@@ -22,6 +22,7 @@
 
 package password.pwm.wordlist;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
 import password.pwm.config.option.DataStorageMethod;
@@ -33,7 +34,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.util.Helper;
-import password.pwm.util.Sleeper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -41,19 +42,17 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 abstract class AbstractWordlist implements Wordlist, PwmService {
-    protected LocalDB.DB META_DB = null;
-    protected LocalDB.DB WORD_DB = null;
+
+    static final PwmHashAlgorithm CHECKSUM_HASH_ALG = PwmHashAlgorithm.SHA1;
 
     protected WordlistConfiguration wordlistConfiguration;
 
     protected volatile STATUS wlStatus = STATUS.NEW;
     protected LocalDB localDB;
-    protected Populator populator;
 
     protected static final PwmLogger LOGGER = PwmLogger.forClass(AbstractWordlist.class);
     protected String DEBUG_LABEL = "Generic Wordlist";
@@ -63,6 +62,9 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
     private ErrorInformation lastError;
 
+    private PwmApplication pwmApplication;
+    protected Populator populator;
+
 
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -71,6 +73,8 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     }
 
     public void init(final PwmApplication pwmApplication) throws PwmException {
+        this.pwmApplication = pwmApplication;
+        this.localDB = pwmApplication.getLocalDB();
         if (pwmApplication.getConfig().isDevDebugMode()) {
             debugTrace = true;
         }
@@ -79,32 +83,10 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     protected final void startup(final LocalDB localDB, final WordlistConfiguration wordlistConfiguration) {
         this.wordlistConfiguration = wordlistConfiguration;
         this.localDB = localDB;
-        final long startTime = System.currentTimeMillis();
         wlStatus = STATUS.OPENING;
 
         if (localDB == null) {
             final String errorMsg = "LocalDB is not available, " + DEBUG_LABEL + " will remain closed";
-            LOGGER.warn(errorMsg);
-            lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
-            close();
-            return;
-        }
-
-        if (wordlistConfiguration.getWordlistFile() == null) {
-            LOGGER.warn("wordlist file is not specified, " + DEBUG_LABEL + " will remain closed");
-            try {
-                resetDB("-1");
-            } catch (Exception e) {
-                final String errorMsg = "error while clearing " + DEBUG_LABEL + " DB: " + e.getMessage();
-                LOGGER.warn(errorMsg);
-                lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
-            }
-            close();
-            return;
-        }
-
-        if (!wordlistConfiguration.getWordlistFile().exists()) {
-            final String errorMsg = "wordlist file \"" + wordlistConfiguration.getWordlistFile().getAbsolutePath() + "\" does not exist, " + DEBUG_LABEL + "; will remain closed";
             LOGGER.warn(errorMsg);
             lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
             close();
@@ -127,28 +109,8 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         }
 
         //read stored size
-        try {
-            final String storedSizeStr = localDB.get(META_DB, KEY_SIZE);
-            storedSize = Integer.valueOf(storedSizeStr);
-        } catch (NumberFormatException | LocalDBException e) {
-            final String errorMsg = DEBUG_LABEL + " error reading stored size, closing, " + e.getMessage();
-            LOGGER.warn(errorMsg);
-            lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
-            close();
-            return;
-        }
-
-        if (wlStatus == STATUS.OPENING) {
-            wlStatus = STATUS.OPEN;
-            final int wordlistSize = size();
-            final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
-            LOGGER.debug(DEBUG_LABEL + " open with " + wordlistSize + " words in " + totalTime.asCompactString());
-        } else {
-            final String errorMsg = DEBUG_LABEL + " status changed unexpectedly during startup, closing";
-            LOGGER.warn(errorMsg);
-            lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg);
-            close();
-        }
+        storedSize = readMetadata().getSize();
+        wlStatus = STATUS.OPEN;
     }
 
     String normalizeWord(final String input) {
@@ -165,107 +127,29 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         return word.length() > 0 ? word : null;
     }
 
-    protected String makeChecksumString(final File wordlistFile)
-            throws PwmUnrecoverableException, IOException {
-        final StringBuilder checksumString = new StringBuilder();
-        checksumString.append("hash=").append(SecureEngine.hash(wordlistFile, PwmHashAlgorithm.SHA1));
-        checksumString.append(",length=").append(wordlistFile.length());
-        checksumString.append(",caseSensitive=").append(wordlistConfiguration.isCaseSensitive());
-        return checksumString.toString();
-    }
-
     protected void checkPopulation()
-            throws Exception {
-        LOGGER.trace("calculating hash of " + wordlistConfiguration.getWordlistFile().getAbsolutePath());
-        final String checksumString = makeChecksumString(wordlistConfiguration.getWordlistFile());
-        LOGGER.trace("hash of " + wordlistConfiguration.getWordlistFile().getAbsolutePath() + " complete, result: " + checksumString);
+            throws Exception
+    {
+        final StoredWordlistDataBean storedWordlistDataBean = readMetadata();
+        boolean needsBuiltinPopulating = false;
+        if (!storedWordlistDataBean.isCompleted()) {
+            needsBuiltinPopulating = true;
+            LOGGER.debug("wordlist stored in database does not have a completed load status, will load built-in wordlist");
+        } else if (storedWordlistDataBean.isBuiltin()) {
+            final String builtInWordlistHash = getBuiltInWordlistHash();
+            if (!builtInWordlistHash.equals(storedWordlistDataBean.getSha1hash())) {
+                LOGGER.debug("wordlist stored in database does not have match checksum with built-in wordlist file, will load built-in wordlist");
+                needsBuiltinPopulating = true;
+            }
+        }
 
-        final boolean clearRequired = !checkDbStatus() || !checkDbVersion() || !checkChecksum(checksumString);
-        final boolean isComplete = !clearRequired && VALUE_STATUS.COMPLETE.equals(VALUE_STATUS.forString(localDB.get(META_DB, KEY_STATUS)));
-
-        if (!clearRequired && isComplete) {
+        if (!needsBuiltinPopulating) {
             return;
         }
 
-        LOGGER.debug(DEBUG_LABEL + " previous population incomplete, resuming");
-
-        if (clearRequired) {
-            resetDB(checksumString);
-        }
-
-        final ZipReader zipReader = new ZipReader(wordlistConfiguration.getWordlistFile());
-        final Sleeper sleeper = new Sleeper(wordlistConfiguration.getLoadFactor());
-
-        try {
-            populator = new Populator(zipReader,sleeper,this);
-            populator.init();
-            populator.populate();
-        } catch (Exception e) {
-            LOGGER.warn("unexpected error running populator: " + e.getMessage());
-        }
-        populator = null;
+        this.populateBuiltIn();
     }
 
-    private boolean checkChecksum(final String checksum)
-            throws Exception {
-        LOGGER.trace("checking wordlist file hash stored in LocalDB");
-
-        final Object checksumInDb = localDB.get(META_DB, KEY_CHECKSUM);
-        final boolean result = checksum.equals(checksumInDb);
-
-        if (!result) {
-            LOGGER.info("existing ZIP hash does not match current wordlist file, db=(" + checksumInDb + "), file=(" + checksum + "), clearing db");
-        } else {
-            LOGGER.trace("existing ZIP hash matches current wordlist file, db=(" + checksumInDb + "), file=(" + checksum + ")");
-        }
-
-        return result;
-    }
-
-    private boolean checkDbStatus()
-            throws Exception {
-        LOGGER.trace("checking " + DEBUG_LABEL + " db status");
-
-        final VALUE_STATUS statusInDb = VALUE_STATUS.forString(localDB.get(META_DB, KEY_STATUS));
-
-        if (statusInDb == null || statusInDb.equals(VALUE_STATUS.DIRTY)) {
-            LOGGER.info("existing db was not shut down cleanly during population, clearing db");
-            return false;
-        } else {
-            LOGGER.trace("existing db is clean");
-            return true;
-        }
-    }
-
-    private boolean checkDbVersion()
-            throws Exception {
-        LOGGER.trace("checking version number stored in LocalDB");
-
-        final Object versionInDB = localDB.get(META_DB, KEY_VERSION);
-        final String currentVersion = makeVersionString();
-        final boolean result = currentVersion.equals(versionInDB);
-
-        if (!result) {
-            LOGGER.info("existing db version does not match current db version db=(" + versionInDB + ")  current=(" + currentVersion + "), clearing db");
-        } else {
-            LOGGER.trace("existing db version matches current db version db=(" + versionInDB + ")  current=(" + currentVersion + ")");
-        }
-
-        return result;
-    }
-
-    private void resetDB(final String checksum)
-            throws Exception {
-        localDB.put(META_DB, KEY_VERSION, makeVersionString() + "_ClearInProgress");
-
-        for (final LocalDB.DB db : new LocalDB.DB[]{META_DB, WORD_DB}) {
-            LOGGER.debug("clearing " + db);
-            localDB.truncate(db);
-        }
-
-        localDB.put(META_DB, KEY_VERSION, makeVersionString());
-        localDB.put(META_DB, KEY_CHECKSUM, checksum);
-    }
 
     public boolean containsWord(final String word) {
         if (wlStatus != STATUS.OPEN) {
@@ -286,7 +170,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             boolean result = false;
             for (final String t : testWords) {
                 if (!result) { // stop checking once found
-                    if (localDB.contains(WORD_DB, t)) {
+                    if (localDB.contains(getWordlistDB(), t)) {
                         result = true;
                     }
                 }
@@ -312,18 +196,13 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     }
 
     public synchronized void close() {
-        final long wordlistExitWaitTime = 60 * 1000;
-        final long beginWaitTime = System.currentTimeMillis();
         if (populator != null) {
-            populator.pause();
-            while (populator != null && (TimeDuration.fromCurrent(beginWaitTime).isShorterThan(wordlistExitWaitTime))) {
-                Helper.pause(1000);
-                LOGGER.warn("waiting for populator to exit: " + TimeDuration.fromCurrent(beginWaitTime).asCompactString());
+            try {
+                populator.cancel();
+                populator = null;
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("wordlist populator failed to exit");
             }
-        }
-
-        if (TimeDuration.fromCurrent(beginWaitTime).isLongerThan(wordlistExitWaitTime)) {
-            LOGGER.error("wordlist populator failed to exit");
         }
 
         if (wlStatus != STATUS.CLOSED) {
@@ -333,14 +212,6 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         wlStatus = STATUS.CLOSED;
         localDB = null;
     }
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public File getWordlistFile() {
-        return wordlistConfiguration.getWordlistFile();
-    }
-
-// -------------------------- OTHER METHODS --------------------------
 
     public STATUS status() {
         return wlStatus;
@@ -356,25 +227,11 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
     protected abstract Map<String, String> getWriteTxnForValue(String value);
 
-    protected abstract String makeVersionString();
+    protected abstract PwmApplication.AppAttribute getMetaDataAppAttribute();
 
-// -------------------------- ENUMERATIONS --------------------------
+    protected abstract AppProperty getBuiltInWordlistLocationProperty();
 
-    static enum VALUE_STATUS {
-        COMPLETE,
-        DIRTY,
-        IN_PROGRESS;
-
-        static VALUE_STATUS forString(final String status) {
-            for (final VALUE_STATUS s : VALUE_STATUS.values()) {
-                if (s.toString().equals(status)) {
-                    return s;
-                }
-            }
-
-            return null;
-        }
-    }
+    protected abstract LocalDB.DB getWordlistDB();
 
     public List<HealthRecord> healthCheck() {
         if (wlStatus == STATUS.OPENING) {
@@ -393,7 +250,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     public ServiceInfo serviceInfo()
     {
         if (status() == STATUS.OPEN) {
-            return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
+            return new ServiceInfo(Collections.singletonList(DataStorageMethod.LOCALDB));
         } else {
             return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
         }
@@ -412,4 +269,133 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
         return testWords;
     }
+
+    public StoredWordlistDataBean readMetadata() {
+        final String storedValue = pwmApplication.readAppAttribute(getMetaDataAppAttribute());
+        if (storedValue != null && !storedValue.isEmpty()) {
+            final StoredWordlistDataBean metaDataBean = JsonUtil.deserialize(storedValue, StoredWordlistDataBean.class);
+            if (metaDataBean != null) {
+                return metaDataBean;
+            }
+        }
+        return new StoredWordlistDataBean();
+    }
+
+    void writeMetadata(final StoredWordlistDataBean metadataBean) {
+        final String jsonValue = JsonUtil.serialize(metadataBean);
+        pwmApplication.writeAppAttribute(getMetaDataAppAttribute(),jsonValue);
+    }
+
+    @Override
+    public void populate(final InputStream inputStream)
+            throws IOException, PwmUnrecoverableException
+    {
+        try {
+            populateImpl(inputStream);
+        } finally {
+            if (!readMetadata().isCompleted()) {
+                LOGGER.debug("beginning population using builtin wordlist in background thread");
+                final Thread t = new Thread(new Runnable() {
+                    public void run() {
+                        try {
+                            populateBuiltIn();
+                        } catch (Exception e) {
+                            LOGGER.warn("unexpected error during builtin wordlist population process: " + e.getMessage(),e);
+                        }
+                        populator = null;
+                    }
+                }, Helper.makeThreadName(pwmApplication, WordlistManager.class));
+                t.setDaemon(true);
+                t.start();
+            }
+        }
+    }
+
+    @Override
+    public void populateBuiltIn()
+            throws IOException, PwmUnrecoverableException
+    {
+        populateImpl(getBuiltInWordlist());
+        {
+            final StoredWordlistDataBean storedWordlistDataBean = readMetadata();
+            storedWordlistDataBean.setBuiltin(true);
+            writeMetadata(storedWordlistDataBean);
+        }
+    }
+
+    private void populateImpl(final InputStream inputStream)
+            throws IOException, PwmUnrecoverableException
+    {
+        if (inputStream == null) {
+            throw new NullPointerException("input stream can not be null for populateImpl()");
+        }
+
+        if (wlStatus == STATUS.CLOSED) {
+            return;
+        }
+
+        wlStatus = STATUS.OPENING;
+
+        try {
+            if (populator != null) {
+                populator.cancel();
+
+                final int maxWaitMs = 1000 * 30;
+                final Date startWaitTime = new Date();
+                while (populator.isRunning() && TimeDuration.fromCurrent(startWaitTime).isShorterThan(maxWaitMs)) {
+                    Helper.pause(1000);
+                }
+                if (populator.isRunning() && TimeDuration.fromCurrent(startWaitTime).isShorterThan(maxWaitMs)) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "unable to abort populator"));
+                }
+            }
+
+            { // reset the wordlist metadata
+                final StoredWordlistDataBean storedWordlistDataBean = new StoredWordlistDataBean();
+                writeMetadata(storedWordlistDataBean);
+            }
+
+            populator = new Populator(inputStream, this, pwmApplication);
+            populator.populate();
+        } catch (Exception e) {
+            final ErrorInformation populationError;
+            populationError = e instanceof PwmException
+                    ? ((PwmException) e).getErrorInformation()
+                    : new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage());
+            LOGGER.error("error during wordlist population: " + populationError.toDebugStr());
+            throw new PwmUnrecoverableException(populationError);
+        } finally {
+            populator = null;
+            inputStream.close();
+        }
+
+        wlStatus = STATUS.OPEN;
+    }
+
+    protected InputStream getBuiltInWordlist() throws FileNotFoundException, PwmUnrecoverableException {
+        final File webInfPath = pwmApplication.getWebInfPath();
+        if (webInfPath != null) {
+            final String wordlistFilename = pwmApplication.getConfig().readAppProperty(getBuiltInWordlistLocationProperty());
+            final File wordlistFile =  Helper.figureFilepath(wordlistFilename,webInfPath);
+            if (wordlistFile.exists()) {
+                return new FileInputStream(wordlistFile);
+            }
+
+        }
+        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"unable to locate builtin wordlist file"));
+    }
+
+    protected String getBuiltInWordlistHash() throws IOException, PwmUnrecoverableException {
+
+        InputStream inputStream = null;
+        try {
+            inputStream = getBuiltInWordlist();
+            return SecureEngine.hash(inputStream, CHECKSUM_HASH_ALG);
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+        }
+    }
+
 }

@@ -374,7 +374,8 @@ public class UserSearchEngine {
         searchHelper.setTimeLimit((int)timeoutMs);
         final int searchID = searchCounter++;
 
-        final String debugInfo = "searchID=" + searchID + " profile=" + ldapProfile.getIdentifier() + " base=" + context + " filter=" + searchHelper.toString();
+        final String debugInfo = "searchID=" + searchID + " profile=" + ldapProfile.getIdentifier() + " base=" + context
+                + " filter=" + searchHelper.toString() + " maxCount=" + searchHelper.getMaxResults();
         LOGGER.debug(sessionLabel, "performing ldap search for user; " + debugInfo);
 
         final Date startTime = new Date();
@@ -384,7 +385,8 @@ public class UserSearchEngine {
         } catch (ChaiUnavailableException e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
         } catch (ChaiOperationException e) {
-            throw new PwmOperationalException(PwmError.forChaiError(e.getErrorCode()),"ldap error during search: " + e.getMessage());
+            throw new PwmOperationalException(PwmError.forChaiError(e.getErrorCode()),"ldap error during searchID="
+                    + searchID + ", error=" + e.getMessage());
         }
         final TimeDuration searchDuration = TimeDuration.fromCurrent(startTime);
 

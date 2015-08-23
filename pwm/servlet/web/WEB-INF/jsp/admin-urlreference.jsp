@@ -22,7 +22,6 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<% final PwmRequest pwmRequest = PwmRequest.forRequest(request, response); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
@@ -45,26 +44,23 @@
             </tr>
             <tr>
                 <td class="key">Public Menu</td>
-                <td><a href="<pwm:context/>/public"><pwm:context/>/public</a></td>
+                <td><a href="<pwm:context/><%=PwmConstants.URL_PREFIX_PUBLIC%>"><pwm:context/><%=PwmConstants.URL_PREFIX_PUBLIC%></a></td>
             </tr>
             <tr>
                 <td  class="key">Forgotten Password</td>
-                <td><a href="<pwm:context/>/public/ForgottenPassword"><pwm:context/>/public/ForgottenPassword</a></td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.ForgottenPassword.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.ForgottenPassword.servletUrl()%></a></td>
             </tr>
             <tr>
                 <td class="key">Activate User</td>
-                <td><a href="<pwm:context/>/public/ActivateUser"><pwm:context/>/public/ActivateUser</a></td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.ActivateUser.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.ActivateUser.servletUrl()%></a></td>
             </tr>
             <tr>
                 <td class="key">New User Registration</td>
-                <td><a href="<pwm:context/>/public/NewUser"><pwm:context/>/public/NewUser</a></td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%></a></td>
             </tr>
-            <% boolean enabled = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC);%>
             <tr>
                 <td class="key">Public People Search </td>
-                <td>
-                    <a disabled href="<pwm:context/>/public/PeopleSearch"><pwm:context/>/public/PeopleSearch</a>
-                </td>
+                <td><a href="<pwm:context/><%=PwmConstants.URL_PREFIX_PUBLIC%>/<%=PwmServletDefinition.PeopleSearch.servletUrlName()%>"><pwm:context/><%=PwmConstants.URL_PREFIX_PUBLIC%>/<%=PwmServletDefinition.PeopleSearch.servletUrlName()%></a></td>
             </tr>
         </table>
         <br/>
@@ -75,23 +71,39 @@
             </tr>
             <tr>
                 <td class="key">Logged-In Menu</td>
-                <td><a href="<pwm:context/>/private"><pwm:context/>/private</a></td>
+                <td><a href="<pwm:context/><%=PwmConstants.URL_PREFIX_PRIVATE%>"><pwm:context/><%=PwmConstants.URL_PREFIX_PRIVATE%></a></td>
+            </tr>
+            <tr>
+                <td class="key">Account Information</td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.AccountInformation.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.AccountInformation.servletUrl()%></a></td>
             </tr>
             <tr>
                 <td class="key">Change Password</td>
-                <td><a href="<pwm:context/>/private/ChangePassword"><pwm:context/>/private/ChangePassword</a></td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.ChangePassword.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.ChangePassword.servletUrl()%></a></td>
             </tr>
             <tr>
                 <td class="key">Setup Responses</td>
-                <td><a href="<pwm:context/>/private/SetupResponses"><pwm:context/>/private/SetupResponses</a></td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.SetupResponses.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.SetupResponses.servletUrl()%></a></td>
+            </tr>
+            <tr>
+                <td class="key">Setup OTP</td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.SetupOtp.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.SetupOtp.servletUrl()%></a></td>
             </tr>
             <tr>
                 <td class="key">Helpdesk</td>
-                <td><a href="<pwm:context/>/private/Helpdesk"><pwm:context/>/private/Helpdesk</a></td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.Helpdesk.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.Helpdesk.servletUrl()%></a></td>
             </tr>
             <tr>
                 <td class="key">People Search</td>
-                <td><a href="<pwm:context/>/private/PeopleSearch"><pwm:context/>/private/PeopleSearch</a></td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.PeopleSearch.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.PeopleSearch.servletUrl()%></a></td>
+            </tr>
+            <tr>
+                <td class="key">Administration</td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.Admin.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.Admin.servletUrl()%></a></td>
+            </tr>
+            <tr>
+                <td class="key">Configuration</td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.ConfigManager.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.ConfigManager.servletUrl()%></a></td>
             </tr>
         </table>
     </div>

@@ -114,7 +114,7 @@ class ResourceServletConfiguration {
                         final File zipFileFile = new File(pwmApplication.getWebInfPath().getParentFile() + loopInitParam.getZipFile());
                         final ZipFile zipFile = new ZipFile(zipFileFile);
                         zipResources.put(loopInitParam.getUrl(), zipFile);
-                        LOGGER.error("registered resource-zip file " + loopInitParam.getZipFile() + " at path " + zipFileFile.getAbsolutePath());
+                        LOGGER.debug("registered resource-zip file " + loopInitParam.getZipFile() + " at path " + zipFileFile.getAbsolutePath());
                     } catch (IOException e) {
                         LOGGER.warn("unable to resource-zip file " + loopInitParam + ", error: " + e.getMessage());
                     }

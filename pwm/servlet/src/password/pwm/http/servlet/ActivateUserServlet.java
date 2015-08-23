@@ -46,9 +46,9 @@ import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
-import password.pwm.token.TokenType;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
+import password.pwm.token.TokenType;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -416,7 +416,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                 }
             };
 
-            pwmSession.getLoginInfoBean().addPostChangePasswordActions("activateUserWriteAttributes", postAction);
+            pwmSession.getUserSessionDataCacheBean().addPostChangePasswordActions("activateUserWriteAttributes", postAction);
         } catch (ImpossiblePasswordPolicyException e) {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected ImpossiblePasswordPolicyException error while activating user");
             LOGGER.warn(pwmSession, info, e);

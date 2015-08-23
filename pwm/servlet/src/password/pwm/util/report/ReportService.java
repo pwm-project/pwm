@@ -136,9 +136,9 @@ public class ReportService implements PwmService {
 
         timer = new Timer();
 
-        final long nextZuluZeroTime = Helper.nextZuluZeroTime().getTime();
+        final Date nextZuluZeroTime = Helper.nextZuluZeroTime();
         if (settings.getJobOffsetSeconds() >= 0) {
-            final long nextScheduleTime = nextZuluZeroTime + (settings.getJobOffsetSeconds() * 1000);
+            final long nextScheduleTime = nextZuluZeroTime.getTime() + (settings.getJobOffsetSeconds() * 1000);
             timer.scheduleAtFixedRate(new DredgeTask(),new Date(nextScheduleTime), TimeDuration.DAY.getTotalMilliseconds());
         }
 
@@ -148,7 +148,7 @@ public class ReportService implements PwmService {
         }
         LOGGER.debug(startupMsg);
         timer.schedule(new RolloverTask(), 1);
-        timer.scheduleAtFixedRate(new RolloverTask(),new Date(nextZuluZeroTime), TimeDuration.DAY.getTotalMilliseconds());
+        timer.scheduleAtFixedRate(new RolloverTask(), nextZuluZeroTime, TimeDuration.DAY.getTotalMilliseconds());
 
         status = STATUS.OPEN;
     }
@@ -227,7 +227,7 @@ public class ReportService implements PwmService {
     private void updateCacheFromLdap()
             throws ChaiUnavailableException, ChaiOperationException, PwmOperationalException, PwmUnrecoverableException
     {
-        LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"beginning process to updating user cache records from ldap");
+        LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL, "beginning process to updating user cache records from ldap");
         if (status != STATUS.OPEN) {
             return;
         }
@@ -276,22 +276,42 @@ public class ReportService implements PwmService {
 
     private void updateRestingCacheData() {
         final long startTime = System.currentTimeMillis();
-        LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"beginning cache review process");
-        final ClosableIterator<UserCacheRecord> iterator = iterator();
+        final Timer timer = new Timer(Helper.makeThreadName(this.pwmApplication,ReportService.class) + " - cache review process");
+        final Map<Integer,Integer> examinedRecordHolder = new HashMap<>(); // needed for inner class access, its just for debug log so concurrency not required
+        examinedRecordHolder.put(0, 0);
         int examinedRecords = 0;
-        while (iterator.hasNext() && status == STATUS.OPEN) {
-            final UserCacheRecord record = iterator.next(); // (purge routine is embedded in next();
+        ClosableIterator<UserCacheRecord> iterator = null;
+        try {
+            iterator = iterator();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    final TimeDuration progressDuration = TimeDuration.fromCurrent(startTime);
+                    final int count = examinedRecordHolder.get(0);
+                    LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,"cache review process in progress, examined "
+                            + count + " records in " + progressDuration.asCompactString());
+                }
+            }, 30 * 1000, 30 * 1000);
+            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL, "beginning cache review process");
+            while (iterator.hasNext() && status == STATUS.OPEN) {
+                final UserCacheRecord record = iterator.next(); // (purge routine is embedded in next();
 
-            if (summaryData != null && record != null) {
-                summaryData.update(record);
+                if (summaryData != null && record != null) {
+                    summaryData.update(record);
+                }
+
+                examinedRecords++;
+                examinedRecordHolder.put(0, examinedRecords);
             }
-
-            examinedRecords++;
+            final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
+            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,
+                    "completed cache review process of " + examinedRecords + " cached report records in " + totalTime.asCompactString());
+        } finally {
+            timer.cancel();
+            if (iterator != null) {
+                iterator.close();
+            }
         }
-        iterator.close();
-        final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
-        LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,
-                "completed cache review process of " + examinedRecords + " cached report records in " + totalTime.asCompactString());
     }
 
     public boolean updateCache(final UserInfoBean uiBean)

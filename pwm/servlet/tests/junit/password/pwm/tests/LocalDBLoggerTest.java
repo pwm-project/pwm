@@ -27,7 +27,7 @@ import junit.framework.TestCase;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.ConfigurationReader;
+import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.Helper;
 import password.pwm.util.Percent;

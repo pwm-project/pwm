@@ -98,6 +98,8 @@ public class PwmApplication {
         SMS_ITEM_COUNTER("smsQueue.itemCount"),
         EMAIL_ITEM_COUNTER("itemQueue.itemCount"),
         LOCALDB_IMPORT_STATUS("localDB.import.status"),
+        WORDLIST_METADATA("wordlist.metadata"),
+        SEEDLIST_METADATA("seedlist.metadata"),
 
         ;
 
@@ -222,7 +224,11 @@ public class PwmApplication {
         );
 
         if (!pwmEnvironment.internalRuntimeInstance) {
-            this.localDB = Initializer.initializeLocalDB(this);
+            if (getApplicationMode() == MODE.ERROR || getApplicationMode() == MODE.NEW) {
+                LOGGER.warn("skipping LocalDB open due to application mode " + getApplicationMode());
+            } else {
+                this.localDB = Initializer.initializeLocalDB(this);
+            }
         }
 
         this.localDBLogger = PwmLogManager.initializeLocalDBLogger(this);
@@ -295,7 +301,7 @@ public class PwmApplication {
     private void postInitTasks() {
         final Date startTime = new Date();
 
-        LOGGER.debug("loaded configuration: \n" + configuration.toDebugString());
+        LOGGER.debug("loaded configuration: " + configuration.toDebugString());
 
         // detect if config has been modified since previous startup
         try {
@@ -622,12 +628,7 @@ public class PwmApplication {
 
     private static class Initializer {
 
-        public static LocalDB initializeLocalDB(final PwmApplication pwmApplication) {
-            if (pwmApplication.getApplicationMode() == MODE.ERROR || pwmApplication.getApplicationMode() == MODE.NEW) {
-                LOGGER.warn("skipping LocalDB open due to application mode " + pwmApplication.getApplicationMode());
-                return null;
-            }
-
+        public static LocalDB initializeLocalDB(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
             final File databaseDirectory;
             // see if META-INF isn't already there, then use WEB-INF.
             try {
@@ -636,7 +637,7 @@ public class PwmApplication {
             } catch (Exception e) {
                 pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"error locating configured LocalDB directory: " + e.getMessage());
                 LOGGER.warn(pwmApplication.lastLocalDBFailure.toDebugStr());
-                return null;
+                throw new PwmUnrecoverableException(pwmApplication.lastLocalDBFailure);
             }
 
             LOGGER.debug("using localDB path " + databaseDirectory);
@@ -648,9 +649,8 @@ public class PwmApplication {
             } catch (Exception e) {
                 pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"unable to initialize LocalDB: " + e.getMessage());
                 LOGGER.warn(pwmApplication.lastLocalDBFailure.toDebugStr());
+                throw new PwmUnrecoverableException(pwmApplication.lastLocalDBFailure);
             }
-
-            return null;
         }
     }
 
@@ -741,7 +741,7 @@ public class PwmApplication {
                     + "  An explicit applicationPath parameter must be specified, or the file can be removed if the applicationPath should be changed to the default /WEB-INF directory.";
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, errorMsg));
         } else {
-            LOGGER.trace("marker file " + infoFile.getAbsolutePath() + " does not exist");
+            LOGGER.trace("marker file " + infoFile.getAbsolutePath() + " does not exist (this is usually a good thing, this file should not exist in a configured applicationPath");
         }
 
     }

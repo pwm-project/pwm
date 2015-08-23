@@ -24,86 +24,91 @@ var PWM_ADMIN = PWM_ADMIN || {};
 var PWM_MAIN = PWM_MAIN || {};
 var PWM_GLOBAL = PWM_GLOBAL || {};
 
-PWM_ADMIN.initAdminOtherMenu=function() {
-    require(["dijit/form/DropDownButton", "dijit/DropDownMenu", "dijit/Menu","dijit/MenuItem", "dijit/PopupMenuItem", "dojo/dom", "dijit/MenuSeparator"],
-        function(DropDownButton, DropDownMenu, Menu, MenuItem, PopupMenuItem, dom, MenuSeparator){
-            var pMenu = new DropDownMenu({ style: "display: none;"});
-            pMenu.addChild(new MenuItem({
-                label: 'Event Log',
-                onClick: function() {
-                    PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('form-viewLog'));
-                }
-            }));
-            pMenu.addChild(new MenuItem({
-                label: 'Token Lookup',
-                onClick: function() {
-                    PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('form-tokenLookup'));
-                }
-            }));
+PWM_ADMIN.initAdminNavMenu = function() {
+    var makeMenu = function(){
 
-            pMenu.addChild(new MenuItem({
-                label: 'URL Reference',
-                onClick: function() {
-                    PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('form-urlReference'));
-                }
-            }));
-            pMenu.addChild(new MenuSeparator());
-            pMenu.addChild(new MenuItem({
-                label: 'Full Page Health Status',
-                onClick: function() {
-                    PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/public/health.jsp');
-                }
-            }));
-            pMenu.addChild(new MenuSeparator());
-            pMenu.addChild(new MenuItem({
-                label: '<span class="fa fa-external-link"></span> Software License Reference',
-                onClick: function() {
-                    PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/license.jsp','license');
-                }
-            }));
-            pMenu.addChild(new MenuItem({
-                label: '<span class="fa fa-external-link"></span> Application Reference',
-                onClick: function() {
-                    PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/referencedoc.jsp','referencedoc');
-                }
-            }));
-            pMenu.addChild(new MenuItem({
-                label: '<span class="fa fa-external-link"></span> REST Web Services Reference',
-                onClick: function() {
-                    PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/rest.jsp','restreference');
-                }
-            }));
-            if (PWM_GLOBAL['setting-displayEula'] == true) {
+        require(["dijit/form/DropDownButton", "dijit/DropDownMenu", "dijit/Menu","dijit/MenuItem", "dijit/PopupMenuItem", "dojo/dom", "dijit/MenuSeparator"],
+            function(DropDownButton, DropDownMenu, Menu, MenuItem, PopupMenuItem, dom, MenuSeparator){
+                var pMenu = new DropDownMenu({ style: "display: none;"});
                 pMenu.addChild(new MenuItem({
-                    label: 'View EULA',
+                    label: 'Event Log',
                     onClick: function() {
-                        PWM_MAIN.showEula(false,null);
+                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/logs');
                     }
                 }));
-            }
-            pMenu.addChild(new MenuSeparator());
-            pMenu.addChild(new MenuItem({
-                label: 'Configuration Manager',
-                onClick: function() {
-                    PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/config/ConfigManager');
+                pMenu.addChild(new MenuItem({
+                    label: 'Token Lookup',
+                    onClick: function() {
+                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/tokens');
+                    }
+                }));
+
+                pMenu.addChild(new MenuItem({
+                    label: 'URL Reference',
+                    onClick: function() {
+                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/urls');
+                    }
+                }));
+                pMenu.addChild(new MenuSeparator());
+                pMenu.addChild(new MenuItem({
+                    label: 'Full Page Health Status',
+                    onClick: function() {
+                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/public/health.jsp');
+                    }
+                }));
+                pMenu.addChild(new MenuSeparator());
+                pMenu.addChild(new MenuItem({
+                    label: '<span class="fa fa-external-link"></span> Software License Reference',
+                    onClick: function() {
+                        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/license.jsp','license');
+                    }
+                }));
+                pMenu.addChild(new MenuItem({
+                    label: '<span class="fa fa-external-link"></span> Application Reference',
+                    onClick: function() {
+                        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/referencedoc.jsp','referencedoc');
+                    }
+                }));
+                pMenu.addChild(new MenuItem({
+                    label: '<span class="fa fa-external-link"></span> REST Web Services Reference',
+                    onClick: function() {
+                        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/rest.jsp','restreference');
+                    }
+                }));
+                if (PWM_GLOBAL['setting-displayEula'] == true) {
+                    pMenu.addChild(new MenuItem({
+                        label: 'View EULA',
+                        onClick: function() {
+                            PWM_MAIN.showEula(false,null);
+                        }
+                    }));
                 }
-            }));
-            pMenu.addChild(new MenuItem({
-                label: 'Configuration Editor',
-                onClick: function() {
-                    PWM_CONFIG.startConfigurationEditor();
-                }
-            }));
+                pMenu.addChild(new MenuSeparator());
+                pMenu.addChild(new MenuItem({
+                    label: 'Configuration Manager',
+                    onClick: function() {
+                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/config/ConfigManager');
+                    }
+                }));
+                pMenu.addChild(new MenuItem({
+                    label: 'Configuration Editor',
+                    onClick: function() {
+                        PWM_CONFIG.startConfigurationEditor();
+                    }
+                }));
 
 
-            var dropDownButton = new DropDownButton({
-                label: "More Options",
-                name: "More Options",
-                dropDown: pMenu,
-                id: "progButton"
+                var dropDownButton = new DropDownButton({
+                    label: "More Options",
+                    name: "More Options",
+                    dropDown: pMenu,
+                    id: "progButton"
+                });
+                dom.byId("admin-nav-menu-container").appendChild(dropDownButton.domNode);
             });
-            dom.byId("dropDownButtonContainer").appendChild(dropDownButton.domNode);
-        });
+    };
+
+    PWM_MAIN.doIfQueryHasResults("#admin-nav-menu-container",makeMenu)
 };
 
 PWM_ADMIN.reportDataHeaders = function() {
@@ -158,16 +163,19 @@ PWM_ADMIN.initReportDataGrid=function() {
 };
 
 PWM_ADMIN.refreshReportDataGrid=function() {
-    require(["dojo"],function(dojo){
-        PWM_VAR['reportGrid'].refresh();
-        var maximum = PWM_MAIN.getObject('maxReportDataResults').value;
-        var url = PWM_GLOBAL['url-restservice'] + "/report?maximum=" + maximum;
-        var loadFunction = function(data) {
-            PWM_MAIN.closeWaitDialog();
-            PWM_VAR['reportGrid'].renderArray(data['data']['users']);
-        };
-        PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
-    });
+    if (PWM_MAIN.getObject('button-refreshReportDataGrid')) {
+        PWM_MAIN.getObject('button-refreshReportDataGrid').disabled = true;
+    }
+    PWM_VAR['reportGrid'].refresh();
+    var maximum = PWM_MAIN.getObject('maxReportDataResults').value;
+    var url = PWM_GLOBAL['url-restservice'] + "/report?maximum=" + maximum;
+    var loadFunction = function(data) {
+        if (PWM_MAIN.getObject('button-refreshReportDataGrid')) {
+            PWM_MAIN.getObject('button-refreshReportDataGrid').disabled = false;
+        }
+        PWM_VAR['reportGrid'].renderArray(data['data']['users']);
+    };
+    PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
 };
 
 

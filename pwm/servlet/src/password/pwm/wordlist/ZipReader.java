@@ -25,9 +25,11 @@ package password.pwm.wordlist;
 import password.pwm.PwmConstants;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 /**
@@ -40,7 +42,6 @@ class ZipReader {
 // ------------------------------ FIELDS ------------------------------
 
     private final ZipInputStream zipStream;
-    private final File sourceFile;
 
     private BufferedReader reader;
     private ZipEntry zipEntry;
@@ -48,17 +49,10 @@ class ZipReader {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    ZipReader(final File sourceFile)
+    ZipReader(final InputStream inputStream)
             throws Exception
     {
-        this.sourceFile = sourceFile;
-        final ZipFile zipFile = new ZipFile(sourceFile);
-        if (zipFile.size() == 0) {
-            throw new Exception("zip file contains no entries");
-        }
-
-
-        zipStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(sourceFile)));
+        zipStream = new ZipInputStream(inputStream);
         nextZipEntry();
     }
 
@@ -81,15 +75,6 @@ class ZipReader {
         }
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public File getSourceFile()
-    {
-        return sourceFile;
-    }
-
-// ------------------------ CANONICAL METHODS ------------------------
-
     protected void finalize()
             throws Throwable
     {
@@ -106,8 +91,6 @@ class ZipReader {
             reader.close();
         } catch (Exception e) { /* do nothing */ }
     }
-
-// -------------------------- OTHER METHODS --------------------------
 
     String currentZipName()
     {

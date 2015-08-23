@@ -165,6 +165,10 @@
         <filter-name>AuthorizationFilter</filter-name>
         <filter-class>password.pwm.http.filter.AuthorizationFilter</filter-class>
     </filter>
+    <filter>
+        <filter-name>ConfigAccessFilter</filter-name>
+        <filter-class>password.pwm.http.filter.ConfigAccessFilter</filter-class>
+    </filter>
     <filter-mapping>
         <filter-name>GZIPFilter</filter-name>
         <url-pattern>*</url-pattern>
@@ -197,6 +201,11 @@
     <filter-mapping>
         <filter-name>AuthorizationFilter</filter-name>
         <url-pattern>/private/admin/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ConfigAccessFilter</filter-name>
+        <url-pattern>/private/config</url-pattern>
+        <url-pattern>/private/config/*</url-pattern>
     </filter-mapping>
     <listener>
         <listener-class>password.pwm.http.HttpEventManager</listener-class>

@@ -22,11 +22,9 @@
 
 package password.pwm.config.profile;
 
-import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingCategory;
-import password.pwm.config.StoredConfiguration;
-import password.pwm.config.StoredValue;
+import password.pwm.config.*;
 import password.pwm.config.option.RecoveryVerificationMethods;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.VerificationMethodValue;
 
 import java.util.*;

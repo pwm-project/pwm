@@ -70,7 +70,7 @@ import java.util.*;
 @WebServlet(
         name="SetupResponsesServlet",
         urlPatterns={
-                PwmConstants.URL_PREFIX_PRIVATE + "/setupresponses",
+                PwmConstants.URL_PREFIX_PRIVATE + "/setup-responses",
                 PwmConstants.URL_PREFIX_PRIVATE + "/SetupResponses",
         }
 )

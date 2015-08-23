@@ -97,7 +97,6 @@ public abstract class PwmConstants {
 
     public static final String APPLICATION_PATH_INFO_FILE = readPwmConstantsBundle("applicationPathInfoFile");
 
-    public static final int DEFAULT_WORDLIST_LOADFACTOR = Integer.parseInt(readPwmConstantsBundle("wordlist.loadFactor"));
     public static final int LOCALDB_LOGGER_MAX_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxQueueSize"));
     public static final int LOCALDB_LOGGER_MAX_DIRTY_BUFFER_MS = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxDirtyBufferMS"));
     public static final boolean ENABLE_EULA_DISPLAY = Boolean.parseBoolean(readPwmConstantsBundle("enableEulaDisplay"));
@@ -234,12 +233,14 @@ public abstract class PwmConstants {
         GUEST_REGISTRATION("guest-create.jsp"),
         GUEST_UPDATE("guest-update.jsp"),
         GUEST_UPDATE_SEARCH("guest-search.jsp"),
+        ACCOUNT_INFORMATION("userinfo.jsp"),
         SHORTCUT("shortcut.jsp"),
         CAPTCHA("captcha.jsp"),
         PEOPLE_SEARCH("peoplesearch.jsp"),
         CONFIG_MANAGER_EDITOR("configeditor.jsp"),
         CONFIG_MANAGER_EDITOR_SUMMARY("configmanager-summary.jsp"),
         CONFIG_MANAGER_MODE_CONFIGURATION("configmanager.jsp"),
+        CONFIG_MANAGER_WORDLISTS("configmanager-wordlists.jsp"),
         CONFIG_MANAGER_LOGIN("configmanager-login.jsp"),
         HELPDESK_SEARCH("helpdesk.jsp"),
         HELPDESK_DETAIL("helpdesk-detail.jsp"),

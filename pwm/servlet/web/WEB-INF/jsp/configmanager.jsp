@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -29,7 +30,6 @@
 <%
     final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
 %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -38,7 +38,7 @@
         <jsp:param name="pwm.PageName" value="<%=JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.PageTitle)%>"/>
     </jsp:include>
     <div id="centerbody">
-        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+        <%@ include file="fragment/configmanager-nav.jsp" %>
         <style nonce="<pwm:value name="cspNonce"/>">
             .buttoncell {
                 border: 0;
@@ -66,7 +66,7 @@
                 </td>
                 <td>
                     <pwm:if test="configurationOpen">Open</pwm:if>
-                    <pwm:if test="configurationOpen" negate="true">Closed</pwm:if>
+                    <pwm:if test="configurationOpen" negate="true">Restricted</pwm:if>
                 </td>
             </tr>
             <tr>
@@ -119,37 +119,7 @@
         <table class="noborder">
             <tr class="buttonrow">
                 <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_ConfigEditor">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-edit"></span></pwm:if>
-                        <pwm:display key="MenuItem_ConfigEditor" bundle="Admin"/>
-                    </a>
-                    <pwm:script>
-                        <script type="application/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                PWM_MAIN.addEventHandler('MenuItem_ConfigEditor','click',function(){PWM_CONFIG.startConfigurationEditor()});
-                                makeTooltip('MenuItem_ConfigEditor',PWM_CONFIG.showString('MenuDisplay_ConfigEditor'));
-                            });
-                        </script>
-                    </pwm:script>
-                </td>
-                <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_ViewLog">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
-                        <pwm:display key="MenuItem_ViewLog" bundle="Config"/>
-                    </a>
-                    <pwm:script>
-                        <script type="application/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                PWM_MAIN.addEventHandler('MenuItem_ViewLog','click',function(){PWM_CONFIG.openLogViewer(null)});
-                                makeTooltip('MenuItem_ViewLog',PWM_CONFIG.showString('MenuDisplay_ViewLog'));
-                            });
-                        </script>
-                    </pwm:script>
-                </td>
-            </tr>
-            <tr class="buttonrow">
-                <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_DownloadBundle">
+                    <a class="menubutton" id="MenuItem_DownloadBundle" title="<pwm:display key="MenuDisplay_DownloadBundle" bundle="Config"/>">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-suitcase"></span></pwm:if>
                         <pwm:display key="MenuItem_DownloadBundle" bundle="Config"/>
                     </a>
@@ -157,13 +127,12 @@
                         <script type="application/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 PWM_MAIN.addEventHandler('MenuItem_DownloadBundle','click',function(){PWM_CONFIG.downloadSupportBundle()});
-                                makeTooltip('MenuItem_DownloadBundle',PWM_CONFIG.showString('MenuDisplay_DownloadBundle'));
                             });
                         </script>
                     </pwm:script>
                 </td>
                 <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_DownloadConfig">
+                    <a class="menubutton" id="MenuItem_DownloadConfig" title="<pwm:display key="MenuDisplay_DownloadConfig" bundle="Config"/>">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
                         <pwm:display key="MenuItem_DownloadConfig" bundle="Config"/>
                     </a>
@@ -171,7 +140,6 @@
                         <script type="application/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 PWM_MAIN.addEventHandler('MenuItem_DownloadConfig','click',function(){PWM_CONFIG.downloadConfig()});
-                                makeTooltip('MenuItem_DownloadConfig',PWM_CONFIG.showString('MenuDisplay_DownloadConfig'));
                             });
                         </script>
                     </pwm:script>
@@ -180,14 +148,13 @@
             <tr class="buttonrow">
                 <td class="buttoncell">
                     <pwm:if test="configurationOpen">
-                        <a class="menubutton" id="MenuItem_LockConfig">
+                        <a class="menubutton" id="MenuItem_LockConfig" title="<pwm:display key="MenuDisplay_LockConfig" bundle="Config"/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-lock"></span></pwm:if>
                             <pwm:display key="MenuItem_LockConfig" bundle="Config"/>
                         </a>
                         <pwm:script>
                             <script type="application/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
-                                    makeTooltip('MenuItem_LockConfig',PWM_CONFIG.showString('MenuDisplay_LockConfig',{value1:'<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigFilename))%>'}));
                                     PWM_MAIN.addEventHandler('MenuItem_LockConfig','click',function(){
                                         PWM_CONFIG.lockConfiguration();
                                     });
@@ -218,14 +185,13 @@
                     </pwm:if>
                 </td>
                 <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_UploadConfig">
+                    <a class="menubutton" id="MenuItem_UploadConfig"  title="<pwm:display key="MenuDisplay_UploadConfig" bundle="Config"/>">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-upload"></span></pwm:if>
                         <pwm:display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
                     <pwm:script>
                         <script type="application/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
-                                makeTooltip('MenuItem_UploadConfig',PWM_CONFIG.showString('MenuDisplay_UploadConfig'));
                                 PWM_MAIN.addEventHandler('MenuItem_UploadConfig',"click",function(){
                                     <pwm:if test="configurationOpen">
                                     PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('MenuDisplay_UploadConfig'),okAction:function(){PWM_CONFIG.uploadConfigDialog()}})
@@ -241,20 +207,6 @@
             </tr>
             <tr class="buttonrow">
                 <td class="buttoncell">
-                    <a class="menubutton"id="MenuItem_MainMenu">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-arrow-circle-left"></span></pwm:if>
-                        <pwm:display key="MenuItem_MainMenu" bundle="Config"/>
-                    </a>
-                    <pwm:script>
-                        <script type="application/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                PWM_MAIN.addEventHandler('MenuItem_MainMenu','click',function(){PWM_MAIN.goto('/')});
-                                makeTooltip('MenuItem_MainMenu',PWM_CONFIG.showString('MenuDisplay_MainMenu'));
-                            });
-                        </script>
-                    </pwm:script>
-                </td>
-                <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_ExportLocalDB">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
                         <pwm:display key="MenuItem_ExportLocalDB" bundle="Config"/>
@@ -264,22 +216,6 @@
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 PWM_MAIN.addEventHandler('MenuItem_ExportLocalDB','click',function(){PWM_CONFIG.downloadLocalDB()});
                                 makeTooltip('MenuItem_ExportLocalDB',PWM_CONFIG.showString('MenuDisplay_ExportLocalDB'));
-                            });
-                        </script>
-                    </pwm:script>
-                </td>
-            </tr>
-            <tr class="buttonrow">
-                <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_Administration">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-dashboard"></span></pwm:if>
-                        <pwm:display key="Title_Admin"/>
-                    </a>
-                    <pwm:script>
-                        <script type="application/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                PWM_MAIN.addEventHandler('MenuItem_Administration','click',function(){PWM_MAIN.goto('/private/admin/')});
-                                makeTooltip('MenuItem_Administration',PWM_MAIN.showString('Long_Title_Admin'));
                             });
                         </script>
                     </pwm:script>
@@ -326,8 +262,8 @@
             </tr>
         </table>
     </div>
+    <div class="push"></div>
 </div>
-<div class="push"></div>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){

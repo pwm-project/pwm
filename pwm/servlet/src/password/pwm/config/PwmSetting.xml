@@ -350,11 +350,6 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="pwm.seedlist.location" level="2">
-        <default>
-            <value><![CDATA[seedlist.zip]]></value>
-        </default>
-    </setting>
     <setting key="changePassword.writeAttributes" level="1">
         <default />
     </setting>
@@ -1094,11 +1089,6 @@
             <value><![CDATA[.*[a-z]]]></value>
             <value><![CDATA[.*[A-Z]]]></value>
             <value><![CDATA[.*[^A-Za-z0-9]]]></value>
-        </default>
-    </setting>
-    <setting key="pwm.wordlist.location" level="1">
-        <default>
-            <value><![CDATA[wordlist.zip]]></value>
         </default>
     </setting>
     <setting key="wordlistCaseSensitive" level="1" required="true">
@@ -3123,6 +3113,16 @@
         </options>
     </setting>
     <!-- DEPRECATED SETTINGS -->
+    <setting key="pwm.wordlist.location" level="1" hidden="true">
+        <default>
+            <value><![CDATA[wordlist.zip]]></value>
+        </default>
+    </setting>
+    <setting key="pwm.seedlist.location" level="2" hidden="true">
+        <default>
+            <value><![CDATA[seedlist.zip]]></value>
+        </default>
+    </setting>
     <setting key="password.policy.ADComplexity" level="99" required="false" hidden="true">
         <default>
             <value>false</value>

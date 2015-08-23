@@ -31,6 +31,8 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ForceSetupPolicy;
 import password.pwm.error.*;
+import password.pwm.event.AuditEvent;
+import password.pwm.event.UserAuditRecord;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -61,8 +63,8 @@ import java.util.Map;
 @WebServlet(
         name="SetupOtpServlet",
         urlPatterns={
-                PwmConstants.URL_PREFIX_PRIVATE + "setupotp",
-                PwmConstants.URL_PREFIX_PRIVATE + "SetupOtp"
+                PwmConstants.URL_PREFIX_PRIVATE + "/setup-otp",
+                PwmConstants.URL_PREFIX_PRIVATE + "/SetupOtp"
         }
 )
 public class SetupOtpServlet extends AbstractPwmServlet {
@@ -206,6 +208,16 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                         otpBean.getOtpUserRecord()
                 );
                 otpBean.setWritten(true);
+
+                // mark the event log
+                final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
+                        AuditEvent.SET_OTP_SECRET,
+                        pwmSession.getUserInfoBean(),
+                        pwmSession
+                );
+                pwmApplication.getAuditManager().submit(auditRecord);
+
+
                 if (pwmApplication.getStatisticsManager() != null && pwmApplication.getStatisticsManager().status() == PwmService.STATUS.OPEN) {
                     pwmApplication.getStatisticsManager().incrementValue(Statistic.SETUP_OTP_SECRET);
                 }

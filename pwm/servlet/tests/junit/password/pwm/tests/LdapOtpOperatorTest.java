@@ -30,7 +30,7 @@ import junit.framework.TestCase;
 import org.junit.*;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
-import password.pwm.config.ConfigurationReader;
+import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.operations.otp.LdapOtpOperator;
 

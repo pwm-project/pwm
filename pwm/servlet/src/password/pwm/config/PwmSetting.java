@@ -140,8 +140,6 @@ public enum PwmSetting {
             "expireWarnTime", PwmSettingSyntax.DURATION, PwmSettingCategory.CHANGE_PASSWORD),
     EXPIRE_CHECK_DURING_AUTH(
             "expireCheckDuringAuth", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD),
-    SEEDLIST_FILENAME(
-            "pwm.seedlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.CHANGE_PASSWORD),
     CHANGE_PASSWORD_WRITE_ATTRIBUTES(
             "changePassword.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.CHANGE_PASSWORD),
     PASSWORD_SHOW_AUTOGEN(
@@ -327,8 +325,6 @@ public enum PwmSetting {
     //global password policy settings
     PASSWORD_POLICY_SOURCE(
             "password.policy.source", PwmSettingSyntax.SELECT, PwmSettingCategory.PASSWORD_GLOBAL),
-    WORDLIST_FILENAME(
-            "pwm.wordlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.PASSWORD_GLOBAL),
     PASSWORD_SHAREDHISTORY_ENABLE(
             "password.sharedHistory.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_GLOBAL),
     PASSWORD_SHAREDHISTORY_MAX_AGE(
@@ -1020,6 +1016,10 @@ public enum PwmSetting {
 
 
     // deprecated.
+    WORDLIST_FILENAME(
+            "pwm.wordlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.PASSWORD_GLOBAL),
+    SEEDLIST_FILENAME(
+            "pwm.seedlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.CHANGE_PASSWORD),
     PASSWORD_POLICY_AD_COMPLEXITY(
             "password.policy.ADComplexity", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),
     CHALLENGE_REQUIRE_RESPONSES(

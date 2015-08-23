@@ -24,8 +24,8 @@ package password.pwm.util.cli;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.ConfigurationReader;
-import password.pwm.config.StoredConfiguration;
+import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
 import password.pwm.util.Helper;
@@ -41,7 +41,7 @@ public class TokenInfoCommand extends AbstractCliCommand {
             throws Exception
     {
         final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
-        final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
+        final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
 
 
         final String tokenKey;

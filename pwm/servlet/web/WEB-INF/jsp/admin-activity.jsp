@@ -1,5 +1,4 @@
 <%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.Admin" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.intruder.RecordType" %>
@@ -167,8 +166,6 @@
         </div>
         --%>
     </div>
-</div>
-<div>
     <div class="push"></div>
 </div>
 <pwm:script>

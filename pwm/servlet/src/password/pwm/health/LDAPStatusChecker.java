@@ -114,7 +114,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
         returnRecords.addAll(checkVendorSameness(pwmApplication));
 
-        //returnRecords.addAll(checkUserPermissionValues(pwmApplication));
+        returnRecords.addAll(checkUserPermissionValues(pwmApplication));
 
         return returnRecords;
     }

@@ -29,6 +29,8 @@ import java.util.List;
 class SearchResultBean implements Serializable {
     private List searchResults = new ArrayList<>();
     private boolean sizeExceeded;
+    private String aboutResultMessage;
+    private boolean fromCache;
 
     public List getSearchResults() {
         return searchResults;
@@ -44,5 +46,21 @@ class SearchResultBean implements Serializable {
 
     public void setSizeExceeded(boolean sizeExceeded) {
         this.sizeExceeded = sizeExceeded;
+    }
+
+    public String getAboutResultMessage() {
+        return aboutResultMessage;
+    }
+
+    public void setAboutResultMessage(String aboutResultMessage) {
+        this.aboutResultMessage = aboutResultMessage;
+    }
+
+    public boolean isFromCache() {
+        return fromCache;
+    }
+
+    public void setFromCache(boolean fromCache) {
+        this.fromCache = fromCache;
     }
 }

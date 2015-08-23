@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.tag.PwmIfTag" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -35,7 +36,7 @@
             <span class="panel-login-display-message"><pwm:display key="Display_Login"/></span>
         </p>
 
-        <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login">
+        <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login" autocomplete="off">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <h2><label for="username"><pwm:display key="Field_Username"/></label></h2>
@@ -50,7 +51,7 @@
                     <pwm:display key="Button_Login"/>
                 </button>
                 <input type="hidden" name="processAction" value="login">
-                <pwm:if test="forwardUrlDefined">
+                <pwm:if test="<%=PwmIfTag.TESTS.forwardUrlDefined.toString()%>">
                     <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 </pwm:if>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

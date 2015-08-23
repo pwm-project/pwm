@@ -777,7 +777,7 @@ Accept: application/json
          {
             "status":"CONFIG",
             "topic":"Configuration",
-            "detail":"PWM is currently in <b>configuration</b> mode. Anyone accessing this site can modify the configuration without authenticating. When ready, lock the configuration to secure this installation."
+            "detail":"PWM is currently in <b>configuration</b> mode. Anyone accessing this site can modify the configuration without authenticating. When ready, restrict the configuration to secure this installation."
          },
          {
             "status":"CONFIG",

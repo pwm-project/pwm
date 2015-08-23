@@ -22,23 +22,20 @@
 
 package password.pwm.http.bean;
 
-import password.pwm.Permission;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
-import password.pwm.util.PostChangePasswordAction;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
-public class
-        LoginInfoBean implements PwmSessionBean {
+public class LoginInfoBean implements PwmSessionBean {
     private transient PasswordData userCurrentPassword;
 
-    private Map<Permission, Permission.PERMISSION_STATUS> permissions = new HashMap<>();
     private AuthenticationType authenticationType = AuthenticationType.UNAUTHENTICATED;
     private List<AuthenticationType> authenticationFlags = new ArrayList<>();
     private Date localAuthTime;
-    private Map<String, PostChangePasswordAction> postChangePasswordActions = new HashMap<>();
 
     private transient BasicAuthInfo originalBasicAuthInfo;
 
@@ -57,26 +54,6 @@ public class
         this.localAuthTime = localAuthTime;
     }
 
-    public void addPostChangePasswordActions(
-            final String key,
-            final PostChangePasswordAction postChangePasswordAction
-    )
-    {
-        if (postChangePasswordAction == null) {
-            postChangePasswordActions.remove(key);
-        } else {
-            postChangePasswordActions.put(key, postChangePasswordAction);
-        }
-    }
-
-    public List<PostChangePasswordAction> removePostChangePasswordActions()
-    {
-        final List<PostChangePasswordAction> copiedList = new ArrayList<>();
-        copiedList.addAll(postChangePasswordActions.values());
-        postChangePasswordActions.clear();
-        return copiedList;
-    }
-
     public AuthenticationType getAuthenticationType()
     {
         return authenticationType;
@@ -85,35 +62,6 @@ public class
     public void setAuthenticationType(AuthenticationType authenticationType)
     {
         this.authenticationType = authenticationType;
-    }
-
-    public void clearPermissions()
-    {
-        permissions.clear();
-    }
-
-    public Permission.PERMISSION_STATUS getPermission(final Permission permission)
-    {
-        final Permission.PERMISSION_STATUS status = permissions.get(permission);
-        return status == null ? Permission.PERMISSION_STATUS.UNCHECKED : status;
-    }
-
-    public void setPermission(
-            final Permission permission,
-            final Permission.PERMISSION_STATUS status
-    )
-    {
-        permissions.put(permission, status);
-    }
-
-    public Map<Permission, Permission.PERMISSION_STATUS> getPermissions()
-    {
-        return permissions;
-    }
-
-    public void setPermissions(final Map<Permission, Permission.PERMISSION_STATUS> permissions)
-    {
-        this.permissions = permissions;
     }
 
     public PasswordData getUserCurrentPassword()

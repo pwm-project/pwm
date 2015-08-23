@@ -79,7 +79,7 @@ public class PwmSecurityKey {
             case AES: {
                 try {
                     final int KEY_LENGTH = 16;
-                    final byte[] sha1Hash = SecureEngine.hashToBytes(new ByteArrayInputStream(keyData), PwmHashAlgorithm.SHA1);
+                    final byte[] sha1Hash = SecureEngine.computeHashToBytes(new ByteArrayInputStream(keyData), PwmHashAlgorithm.SHA1);
                     final byte[] key = Arrays.copyOfRange(sha1Hash,0,KEY_LENGTH);
                     return new SecretKeySpec(key, "AES");
                 } catch (Exception e) {
@@ -92,7 +92,7 @@ public class PwmSecurityKey {
             case AES_256: {
                 try {
                     final int KEY_LENGTH = 32;
-                    final byte[] sha2Hash = SecureEngine.hashToBytes(new ByteArrayInputStream(keyData), PwmHashAlgorithm.SHA256);
+                    final byte[] sha2Hash = SecureEngine.computeHashToBytes(new ByteArrayInputStream(keyData), PwmHashAlgorithm.SHA256);
                     final byte[] key = Arrays.copyOfRange(sha2Hash,0,KEY_LENGTH);
                     return new SecretKeySpec(key, "AES");
                 } catch (Exception e) {

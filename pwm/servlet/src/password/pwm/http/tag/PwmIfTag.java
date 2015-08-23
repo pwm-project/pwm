@@ -112,7 +112,7 @@ public class PwmIfTag extends BodyTagSupport {
         return argsList.isEmpty() ? null : argsList.toArray(new String[argsList.size()]);
     }
 
-    enum TESTS {
+    public enum TESTS {
         authenticated(new AuthenticatedTest()),
         configurationOpen(new ConfigurationOpen()),
         showIcons(new BooleanAppPropertyTest(AppProperty.CLIENT_JSP_SHOW_ICONS)),

@@ -35,6 +35,8 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
 import password.pwm.config.function.UserMatchViewerFunction;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.*;
 import password.pwm.error.*;
 import password.pwm.health.*;
@@ -205,7 +207,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         final ConfigGuideBean configGuideBean = pwmSession.getSessionBean(ConfigGuideBean.class);
 
         if (pwmApplication.getApplicationMode() != PwmApplication.MODE.NEW) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"ConfigGuide unavailable unless in NEW mode");
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"ConfigGuide unavailable unless in NEW mode");
             LOGGER.error(pwmSession, errorInformation.toDebugStr());
             pwmRequest.respondWithError(errorInformation);
             return;
@@ -275,7 +277,9 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             }
         }
 
-        forwardToJSP(pwmRequest);
+        if (!pwmRequest.getPwmResponse().getHttpServletResponse().isCommitted()) {
+            forwardToJSP(pwmRequest);
+        }
     }
 
     public static void restUploadConfig(final PwmRequest pwmRequest)
@@ -296,7 +300,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             final InputStream uploadedFile = ServletHelper.readFileUpload(req,"uploadFile");
             if (uploadedFile != null) {
                 try {
-                    final StoredConfiguration storedConfig = StoredConfiguration.fromXml(uploadedFile);
+                    final StoredConfigurationImpl storedConfig = StoredConfigurationImpl.fromXml(uploadedFile);
                     final List<String> configErrors = storedConfig.validateValues();
                     if (configErrors != null && !configErrors.isEmpty()) {
                         throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,configErrors.get(0)));
@@ -450,7 +454,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             final PwmRequest pwmRequest,
             final ConfigGuideBean configGuideBean
     ) throws IOException, ServletException, PwmUnrecoverableException {
-        final StoredConfiguration storedConfiguration = StoredConfiguration.copy(configGuideBean.getStoredConfiguration());
+        final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.copy(configGuideBean.getStoredConfiguration());
         if (configGuideBean.getStep() == STEP.LDAP_ADMIN) {
             storedConfiguration.resetSetting(PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE_KEY, null);
             storedConfiguration.resetSetting(PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, null);
@@ -478,7 +482,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     )
             throws IOException, PwmUnrecoverableException
     {
-        final StoredConfiguration storedConfiguration = configGuideBean.getStoredConfiguration();
+        final StoredConfigurationImpl storedConfiguration = configGuideBean.getStoredConfiguration();
         final Map<String,String> incomingFormData = pwmRequest.readBodyAsJsonStringMap();
 
         if (incomingFormData != null) {
@@ -494,13 +498,6 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
                     configGuideBean.getFormData().putAll(defaultForm);
                     configGuideBean.setSelectedTemplate(template);
                     storedConfiguration.setTemplate(template);
-                    {
-                        final String settingValue = AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey() + "=true";
-                        storedConfiguration.writeSetting(
-                                PwmSetting.APP_PROPERTY_OVERRIDES,
-                                new StringArrayValue(Collections.singletonList(settingValue)),
-                                null);
-                    }
                 }
             } catch (Exception e) {
                 LOGGER.error("unknown template set request: " + e.getMessage());
@@ -575,7 +572,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     }
 
     public static void convertFormToConfiguration(
-            final StoredConfiguration storedConfiguration,
+            final StoredConfigurationImpl storedConfiguration,
             final Map<String, String> ldapForm,
             final Map<String, String> incomingLdapForm
     )
@@ -633,12 +630,12 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             final ContextManager contextManager,
             final ConfigGuideBean configGuideBean
     ) throws PwmOperationalException, PwmUnrecoverableException {
-        final StoredConfiguration storedConfiguration = configGuideBean.getStoredConfiguration();
+        final StoredConfigurationImpl storedConfiguration = configGuideBean.getStoredConfiguration();
         final String configPassword = configGuideBean.getFormData().get(PARAM_CONFIG_PASSWORD);
         if (configPassword != null && configPassword.length() > 0) {
             storedConfiguration.setPassword(configPassword);
         } else {
-            storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH, null);
+            storedConfiguration.writeConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH, null);
         }
 
         { // determine Cr Preference setting.
@@ -649,13 +646,12 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             }
         }
 
-        storedConfiguration.readSetting(PwmSetting.APP_PROPERTY_OVERRIDES);
         writeConfig(contextManager, storedConfiguration);
     }
 
     private static void writeConfig(
             final ContextManager contextManager,
-            final StoredConfiguration storedConfiguration
+            final StoredConfigurationImpl storedConfiguration
     ) throws PwmOperationalException, PwmUnrecoverableException {
         ConfigurationReader configReader = contextManager.getConfigReader();
         PwmApplication pwmApplication = contextManager.getPwmApplication();
@@ -664,7 +660,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             // add a random security key
             storedConfiguration.initNewRandomSecurityKey();
 
-            storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
+            storedConfiguration.writeConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
             configReader.saveConfiguration(storedConfiguration, pwmApplication, null);
 
             contextManager.requestPwmApplicationRestart();
@@ -735,17 +731,18 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         final Map<String,String> formData = configGuideBean.getFormData();
         final String host = formData.get(PARAM_LDAP_HOST);
         final int port = Integer.parseInt(formData.get(PARAM_LDAP_PORT));
-        if (Boolean.parseBoolean(formData.get(PARAM_LDAP_SECURE))) {
-            X509Utils.readRemoteCertificates(host,port);
-        } else {
-            InetAddress addr = InetAddress.getByName(host);
-            SocketAddress sockaddr = new InetSocketAddress(addr, port);
-            Socket sock = new Socket();
 
-            // this method will block for the defined number of milliseconds
-            int timeout = 2000;
-            sock.connect(sockaddr, timeout);
+        { // socket test
+            final InetAddress inetAddress = InetAddress.getByName(host);
+            final SocketAddress socketAddress = new InetSocketAddress(inetAddress, port);
+            final Socket socket = new Socket();
+
+            final int timeout = 2000;
+            socket.connect(socketAddress, timeout);
         }
 
+        if (Boolean.parseBoolean(formData.get(PARAM_LDAP_SECURE))) {
+            X509Utils.readRemoteCertificates(host, port);
+        }
     }
 }

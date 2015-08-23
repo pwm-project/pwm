@@ -67,6 +67,7 @@ public abstract class StandardMacros {
         defaultMacros.add(SiteURLMacro.class);
         defaultMacros.add(SiteHostMacro.class);
         defaultMacros.add(RandomCharMacro.class);
+        defaultMacros.add(RandomNumberMacro.class);
         defaultMacros.add(UUIDMacro.class);
         defaultMacros.add(UserLdapProfileMacro.class);
         STANDARD_MACROS = Collections.unmodifiableList(defaultMacros);
@@ -508,6 +509,50 @@ public abstract class StandardMacros {
         }
     }
 
+    public static class RandomNumberMacro extends AbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@RandomNumber(:[^@]*)?@");
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
+        )
+                throws MacroParseException
+        {
+            if (matchValue == null || matchValue.length() < 1) {
+                return "";
+            }
+
+            final List<String> parameters = splitMacroParameters(matchValue,"RandomNumber");
+            if (parameters.size() != 2) {
+                throw new MacroParseException("incorrect number of parameter of RandomNumber: "
+                        + parameters.size() + ", should be 2");
+            }
+
+            final int min, max;
+            try {
+                min = Integer.parseInt(parameters.get(0));
+            } catch (NumberFormatException e) {
+                throw new MacroParseException("error parsing minimum value parameter of RandomNumber: " + e.getMessage());
+            }
+
+            try {
+                max = Integer.parseInt(parameters.get(1));
+            } catch (NumberFormatException e) {
+                throw new MacroParseException("error parsing maximum value parameter of RandomNumber: " + e.getMessage());
+            }
+
+            if (min > max) {
+                throw new MacroParseException("minimum value is less than maximum value parameter of RandomNumber");
+            }
+
+            final int range = max - min;
+            return String.valueOf(PwmRandom.getInstance().nextInt(range) + min);
+        }
+    }
     public static class UUIDMacro extends AbstractMacro {
         private static final Pattern PATTERN = Pattern.compile("@UUID@");
 

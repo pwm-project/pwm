@@ -189,7 +189,7 @@ public abstract class X509Utils {
                     final String errorMsg = "server certificate {subject=" + loopCert.getSubjectDN().getName() + "} does not match a certificate in the configuration trust store.";
                     throw new CertificateException(errorMsg);
                 }
-                LOGGER.trace("trusting configured certificate: " + makeDebugText(loopCert));
+                //LOGGER.trace("trusting configured certificate: " + makeDebugText(loopCert));
             }
         }
 

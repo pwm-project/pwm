@@ -25,6 +25,8 @@ package password.pwm.http.servlet;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
+import password.pwm.http.servlet.configmanager.ConfigManagerWordlistServlet;
 
 import javax.servlet.annotation.WebServlet;
 import java.lang.annotation.Annotation;
@@ -37,6 +39,7 @@ public enum PwmServletDefinition {
     Command(password.pwm.http.servlet.CommandServlet.class),
     //Resource(password.pwm.http.servlet.ResourceFileServlet.class),
 
+    AccountInformation(AccountInformationServlet.class),
     ChangePassword(password.pwm.http.servlet.ChangePasswordServlet.class),
     SetupResponses(password.pwm.http.servlet.SetupResponsesServlet.class),
     UpdateProfile(password.pwm.http.servlet.UpdateProfileServlet.class),
@@ -48,7 +51,8 @@ public enum PwmServletDefinition {
     Admin(password.pwm.http.servlet.AdminServlet.class),
     ConfigGuide(password.pwm.http.servlet.ConfigGuideServlet.class),
     ConfigEditor(password.pwm.http.servlet.ConfigEditorServlet.class),
-    ConfigManager(password.pwm.http.servlet.ConfigManagerServlet.class),
+    ConfigManager(ConfigManagerServlet.class),
+    ConfigManager_Wordlists(ConfigManagerWordlistServlet.class),
 
     NewUser(password.pwm.http.servlet.NewUserServlet.class),
     ActivateUser(password.pwm.http.servlet.ActivateUserServlet.class),

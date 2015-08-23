@@ -42,19 +42,26 @@
 <% final boolean advancedMode = JspUtility.getPwmRequest(pageContext).hasParameter("advanced"); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<% final Locale userLocale = JspUtility.locale(request); %>
 <%
     PwmRequest pwmRequest = null;
     List<PwmSettingCategory> sortedCategories = new ArrayList();
     try {
         pwmRequest = PwmRequest.forRequest(request, response);
-        sortedCategories = PwmSettingCategory.sortedValues(pwmRequest.getLocale());
-    } catch (PwmException e) {
-        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
-    }
+        sortedCategories.addAll(PwmSettingCategory.sortedValues(pwmRequest.getLocale()));
+        for (Iterator<PwmSettingCategory> iterator = sortedCategories.iterator(); iterator.hasNext(); ) {
+            PwmSettingCategory category = iterator.next();
+            if (category.isHidden() || (category.getSettings().isEmpty() && category.getDescription(userLocale).isEmpty())) {
+                iterator.remove();
+            }
+        }
+
+        } catch (PwmException e) {
+            JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
+        }
 %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% final Locale userLocale = JspUtility.locale(request); %>
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
@@ -68,9 +75,7 @@
             <li><a href="#settings">Settings</a></li>
             <ol>
                 <% for (final PwmSettingCategory category : sortedCategories) { %>
-                <% if (!category.isHidden() && !category.getSettings().isEmpty()) { %>
                 <li><a href="#settings_category_<%=category.toString()%>"><%=category.toMenuLocationDebug(null,userLocale)%></a></li>
-                <% } %>
                 <% } %>
             </ol>
             <% if (advancedMode) { %>
@@ -180,7 +185,6 @@
         </table>
         <h1><a id="settings">Configuration Settings</a></h1>
         <% for (final PwmSettingCategory category : sortedCategories) { %>
-        <% if (!category.isHidden() && !category.getSettings().isEmpty()) { %>
         <h2><a id="settings_category_<%=category.toString()%>"><%=category.getLabel(userLocale)%></a></h2>
         <p>
             <%=category.getDescription(userLocale)%>
@@ -319,7 +323,6 @@
             </table>
         </a>
         <br/>
-        <% } %>
         <% } %>
         <% } %>
         <% if (advancedMode) { %>

@@ -300,3 +300,113 @@ UILibrary.editLdapDN = function(nextFunction, options) {
         PWM_MAIN.ajaxRequest(url,processResults,{content:content});
     }});
 };
+
+UILibrary.uploadFileDialog = function(options) {
+    options = options === undefined ? {} : options;
+
+    var body = '<div id="uploadFormWrapper">';
+    body += '<div id="fileList"></div>';
+    body += '<input style="width:80%" class="btn" name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
+    body += '<div class="buttonbar">';
+    body += '<button class="btn" type="submit" id="uploadButton" name="Upload"><span class="fa fa-upload"></span> Upload</button>';
+    body += '</div></div>';
+
+    var currentUrl = window.location.pathname;
+    var uploadUrl = 'url' in options ? options['url'] : currentUrl;
+    var title = 'title' in options ? options['title'] : 'Upload File';
+
+    uploadUrl = PWM_MAIN.addPwmFormIDtoURL(uploadUrl);
+
+    var nextFunction = 'nextFunction' in options ? options['nextFunction'] : function(data){
+        PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Success"), text: data['successMessage'],okAction:function(){
+            PWM_MAIN.goto(currentUrl)
+        }});
+    };
+
+
+    var completeFunction = function(data){
+        if (data['error'] == true) {
+            var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
+            PWM_MAIN.showErrorDialog(data,{text:errorText,okAction:function(){
+                location.reload();
+            }});
+        } else {
+            nextFunction(data);
+        }
+    };
+
+    var errorFunction = function(data) {
+        var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
+        PWM_MAIN.showErrorDialog(data,{text:errorText});
+    };
+
+    var progressFunction = function(data) {
+        if (data.lengthComputable) {
+            var decimal = data.loaded / data.total;
+            console.log('upload progress: ' + decimal);
+            require(["dijit/registry"],function(registry){
+                var progressBar = registry.byId('progressBar');
+                if (progressBar) {
+                    progressBar.set("maximum", 100);
+                    progressBar.set("indeterminate", false);
+                    progressBar.set("value", decimal * 100);
+                }
+                var html5Bar = PWM_MAIN.getObject("wait");
+                if (html5Bar) {
+                    html5Bar.setAttribute("max", 100);
+                    html5Bar.setAttribute("value", decimal * 100);
+                }
+            });
+        } else {
+            console.log('progressFunction: no data');
+            return;
+        }
+    };
+
+    var uploadFunction = function() {
+        var files = PWM_MAIN.getObject('uploadFile').files;
+        if (!files[0]) {
+            alert('File not selected');
+        }
+        var xhr = new XMLHttpRequest();
+        var fd = new FormData();
+        xhr.onreadystatechange = function() {
+            console.log('on ready state change');
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                // Every thing ok, file uploaded
+                console.log(xhr.responseText); // handle response.
+                completeFunction(xhr.responseText);
+            }
+        };
+        xhr.upload.addEventListener('progress',progressFunction,false);
+        xhr.upload.onprogress = progressFunction;
+        xhr.open("POST", uploadUrl, true);
+        fd.append("uploadFile", files[0]);
+        xhr.send(fd);
+        PWM_GLOBAL['inhibitHealthUpdate'] = true;
+        PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
+        PWM_MAIN.getObject('centerbody').innerHTML = 'Upload in progress...';
+        PWM_MAIN.showWaitDialog({title:'Uploading...'});
+    };
+
+    completeFunction = 'completeFunction' in options ? options['completeFunction'] : completeFunction;
+
+
+    require(["dojo"],function(dojo){
+
+        if(dojo.isIE <= 10){ // IE10 and below no workie
+            PWM_MAIN.showDialog({title:PWM_MAIN.showString("Title_Error"),text:PWM_CONFIG.showString("Warning_UploadIE9")});
+            return;
+        }
+
+        PWM_MAIN.showDialog({
+            title:title,
+            showClose:true,
+            showOk:false,
+            text:body,
+            loadFunction:function(){
+                PWM_MAIN.addEventHandler('uploadButton','click',uploadFunction);
+            }
+        });
+    });
+};

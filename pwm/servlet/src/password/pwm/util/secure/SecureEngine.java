@@ -39,43 +39,21 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
+
+/**
+ * Primary static security/crypto library for app.
+ */
 public class SecureEngine {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(SecureEngine.class);
 
     private static final int HASH_BUFFER_SIZE = 1024;
 
-    public enum Flag {
-        URL_SAFE,
+    private SecureEngine() {
     }
 
-    enum HmacAlgorithm {
-        HMAC_SHA_256("HmacSHA256",PwmSecurityKey.Type.HMAC_256,32),
-        HMAC_SHA_512("HmacSHA512",PwmSecurityKey.Type.HMAC_512,64),
-
-        ;
-
-        private final String algorithmName;
-        private final PwmSecurityKey.Type keyType;
-        private final int length;
-
-        HmacAlgorithm(String algorithmName, PwmSecurityKey.Type keyType, int length) {
-            this.algorithmName = algorithmName;
-            this.keyType = keyType;
-            this.length = length;
-        }
-
-        public String getAlgorithmName() {
-            return algorithmName;
-        }
-
-        public PwmSecurityKey.Type getKeyType() {
-            return keyType;
-        }
-
-        public int getLength() {
-            return length;
-        }
+    public enum Flag {
+        URL_SAFE,
     }
 
     public static String encryptToString(
@@ -117,7 +95,7 @@ public class SecureEngine {
 
             final byte[] output;
             if (blockAlgorithm.getHmacAlgorithm() != null) {
-                final byte[] hashChecksum = hmac(blockAlgorithm.getHmacAlgorithm(), key, encryptedBytes);
+                final byte[] hashChecksum = computeHmacToBytes(blockAlgorithm.getHmacAlgorithm(), key, encryptedBytes);
                 output = appendByteArrays(blockAlgorithm.getPrefix(), hashChecksum, encryptedBytes);
             } else {
                 output = appendByteArrays(blockAlgorithm.getPrefix(), encryptedBytes);
@@ -178,7 +156,7 @@ public class SecureEngine {
                 }
                 final byte[] inputChecksum = Arrays.copyOfRange(value, 0, CHECKSUM_SIZE);
                 final byte[] inputPayload = Arrays.copyOfRange(value, CHECKSUM_SIZE, value.length);
-                final byte[] computedChecksum = hmac(hmacAlgorithm, key, inputPayload);
+                final byte[] computedChecksum = computeHmacToBytes(hmacAlgorithm, key, inputPayload);
                 if (!Arrays.equals(inputChecksum, computedChecksum)) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, "incoming " + blockAlgorithm.toString()  + " data has incorrect checksum"));
                 }
@@ -251,10 +229,10 @@ public class SecureEngine {
             final PwmHashAlgorithm algorithm
     )
             throws PwmUnrecoverableException {
-        return Helper.byteArrayToHexString(hashToBytes(is, algorithm));
+        return Helper.byteArrayToHexString(computeHashToBytes(is, algorithm));
     }
 
-    static byte[] hmac(
+    static byte[] computeHmacToBytes(
             final HmacAlgorithm hmacAlgorithm,
             final PwmSecurityKey pwmSecurityKey,
             final byte[] input
@@ -275,7 +253,7 @@ public class SecureEngine {
     }
 
 
-    public static byte[] hashToBytes(
+    public static byte[] computeHashToBytes(
             final InputStream is,
             final PwmHashAlgorithm algorithm
     )

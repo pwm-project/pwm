@@ -59,9 +59,9 @@ import password.pwm.ldap.UserStatusReader;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.AuthenticationUtility;
 import password.pwm.ldap.auth.SessionAuthenticator;
-import password.pwm.token.TokenType;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
+import password.pwm.token.TokenType;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PostChangePasswordAction;
@@ -1113,7 +1113,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             }
         };
 
-        pwmRequest.getPwmSession().getLoginInfoBean().addPostChangePasswordActions("forgottenPasswordPostActions", postAction);
+        pwmRequest.getPwmSession().getUserSessionDataCacheBean().addPostChangePasswordActions("forgottenPasswordPostActions", postAction);
     }
 
     private static void verifyRequirementsForAuthMethod(

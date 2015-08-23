@@ -22,7 +22,7 @@
 
 package password.pwm.util.cli;
 
-import password.pwm.config.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationImpl;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,12 +32,12 @@ public class ConfigNewCommand extends AbstractCliCommand {
     public void doCommand()
             throws Exception
     {
-        final StoredConfiguration storedConfiguration = StoredConfiguration.newStoredConfiguration();
+        final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
         storedConfiguration.initNewRandomSecurityKey();
         storedConfiguration.writeConfigProperty(
-                StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, Boolean.toString(true));
+                StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, Boolean.toString(true));
         storedConfiguration.writeConfigProperty(
-                StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_EPOCH, String.valueOf(0));
+                StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_CONFIG_EPOCH, String.valueOf(0));
 
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_FILE.getName());
         storedConfiguration.toXml(new FileOutputStream(outputFile, false));

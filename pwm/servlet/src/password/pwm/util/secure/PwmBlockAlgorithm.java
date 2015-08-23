@@ -40,7 +40,7 @@ public enum PwmBlockAlgorithm {
     AES128_HMAC256(
             "AES",
             PwmSecurityKey.Type.AES,
-            SecureEngine.HmacAlgorithm.HMAC_SHA_256,
+            HmacAlgorithm.HMAC_SHA_256,
             "PWM.AES128_HMAC256".getBytes(PwmConstants.DEFAULT_CHARSET),
             "AES128+Hmac256"
     ),
@@ -48,7 +48,7 @@ public enum PwmBlockAlgorithm {
     AES256_HMAC512(
             "AES",
             PwmSecurityKey.Type.AES_256,
-            SecureEngine.HmacAlgorithm.HMAC_SHA_512,
+            HmacAlgorithm.HMAC_SHA_512,
             "PWM.AES256_HMAC512".getBytes(PwmConstants.DEFAULT_CHARSET),
             "AES256+Hmac512"
     ),
@@ -70,7 +70,7 @@ public enum PwmBlockAlgorithm {
     private final PwmSecurityKey.Type blockKey;
 
     /** HMAC algorithm needed for this item, if any. */
-    private final SecureEngine.HmacAlgorithm hmacAlgorithm;
+    private final HmacAlgorithm hmacAlgorithm;
 
     /**
      * Prefix that is prepended to encryption output methods and expected to be prepended to input methods.  The prefix is not itself secured and must be treated
@@ -82,7 +82,7 @@ public enum PwmBlockAlgorithm {
      */
     private final String label;
 
-    PwmBlockAlgorithm(String algName, PwmSecurityKey.Type blockKey, SecureEngine.HmacAlgorithm hmacAlgorithm, byte[] prefix, String label) {
+    PwmBlockAlgorithm(String algName, PwmSecurityKey.Type blockKey, HmacAlgorithm hmacAlgorithm, byte[] prefix, String label) {
         this.algName = algName;
         this.blockKey = blockKey;
         this.hmacAlgorithm = hmacAlgorithm;
@@ -98,7 +98,7 @@ public enum PwmBlockAlgorithm {
         return blockKey;
     }
 
-    SecureEngine.HmacAlgorithm getHmacAlgorithm() {
+    HmacAlgorithm getHmacAlgorithm() {
         return hmacAlgorithm;
     }
 

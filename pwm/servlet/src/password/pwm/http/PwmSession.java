@@ -149,6 +149,10 @@ public class PwmSession implements Serializable {
         return getSessionBean(LoginInfoBean.class);
     }
 
+    public UserSessionDataCacheBean getUserSessionDataCacheBean() {
+        return getSessionBean(UserSessionDataCacheBean.class);
+    }
+
     public UpdateProfileBean getUpdateProfileBean() {
         return getSessionBean(UpdateProfileBean.class);
     }
@@ -190,7 +194,7 @@ public class PwmSession implements Serializable {
         final SessionStateBean ssBean = getSessionStateBean();
 
         if (ssBean.isAuthenticated()) { // try to tear out a session normally.
-            getLoginInfoBean().clearPermissions();
+            getUserSessionDataCacheBean().clearPermissions();
 
             final StringBuilder sb = new StringBuilder();
 

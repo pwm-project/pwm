@@ -140,6 +140,7 @@ public enum Display implements PwmDisplayBundle {
     Display_ResponsesPrompt,
     Display_SelectionIndicator,
     Display_SearchCompleted,
+    Display_SearchResultsInfo,
     Display_SearchResultsExceeded,
     Display_SetRandomPasswordPrompt,
     Display_SearchResultsNone,

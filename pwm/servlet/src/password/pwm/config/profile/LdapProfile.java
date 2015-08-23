@@ -24,7 +24,11 @@ package password.pwm.config.profile;
 
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
-import password.pwm.config.*;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingCategory;
+import password.pwm.config.StoredValue;
+import password.pwm.config.UserPermission;
+import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.StringUtil;
 
@@ -38,7 +42,7 @@ public class LdapProfile extends AbstractProfile implements Profile {
         super(identifier, storedValueMap);
     }
 
-    public static LdapProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String profileID) {
+    public static LdapProfile makeFromStoredConfiguration(final StoredConfigurationImpl storedConfiguration, final String profileID) {
         final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<>();
         for (final PwmSetting setting : PwmSettingCategory.LDAP_PROFILE.getSettings()) {
             final StoredValue value = storedConfiguration.readSetting(setting, profileID);

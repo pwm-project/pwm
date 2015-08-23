@@ -22,33 +22,18 @@
 
 package password.pwm.wordlist;
 
-import java.io.File;
 import java.io.Serializable;
 
 public class WordlistConfiguration implements Serializable {
-    final private File wordlistFile;
-    final private int loadFactor;
     final private boolean caseSensitive;
     final private int checkSize;
 
     public WordlistConfiguration(
-            final File wordlistFile,
-            final int loadFactor,
             final boolean caseSensitive,
             final int checkSize
     ) {
-        this.wordlistFile = wordlistFile;
-        this.loadFactor = loadFactor;
         this.caseSensitive = caseSensitive;
         this.checkSize = checkSize;
-    }
-
-    public File getWordlistFile() {
-        return wordlistFile;
-    }
-
-    public int getLoadFactor() {
-        return loadFactor;
     }
 
     public boolean isCaseSensitive() {

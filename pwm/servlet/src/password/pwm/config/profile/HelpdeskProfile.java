@@ -23,7 +23,7 @@
 package password.pwm.config.profile;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.config.StoredConfiguration;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.StoredValue;
 
 import java.util.Locale;

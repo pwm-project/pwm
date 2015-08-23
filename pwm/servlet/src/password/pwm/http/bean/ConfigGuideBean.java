@@ -23,7 +23,7 @@
 package password.pwm.http.bean;
 
 import password.pwm.config.PwmSettingTemplate;
-import password.pwm.config.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.ConfigGuideServlet;
 
@@ -34,7 +34,7 @@ import java.util.Map;
 public class ConfigGuideBean implements PwmSessionBean {
 
     private ConfigGuideServlet.STEP step = ConfigGuideServlet.STEP.START;
-    private StoredConfiguration storedConfiguration;
+    private StoredConfigurationImpl storedConfiguration;
     private PwmSettingTemplate selectedTemplate = null;
     private Map<String,String> formData = new HashMap<>();
     private X509Certificate[] ldapCertificates;
@@ -44,7 +44,7 @@ public class ConfigGuideBean implements PwmSessionBean {
 
     public ConfigGuideBean() {
         try {
-            storedConfiguration = StoredConfiguration.newStoredConfiguration();
+            storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
         } catch (PwmUnrecoverableException e) {
             throw new IllegalStateException(e);
         }
@@ -58,11 +58,11 @@ public class ConfigGuideBean implements PwmSessionBean {
         this.step = step;
     }
 
-    public StoredConfiguration getStoredConfiguration() {
+    public StoredConfigurationImpl getStoredConfiguration() {
         return storedConfiguration;
     }
 
-    public void setStoredConfiguration(StoredConfiguration storedConfiguration) {
+    public void setStoredConfiguration(StoredConfigurationImpl storedConfiguration) {
         this.storedConfiguration = storedConfiguration;
     }
 

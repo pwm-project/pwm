@@ -31,6 +31,7 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.*;
+import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -56,13 +57,13 @@ public class Configuration implements Serializable, SettingReader {
 
     private final static PwmLogger LOGGER = PwmLogger.forClass(Configuration.class);
 
-    private final StoredConfiguration storedConfiguration;
+    private final StoredConfigurationImpl storedConfiguration;
 
     private DataCache dataCache = new DataCache();
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public Configuration(final StoredConfiguration storedConfiguration) {
+    public Configuration(final StoredConfigurationImpl storedConfiguration) {
         this.storedConfiguration = storedConfiguration;
     }
 
@@ -457,7 +458,7 @@ public class Configuration implements Serializable, SettingReader {
         return returnCollection;
     }
 
-    public String readProperty(final StoredConfiguration.ConfigProperty key) {
+    public String readProperty(final StoredConfigurationImpl.ConfigProperty key) {
         return storedConfiguration.readConfigProperty(key);
     }
 
@@ -481,7 +482,7 @@ public class Configuration implements Serializable, SettingReader {
     }
 
     public String getNotes() {
-        return storedConfiguration.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES);
+        return storedConfiguration.readConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_NOTES);
     }
 
     public PwmSecurityKey getSecurityKey() throws PwmUnrecoverableException {
@@ -800,7 +801,7 @@ public class Configuration implements Serializable, SettingReader {
 
     public Set<PwmSetting> nonDefaultSettings() {
         final HashSet returnSet = new HashSet();
-        for (StoredConfiguration.SettingValueRecord valueRecord : this.storedConfiguration.modifiedSettings()) {
+        for (StoredConfigurationImpl.SettingValueRecord valueRecord : this.storedConfiguration.modifiedSettings()) {
             returnSet.add(valueRecord.getSetting());
         }
         return returnSet;

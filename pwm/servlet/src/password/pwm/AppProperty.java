@@ -207,12 +207,14 @@ public enum AppProperty {
     SECURITY_CONFIG_MIN_SECURITY_KEY_LENGTH         ("security.config.minSecurityKeyLength"),
     SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG            ("security.defaultEphemeralBlockAlg"),
     SECURITY_DEFAULT_EPHEMERAL_HASH_ALG             ("security.defaultEphemeralHashAlg"),
+    SEEDLIST_BUILTIN_PATH                           ("seedlist.builtin.path"),
     TOKEN_REMOVAL_DELAY_MS                          ("token.removalDelayMS"),
     TOKEN_PURGE_BATCH_SIZE                          ("token.purgeBatchSize"),
     TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS                ("token.maxUniqueCreateAttempts"),
     
     /** Regular expression to be used for matching URLs to be shortened by the URL Shortening Service Class. */
     URL_SHORTNER_URL_REGEX                          ("urlshortener.url.regex"),
+    WORDLIST_BUILTIN_PATH                           ("wordlist.builtin.path"),
     WS_REST_CLIENT_PWRULE_HALTONERROR               ("ws.restClient.pwRule.haltOnError"),
 
     ;

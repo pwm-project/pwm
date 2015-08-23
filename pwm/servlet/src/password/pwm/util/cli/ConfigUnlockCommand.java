@@ -23,21 +23,21 @@
 package password.pwm.util.cli;
 
 import password.pwm.PwmConstants;
-import password.pwm.config.ConfigurationReader;
-import password.pwm.config.StoredConfiguration;
+import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.StoredConfigurationImpl;
 
 public class ConfigUnlockCommand extends AbstractCliCommand {
     public void doCommand()
             throws Exception
     {
         final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
-        final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
-        if (Boolean.parseBoolean(storedConfiguration.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE))) {
+        final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
+        if (Boolean.parseBoolean(storedConfiguration.readConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE))) {
             out("configuration is already unlocked");
             return;
         }
         
-        storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE,Boolean.toString(true));
+        storedConfiguration.writeConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE,Boolean.toString(true));
         configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), PwmConstants.CLI_SESSION_LABEL);
         out("success");
     }

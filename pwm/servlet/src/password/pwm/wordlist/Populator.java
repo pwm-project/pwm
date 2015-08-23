@@ -22,22 +22,23 @@
 
 package password.pwm.wordlist;
 
-import password.pwm.PwmService;
+import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
-import password.pwm.util.Sleeper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.ChecksumInputStream;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -59,187 +60,79 @@ class Populator {
 
     private final ZipReader zipFileReader;
 
+    private volatile boolean running;
     private volatile boolean abortFlag;
-    private volatile PwmService.STATUS status = PwmService.STATUS.NEW;
 
     private final PopulationStats overallStats = new PopulationStats();
     private PopulationStats perReportStats = new PopulationStats();
-    private int totalLines;
     private TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(600, 10, 50 * 1000);
     private int loopLines;
 
     private final Map<String,String> bufferedWords = new TreeMap<>();
 
-    private final Sleeper sleeper;
-
-    private final LocalDB.DB wordlistDB;
-    private final LocalDB.DB wordlistMetaDB;
     private final LocalDB localDB;
 
-    private final String DEBUG_LABEL;
+    private final ChecksumInputStream checksumInputStream;
 
     private final AbstractWordlist rootWordlist;
 
-// -------------------------- STATIC METHODS --------------------------
 
     static {
         PERCENT_FORMAT.setMinimumFractionDigits(2);
     }
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
     public Populator(
-            final ZipReader zipFileReader,
-            final Sleeper sleeper,
-            final AbstractWordlist rootWordlist
+            final InputStream inputStream,
+            final AbstractWordlist rootWordlist,
+            final PwmApplication pwmApplication
     )
             throws Exception
     {
-        this.zipFileReader = zipFileReader;
-        this.localDB = rootWordlist.localDB;
-        this.wordlistDB = rootWordlist.WORD_DB;
-        this.wordlistMetaDB = rootWordlist.META_DB;
-        this.sleeper = sleeper;
-        this.DEBUG_LABEL = rootWordlist.DEBUG_LABEL;
+        this.checksumInputStream = new ChecksumInputStream(AbstractWordlist.CHECKSUM_HASH_ALG, inputStream);
+        this.zipFileReader = new ZipReader(checksumInputStream);
+        this.localDB = pwmApplication.getLocalDB();
         this.rootWordlist = rootWordlist;
-
-        sleeper.reset();
     }
 
-    public void init()
-            throws Exception
-    {
-        status = PwmService.STATUS.NEW;
-
-        LOGGER.info(
-                DEBUG_LABEL + " using source ZIP file of "
-                        + zipFileReader.getSourceFile().getAbsolutePath()
-                        + " (" + zipFileReader.getSourceFile().length() + " bytes)"
-        );
-
-        wordlistSize(zipFileReader.getSourceFile());
-
+    private void init() throws LocalDBException, IOException {
         if (abortFlag) return;
 
-        final Object lastLineValue = localDB.get(wordlistMetaDB, WordlistManager.KEY_LASTLINE);
-        if (lastLineValue != null) {
-            final int startLine = Integer.parseInt(lastLineValue.toString());
-            while (startLine > overallStats.getLines()) {
-                overallStats.incrementLines();
-            }
-
-            final Object elapsedSecondsValue = localDB.get(wordlistMetaDB, WordlistManager.KEY_ELAPSEDSECONDS);
-            if (elapsedSecondsValue != null) {
-                final int elapsedSeconds = Integer.parseInt(elapsedSecondsValue.toString());
-                overallStats.incrementElapsedSeconds(elapsedSeconds);
-            }
-
-            LOGGER.info(DEBUG_LABEL + " resuming from line " + startLine + " of " + totalLines + " lines (" + percentComplete() + ") elapsed time " + TimeDuration.asCompactString(overallStats.getElapsedSeconds() * 1000));
-        } else {
-            LOGGER.info(DEBUG_LABEL + " source ZIP has " + totalLines + " lines");
-        }
-
-        localDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.DIRTY.toString());
+        localDB.truncate(rootWordlist.getWordlistDB());
 
         if (overallStats.getLines() > 0) {
             for (int i = 0; i < overallStats.getLines(); i++) {
                 zipFileReader.nextLine();
             }
         }
-        status = PwmService.STATUS.OPEN;
     }
 
-    private void wordlistSize(final File wordlistFile)
-            throws Exception
-    {
-        LOGGER.trace(DEBUG_LABEL + " beginning to count total input ZIP file lines");
-        final ZipReader zipFileReader = new ZipReader(wordlistFile);
-        totalLines = 0;
-
-        while (zipFileReader.nextLine() != null) {
-            totalLines++;
-            if (abortFlag) return;
-        }
-
-        LOGGER.trace(DEBUG_LABEL + " input file line counting complete at " + totalLines + " lines");
-    }
-
-    public String percentComplete()
-    {
-        if (totalLines <= 0) {
-            return "0%";
-        }
-
-        final float percentComplete = ((float) overallStats.getLines() / (float) totalLines);
-        return PERCENT_FORMAT.format(percentComplete);
-    }
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public void pause()
-    {
-        abortFlag = true;
-        final long startCloseTime = System.currentTimeMillis();
-
-        try {
-            LOGGER.info(makeStatString());
-        } catch (Exception e) {
-            System.currentTimeMillis();
-        }
-        LOGGER.info(DEBUG_LABEL + " pausing population (" + percentComplete() + ") elapsed time " + TimeDuration.asCompactString(overallStats.getElapsedSeconds() * 1000));
-
-        try {
-            localDB.put(wordlistMetaDB, WordlistManager.KEY_ELAPSEDSECONDS, String.valueOf(overallStats.getElapsedSeconds()));
-            localDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.IN_PROGRESS.toString());
-        } catch (Exception e) {
-            LOGGER.warn(DEBUG_LABEL + " unable to cleanly pause wordlist population: " + e.getMessage());
-        }
-
-        while (status != PwmService.STATUS.CLOSED && TimeDuration.fromCurrent(startCloseTime).isShorterThan(120 * 1000)) {
-            LOGGER.info("waiting for populator to close");
-            Helper.pause(1000);
-        }
-    }
-
     public String makeStatString()
     {
-        if (status == PwmService.STATUS.NEW) {
-            return "initializing, examining wordlist, lines read=" + totalLines;
+        if (!running) {
+            return "not running";
         }
 
         final int lps = perReportStats.getElapsedSeconds() <= 0 ? 0 : perReportStats.getLines() / perReportStats.getElapsedSeconds();
-        final int linesRemaining = totalLines - overallStats.getLines();
-        final int msRemaining = lps <= 0 ? 0 : (linesRemaining / lps) * 1000;
-
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append(DEBUG_LABEL);
-        sb.append(" population status: ").append(percentComplete());
-
-        if (msRemaining > 0) {
-            sb.append(" (");
-            sb.append(new TimeDuration(msRemaining).asCompactString());
-            sb.append(" remaining)");
-        }
-
-        sb.append(", lines/second=").append(lps);
-        sb.append(", line=").append(overallStats.getLines());
-        sb.append(")");
-        sb.append(" current zipEntry=").append(zipFileReader.currentZipName());
 
         perReportStats = new PopulationStats();
-        return sb.toString();
+        return rootWordlist.DEBUG_LABEL + ", lines/second="
+                + lps + ", line=" + overallStats.getLines() + ")"
+                + " current zipEntry=" + zipFileReader.currentZipName();
     }
 
     void populate() throws IOException, LocalDBException, PwmUnrecoverableException {
-
         try {
-            long lastReportTime = System.currentTimeMillis() - (long)(DEBUG_OUTPUT_FREQUENCY * 0.33);
+            rootWordlist.writeMetadata(new StoredWordlistDataBean());
+            running = true;
+            init();
 
-            sleeper.reset();
+            long lastReportTime = System.currentTimeMillis() - (long) (DEBUG_OUTPUT_FREQUENCY * 0.33);
+
             String line;
             while (!abortFlag && (line = zipFileReader.nextLine()) != null) {
-                sleeper.sleep();
 
                 overallStats.incrementLines();
                 perReportStats.incrementLines();
@@ -256,17 +149,17 @@ class Populator {
                     flushBuffer();
                 }
             }
+
+            if (abortFlag) {
+                LOGGER.warn("pausing " + rootWordlist.DEBUG_LABEL + " population");
+            } else {
+                populationComplete();
+            }
         } finally {
-            zipFileReader.close();
-        }
 
-        if (abortFlag) {
-            LOGGER.warn("pausing " + DEBUG_LABEL + " population");
-        } else {
-            populationComplete();
+            running = false;
+            checksumInputStream.close();
         }
-
-        status = PwmService.STATUS.CLOSED;
     }
 
     private void addLine(String line)
@@ -293,10 +186,7 @@ class Populator {
         final long startTime = System.currentTimeMillis();
 
         //add the elements
-        localDB.putAll(wordlistDB, bufferedWords);
-
-        //update the src ZIP line counter in the localdb.
-        localDB.put(wordlistMetaDB, WordlistManager.KEY_LASTLINE, String.valueOf(overallStats.getLines()));
+        localDB.putAll(rootWordlist.getWordlistDB(), bufferedWords);
 
         if (abortFlag) {
             return;
@@ -308,12 +198,11 @@ class Populator {
 
         if (bufferedWords.size() > 0) {
             final StringBuilder sb = new StringBuilder();
-            sb.append(DEBUG_LABEL).append(" ");
+            sb.append(rootWordlist.DEBUG_LABEL).append(" ");
             sb.append("read ").append(loopLines).append(", ");
             sb.append("saved ");
             sb.append(bufferedWords.size()).append(" words");
             sb.append(" (").append(new TimeDuration(commitTime).asCompactString()).append(")");
-            sb.append(" ").append(percentComplete()).append(" complete");
 
             LOGGER.trace(sb.toString());
         }
@@ -324,26 +213,49 @@ class Populator {
     }
 
     private void populationComplete()
-            throws LocalDBException, PwmUnrecoverableException
-    {
+            throws LocalDBException, PwmUnrecoverableException, IOException {
         flushBuffer();
-        localDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.IN_PROGRESS.toString());
         LOGGER.info(makeStatString());
         LOGGER.trace("beginning wordlist size query");
-        final int wordlistSize = localDB.size(wordlistDB);
-        if (wordlistSize > 0) {
-            localDB.put(wordlistMetaDB, WordlistManager.KEY_SIZE, String.valueOf(wordlistSize));
-            localDB.put(wordlistMetaDB, WordlistManager.KEY_STATUS, WordlistManager.VALUE_STATUS.COMPLETE.toString());
-        } else {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, DEBUG_LABEL + " population completed, but no words stored"));
+        final int wordlistSize = localDB.size(rootWordlist.getWordlistDB());
+        if (wordlistSize < 1) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, rootWordlist.DEBUG_LABEL + " population completed, but no words stored"));
         }
 
         final StringBuilder sb = new StringBuilder();
-        sb.append(DEBUG_LABEL);
+        sb.append(rootWordlist.DEBUG_LABEL);
         sb.append(" population complete, added ").append(wordlistSize);
         sb.append(" total words in ").append(new TimeDuration(overallStats.getElapsedSeconds() * 1000).asCompactString());
-        sb.append(", ignored ").append(totalLines - wordlistSize).append(" words");
+        {
+            StoredWordlistDataBean storedWordlistDataBean = new StoredWordlistDataBean();
+            storedWordlistDataBean.setSha1hash(Helper.binaryArrayToHex(checksumInputStream.closeAndFinalChecksum()));
+            storedWordlistDataBean.setSize(wordlistSize);
+            storedWordlistDataBean.setStoreDate(new Date());
+            if (!abortFlag) {
+                storedWordlistDataBean.setCompleted(true);
+            }
+            rootWordlist.writeMetadata(storedWordlistDataBean);
+        }
         LOGGER.info(sb.toString());
+    }
+
+    public void cancel() throws PwmUnrecoverableException {
+        LOGGER.debug("cancelling in-progress population");
+        abortFlag = true;
+
+        final int maxWaitMs = 1000 * 30;
+        final Date startWaitTime = new Date();
+        while (isRunning() && TimeDuration.fromCurrent(startWaitTime).isShorterThan(maxWaitMs)) {
+            Helper.pause(1000);
+        }
+        if (isRunning() && TimeDuration.fromCurrent(startWaitTime).isShorterThan(maxWaitMs)) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "unable to abort in progress population"));
+        }
+
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 
     private static class PopulationStats {
@@ -369,10 +281,6 @@ class Populator {
         public int getElapsedSeconds()
         {
             return (int) (System.currentTimeMillis() - startTime) / 1000;
-        }
-
-        public void incrementElapsedSeconds(final int seconds) {
-            startTime = startTime - (seconds * 1000);
         }
     }
 }

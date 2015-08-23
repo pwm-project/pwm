@@ -38,6 +38,8 @@ import password.pwm.error.*;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.i18n.Display;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.*;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
@@ -198,11 +200,13 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
 
         final String username = Validator.sanitizeInputValue(pwmRequest.getConfig(), valueMap.get("username"), 1024);
         final CacheKey cacheKey = makeCacheKey(pwmRequest, "search", username);
-        {
+
+        { // try to serve from cache first
             final String cachedOutput = pwmRequest.getPwmApplication().getCacheService().get(cacheKey);
             if (cachedOutput != null) {
-                final SearchResultBean resultOutput = JsonUtil.deserialize(cachedOutput, SearchResultBean.class);
-                pwmRequest.outputJsonResult(new RestResultBean(resultOutput));
+                final SearchResultBean searchResultBean = JsonUtil.deserialize(cachedOutput, SearchResultBean.class);
+                searchResultBean.setFromCache(true);
+                pwmRequest.outputJsonResult(new RestResultBean(searchResultBean));
                 StatisticsManager.incrementStat(pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS);
                 return;
             } else {
@@ -210,11 +214,14 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
             }
         }
 
-        final SearchResultBean outputData = makeSearchResultsImpl(pwmRequest, username);
-        final RestResultBean restResultBean = new RestResultBean(outputData);
+        // if not in cache, build results from ldap
+        final SearchResultBean searchResultBean = makeSearchResultsImpl(pwmRequest, username);
+        searchResultBean.setFromCache(false);
+        final RestResultBean restResultBean = new RestResultBean(searchResultBean);
         pwmRequest.outputJsonResult(restResultBean);
         StatisticsManager.incrementStat(pwmRequest, Statistic.PEOPLESEARCH_SEARCHES);
-        storeDataInCache(pwmRequest.getPwmApplication(), cacheKey, outputData);
+        storeDataInCache(pwmRequest.getPwmApplication(), cacheKey, searchResultBean);
+        LOGGER.trace(pwmRequest, "returning " + searchResultBean.getSearchResults().size() + " results for search request '" + username + "'");
     }
 
     private SearchResultBean makeSearchResultsImpl(
@@ -259,12 +266,21 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
             throw new PwmUnrecoverableException(errorInformation);
         }
 
-        LOGGER.trace(pwmRequest.getPwmSession(), "finished rest peoplesearch search in " + TimeDuration.fromCurrent(
-                startTime).asCompactString() + " not using cache, size=" + results.getResults().size());
+        final TimeDuration searchDuration = TimeDuration.fromCurrent(startTime);
+        LOGGER.trace(pwmRequest.getPwmSession(), "finished rest peoplesearch search in " +
+                searchDuration.asCompactString() + " not using cache, size=" + results.getResults().size());
 
         final SearchResultBean searchResultBean = new SearchResultBean();
         searchResultBean.setSearchResults(new ArrayList<>(results.resultsAsJsonOutput(pwmRequest.getPwmApplication())));
         searchResultBean.setSizeExceeded(sizeExceeded);
+        final String aboutMessage = LocaleHelper.getLocalizedMessage(
+                pwmRequest.getLocale(),
+                Display.Display_SearchResultsInfo.getKey(),
+                pwmRequest.getConfig(),
+                Display.class,
+                new String[]{String.valueOf(results.getResults().size()), searchDuration.asLongString(pwmRequest.getLocale())}
+        );
+        searchResultBean.setAboutResultMessage(aboutMessage);
         return searchResultBean;
     }
 

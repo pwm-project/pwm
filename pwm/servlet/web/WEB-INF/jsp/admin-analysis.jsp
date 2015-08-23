@@ -1,6 +1,5 @@
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="password.pwm.util.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.util.stats.StatisticsManager" %>
@@ -231,8 +230,7 @@
             </div>
         </div>
     </div>
-</div>
-<div class="push">
+    <div class="push"></div>
 </div>
 <pwm:script>
     <script type="text/javascript">

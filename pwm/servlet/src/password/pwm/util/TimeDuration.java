@@ -313,9 +313,29 @@ public class TimeDuration implements Comparable, Serializable {
             if (sb.length() > 0) {
                 sb.append(", ");
             }
-            sb.append(timeDetail.seconds);
+            if (sb.length() == 0) {
+                if (ms < 5000) {
+                    sb.append(new BigDecimal(ms).movePointLeft(3).stripTrailingZeros());
+
+                    if (ms > 1000) {
+                        sb.deleteCharAt(sb.length()-1);
+                    }
+
+                    if (ms > 2000) {
+                        sb.deleteCharAt(sb.length()-1);
+                    }
+
+                } else {
+                    sb.append(timeDetail.seconds);
+                }
+            } else {
+                sb.append(timeDetail.seconds);
+            }
             sb.append(" ");
-            sb.append(timeDetail.seconds == 1 ? LocaleHelper.getLocalizedMessage(locale,Display.Display_Second,null) : LocaleHelper.getLocalizedMessage(locale,Display.Display_Seconds,null));
+            sb.append(ms == 1000
+                    ? LocaleHelper.getLocalizedMessage(locale,Display.Display_Second,null)
+                    : LocaleHelper.getLocalizedMessage(locale,Display.Display_Seconds,null)
+            );
         }
 
         return sb.toString();

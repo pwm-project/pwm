@@ -82,7 +82,7 @@ import java.util.*;
                 PwmConstants.URL_PREFIX_PUBLIC + "/newuser",
                 PwmConstants.URL_PREFIX_PUBLIC + "/newuser/*",
                 PwmConstants.URL_PREFIX_PUBLIC + "/NewUser",
-                PwmConstants.URL_PREFIX_PUBLIC + "/NewUser/*"
+                PwmConstants.URL_PREFIX_PUBLIC + "/NewUser/*",
         }
 )
 public class NewUserServlet extends AbstractPwmServlet {

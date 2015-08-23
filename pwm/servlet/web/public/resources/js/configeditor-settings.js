@@ -2909,6 +2909,6 @@ FileValueHandler.uploadFile = function(keyName) {
             PWM_MAIN.closeWaitDialog();
         }});
     };
-    PWM_CONFIG.uploadFile(options);
+    UILibrary.uploadFileDialog(options);
 };
 

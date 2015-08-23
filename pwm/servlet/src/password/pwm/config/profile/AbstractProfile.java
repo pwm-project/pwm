@@ -23,6 +23,7 @@
 package password.pwm.config.profile;
 
 import password.pwm.config.*;
+import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.util.PasswordData;
 
 import java.security.cert.X509Certificate;

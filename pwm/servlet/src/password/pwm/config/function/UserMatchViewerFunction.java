@@ -29,7 +29,11 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.*;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.SettingUIFunction;
+import password.pwm.config.UserPermission;
+import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -47,7 +51,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
     @Override
     public Serializable provideFunction(
             PwmRequest pwmRequest,
-            final StoredConfiguration storedConfiguration,
+            final StoredConfigurationImpl storedConfiguration,
             final PwmSetting setting,
             final String profile
     )
@@ -67,7 +71,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
     public Collection<UserIdentity> discoverMatchingUsers(
             final PwmApplication pwmApplication,
             final int maxResultSize,
-            final StoredConfiguration storedConfiguration,
+            final StoredConfigurationImpl storedConfiguration,
             final PwmSetting setting,
             final String profile
     )

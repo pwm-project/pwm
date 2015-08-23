@@ -26,7 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
-import password.pwm.config.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
@@ -44,7 +44,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction {
     @Override
     public String provideFunction(
             PwmRequest pwmRequest,
-            StoredConfiguration storedConfiguration,
+            StoredConfigurationImpl storedConfiguration,
             PwmSetting setting,
             String profile
     )

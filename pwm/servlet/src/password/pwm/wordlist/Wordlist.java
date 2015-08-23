@@ -23,21 +23,24 @@
 package password.pwm.wordlist;
 
 import password.pwm.PwmService;
+import password.pwm.error.PwmUnrecoverableException;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 
 public interface Wordlist extends PwmService {
 
-    static final String KEY_STATUS = "STATUS";
-    static final String KEY_LASTLINE = "LASTLINE";
-    static final String KEY_VERSION = "VERSION";
-    static final String KEY_CHECKSUM = "CHECKSUM";
-    static final String KEY_ELAPSEDSECONDS = "RUNTIME";
-    static final String KEY_SIZE = "SIZE";
-
-    // string used as localdb version hash, if different then value in localdb, localdb will be cleared.
-    static final String VALUE_VERSION = "wordlist-db-12";
-
-    public boolean containsWord(final String word);
+    boolean containsWord(final String word);
 
     int size();
+
+    StoredWordlistDataBean readMetadata();
+
+
+    void populate(InputStream inputStream)
+            throws IOException, PwmUnrecoverableException;
+
+    void populateBuiltIn()
+                    throws IOException, PwmUnrecoverableException;
 }

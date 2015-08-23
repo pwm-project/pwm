@@ -237,7 +237,7 @@ public class UserCacheService implements PwmService {
             return localDB.remove(DB,key.getKey());
         }
 
-        private void clear()
+        private void    clear()
                 throws LocalDBException
         {
             localDB.truncate(DB);

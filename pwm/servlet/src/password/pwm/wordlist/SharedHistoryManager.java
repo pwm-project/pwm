@@ -43,7 +43,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 
-public class SharedHistoryManager implements Wordlist {
+public class SharedHistoryManager implements PwmService {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(SharedHistoryManager.class);
@@ -353,13 +353,10 @@ public class SharedHistoryManager implements Wordlist {
                 localDB.put(META_DB, KEY_OLDEST_ENTRY, Long.toString(oldestEntry));
             }
 
-            final StringBuilder sb = new StringBuilder();
-            sb.append("completed wordDB reduce operation");
-            sb.append(", removed=").append(removeCount);
-            sb.append(", totalRemaining=").append(size());
-            sb.append(", oldestEntry=").append(TimeDuration.asCompactString(oldestEntry));
-            sb.append(" in ").append(TimeDuration.asCompactString(System.currentTimeMillis() - startTime));
-            LOGGER.debug(sb.toString());
+            LOGGER.debug("completed wordDB reduce operation" + ", removed=" + removeCount
+                    + ", totalRemaining=" + size()
+                    + ", oldestEntry=" + TimeDuration.asCompactString(oldestEntry)
+                    + " in " + TimeDuration.fromCurrent(startTime).asCompactString());
         }
     }
 
@@ -429,7 +426,7 @@ public class SharedHistoryManager implements Wordlist {
     public ServiceInfo serviceInfo()
     {
         if (status == STATUS.OPEN) {
-            return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
+            return new ServiceInfo(Collections.singletonList(DataStorageMethod.LOCALDB));
         } else {
             return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
         }

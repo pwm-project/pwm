@@ -24,7 +24,7 @@ package password.pwm.util.cli;
 
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
-import password.pwm.config.ConfigurationReader;
+import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.util.localdb.LocalDB;
 
 import java.io.File;

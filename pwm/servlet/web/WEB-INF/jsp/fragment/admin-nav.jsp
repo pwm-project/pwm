@@ -1,5 +1,6 @@
-<%@ page import="password.pwm.http.bean.AdminBean" %>
 <%@ page import="password.pwm.http.servlet.AdminServlet" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -23,67 +24,42 @@
   --%>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    final AdminBean adminBean = PwmRequest.forRequest(request,response).getPwmSession().getSessionBean(AdminBean.class);
-    final AdminServlet.Page currentPage = adminBean.getCurrentPage();
-%>
+<% final AdminServlet.Page currentPage = AdminServlet.Page.forUrl(JspUtility.getPwmRequest(pageContext).getURL()); %>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 <pwm:script>
-<script type="text/javascript">
-    var PWM_ADMIN = PWM_ADMIN || {};
+    <script type="text/javascript">
+        var PWM_ADMIN = PWM_ADMIN || {};
 
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_ADMIN.initAdminOtherMenu();
-    });
-</script>
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_ADMIN.initAdminNavMenu();
+        });
+    </script>
 </pwm:script>
 <div style="text-align: center">
     <% boolean selected = currentPage == AdminServlet.Page.dashboard; %>
-    <form action="Administration" method="post" enctype="application/x-www-form-urlencoded" id="dashboard" name="dashboard">
+    <form action="<%=AdminServlet.Page.dashboard%>" method="get" id="dashboard" name="dashboard">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-dashboard"></span></pwm:if>
             Dashboard
         </button>
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        <input type="hidden" name="processAction" value="changePage"/>
-        <input type="hidden" name="page" value="dashboard"/>
     </form>
     <% selected = currentPage == AdminServlet.Page.activity; %>
-    <form action="Administration" method="post" enctype="application/x-www-form-urlencoded" id="activity" name="activity">
+    <form action="<%=AdminServlet.Page.activity%>" method="get" id="activity" name="activity">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-users"></span></pwm:if>
             User Activity
         </button>
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        <input type="hidden" name="processAction" value="changePage"/>
-        <input type="hidden" name="page" value="activity"/>
     </form>
     <% selected = currentPage == AdminServlet.Page.analysis; %>
-    <form action="Administration" method="post" enctype="application/x-www-form-urlencoded">
+    <form action="<%=AdminServlet.Page.analysis%>" method="get" id="analysis" name="analysis">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-bar-chart-o"></span></pwm:if>
             Data Analysis
         </button>
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        <input type="hidden" name="processAction" value="changePage"/>
-        <input type="hidden" name="page" value="analysis"/>
     </form>
-    <form action="Administration" method="post" enctype="application/x-www-form-urlencoded" id="form-tokenLookup">
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        <input type="hidden" name="processAction" value="changePage"/>
-        <input type="hidden" name="page" value="tokenlookup"/>
-    </form>
-    <form action="Administration" method="post" enctype="application/x-www-form-urlencoded" id="form-viewLog">
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        <input type="hidden" name="processAction" value="changePage"/>
-        <input type="hidden" name="page" value="viewLog"/>
-    </form>
-    <form action="Administration" method="post" enctype="application/x-www-form-urlencoded" id="form-urlReference">
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        <input type="hidden" name="processAction" value="changePage"/>
-        <input type="hidden" name="page" value="urlReference"/>
-    </form>
-    <div style="display: inline" id="dropDownButtonContainer">
+    <div style="display: inline" id="admin-nav-menu-container">
     </div>
 </div>
 <br/>
+
+

@@ -30,6 +30,7 @@ import password.pwm.Validator;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
+import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.config.value.X509CertificateValue;
@@ -40,6 +41,7 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
+import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
@@ -63,6 +65,10 @@ import java.util.*;
 @WebServlet(
         name = "ConfigEditorServlet",
         urlPatterns = {
+                PwmConstants.URL_PREFIX_PRIVATE + "/config/editor",
+                PwmConstants.URL_PREFIX_PRIVATE + "/config/editor/*",
+                PwmConstants.URL_PREFIX_PRIVATE + "/config/configeditor",
+                PwmConstants.URL_PREFIX_PRIVATE + "/config/configeditor/*",
                 PwmConstants.URL_PREFIX_PRIVATE + "/config/ConfigEditor",
                 PwmConstants.URL_PREFIX_PRIVATE + "/config/ConfigEditor/*",
         }
@@ -159,10 +165,8 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
-        ConfigManagerServlet.checkAuthentication(pwmRequest, configManagerBean);
-
         if (configManagerBean.getStoredConfiguration() == null) {
-            final StoredConfiguration loadedConfig = ConfigManagerServlet.readCurrentConfiguration(pwmRequest);
+            final StoredConfigurationImpl loadedConfig = ConfigManagerServlet.readCurrentConfiguration(pwmRequest);
             configManagerBean.setConfiguration(loadedConfig);
         }
 
@@ -299,7 +303,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
     )
             throws IOException, PwmUnrecoverableException
     {
-        final StoredConfiguration storedConfig = configManagerBean.getStoredConfiguration();
+        final StoredConfigurationImpl storedConfig = configManagerBean.getStoredConfiguration();
 
         final String key = pwmRequest.readParameterAsString("key");
         final Object returnValue;
@@ -364,7 +368,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 returnMap.put("options", theSetting.getOptions());
             }
             {
-                final StoredConfiguration.SettingMetaData settingMetaData = storedConfig.readSettingMetadata(theSetting, profile);
+                final StoredConfigurationImpl.SettingMetaData settingMetaData = storedConfig.readSettingMetadata(theSetting, profile);
                 if (settingMetaData != null) {
                     if (settingMetaData.getModifyDate() != null) {
                         returnMap.put("modifyTime", settingMetaData.getModifyDate());
@@ -387,7 +391,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException {
-        final StoredConfiguration storedConfig = configManagerBean.getStoredConfiguration();
+        final StoredConfigurationImpl storedConfig = configManagerBean.getStoredConfiguration();
         final String key = pwmRequest.readParameterAsString("key");
         final String bodyString = pwmRequest.readRequestBodyAsString();
         final PwmSetting setting = PwmSetting.forKey(key);
@@ -434,7 +438,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException {
-        final StoredConfiguration storedConfig = configManagerBean.getStoredConfiguration();
+        final StoredConfigurationImpl storedConfig = configManagerBean.getStoredConfiguration();
         final UserIdentity loggedInUser = pwmRequest.getUserInfoIfLoggedIn();
         final String key = pwmRequest.readParameterAsString("key");
         final PwmSetting setting = PwmSetting.forKey(key);
@@ -524,7 +528,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 try {
                     final String bodyString = pwmRequest.readRequestBodyAsString();
                     final String value = JsonUtil.deserialize(bodyString, String.class);
-                    configManagerBean.getStoredConfiguration().writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES,
+                    configManagerBean.getStoredConfiguration().writeConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_NOTES,
                             value);
                     LOGGER.trace("updated notesText");
                 } catch (Exception e) {
@@ -537,11 +541,11 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                     try {
                         final PwmSettingTemplate template = PwmSettingTemplate.valueOf(requestedTemplate);
                         configManagerBean.getStoredConfiguration().writeConfigProperty(
-                                StoredConfiguration.ConfigProperty.PROPERTY_KEY_TEMPLATE, template.toString());
+                                StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_TEMPLATE, template.toString());
                         LOGGER.trace("setting template to: " + requestedTemplate);
                     } catch (IllegalArgumentException e) {
                         configManagerBean.getStoredConfiguration().writeConfigProperty(
-                                StoredConfiguration.ConfigProperty.PROPERTY_KEY_TEMPLATE, PwmSettingTemplate.DEFAULT.toString());
+                                StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_TEMPLATE, PwmSettingTemplate.DEFAULT.toString());
                         LOGGER.error("unknown template set request: " + requestedTemplate);
                     }
                 }
@@ -593,11 +597,11 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final RestResultBean restResultBean = new RestResultBean();
         final String searchTerm = valueMap.get("search");
         if (searchTerm != null && !searchTerm.isEmpty()) {
-            final ArrayList<StoredConfiguration.ConfigRecordID> searchResults = new ArrayList<>(configManagerBean.getStoredConfiguration().search(searchTerm, locale));
+            final ArrayList<StoredConfigurationImpl.ConfigRecordID> searchResults = new ArrayList<>(configManagerBean.getStoredConfiguration().search(searchTerm, locale));
             final TreeMap<String, Map<String, Map<String, Object>>> returnData = new TreeMap<>();
 
-            for (final StoredConfiguration.ConfigRecordID recordID : searchResults) {
-                if (recordID.getRecordType() == StoredConfiguration.ConfigRecordID.RecordType.SETTING) {
+            for (final StoredConfigurationImpl.ConfigRecordID recordID : searchResults) {
+                if (recordID.getRecordType() == StoredConfigurationImpl.ConfigRecordID.RecordType.SETTING) {
                     final PwmSetting setting = (PwmSetting) recordID.getRecordID();
                     final LinkedHashMap<String, Object> settingData = new LinkedHashMap<>();
                     settingData.put("category", setting.getCategory().toString());
@@ -618,7 +622,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             restResultBean.setData(returnData);
             LOGGER.trace(pwmRequest, "finished search operation with " + returnData.size() + " results in " + TimeDuration.fromCurrent(startTime).asCompactString());
         } else {
-            restResultBean.setData(new ArrayList<StoredConfiguration.ConfigRecordID>());
+            restResultBean.setData(new ArrayList<StoredConfigurationImpl.ConfigRecordID>());
         }
 
         pwmRequest.outputJsonResult(restResultBean);
@@ -765,7 +769,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             navigationData.add(categoryInfo);
         }
 
-        final StoredConfiguration storedConfiguration = configManagerBean.getStoredConfiguration();
+        final StoredConfigurationImpl storedConfiguration = configManagerBean.getStoredConfiguration();
         for (final PwmSettingCategory loopCategory : PwmSettingCategory.sortedValues(pwmRequest.getLocale())) {
             if (NavTreeHelper.categoryMatcher(loopCategory, storedConfiguration, modifiedSettingsOnly, (int)level, filterText)) {
                 final Map<String, Object> categoryInfo = new LinkedHashMap<>();
@@ -855,7 +859,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         private static Set<String> determineModifiedKeysSettings(
                 final PwmLocaleBundle bundle,
                 final Configuration config,
-                final StoredConfiguration storedConfiguration
+                final StoredConfigurationImpl storedConfiguration
         ) {
             final Set<String> modifiedKeys = new TreeSet<>();
             for (final String key : bundle.getKeys()) {
@@ -878,7 +882,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
 
         private static boolean categoryMatcher(
                 PwmSettingCategory category,
-                StoredConfiguration storedConfiguration,
+                StoredConfigurationImpl storedConfiguration,
                 final boolean modifiedOnly,
                 final int minLevel,
                 final String text
@@ -912,7 +916,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         }
 
         private static boolean settingMatches(
-                final StoredConfiguration storedConfiguration,
+                final StoredConfigurationImpl storedConfiguration,
                 final PwmSetting setting,
                 final String profileID,
                 final boolean modifiedOnly,
@@ -1020,7 +1024,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                     configManagerBean.setConfigUnlockedWarningShown(true);
                 }
             }
-            varMap.put("configurationNotes", configManagerBean.getStoredConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES));
+            varMap.put("configurationNotes", configManagerBean.getStoredConfiguration().readConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_NOTES));
             returnMap.put("var", varMap);
         }
 

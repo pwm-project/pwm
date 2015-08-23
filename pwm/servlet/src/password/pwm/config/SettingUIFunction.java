@@ -22,6 +22,7 @@
 
 package password.pwm.config;
 
+import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.http.PwmRequest;
 
 import java.io.Serializable;
@@ -29,7 +30,7 @@ import java.io.Serializable;
 public interface SettingUIFunction {
     Serializable provideFunction(
             final PwmRequest pwmRequest,
-            final StoredConfiguration storedConfiguration,
+            final StoredConfigurationImpl storedConfiguration,
             final PwmSetting setting,
             final String profile
     )

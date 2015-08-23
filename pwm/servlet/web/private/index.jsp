@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.tag.PwmIfTag" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -26,14 +27,6 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    PwmRequest pwmRequest = null;
-    try {
-        pwmRequest = PwmRequest.forRequest(request, response);
-    } catch (PwmException e) {
-        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
-    }
-%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="../WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
@@ -129,10 +122,10 @@
                     </tr>
                 </pwm:if>
             </pwm:if>
-            <pwm:if test="accountInfoEnabled">
+            <pwm:if test="<%=PwmIfTag.TESTS.accountInfoEnabled.toString()%>">
                 <tr>
                     <td class="menubutton_key">
-                        <a class="menubutton" href="<pwm:url url='userinfo.jsp'/>">
+                        <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.AccountInformation.servletUrl()%>'/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-file-o"></span></pwm:if>
                             <pwm:display key="Title_UserInformation"/>
                         </a>
@@ -173,7 +166,7 @@
             <pwm:if test="permission" arg1="PWMADMIN">
                 <tr>
                     <td class="menubutton_key">
-                        <a class="menubutton" href="<pwm:url url='/private/admin/Administration' addContext="true"/> ">
+                        <a class="menubutton" href="<pwm:url url='<%=PwmServletDefinition.Admin.servletUrl()%>' addContext="true"/> ">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-dashboard"></span></pwm:if>
                             <pwm:display key="Title_Admin"/>
                         </a>

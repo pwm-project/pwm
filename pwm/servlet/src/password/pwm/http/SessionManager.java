@@ -230,7 +230,7 @@ public class SessionManager implements Serializable {
             return false;
         }
 
-        Permission.PERMISSION_STATUS status = pwmSession.getLoginInfoBean().getPermission(permission);
+        Permission.PERMISSION_STATUS status = pwmSession.getUserSessionDataCacheBean().getPermission(permission);
         if (status == Permission.PERMISSION_STATUS.UNCHECKED) {
             if (devDebugMode) {
                 LOGGER.debug(pwmSession.getLabel(), String.format("checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey()));
@@ -240,7 +240,7 @@ public class SessionManager implements Serializable {
             final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission(setting);
             final boolean result = LdapPermissionTester.testUserPermissions(pwmApplication, pwmSession.getLabel(), pwmSession.getUserInfoBean().getUserIdentity(), userPermission);
             status = result ? Permission.PERMISSION_STATUS.GRANTED : Permission.PERMISSION_STATUS.DENIED;
-            pwmSession.getLoginInfoBean().setPermission(permission, status);
+            pwmSession.getUserSessionDataCacheBean().setPermission(permission, status);
             LOGGER.debug(pwmSession.getLabel(), String.format("permission %s for user %s is %s",
                     permission.toString(), pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey(),
                     status.toString()));

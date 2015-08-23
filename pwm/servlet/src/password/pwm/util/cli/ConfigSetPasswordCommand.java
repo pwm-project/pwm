@@ -23,8 +23,8 @@
 package password.pwm.util.cli;
 
 import password.pwm.PwmConstants;
-import password.pwm.config.ConfigurationReader;
-import password.pwm.config.StoredConfiguration;
+import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.StoredConfigurationImpl;
 
 import java.util.Collections;
 
@@ -35,7 +35,7 @@ public class ConfigSetPasswordCommand extends AbstractCliCommand {
             throws Exception
     {
         final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
-        final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
+        final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
         final String password;
         if (cliEnvironment.getOptions().containsKey(PASSWORD_OPTIONNAME)) {
             password = (String)cliEnvironment.getOptions().get(PASSWORD_OPTIONNAME);

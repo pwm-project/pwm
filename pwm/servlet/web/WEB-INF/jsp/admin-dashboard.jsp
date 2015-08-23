@@ -756,15 +756,15 @@
 
                 PWM_MAIN.addEventHandler('button-showLocalDBCounts','click',function(){
                     PWM_MAIN.showWaitDialog({loadFunction:function(){
-                        PWM_MAIN.goto('Administration?showLocalDBCounts=true');
+                        PWM_MAIN.goto('dashboard?showLocalDBCounts=true');
                     }})
                 });
             });
         });
     </script>
 </pwm:script>
-<pwm:script-ref url="/public/resources/js/admin.js"/>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
+<pwm:script-ref url="/public/resources/js/admin.js"/>
 </body>
 </html>
 
