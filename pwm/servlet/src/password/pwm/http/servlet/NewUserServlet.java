@@ -132,6 +132,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         }
     }
 
+
     protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
@@ -146,14 +147,19 @@ public class NewUserServlet extends AbstractPwmServlet {
             return;
         }
 
-        // convert a url command like /pwm/public/NewUserServlet/12321321 to redirect with a process action.
+        final NewUserBean newUserBean = pwmSession.getNewUserBean();
+
+        // convert a url command like /public/newuser/profile/xxx to set profile.
+        if (readProfileFromUrl(pwmRequest, newUserBean)) {
+            return;
+        }
+
+        // convert a url command like /public/newuser/12321321 to redirect with a process action.
         if (action == null) {
             if (pwmRequest.convertURLtokenCommand()) {
                 return;
             }
         }
-
-        final NewUserBean newUserBean = pwmSession.getNewUserBean();
 
         if (action != null) {
             switch (action) {
@@ -240,7 +246,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         newUserProfile.getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());//
 
         if (newUserBean.getNewUserForm() == null) {
-            forwardToFormPage(pwmRequest);
+            forwardToFormPage(pwmRequest, newUserBean);
             return;
         }
 
@@ -283,7 +289,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         }
 
         if (!newUserBean.isFormPassed()) {
-            forwardToFormPage(pwmRequest);
+            forwardToFormPage(pwmRequest, newUserBean);
         }
 
         // success so create the new user.
@@ -301,6 +307,28 @@ public class NewUserServlet extends AbstractPwmServlet {
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
             pwmRequest.respondWithError(e.getErrorInformation());
         }
+    }
+
+    protected boolean readProfileFromUrl(final PwmRequest pwmRequest, final NewUserBean newUserBean) throws ChaiUnavailableException, PwmUnrecoverableException, ServletException, IOException {
+        final String PROFILE_URL_SEGMENT = "/profile/";
+        final String uriRemainder = PwmServletDefinition.NewUser.uriRemainder(pwmRequest);
+
+        if (uriRemainder.startsWith(PROFILE_URL_SEGMENT)) {
+            final String requestedProfile = uriRemainder.substring(PROFILE_URL_SEGMENT.length(), uriRemainder.length());
+            final Collection<String> profileIDs = pwmRequest.getConfig().getNewUserProfiles().keySet();
+            if (profileIDs.contains(requestedProfile)) {
+                LOGGER.debug(pwmRequest, "detected profile on request uri: " + requestedProfile);
+                newUserBean.setProfileID(requestedProfile);
+                newUserBean.setUrlSpecifiedProfile(true);
+                pwmRequest.sendRedirect(PwmServletDefinition.NewUser);
+                return true;
+            } else {
+                final String errorMsg = "unknown requested new user profile";
+                LOGGER.debug(pwmRequest, errorMsg + ": " + requestedProfile);
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
+            }
+        }
+        return false;
     }
 
 
@@ -466,8 +494,8 @@ public class NewUserServlet extends AbstractPwmServlet {
         if (requestedProfileID == null || requestedProfileID.isEmpty()) {
             newUserBean.setProfileID(null);
         } if (profileIDs.contains(requestedProfileID)) {
-            newUserBean.setProfileID(requestedProfileID);
-        }
+        newUserBean.setProfileID(requestedProfileID);
+    }
 
         this.advancedToNextStage(pwmRequest, newUserBean);
     }
@@ -487,7 +515,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             this.advancedToNextStage(pwmRequest, newUserBean);
         } catch (PwmOperationalException e) {
             pwmRequest.setResponseError(e.getErrorInformation());
-            forwardToFormPage(pwmRequest);
+            forwardToFormPage(pwmRequest, newUserBean);
         }
     }
 
@@ -1194,11 +1222,18 @@ public class NewUserServlet extends AbstractPwmServlet {
         return pwmRequest.getConfig().getNewUserProfiles().get(profileID);
     }
 
-    void forwardToFormPage(final PwmRequest pwmRequest)
+    void forwardToFormPage(final PwmRequest pwmRequest, final NewUserBean newUserBean)
             throws ServletException, PwmUnrecoverableException, IOException
     {
         final List<FormConfiguration> formConfiguration = getFormDefinition(pwmRequest);
         pwmRequest.addFormInfoToRequestAttr(formConfiguration, null, false, true);
+
+        {
+            final boolean showBack = !newUserBean.isUrlSpecifiedProfile()
+                    && pwmRequest.getConfig().getNewUserProfiles().keySet().size() > 1;
+            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.NewUser_FormShowBackButton, showBack);
+        }
+
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER);
     }
 }

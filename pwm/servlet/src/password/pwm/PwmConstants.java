@@ -166,6 +166,7 @@ public abstract class PwmConstants {
         ForgottenPasswordPrompts,
         ForgottenPasswordInstructions,
 
+        NewUser_FormShowBackButton,
     }
 
 

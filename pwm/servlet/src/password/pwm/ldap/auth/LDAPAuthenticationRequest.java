@@ -28,6 +28,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.*;
 import com.novell.ldapchai.impl.oracleds.entry.OracleDSEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.ChaiSetting;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
@@ -239,6 +240,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         debugMsg.append(" (").append(TimeDuration.fromCurrent(startTime).asCompactString()).append(")");
         debugMsg.append(" type: ").append(returnAuthType).append(", using strategy ").append(strategy);
         debugMsg.append(", using proxy connection: ").append(useProxy);
+        debugMsg.append(", returning bind dn: ").append(returnProvider == null ? "none" : returnProvider.getChaiConfiguration().getSetting(ChaiSetting.BIND_DN));
         log(PwmLogLevel.INFO, debugMsg);
         pwmApplication.getAuditManager().submit(pwmApplication.getAuditManager().createUserAuditRecord(
                 AuditEvent.AUTHENTICATE,
@@ -485,7 +487,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         if (userProvider != null) {
-            return true;
+            return false;
         }
 
         final boolean authIsBindInhibit = authenticationType == AuthenticationType.AUTH_BIND_INHIBIT;

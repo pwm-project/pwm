@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.http.servlet.NewUserServlet" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -25,7 +26,6 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.ALWAYS_EXPAND_MESSAGE_TEXT); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmRequest pwmRequest = PwmRequest.forRequest(request,response); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -37,7 +37,7 @@
         <p><pwm:display key="Display_NewUser"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <form action="<pwm:url url='NewUser'/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded"
+        <form action="<pwm:url url='<%=PwmServletDefinition.NewUser.servletUrlName()%>'/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded"
               id="newUserForm" class="pwm-form">
             <jsp:include page="fragment/form.jsp"/>
             <div class="buttonbar">
@@ -48,7 +48,7 @@
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 
-                <% if (pwmRequest.getConfig().getNewUserProfiles().keySet().size() > 1) { %>
+                <% if ((Boolean)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.NewUser_FormShowBackButton)) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
@@ -70,10 +70,10 @@
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.addEventHandler('newUserForm','input',function(){PWM_NEWUSER.validateNewUserForm()});
             PWM_MAIN.addEventHandler('button-goBack', 'click',function() {
-                PWM_MAIN.submitPostAction('NewUser', '<%=NewUserServlet.NewUserAction.profileChoice%>');
+                PWM_MAIN.submitPostAction('<%=PwmServletDefinition.NewUser.servletUrlName()%>', '<%=NewUserServlet.NewUserAction.profileChoice%>');
             });
             PWM_MAIN.addEventHandler('button-cancel','click',function() {
-                PWM_MAIN.submitPostAction('NewUser', '<%=NewUserServlet.NewUserAction.reset%>');
+                PWM_MAIN.submitPostAction('<%=PwmServletDefinition.NewUser.servletUrlName()%>', '<%=NewUserServlet.NewUserAction.reset%>');
             });
         });
     </script>

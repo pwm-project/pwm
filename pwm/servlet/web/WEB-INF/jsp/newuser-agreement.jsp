@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -38,7 +39,7 @@
         <br/><br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div class="buttonbar">
-            <form action="<pwm:url url='NewUser'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
+            <form action="<pwm:url url='<%=PwmServletDefinition.NewUser.servletUrlName()%>'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
                 <label class="checkboxWrapper">
                     <input type="checkbox" id="agreeCheckBox"/>
@@ -53,7 +54,7 @@
             </form>
         </div>
         <div style="text-align: center">
-            <form action="<pwm:context/>/public/<pwm:url url='NewUser'/>" method="post"
+            <form action="<%=PwmServletDefinition.NewUser.servletUrlName()%>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <input type="hidden" name="processAction" value="reset"/>
                 <button type="submit" name="button" class="btn" id="button_reset">

@@ -239,7 +239,10 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         }
 
         final ChaiPasswordPolicy backingPolicy = this.chaiPasswordPolicy != null ? chaiPasswordPolicy : otherPolicy.chaiPasswordPolicy;
-        return createPwmPasswordPolicy(newPasswordPolicies, backingPolicy);
+        final PwmPasswordPolicy returnPolicy = createPwmPasswordPolicy(newPasswordPolicies, backingPolicy);
+        final String newRuleText = (ruleText != null && !ruleText.isEmpty()) ? ruleText : otherPolicy.ruleText;
+        returnPolicy.setRuleText(newRuleText);
+        return returnPolicy;
     }
 
     protected static String mergeMin(final String value1, final String value2) {

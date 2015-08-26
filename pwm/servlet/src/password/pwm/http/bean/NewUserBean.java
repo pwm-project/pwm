@@ -46,6 +46,7 @@ public class NewUserBean implements PwmSessionBean {
     private NewUserVerificationPhase verificationPhase = NewUserVerificationPhase.NONE;
     private Date createStartTime;
     private NewUserServlet.Page currentPage;
+    private boolean urlSpecifiedProfile;
 
     public static class NewUserForm implements Serializable {
         private Map<FormConfiguration,String> formData;
@@ -210,5 +211,13 @@ public class NewUserBean implements PwmSessionBean {
 
     public void setCurrentPage(NewUserServlet.Page currentPage) {
         this.currentPage = currentPage;
+    }
+
+    public boolean isUrlSpecifiedProfile() {
+        return urlSpecifiedProfile;
+    }
+
+    public void setUrlSpecifiedProfile(boolean urlSpecifiedProfile) {
+        this.urlSpecifiedProfile = urlSpecifiedProfile;
     }
 }

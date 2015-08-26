@@ -597,6 +597,11 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return ServletHelper.appendAndEncodeUrlParameters(req.getRequestURI(), readParametersAsMap());
     }
 
+    public String getURLwithoutQueryString() throws PwmUnrecoverableException {
+        final HttpServletRequest req = this.getHttpServletRequest();
+        return req.getRequestURI();
+    }
+
     private void checkRequestInstanceNonce() {
         final String cookieName = getConfig().readAppProperty(AppProperty.HTTP_COOKIE_INSTANCE_GUID_NAME);
         final String cookieValue = readCookie(cookieName);

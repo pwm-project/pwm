@@ -55,12 +55,20 @@ class DatabaseUserHistory implements UserHistoryStore {
 
     @Override
     public void updateUserHistory(UserAuditRecord auditRecord) throws PwmUnrecoverableException {
-        final UserIdentity targetUserDN = new UserIdentity(auditRecord.getPerpetratorDN(),auditRecord.getPerpetratorLdapProfile());
+        // user info
+        final UserIdentity userIdentity;
+        if (auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEvent.Type.HELPDESK) {
+            final HelpdeskAuditRecord helpdeskAuditRecord = (HelpdeskAuditRecord)auditRecord;
+            userIdentity = new UserIdentity(helpdeskAuditRecord.getTargetDN(),helpdeskAuditRecord.getTargetLdapProfile());
+        } else {
+            userIdentity = new UserIdentity(auditRecord.getPerpetratorDN(),auditRecord.getPerpetratorLdapProfile());
+        }
+
         final String guid;
         try {
-            guid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, targetUserDN, false);
+            guid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, userIdentity, false);
         } catch (ChaiUnavailableException e) {
-            LOGGER.error("unable to read guid for user '" + targetUserDN + "', cannot update user history, error: " + e.getMessage());
+            LOGGER.error("unable to read guid for user '" + userIdentity + "', cannot update user history, error: " + e.getMessage());
             return;
         }
 

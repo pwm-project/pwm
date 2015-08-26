@@ -76,7 +76,7 @@
                 <pwm:if test="forgottenUsernameEnabled">
                     <tr style="border:0">
                         <td style="border:0" class="menubutton_key">
-                            <a class="menubutton" id="Title_ForgottenUsername" href="<pwm:context/><pwm:url url='/public/ForgottenUsername'/>">
+                            <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenUsername.servletUrl()%>'/>">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
                                 <pwm:display key="Title_ForgottenUsername"/>
                             </a>
@@ -89,7 +89,7 @@
                 <pwm:if test="activateUserEnabled">
                     <tr style="border:0">
                         <td style="border:0" class="menubutton_key">
-                            <a class="menubutton" id="Title_ActivateUser" href="<pwm:context/><pwm:url url='/public/ActivateUser'/>">
+                            <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ActivateUser.servletUrl()%>'/>">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-graduation-cap"></span></pwm:if>
                                 <pwm:display key="Title_ActivateUser"/>
                             </a>
@@ -102,7 +102,7 @@
                 <pwm:if test="newUserRegistrationEnabled">
                     <tr style="border:0">
                         <td style="border:0" class="menubutton_key">
-                            <a class="menubutton" id="Title_NewUser" href="<pwm:context/><pwm:url url='/public/NewUser'/>">
+                            <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.NewUser.servletUrl()%>'/>">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-file-text-o"></span></pwm:if>
                                 <pwm:display key="Title_NewUser"/>
                             </a>

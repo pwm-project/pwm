@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.servlet.NewUserServlet" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -42,7 +43,7 @@
         /* noop */
     }
 %>
-<meta http-equiv="refresh" content="<%=refreshSeconds%>;url=NewUser?processAction=complete&pwmFormID=<pwm:FormID/>">
+<meta http-equiv="refresh" content="<%=refreshSeconds%>;url=<%=PwmServletDefinition.NewUser.servletUrlName()%>?processAction=complete&pwmFormID=<pwm:FormID/>">
 <div id="wrapper">
 
     <jsp:include page="fragment/header-body.jsp">

@@ -89,7 +89,13 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         // user info
-        final UserIdentity userIdentity = new UserIdentity(auditRecord.getPerpetratorDN(),auditRecord.getPerpetratorLdapProfile());
+        final UserIdentity userIdentity;
+        if (auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEvent.Type.HELPDESK) {
+            final HelpdeskAuditRecord helpdeskAuditRecord = (HelpdeskAuditRecord)auditRecord;
+            userIdentity = new UserIdentity(helpdeskAuditRecord.getTargetDN(),helpdeskAuditRecord.getTargetLdapProfile());
+        } else {
+            userIdentity = new UserIdentity(auditRecord.getPerpetratorDN(),auditRecord.getPerpetratorLdapProfile());
+        }
         final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
 
         // settings

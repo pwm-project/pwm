@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.config.profile.NewUserProfile" %>
 <%@ page import="password.pwm.http.servlet.NewUserServlet" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -49,7 +50,7 @@
             <% for (final NewUserProfile profile : newUserProfiles.values()) { %>
             <tr>
                 <td>
-                    <form action="<pwm:url url='NewUser'/>" method="post" class="pwm-form"
+                    <form action="<pwm:url url='<%=PwmServletDefinition.NewUser.servletUrlName()%>'/>" method="post" class="pwm-form"
                           enctype="application/x-www-form-urlencoded" name="search">
                         <button class="btn" type="submit" name="submitBtn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
