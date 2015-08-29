@@ -222,11 +222,18 @@ public class
         // create a new Session object for the message
         final javax.mail.Session session = javax.mail.Session.getInstance(javaMailProps, null);
 
-        final Message message = new MimeMessage(session);
+        final MimeMessage message = new MimeMessage(session);
         message.setFrom();
         message.setFrom(makeInternetAddress(emailItemBean.getFrom()));
         message.setRecipients(Message.RecipientType.TO, new InternetAddress[]{makeInternetAddress(emailItemBean.getTo())});
-        message.setSubject(emailItemBean.getSubject());
+        {
+            final String subjectEncodingCharset = pwmApplication.getConfig().readAppProperty(AppProperty.SMTP_SUBJECT_ENCODING_CHARSET);
+            if (subjectEncodingCharset != null && !subjectEncodingCharset.isEmpty()) {
+                message.setSubject(emailItemBean.getSubject(), subjectEncodingCharset);
+            } else {
+                message.setSubject(emailItemBean.getSubject());
+            }
+        }
         message.setSentDate(new Date());
 
         if (hasPlainText && hasHtml) {

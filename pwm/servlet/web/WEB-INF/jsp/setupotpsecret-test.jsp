@@ -37,7 +37,7 @@
     <div id="centerbody">
         <p><pwm:display key="Display_PleaseVerifyOtp"/></p>
         <%@ include file="fragment/message.jsp" %>
-        <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
+        <form action="<pwm:current-url/>" method="post" name="setupOtpSecret"
               enctype="application/x-www-form-urlencoded" id="setupOtpSecret" class="pwm-form">
             <div style="width:100%; text-align: center">
                 <input type="text" pattern="^[0-9]*$" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield passwordfield" maxlength="<%=otpTokenLength%>" type="text"
@@ -58,7 +58,7 @@
             </div>
         </form>
     </div>
-    <form action="<pwm:url url='SetupOtp'/>" method="post" name="goBackForm"
+    <form action="<pwm:current-url/>" method="post" name="goBackForm"
           enctype="application/x-www-form-urlencoded" id="goBackForm">
         <input type="hidden" name="processAction" value="toggleSeen"/>
         <input type="hidden" id="pwmFormID_" name="pwmFormID" value="<pwm:FormID/>"/>

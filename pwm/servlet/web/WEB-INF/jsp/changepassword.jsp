@@ -49,7 +49,7 @@
         <% } %>
         <br/>
         <%@ include file="fragment/message.jsp" %>
-        <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded" id="changePasswordForm">
+        <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" id="changePasswordForm" autocomplete="off">
             <table style="border:0">
                 <tr>
                     <td style="border:0;">

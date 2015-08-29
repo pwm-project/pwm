@@ -34,8 +34,7 @@
         <p><pwm:display key="Display_ForgottenUsername"/></p>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <br/>
-        <form action="<pwm:url url='ForgottenUsername'/>" method="post" enctype="application/x-www-form-urlencoded"
-              name="searchForm" class="pwm-form" id="searchForm">
+        <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="searchForm" class="pwm-form" id="searchForm" autocomplete="off">
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <jsp:include page="fragment/form.jsp"/>
             <div class="buttonbar">

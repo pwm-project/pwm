@@ -52,6 +52,8 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.regex.Pattern;
 
 /**
@@ -668,6 +670,23 @@ public class
         return new Properties() {
             public synchronized Enumeration<Object> keys() {
                 return Collections.enumeration(new TreeSet<>(super.keySet()));
+            }
+        };
+    }
+
+    public static ThreadFactory makePwmThreadFactory(final String namePrefix, final boolean daemon) {
+        return new ThreadFactory() {
+            private final ThreadFactory realThreadFactory = Executors.defaultThreadFactory();
+
+            @Override
+            public Thread newThread(final Runnable r) {
+                final Thread t = realThreadFactory.newThread(r);
+                t.setDaemon(daemon);
+                if (namePrefix != null) {
+                    final String newName = namePrefix + t.getName();
+                    t.setName(newName);
+                }
+                return t;
             }
         };
     }

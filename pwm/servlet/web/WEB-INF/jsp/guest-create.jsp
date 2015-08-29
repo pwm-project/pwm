@@ -1,4 +1,3 @@
-<%@ page import="java.util.Date" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -26,6 +25,9 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<% final String maxValidDate = (String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.GuestMaximumExpirationDate); %>
+<% final String selectedDate = (String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.GuestCurrentExpirationDate); %>
+<% final String maxValidDays = (String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.GuestMaximumValidDays); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -37,22 +39,9 @@
         <%@ include file="/WEB-INF/jsp/fragment/guest-nav.jsp" %>
         <p><pwm:display key="Display_GuestRegistration"/></p>
 
-        <form action="<pwm:url url='GuestRegistration'/>" method="post" name="newGuest" enctype="application/x-www-form-urlencoded" class="pwm-form">
+        <form action="<pwm:current-url/>" method="post" name="newGuest" enctype="application/x-www-form-urlencoded" class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <jsp:include page="fragment/form.jsp"/>
-            <%
-                final PwmRequest guestPwmRequest = PwmRequest.forRequest(request,response);
-                final long maxValidDays = guestPwmRequest.getConfig().readSettingAsLong(PwmSetting.GUEST_MAX_VALID_DAYS);
-                final GuestRegistrationBean guestRegistrationBean = guestPwmRequest.getPwmSession().getGuestRegistrationBean();
-                if (maxValidDays > 0) {
-                    long futureMS = maxValidDays * 24 * 60 * 60 * 1000;
-                    Date maxValidDate = new Date(new Date().getTime() + (futureMS));
-                    String maxValidDateString = new SimpleDateFormat("yyyy-MM-dd").format(maxValidDate);
-                    String selectedDate = guestRegistrationBean.getFormValues().get(GuestRegistrationServlet.HTTP_PARAM_EXPIRATION_DATE.toString());
-                    if (selectedDate == null || selectedDate.length() <= 0) {
-                        selectedDate = maxValidDateString;
-                    }
-            %>
             <p>
                 <label>
                     <pwm:display key="Display_ExpirationDate" value1="<%=String.valueOf(maxValidDays)%>"/>
@@ -61,24 +50,7 @@
                 </label>
             </p>
             <pwm:script>
-            <script type="text/javascript">
-                PWM_GLOBAL['startupFunctions'].push(function(){
-                    require(["dijit/form/DateTextBox"],function(DateTextBox){
-                        new DateTextBox({
-                            constraints: {
-                                min: new Date(),
-                                max: '<%=maxValidDateString%>'
-                            },
-                            value: '<%=selectedDate%>',
-                            onChange: function(){
-                                PWM_MAIN.getObject('<%=GuestRegistrationServlet.HTTP_PARAM_EXPIRATION_DATE%>').value = this.value;
-                            }
-                        }, "expiredate-stub");
-                    });
-                });
-            </script>
             </pwm:script>
-            <% } %>
 
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="create"/>
@@ -94,11 +66,13 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-    });
-</script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_GUEST.initDatePicker('<%=maxValidDate%>','<%=selectedDate%>');
+        });
+    </script>
 </pwm:script>
+<pwm:script-ref url="/public/resources/js/guest.js"/>
 <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

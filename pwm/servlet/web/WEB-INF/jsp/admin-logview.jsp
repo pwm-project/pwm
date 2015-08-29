@@ -44,7 +44,7 @@
     </jsp:include>
     <div id="centerbody" style="width: 96%; margin-left: 2%; margin-right: 2%; background: white">
         <%@ include file="fragment/admin-nav.jsp" %>
-        <form action="Administration" method="post" enctype="application/x-www-form-urlencoded"
+        <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm" id="searchForm" class="pwm-form">
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             <table style="">

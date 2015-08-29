@@ -26,6 +26,7 @@
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.option.ViewStatusFields" %>
 <%@ page import="password.pwm.event.UserAuditRecord" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
@@ -371,7 +372,7 @@
 <% } %>
 </div>
 <div class="buttonbar">
-    <form action="<pwm:context/>/public/<pwm:url url='CommandServlet'/>" method="post" enctype="application/x-www-form-urlencoded">
+    <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
         <input type="hidden" name="processAction" value="continue"/>
         <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
         <button type="submit" name="button" class="btn" id="button_continue">

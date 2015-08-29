@@ -20,11 +20,9 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.http.JspUtility" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
@@ -40,7 +38,7 @@
                         <span class="fa fa-search"></span>
                     </td>
                     <td style="width:400px">
-                        <input type="search" id="username" name="username" class="helpdesk-input-username" style="width: 400px" <pwm:autofocus/> />
+                        <input type="search" id="username" name="username" class="helpdesk-input-username" style="width: 400px" <pwm:autofocus/> autocomplete="off"/>
                     </td>
                     <td style="width:20px">
                         <div id="searchIndicator" style="display:none">

@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.http.bean.SetupOtpBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -22,10 +21,8 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupOtpBean otpBean = JspUtility.getPwmSession(pageContext).getSetupOtpBean();%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -52,7 +49,7 @@
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
                 <pwm:display key="Button_CheckCode"/>
             </button>
-            <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecretForm" style="display: inline"
+            <form action="<pwm:current-url/>" method="post" name="setupOtpSecretForm" style="display: inline"
                   enctype="application/x-www-form-urlencoded" id="setupOtpSecretForm">
                 <input type="hidden" name="processAction" value="clearOtp"/>
                 <button type="submit" name="Button_Continue" class="btn" id="continue_button">

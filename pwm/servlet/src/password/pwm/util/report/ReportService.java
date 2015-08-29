@@ -55,6 +55,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ReportService implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ReportService.class);
@@ -66,7 +69,7 @@ public class ReportService implements PwmService {
     private boolean cancelFlag = false;
     private ReportStatusInfo reportStatus = new ReportStatusInfo("");
     private ReportSummaryData summaryData = ReportSummaryData.newSummaryData(null);
-    private Timer timer;
+    private ScheduledExecutorService executor;
 
     private UserCacheService userCacheService;
     private ReportSettings settings = new ReportSettings();
@@ -134,21 +137,23 @@ public class ReportService implements PwmService {
 
         reportStatus.setInProgress(false);
 
-        timer = new Timer();
+        executor = Executors.newSingleThreadScheduledExecutor(
+                Helper.makePwmThreadFactory(
+                        Helper.makeThreadName(pwmApplication,this.getClass()) + "-",
+                        true
+                ));
 
-        final Date nextZuluZeroTime = Helper.nextZuluZeroTime();
-        if (settings.getJobOffsetSeconds() >= 0) {
-            final long nextScheduleTime = nextZuluZeroTime.getTime() + (settings.getJobOffsetSeconds() * 1000);
-            timer.scheduleAtFixedRate(new DredgeTask(),new Date(nextScheduleTime), TimeDuration.DAY.getTotalMilliseconds());
-        }
+        final long secondsUntilNextEvent = settings.getJobOffsetSeconds() + TimeDuration.fromCurrent(Helper.nextZuluZeroTime()).getTotalSeconds();
+        executor.scheduleAtFixedRate(new DredgeTask(), secondsUntilNextEvent, TimeDuration.DAY.getTotalSeconds(), TimeUnit.SECONDS);
 
         String startupMsg = "report service started with " + this.userCacheService.size() + " cached records";
         if (summaryData != null && summaryData.getMeanCacheTime() != null) {
             startupMsg += ", mean record timestamp " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(this.summaryData.getMeanCacheTime());
         }
         LOGGER.debug(startupMsg);
-        timer.schedule(new RolloverTask(), 1);
-        timer.scheduleAtFixedRate(new RolloverTask(), nextZuluZeroTime, TimeDuration.DAY.getTotalMilliseconds());
+
+        executor.schedule(new RolloverTask(), 10, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(new RolloverTask(), secondsUntilNextEvent, TimeDuration.DAY.getTotalSeconds(), TimeUnit.SECONDS);
 
         status = STATUS.OPEN;
     }
@@ -156,12 +161,13 @@ public class ReportService implements PwmService {
     @Override
     public void close()
     {
+        status = STATUS.CLOSED;
         saveTempData();
         pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG, "true");
         if (userCacheService != null) {
             userCacheService.close();
         }
-        status = STATUS.CLOSED;
+        executor.shutdown();
     }
 
     private void saveTempData() {
@@ -178,9 +184,7 @@ public class ReportService implements PwmService {
     {
         final String cleanFlag = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG);
         if (!"true".equals(cleanFlag)) {
-            LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL,"did not shut down cleanly, will clear cached report data");
-            clear();
-            return;
+            LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL, "did not shut down cleanly");
         }
 
         try {
@@ -216,7 +220,8 @@ public class ReportService implements PwmService {
 
     public void scheduleImmediateUpdate() {
         if (!reportStatus.isInProgress()) {
-            timer.schedule(new DredgeTask(),1);
+            executor.submit(new DredgeTask());
+            LOGGER.trace("submitted new ldap dredge task to executor");
         }
     }
 
@@ -276,23 +281,13 @@ public class ReportService implements PwmService {
 
     private void updateRestingCacheData() {
         final long startTime = System.currentTimeMillis();
-        final Timer timer = new Timer(Helper.makeThreadName(this.pwmApplication,ReportService.class) + " - cache review process");
-        final Map<Integer,Integer> examinedRecordHolder = new HashMap<>(); // needed for inner class access, its just for debug log so concurrency not required
-        examinedRecordHolder.put(0, 0);
         int examinedRecords = 0;
         ClosableIterator<UserCacheRecord> iterator = null;
         try {
             iterator = iterator();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    final TimeDuration progressDuration = TimeDuration.fromCurrent(startTime);
-                    final int count = examinedRecordHolder.get(0);
-                    LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,"cache review process in progress, examined "
-                            + count + " records in " + progressDuration.asCompactString());
-                }
-            }, 30 * 1000, 30 * 1000);
             LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL, "beginning cache review process");
+
+            Date lastLogOutputTime = new Date();
             while (iterator.hasNext() && status == STATUS.OPEN) {
                 final UserCacheRecord record = iterator.next(); // (purge routine is embedded in next();
 
@@ -301,13 +296,18 @@ public class ReportService implements PwmService {
                 }
 
                 examinedRecords++;
-                examinedRecordHolder.put(0, examinedRecords);
+
+                if (TimeDuration.fromCurrent(lastLogOutputTime).isLongerThan(30, TimeUnit.SECONDS)) {
+                    final TimeDuration progressDuration = TimeDuration.fromCurrent(startTime);
+                    LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,"cache review process in progress, examined "
+                            + examinedRecords + " records in " + progressDuration.asCompactString());
+                    lastLogOutputTime = new Date();
+                }
             }
             final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
             LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,
                     "completed cache review process of " + examinedRecords + " cached report records in " + totalTime.asCompactString());
         } finally {
-            timer.cancel();
             if (iterator != null) {
                 iterator.close();
             }
@@ -599,7 +599,7 @@ public class ReportService implements PwmService {
         return summaryData;
     }
 
-    private class DredgeTask extends TimerTask {
+    private class DredgeTask implements Runnable {
         @Override
         public void run()
         {
@@ -608,12 +608,14 @@ public class ReportService implements PwmService {
             } catch (Exception e) {
                 if (e instanceof PwmException) {
                     if (((PwmException) e).getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE) {
-                        if (timer != null) {
-                            timer.schedule(new DredgeTask(),10 * 60 * 1000);
+                        if (executor != null) {
+                            LOGGER.error("directory unavailable error during background DredgeTask, will retry; error: " + e.getMessage());
+                            executor.schedule(new DredgeTask(), 10, TimeUnit.MINUTES);
                         }
+                    } else {
+                        LOGGER.error("error during background DredgeTask: " + e.getMessage());
                     }
                 }
-                LOGGER.warn(PwmConstants.REPORTING_SESSION_LABEL,"unable to dredge ldap due to error: " + e.getMessage());
             }
         }
     }
@@ -670,5 +672,4 @@ public class ReportService implements PwmService {
         }
         return 0;
     }
-
 }

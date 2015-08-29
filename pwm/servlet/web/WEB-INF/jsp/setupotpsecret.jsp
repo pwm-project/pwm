@@ -81,8 +81,7 @@
             </div>
         </div>
         <div class="buttonbar">
-            <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
-                  enctype="application/x-www-form-urlencoded" id="setupOtpSecret" class="pwm-form">
+            <form action="<pwm:current-url/>" method="post" name="setupOtpSecret" enctype="application/x-www-form-urlencoded" id="setupOtpSecret" class="pwm-form">
                 <input type="hidden" name="processAction" value="toggleSeen"/>
                 <button type="submit" name="continue" class="btn" id="continuebutton">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
@@ -90,8 +89,7 @@
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret-skip"
-                  enctype="application/x-www-form-urlencoded" id="setupOtpSecret-skip" class="pwm-form">
+            <form action="<pwm:current-url/>" method="post" name="setupOtpSecret-skip" enctype="application/x-www-form-urlencoded" id="setupOtpSecret-skip" class="pwm-form">
                 <input type="hidden" name="processAction" value="skip"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                 <% if (forcedPageView) { %>

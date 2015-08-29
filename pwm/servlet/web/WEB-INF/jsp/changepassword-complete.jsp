@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -36,7 +37,7 @@
         <br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div class="buttonbar">
-            <form action="<pwm:url url='/public/CommandServlet' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
+            <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
                     <input type="hidden" name="processAction" value="continue"/>
                     <button type="submit" name="button" class="btn" id="submitBtn">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>

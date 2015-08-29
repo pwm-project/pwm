@@ -62,7 +62,7 @@
 
         </table>
         <div class="buttonbar">
-            <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded" class="pwm-form">
+            <form style="display: inline" action="<pwm:current-url/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <button id="confirmBtn" type="submit" class="btn" name="button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
                     <pwm:display key="Button_Confirm"/>
@@ -70,7 +70,7 @@
                 <input type="hidden" name="processAction" value="confirm"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded"
+            <form style="display: inline" action="<pwm:current-url/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded"
                   class="pwm-form">
                 <button id="gobackBtn" type="submit" class="btn" name="button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>

@@ -240,7 +240,7 @@ PWM_PS.convertOrgChartDataToOrgChartHtml = function(data) {
         }
         if (PWM_VAR['peoplesearch_enablePhoto']) {
             var blankSrc = PWM_MAIN.addPwmFormIDtoURL(PWM_GLOBAL['url-resources'] + '/UserPhoto.png');
-            output += '<div id="panel-userPhoto-' + userKey + '">';
+            output += '<div class="panel-orgChart-userPhoto" id="panel-userPhoto-' + userKey + '">';
             output += '<img class="img-orgChart-userPhoto" src="' + blankSrc + '">';
             output += '</div>';
         }

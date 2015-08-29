@@ -35,7 +35,7 @@
         <p><pwm:display key="Display_UpdateProfile"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfileForm" enctype="application/x-www-form-urlencoded"
+        <form action="<pwm:current-url/>" method="post" name="updateProfileForm" enctype="application/x-www-form-urlencoded" autocomplete="off"
               class="pwm-form" id="updateProfileForm">
 
             <jsp:include page="fragment/form.jsp"/>

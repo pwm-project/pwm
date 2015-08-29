@@ -41,8 +41,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
     <div id="centerbody">
         <p><pwm:display key="Display_RecoverPassword"/></p>
 
-        <form name="responseForm" action="<pwm:url url='<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>'/>" method="post"
-              enctype="application/x-www-form-urlencoded" class="pwm-form">
+        <form name="responseForm" action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" autocomplete="off">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
             <% // loop through challenges

@@ -63,7 +63,7 @@
             </tr>
         </table>
         <div class="buttonbar">
-            <form action="<pwm:url url='SetupOtp'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
+            <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <% try { JspUtility.getPwmSession(pageContext).getSessionStateBean().setSessionSuccess(null,null); } catch (Exception e) {} %>
                 <div class="buttonbar">
                     <input type="hidden" name="processAction" value="complete"/>

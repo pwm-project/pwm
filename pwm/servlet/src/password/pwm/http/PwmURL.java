@@ -27,6 +27,7 @@ import password.pwm.http.servlet.PwmServletDefinition;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
+import java.util.*;
 
 public class PwmURL {
     private URI uri;
@@ -165,5 +166,19 @@ public class PwmURL {
         }
 
         return false;
+    }
+
+    public static List<String> splitPathString(final String input) {
+        if (input == null) {
+            return Collections.emptyList();
+        }
+        final List<String> urlSegments = new ArrayList<>(Arrays.asList(input.split("/")));
+        for (Iterator<String> iterator = urlSegments.iterator(); iterator.hasNext(); ) {
+            final String segment = iterator.next();
+            if (segment == null || segment.isEmpty()) {
+                iterator.remove();
+            }
+        }
+        return urlSegments;
     }
 }

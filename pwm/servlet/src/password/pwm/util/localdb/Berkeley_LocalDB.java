@@ -141,8 +141,12 @@ public class Berkeley_LocalDB implements LocalDBProvider {
             status = LocalDB.Status.CLOSED;
 
             for (final BerkeleyDbIterator localDBIterator : dbIterators) {
-                LOGGER.trace("closing outstanding iterator for db " + localDBIterator.getDb() + " due to truncate command");
-                localDBIterator.close();
+                LOGGER.trace("closing outstanding iterator for db " + localDBIterator.getDb() + " due to LocalDB.close command");
+                try {
+                    localDBIterator.close();
+                } catch (Throwable e) {
+                    LOGGER.error("error closing outstanding iterator for db " + localDBIterator.getDb() + " during close, error: " + e.getMessage());
+                }
             }
 
 

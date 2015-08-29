@@ -39,7 +39,7 @@
         <br/><br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div class="buttonbar">
-            <form action="<pwm:url url='ActivateUser'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" style="display: inline;">
+            <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" style="display: inline;">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
                 <label class="checkboxWrapper">
                     <input type="checkbox" id="agreeCheckBox"/>
@@ -53,8 +53,7 @@
                 </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <form action="<pwm:context/>/public/<pwm:url url='ActivateUser'/>" method="post"
-                  enctype="application/x-www-form-urlencoded" style="display: inline;">
+            <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" style="display: inline;">
                 <input type="hidden" name="processAction" value="reset"/>
                 <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

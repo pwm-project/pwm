@@ -289,6 +289,11 @@
         <default>
             <value />
         </default>
+        <options>
+            <option value="types">[]</option>
+            <option value="required">hide</option>
+            <option value="hideOptions">true</option>
+        </options>
     </setting>
     <setting key="password.change.requireCurrent" level="1" required="true">
         <default>
@@ -2167,7 +2172,7 @@
     </setting>
     <setting key="guest.adminGroup" level="1" required="true">
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=GuestAdministrators,ou=groups,o=example"}]]></value>
+            <value/>
         </default>
     </setting>
     <setting key="guest.form" level="1" required="true">
@@ -3018,13 +3023,7 @@
     </setting>
     <setting key="webservices.queryMatch" level="2">
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=WebServiceUsers,ou=Groups,o=example"}]]></value>
-        </default>
-        <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=WebServiceUsers,cn=Users,DC=site,DC=example,DC=net"}]]></value>
-        </default>
-        <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=WebServiceUsers,cn=Users,DC=site,DC=example,DC=net"}]]></value>
+            <value/>
         </default>
         <default syntaxVersion="2" template="NOVL_IDM">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
@@ -3032,13 +3031,7 @@
     </setting>
     <setting key="webservices.thirdParty.queryMatch" level="2">
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=ThirdPartyWebServiceUsers,ou=Groups,o=example"}]]></value>
-        </default>
-        <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=ThirdPartyWebServiceUsers,cn=Users,DC=site,DC=example,DC=net"}]]></value>
-        </default>
-        <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=ThirdPartyWebServiceUsers,cn=Users,DC=site,DC=example,DC=net"}]]></value>
+            <value/>
         </default>
     </setting>
     <setting key="external.macros.urls" level="2">

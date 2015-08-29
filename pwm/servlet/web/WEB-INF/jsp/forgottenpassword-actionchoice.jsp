@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -37,8 +36,7 @@
         <table class="noborder">
             <tr>
                 <td>
-                    <form action="<pwm:url url='<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>'/>" method="post"
-                          enctype="application/x-www-form-urlencoded" name="search">
+                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
                         <button class="btn" type="submit" name="submitBtn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
                             <pwm:display key="Button_UnlockPassword"/>
@@ -59,8 +57,7 @@
             </tr>
             <tr>
                 <td>
-                    <form action="<pwm:url url='<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>'/>" method="post"
-                          enctype="application/x-www-form-urlencoded" name="search">
+                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
                         <button class="btn" type="submit" name="submitBtn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-key"></span></pwm:if>
                             <pwm:display key="Button_ChangePassword"/>

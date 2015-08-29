@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.PwmIfTag" %>
@@ -152,7 +151,7 @@
             <pwm:if test="permission" arg1="GUEST_REGISTRATION">
                 <tr>
                     <td class="menubutton_key">
-                        <a class="menubutton" href="<pwm:url url='GuestRegistration'/>">
+                        <a class="menubutton" href="<pwm:url url='<%=PwmServletDefinition.GuestRegistration.servletUrl()%>' addContext="true"/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-group"></span></pwm:if>
                             <pwm:display key="Title_GuestRegistration"/>
                         </a>

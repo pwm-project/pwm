@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -34,7 +33,7 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:display key="Display_ForgottenPassword"/></p>
-        <form action="<pwm:url url='<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>'/>" method="post" enctype="application/x-www-form-urlencoded"
+        <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" autocomplete="off"
               name="searchForm" class="pwm-form" id="searchForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
@@ -59,7 +58,7 @@
     </div>
     <div class="push"></div>
 </div>
-<form id="form-cancelButton" action="<pwm:url url='<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>'/>" method="post">
+<form id="form-cancelButton" action="<pwm:current-url/>" method="post">
     <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 </form>

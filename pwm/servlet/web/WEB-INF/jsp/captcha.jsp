@@ -51,7 +51,7 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <div id="captcha-loading" class="WaitDialogBlank"></div>
-        <form action="<pwm:url url='Captcha'/>" method="post" enctype="application/x-www-form-urlencoded" id="verifyCaptcha" name="verifyCaptcha" class="pwm-form">
+        <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" id="verifyCaptcha" name="verifyCaptcha" class="pwm-form">
             <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
 
             <center>

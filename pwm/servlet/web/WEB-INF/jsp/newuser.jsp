@@ -37,7 +37,7 @@
         <p><pwm:display key="Display_NewUser"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <form action="<pwm:url url='<%=PwmServletDefinition.NewUser.servletUrlName()%>'/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded"
+        <form action="<pwm:current-url/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded" autocomplete="off"
               id="newUserForm" class="pwm-form">
             <jsp:include page="fragment/form.jsp"/>
             <div class="buttonbar">

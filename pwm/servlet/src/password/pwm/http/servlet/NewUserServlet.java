@@ -46,6 +46,7 @@ import password.pwm.event.AuditEvent;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.PwmURL;
 import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.http.bean.NewUserBean;
 import password.pwm.i18n.Message;
@@ -310,22 +311,25 @@ public class NewUserServlet extends AbstractPwmServlet {
     }
 
     protected boolean readProfileFromUrl(final PwmRequest pwmRequest, final NewUserBean newUserBean) throws ChaiUnavailableException, PwmUnrecoverableException, ServletException, IOException {
-        final String PROFILE_URL_SEGMENT = "/profile/";
-        final String uriRemainder = PwmServletDefinition.NewUser.uriRemainder(pwmRequest);
+        final String PROFILE_URL_SEGMENT = "profile";
+        final String urlRemainder = servletUriRemainder(pwmRequest, PROFILE_URL_SEGMENT);
 
-        if (uriRemainder.startsWith(PROFILE_URL_SEGMENT)) {
-            final String requestedProfile = uriRemainder.substring(PROFILE_URL_SEGMENT.length(), uriRemainder.length());
-            final Collection<String> profileIDs = pwmRequest.getConfig().getNewUserProfiles().keySet();
-            if (profileIDs.contains(requestedProfile)) {
-                LOGGER.debug(pwmRequest, "detected profile on request uri: " + requestedProfile);
-                newUserBean.setProfileID(requestedProfile);
-                newUserBean.setUrlSpecifiedProfile(true);
-                pwmRequest.sendRedirect(PwmServletDefinition.NewUser);
-                return true;
-            } else {
-                final String errorMsg = "unknown requested new user profile";
-                LOGGER.debug(pwmRequest, errorMsg + ": " + requestedProfile);
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
+        if (urlRemainder != null && !urlRemainder.isEmpty()) {
+            final List<String> urlSegments = PwmURL.splitPathString(urlRemainder);
+            if (urlSegments.size() == 2 && PROFILE_URL_SEGMENT.equals(urlSegments.get(0))) {
+                final String requestedProfile = urlSegments.get(1);
+                final Collection<String> profileIDs = pwmRequest.getConfig().getNewUserProfiles().keySet();
+                if (profileIDs.contains(requestedProfile)) {
+                    LOGGER.debug(pwmRequest, "detected profile on request uri: " + requestedProfile);
+                    newUserBean.setProfileID(requestedProfile);
+                    newUserBean.setUrlSpecifiedProfile(true);
+                    pwmRequest.sendRedirect(PwmServletDefinition.NewUser);
+                    return true;
+                } else {
+                    final String errorMsg = "unknown requested new user profile";
+                    LOGGER.debug(pwmRequest, errorMsg + ": " + requestedProfile);
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
+                }
             }
         }
         return false;

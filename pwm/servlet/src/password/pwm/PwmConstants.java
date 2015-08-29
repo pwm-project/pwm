@@ -166,6 +166,10 @@ public abstract class PwmConstants {
         ForgottenPasswordPrompts,
         ForgottenPasswordInstructions,
 
+        GuestCurrentExpirationDate,
+        GuestMaximumExpirationDate,
+        GuestMaximumValidDays,
+
         NewUser_FormShowBackButton,
     }
 

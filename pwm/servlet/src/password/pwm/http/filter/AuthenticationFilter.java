@@ -74,6 +74,12 @@ public class AuthenticationFilter extends AbstractPwmFilter {
     )
             throws IOException, ServletException
     {
+        final PwmURL pwmURL = pwmRequest.getURL();
+        if (pwmURL.isPublicUrl() && !pwmURL.isLoginServlet()) {
+            chain.doFilter();
+            return;
+        }
+
 
         try {
             final PwmApplication pwmApplication = pwmRequest.getPwmApplication();

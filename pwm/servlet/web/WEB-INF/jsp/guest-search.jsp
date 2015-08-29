@@ -34,7 +34,7 @@
         <%@ include file="fragment/guest-nav.jsp"%>
         <p><pwm:display key="Display_GuestUpdate"/></p>
                                                                                       
-        <form action="<pwm:url url='GuestRegistration'/>" method="post" enctype="application/x-www-form-urlencoded" name="searchForm" class="pwm-form" id="searchForm">
+        <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="searchForm" class="pwm-form" id="searchForm">
             <%@ include file="fragment/message.jsp" %>
             <h2><label for="username"><pwm:display key="Field_Username"/></label></h2>
             <input type="text" id="username" name="username" class="inputfield"/>

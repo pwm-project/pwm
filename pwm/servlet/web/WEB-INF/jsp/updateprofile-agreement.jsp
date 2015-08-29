@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -36,7 +37,7 @@
         <% final String expandedText = (String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.AgreementText); %>
         <div class="agreementText"><%= expandedText %></div>
         <div class="buttonbar">
-            <form action="<pwm:url url='UpdateProfile'/>" method="post" enctype="application/x-www-form-urlencoded">
+            <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
                 <label class="checkboxWrapper">
                     <input type="checkbox" id="agreeCheckBox"/>
@@ -51,8 +52,7 @@
                 </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <form action="<pwm:context/>/public/<pwm:url url='Logout'/>" method="post"
-                  enctype="application/x-www-form-urlencoded">
+            <form action="<pwm:url url='<%=PwmServletDefinition.Logout.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
                 <button type="submit" name="button" class="btn" id="button_logout">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
                     <pwm:display key="Button_Logout"/>

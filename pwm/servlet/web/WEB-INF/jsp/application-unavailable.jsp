@@ -25,9 +25,7 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<%
-    final ErrorInformation startupError = (ErrorInformation)request.getAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo.toString());
-%>
+<% final ErrorInformation startupError = (ErrorInformation)request.getAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo.toString()); %>
 <html>
 <head>
     <title><%=PwmConstants.PWM_APP_NAME%></title>
@@ -35,7 +33,7 @@
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
     <meta http-equiv="X-UA-Compatible" content="IE=10; IE=9; IE=8; IE=7" />
     <link rel="icon" type="image/x-icon" href="<pwm:context/>/public/resources/favicon.ico"/>
-    <link href="<pwm:context/>/public/resources/style.css" rel="stylesheet" type="text/css" media="screen"/>
+    <link href="<%=request.getContextPath()%>/public/resources/style.css" rel="stylesheet" type="text/css" media="screen"/>
         <script type="text/javascript">
         </script>
 </head>

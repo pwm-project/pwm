@@ -74,7 +74,7 @@
                         <pwm:display key="Notice_ReportSummary" bundle="Admin"/>
                     </div>
                     <div style="text-align: center">
-                        <form action="<pwm:url url="Administration"/>" method="post">
+                        <form action="<pwm:current-url/>" method="post">
                             <button type="submit" class="btn" id="button-downloadUserSummaryCsv">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
@@ -95,7 +95,7 @@
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                             <pwm:display key="Button_Refresh" bundle="Admin"/>
                         </button>
-                        <form action="<pwm:url url="Administration"/>" method="post">
+                        <form action="<pwm:current-url/>" method="post">
                             <button type="submit" class="btn" id="button-downloadUserReportCsv">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
@@ -159,7 +159,7 @@
                         <table>
                             <tr>
                                 <td colspan="10" style="text-align: center">
-                                    <form action="<pwm:url url='Administration'/>" method="GET" enctype="application/x-www-form-urlencoded"
+                                    <form action="<pwm:current-url/>" method="GET" enctype="application/x-www-form-urlencoded"
                                           name="statsUpdateForm" id="statsUpdateForm">
                                         <select name="statsPeriodSelect"
                                                 style="width: 500px;" data-dojo-props="maxHeight: -1">
@@ -199,7 +199,7 @@
                         <pwm:display key="Notice_EventStatistics" bundle="Admin"/>
                     </div>
                     <div style="text-align: center">
-                        <form action="Administration" method="post" enctype="application/x-www-form-urlencoded">
+                        <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                             <button type="submit" class="btn" id="button-downloadStatisticsLogCsv">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
                                 <pwm:display key="Button_DownloadCSV" bundle="Admin"/>

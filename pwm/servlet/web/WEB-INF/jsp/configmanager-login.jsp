@@ -43,7 +43,7 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <form action="<pwm:url url='ConfigManager'/>" method="post" id="configLogin" name="configLogin" enctype="application/x-www-form-urlencoded"
+        <form action="<pwm:current-url/>" method="post" id="configLogin" name="configLogin" enctype="application/x-www-form-urlencoded"
               class="pwm-form">
             <h1>Configuration Password</h1>
             <br class="clear"/>

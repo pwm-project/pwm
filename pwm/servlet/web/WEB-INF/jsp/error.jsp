@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -49,8 +50,7 @@
         <pwm:if test="showErrorDetail">
         <% if (errorInformation != null && !errorInformation.getError().isErrorIsPermanent()) { %>
         <div class="buttonbar">
-            <form action="<pwm:context/>/public/<pwm:url url='CommandServlet'/>" method="post"
-                  enctype="application/x-www-form-urlencoded">
+            <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
                 <input type="hidden" name="processAction" value="continue"/>
                 <button type="submit" name="button" class="btn" id="button_continue" autofocus="autofocus">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>

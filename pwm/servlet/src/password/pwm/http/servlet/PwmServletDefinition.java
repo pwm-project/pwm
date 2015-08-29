@@ -25,7 +25,6 @@ package password.pwm.http.servlet;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerWordlistServlet;
 
@@ -48,6 +47,7 @@ public enum PwmServletDefinition {
     Helpdesk(password.pwm.http.servlet.helpdesk.HelpdeskServlet.class),
     Shortcuts(password.pwm.http.servlet.ShortcutServlet.class),
     PeopleSearch(password.pwm.http.servlet.peoplesearch.PeopleSearchServlet.class),
+    GuestRegistration(password.pwm.http.servlet.GuestRegistrationServlet.class),
 
     Admin(password.pwm.http.servlet.AdminServlet.class),
     ConfigGuide(password.pwm.http.servlet.ConfigGuideServlet.class),
@@ -64,8 +64,11 @@ public enum PwmServletDefinition {
 
     private final String[] patterns;
     private final String servletUrl;
+    private final Class<? extends PwmServlet> pwmServletClass;
 
     PwmServletDefinition(final Class<? extends PwmServlet> pwmServletClass) {
+        this.pwmServletClass = pwmServletClass;
+
         try {
             this.patterns = getWebServletAnnotation(pwmServletClass).urlPatterns();
         } catch (Exception e) {
@@ -89,6 +92,10 @@ public enum PwmServletDefinition {
         return patterns[0];
     }
 
+    public Class<? extends PwmServlet> getPwmServletClass() {
+        return pwmServletClass;
+    }
+
     private WebServlet getWebServletAnnotation(Class<? extends PwmServlet> pwmServletClass) throws PwmUnrecoverableException {
         for (Annotation annotation : pwmServletClass.getDeclaredAnnotations()) {
             if (annotation instanceof WebServlet) {
@@ -99,17 +106,5 @@ public enum PwmServletDefinition {
         throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"missing WebServlet annotation for class " + this.getClass().getName()));
     }
 
-    public String uriRemainder(PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        String uri = pwmRequest.getURLwithoutQueryString();
-        if (uri.startsWith(pwmRequest.getContextPath())) {
-            uri = uri.substring(pwmRequest.getContextPath().length(), uri.length());
-        }
-        for (final String servletUri : urlPatterns()) {
-            if (uri.startsWith(servletUri)) {
-                uri = uri.substring(servletUri.length(), uri.length());
-            }
-        }
-        return uri;
-    }
 
 }

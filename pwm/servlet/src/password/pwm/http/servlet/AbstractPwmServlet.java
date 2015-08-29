@@ -255,7 +255,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             throws PwmUnrecoverableException;
 
     public interface ProcessAction {
-        public Collection<HttpMethod> permittedMethods();
+        Collection<HttpMethod> permittedMethods();
     }
 
     public static final Collection<HttpMethod> GET_AND_POST_METHODS;
@@ -265,5 +265,28 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         methods.add(HttpMethod.GET);
         methods.add(HttpMethod.POST);
         GET_AND_POST_METHODS = Collections.unmodifiableSet(methods);
+    }
+
+    public String servletUriRemainder(PwmRequest pwmRequest, String command) throws PwmUnrecoverableException {
+        String uri = pwmRequest.getURLwithoutQueryString();
+        if (uri.startsWith(pwmRequest.getContextPath())) {
+            uri = uri.substring(pwmRequest.getContextPath().length(), uri.length());
+        }
+        for (final String servletUri : getServletDefinition().urlPatterns()) {
+            if (uri.startsWith(servletUri)) {
+                uri = uri.substring(servletUri.length(), uri.length());
+            }
+        }
+        return uri;
+    }
+
+    protected PwmServletDefinition getServletDefinition() {
+        for (final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values()) {
+            final Class pwmServletClass = pwmServletDefinition.getPwmServletClass();
+            if (pwmServletClass.isInstance(this) ) {
+                return pwmServletDefinition;
+            }
+        }
+        throw new IllegalStateException("unable to determine PwmServletDefinition for class " + this.getClass().getTypeName());
     }
 }

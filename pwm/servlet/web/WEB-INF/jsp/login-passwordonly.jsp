@@ -33,8 +33,7 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:display key="Display_LoginPasswordOnly"/></p>
-        <form action="<pwm:url url='Login'/>" method="post" name="login-password" enctype="application/x-www-form-urlencoded" id="login-password"
-              class="pwm-form">
+        <form action="<pwm:current-url/>" method="post" name="login-password" enctype="application/x-www-form-urlencoded" id="login-password" autocomplete="off" class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="password"><pwm:display key="Field_Password"/></label></h2>
             <input type="<pwm:value name="passwordFieldType"/>" name="password" id="password" class="inputfield passwordfield" <pwm:autofocus/> />

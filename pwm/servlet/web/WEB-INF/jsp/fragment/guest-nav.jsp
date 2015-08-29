@@ -32,7 +32,7 @@
 <br/>
 <div style="text-align: center">
     <% boolean selected = currentPage == GuestRegistrationServlet.Page.create; %>
-    <form action="GuestRegistration" method="post" enctype="application/x-www-form-urlencoded" id="dashboard" name="dashboard">
+    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" id="dashboard" name="dashboard">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-user-plus"></span></pwm:if>
             <pwm:display key="Title_GuestRegistration"/>
@@ -42,7 +42,7 @@
         <input type="hidden" name="page" value="create"/>
     </form>
     <% selected = currentPage == GuestRegistrationServlet.Page.search; %>
-    <form action="GuestRegistration" method="post" enctype="application/x-www-form-urlencoded" id="activity" name="activity">
+    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" id="activity" name="activity">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-calendar"></span></pwm:if>
             <pwm:display key="Title_GuestUpdate"/>

@@ -44,10 +44,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
-import password.pwm.config.profile.HelpdeskProfile;
-import password.pwm.config.profile.LdapProfile;
-import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.config.profile.*;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.HelpdeskAuditRecord;
@@ -502,6 +499,13 @@ public class PasswordUtility {
         // send password
         final boolean sendPassword = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_SEND_PASSWORD);
         if (sendPassword) {
+            final MessageSendMethod messageSendMethod;
+            {
+                final String profileID = ProfileUtility.discoverProfileIDforUser(pwmApplication, sessionLabel, userIdentity, ProfileType.ForgottenPassword);
+                final ForgottenPasswordProfile forgottenPasswordProfile = pwmApplication.getConfig().getForgottenPasswordProfiles().get(profileID);
+                messageSendMethod = forgottenPasswordProfile.readSettingAsEnum(PwmSetting.RECOVERY_TOKEN_SEND_METHOD, MessageSendMethod.class);
+
+            }
             final UserDataReader userDataReader = new LdapUserDataReader(userIdentity, chaiUser);
             final LoginInfoBean loginInfoBean = new LoginInfoBean();
             loginInfoBean.setUserCurrentPassword(newPassword);
@@ -512,7 +516,7 @@ public class PasswordUtility {
                     macroMachine,
                     newPassword,
                     pwmSession.getSessionStateBean().getLocale(),
-                    MessageSendMethod.EMAILONLY
+                    messageSendMethod
             );
         }
     }

@@ -50,7 +50,7 @@
             <% for (final NewUserProfile profile : newUserProfiles.values()) { %>
             <tr>
                 <td>
-                    <form action="<pwm:url url='<%=PwmServletDefinition.NewUser.servletUrlName()%>'/>" method="post" class="pwm-form"
+                    <form action="<pwm:current-url/>" method="post" class="pwm-form"
                           enctype="application/x-www-form-urlencoded" name="search">
                         <button class="btn" type="submit" name="submitBtn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
@@ -67,7 +67,7 @@
         <br/>
         <div class="buttonbar">
             <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-            <form action="<pwm:url url='/public/CommandServlet' addContext="true"/>" method="get"
+            <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="get"
                   enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
                 <button class="btn" type="submit" name="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>

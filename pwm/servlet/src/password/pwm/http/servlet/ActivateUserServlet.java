@@ -70,8 +70,8 @@ import java.util.*;
 @WebServlet(
         name="ActivateUserServlet",
         urlPatterns = {
-                PwmConstants.URL_PREFIX_PUBLIC + "/activateuser",
-                PwmConstants.URL_PREFIX_PUBLIC + "/activateuser/*",
+                PwmConstants.URL_PREFIX_PUBLIC + "/activate",
+                PwmConstants.URL_PREFIX_PUBLIC + "/activate/*",
                 PwmConstants.URL_PREFIX_PUBLIC + "/ActivateUser",
                 PwmConstants.URL_PREFIX_PUBLIC + "/ActivateUser/*",
         }
@@ -111,7 +111,6 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             return null;
         }
     }
-
 
 
     protected void processAction(final PwmRequest pwmRequest)

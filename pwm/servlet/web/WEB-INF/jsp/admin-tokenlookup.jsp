@@ -1,7 +1,6 @@
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.error.PwmOperationalException" %>
-<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.token.TokenPayload" %>
 <%@ page import="java.util.Iterator" %>
 <%--
@@ -160,7 +159,7 @@
         </table>
         <br/>
         <% } %>
-        <form id="tokenForm" action="Administration" method="post">
+        <form id="tokenForm" action="<pwm:current-url/>" method="post">
             <textarea name="token" id="token" style="width: 580px; height: 150px"></textarea>
             <div class="buttonbar">
                 <button type="submit" name="submitBtn" class="btn" type="submit">

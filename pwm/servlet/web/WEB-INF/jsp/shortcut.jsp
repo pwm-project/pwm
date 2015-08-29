@@ -56,7 +56,7 @@
             <% for (final ShortcutItem item : shortcutItems.values()) { %>
             <tr>
                 <td class="menubutton_key">
-                    <form action="<pwm:url url='Shortcuts'/>" method="post" name="form-shortcuts-<%=item%>" enctype="application/x-www-form-urlencoded" id="form-shortcuts-<%=item%>" <%=newWindow ? " target=\"_blank\"" : ""%>>
+                    <form action="<pwm:current-url/>" method="post" name="form-shortcuts-<%=item%>" enctype="application/x-www-form-urlencoded" id="form-shortcuts-<%=item%>" <%=newWindow ? " target=\"_blank\"" : ""%>>
                         <input type="hidden" name="processAction" value="selectShortcut">
                         <input type="hidden" name="link" value="<%=item.getLabel()%>">
                         <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

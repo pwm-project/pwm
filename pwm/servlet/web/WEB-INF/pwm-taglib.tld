@@ -229,6 +229,12 @@
             <rtexprvalue>true</rtexprvalue>
         </attribute>
     </tag>
+    <tag>
+        <name>current-url</name>
+        <tag-class>password.pwm.http.tag.CurrentUrlTag</tag-class>
+        <body-content>empty</body-content>
+        <description>External Script Reference</description>
+    </tag>
 </taglib>
 
 

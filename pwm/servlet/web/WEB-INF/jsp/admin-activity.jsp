@@ -100,7 +100,7 @@
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
-                    <form action="Administration" method="post" enctype="application/x-www-form-urlencoded">
+                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                         <button type="submit" class="btn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
                             <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
@@ -121,7 +121,7 @@
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
-                    <form action="Administration" method="post" enctype="application/x-www-form-urlencoded">
+                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                         <button type="submit" class="btn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
                             <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
@@ -142,7 +142,7 @@
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
-                    <form action="Administration" method="post" enctype="application/x-www-form-urlencoded">
+                    <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                         <button type="submit" class="btn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
                             <pwm:display key="Button_DownloadCSV" bundle="Admin"/>

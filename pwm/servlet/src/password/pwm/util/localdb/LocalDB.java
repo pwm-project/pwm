@@ -116,9 +116,9 @@ public interface LocalDB {
         PWM_META(true),
         SHAREDHISTORY_META(true),
         SHAREDHISTORY_WORDS(true),
-        WORDLIST_META(true),
+        // WORDLIST_META(true), // @deprecated
         WORDLIST_WORDS(true),
-        SEEDLIST_META(true),
+        // SEEDLIST_META(true), // @deprecated
         SEEDLIST_WORDS(true),
         PWM_STATS(true),
         EVENTLOG_EVENTS(true),

@@ -33,10 +33,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmResponse;
-import password.pwm.http.PwmSession;
-import password.pwm.http.PwmURL;
+import password.pwm.http.*;
 import password.pwm.util.Helper;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.StringUtil;
@@ -267,7 +264,7 @@ public class SessionFilter extends AbstractPwmFilter {
             return false;
         }
 
-        final String keyFromRequest = pwmRequest.readParameterAsString(PwmConstants.PARAM_VERIFICATION_KEY);
+        final String keyFromRequest = pwmRequest.readParameterAsString(PwmConstants.PARAM_VERIFICATION_KEY, PwmHttpRequestWrapper.Flag.BypassValidation);
 
         // request doesn't have key, so make a new one, store it in the session, and redirect back here with the new key.
         if (keyFromRequest == null || keyFromRequest.length() < 1) {

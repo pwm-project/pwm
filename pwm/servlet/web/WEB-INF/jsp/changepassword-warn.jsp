@@ -50,7 +50,7 @@
         </p>
 
         <div class="buttonbar">
-            <form action="<pwm:url url='ChangePassword'/>" method="post"
+            <form action="<pwm:current-url/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <input type="hidden" name="processAction" value="warnResponse"/>
                 <input type="hidden" name="warnResponse" value="change"/>
@@ -61,7 +61,7 @@
                 </button>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <form action="<pwm:url url='ChangePassword'/>" method="post" name="setupOtpSecret-skip"
+            <form action="<pwm:current-url/>" method="post" name="setupOtpSecret-skip"
                   enctype="application/x-www-form-urlencoded" id="setupOtpSecret-skip" class="pwm-form">
                 <input type="hidden" name="processAction" value="warnResponse"/>
                 <input type="hidden" name="warnResponse" value="skip"/>
@@ -69,7 +69,7 @@
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-fighter-jet"></span></pwm:if>
                     <pwm:display key="Button_Skip"/>
                 </button>
-                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>
     </div>

@@ -138,6 +138,10 @@
     </filter-mapping>
     -->
     <filter>
+        <filter-name>ApplicationStatusFilter</filter-name>
+        <filter-class>password.pwm.http.filter.ApplicationStatusFilter</filter-class>
+    </filter>
+    <filter>
         <filter-name>GZIPFilter</filter-name>
         <filter-class>password.pwm.http.filter.GZIPFilter</filter-class>
     </filter>
@@ -162,13 +166,17 @@
         <filter-class>password.pwm.http.filter.AuthenticationFilter</filter-class>
     </filter>
     <filter>
-        <filter-name>AuthorizationFilter</filter-name>
+        <filter-name>AdminAuthorizationFilter</filter-name>
         <filter-class>password.pwm.http.filter.AuthorizationFilter</filter-class>
     </filter>
     <filter>
-        <filter-name>ConfigAccessFilter</filter-name>
+        <filter-name>ConfigAuthorizationFilter</filter-name>
         <filter-class>password.pwm.http.filter.ConfigAccessFilter</filter-class>
     </filter>
+    <filter-mapping>
+        <filter-name>ApplicationStatusFilter</filter-name>
+        <url-pattern>*</url-pattern>
+    </filter-mapping>
     <filter-mapping>
         <filter-name>GZIPFilter</filter-name>
         <url-pattern>*</url-pattern>
@@ -187,11 +195,7 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>CaptchaFilter</filter-name>
-        <url-pattern>/private/Login</url-pattern>
-        <url-pattern>/public/NewUser</url-pattern>
-        <url-pattern>/public/ActivateUser</url-pattern>
-        <url-pattern>/public/ForgottenPassword</url-pattern>
-        <url-pattern>/public/ForgottenUsername</url-pattern>
+        <url-pattern>*</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>
@@ -199,11 +203,11 @@
         <url-pattern>/public/ChangePassword</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>AuthorizationFilter</filter-name>
+        <filter-name>AdminAuthorizationFilter</filter-name>
         <url-pattern>/private/admin/*</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>ConfigAccessFilter</filter-name>
+        <filter-name>ConfigAuthorizationFilter</filter-name>
         <url-pattern>/private/config</url-pattern>
         <url-pattern>/private/config/*</url-pattern>
     </filter-mapping>

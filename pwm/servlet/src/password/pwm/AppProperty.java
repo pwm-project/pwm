@@ -208,6 +208,7 @@ public enum AppProperty {
     SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG            ("security.defaultEphemeralBlockAlg"),
     SECURITY_DEFAULT_EPHEMERAL_HASH_ALG             ("security.defaultEphemeralHashAlg"),
     SEEDLIST_BUILTIN_PATH                           ("seedlist.builtin.path"),
+    SMTP_SUBJECT_ENCODING_CHARSET                   ("smtp.subjectEncodingCharset"),
     TOKEN_REMOVAL_DELAY_MS                          ("token.removalDelayMS"),
     TOKEN_PURGE_BATCH_SIZE                          ("token.purgeBatchSize"),
     TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS                ("token.maxUniqueCreateAttempts"),

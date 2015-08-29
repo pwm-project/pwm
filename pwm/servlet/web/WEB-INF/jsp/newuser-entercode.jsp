@@ -1,6 +1,5 @@
 <%@ page import="password.pwm.http.bean.NewUserBean" %>
 <%@ page import="password.pwm.http.servlet.NewUserServlet" %>
-<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -44,8 +43,7 @@
         <% } else if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) { %>
         <p><pwm:display key="Display_RecoverEnterCodeSMS" value1="<%=destination%>"/></p>
         <% } %>
-        <form action="<%=PwmServletDefinition.NewUser.servletUrlName()%>" method="post"
-              enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
+        <form action="<pwm:current-url/>" method="post" autocomplete="off" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
             <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>
             <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" <pwm:autofocus/> class="tokenInput"></textarea>

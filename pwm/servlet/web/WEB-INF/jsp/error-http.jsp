@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -62,8 +63,7 @@
         <br/>
         <br/>
         <div class="buttonbar">
-            <form action="<pwm:context/>/public/<pwm:url url='CommandServlet'/>" method="post"
-                  enctype="application/x-www-form-urlencoded">
+            <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
                 <input type="hidden"
                        name="processAction"
                        value="continue"/>

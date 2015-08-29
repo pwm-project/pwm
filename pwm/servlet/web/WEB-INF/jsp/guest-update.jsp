@@ -21,10 +21,12 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page import="java.util.Date" %>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<% final String maxValidDate = (String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.GuestMaximumExpirationDate); %>
+<% final String selectedDate = (String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.GuestCurrentExpirationDate); %>
+<% final String maxValidDays = (String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.GuestMaximumValidDays); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -35,27 +37,9 @@
     <div id="centerbody">
         <%@ include file="fragment/guest-nav.jsp"%>
         <p><pwm:display key="Display_GuestUpdate"/></p>
-        <form action="<pwm:url url='GuestRegistration'/>" method="post" name="updateGuest" enctype="application/x-www-form-urlencoded" class="pwm-form">
+        <form action="<pwm:current-url/>" method="post" name="updateGuest" enctype="application/x-www-form-urlencoded" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
             <jsp:include page="fragment/form.jsp"/>
-            <%
-                final PwmRequest guestPwmRequest = PwmRequest.forRequest(request, response);
-                final long maxValidDays = guestPwmRequest.getConfig().readSettingAsLong(PwmSetting.GUEST_MAX_VALID_DAYS);
-                final GuestRegistrationBean guestRegistrationBean = guestPwmRequest.getPwmSession().getGuestRegistrationBean();
-                if (maxValidDays > 0) {
-                    long futureMS = maxValidDays * 24 * 60 * 60 * 1000;
-                    Date maxValidDate = new Date(new Date().getTime() + (futureMS));
-                    String maxValidDateString = new SimpleDateFormat("yyyy-MM-dd").format(maxValidDate);
-                    String selectedDate = guestRegistrationBean.getFormValues().get("__expirationDate__");
-                    if (selectedDate == null || selectedDate.length() <= 0) {
-                        Date currentDate = JspUtility.getPwmSession(pageContext).getGuestRegistrationBean().getUpdateUserExpirationDate();
-                        if (currentDate == null) {
-                            selectedDate = maxValidDateString;
-                        } else {
-                            selectedDate = new SimpleDateFormat("yyyy-MM-dd").format(currentDate);
-                        }
-                    }
-            %>
             <p>
                 <label>
                     <pwm:display key="Display_ExpirationDate" value1="<%=String.valueOf(maxValidDays)%>"/>
@@ -63,28 +47,12 @@
                     <input name="expiredate-stub" id="expiredate-stub" type="date" required="true" value="<%=selectedDate%>"/>
                 </label>
             </p>
-            <pwm:script>
-                <script type="text/javascript">
-                    PWM_GLOBAL['startupFunctions'].push(function(){
-                        require(["dijit/form/DateTextBox"],function(DateTextBox){
-                            new DateTextBox({
-                                constraints: {
-                                    min: new Date(),
-                                    max: '<%=maxValidDateString%>'
-                                },
-                                value: '<%=selectedDate%>',
-                                onChange: function(){
-                                    PWM_MAIN.getObject('<%=GuestRegistrationServlet.HTTP_PARAM_EXPIRATION_DATE%>').value = this.value;
-                                }
-                            }, "expiredate-stub");
-                        });
-                    });
-                </script>
-            </pwm:script>
-            <% } %>
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="update"/>
-                <input type="submit" name="Update" class="btn" value="<pwm:display key="Button_Update"/>" id="submitBtn"/>
+                <button type="submit" name="Update" class="btn" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check-square-o"></span></pwm:if>
+                    <pwm:display key="Button_Update"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
@@ -93,12 +61,13 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        document.forms.updateGuest.elements[0].focus();
-    });
-</script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_GUEST.initDatePicker('<%=maxValidDate%>','<%=selectedDate%>');
+        });
+    </script>
 </pwm:script>
+<pwm:script-ref url="/public/resources/js/guest.js"/>
 <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

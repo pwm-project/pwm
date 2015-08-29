@@ -185,9 +185,9 @@ public abstract class PwmHttpRequestWrapper {
         return null;
     }
 
-    public String readParameterAsString(final String name, final int maxLength)
+    public String readParameterAsString(final String name, final int maxLength, final Flag... flags)
             throws PwmUnrecoverableException {
-        final List<String> results = readParameterAsStrings(name, maxLength);
+        final List<String> results = readParameterAsStrings(name, maxLength, flags);
         if (results == null || results.isEmpty()) {
             return "";
         }
@@ -207,10 +207,10 @@ public abstract class PwmHttpRequestWrapper {
         return this.getHttpServletRequest().getParameterMap().containsKey(name);
     }
 
-    public String readParameterAsString(final String name)
+    public String readParameterAsString(final String name, final Flag... flags)
             throws PwmUnrecoverableException {
         final int maxLength = Integer.parseInt(configuration.readAppProperty(AppProperty.HTTP_PARAM_MAX_READ_LENGTH));
-        return readParameterAsString(name, maxLength);
+        return readParameterAsString(name, maxLength, flags);
     }
 
     public boolean readParameterAsBoolean(final String name)
@@ -231,10 +231,12 @@ public abstract class PwmHttpRequestWrapper {
 
     public List<String> readParameterAsStrings(
             final String name,
-            final int maxLength
+            final int maxLength,
+            final Flag... flags
     )
             throws PwmUnrecoverableException
     {
+        boolean bypassInputValidation = flags != null && Arrays.asList(flags).contains(Flag.BypassValidation);
         final HttpServletRequest req = this.getHttpServletRequest();
         final boolean trim = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_INPUT_TRIM));
         final String[] rawValues = req.getParameterValues(name);
@@ -245,7 +247,9 @@ public abstract class PwmHttpRequestWrapper {
         final List<String> resultSet = new ArrayList<>();
         for (final String rawValue : rawValues) {
             final String decodedValue = decodeStringToDefaultCharSet(rawValue);
-            final String sanitizedValue = Validator.sanitizeInputValue(configuration, decodedValue, maxLength);
+            final String sanitizedValue = bypassInputValidation
+                    ? decodedValue
+                    : Validator.sanitizeInputValue(configuration, decodedValue, maxLength);
 
             if (sanitizedValue.length() > 0) {
                 resultSet.add(trim ? sanitizedValue.trim() : sanitizedValue);
