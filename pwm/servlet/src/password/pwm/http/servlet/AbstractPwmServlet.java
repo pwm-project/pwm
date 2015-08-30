@@ -287,6 +287,6 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 return pwmServletDefinition;
             }
         }
-        throw new IllegalStateException("unable to determine PwmServletDefinition for class " + this.getClass().getTypeName());
+        throw new IllegalStateException("unable to determine PwmServletDefinition for class " + this.getClass().getName());
     }
 }
