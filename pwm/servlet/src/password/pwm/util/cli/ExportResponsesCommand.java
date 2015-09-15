@@ -49,7 +49,7 @@ public class ExportResponsesCommand extends AbstractCliCommand {
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
-        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_FILE.getName());
+        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
         Helper.pause(2000);
 
         final long startTime = System.currentTimeMillis();
@@ -90,7 +90,7 @@ public class ExportResponsesCommand extends AbstractCliCommand {
         CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportResponses";
         cliParameters.description = "Export all saved responses";
-        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_FILE);
+        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
 
         cliParameters.needsPwmApplication = true;
         cliParameters.readOnly = true;

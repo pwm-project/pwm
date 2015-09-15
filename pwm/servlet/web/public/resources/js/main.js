@@ -374,7 +374,6 @@ PWM_MAIN.handleLoginFormSubmit = function(form, event) {
             delete options['content']['pwmFormID'];
             var url = 'Login?processAction=restLogin';
             var loadFunction = function(data) {
-
                 if (data['error'] == true) {
                     PWM_MAIN.getObject('password').value = '';
                     PWM_MAIN.showErrorDialog(data,{
@@ -696,7 +695,9 @@ PWM_MAIN.showErrorDialog = function(error, options) {
     console.log('displaying error message: ' + logMsg);
     options['title'] = titleMsg;
     options['text'] = body;
-    options['okAction'] = function() {
+    options['okAction'] = 'okAction' in options
+        ? options['okAction']
+        : function() {
         if (forceReload) { // incorrect page sequence;
             var newURL = window.location.pathname;
             PWM_MAIN.goto(newURL);

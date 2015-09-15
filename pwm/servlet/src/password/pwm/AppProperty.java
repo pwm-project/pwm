@@ -24,6 +24,11 @@ package password.pwm;
 
 import java.util.ResourceBundle;
 
+/**
+ * Definition of available PWM application properties.  All {@link AppProperty} entries have a default value that is backed
+ * by an associated {@code AppProperty.properties} file.  Properties can be overridden by the application administrator in
+ * the configuration using the setting {@link password.pwm.config.PwmSetting#APP_PROPERTY_OVERRIDES}.
+ */
 public enum AppProperty {
 
     AUDIT_EVENTS_EMAILFROM                          ("audit.events.emailFrom"),
@@ -73,6 +78,7 @@ public enum AppProperty {
     HTTP_COOKIE_CAPTCHA_SKIP_AGE                    ("http.cookie.captchaSkip.age"),
     HTTP_COOKIE_INSTANCE_GUID_NAME                  ("http.cookie.instanceGUID.name"),
     HTTP_COOKIE_INSTANCE_GUID_AGE                   ("http.cookie.instanceGUID.age"),
+    HTTP_COOKIE_LOGIN_NAME                          ("http.cookie.login.name"),
     HTTP_BASIC_AUTH_CHARSET                         ("http.basicAuth.charset"),
     HTTP_BODY_MAXREAD_LENGTH                        ("http.body.maxReadLength"),
     HTTP_ENABLE_GZIP                                ("http.gzip.enable"),
@@ -139,6 +145,8 @@ public enum AppProperty {
     LDAP_PASSWORD_REPLICA_CHECK_CYCLE_DELAY_MS      ("ldap.password.replicaCheck.cycleDelayMS"),
     LDAP_GUID_PATTERN                               ("ldap.guid.pattern"),
     LDAP_BROWSER_MAX_ENTRIES                        ("ldap.browser.maxEntries"),
+    LDAP_SEARCH_PAGING_ENABLE                       ("ldap.search.paging.enable"),
+    LDAP_SEARCH_PAGING_SIZE                         ("ldap.search.paging.size"),
     LOGGING_PATTERN                                 ("logging.pattern"),
     LOGGING_FILE_MAX_SIZE                           ("logging.file.maxSize"),
     LOGGING_FILE_MAX_ROLLOVER                       ("logging.file.maxRollover"),

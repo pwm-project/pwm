@@ -382,7 +382,7 @@ public class UserStatusReader {
         // update report engine.
         if (!settings.isSkipReportUpdate()) {
             try {
-                pwmApplication.getUserReportService().updateCache(uiBean);
+                pwmApplication.getReportService().updateCachedRecordFromLdap(uiBean);
             } catch (LocalDBException e) {
                 LOGGER.error(sessionLabel, "error updating report cache data ldap login time: " + e.getMessage());
             }

@@ -208,14 +208,13 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                         "attempt to access functionality requiring password authentication, but password not yet supplied by actor, forwarding to password Login page");
                 //store the original requested url
                 try {
-                    PwmRequest.forRequest(req, resp).markPreLoginUrl();
+                    LOGGER.debug(pwmSession, "user is authenticated without a password, redirecting to login page");
+                    LoginServlet.redirectToLoginServlet(PwmRequest.forRequest(req,resp));
+                    return true;
                 } catch (Throwable e1) {
                     LOGGER.error("error while marking pre-login url:" + e1.getMessage());
                 }
 
-                LOGGER.debug(pwmSession, "user is authenticated without a password, redirecting to login page");
-                resp.sendRedirect(req.getContextPath() + PwmServletDefinition.Login.servletUrl());
-                return true;
 
             case ERROR_UNKNOWN:
             default:

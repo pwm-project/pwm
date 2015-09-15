@@ -28,6 +28,7 @@ import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
@@ -88,7 +89,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             LOGGER.trace(pwmSession, "skipping success page due to configuration setting.");
             final StringBuilder redirectURL = new StringBuilder();
             redirectURL.append(pwmRequest.getContextPath());
-            redirectURL.append("/public/CommandServlet");
+            redirectURL.append(PwmServletDefinition.Command.servletUrl());
             redirectURL.append("?processAction=continue");
             redirectURL.append("&pwmFormID=");
             redirectURL.append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
@@ -122,17 +123,15 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     public void writeEncryptedCookie(final String cookieName, final Serializable cookieValue, final String path)
             throws PwmUnrecoverableException
     {
-        final String jsonValue = JsonUtil.serialize(cookieValue);
-        final String encryptedValue = pwmRequest.getPwmApplication().getSecureService().encryptToString(jsonValue);
-        pwmRequest.getPwmResponse().writeCookie(cookieName, encryptedValue, -1, true, path);
+        pwmRequest.getPwmResponse().writeEncryptedCookie(cookieName, cookieValue, -1, path);
     }
 
-    public void writeEncryptedCookie(final String cookieName, final Serializable cookieValue, final int seconds, final boolean httpOnly, final String path)
+    public void writeEncryptedCookie(final String cookieName, final Serializable cookieValue, final int seconds, final String path)
             throws PwmUnrecoverableException
     {
         final String jsonValue = JsonUtil.serialize(cookieValue);
         final String encryptedValue = pwmRequest.getPwmApplication().getSecureService().encryptToString(jsonValue);
-        pwmRequest.getPwmResponse().writeCookie(cookieName, encryptedValue, seconds, httpOnly, path);
+        pwmRequest.getPwmResponse().writeCookie(cookieName, encryptedValue, seconds, path);
     }
 
     public void markAsDownload(final PwmConstants.ContentTypeValue contentType, final String filename) {

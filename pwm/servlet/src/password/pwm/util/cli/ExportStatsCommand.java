@@ -42,7 +42,7 @@ public class ExportStatsCommand extends AbstractCliCommand {
         StatisticsManager statsManger = pwmApplication.getStatisticsManager();
         Helper.pause(1000);
 
-        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_FILE.getName());
+        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
         final long startTime = System.currentTimeMillis();
         out("beginning output to " + outputFile.getAbsolutePath());
         final FileOutputStream fileOutputStream = new FileOutputStream(outputFile,true);
@@ -57,7 +57,7 @@ public class ExportStatsCommand extends AbstractCliCommand {
         CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportStats";
         cliParameters.description = "Dump all statistics in the LocalDB to a csv file";
-        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_FILE);
+        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
 
         cliParameters.needsPwmApplication = true;
         cliParameters.readOnly = true;

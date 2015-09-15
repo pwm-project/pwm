@@ -119,7 +119,6 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
 
-
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
             pwmRequest.respondWithError(PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo());
             return;
@@ -232,6 +231,9 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ModuleBean, setupResponsesBean);
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ModuleBean_String, pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(setupResponsesBean));
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.SetupResponses_ResponseInfo, pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean());
 
         if (setupResponsesBean.isHasExistingResponses()) {
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_RESPONSES_EXISTING);

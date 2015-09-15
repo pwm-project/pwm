@@ -503,7 +503,7 @@ public class PasswordUtility {
             {
                 final String profileID = ProfileUtility.discoverProfileIDforUser(pwmApplication, sessionLabel, userIdentity, ProfileType.ForgottenPassword);
                 final ForgottenPasswordProfile forgottenPasswordProfile = pwmApplication.getConfig().getForgottenPasswordProfiles().get(profileID);
-                messageSendMethod = forgottenPasswordProfile.readSettingAsEnum(PwmSetting.RECOVERY_TOKEN_SEND_METHOD, MessageSendMethod.class);
+                messageSendMethod = forgottenPasswordProfile.readSettingAsEnum(PwmSetting.RECOVERY_SENDNEWPW_METHOD, MessageSendMethod.class);
 
             }
             final UserDataReader userDataReader = new LdapUserDataReader(userIdentity, chaiUser);

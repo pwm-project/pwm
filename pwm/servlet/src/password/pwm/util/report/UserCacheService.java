@@ -79,8 +79,7 @@ public class UserCacheService implements PwmService {
     }
 
     public UserCacheRecord readStorageKey(final StorageKey storageKey) throws LocalDBException {
-        final UserCacheRecord userCacheRecord = cacheStore.read(storageKey);
-        return userCacheRecord;
+        return cacheStore.read(storageKey);
     }
 
     public boolean removeStorageKey(final StorageKey storageKey)
@@ -102,16 +101,16 @@ public class UserCacheService implements PwmService {
         cacheStore.clear();
     }
 
-    public ClosableIterator<StorageKey> iterator() {
+    public UserStatusCacheBeanIterator<StorageKey> iterator() {
         try {
-            return new UserStatusCacheBeanIterator();
+            return new UserStatusCacheBeanIterator<>();
         } catch (LocalDBException e) {
             LOGGER.error("unexpected error generating user status iterator: " + e.getMessage());
             return null;
         }
     }
 
-    private class UserStatusCacheBeanIterator implements ClosableIterator {
+    public class UserStatusCacheBeanIterator<K extends StorageKey> implements ClosableIterator {
 
         private LocalDB.LocalDBIterator<String> innerIterator;
 
@@ -157,7 +156,6 @@ public class UserCacheService implements PwmService {
     }
 
     public int size()
-            throws LocalDBException
     {
         return cacheStore.size();
     }
@@ -244,9 +242,12 @@ public class UserCacheService implements PwmService {
         }
 
         private int size()
-                throws LocalDBException
         {
-            return localDB.size(DB);
+            try {
+                return localDB.size(DB);
+            } catch (Exception e) {
+                return 0;
+            }
         }
     }
 }

@@ -193,7 +193,7 @@ public abstract class AlertHandler {
         htmlBody.append("<br/>");
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) {
-            final List<ReportSummaryData.PresentationRow> summaryData = pwmApplication.getUserReportService()
+            final List<ReportSummaryData.PresentationRow> summaryData = pwmApplication.getReportService()
                     .getSummaryData().asPresentableCollection(pwmApplication.getConfig(),locale);
 
             textBody.append("-- Directory Report Summary --\n");

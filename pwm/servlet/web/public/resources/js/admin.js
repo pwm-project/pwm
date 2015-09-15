@@ -154,7 +154,6 @@ PWM_ADMIN.initReportDataGrid=function() {
             PWM_MAIN.getObject('grid-hider-menu-check-responseFormatType').click();
             PWM_MAIN.getObject('grid-hider-menu-check-userDN').click();
             PWM_MAIN.getObject('grid-hider-menu-check-hasHelpdeskResponses').click();
-            PWM_ADMIN.refreshReportDataGrid();
 
             PWM_VAR['reportGrid'].on(".dgrid-row:click", function(evt){
                 PWM_ADMIN.detailView(evt, PWM_ADMIN.reportDataHeaders(), PWM_VAR['reportGrid']);
@@ -173,6 +172,10 @@ PWM_ADMIN.refreshReportDataGrid=function() {
         if (PWM_MAIN.getObject('button-refreshReportDataGrid')) {
             PWM_MAIN.getObject('button-refreshReportDataGrid').disabled = false;
         }
+        if (data['error']) {
+            PWM_MAIN.showErrorDialog(data);
+            return;
+        }
         PWM_VAR['reportGrid'].renderArray(data['data']['users']);
     };
     PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
@@ -184,21 +187,21 @@ PWM_ADMIN.refreshReportDataStatus=function(refreshTime) {
         ? function(){setTimeout(function(){PWM_ADMIN.refreshReportDataStatus(refreshTime);},refreshTime);}
         : function(){};
 
-    require(["dojo"],function(dojo){
-        var url = PWM_GLOBAL['url-restservice'] + "/report/status";
-        var loadFunction = function(data) {
-            if (data['data'] && data['data']['presentable']) {
-                var fields = data['data']['presentable'];
-                var htmlTable = '';
-                for (var field in fields) {
-                    htmlTable += '<tr><td>' + field + '</td><td id="report_status_' + field + '">' + fields[field] + '</tr>';
-                }
-                PWM_MAIN.getObject('statusTable').innerHTML = htmlTable;
-                for (var field in fields) {(function(field){
-                    PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject("report_status_" + field));
-                    console.log('called + ' + field);
-                }(field)); }
+    var url = PWM_GLOBAL['url-restservice'] + "/report/status";
+    var loadFunction = function(data) {
+        if (data['data'] && data['data']['presentable']) {
+            var fields = data['data']['presentable'];
+            var htmlTable = '';
+            for (var field in fields) {
+                htmlTable += '<tr><td>' + field + '</td><td id="report_status_' + field + '">' + fields[field] + '</tr>';
             }
+            PWM_MAIN.getObject('statusTable').innerHTML = htmlTable;
+            for (var field in fields) {(function(field){
+                PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject("report_status_" + field));
+                console.log('called + ' + field);
+            }(field)); }
+        }
+        if (data['data']['controllable']) {
             if (data['data']['raw']['inProgress']) {
                 PWM_MAIN.getObject("reportStartButton").disabled = true;
                 PWM_MAIN.getObject("reportStopButton").disabled = false;
@@ -208,10 +211,14 @@ PWM_ADMIN.refreshReportDataStatus=function(refreshTime) {
                 PWM_MAIN.getObject("reportStopButton").disabled = true;
                 PWM_MAIN.getObject("reportClearButton").disabled = false;
             }
-            doRefresh();
-        };
-        PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
-    });
+        } else {
+            PWM_MAIN.getObject("reportStartButton").disabled = true;
+            PWM_MAIN.getObject("reportStopButton").disabled = true;
+            PWM_MAIN.getObject("reportClearButton").disabled = true;
+        }
+        doRefresh();
+    };
+    PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
 };
 
 PWM_ADMIN.refreshReportDataSummary=function(refreshTime) {

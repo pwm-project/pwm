@@ -58,6 +58,7 @@ import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.AuthenticationUtility;
+import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
@@ -823,7 +824,11 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
         }
 
         try {
-            SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
+            final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
+                    pwmApplication,
+                    pwmSession,
+                    PwmAuthenticationSource.FORGOTTEN_PASSWORD
+            );
             sessionAuthenticator.authUserWithUnknownPassword(userIdentity,AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
             pwmSession.getLoginInfoBean().getAuthenticationFlags().add(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
 
@@ -880,7 +885,11 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
         }
 
         try {
-            SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
+            final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
+                    pwmApplication,
+                    pwmSession,
+                    PwmAuthenticationSource.FORGOTTEN_PASSWORD
+            );
             sessionAuthenticator.authUserWithUnknownPassword(userIdentity,AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
             pwmSession.getLoginInfoBean().getAuthenticationFlags().add(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
 
@@ -927,7 +936,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             pwmRequest.respondWithError(errorInformation);
         } finally {
             pwmSession.clearForgottenPasswordBean();
-            pwmSession.unauthenticateUser();
+            pwmSession.unauthenticateUser(pwmRequest);
             pwmSession.getSessionStateBean().setPasswordModified(false);
         }
     }
@@ -1309,7 +1318,11 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                 ? null
                 : forgottenPasswordBean.getUserInfo().getUserIdentity();
         if (userIdentity != null) {
-            SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
+            final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
+                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getPwmSession(),
+                    PwmAuthenticationSource.FORGOTTEN_PASSWORD
+            );
             sessionAuthenticator.simulateBadPassword(userIdentity);
             pwmRequest.getPwmApplication().getIntruderManager().convenience().markUserIdentity(userIdentity,
                     pwmRequest.getPwmSession());
@@ -1539,7 +1552,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                 return false;
             }
 
-            final AuthenticationFilter.AuthRecord authRecord = pwmRequest.readCookie(cookieName, AuthenticationFilter.AuthRecord.class);
+            final AuthenticationFilter.AuthRecord authRecord = pwmRequest.readEncryptedCookie(cookieName, AuthenticationFilter.AuthRecord.class);
             if (authRecord != null) {
                 if (authRecord.getGuid() != null && !authRecord.getGuid().isEmpty() && authRecord.getGuid().equals(userGuid)) {
                     LOGGER.debug(pwmRequest, "auth record cookie validated");

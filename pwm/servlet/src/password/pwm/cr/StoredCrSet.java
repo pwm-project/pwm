@@ -22,5 +22,12 @@
 
 package password.pwm.cr;
 
-public class ChallengeSetBean {
+import java.util.Date;
+
+public interface StoredCrSet {
+    String getLocale();
+
+    Date getDate();
+
+    String getChallengePolicyID();
 }

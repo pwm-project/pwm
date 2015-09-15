@@ -141,11 +141,15 @@ public abstract class PwmConstants {
         AvailableAuthMethods,
         ConfigurationSummaryOutput,
         PageTitle,
+        ModuleBean,
+        ModuleBean_String,
 
         FormConfiguration,
         FormReadOnly,
         FormShowPasswordFields,
         FormData,
+
+        SetupResponses_ResponseInfo,
 
         HelpdeskDetail,
         HelpdeskObfuscatedDN,
@@ -271,6 +275,7 @@ public abstract class PwmConstants {
 
 
     public static final String PARAM_ACTION_REQUEST = "processAction";
+    public static final String PARAM_ACTION_STATE = "actionState";
     public static final String PARAM_VERIFICATION_KEY = "session_verification_key";
     public static final String PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
     public static final String PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
@@ -282,6 +287,7 @@ public abstract class PwmConstants {
     public static final String PARAM_CONTEXT = "context";
     public static final String PARAM_LDAP_PROFILE = "ldapProfile";
     public static final String PARAM_SKIP_CAPTCHA = "skipCaptcha";
+    public static final String PARAM_POST_LOGIN_URL = "posturl";
 
     public static final String COOKIE_PERSISTENT_CONFIG_LOGIN = "persistentConfigLogin";
 

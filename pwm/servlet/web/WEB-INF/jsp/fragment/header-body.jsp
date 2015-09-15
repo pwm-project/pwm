@@ -72,7 +72,7 @@
             <% } %>
             <%-- this section handles the logout link (if user is logged in) --%>
             <% if (showLogout) { %>
-            <a class="header-button" href="<pwm:context/><pwm:url url='/public/Logout'/>" id="LogoutButton">
+            <a class="header-button" href="<pwm:url url='<%=PwmServletDefinition.Logout.servletUrl()%>' addContext="true"/>" id="LogoutButton">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
                 <pwm:display key="Button_Logout"/>
             </a>

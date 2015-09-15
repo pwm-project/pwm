@@ -31,7 +31,6 @@ import password.pwm.PwmConstants;
 import password.pwm.config.*;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.ChallengeValue;
-import password.pwm.cr.ChallengeItemBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -168,15 +167,15 @@ public class ChallengeProfile implements Profile, Serializable {
             final PwmSetting randomChallenges,
             int minimumRands
     ) throws PwmOperationalException {
-        final List<ChallengeItemBean> requiredQuestions = valueToChallengeItemArray(
+        final List<ChallengeItemConfiguration> requiredQuestions = valueToChallengeItemArray(
                 storedConfiguration.readSetting(requiredChallenges, profileID), locale);
-        final List<ChallengeItemBean> randomQuestions = valueToChallengeItemArray(
+        final List<ChallengeItemConfiguration> randomQuestions = valueToChallengeItemArray(
                 storedConfiguration.readSetting(randomChallenges, profileID), locale);
 
         final List<Challenge> challenges = new ArrayList<>();
 
         if (requiredQuestions != null) {
-            for (final ChallengeItemBean item : requiredQuestions) {
+            for (final ChallengeItemConfiguration item : requiredQuestions) {
                 if (item != null) {
                     final Challenge chaiChallenge = new ChaiChallenge(
                             true, 
@@ -193,7 +192,7 @@ public class ChallengeProfile implements Profile, Serializable {
         }
 
         if (randomQuestions != null) {
-            for (final ChallengeItemBean item : randomQuestions) {
+            for (final ChallengeItemConfiguration item : randomQuestions) {
                 if (item != null) {
                     final Challenge chaiChallenge = new ChaiChallenge(
                             false, 
@@ -222,15 +221,15 @@ public class ChallengeProfile implements Profile, Serializable {
         }
     }
 
-    static List<ChallengeItemBean> valueToChallengeItemArray(
+    static List<ChallengeItemConfiguration> valueToChallengeItemArray(
             final StoredValue value,
             final Locale locale
     ) {
         if (!(value instanceof ChallengeValue)) {
             throw new IllegalArgumentException("may not read ChallengeValue value");
         }
-        final Map<String, List<ChallengeItemBean>> storedValues = (Map<String, List<ChallengeItemBean>>)value.toNativeObject();
-        final Map<Locale, List<ChallengeItemBean>> availableLocaleMap = new LinkedHashMap<>();
+        final Map<String, List<ChallengeItemConfiguration>> storedValues = (Map<String, List<ChallengeItemConfiguration>>)value.toNativeObject();
+        final Map<Locale, List<ChallengeItemConfiguration>> availableLocaleMap = new LinkedHashMap<>();
         for (final String localeStr : storedValues.keySet()) {
             availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), storedValues.get(localeStr));
         }

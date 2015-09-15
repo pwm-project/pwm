@@ -203,7 +203,7 @@ public class LdapPermissionTester {
 
         final Map<UserIdentity, Map<String, String>> results = new TreeMap<>();
         for (final UserPermission userPermission : userPermissions) {
-            if ((maxResultSize + 1) - results.size() > 0) {
+            if ((maxResultSize) - results.size() > 0) {
                 final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
                 switch (userPermission.getType()) {
                     case ldapQuery: {
@@ -231,7 +231,7 @@ public class LdapPermissionTester {
                 try {
                     results.putAll(userSearchEngine.performMultiUserSearch(
                                     searchConfiguration,
-                                    (maxResultSize + 1) - results.size(),
+                                    (maxResultSize) - results.size(),
                                     Collections.<String>emptyList())
                     );
                 } catch (PwmUnrecoverableException e) {

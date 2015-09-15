@@ -37,7 +37,7 @@ public class ExportLocalDBCommand extends AbstractCliCommand {
     {
         final LocalDB localDB = cliEnvironment.getLocalDB();
 
-        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_FILE.getName());
+        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
         if (outputFile.exists()) {
             out("outputFile for exportLocalDB cannot already exist");
             return;
@@ -57,7 +57,7 @@ public class ExportLocalDBCommand extends AbstractCliCommand {
         CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportLocalDB";
         cliParameters.description = "Export the entire LocalDB contents to a backup file";
-        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_FILE);
+        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
 
         cliParameters.needsLocalDB = true;
         cliParameters.readOnly = true;

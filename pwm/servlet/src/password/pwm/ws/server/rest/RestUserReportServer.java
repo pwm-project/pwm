@@ -27,6 +27,8 @@ import password.pwm.Permission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.Display;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.ClosableIterator;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
@@ -46,6 +48,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
@@ -58,7 +61,7 @@ public class RestUserReportServer extends AbstractRestServer {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    public Response doGetAppAuditData(
+    public Response doReportDetailData(
             @QueryParam("maximum") int maximum
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, LocalDBException
@@ -78,10 +81,17 @@ public class RestUserReportServer extends AbstractRestServer {
             return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
 
+        final ReportService reportService = restRequestBean.getPwmApplication().getReportService();
+        if (reportService.getReportStatusInfo().getCurrentProcess() != ReportStatusInfo.ReportEngineProcess.None) {
+            final String errorMsg = "report data not available, engine is busy.  Try again later.  status=" + reportService.getReportStatusInfo().getCurrentProcess();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg);
+            return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
+        }
+
         final ArrayList<UserCacheRecord> reportData = new ArrayList<>();
         ClosableIterator<UserCacheRecord> cacheBeanIterator = null;
         try {
-            cacheBeanIterator = restRequestBean.getPwmApplication().getUserReportService().iterator();
+            cacheBeanIterator = reportService.iterator();
             while (cacheBeanIterator.hasNext() && reportData.size() < maximum) {
                 final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
                 if (userCacheRecord != null) {
@@ -123,10 +133,10 @@ public class RestUserReportServer extends AbstractRestServer {
             return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
 
-        final LinkedHashMap<String,Object> returnMap = new LinkedHashMap(makeReportStatusData(
-                restRequestBean.getPwmApplication().getUserReportService(),
+        final ReportStatusBean returnMap = makeReportStatusData(
+                restRequestBean.getPwmApplication().getReportService(),
                 restRequestBean.getPwmSession().getSessionStateBean().getLocale()
-        ));
+        );
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(returnMap);
         return restResultBean.asJsonResponse();
@@ -152,9 +162,9 @@ public class RestUserReportServer extends AbstractRestServer {
             return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
 
-        final LinkedHashMap<String,Object> returnMap = new LinkedHashMap();
-        returnMap.put("raw",restRequestBean.getPwmApplication().getUserReportService().getSummaryData());
-        returnMap.put("presentable",restRequestBean.getPwmApplication().getUserReportService().getSummaryData().asPresentableCollection(
+        final LinkedHashMap<String,Object> returnMap = new LinkedHashMap<>();
+        returnMap.put("raw",restRequestBean.getPwmApplication().getReportService().getSummaryData());
+        returnMap.put("presentable", restRequestBean.getPwmApplication().getReportService().getSummaryData().asPresentableCollection(
                 restRequestBean.getPwmApplication().getConfig(),
                 restRequestBean.getPwmSession().getSessionStateBean().getLocale()
         ));
@@ -164,61 +174,99 @@ public class RestUserReportServer extends AbstractRestServer {
         return restResultBean.asJsonResponse();
     }
 
-    private static Map<String,Object> makeReportStatusData(ReportService reportService, Locale locale)
+    private static ReportStatusBean makeReportStatusData(ReportService reportService, Locale locale)
             throws LocalDBException
     {
-
-        final LinkedHashMap<String,Object> returnMap = new LinkedHashMap<>();
-        final ReportStatusInfo reportInfo = reportService.getReportStatusInfo();
-        returnMap.put("raw",reportInfo);
-
-        final LinkedHashMap<String,Object> presentableMap = new LinkedHashMap<>();
         final NumberFormat numberFormat = NumberFormat.getInstance();
-        presentableMap.put("Job Engine",reportInfo.isInProgress() ? "Running" : "Not Running");
-        presentableMap.put("Users Processed",(reportInfo.isInProgress() && reportInfo.getTotal() == 0)
-                ? "Counting..."
-                : numberFormat.format(reportInfo.getCount()) + " of " + numberFormat.format(
-                reportInfo.getTotal()));
-        if (reportInfo.getCount() > 0 && reportInfo.getUpdated() > 0) {
-            presentableMap.put("Updated Records",numberFormat.format(reportInfo.getUpdated()));
-        }
-        if (reportInfo.getCount() > reportInfo.getUpdated()) {
-            presentableMap.put("Skipped Records",numberFormat.format(reportInfo.getCount() - reportInfo.getUpdated()));
-        }
-        if (reportInfo.getErrors() > 0) {
-            presentableMap.put("Error Count", numberFormat.format(reportInfo.getErrors()));
-        }
-        if (reportInfo.getStartDate() != null) {
-            presentableMap.put("Start Time",reportInfo.getStartDate());
-        }
-        if (reportInfo.getFinishDate() != null) {
-            presentableMap.put("Finish Time",reportInfo.getFinishDate());
-        }
-        if (reportInfo.getStartDate() != null && reportInfo.getFinishDate() != null) {
-            presentableMap.put("Total Time",new TimeDuration(reportInfo.getStartDate(),reportInfo.getFinishDate()).asCompactString());
-        }
-        if (reportInfo.isInProgress() && reportInfo.getCount() > 0) {
-            final BigDecimal eventRate = reportInfo.getEventRateMeter().readEventRate().setScale(2,RoundingMode.UP);
-            presentableMap.put("Users/Second",eventRate);
-            if (!eventRate.equals(BigDecimal.ZERO)) {
-                final int usersRemaining = reportInfo.getTotal() - reportInfo.getCount();
-                final float secondsRemaining = usersRemaining / eventRate.floatValue();
-                final TimeDuration remainingDuration = new TimeDuration(((int)secondsRemaining) * 1000);
-                presentableMap.put("Estimated Time Remaining",remainingDuration.asLongString(locale));
+
+        final ReportStatusBean returnMap = new ReportStatusBean();
+        final ReportStatusInfo reportInfo = reportService.getReportStatusInfo();
+        final LinkedHashMap<String,Object> presentableMap = new LinkedHashMap<>();
+
+        if (reportInfo.getCurrentProcess() == ReportStatusInfo.ReportEngineProcess.RollOver) {
+            presentableMap.put("Job Engine", "Calculating Report Summary");
+            presentableMap.put("Users Processed",
+                    numberFormat.format(reportService.getSummaryData().getTotalUsers())
+                            + " of " + numberFormat.format(reportInfo.getTotal()));
+        } else {
+            returnMap.setControllable(true);
+            presentableMap.put("Job Engine",reportInfo.isInProgress() ? "Processing" : "Idle");
+            presentableMap.put("Users Processed", (reportInfo.isInProgress() && reportInfo.getTotal() == 0)
+                    ? "Searching LDAP..."
+                    : numberFormat.format(reportInfo.getCount()) + " of " + numberFormat.format(reportInfo.getTotal()));
+            if (reportInfo.getCount() > 0 && reportInfo.getUpdated() > 0) {
+                presentableMap.put("Updated Records", numberFormat.format(reportInfo.getUpdated()));
+            }
+            if (reportInfo.getCount() > reportInfo.getUpdated()) {
+                presentableMap.put("Skipped Records", numberFormat.format(reportInfo.getCount() - reportInfo.getUpdated()));
+            }
+            if (reportInfo.getErrors() > 0) {
+                presentableMap.put("Error Count", numberFormat.format(reportInfo.getErrors()));
+            }
+            if (reportInfo.getStartDate() != null) {
+                presentableMap.put("Start Time", reportInfo.getStartDate());
+            } else {
+                presentableMap.put("Last Job", LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable,null));
+            }
+            if (reportInfo.getFinishDate() != null) {
+                presentableMap.put("Finish Time", reportInfo.getFinishDate());
+            }
+            if (reportInfo.getStartDate() != null && reportInfo.getFinishDate() != null) {
+                presentableMap.put("Total Time", new TimeDuration(reportInfo.getStartDate(), reportInfo.getFinishDate()).asCompactString());
+            }
+            if (reportInfo.isInProgress() && reportInfo.getCount() > 0) {
+                final BigDecimal eventRate = reportInfo.getEventRateMeter().readEventRate().setScale(2, RoundingMode.UP);
+                presentableMap.put("Users/Second", eventRate);
+                if (!eventRate.equals(BigDecimal.ZERO)) {
+                    final int usersRemaining = reportInfo.getTotal() - reportInfo.getCount();
+                    final float secondsRemaining = usersRemaining / eventRate.floatValue();
+                    final TimeDuration remainingDuration = new TimeDuration(((int) secondsRemaining) * 1000);
+                    presentableMap.put("Estimated Time Remaining", remainingDuration.asLongString(locale));
+                }
+            }
+            if (reportInfo.getLastError() != null) {
+                presentableMap.put("Last Error", reportInfo.getLastError().toDebugStr());
+            }
+
+            final int cachedRecords = reportInfo.getCount();
+            presentableMap.put("Records in Cache", numberFormat.format(cachedRecords));
+            if (cachedRecords > 0) {
+                presentableMap.put("Mean Record Cache Time", reportService.getSummaryData().getMeanCacheTime());
             }
         }
-        if (reportInfo.getLastError() != null) {
-            presentableMap.put("Last Error", reportInfo.getLastError().toDebugStr());
-        }
 
-        int cachedRecords = reportService.recordsInCache();
-        presentableMap.put("Records in Cache",numberFormat.format(cachedRecords));
-        if (cachedRecords > 0) {
-            presentableMap.put("Mean Record Cache Time",reportService.getSummaryData().getMeanCacheTime());
-        }
-
-        //presentableMap.put("Cached Records", reportInfo.size());
-        returnMap.put("presentable",presentableMap);
+        returnMap.setRaw(reportInfo);
+        returnMap.setPresentable(presentableMap);
         return returnMap;
+    }
+
+    static class ReportStatusBean implements Serializable {
+        private Map<String,Object> presentable = new LinkedHashMap<>();
+        private ReportStatusInfo raw;
+        private boolean controllable;
+
+        public Map<String, Object> getPresentable() {
+            return presentable;
+        }
+
+        public void setPresentable(Map<String, Object> presentable) {
+            this.presentable = presentable;
+        }
+
+        public ReportStatusInfo getRaw() {
+            return raw;
+        }
+
+        public void setRaw(ReportStatusInfo raw) {
+            this.raw = raw;
+        }
+
+        public boolean isControllable() {
+            return controllable;
+        }
+
+        public void setControllable(boolean controllable) {
+            this.controllable = controllable;
+        }
     }
 }

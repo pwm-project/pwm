@@ -445,8 +445,11 @@ PWM_CONFIG.convertListOfIdentitiesToHtml = function(data) {
         html += PWM_MAIN.showString('Display_SearchResultsNone');
     }
     html += '</div>';
+
+    html += '<br/><div class="noticebar" style="margin-right: 5px; margin-left: 5px">' + data['searchOperationSummary'];
     if (data['sizeExceeded']) {
-        html += '<div class="noticebar">' + PWM_MAIN.showString('Display_SearchResultsExceeded') + '</div>';
+        html += ' ' + PWM_CONFIG.showString('Display_EditorLDAPSizeExceeded');
     }
+    html += '</div>';
     return html;
 };

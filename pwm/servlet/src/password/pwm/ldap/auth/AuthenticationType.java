@@ -27,5 +27,6 @@ public enum AuthenticationType {
     AUTHENTICATED,  // normal authentication
     AUTH_BIND_INHIBIT,  // normal auth, but can't do ldap bind (ad pw expired, force change, etc)
     AUTH_FROM_PUBLIC_MODULE,  // auth via forgotten password or user activation or similar /public auth.
-    AUTH_WITHOUT_PASSWORD  // auth via SSO method that did not supply the user's password
+    AUTH_WITHOUT_PASSWORD,  // auth via SSO method that did not supply the user's password
+    AUTH_FROM_LOGIN_COOKIE,  // authentication due to login cookie from peer node
 }

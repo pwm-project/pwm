@@ -38,13 +38,18 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.ServletHelper;
 import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
-import password.pwm.util.*;
+import password.pwm.util.BasicAuthInfo;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.PasswordData;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -211,7 +216,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,errorMsg);
                     LOGGER.error(pwmSession,errorMsg);
                     pwmRequest.respondWithError(errorInformation);
-                    pwmSession.unauthenticateUser();
+                    pwmSession.unauthenticateUser(pwmRequest);
                     return;
                 }
             } catch (PwmOperationalException e) {
@@ -225,7 +230,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
 
         try {
             if (!userIsAuthenticated) {
-                final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
+                final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession, PwmAuthenticationSource.OAUTH);
                 sessionAuthenticator.authUserWithUnknownPassword(oauthSuppliedUsername, AuthenticationType.AUTH_WITHOUT_PASSWORD);
             }
 
@@ -327,7 +332,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
             LOGGER.error(pwmRequest, "error while processing oauth token refresh:" + e.getMessage());
         }
         LOGGER.error(pwmRequest, "unable to refresh oauth token for user, unauthenticated session");
-        pwmRequest.getPwmSession().unauthenticateUser();
+        pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
         return true;
     }
 

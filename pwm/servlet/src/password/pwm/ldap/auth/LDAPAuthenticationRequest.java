@@ -66,6 +66,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
     private final SessionLabel sessionLabel;
     private final UserIdentity userIdentity;
     private final AuthenticationType requestedAuthType;
+    private final PwmAuthenticationSource authenticationSource;
 
     private ChaiProvider userProvider;
     private AuthenticationStrategy strategy = AuthenticationStrategy.BIND;
@@ -79,14 +80,27 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
             PwmApplication pwmApplication,
             SessionLabel sessionLabel,
             UserIdentity userIdentity,
-            AuthenticationType requestedAuthType
+            AuthenticationType requestedAuthType,
+            PwmAuthenticationSource authenticationSource
     )
     {
         this.pwmApplication = pwmApplication;
         this.sessionLabel = sessionLabel;
         this.userIdentity = userIdentity;
         this.requestedAuthType = requestedAuthType;
+        this.authenticationSource = authenticationSource;
+
         this.operationNumber = counter++;
+    }
+
+    static AuthenticationRequest createLDAPAuthenticationRequest(
+            PwmApplication pwmApplication,
+            SessionLabel sessionLabel,
+            UserIdentity userIdentity,
+            AuthenticationType requestedAuthType,
+            PwmAuthenticationSource authenticationSource
+    ) {
+        return new LDAPAuthenticationRequest(pwmApplication, sessionLabel, userIdentity, requestedAuthType, authenticationSource);
     }
 
     @Override
@@ -245,7 +259,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         pwmApplication.getAuditManager().submit(pwmApplication.getAuditManager().createUserAuditRecord(
                 AuditEvent.AUTHENTICATE,
                 this.userIdentity,
-                returnAuthType.toString(),
+                makeAuditLogMessage(returnAuthType),
                 sessionLabel.getSrcAddress(),
                 sessionLabel.getSrcHostname()
         ));
@@ -510,5 +524,12 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
 
     private void log(final PwmLogLevel level, final CharSequence message) {
         LOGGER.log(level, sessionLabel,"authID=" + operationNumber + ", " + message);
+    }
+
+    private String makeAuditLogMessage(AuthenticationType authenticationType) {
+        return "type=" + authenticationType.toString()
+                + ", "
+                + "source="
+                + (authenticationSource == null ? "null" : authenticationSource.toString());
     }
 }

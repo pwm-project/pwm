@@ -24,13 +24,9 @@ package password.pwm.i18n;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingTemplate;
-import password.pwm.config.StoredValue;
+import password.pwm.config.*;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.config.value.StringArrayValue;
-import password.pwm.cr.ChallengeItemBean;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -63,8 +59,14 @@ public class LocaleHelper {
         return getLocalizedMessage(locale, key.getKey(), config, key.getClass());
     }
 
-    public static String getLocalizedMessage(final PwmDisplayBundle key, final PwmRequest pwmRequest) {
-        return getLocalizedMessage(pwmRequest.getLocale(), key.getKey(), pwmRequest.getConfig(), key.getClass());
+    public static String getLocalizedMessage(final PwmDisplayBundle key, final PwmRequest pwmRequest, final String... values) {
+        return getLocalizedMessage(
+                pwmRequest == null ? PwmConstants.DEFAULT_LOCALE : pwmRequest.getLocale(),
+                key.getKey(),
+                pwmRequest == null ? null : pwmRequest.getConfig(),
+                key.getClass(),
+                values
+        );
     }
 
     public static String getLocalizedMessage(final String key, final Configuration config, final Class bundleClass) {
@@ -354,7 +356,7 @@ public class LocaleHelper {
         final ConfigLocaleStats configLocaleStats = new ConfigLocaleStats();
         {
             final StoredValue storedValue = PwmSetting.CHALLENGE_RANDOM_CHALLENGES.getDefaultValue(PwmSettingTemplate.DEFAULT);
-            Map<String, List<ChallengeItemBean>> value = ((ChallengeValue) storedValue).toNativeObject();
+            Map<String, List<ChallengeItemConfiguration>> value = ((ChallengeValue) storedValue).toNativeObject();
 
             for (String localeStr : value.keySet()) {
                 final Locale loopLocale = LocaleHelper.parseLocaleString(localeStr);

@@ -40,6 +40,14 @@ public class ReportStatusInfo implements Serializable {
     private int errors;
     private ErrorInformation lastError;
     private String settingsHash;
+    private ReportEngineProcess currentProcess = ReportEngineProcess.None;
+
+    public enum ReportEngineProcess {
+        RollOver,
+        DredgeTask,
+        None,
+    }
+
 
     public ReportStatusInfo(String settingsHash) {
         this.settingsHash = settingsHash;
@@ -119,5 +127,13 @@ public class ReportStatusInfo implements Serializable {
 
     public void setLastError(ErrorInformation lastError) {
         this.lastError = lastError;
+    }
+
+    public ReportEngineProcess getCurrentProcess() {
+        return currentProcess;
+    }
+
+    public void setCurrentProcess(ReportEngineProcess currentProcess) {
+        this.currentProcess = currentProcess;
     }
 }

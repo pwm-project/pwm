@@ -39,7 +39,7 @@ public class ConfigNewCommand extends AbstractCliCommand {
         storedConfiguration.writeConfigProperty(
                 StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_CONFIG_EPOCH, String.valueOf(0));
 
-        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_FILE.getName());
+        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
         storedConfiguration.toXml(new FileOutputStream(outputFile, false));
         out("success");
     }
@@ -52,7 +52,7 @@ public class ConfigNewCommand extends AbstractCliCommand {
         cliParameters.description = "Create a new configuration file";
         cliParameters.needsPwmApplication = false;
         cliParameters.needsLocalDB = false;
-        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_FILE);
+        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
 
         cliParameters.readOnly = true;
         return cliParameters;

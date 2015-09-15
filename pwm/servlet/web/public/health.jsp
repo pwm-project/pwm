@@ -34,7 +34,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% try { JspUtility.getPwmSession(pageContext).unauthenticateUser(); } catch (Exception e) { }%>
+<% try { JspUtility.getPwmSession(pageContext).unauthenticateUser(JspUtility.getPwmRequest(pageContext)); } catch (Exception e) { }%>
 <%
     if (!ContextManager.getPwmApplication(request).getConfig().readSettingAsBoolean(PwmSetting.ENABLE_EXTERNAL_WEBSERVICES)) {
         final Locale locale = PwmSessionWrapper.readPwmSession(request).getSessionStateBean().getLocale();

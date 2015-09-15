@@ -56,15 +56,18 @@ public class SessionAuthenticator {
     private final PwmApplication pwmApplication;
     private final SessionLabel sessionLabel;
     private final PwmSession pwmSession;
+    private final PwmAuthenticationSource authenticationSource;
 
     public SessionAuthenticator(
             PwmApplication pwmApplication,
-            PwmSession pwmSession
+            PwmSession pwmSession,
+            PwmAuthenticationSource authenticationSource
     )
     {
         this.pwmApplication = pwmApplication;
         this.pwmSession = pwmSession;
         this.sessionLabel = pwmSession.getLabel();
+        this.authenticationSource = authenticationSource;
     }
 
     public void searchAndAuthenticateUser(
@@ -81,7 +84,13 @@ public class SessionAuthenticator {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
             userIdentity = userSearchEngine.resolveUsername(username, context, ldapProfile);
 
-            AuthenticationRequest authEngine = AuthenticationUtility.createLDAPAuthenticationRequest(pwmApplication, sessionLabel, userIdentity, AuthenticationType.AUTHENTICATED);
+            AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
+                    pwmApplication,
+                    sessionLabel,
+                    userIdentity,
+                    AuthenticationType.AUTHENTICATED,
+                    authenticationSource
+            );
             AuthenticationResult authResult = authEngine.authenticateUser(password);
             postAuthenticationSequence(userIdentity, authResult);
         } catch (PwmOperationalException e) {
@@ -96,12 +105,20 @@ public class SessionAuthenticator {
             final UserIdentity userIdentity,
             final PasswordData password
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         try {
-            AuthenticationRequest authEngine = AuthenticationUtility.createLDAPAuthenticationRequest(pwmApplication, sessionLabel, userIdentity, AuthenticationType.AUTHENTICATED);
+            AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
+                    pwmApplication,
+                    sessionLabel,
+                    userIdentity,
+                    AuthenticationType.AUTHENTICATED,
+                    authenticationSource
+            );
             AuthenticationResult authResult = authEngine.authenticateUser(password);
             postAuthenticationSequence(userIdentity, authResult);
+        } catch (ChaiUnavailableException e) {
+            throw PwmUnrecoverableException.fromChaiException(e);
         } catch (PwmOperationalException e) {
             postFailureSequence(e, null, userIdentity);
             throw e;
@@ -113,7 +130,7 @@ public class SessionAuthenticator {
             final String username,
             final AuthenticationType requestedAuthType
     )
-            throws ChaiUnavailableException, ImpossiblePasswordPolicyException, PwmUnrecoverableException, PwmOperationalException
+            throws ImpossiblePasswordPolicyException, PwmUnrecoverableException, PwmOperationalException
     {
         pwmApplication.getIntruderManager().check(RecordType.USERNAME, username);
 
@@ -122,9 +139,17 @@ public class SessionAuthenticator {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
             userIdentity = userSearchEngine.resolveUsername(username, null, null);
 
-            AuthenticationRequest authEngine = AuthenticationUtility.createLDAPAuthenticationRequest(pwmApplication, sessionLabel, userIdentity, requestedAuthType);
+            AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
+                    pwmApplication,
+                    sessionLabel,
+                    userIdentity,
+                    requestedAuthType,
+                    authenticationSource
+            );
             AuthenticationResult authResult = authEngine.authUsingUnknownPw();
             postAuthenticationSequence(userIdentity, authResult);
+        } catch (ChaiUnavailableException e) {
+            throw PwmUnrecoverableException.fromChaiException(e);
         } catch (PwmOperationalException e) {
             postFailureSequence(e, username, userIdentity);
             throw e;
@@ -135,11 +160,21 @@ public class SessionAuthenticator {
             final UserIdentity userIdentity,
             final AuthenticationType requestedAuthType
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
-        AuthenticationRequest authEngine = AuthenticationUtility.createLDAPAuthenticationRequest(pwmApplication, sessionLabel, userIdentity, requestedAuthType);
-        AuthenticationResult authResult = authEngine.authUsingUnknownPw();
-        postAuthenticationSequence(userIdentity, authResult);
+        try {
+            AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
+                    pwmApplication,
+                    sessionLabel,
+                    userIdentity,
+                    requestedAuthType,
+                    authenticationSource
+            );
+            AuthenticationResult authResult = authEngine.authUsingUnknownPw();
+            postAuthenticationSequence(userIdentity, authResult);
+        } catch (ChaiUnavailableException e) {
+            throw PwmUnrecoverableException.fromChaiException(e);
+        }
     }
 
 
@@ -259,6 +294,8 @@ public class SessionAuthenticator {
 
         //update the resulting authType
         pwmSession.getLoginInfoBean().setAuthenticationType(authenticationResult.getAuthenticationType());
+
+        pwmSession.getLoginInfoBean().setAuthenticationSource(authenticationSource);
 
         // save the password in the login bean
         final PasswordData userPassword = authenticationResult.getUserPassword();

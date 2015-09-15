@@ -1,6 +1,7 @@
 package password.pwm.http.filter;
 
 import password.pwm.AppProperty;
+import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
@@ -13,10 +14,10 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.ServletHelper;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.logging.PwmLogger;
@@ -67,6 +68,12 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         if (PwmApplication.MODE.RUNNING == pwmRequest.getPwmApplication().getApplicationMode()) {
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
                 throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
+            }
+
+            if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED);
+                pwmRequest.respondWithError(errorInformation);
+                return true;
             }
 
             if (pwmSession.getLoginInfoBean().getAuthenticationType() != AuthenticationType.AUTHENTICATED) {
@@ -180,8 +187,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                     pwmRequest.getPwmResponse().writeCookie(
                             PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN,
                             cookieValue,
-                            persistentSeconds,
-                            true
+                            persistentSeconds
                     );
                     LOGGER.debug(pwmRequest, "set persistent config login cookie (expires "
                                     + PwmConstants.DEFAULT_DATETIME_FORMAT.format(expirationDate)

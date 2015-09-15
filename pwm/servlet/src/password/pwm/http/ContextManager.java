@@ -212,8 +212,6 @@ public class ContextManager implements Serializable {
 
             checkConfigForSaveOnRestart(configReader, pwmApplication);
         }
-
-
     }
 
     private void checkConfigForSaveOnRestart(

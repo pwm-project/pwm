@@ -52,6 +52,7 @@ import password.pwm.http.bean.NewUserBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
@@ -303,7 +304,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmRequest, "error during user creation: " + e.getMessage());
             if (newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_DELETE_ON_FAIL)) {
-                deleteUserAccount(newUserDN, pwmSession, pwmApplication);
+                deleteUserAccount(newUserDN, pwmRequest);
             }
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
             pwmRequest.respondWithError(e.getErrorInformation());
@@ -671,7 +672,7 @@ public class NewUserServlet extends AbstractPwmServlet {
 
         //authenticate the user to pwm
         final UserIdentity userIdentity = new UserIdentity(newUserDN, pwmApplication.getConfig().getDefaultLdapProfile().getIdentifier());
-        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
+        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession, PwmAuthenticationSource.NEW_USER_REGISTRATION);
         sessionAuthenticator.authenticateUser(userIdentity, userPassword);
 
         {  // execute configured actions
@@ -705,20 +706,19 @@ public class NewUserServlet extends AbstractPwmServlet {
 
     private static void deleteUserAccount(
             final String userDN,
-            PwmSession pwmSession,
-            final PwmApplication pwmApplication
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException
     {
         try {
-            LOGGER.warn(pwmSession, "deleting ldap user account " + userDN);
-            pwmApplication.getConfig().getDefaultLdapProfile().getProxyChaiProvider(pwmApplication).deleteEntry(userDN);
-            LOGGER.warn(pwmSession, "ldap user account " + userDN + " has been deleted");
+            LOGGER.warn(pwmRequest, "deleting ldap user account " + userDN);
+            pwmRequest.getConfig().getDefaultLdapProfile().getProxyChaiProvider(pwmRequest.getPwmApplication()).deleteEntry(userDN);
+            LOGGER.warn(pwmRequest, "ldap user account " + userDN + " has been deleted");
         } catch (ChaiUnavailableException | ChaiOperationException e) {
-            LOGGER.error(pwmSession, "error deleting ldap user account " + userDN + ", " + e.getMessage());
+            LOGGER.error(pwmRequest, "error deleting ldap user account " + userDN + ", " + e.getMessage());
         }
 
-        pwmSession.unauthenticateUser();
+        pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
     }
 
     private static String determineUserDN(

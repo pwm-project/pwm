@@ -389,6 +389,9 @@ public class LdapOperationsHelper {
             chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "false");
         }
 
+        chaiConfig.setSetting(ChaiSetting.LDAP_SEARCH_PAGING_ENABLE, config.readAppProperty(AppProperty.LDAP_SEARCH_PAGING_ENABLE));
+        chaiConfig.setSetting(ChaiSetting.LDAP_SEARCH_PAGING_SIZE, config.readAppProperty(AppProperty.LDAP_SEARCH_PAGING_SIZE));
+
         if (config.readSettingAsBoolean(PwmSetting.AD_ENFORCE_PW_HISTORY_ON_SET)) {
             chaiConfig.setSetting(ChaiSetting.AD_SET_POLICY_HINTS_ON_PW_SET,"true");
         }

@@ -30,10 +30,12 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 
 public class SecureService implements PwmService {
@@ -94,13 +96,23 @@ public class SecureService implements PwmService {
         return SecureEngine.encryptToString(value, pwmSecurityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE);
     }
 
+    public String encryptObjectToString(final Serializable serializableObject) throws PwmUnrecoverableException {
+        final String jsonValue = JsonUtil.serialize(serializableObject);
+        return encryptToString(jsonValue);
+    }
+
     public String decryptStringValue(
             final String value
     )
-            throws PwmUnrecoverableException {
+            throws PwmUnrecoverableException
+    {
         return SecureEngine.decryptStringValue(value, pwmSecurityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE);
     }
 
+    public <T extends Serializable> T decryptObject(final String value, Class<T> returnClass) throws PwmUnrecoverableException {
+        final String decryptedValue = decryptStringValue(value);
+        return JsonUtil.deserialize(decryptedValue, returnClass);
+    }
 
     public String hash(
             final String input

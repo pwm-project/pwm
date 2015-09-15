@@ -20,11 +20,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.cr;
+package password.pwm.config;
 
 import java.io.Serializable;
 
-public class ChallengeItemBean implements Serializable {
+public class ChallengeItemConfiguration implements Serializable {
     private String text;
     private int minLength;
     private int maxLength;
@@ -36,7 +36,7 @@ public class ChallengeItemBean implements Serializable {
     private String setupGuide;
     private String regex;
 
-    public ChallengeItemBean(
+    public ChallengeItemConfiguration(
             String challengeText,
             int minimumLength,
             int maximumLength,

@@ -26,7 +26,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.Validator;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
@@ -35,6 +34,7 @@ import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
+import password.pwm.http.servlet.LoginServlet;
 import password.pwm.http.servlet.OAuthConsumerServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Display;
@@ -42,9 +42,11 @@ import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.CASAuthenticationHelper;
+import password.pwm.util.LoginCookieManager;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
@@ -53,6 +55,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 
 /**
@@ -139,7 +142,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             LOGGER.info(pwmRequest, errorInformation);
 
             // log out their user
-            pwmSession.unauthenticateUser();
+            pwmSession.unauthenticateUser(pwmRequest);
 
             // send en error to user.
             pwmRequest.respondWithError(errorInformation, true);
@@ -153,8 +156,16 @@ public class AuthenticationFilter extends AbstractPwmFilter {
                 return;
             }
         }
-
         handleAuthenticationCookie(pwmRequest);
+
+        // output the login cookie
+        try {
+            LoginCookieManager.writeLoginCookieToResponse(pwmRequest);
+        } catch (PwmUnrecoverableException e) {
+            final String errorMsg = "unexpected error writing login cookie to response: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
+            LOGGER.error(pwmRequest, errorInformation);
+        }
 
         if (forceRequiredRedirects(pwmRequest)) {
             return;
@@ -177,13 +188,13 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
         final String cookieName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_AUTHRECORD_NAME);
         if (cookieName == null || cookieName.isEmpty()) {
-            LOGGER.debug(pwmRequest, "skipping auth record cookie set, cookie name parameter is blank");
+            LOGGER.debug(pwmRequest, "skipping auth record cookie set, cookie name parameter is blank" );
             return;
         }
 
         final int cookieAgeSeconds = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_AUTHRECORD_AGE));
         if (cookieAgeSeconds < 1) {
-            LOGGER.debug(pwmRequest, "skipping auth record cookie set, cookie age parameter is less than 1");
+            LOGGER.debug(pwmRequest, "skipping auth record cookie set, cookie age parameter is less than 1" );
             return;
         }
 
@@ -192,7 +203,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         final AuthRecord authRecord = new AuthRecord(authTime, userGuid);
 
         try {
-            pwmRequest.getPwmResponse().writeEncryptedCookie(cookieName, authRecord, cookieAgeSeconds, true, pwmRequest.getContextPath());
+            pwmRequest.getPwmResponse().writeEncryptedCookie(cookieName, authRecord, cookieAgeSeconds, pwmRequest.getContextPath());
             LOGGER.debug(pwmRequest,"wrote auth record cookie to user browser for use during forgotten password");
         } catch (PwmUnrecoverableException e) {
             LOGGER.error(pwmRequest, "error while setting authentication record cookie: " + e.getMessage());
@@ -237,50 +248,45 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
 
         if (!bypassSSOAuth) {
-            //try to authenticate user with basic auth
-            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-                final BasicAuthInfo authInfo = BasicAuthInfo.parseAuthHeader(pwmApplication, pwmRequest);
-                if (authInfo != null) {
+            for (final AuthenticationMethod authenticationMethod : AuthenticationMethod.values()) {
+                if (!pwmRequest.isAuthenticated()) {
                     try {
-                        authUserUsingBasicHeader(pwmRequest, authInfo);
-                    } catch (ChaiUnavailableException e) {
-                        StatisticsManager.incrementStat(pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT);
-                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage());
+                        final Class<? extends FilterAuthenticationProvider> clazz = authenticationMethod.getImplementationClass();
+                        final FilterAuthenticationProvider filterAuthenticationProvider = clazz.newInstance();
+                        filterAuthenticationProvider.attemptAuthentication(pwmRequest);
+
+                        if (pwmRequest.isAuthenticated()) {
+                            LOGGER.trace(pwmRequest, "authentication provided by method " + filterAuthenticationProvider);
+                        }
+
+                        if (filterAuthenticationProvider.hasRedirectedResponse()) {
+                            LOGGER.trace(pwmRequest, "authentication provider " + filterAuthenticationProvider + " has issued a redirect, halting authentication process");
+                            return;
+                        }
+
+                    } catch (Exception e) {
+                        final ErrorInformation errorInformation;
+                        if (e instanceof PwmException) {
+                            final String erorrMessage = "error during " + authenticationMethod + " authentication attempt: " + e.getMessage();
+                            errorInformation = new ErrorInformation(((PwmException)e).getError(), erorrMessage);
+                        } else {
+                            errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage());
+
+                        }
+                        LOGGER.error(pwmRequest, errorInformation);
                         pwmRequest.respondWithError(errorInformation);
-                        return;
-                    } catch (PwmException e) {
-                        pwmRequest.respondWithError(e.getErrorInformation());
-                        return;
                     }
-                }
-            }
-
-            // attempt sso header authentication
-            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-                if (processAuthHeader(pwmRequest)) {
-                    return;
-                }
-            }
-
-            // try to authenticate user with CAS
-            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-                if (processCASAuthentication(pwmRequest)) {
-                    return;
-                }
-            }
-
-            // process OAuth
-            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-                if (processOAuthAuthenticationRequest(pwmRequest)) {
-                    return;
                 }
             }
         }
 
+        if (pwmRequest.isAuthenticated()) {
+            chain.doFilter();
+            return;
+        }
+
         //store the original requested url
         final String originalRequestedUrl = pwmRequest.getURLwithQueryString();
-
-        pwmRequest.markPreLoginUrl();
 
         // handle if authenticated during filter process.
         if (pwmSession.getSessionStateBean().isAuthenticated()) {
@@ -304,132 +310,10 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
         //user is not authenticated so forward to LoginPage.
         LOGGER.trace(pwmSession.getLabel(), "user requested resource requiring authentication (" + req.getRequestURI() + "), but is not authenticated; redirecting to LoginServlet");
-        pwmRequest.sendRedirect(PwmServletDefinition.Login);
+
+        LoginServlet.redirectToLoginServlet(pwmRequest);
     }
 
-    public static void authUserUsingBasicHeader(
-            final PwmRequest pwmRequest,
-            final BasicAuthInfo basicAuthInfo
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
-    {
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-
-        //make sure user session isn't already authenticated
-        if (ssBean.isAuthenticated()) {
-            return;
-        }
-
-        if (basicAuthInfo == null) {
-            return;
-        }
-
-        //user isn't already authenticated and has an auth header, so try to auth them.
-        LOGGER.debug(pwmSession, "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.getUsername() + ")");
-        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
-        final UserIdentity userIdentity = userSearchEngine.resolveUsername(basicAuthInfo.getUsername(), null, null);
-        sessionAuthenticator.authenticateUser(userIdentity, basicAuthInfo.getPassword());
-        pwmSession.getLoginInfoBean().setOriginalBasicAuthInfo(basicAuthInfo);
-    }
-
-    static boolean processAuthHeader(
-            final PwmRequest pwmRequest
-    )
-            throws IOException, ServletException
-
-    {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-
-        final String headerName = pwmApplication.getConfig().readSettingAsString(PwmSetting.SSO_AUTH_HEADER_NAME);
-        if (headerName == null || headerName.length() < 1) {
-            return false;
-        }
-
-        final String headerValue = Validator.sanitizeInputValue(
-                pwmRequest.getConfig(),
-                pwmRequest.getHttpServletRequest().getHeader(headerName),
-                1024
-        );
-
-        if (headerValue == null || headerValue.length() < 1) {
-            return false;
-        }
-
-        LOGGER.debug(pwmRequest, "SSO Authentication header present in request, will search for user value of '" + headerValue + "'");
-        try {
-            SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
-            sessionAuthenticator.authUserWithUnknownPassword(headerValue, AuthenticationType.AUTH_WITHOUT_PASSWORD);
-            return false;
-        } catch (ChaiUnavailableException e) {
-            final ErrorInformation errorInformation = new ErrorInformation(
-                    PwmError.ERROR_DIRECTORY_UNAVAILABLE,
-                    "unable to reach ldap server during SSO auth header authentication attempt: " + e.getMessage());
-            LOGGER.error(pwmRequest, errorInformation);
-            pwmRequest.respondWithError(errorInformation);
-            return true;
-        } catch (PwmException e) {
-            final ErrorInformation errorInformation = new ErrorInformation(
-                    e.getError(),
-                    "error during SSO auth header authentication attempt: " + e.getMessage());
-            LOGGER.error(pwmRequest, errorInformation);
-            pwmRequest.respondWithError(errorInformation);
-            return true;
-        }
-    }
-
-    static boolean processCASAuthentication(
-            final PwmRequest pwmRequest
-
-    )
-            throws IOException, ServletException
-    {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-
-
-        try {
-            final String clearPassUrl = pwmApplication.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
-            if (clearPassUrl != null && clearPassUrl.length() > 0) {
-                LOGGER.trace(pwmSession.getLabel(), "checking for authentication via CAS");
-                if (CASAuthenticationHelper.authUserUsingCASClearPass(pwmRequest, clearPassUrl)) {
-                    LOGGER.debug(pwmSession, "login via CAS successful");
-                    return false;
-                }
-            }
-        } catch (ChaiUnavailableException e) {
-            StatisticsManager.incrementStat(pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT);
-            final ErrorInformation errorInformation = new ErrorInformation(
-                    PwmError.ERROR_DIRECTORY_UNAVAILABLE,
-                    e.getMessage()
-            );
-            pwmRequest.respondWithError(errorInformation);
-            return true;
-        } catch (PwmException e) {
-            pwmRequest.respondWithError(e.getErrorInformation());
-            return true;
-        }
-        return false;
-    }
-
-    static boolean processOAuthAuthenticationRequest(
-            final PwmRequest pwmRequest
-    )
-            throws IOException, ServletException, PwmUnrecoverableException
-
-    {
-        final OAuthConsumerServlet.Settings settings = OAuthConsumerServlet.Settings.fromConfiguration(pwmRequest.getConfig());
-        if (!settings.oAuthIsConfigured()) {
-            return false;
-        }
-
-        final String originalURL = pwmRequest.getURLwithQueryString();
-        OAuthConsumerServlet.redirectUserToOAuthServer(pwmRequest, originalURL);
-        return true;
-    }
 
     public static boolean forceRequiredRedirects(
             final PwmRequest pwmRequest
@@ -510,6 +394,195 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
 
         return false;
+    }
+
+    interface FilterAuthenticationProvider {
+        void attemptAuthentication(final PwmRequest pwmRequest)
+                throws PwmUnrecoverableException, IOException;
+
+        boolean hasRedirectedResponse();
+    }
+
+    enum AuthenticationMethod {
+        LOGIN_COOKIE(LoginCookieFilterAuthenticationProvider.class),
+        BASIC_AUTH(BasicFilterAuthenticationProvider.class),
+        SSO_AUTH_HEADER(SSOHeaderFilterAuthenticationProvider.class),
+        CAS(CASFilterAuthenticationProvider.class),
+        OAUTH(OAuthFilterAuthenticationProvider.class)
+
+        ;
+
+        private final Class<? extends FilterAuthenticationProvider> implementationClass;
+
+        AuthenticationMethod(Class<? extends FilterAuthenticationProvider> implementationClass) {
+            this.implementationClass = implementationClass;
+        }
+
+        public Class<? extends FilterAuthenticationProvider> getImplementationClass() {
+            return implementationClass;
+        }
+    }
+
+    public static class BasicFilterAuthenticationProvider implements FilterAuthenticationProvider {
+
+        @Override
+        public void attemptAuthentication(
+                final PwmRequest pwmRequest
+        )
+                throws PwmUnrecoverableException
+        {
+            if (!pwmRequest.isAuthenticated()) {
+                final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(pwmRequest.getPwmApplication(), pwmRequest);
+                if (basicAuthInfo != null) {
+                    try {
+                        final PwmSession pwmSession = pwmRequest.getPwmSession();
+                        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+
+                        //user isn't already authenticated and has an auth header, so try to auth them.
+                        LOGGER.debug(pwmSession, "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.getUsername() + ")");
+                        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
+                                pwmApplication,
+                                pwmSession,
+                                PwmAuthenticationSource.BASIC_AUTH
+                        );
+                        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
+                        final UserIdentity userIdentity = userSearchEngine.resolveUsername(basicAuthInfo.getUsername(), null, null);
+                        sessionAuthenticator.authenticateUser(userIdentity, basicAuthInfo.getPassword());
+                        pwmSession.getLoginInfoBean().setOriginalBasicAuthInfo(basicAuthInfo);
+
+                    } catch (ChaiUnavailableException e) {
+                        StatisticsManager.incrementStat(pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT);
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage());
+                        throw new PwmUnrecoverableException(errorInformation);
+                    } catch (PwmException e) {
+                        throw new PwmUnrecoverableException(e.getError());
+                    }
+                }
+            }
+        }
+
+        @Override
+        public boolean hasRedirectedResponse() {
+            return false;
+        }
+    }
+
+    static class SSOHeaderFilterAuthenticationProvider implements FilterAuthenticationProvider {
+
+        @Override
+        public void attemptAuthentication(
+                final PwmRequest pwmRequest
+        )
+                throws PwmUnrecoverableException
+        {
+            {
+                final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+                final PwmSession pwmSession = pwmRequest.getPwmSession();
+
+                final String headerName = pwmApplication.getConfig().readSettingAsString(PwmSetting.SSO_AUTH_HEADER_NAME);
+                if (headerName == null || headerName.length() < 1) {
+                    return;
+                }
+
+
+                final String headerValue = pwmRequest.readHeaderValueAsString(headerName);
+                if (headerValue == null || headerValue.length() < 1) {
+                    return;
+                }
+
+                LOGGER.debug(pwmRequest, "SSO Authentication header present in request, will search for user value of '" + headerValue + "'");
+                final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
+                        pwmApplication,
+                        pwmSession,
+                        PwmAuthenticationSource.SSO_HEADER
+                );
+
+                try {
+                    sessionAuthenticator.authUserWithUnknownPassword(headerValue, AuthenticationType.AUTH_WITHOUT_PASSWORD);
+                } catch (PwmOperationalException e) {
+                    throw new PwmUnrecoverableException(e.getErrorInformation());
+                }
+            }
+        }
+
+        @Override
+        public boolean hasRedirectedResponse() {
+            return false;
+        }
+    }
+
+
+    static class CASFilterAuthenticationProvider implements FilterAuthenticationProvider {
+
+        @Override
+        public void attemptAuthentication(
+                final PwmRequest pwmRequest
+        )
+                throws PwmUnrecoverableException
+        {
+            try {
+                final String clearPassUrl = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
+                if (clearPassUrl != null && clearPassUrl.length() > 0) {
+                    LOGGER.trace(pwmRequest, "checking for authentication via CAS");
+                    if (CASAuthenticationHelper.authUserUsingCASClearPass(pwmRequest, clearPassUrl)) {
+                        LOGGER.debug(pwmRequest, "login via CAS successful");
+                    }
+                }
+            } catch (ChaiUnavailableException e) {
+                throw PwmUnrecoverableException.fromChaiException(e);
+            } catch (PwmOperationalException e) {
+                throw new PwmUnrecoverableException(e.getErrorInformation());
+            } catch (UnsupportedEncodingException e) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"error during CAS authentication: " + e.getMessage()));
+            }
+        }
+
+        @Override
+        public boolean hasRedirectedResponse() {
+            return false;
+        }
+    }
+
+
+    static class OAuthFilterAuthenticationProvider implements FilterAuthenticationProvider {
+
+        private boolean redirected = false;
+
+        public void attemptAuthentication(
+                final PwmRequest pwmRequest
+        )
+                throws PwmUnrecoverableException, IOException
+        {
+            final OAuthConsumerServlet.Settings settings = OAuthConsumerServlet.Settings.fromConfiguration(pwmRequest.getConfig());
+            if (!settings.oAuthIsConfigured()) {
+                return;
+            }
+
+            final String originalURL = pwmRequest.getURLwithQueryString();
+            OAuthConsumerServlet.redirectUserToOAuthServer(pwmRequest, originalURL);
+            redirected = true;
+        }
+
+        @Override
+        public boolean hasRedirectedResponse() {
+            return redirected;
+        }
+    }
+
+    static class LoginCookieFilterAuthenticationProvider implements FilterAuthenticationProvider {
+
+        public void attemptAuthentication(
+                final PwmRequest pwmRequest
+        )
+                throws PwmUnrecoverableException, IOException
+        {
+            LoginCookieManager.readLoginInfoCookie(pwmRequest);
+        }
+
+        @Override
+        public boolean hasRedirectedResponse() {
+            return false;
+        }
     }
 }
 

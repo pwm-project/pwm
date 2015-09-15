@@ -29,8 +29,8 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.ServletHelper;
 import password.pwm.util.Helper;
-import password.pwm.util.ServletHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

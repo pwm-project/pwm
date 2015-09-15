@@ -294,7 +294,7 @@ public class MainClass {
             if (arg != null) {
                 if (arg.startsWith(OPT_DEBUG_LEVEL)) {
                     if (arg.length() < OPT_DEBUG_LEVEL.length() + 2) {
-                        out(OPT_DEBUG_LEVEL + " option must include level (example: -debugLevel=TRACE");
+                        out(OPT_DEBUG_LEVEL + " option must include level (example: -" + OPT_DEBUG_LEVEL + "=TRACE");
                         System.exit(-1);
                     } else {
                         final String levelStr = arg.substring(OPT_DEBUG_LEVEL.length() + 1, arg.length());
@@ -309,7 +309,7 @@ public class MainClass {
                     }
                 } else  if (arg.startsWith(OPT_APP_PATH)) {
                     if (arg.length() < OPT_APP_PATH.length() + 2) {
-                        out(OPT_APP_PATH + " option must include value (example: -debugLevel=/tmp/applicationPath");
+                        out(OPT_APP_PATH + " option must include value (example: -" + OPT_APP_PATH + "=/tmp/applicationPath");
                         System.exit(-1);
                     } else {
                         final String pathStr = arg.substring(OPT_APP_PATH.length() + 1, arg.length());

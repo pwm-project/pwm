@@ -53,7 +53,7 @@ public class RestCommandServer extends AbstractRestServer {
         }
 
         try {
-            restRequestBean.getPwmApplication().getUserReportService().scheduleImmediateUpdate();
+            restRequestBean.getPwmApplication().getReportService().scheduleImmediateUpdate();
             return new RestResultBean().asJsonResponse();
         } catch (Exception e) {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
@@ -78,7 +78,7 @@ public class RestCommandServer extends AbstractRestServer {
         }
 
         try {
-            restRequestBean.getPwmApplication().getUserReportService().cancelUpdate();
+            restRequestBean.getPwmApplication().getReportService().cancelUpdate();
             return new RestResultBean().asJsonResponse();
         } catch (Exception e) {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
@@ -103,7 +103,7 @@ public class RestCommandServer extends AbstractRestServer {
         }
 
         try {
-            restRequestBean.getPwmApplication().getUserReportService().clear();
+            restRequestBean.getPwmApplication().getReportService().clear();
             return new RestResultBean().asJsonResponse();
         } catch (Exception e) {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();

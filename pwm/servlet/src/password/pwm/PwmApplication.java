@@ -417,7 +417,7 @@ public class PwmApplication {
         return (SeedlistManager)pwmServices.get(SeedlistManager.class);
     }
 
-    public ReportService getUserReportService() {
+    public ReportService getReportService() {
         return (ReportService)pwmServices.get(ReportService.class);
     }
 

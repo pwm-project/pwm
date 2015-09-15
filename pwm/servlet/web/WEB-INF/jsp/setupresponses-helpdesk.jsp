@@ -26,9 +26,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    final SetupResponsesBean responseBean = JspUtility.getPwmSession(pageContext).getSetupResponseBean();
-%>
+<% final SetupResponsesBean responseBean = (SetupResponsesBean)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ModuleBean); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">

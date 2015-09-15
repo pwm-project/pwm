@@ -41,8 +41,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.ws.server.RestResultBean;
@@ -54,7 +52,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.net.URI;
 import java.util.*;
 
 public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
@@ -178,7 +175,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         try {
             forwardToJsp(PwmConstants.JSP_URL.ERROR);
             if (forceLogout) {
-                pwmSession.unauthenticateUser();
+                pwmSession.unauthenticateUser(this);
             }
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unexpected error sending user to error page: " + e.toString());
@@ -379,38 +376,6 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return new PwmURL(this.getHttpServletRequest());
     }
 
-    public void markPreLoginUrl()
-            throws PwmUnrecoverableException
-
-    {
-        final String originalRequestedUrl = this.getURLwithQueryString();
-        if (pwmSession.getSessionStateBean().getOriginalRequestURL() == null) {
-            LOGGER.trace(this, "noted originally requested url as: " + originalRequestedUrl);
-            pwmSession.getSessionStateBean().setOriginalRequestURL(originalRequestedUrl);
-        }
-    }
-
-    public void sendRedirectToPreLoginUrl()
-            throws IOException, PwmUnrecoverableException
-    {
-        LOGGER.trace(this, "redirecting user to originally requested (pre-authentication) url: ");
-        sendRedirect(determinePostLoginUrl());
-    }
-
-    public String determinePostLoginUrl() {
-        final String originalURL = this.getPwmSession().getSessionStateBean().getOriginalRequestURL();
-        this.getPwmSession().getSessionStateBean().setOriginalRequestURL(null);
-
-        if (originalURL != null && !originalURL.isEmpty()) {
-            final PwmURL originalPwmURL = new PwmURL(URI.create(originalURL),this.getContextPath());
-            if (!originalPwmURL.isLoginServlet()) {
-                return originalURL;
-            }
-        }
-        return this.getContextPath();
-    }
-
-
     public void debugHttpRequestToLog()
             throws PwmUnrecoverableException
     {
@@ -469,7 +434,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     }
 
     public boolean isAuthenticated() {
-        return pwmSession.getSessionStateBean().isAuthenticated();
+        return pwmSession.isAuthenticated();
     }
 
     public boolean isForcedPageView() {
@@ -541,16 +506,14 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     {
         return cspNonce;
     }
-    //        public static <E extends Enum<E>> E valueToEnum(final PwmSetting setting, StoredValue value, Class<E> enumClass) {
 
-    public <T extends Serializable> T readCookie(final String cookieName, Class<T> returnClass) 
+    public <T extends Serializable> T readEncryptedCookie(final String cookieName, Class<T> returnClass)
             throws PwmUnrecoverableException 
     {
         final String strValue = this.readCookie(cookieName);
 
         if (strValue != null && !strValue.isEmpty()) {
-            final String decryptedCookie = pwmApplication.getSecureService().decryptStringValue(strValue);
-            return JsonUtil.deserialize(decryptedCookie, returnClass);
+            return pwmApplication.getSecureService().decryptObject(strValue, returnClass);
         }
         
         return null;
@@ -569,7 +532,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             final boolean showPasswordFields
     ) {
         final ArrayList<FormConfiguration> formConfiguration = new ArrayList<>(this.getConfig().readSettingAsForm(formSetting));
-        addFormInfoToRequestAttr(formConfiguration,null,readOnly,showPasswordFields);
+        addFormInfoToRequestAttr(formConfiguration, null, readOnly, showPasswordFields);
         
     }
     public void addFormInfoToRequestAttr(
@@ -589,6 +552,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     }
 
     public void invalidateSession() {
+        this.getPwmSession().unauthenticateUser(this);
         this.getHttpServletRequest().getSession().invalidate();
     }
 

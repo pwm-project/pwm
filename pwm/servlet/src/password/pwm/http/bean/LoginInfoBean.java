@@ -23,6 +23,7 @@
 package password.pwm.http.bean;
 
 import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
 
@@ -35,6 +36,7 @@ public class LoginInfoBean implements PwmSessionBean {
 
     private AuthenticationType authenticationType = AuthenticationType.UNAUTHENTICATED;
     private List<AuthenticationType> authenticationFlags = new ArrayList<>();
+    private PwmAuthenticationSource authenticationSource;
     private Date localAuthTime;
 
     private transient BasicAuthInfo originalBasicAuthInfo;
@@ -114,5 +116,13 @@ public class LoginInfoBean implements PwmSessionBean {
 
     public List<AuthenticationType> getAuthenticationFlags() {
         return authenticationFlags;
+    }
+
+    public PwmAuthenticationSource getAuthenticationSource() {
+        return authenticationSource;
+    }
+
+    public void setAuthenticationSource(PwmAuthenticationSource authenticationSource) {
+        this.authenticationSource = authenticationSource;
     }
 }

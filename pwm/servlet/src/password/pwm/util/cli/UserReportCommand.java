@@ -56,7 +56,7 @@ public class UserReportCommand extends AbstractCliCommand {
 
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
-        final ReportService userReport = pwmApplication.getUserReportService();
+        final ReportService userReport = pwmApplication.getReportService();
         if (userReport.status() != PwmService.STATUS.OPEN) {
             out("report service is not open or enabled");
             final List<HealthRecord> healthIssues = userReport.healthCheck();

@@ -22,5 +22,13 @@
 
 package password.pwm.cr;
 
-public class ResponseItemBean {
+import java.io.Serializable;
+import java.util.List;
+
+public class CrChallengePolicyBean implements Serializable {
+    private String locale;
+    private List<CrChallengeItemBean> challenges;
+    private List<CrChallengeItemBean> helpdeskChallenges;
+    private int minRandomRequired;
+    private int helpdeskMinRandomRequired;
 }

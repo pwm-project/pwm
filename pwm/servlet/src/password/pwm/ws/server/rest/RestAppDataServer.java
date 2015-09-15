@@ -368,8 +368,8 @@ public class RestAppDataServer extends AbstractRestServer {
 
         final String contextPath = request.getContextPath();
         settingMap.put("url-context", contextPath);
-        settingMap.put("url-logout", contextPath + "/public/logout?idle=true");
-        settingMap.put("url-command", contextPath + "/public/CommandServlet");
+        settingMap.put("url-logout", contextPath + PwmServletDefinition.Logout.servletUrl() + "?idle=true");
+        settingMap.put("url-command", contextPath + PwmServletDefinition.Command.servletUrl());
         settingMap.put("url-resources", contextPath + "/public/resources" + pwmApplication.getResourceServletService().getResourceNonce());
         settingMap.put("url-restservice", contextPath + "/public/rest");
         settingMap.put("url-setupresponses",contextPath + PwmServletDefinition.SetupResponses.servletUrl());

@@ -26,14 +26,15 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
 import password.pwm.bean.UserIdentity;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmURL;
+import password.pwm.http.ServletHelper;
 import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.util.LoginCookieManager;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -41,6 +42,7 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -100,7 +102,7 @@ public class LoginServlet extends AbstractPwmServlet {
     )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final boolean passwordOnly = pwmRequest.getPwmSession().getSessionStateBean().isAuthenticated() &&
+        final boolean passwordOnly = pwmRequest.isAuthenticated() &&
                 pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationType() == AuthenticationType.AUTH_WITHOUT_PASSWORD;
 
         final LoginServletAction action = readProcessAction(pwmRequest);
@@ -141,7 +143,10 @@ public class LoginServlet extends AbstractPwmServlet {
         }
 
         // login has succeeded
-        pwmRequest.sendRedirectToPreLoginUrl();
+        pwmRequest.sendRedirect(determinePostLoginUrl(
+                pwmRequest,
+                pwmRequest.readParameterAsString(PwmConstants.PARAM_POST_LOGIN_URL)
+        ));
     }
 
     private void processRestLogin(final PwmRequest pwmRequest, final boolean passwordOnly)
@@ -168,8 +173,9 @@ public class LoginServlet extends AbstractPwmServlet {
         }
 
         // login has succeeded
+        final String nextLoginUrl = determinePostLoginUrl(pwmRequest, valueMap.get(PwmConstants.PARAM_POST_LOGIN_URL));
         final RestResultBean restResultBean = new RestResultBean();
-        final HashMap<String,String> resultMap = new HashMap<>(Collections.singletonMap("nextURL", pwmRequest.determinePostLoginUrl()));
+        final HashMap<String,String> resultMap = new HashMap<>(Collections.singletonMap("nextURL", nextLoginUrl));
         restResultBean.setData(resultMap);
         LOGGER.debug(pwmRequest, "rest login succeeded");
         pwmRequest.outputJsonResult(restResultBean);
@@ -193,7 +199,12 @@ public class LoginServlet extends AbstractPwmServlet {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"missing password parameter"));
         }
 
-        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
+        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmSession(),
+                PwmAuthenticationSource.LOGIN_FORM
+        );
+
         if (passwordOnly) {
             final UserIdentity userIdentity = pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity();
             sessionAuthenticator.authenticateUser(userIdentity, password);
@@ -201,8 +212,13 @@ public class LoginServlet extends AbstractPwmServlet {
             sessionAuthenticator.searchAndAuthenticateUser(username, password, context, ldapProfile);
         }
 
+        // if here then login was successful
+
         // recycle the session to prevent session fixation attack.
         pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded(true);
+
+        LoginCookieManager.writeLoginCookieToResponse(pwmRequest);
+
     }
 
     private void forwardToJSP(
@@ -213,6 +229,44 @@ public class LoginServlet extends AbstractPwmServlet {
     {
         final PwmConstants.JSP_URL url = passwordOnly ? PwmConstants.JSP_URL.LOGIN_PW_ONLY : PwmConstants.JSP_URL.LOGIN;
         pwmRequest.forwardToJsp(url);
+    }
+
+    private static String determinePostLoginUrl(final PwmRequest pwmRequest, final String inputValue)
+            throws PwmUnrecoverableException
+    {
+        String decryptedValue = null;
+        try {
+            if (inputValue != null && !inputValue.isEmpty()) {
+                decryptedValue = pwmRequest.getPwmApplication().getSecureService().decryptStringValue(inputValue);
+            }
+        } catch (PwmException e) {
+            LOGGER.warn(pwmRequest, "unable to decrypt post login redirect parameter: " + e.getMessage());
+        }
+
+        if (decryptedValue != null && !decryptedValue.isEmpty()) {
+            final PwmURL originalPwmURL = new PwmURL(URI.create(decryptedValue),pwmRequest.getContextPath());
+            if (!originalPwmURL.isLoginServlet()) {
+                return decryptedValue;
+            }
+        }
+        return pwmRequest.getContextPath();
+    }
+
+    public static void redirectToLoginServlet(final PwmRequest pwmRequest)
+            throws IOException, PwmUnrecoverableException
+    {
+        //store the original requested url
+        final String originalRequestedUrl = pwmRequest.getURLwithQueryString();
+
+        final String encryptedRedirUrl = pwmRequest.getPwmApplication().getSecureService().encryptToString(originalRequestedUrl);
+
+        final String redirectUrl = ServletHelper.appendAndEncodeUrlParameters(
+                pwmRequest.getContextPath() + PwmServletDefinition.Login.servletUrl(),
+                Collections.singletonMap(PwmConstants.PARAM_POST_LOGIN_URL, encryptedRedirUrl)
+        );
+
+        pwmRequest.sendRedirect(redirectUrl);
+
     }
 }
 

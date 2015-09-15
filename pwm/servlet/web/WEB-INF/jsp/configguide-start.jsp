@@ -43,6 +43,11 @@
     <div id="centerbody">
         <pwm:display key="Display_ConfigManagerNew" bundle="Config" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+        <%--
+        <p>
+            Application Configuration Path: <code><%=StringEscapeUtils.escapeHtml4(JspUtility.getPwmRequest(pageContext).getPwmApplication().getApplicationPath().getAbsolutePath())%></code>
+        </p>
+        --%>
         <br/>
         <table style="border:0">
             <tr style="border:0">

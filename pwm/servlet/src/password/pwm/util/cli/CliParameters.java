@@ -47,7 +47,7 @@ public class CliParameters {
         String getName();
     }
 
-    public static final Option REQUIRED_NEW_FILE = new Option() {
+    public static final Option REQUIRED_NEW_OUTPUT_FILE = new Option() {
         public boolean isOptional()
         {
             return false;

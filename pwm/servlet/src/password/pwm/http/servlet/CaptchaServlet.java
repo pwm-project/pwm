@@ -37,12 +37,12 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.ServletHelper;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.http.client.PwmHttpClientResponse;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
@@ -253,8 +253,7 @@ public class CaptchaServlet extends AbstractPwmServlet {
             pwmRequest.getPwmResponse().writeCookie(
                     captchaSkipCookieName,
                     cookieValue,
-                    captchaSkipCookieLifetimeSeconds,
-                    true
+                    captchaSkipCookieLifetimeSeconds
             );
         }
     }

@@ -55,6 +55,9 @@ import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This PWM service is responsible for reading/writing tokens used for forgotten password,
@@ -70,7 +73,7 @@ public class TokenService implements PwmService {
     private static final long MAX_CLEANER_INTERVAL_MS = 24 * 60 * 60 * 1000; // one day
     private static final long MIN_CLEANER_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
-    private Timer timer;
+    private ScheduledExecutorService executorService;
 
     private PwmApplication pwmApplication;
     private Configuration configuration;
@@ -162,12 +165,16 @@ public class TokenService implements PwmService {
             return;
         }
 
-        final String threadName = Helper.makeThreadName(pwmApplication,this.getClass()) + " timer";
-        timer = new Timer(threadName, true);
+        executorService = Executors.newSingleThreadScheduledExecutor(
+                Helper.makePwmThreadFactory(
+                        Helper.makeThreadName(pwmApplication, this.getClass()) + "-",
+                        true
+                ));
+
         final TimerTask cleanerTask = new CleanerTask();
 
         final long cleanerFrequency = (maxTokenAgeMS*0.5) > MAX_CLEANER_INTERVAL_MS ? MAX_CLEANER_INTERVAL_MS : (maxTokenAgeMS*0.5) < MIN_CLEANER_INTERVAL_MS ? MIN_CLEANER_INTERVAL_MS : (long)(maxTokenAgeMS*0.5);
-        timer.schedule(cleanerTask, 10000, cleanerFrequency + 731);
+        executorService.scheduleAtFixedRate(cleanerTask, 10 * 1000, cleanerFrequency, TimeUnit.MILLISECONDS);
         LOGGER.trace("token cleanup will occur every " + TimeDuration.asCompactString(cleanerFrequency));
 
         final String counterString = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.TOKEN_COUNTER);
@@ -269,8 +276,8 @@ public class TokenService implements PwmService {
     }
 
     public void close() {
-        if (timer != null) {
-            timer.cancel();
+        if (executorService != null) {
+            executorService.shutdown();
         }
         status = STATUS.CLOSED;
     }
@@ -533,7 +540,7 @@ public class TokenService implements PwmService {
             LOGGER.debug(pwmSession, errorInformation.toDebugStr());
 
             if (sessionUserIdentity != null) {
-                SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
+                SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession, null);
                 sessionAuthenticator.simulateBadPassword(sessionUserIdentity);
                 pwmApplication.getIntruderManager().convenience().markUserIdentity(sessionUserIdentity, pwmSession);
             }

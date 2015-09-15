@@ -22,24 +22,14 @@
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
-<%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<%
-    ResponseInfoBean responseInfoBean = null;
-    try {
-        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-        responseInfoBean = pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean();
-    } catch (PwmException e) {
-        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
-    }
-%>
+<% final ResponseInfoBean responseInfoBean = (ResponseInfoBean)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.SetupResponses_ResponseInfo); %>
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">

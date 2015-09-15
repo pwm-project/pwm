@@ -48,7 +48,7 @@ public class ExportLogsCommand extends AbstractCliCommand {
             return;
         }
 
-        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_FILE.getName());
+        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
         out("outputting " + logQueue.size() + " log events to " + outputFile.getAbsolutePath() + "....");
 
         Writer outputWriter = null;
@@ -78,7 +78,7 @@ public class ExportLogsCommand extends AbstractCliCommand {
         CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportLogs";
         cliParameters.description = "Export all logs in the LocalDB";
-        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_FILE);
+        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
 
         cliParameters.needsLocalDB = true;
         cliParameters.readOnly = true;

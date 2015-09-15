@@ -33,12 +33,17 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 public class PwmHttpResponseWrapper {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmHttpRequestWrapper.class);
 
     private final HttpServletResponse httpServletResponse;
     private final Configuration configuration;
+
+    public enum Flag {
+        NonHttpOnly
+    }
 
     protected PwmHttpResponseWrapper(HttpServletResponse response, final Configuration configuration)
     {
@@ -93,12 +98,13 @@ public class PwmHttpResponseWrapper {
         return this.getHttpServletResponse().getOutputStream();
     }
 
-    public void writeCookie(final String cookieName, final String cookieValue, final int seconds, final boolean httpOnly) {
-        writeCookie(cookieName, cookieValue, seconds, httpOnly, null);
+    public void writeCookie(final String cookieName, final String cookieValue, final int seconds, final Flag... flags) {
+        writeCookie(cookieName, cookieValue, seconds, null, flags);
     }
 
-    public void writeCookie(final String cookieName, final String cookieValue, final int seconds, final boolean httpOnly, final String path) {
-        final Cookie theCookie = new Cookie(cookieName, StringUtil.urlEncode(cookieValue));
+    public void writeCookie(final String cookieName, final String cookieValue, final int seconds, final String path, final Flag... flags) {
+        final boolean httpOnly = flags == null || !Arrays.asList(flags).contains(Flag.NonHttpOnly);
+        final Cookie theCookie = new Cookie(cookieName, cookieValue == null ? null : StringUtil.urlEncode(cookieValue));
         if (seconds > 0) {
             theCookie.setMaxAge(seconds);
         }
@@ -109,4 +115,7 @@ public class PwmHttpResponseWrapper {
         this.getHttpServletResponse().addCookie(theCookie);
     }
 
+    public void removeCookie(final String cookieName, final String path) {
+        writeCookie(cookieName, null, 0, path);
+    }
 }

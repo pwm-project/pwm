@@ -30,6 +30,10 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * An interface for daemon/background services.  Services are initialized, shutdown and accessed via {@link PwmApplication}.  Some services
+ * will have associated background threads, so implementations will generally be thread safe.
+ */
 public interface PwmService {
 
     enum STATUS {
@@ -49,7 +53,7 @@ public interface PwmService {
 
     ServiceInfo serviceInfo();
 
-    public class ServiceInfo implements Serializable {
+    class ServiceInfo implements Serializable {
         public Collection<DataStorageMethod> usedStorageMethods;
 
         public ServiceInfo(Collection<DataStorageMethod> usedStorageMethods)

@@ -169,7 +169,7 @@ public class AdminServlet extends AbstractPwmServlet {
 
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try {
-            final ReportService userReport = pwmApplication.getUserReportService();
+            final ReportService userReport = pwmApplication.getReportService();
             userReport.outputToCsv(outputStream, true, pwmRequest.getLocale());
         } catch (Exception e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
@@ -190,7 +190,7 @@ public class AdminServlet extends AbstractPwmServlet {
 
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try {
-            final ReportService userReport = pwmApplication.getUserReportService();
+            final ReportService userReport = pwmApplication.getReportService();
             userReport.outputSummaryToCsv(outputStream, pwmRequest.getLocale());
         } catch (Exception e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());

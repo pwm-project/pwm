@@ -37,6 +37,7 @@ import password.pwm.http.bean.*;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.LoginCookieManager;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
@@ -190,7 +191,7 @@ public class PwmSession implements Serializable {
     /**
      * Unauthenticate the pwmSession
      */
-    public void unauthenticateUser() {
+    public void unauthenticateUser(final PwmRequest pwmRequest) {
         final SessionStateBean ssBean = getSessionStateBean();
 
         if (ssBean.isAuthenticated()) { // try to tear out a session normally.
@@ -205,7 +206,6 @@ public class PwmSession implements Serializable {
 
             // mark the session state bean as no longer being authenticated
             ssBean.setAuthenticated(false);
-            ssBean.setOriginalRequestURL(null);
 
             // close out any outstanding connections
             getSessionManager().closeConnections();
@@ -227,6 +227,16 @@ public class PwmSession implements Serializable {
             // session already invalided
         }
         */
+
+        if (pwmRequest != null) {
+            try {
+                LoginCookieManager.clearLoginCookie(pwmRequest);
+            } catch (PwmUnrecoverableException e) {
+                final String errorMsg = "unexpected error writing removing login cookie from response: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
+                LOGGER.error(pwmRequest, errorInformation);
+            }
+        }
     }
 
     public SetupResponsesBean getSetupResponseBean() {
@@ -340,6 +350,10 @@ public class PwmSession implements Serializable {
         if (maxSeconds > 0) {
             session.setMaxInactiveInterval(maxSeconds);
         }
+    }
+
+    public boolean isAuthenticated() {
+        return getSessionStateBean().isAuthenticated();
     }
 
     private static class Settings implements Serializable {

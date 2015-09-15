@@ -39,7 +39,10 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.i18n.Display;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -59,13 +62,23 @@ public class UserMatchViewerFunction implements SettingUIFunction {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
+        final Date startSearchTime = new Date();
         final int maxResultSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT));
         final Collection<UserIdentity> users = discoverMatchingUsers(pwmApplication, maxResultSize, storedConfiguration, setting, profile);
+        final TimeDuration searchDuration = TimeDuration.fromCurrent(startSearchTime);
 
-        final HashMap<String,Object> output = new HashMap<>();
-        output.put("users", users);
-        output.put("sizeExceeded", users.size() >= maxResultSize);
-        return output;
+        final UserMatchViewerResults userMatchViewerResults = new UserMatchViewerResults();
+        final boolean sizeExceeded = users.size() >= maxResultSize;
+
+        userMatchViewerResults.setUsers(users);
+        userMatchViewerResults.setSearchOperationSummary(
+                LocaleHelper.getLocalizedMessage(
+                        Display.Display_SearchResultsInfo, pwmRequest,
+                        String.valueOf(users.size()),
+                        searchDuration.asLongString(pwmRequest.getLocale())
+                ));
+        userMatchViewerResults.setSizeExceeded(sizeExceeded);
+        return userMatchViewerResults;
     }
 
     public Collection<UserIdentity> discoverMatchingUsers(
@@ -122,6 +135,36 @@ public class UserMatchViewerFunction implements SettingUIFunction {
                 final String errorMsg = "entry DN '" + baseDN + "' is not valid for profile " + loopID;
                 throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_LDAP_DATA_ERROR, errorMsg));
             }
+        }
+    }
+
+    public static class UserMatchViewerResults implements Serializable {
+        private Collection<UserIdentity> users;
+        private boolean sizeExceeded;
+        private String searchOperationSummary;
+
+        public Collection<UserIdentity> getUsers() {
+            return users;
+        }
+
+        public void setUsers(Collection<UserIdentity> users) {
+            this.users = users;
+        }
+
+        public boolean isSizeExceeded() {
+            return sizeExceeded;
+        }
+
+        public void setSizeExceeded(boolean sizeExceeded) {
+            this.sizeExceeded = sizeExceeded;
+        }
+
+        public String getSearchOperationSummary() {
+            return searchOperationSummary;
+        }
+
+        public void setSearchOperationSummary(String searchOperationSummary) {
+            this.searchOperationSummary = searchOperationSummary;
         }
     }
 }

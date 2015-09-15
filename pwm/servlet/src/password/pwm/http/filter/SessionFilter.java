@@ -35,7 +35,6 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.*;
 import password.pwm.util.Helper;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -253,11 +252,8 @@ public class SessionFilter extends AbstractPwmFilter {
         final PwmResponse pwmResponse = pwmRequest.getPwmResponse();
 
         if (!pwmRequest.getMethod().isIdempotent() && pwmRequest.hasParameter(PwmConstants.PARAM_FORM_ID)) {
-            final String errorMsg = "session is unvalidated and cannot be validated during a " + pwmRequest.getMethod().toString() + " request";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_FORMID,errorMsg);
-            pwmRequest.respondWithError(errorInformation);
-            LOGGER.debug(pwmRequest,errorInformation);
-            return true;
+            LOGGER.debug(pwmRequest,"session is unvalidated but can not be validated during a " + pwmRequest.getMethod().toString() + " request, will allow");
+            return false;
         }
 
         if (pwmRequest.getURL().isCommandServletURL()) {

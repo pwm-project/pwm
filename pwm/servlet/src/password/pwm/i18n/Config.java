@@ -50,6 +50,7 @@ public enum Config implements PwmDisplayBundle {
     Display_ConfigManagerRunning,
     Display_ConfigManagerRunningEditor,
     Display_ConfigOpenInfo,
+    Display_EditorLDAPSizeExceeded,
     Display_SettingFilter_Level_0,
     Display_SettingFilter_Level_1,
     Display_SettingFilter_Level_2,

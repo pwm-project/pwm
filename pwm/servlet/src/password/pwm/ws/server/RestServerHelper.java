@@ -35,12 +35,11 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.ServletHelper;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserSearchEngine;
-import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.logging.PwmLogger;
 
@@ -125,14 +124,14 @@ public abstract class RestServerHelper {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg));
                 }
             }
-            
+
             if (restRequestBean.isAuthenticated()) {
                 if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.WEBSERVICE)) {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, "authenticated user does not have external webservices permission");
                     throw new PwmUnrecoverableException(errorInformation);
                 }
             }
-            
+
             final PasswordData secretKey = pwmApplication.getConfig().readSettingAsPassword(PwmSetting.WEBSERVICES_EXTERNAL_SECRET);
             if (secretKey != null) {
                 final String headerName = "RestSecretKey";
@@ -222,15 +221,8 @@ public abstract class RestServerHelper {
             return;
         }
 
-        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(pwmApplication, PwmRequest.forRequest(request,response));
-        if (basicAuthInfo != null) {
-            try {
-                final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
-                AuthenticationFilter.authUserUsingBasicHeader(pwmRequest, basicAuthInfo);
-            } catch (PwmOperationalException e) {
-                throw new PwmUnrecoverableException(e.getErrorInformation());
-            }
-        }
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
+        new AuthenticationFilter.BasicFilterAuthenticationProvider().attemptAuthentication(pwmRequest);
     }
 
     public static boolean determineIfRestClientIsExternal(final PwmSession pwmSession, final HttpServletRequest request)

@@ -22,5 +22,8 @@
 
 package password.pwm.cr;
 
-public class ResponseSetBean {
+public interface StoredCrItem {
+    String getChallengeText();
+
+    String getIdentifier();
 }

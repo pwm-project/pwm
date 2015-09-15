@@ -36,6 +36,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AuthenticationFilter;
+import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.util.logging.PwmLogger;
 
@@ -95,7 +96,7 @@ public class CASAuthenticationHelper {
 
         //user isn't already authenticated and has CAS assertion and password, so try to auth them.
         LOGGER.debug(pwmSession, "attempting to authenticate user '" + username + "' using CAS assertion and password");
-        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
+        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession, PwmAuthenticationSource.CAS);
         sessionAuthenticator.searchAndAuthenticateUser(username, password, null, null);
         return true;
     }

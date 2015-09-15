@@ -48,18 +48,18 @@
         <br/>
         <br/>
         <pwm:if test="showErrorDetail">
-        <% if (errorInformation != null && !errorInformation.getError().isErrorIsPermanent()) { %>
-        <div class="buttonbar">
-            <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
-                <input type="hidden" name="processAction" value="continue"/>
-                <button type="submit" name="button" class="btn" id="button_continue" autofocus="autofocus">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:display key="Button_Continue"/>
-                </button>
-                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-            </form>
-        </div>
-        <% } %>
+            <% if (errorInformation != null && !errorInformation.getError().isErrorIsPermanent()) { %>
+            <div class="buttonbar">
+                <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
+                    <input type="hidden" name="processAction" value="continue"/>
+                    <button type="submit" name="button" class="btn" id="button_continue" autofocus="autofocus">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                        <pwm:display key="Button_Continue"/>
+                    </button>
+                    <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
+                </form>
+            </div>
+            <% } %>
         </pwm:if>
     </div>
     <div class="push"></div>

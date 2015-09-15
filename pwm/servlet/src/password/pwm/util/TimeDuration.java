@@ -59,14 +59,18 @@ public class TimeDuration implements Comparable, Serializable {
     /**
      * Create a new TimeDuration using the specified duration, in milliseconds
      *
-     * @param duration a time period in milliseconds
+     * @param durationMilliseconds a time period in milliseconds
      */
-    public TimeDuration(final long duration) {
-        if (duration < 0) {
+    public TimeDuration(final long durationMilliseconds) {
+        if (durationMilliseconds < 0) {
             this.ms = 0;
         } else {
-            this.ms = duration;
+            this.ms = durationMilliseconds;
         }
+    }
+
+    public TimeDuration(final long duration, final TimeUnit timeUnit) {
+        this(timeUnit.toMillis(duration));
     }
 
     public static TimeDuration fromCurrent(final long ms) {

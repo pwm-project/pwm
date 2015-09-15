@@ -31,6 +31,7 @@ import password.pwm.util.TimeDuration;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Collections;
+import java.util.Date;
 
 public class ExportAuditCommand extends AbstractCliCommand {
     @Override
@@ -41,9 +42,9 @@ public class ExportAuditCommand extends AbstractCliCommand {
         final AuditManager auditManager = pwmApplication.getAuditManager();
         Helper.pause(1000);
 
-        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_FILE.getName());
+        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
 
-        final long startTime = System.currentTimeMillis();
+        final Date startTime = new Date();
         out("beginning output to " + outputFile.getAbsolutePath());
         final FileOutputStream fileOutputStream = new FileOutputStream(outputFile,true);
         final int counter = auditManager.outputVaultToCsv(fileOutputStream, PwmConstants.DEFAULT_LOCALE, false);
@@ -57,7 +58,7 @@ public class ExportAuditCommand extends AbstractCliCommand {
         CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportAudit";
         cliParameters.description = "Dump all audit records in the LocalDB to a csv file";
-        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_FILE);
+        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
 
         cliParameters.needsPwmApplication = true;
         cliParameters.readOnly = false;

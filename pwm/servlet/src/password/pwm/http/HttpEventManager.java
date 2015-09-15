@@ -70,6 +70,9 @@ public class HttpEventManager implements
             contextManager.removeHttpSession(httpSession);
             if (httpSession.getAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION) != null) {
                 final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(httpSession);
+                if (pwmSession != null) {
+                    pwmSession.unauthenticateUser(null);
+                }
                 LOGGER.trace(pwmSession, "destroyed session");
             } else {
                 LOGGER.trace("invalidated uninitialized session");
