@@ -38,10 +38,7 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
-            </div>
-            <div id="header-title">
-                Save Configuration
+                <pwm:display key="title" bundle="ConfigGuide"/>
             </div>
         </div>
     </div>
@@ -97,7 +94,7 @@
                         <td><b>Proxy/Admin LDAP DN</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PROXY_DN))%>
                         </td>
                     </tr>
                     <tr>

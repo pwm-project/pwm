@@ -37,21 +37,18 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
-            </div>
-            <div id="header-title">
-                <pwm:display key="Title_ConfigGuide_template" bundle="Config"/>
+                <pwm:display key="title" bundle="ConfigGuide"/>
             </div>
         </div>
     </div>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <pwm:display key="Display_ConfigGuideSelectTemplate" bundle="Config"/>
+        <pwm:display key="template_description" bundle="ConfigGuide"/>
         <br/>
         <form id="configForm">
             <select id="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>" name="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>" style="width:300px">
                 <% if (selectedTemplate == null) { %>
-                <option value="NOTSELECTED" selected="selected">-- Please select a template --</option>
+                <option value="NOTSELECTED" selected disabled>-- Please select a template --</option>
                 <% } %>
                 <% for (final PwmSettingTemplate loopTemplate : PwmSettingTemplate.sortedValues(JspUtility.locale(request))) { %>
                 <% boolean selected = loopTemplate.equals(selectedTemplate); %>
@@ -64,18 +61,7 @@
             </select>
         </form>
         <br/>
-
-        <div class="buttonbar">
-            <button class="btn" id="button_previous">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                <pwm:display key="Button_Previous" bundle="Config"/>
-            </button>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                <pwm:display key="Button_Next" bundle="Config"/>
-            </button>
-        </div>
+        <%@ include file="fragment/configguide-buttonbar.jsp" %>
     </div>
     <div class="push"></div>
 </div>
@@ -92,7 +78,7 @@
                         updateNextButton();
                     },
                     cancelAction:function(){
-                        PWM_MAIN.goto('/private/config/ConfigGuide');
+                        PWM_MAIN.goto('/private/config/config-guide');
                     }
                 });
             } else {

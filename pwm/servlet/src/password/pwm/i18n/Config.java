@@ -41,7 +41,6 @@ public enum Config implements PwmDisplayBundle {
     Display_AboutTemplates,
     Display_ConfigEditorLocales,
     Display_ConfigGuideNotSecureLDAP,
-    Display_ConfigGuideSelectTemplate,
     Display_ConfigGuideSelectCrStorage,
     Display_ConfigGuideLdapSchema,
     Display_ConfigGuideLdapSchema2,

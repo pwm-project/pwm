@@ -602,6 +602,7 @@ public class PwmApplication {
 
         if (localDB != null) {
             try {
+                LOGGER.trace("beginning close of LocalDB");
                 localDB.close();
             } catch (Exception e) {
                 LOGGER.fatal("error closing localDB: " + e, e);

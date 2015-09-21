@@ -33,10 +33,7 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
-            </div>
-            <div id="header-title">
-                <pwm:display key="Title_ConfigGuide_start" bundle="Config"/>
+                <pwm:display key="title" bundle="ConfigGuide"/>
             </div>
         </div>
     </div>
@@ -122,7 +119,7 @@
 
         function skipWizard() {
             PWM_MAIN.showConfirmDialog({text:'<pwm:display key="Confirm_SkipGuide" bundle="Config"/>',okAction:function() {
-                PWM_GUIDE.gotoStep('NEXT');
+                PWM_GUIDE.gotoStep('FINISH');
             }});
         }
     </script>

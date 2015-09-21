@@ -42,6 +42,7 @@ public abstract class InternalMacros {
         defaultMacros.add(OtpSetupTimeMacro.class);
         defaultMacros.add(ResponseSetupTimeMacro.class);
         defaultMacros.add(PwmSettingReference.class);
+        defaultMacros.add(PwmAppName.class);
         INTERNAL_MACROS = Collections.unmodifiableList(defaultMacros);
     }
 
@@ -98,6 +99,21 @@ public abstract class InternalMacros {
                 throw new MacroParseException("PwmSettingReference macro has unknown key value '" + settingKeyStr + "'");
             }
             return setting.toMenuLocationDebug(null, PwmConstants.DEFAULT_LOCALE);
+        }
+    }
+
+
+    public static class PwmAppName extends AbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@PwmAppName@" );
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(String matchValue, MacroRequestInfo macroRequestInfo)
+                throws MacroParseException
+        {
+            return PwmConstants.PWM_APP_NAME;
         }
     }
 }

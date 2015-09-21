@@ -43,10 +43,7 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
-            </div>
-            <div id="header-title">
-                <pwm:display key="Title_ConfigGuide_ldapcert" bundle="Config"/>
+                <pwm:display key="title" bundle="ConfigGuide"/>
             </div>
         </div>
     </div>
@@ -56,7 +53,7 @@
             <pwm:display key="Display_ConfigGuideNotSecureLDAP" bundle="Config"/>
         </div>
         <% } else { %>
-        <form id="formData" data-dojo-type="dijit/form/Form">
+        <form id="formData">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br class="clear"/>
             <div id="outline_ldap-server" class="setting_outline">
@@ -64,9 +61,8 @@
                     LDAP Server Certificates
                 </div>
                 <div class="setting_body">
-                    The following are the LDAP server certificates read from the server at
-                    <b><%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>:<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%></b>.
-                    Please verify these certificates match your LDAP server.
+                    <% final String serverInfo = configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST) + ":" + configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT); %>
+                    <pwm:display key="ldap_cert_description" bundle="ConfigGuide" value1="<%=serverInfo%>"/>
                     <div>
                         <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
                             <% int counter=0;for (X509Certificate certificate : configGuideBean.getLdapCertificates()) {%>
@@ -116,71 +112,57 @@
                         At least one of the following options must be selected to continue.
                     </div>
                     <br/>
-                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" style="padding-left: 5px; padding-top: 5px">
+                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_PROXY_DN%>" style="padding-left: 5px; padding-top: 5px">
                         Certificate(s) are trusted by default Java keystore
                         <br/>
                         <button id="button_defaultTrustStore">Enabled</button> (Import/remove certificate manually into Java keystore to change)
                     </div>
-                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" style="padding-left: 5px; padding-top: 5px">
+                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_PROXY_PW%>" style="padding-left: 5px; padding-top: 5px">
                         Use application to manage certificate(s) and automatically import certificates into configuration file
                         <br/>
                         <button id="button_useConfig">Enabled</button>
                     </div>
                 </div>
                 <pwm:script>
-                <script type="text/javascript">
-                    PWM_GLOBAL['startupFunctions'].push(function(){
-                        require(["dijit/form/ToggleButton"],function(ToggleButton){
-                            new ToggleButton({
-                                id: 'button_defaultTrustStore',
-                                iconClass:'dijitCheckBoxIcon',
-                                showLabel: 'Enabled',
-                                disabled: true,
-                                checked: <%=configGuideBean.isCertsTrustedbyKeystore()%>
-                            },'button_defaultTrustStore');
+                    <script type="text/javascript">
+                        PWM_GLOBAL['startupFunctions'].push(function(){
+                            require(["dijit/form/ToggleButton"],function(ToggleButton){
+                                new ToggleButton({
+                                    id: 'button_defaultTrustStore',
+                                    iconClass:'dijitCheckBoxIcon',
+                                    showLabel: 'Enabled',
+                                    disabled: true,
+                                    checked: <%=configGuideBean.isCertsTrustedbyKeystore()%>
+                                },'button_defaultTrustStore');
 
-                            new ToggleButton({
-                                id: 'button_useConfig',
-                                iconClass:'dijitCheckBoxIcon',
-                                showLabel: 'Enabled',
-                                checked: <%=configGuideBean.isUseConfiguredCerts()%>,
-                                onChange: function(){
-                                    PWM_GUIDE.setUseConfiguredCerts(<%=!configGuideBean.isUseConfiguredCerts()%>);
-                                }
-                            },'button_useConfig');
+                                new ToggleButton({
+                                    id: 'button_useConfig',
+                                    iconClass:'dijitCheckBoxIcon',
+                                    showLabel: 'Enabled',
+                                    checked: <%=configGuideBean.isUseConfiguredCerts()%>,
+                                    onChange: function(){
+                                        PWM_GUIDE.setUseConfiguredCerts(<%=!configGuideBean.isUseConfiguredCerts()%>);
+                                    }
+                                },'button_useConfig');
+                            });
                         });
-                    });
-                </script>
+                    </script>
                 </pwm:script>
             </div>
         </form>
         <% } %>
         <br/>
-        <div class="buttonbar">
-            <button class="btn" id="button_previous">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                <pwm:display key="Button_Previous" bundle="Config"/>
-            </button>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" <%=enableNext?"":" disabled=\"disabled\""%>>
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                <pwm:display key="Button_Next" bundle="Config"/>
-            </button>
-        </div>
+        <%@ include file="fragment/configguide-buttonbar.jsp" %>
     </div>
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
-            dojoParser.parse();
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
+            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
         });
-
-        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
-        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
-    });
-</script>
+    </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/configguide.js"/>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>

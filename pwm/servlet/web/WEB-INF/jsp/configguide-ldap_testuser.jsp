@@ -29,7 +29,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
-<% Map<String,String> DEFAULT_FORM = ConfigGuideServlet.defaultForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
+<% Map<String,String> PLACEHOLDER_FORM = ConfigGuideServlet.placeholderForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -39,10 +39,7 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
-            </div>
-            <div id="header-title">
-                <pwm:display key="Title_ConfigGuide_ldap" bundle="Config"/>
+                <pwm:display key="title" bundle="ConfigGuide"/>
             </div>
         </div>
     </div>
@@ -55,17 +52,17 @@
                     LDAP Test User (Optional)
                 </div>
                 <div class="setting_body">
-                    Enter the LDAP DN of a test user account.  You will need to create a new test user account for this purpose.  This test user account should be created with the same privileges and policies
-                    as a typical user in your system.  This application will modify the password and perform other operations against the test user account to
-                    validate the configuration and health of both the LDAP server and this server.
-                    <br/><br/>
-                    This setting is optional but recommended.  If you do not wish to configure an LDAP Test User DN at this time, you can leave this setting blank and configure a test user later.
+                    <pwm:display key="ldap_testuser_description" bundle="ConfigGuide"/>
+                    <br/>
                     <div class="setting_item">
                         <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_TEST_USER%>" style="padding-left: 5px; padding-top: 5px">
                             <b>LDAP Test User DN</b>
                             <br/>
-                            <button type="button" class="btn" id="button-browse-testUser"><span class="btn-icon fa fa-sitemap"></span>Browse</button>
-                            <input style="width:400px" class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_TEST_USER%>" name="<%=ConfigGuideServlet.PARAM_LDAP_TEST_USER%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_TEST_USER))%>" autofocus/>
+                            <input style="width:400px" class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_TEST_USER%>" name="<%=ConfigGuideServlet.PARAM_LDAP_TEST_USER%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_TEST_USER))%>" placeholder="<%=PLACEHOLDER_FORM.get(ConfigGuideServlet.PARAM_LDAP_TEST_USER)%>" autofocus/>
+                            <button type="button" class="btn" id="button-browse-testUser">
+                                <span class="btn-icon fa fa-sitemap"></span>
+                                <pwm:display key="Button_Browse"/>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -80,17 +77,7 @@
                 </button>
             </div>
         </div>
-        <div class="buttonbar">
-            <button class="btn" id="button_previous">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                <pwm:display key="Button_Previous" bundle="Config"/>
-            </button>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                <pwm:display key="Button_Next"  bundle="Config"/>
-            </button>
-        </div>
+        <%@ include file="fragment/configguide-buttonbar.jsp" %>
     </div>
     <div class="push"></div>
 </div>

@@ -1039,8 +1039,8 @@ public enum PwmSetting {
     private final Set<PwmSettingTemplate> templates;
 
     private Map<PwmSettingTemplate, StoredValue> defaultValues;
+    private Map<PwmSettingTemplate, String> placeholder;
     private Map<String,String> options;
-    private String placeholder;
     private Boolean required;
     private Boolean hidden;
     private Integer level;
@@ -1182,13 +1182,27 @@ public enum PwmSetting {
         }
     }
 
-    public String getPlaceholder(final Locale locale) {
+    public String getPlaceholder(final PwmSettingTemplate template) {
         if (placeholder == null) {
-            Element settingElement = PwmSettingXml.readSettingXml(this);
-            Element placeholderElement = settingElement.getChild("placeholder");
-            placeholder = placeholderElement != null ? placeholderElement.getText() : "";
+            final Map<PwmSettingTemplate, String> returnObj = new HashMap<>();
+            final MacroMachine macroMachine = MacroMachine.forStatic();
+            for (final PwmSettingTemplate loopTemplate : PwmSettingTemplate.values()) {
+                final Element settingElement = PwmSettingXml.readSettingXml(this);
+                final XPathFactory xpfac = XPathFactory.instance();
+                Element defaultElement = null;
+                if (loopTemplate != null) {
+                    XPathExpression xp = xpfac.compile("placeholder[@template=\"" + loopTemplate.toString() + "\"]");
+                    defaultElement = (Element) xp.evaluateFirst(settingElement);
+                }
+                if (defaultElement == null) {
+                    XPathExpression xp = xpfac.compile("placeholder[not(@template)]");
+                    defaultElement = (Element) xp.evaluateFirst(settingElement);
+                }
+                returnObj.put(loopTemplate, defaultElement == null ? "" : macroMachine.expandMacros(defaultElement.getValue()));
+            }
+            placeholder = returnObj;
         }
-        return placeholder;
+        return placeholder.get(template);
     }
 
     public boolean isRequired() {

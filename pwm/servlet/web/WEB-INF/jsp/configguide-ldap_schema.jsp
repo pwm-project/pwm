@@ -49,15 +49,12 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
-            </div>
-            <div id="header-title">
-                <pwm:display key="Title_ConfigGuide_ldap_schema" bundle="Config"/>
+                <pwm:display key="title" bundle="ConfigGuide"/>
             </div>
         </div>
     </div>
     <div id="centerbody">
-        <form id="formData" data-dojo-type="dijit/form/Form">
+        <form id="formData">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br class="clear"/>
             <div id="outline_ldap-server" class="setting_outline">
@@ -97,27 +94,13 @@
             </div>
         </form>
         <br/>
-        <div class="buttonbar">
-            <button class="btn" id="button_previous">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                <pwm:display key="Button_Previous" bundle="Config"/>
-            </button>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                <pwm:display key="Button_Next" bundle="Config"/>
-            </button>
-        </div>
+        <%@ include file="fragment/configguide-buttonbar.jsp" %>
     </div>
     <div class="push"></div>
 </div>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
-                dojoParser.parse();
-            });
-
             PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
             PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
             PWM_MAIN.addEventHandler('button-extendSchema','click',function(){PWM_GUIDE.extendSchema()});

@@ -336,7 +336,7 @@ table {
     color: black;
 }
 
-:invalid{
+input:invalid{
     color:red;
 }
 

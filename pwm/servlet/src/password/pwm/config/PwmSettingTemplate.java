@@ -35,6 +35,7 @@ public enum PwmSettingTemplate {
     ORACLE_DS,
     DEFAULT,
     NOVL_IDM,
+    OPEN_LDAP,
 
     ;
 

@@ -27,8 +27,8 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<% ConfigGuideBean configGuideBean = (ConfigGuideBean) JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
-<% Map<String,String> DEFAULT_FORM = ConfigGuideServlet.defaultForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
+<% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
+<% Map<String,String> PLACEHOLDER_FORM = ConfigGuideServlet.placeholderForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -38,10 +38,7 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
-            </div>
-            <div id="header-title">
-                <pwm:display key="Title_ConfigGuide_ldap" bundle="Config"/>
+                <pwm:display key="title" bundle="ConfigGuide"/>
             </div>
         </div>
     </div>
@@ -50,35 +47,41 @@
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <div id="outline_ldap-server" class="setting_outline">
                 <div id="titlePaneHeader-ldap-server" class="setting_title">
-                    LDAP Server
+                    <pwm:display key="ldap_server_title" bundle="ConfigGuide"/>
                 </div>
                 <div class="setting_body">
-                    Enter the connection information for your ldap server.  After the configuration wizard is completed you can enter additional servers.  Enter the actual address of your LDAP server; do not use a virtual address or proxy server address.
+                    <pwm:display key="ldap_server_description" bundle="ConfigGuide"/>
                     <br/>
                     <br/>
                     <table class="noborder" style="border-spacing: 0; padding: 0; margin: 0">
                         <tr>
                             <td colspan="2">
-                                <b>LDAP Server Hostname</b>
+                                <label for="<%=ConfigGuideServlet.PARAM_LDAP_HOST%>">
+                                <b><pwm:display key="ldap_server_title_hostname" bundle="ConfigGuide"/></b>
+                                </label>
                             </td>
                         </tr>
                         <tr>
                             <td colspan="2">
-                                <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" name="<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>" <pwm:autofocus/> />
+                                <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" name="<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>" placeholder="<%=PLACEHOLDER_FORM.get(ConfigGuideServlet.PARAM_LDAP_HOST)%>" <pwm:autofocus/> />
                             </td>
                         </tr>
                         <tr><td>&nbsp;</td></tr>
                         <tr>
                             <td style="width: 30%">
-                                <b>LDAP Port</b>
+                                <label for="<%=ConfigGuideServlet.PARAM_LDAP_PORT%>">
+                                    <b><pwm:display key="ldap_server_title_port" bundle="ConfigGuide"/></b>
+                                </label>
                             </td>
                             <td style="">
-                                <b>Secure (SSL) Connection</b>
+                                <label for="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>">
+                                    <b><pwm:display key="ldap_server_title_secure" bundle="ConfigGuide"/></b>
+                                </label>
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <input class="configNumericInput" type="number" id="<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" name="<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>"/>
+                                <input class="configNumericInput" type="number" min="0" max="65535" id="<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" name="<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>"/>
                             </td>
                             <td>
                                 <% boolean secureChecked = "true".equalsIgnoreCase(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_SECURE));%>
@@ -101,17 +104,7 @@
                 </button>
             </div>
         </div>
-        <div class="buttonbar">
-            <button class="btn" id="button_previous">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                <pwm:display key="Button_Previous" bundle="Config"/>
-            </button>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                <pwm:display key="Button_Next" bundle="Config"/>
-            </button>
-        </div>
+        <%@ include file="fragment/configguide-buttonbar.jsp" %>
     </div>
     <div class="push"></div>
 </div>
@@ -140,11 +133,11 @@
             PWM_MAIN.addEventHandler('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>','change',function() {
                 if (!PWM_MAIN.getObject('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').checked) {
                     PWM_MAIN.showConfirmDialog({
-                        text: PWM_CONFIG.showString('Confirm_SSLDisable'), cancelAction: function () {
+                        text: PWM_CONFIG.showString('Confirm_SSLDisable'),
+                        cancelAction: function () {
                             PWM_MAIN.getObject('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').checked=true;
                             PWM_MAIN.closeWaitDialog();
                             handleFormActivity();
-
                         }
                     });
                 }

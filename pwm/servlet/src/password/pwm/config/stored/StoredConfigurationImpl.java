@@ -508,16 +508,15 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
             if (loopSetting.getCategory().hasProfiles()) {
                 for (final String profile : profilesForSetting(loopSetting)) {
-                    final String errorAppend = profile;
                     final StoredValue loopValue = readSetting(loopSetting,profile);
 
                     try {
                         final List<String> errors = loopValue.validateValue(loopSetting);
                         for (final String loopError : errors) {
-                            errorStrings.add(loopSetting.toMenuLocationDebug(profile,PwmConstants.DEFAULT_LOCALE) + errorAppend + " " + loopError);
+                            errorStrings.add(loopSetting.toMenuLocationDebug(profile,PwmConstants.DEFAULT_LOCALE) + " " + loopError);
                         }
                     } catch (Exception e) {
-                        LOGGER.error("unexpected error during validate value for " + loopSetting.toMenuLocationDebug(profile,PwmConstants.DEFAULT_LOCALE) + errorAppend + ", error: " + e.getMessage(),e);
+                        LOGGER.error("unexpected error during validate value for " + loopSetting.toMenuLocationDebug(profile,PwmConstants.DEFAULT_LOCALE) + ", error: " + e.getMessage(),e);
                     }
                 }
             } else {

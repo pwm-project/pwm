@@ -45,31 +45,35 @@ public class PwmSettingXml {
     private static Document xmlDocCache = null;
 
     private static Document readXml() {
-        //new Exception().printStackTrace();
-        if (xmlDocCache == null) {
+        final Document docRefCopy = xmlDocCache;
+        if (docRefCopy == null) {
             //validateXmlSchema();
-            InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream(SETTING_XML_FILENAME);
+            final InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream(SETTING_XML_FILENAME);
             final SAXBuilder builder = new SAXBuilder();
             try {
-                xmlDocCache = builder.build(inputStream);
+                final Document newDoc = builder.build(inputStream);
+                xmlDocCache = newDoc;
+
+                // clear cached dom after 30 seconds.
+                final Thread t = new Thread("PwmSettingXml static cache clear thread") {
+                    @Override
+                    public void run() {
+                        Helper.pause(30 * 1000);
+                        xmlDocCache = null;
+                    }
+                };
+                t.setDaemon(false);
+                t.start();
+
+                return newDoc;
             } catch (JDOMException e) {
                 throw new IllegalStateException("error parsing " + SETTING_XML_FILENAME + ": " + e.getMessage());
             } catch (IOException e) {
                 throw new IllegalStateException("unable to load " + SETTING_XML_FILENAME + ": " + e.getMessage());
             }
 
-            // clear cached dom after 30 seconds.
-            final Thread t = new Thread("PwmSettingXml static cache clear thread") {
-                @Override
-                public void run() {
-                    Helper.pause(30 * 1000);
-                    xmlDocCache = null;
-                }
-            };
-            t.setDaemon(false);
-            t.start();
         }
-        return xmlDocCache;
+        return docRefCopy;
     }
 
     private static void validateXmlSchema() {

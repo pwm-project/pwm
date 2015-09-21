@@ -80,8 +80,8 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     public static final String PARAM_LDAP_HOST = "ldap-server-ip";
     public static final String PARAM_LDAP_PORT = "ldap-server-port";
     public static final String PARAM_LDAP_SECURE = "ldap-server-secure";
-    public static final String PARAM_LDAP_ADMIN_DN = "ldap-user-dn";
-    public static final String PARAM_LDAP_ADMIN_PW = "ldap-user-pw";
+    public static final String PARAM_LDAP_PROXY_DN = "ldap-proxy-dn";
+    public static final String PARAM_LDAP_PROXY_PW = "ldap-proxy-pw";
 
     public static final String PARAM_LDAP_CONTEXT = "ldap-context";
     public static final String PARAM_LDAP_TEST_USER = "ldap-testUser";
@@ -158,27 +158,53 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     }
 
 
-    public static Map<String,String> defaultForm(PwmSettingTemplate template) {
+    private static Map<String,String> defaultForm(PwmSettingTemplate template) {
         final Map<String,String> defaultLdapForm = new HashMap<>();
 
         try {
-            final String defaultLdapUrlString = ((List<String>)PwmSetting.LDAP_SERVER_URLS.getDefaultValue(template).toNativeObject()).get(0);
+            final String defaultLdapUrlString = PwmSetting.LDAP_SERVER_URLS.getPlaceholder(template);
+            final URI uri = new URI(defaultLdapUrlString);
+
+            defaultLdapForm.put(PARAM_LDAP_HOST, "");
+            defaultLdapForm.put(PARAM_LDAP_PORT, String.valueOf(uri.getPort()));
+            defaultLdapForm.put(PARAM_LDAP_SECURE, "ldaps".equalsIgnoreCase(uri.getScheme()) ? "true" : "false");
+
+            defaultLdapForm.put(PARAM_LDAP_PROXY_DN, "");
+            defaultLdapForm.put(PARAM_LDAP_PROXY_PW, "");
+
+            defaultLdapForm.put(PARAM_LDAP_CONTEXT, "");
+            defaultLdapForm.put(PARAM_LDAP_TEST_USER, "");
+            defaultLdapForm.put(PARAM_LDAP_ADMIN_GROUP,"");
+
+            defaultLdapForm.put(PARAM_CR_STORAGE_PREF, (String) PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.getDefaultValue(template).toNativeObject());
+
+            defaultLdapForm.put(PARAM_CONFIG_PASSWORD, "");
+            defaultLdapForm.put(PARAM_CONFIG_PASSWORD_VERIFY, "");
+        } catch (Exception e) {
+            LOGGER.error("error building static form values using default configuration: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return Collections.unmodifiableMap(defaultLdapForm);
+    }
+
+    public static Map<String,String> placeholderForm(PwmSettingTemplate template) {
+        final Map<String,String> defaultLdapForm = new HashMap<>();
+
+        try {
+            final String defaultLdapUrlString = PwmSetting.LDAP_SERVER_URLS.getPlaceholder(template);
             final URI uri = new URI(defaultLdapUrlString);
 
             defaultLdapForm.put(PARAM_LDAP_HOST, uri.getHost());
             defaultLdapForm.put(PARAM_LDAP_PORT, String.valueOf(uri.getPort()));
             defaultLdapForm.put(PARAM_LDAP_SECURE, "ldaps".equalsIgnoreCase(uri.getScheme()) ? "true" : "false");
 
-            defaultLdapForm.put(PARAM_LDAP_ADMIN_DN, (String)PwmSetting.LDAP_PROXY_USER_DN.getDefaultValue(template).toNativeObject());
-            defaultLdapForm.put(PARAM_LDAP_ADMIN_PW, "");
+            defaultLdapForm.put(PARAM_LDAP_PROXY_DN, PwmSetting.LDAP_PROXY_USER_DN.getPlaceholder(template));
+            defaultLdapForm.put(PARAM_LDAP_PROXY_PW, "");
 
-            defaultLdapForm.put(PARAM_LDAP_CONTEXT, ((List<String>)PwmSetting.LDAP_CONTEXTLESS_ROOT.getDefaultValue(template).toNativeObject()).get(0));
-            defaultLdapForm.put(PARAM_LDAP_TEST_USER, (String)PwmSetting.LDAP_TEST_USER_DN.getDefaultValue(template).toNativeObject());
-            {
-                List<UserPermission> userPermissions = (List<UserPermission>)PwmSetting.QUERY_MATCH_PWM_ADMIN.getDefaultValue(template).toNativeObject();
-                final String groupDN = userPermissions != null && userPermissions.size() > 0 ? userPermissions.get(0).getLdapBase() : "";
-                defaultLdapForm.put(PARAM_LDAP_ADMIN_GROUP,groupDN);
-            }
+            defaultLdapForm.put(PARAM_LDAP_CONTEXT, PwmSetting.LDAP_CONTEXTLESS_ROOT.getPlaceholder(template));
+            defaultLdapForm.put(PARAM_LDAP_TEST_USER, PwmSetting.LDAP_TEST_USER_DN.getPlaceholder(template));
+            defaultLdapForm.put(PARAM_LDAP_ADMIN_GROUP, PwmSetting.LDAP_TEST_USER_DN.getPlaceholder(template));
 
             defaultLdapForm.put(PARAM_CR_STORAGE_PREF, (String) PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.getDefaultValue(template).toNativeObject());
 
@@ -585,30 +611,21 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         }
 
         { // proxy/admin account
-            final String ldapAdminDN = ldapForm.get(PARAM_LDAP_ADMIN_DN);
-            final String ldapAdminPW = ldapForm.get(PARAM_LDAP_ADMIN_PW);
+            final String ldapAdminDN = ldapForm.get(PARAM_LDAP_PROXY_DN);
+            final String ldapAdminPW = ldapForm.get(PARAM_LDAP_PROXY_PW);
             storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE_KEY, new StringValue(ldapAdminDN), null);
             final PasswordValue passwordValue = new PasswordValue(PasswordData.forStringValue(ldapAdminPW));
             storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, passwordValue, null);
         }
 
-        // set context based on ldap dn
-        if (incomingLdapForm.containsKey(PARAM_LDAP_ADMIN_DN)) {
-            final String ldapAdminDN = ldapForm.get(PARAM_LDAP_ADMIN_DN);
-            String contextDN = "";
-            if (ldapAdminDN != null && ldapAdminDN.contains(",")) {
-                contextDN = ldapAdminDN.substring(ldapAdminDN.indexOf(",") + 1,ldapAdminDN.length());
-            }
-            ldapForm.put(PARAM_LDAP_CONTEXT, contextDN);
-        }
         storedConfiguration.writeSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_KEY, new StringArrayValue(Collections.singletonList(ldapForm.get(PARAM_LDAP_CONTEXT))), null);
 
-        {  // set context based on ldap dn
+        {
             final String ldapContext = ldapForm.get(PARAM_LDAP_CONTEXT);
             storedConfiguration.writeSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_KEY, new StringArrayValue(Collections.singletonList(ldapContext)), null);
         }
 
-        {  // set context based on ldap dn
+        {
             final String ldapTestUserDN = ldapForm.get(PARAM_LDAP_TEST_USER);
             storedConfiguration.writeSetting(PwmSetting.LDAP_TEST_USER_DN, LDAP_PROFILE_KEY, new StringValue(ldapTestUserDN), null);
         }
@@ -691,7 +708,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         final boolean ldapServerSecure = "true".equalsIgnoreCase(form.get(PARAM_LDAP_SECURE));
         final String ldapUrl = "ldap" + (ldapServerSecure ? "s" : "") + "://" + form.get(PARAM_LDAP_HOST) + ":" + form.get(PARAM_LDAP_PORT);
         try {
-            final ChaiConfiguration chaiConfiguration = new ChaiConfiguration(ldapUrl, form.get(PARAM_LDAP_ADMIN_DN), form.get(PARAM_LDAP_ADMIN_PW));
+            final ChaiConfiguration chaiConfiguration = new ChaiConfiguration(ldapUrl, form.get(PARAM_LDAP_PROXY_DN), form.get(PARAM_LDAP_PROXY_PW));
             chaiConfiguration.setSetting(ChaiSetting.PROMISCUOUS_SSL,"true");
             final ChaiProvider chaiProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
             if (doSchemaExtension) {

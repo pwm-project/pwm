@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -26,7 +25,6 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -36,10 +34,7 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
-            </div>
-            <div id="header-title">
-                Password
+                <pwm:display key="title" bundle="ConfigGuide"/>
             </div>
         </div>
     </div>
@@ -49,18 +44,18 @@
             <br/>
             <div id="password" class="setting_outline">
                 <div class="setting_title">
-                    Configuration Password
+                    <pwm:display key="password_title" bundle="ConfigGuide"/>
                 </div>
                 <div class="setting_body">
-                    To protect this system, you will need to set a configuration password.  The configuration password will be required whenever
-                    you wish to modify the configuration using the web based configuration manager.
+                    <pwm:display key="password_description" bundle="ConfigGuide"/>
+                    <br/><br/>
                     <div class="setting_item">
-                        <b>Configuration Password</b>
+                        <b><pwm:display key="password_title" bundle="ConfigGuide"/></b>
                         <br/>
                         <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" class="configStringInput passwordfield" style="width:200px" <pwm:autofocus/>/>
                     </div>
                     <div class="setting_item">
-                        <b>Verify Configuration Password</b>
+                        <b><pwm:display key="password_title_verify" bundle="ConfigGuide"/></b>
                         <br/>
                         <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" class="configStringInput passwordfield" style="width:200px"/>
                         <div style="display: inline; padding-top:45px;">
@@ -74,17 +69,7 @@
             </div>
         </form>
         <br/>
-        <div class="buttonbar">
-            <button class="btn" id="button_previous">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                <pwm:display key="Button_Previous" bundle="Config"/>
-            </button>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                <pwm:display key="Button_Next" bundle="Config"/>
-            </button>
-        </div>
+        <%@ include file="fragment/configguide-buttonbar.jsp" %>
     </div>
     <div class="push"></div>
 </div>

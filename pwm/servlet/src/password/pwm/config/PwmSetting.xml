@@ -367,12 +367,7 @@
     <setting key="ldap.serverUrls" level="0" required="true">
         <regex>^(ldap|ldaps)://[a-zA-Z0-9.-]+:[0-9]+$</regex>
         <placeholder>ldaps://ldap.example.com:636</placeholder>
-        <default>
-            <value><![CDATA[ldaps://ldap.example.com:636]]></value>
-        </default>
-        <default template="AD">
-            <value><![CDATA[ldaps://dc1.site.example.net:636]]></value>
-        </default>
+        <default/>
     </setting>
     <setting key="ldap.serverCerts" level="0" required="true">
         <default/>
@@ -381,25 +376,21 @@
         </options>
     </setting>
     <setting key="ldap.proxy.username" level="0" required="true">
-        <default>
-            <value><![CDATA[cn=admin,o=example]]></value>
-        </default>
-        <default template="AD">
-            <value><![CDATA[cn=administrator,cn=users,dc=site,dc=example,dc=net]]></value>
-        </default>
+        <placeholder>cn=@PwmAppName@-Proxy,o=example</placeholder>
+        <placeholder template="AD">CN=@PwmAppName@-Proxy,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</placeholder>
+        <placeholder template="ORACLE_DS">cn=@PwmAppName@-Proxy,cn=Administrators,cn=config</placeholder>
+        <placeholder template="OPEN_LDAP">cn=@PwmAppName@-Proxy,dc=example,dc=com</placeholder>
+        <default/>
         <options>
             <option value="ldapDNsyntax">true</option>
         </options>
     </setting>
     <setting key="ldap.proxy.password" level="0">
     </setting>
-    <setting key="ldap.rootContexts" level="0" required="true">
-        <default>
-            <value><![CDATA[ou=users,o=example]]></value>
-        </default>
-        <default template="AD">
-            <value><![CDATA[cn=users,dc=site,dc=example,dc=net]]></value>
-        </default>
+    <setting key="ldap.rootContexts" level="0">
+        <placeholder>ou=users,o=example</placeholder>
+        <placeholder template="AD">cn=users,dc=site,dc=example,dc=net</placeholder>
+        <default/>
         <options>
             <option value="ldapDNsyntax">true</option>
         </options>
@@ -409,6 +400,10 @@
         <default />
     </setting>
     <setting key="ldap.testuser.username" level="0">
+        <placeholder>cn=@PwmAppName@-Testuser,o=example</placeholder>
+        <placeholder template="AD">CN=@PwmAppName@-Testuser,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</placeholder>
+        <placeholder template="ORACLE_DS">cn=@PwmAppName@-Testuser,cn=Administrators,cn=config</placeholder>
+        <placeholder template="OPEN_LDAP">cn=@PwmAppName@-Testuser,dc=example,dc=com</placeholder>
         <default>
             <value />
         </default>
@@ -417,14 +412,12 @@
         </options>
     </setting>
     <setting key="pwmAdmin.queryMatch" level="0" required="true">
-        <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=Admins,ou=Groups,o=example"}]]></value>
-        </default>
-        <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net"}]]></value>
-        </default>
-        <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=Admins,cn=Users,DC=site,DC=example,DC=net"}]]></value>
+        <placeholder>cn=@PwmAppName@-Admins,ou=Groups,o=example</placeholder>
+        <placeholder template="AD">CN=@PwmAppName@-Administrators,CN=Builtin,DC=site,DC=example,DC=net</placeholder>
+        <placeholder template="ORACLE_DS">cn=@PwmAppName@-Admins,OU=Groups,DC=ad,DC=site,DC=example,DC=net</placeholder>
+        <placeholder template="OPEN_LDAP">cn=@PwmAppName@-Admins,dc=example,dc=com</placeholder>
+        <default>
+            <value/>
         </default>
     </setting>
     <setting key="ldap.usernameSearchFilter" level="1" required="true">
@@ -463,6 +456,12 @@
         </default>
         <default template="ORACLE_DS">
             <value>isMemberOf</value>
+        </default>
+        <default template="AD">
+            <value>memberOf</value>
+        </default>
+        <default template="OPEN_LDAP">
+            <value>memberof</value>
         </default>
     </setting>
     <setting key="ldap.group.label.attribute" level="2" hidden="true">
@@ -558,6 +557,9 @@
         <regex>Follow LDAP Referrals.  Not typically required.</regex>
         <default>
             <value>false</value>
+        </default>
+        <default template="AD">
+            <value>true</value>
         </default>
     </setting>
     <setting key="ldap.defaultObjectClasses" level="2">
@@ -3277,6 +3279,8 @@
     <template key="AD">
     </template>
     <template key="ORACLE_DS">
+    </template>
+    <template key="OPEN_LDAP">
     </template>
     <template key="DEFAULT">
     </template>

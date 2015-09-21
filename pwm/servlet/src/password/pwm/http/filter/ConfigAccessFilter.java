@@ -38,7 +38,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
     @Override
     void processFilter(PwmRequest pwmRequest, PwmFilterChain filterChain) throws PwmException, IOException, ServletException {
         final PwmApplication.MODE appMode = pwmRequest.getPwmApplication().getApplicationMode();
-        if (appMode == PwmApplication.MODE.NEW || appMode == PwmApplication.MODE.CONFIGURATION) {
+        if (appMode == PwmApplication.MODE.NEW) {
             filterChain.doFilter();
             return;
         }

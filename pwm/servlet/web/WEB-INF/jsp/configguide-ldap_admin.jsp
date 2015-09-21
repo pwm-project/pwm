@@ -27,8 +27,8 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<% ConfigGuideBean configGuideBean = (ConfigGuideBean) JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
-<% Map<String,String> DEFAULT_FORM = ConfigGuideServlet.defaultForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
+<% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
+<% Map<String,String> PLACEHOLDER_FORM = ConfigGuideServlet.placeholderForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -38,10 +38,7 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
-            </div>
-            <div id="header-title">
-                <pwm:display key="Title_ConfigGuide_ldap" bundle="Config"/>
+                <pwm:display key="title" bundle="ConfigGuide"/>
             </div>
         </div>
     </div>
@@ -50,28 +47,27 @@
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <div id="outline_ldap-user" class="setting_outline">
                 <div id="titlePaneHeader-ldap-credentials" class="setting_title">
-                    LDAP Credentials
+                    <pwm:display key="ldap_admin_title" bundle="ConfigGuide"/>
                 </div>
                 <div class="setting_body">
-                    <p>Enter the credentials for your ldap server.  You must enter the fully qualified LDAP DN of the
-                    admin account here.  In most cases, you should use an account created specially for this purpose, with sufficient rights to
-                    administer the users that will be logging into this system.</p>
-                    <p>The browse feature for this page requires that your LDAP directory permit anonymous bind.</p>
-
+                    <pwm:display key="ldap_admin_description" bundle="ConfigGuide"/>
                     <div class="setting_item">
                         <label>
-                            <b>Proxy/Admin LDAP DN</b>
+                            <b><pwm:display key="ldap_admin_title_proxy-dn" bundle="ConfigGuide"/></b>
                             <br/>
-                            <button type="button" class="btn" id="button-browse-adminDN"><span class="btn-icon fa fa-sitemap"></span>Browse</button>
-                            <input type="text" style="width:400px" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN)%>"/>
+                            <input class="configStringInput" type="text" style="width:400px" id="<%=ConfigGuideServlet.PARAM_LDAP_PROXY_DN%>" name="<%=ConfigGuideServlet.PARAM_LDAP_PROXY_DN%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PROXY_DN)%>" placeholder="<%=PLACEHOLDER_FORM.get(ConfigGuideServlet.PARAM_LDAP_PROXY_DN)%>"/>
+                            <button type="button" class="btn" id="button-browse-adminDN">
+                                <span class="btn-icon fa fa-sitemap"></span>
+                                <pwm:display key="Button_Browse"/>
+                            </button>
                         </label>
                     </div>
                     &nbsp;<br/>
                     <div class="setting_item">
                         <label>
-                            <b>Password</b>
+                            <b><pwm:display key="ldap_admin_title_proxy-pw" bundle="ConfigGuide"/></b>
                             <br/>
-                            <input style="width:200px" class="configStringInput passwordfield" type="password" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_PW)%>"/>
+                            <input style="width:200px" class="configStringInput passwordfield" type="password" id="<%=ConfigGuideServlet.PARAM_LDAP_PROXY_PW%>" name="<%=ConfigGuideServlet.PARAM_LDAP_PROXY_PW%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PROXY_PW)%>"/>
                         </label>
                     </div>
                 </div>
@@ -86,17 +82,7 @@
                 </button>
             </div>
         </div>
-        <div class="buttonbar">
-            <button class="btn" id="button_previous">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                <pwm:display key="Button_Previous" bundle="Config"/>
-            </button>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                <pwm:display key="Button_Next" bundle="Config"/>
-            </button>
-        </div>
+        <%@ include file="fragment/configguide-buttonbar.jsp" %>
     </div>
     <div class="push"></div>
 </div>
@@ -127,7 +113,7 @@
 
             PWM_MAIN.addEventHandler('button-browse-adminDN','click',function(){
                 UILibrary.editLdapDN(function(value){
-                    PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>').value = value;
+                    PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_PROXY_DN%>').value = value;
                     handleFormActivity();
                 })
             });

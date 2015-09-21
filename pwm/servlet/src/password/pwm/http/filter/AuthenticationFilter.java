@@ -256,11 +256,11 @@ public class AuthenticationFilter extends AbstractPwmFilter {
                         filterAuthenticationProvider.attemptAuthentication(pwmRequest);
 
                         if (pwmRequest.isAuthenticated()) {
-                            LOGGER.trace(pwmRequest, "authentication provided by method " + filterAuthenticationProvider);
+                            LOGGER.trace(pwmRequest, "authentication provided by method " + clazz.getName());
                         }
 
                         if (filterAuthenticationProvider.hasRedirectedResponse()) {
-                            LOGGER.trace(pwmRequest, "authentication provider " + filterAuthenticationProvider + " has issued a redirect, halting authentication process");
+                            LOGGER.trace(pwmRequest, "authentication provider " + clazz.getName() + " has issued a redirect, halting authentication process");
                             return;
                         }
 
@@ -280,13 +280,14 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             }
         }
 
+        final String originalRequestedUrl = pwmRequest.getURLwithQueryString();
+
         if (pwmRequest.isAuthenticated()) {
-            chain.doFilter();
+            // redirect back to self so request starts over as authenticated.
+            LOGGER.trace(pwmRequest, "inline authentication occurred during this request, redirecting to current url to restart request");
+            pwmRequest.getPwmResponse().sendRedirect(originalRequestedUrl);
             return;
         }
-
-        //store the original requested url
-        final String originalRequestedUrl = pwmRequest.getURLwithQueryString();
 
         // handle if authenticated during filter process.
         if (pwmSession.getSessionStateBean().isAuthenticated()) {

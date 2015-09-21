@@ -242,7 +242,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                     return;
 
                 case settingData:
-                    restConfigSettingData(pwmRequest);
+                    restConfigSettingData(pwmRequest, configManagerBean);
                     return;
 
                 case testMacro:
@@ -953,7 +953,10 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         }
     }
 
-    private void restConfigSettingData(final PwmRequest pwmRequest) throws IOException {
+    private void restConfigSettingData(final PwmRequest pwmRequest, final ConfigManagerBean configManagerBean)
+            throws IOException
+    {
+        final PwmSettingTemplate template = configManagerBean.getStoredConfiguration().getTemplate();
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
         final Locale locale = pwmRequest.getLocale();
         {
@@ -970,7 +973,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 settingInfo.hidden = setting.isHidden();
                 settingInfo.options = setting.getOptions();
                 settingInfo.pattern = setting.getRegExPattern().toString();
-                settingInfo.placeholder = setting.getPlaceholder(locale);
+                settingInfo.placeholder = setting.getPlaceholder(template);
                 settingMap.put(setting.getKey(), settingInfo);
             }
             returnMap.put("settings", settingMap);
@@ -1004,18 +1007,17 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         }
         {
             final LinkedHashMap<String, Object> templateMap = new LinkedHashMap<>();
-            for (final PwmSettingTemplate template : PwmSettingTemplate.sortedValues(pwmRequest.getLocale())) {
+            for (final PwmSettingTemplate loopTemplate : PwmSettingTemplate.sortedValues(pwmRequest.getLocale())) {
                 final TemplateInfo templateInfo = new TemplateInfo();
-                templateInfo.description = template.getLabel(locale);
-                templateInfo.key = template.toString();
-                templateInfo.hidden = template.isHidden();
-                templateMap.put(template.toString(), templateInfo);
+                templateInfo.description = loopTemplate.getLabel(locale);
+                templateInfo.key = loopTemplate.toString();
+                templateInfo.hidden = loopTemplate.isHidden();
+                templateMap.put(loopTemplate.toString(), templateInfo);
             }
             returnMap.put("templates", templateMap);
         }
         {
             final LinkedHashMap<String, Object> varMap = new LinkedHashMap<>();
-            final ConfigManagerBean configManagerBean = pwmRequest.getPwmSession().getConfigManagerBean();
             varMap.put("ldapProfileIds", configManagerBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_PROFILE_LIST).toNativeObject());
             varMap.put("currentTemplate",configManagerBean.getStoredConfiguration().getTemplate());
             if (pwmRequest.getPwmApplication().getApplicationMode() == PwmApplication.MODE.CONFIGURATION && !PwmConstants.TRIAL_MODE) {

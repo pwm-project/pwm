@@ -28,8 +28,8 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<% ConfigGuideBean configGuideBean = (ConfigGuideBean) JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
-<% Map<String,String> DEFAULT_FORM = ConfigGuideServlet.defaultForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
+<% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
+<% Map<String,String> PLACEHOLDER_FORM = ConfigGuideServlet.placeholderForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -39,10 +39,7 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
-            </div>
-            <div id="header-title">
-                <pwm:display key="Title_ConfigGuide_ldap" bundle="Config"/>
+                <pwm:display key="title" bundle="ConfigGuide"/>
             </div>
         </div>
     </div>
@@ -53,32 +50,34 @@
             <div class="setting_outline">
                 <div class="setting_title">LDAP Contextless Login Root</div>
                 <div class="setting_body">
-                    Enter the top level LDAP context of your LDAP directory. This sets the top level LDAP container
-                    where an LDAP sub-tree search is performed to find your user entries. If you need to enter multiple
-                    containers, you can use the configuration editor to add them after this guide completes.
-                    <br/><br/>
-                    A default value has been generated but you may need to change it to be appropriate to your directory.
+                    <p><pwm:display key="ldap_context_description" bundle="ConfigGuide"/></p>
+                    <br/>
                     <div class="setting_item">
-                        <b>LDAP Contextless Login Root</b>
+                        <b>User Container DN</b>
                         <br/>
-                        <button type="button" class="btn" id="button-browse-context"><span class="btn-icon fa fa-sitemap"></span>Browse</button>
-                        <input style="width:400px" class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_CONTEXT%>" name="<%=ConfigGuideServlet.PARAM_LDAP_CONTEXT%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_CONTEXT))%>" placeholder="<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_CONTEXT)%>" required autofocus/>
+                        <input style="width:400px" class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_CONTEXT%>" name="<%=ConfigGuideServlet.PARAM_LDAP_CONTEXT%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_CONTEXT))%>" placeholder="<%=PLACEHOLDER_FORM.get(ConfigGuideServlet.PARAM_LDAP_CONTEXT)%>" required autofocus/>
+                        <button type="button" class="btn" id="button-browse-context">
+                            <span class="btn-icon fa fa-sitemap"></span>
+                            <pwm:display key="Button_Browse"/>
+                        </button>
                     </div>
                 </div>
             </div>
             <br/>
             <div class="setting_outline">
                 <div class="setting_title">
-                    Administrator Search Filter
+                    <pwm:display key="ldap_context_admin_title" bundle="ConfigGuide"/>
                 </div>
                 <div class="setting_body">
-                    Enter the LDAP DN of the group used to determining if a user should be given administrator access to this system.  Any user
-                    that is a member of this group will be granted administrator access.
+                    <pwm:display key="ldap_context_admin_description" bundle="ConfigGuide"/>
                     <div class="setting_item">
                         <b>Administrator Group DN</b>
                         <br/>
-                        <button type="button" class="btn" id="button-browse-adminGroup"><span class="btn-icon fa fa-sitemap"></span>Browse</button>
-                        <input style="width:400px;" class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP))%>" placeholder="<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP)%>" required/>
+                        <input style="width:400px;" class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP))%>" placeholder="<%=PLACEHOLDER_FORM.get(ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP)%>" required/>
+                        <button type="button" class="btn" id="button-browse-adminGroup">
+                            <span class="btn-icon fa fa-sitemap"></span>
+                            <pwm:display key="Button_Browse"/>
+                        </button>
                         <button type="button" id="button-viewAdminMatches" class="btn">
                             <span class="btn-icon fa fa-eye"></span>
                             View Matches
@@ -96,17 +95,7 @@
                 </button>
             </div>
         </div>
-        <div class="buttonbar">
-            <button class="btn" id="button_previous">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                <pwm:display key="Button_Previous" bundle="Config"/>
-            </button>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                <pwm:display key="Button_Next"  bundle="Config"/>
-            </button>
-        </div>
+        <%@ include file="fragment/configguide-buttonbar.jsp" %>
     </div>
     <div class="push"></div>
 </div>
