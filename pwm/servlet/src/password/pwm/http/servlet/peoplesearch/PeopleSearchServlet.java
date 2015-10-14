@@ -36,6 +36,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
 import password.pwm.error.*;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.i18n.Display;
@@ -587,7 +588,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
     private void processUserPhotoImageRequest(final PwmRequest pwmRequest)
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final String userKey = pwmRequest.readParameterAsString("userKey");
+        final String userKey = pwmRequest.readParameterAsString("userKey", PwmHttpRequestWrapper.Flag.BypassValidation);
         if (userKey.length() < 1) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, "userKey parameter is missing");
             LOGGER.error(pwmRequest, errorInformation);
