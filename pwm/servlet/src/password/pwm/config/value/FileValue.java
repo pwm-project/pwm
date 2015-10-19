@@ -144,8 +144,7 @@ public class FileValue extends AbstractValue implements StoredValue {
                                 fileContent = FileContent.fromEncodedString(fileContentString);
                                 values.put(fileInformation, fileContent);
                             } catch (IOException e) {
-                                LOGGER.error("error reading file contents item: " + e.getMessage());
-                                e.printStackTrace();
+                                LOGGER.error("error reading file contents item: " + e.getMessage(),e);
                             }
                         }
                     }
@@ -227,20 +226,20 @@ public class FileValue extends AbstractValue implements StoredValue {
         return output;
     }
 
-    public List<Map<String,Object>> toInfoMap() {
+    public List<FileInfo> toInfoMap() {
         if (values == null) {
             return Collections.emptyList();
         }
-        final List<Map<String,Object>> returnObj = new ArrayList<>();
+        final List<FileInfo> returnObj = new ArrayList<>();
         for (FileValue.FileInformation fileInformation : this.values.keySet()) {
             final FileContent fileContent = this.values.get(fileInformation);
-            final LinkedHashMap<String, Object> loopInfo = new LinkedHashMap<>();
-            loopInfo.put("name", fileInformation.getFilename());
-            loopInfo.put("type", fileInformation.getFiletype());
-            loopInfo.put("size", fileContent.size());
+            final FileInfo loopInfo = new FileInfo();
+            loopInfo.name = fileInformation.getFilename();
+            loopInfo.type = fileInformation.getFiletype();
+            loopInfo.size = fileContent.size();
             try {
-                loopInfo.put("md5sum", fileContent.md5sum());
-                loopInfo.put("sha1sum", fileContent.sha1sum());
+                loopInfo.md5sum = fileContent.md5sum();
+                loopInfo.sha1sum = fileContent.sha1sum();
             } catch (PwmUnrecoverableException e) {
                 LOGGER.warn("error generating hash for certificate: " + e.getMessage());
             }
@@ -252,5 +251,36 @@ public class FileValue extends AbstractValue implements StoredValue {
     @Override
     public String valueHash() throws PwmUnrecoverableException {
         return SecureEngine.hash(JsonUtil.serializeCollection(toInfoMap()), PwmConstants.SETTING_CHECKSUM_HASH_METHOD);
+    }
+
+    public static class FileInfo implements Serializable {
+        public String name;
+        public String type;
+        public int size;
+        public String md5sum;
+        public String sha1sum;
+
+        private FileInfo() {
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public int getSize() {
+            return size;
+        }
+
+        public String getMd5sum() {
+            return md5sum;
+        }
+
+        public String getSha1sum() {
+            return sha1sum;
+        }
     }
 }

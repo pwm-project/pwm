@@ -23,7 +23,7 @@
 package password.pwm.health;
 
 import password.pwm.i18n.Health;
-import password.pwm.i18n.LocaleHelper;
+import password.pwm.util.LocaleHelper;
 
 import java.util.Locale;
 

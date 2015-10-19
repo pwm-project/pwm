@@ -1,8 +1,8 @@
 <%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.i18n.PwmLocaleBundle" %>
+<%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.*" %>
 <%--

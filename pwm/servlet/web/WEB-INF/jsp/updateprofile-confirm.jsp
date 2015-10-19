@@ -1,5 +1,5 @@
 <%@ page import="password.pwm.config.FormConfiguration" %>
-<%@ page import="password.pwm.i18n.LocaleHelper" %>
+<%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.Map" %>
 <%--

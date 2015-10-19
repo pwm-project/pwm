@@ -109,9 +109,10 @@ class ResourceServletConfiguration {
             final List<ConfiguredZipFileResource> configuredZipFileResources = JsonUtil.deserialize(zipFileResourceParam, new TypeToken<ArrayList<ConfiguredZipFileResource>>() {
             });
             for (final ConfiguredZipFileResource loopInitParam : configuredZipFileResources) {
-                if (pwmApplication.getWebInfPath() != null) {
+                final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                if (webInfPath != null) {
                     try {
-                        final File zipFileFile = new File(pwmApplication.getWebInfPath().getParentFile() + loopInitParam.getZipFile());
+                        final File zipFileFile = new File(webInfPath.getParentFile() + loopInitParam.getZipFile());
                         final ZipFile zipFile = new ZipFile(zipFileFile);
                         zipResources.put(loopInitParam.getUrl(), zipFile);
                         LOGGER.debug("registered resource-zip file " + loopInitParam.getZipFile() + " at path " + zipFileFile.getAbsolutePath());

@@ -1,5 +1,4 @@
-<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
-<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.X509Utils" %>
 <%@ page import="password.pwm.util.secure.PwmHashAlgorithm" %>
@@ -40,13 +39,7 @@
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
-    <div id="header">
-        <div id="header-center">
-            <div id="header-page">
-                <pwm:display key="title" bundle="ConfigGuide"/>
-            </div>
-        </div>
-    </div>
+    <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
         <% if (configGuideBean.getLdapCertificates() == null) { %>
         <div>
@@ -62,10 +55,10 @@
                 </div>
                 <div class="setting_body">
                     The following are the LDAP server certificates read from the server at
-                    <b><%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>:<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%></b>.
+                    <b><%=configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_HOST)%>:<%=configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_PORT)%></b>.
                     Please verify these certificates match your LDAP server.
                     <div>
-                        <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
+                        <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
                             <% int counter=0;for (X509Certificate certificate : configGuideBean.getLdapCertificates()) {%>
                             <% final String md5sum = SecureEngine.hash(new ByteArrayInputStream(certificate.getEncoded()), PwmHashAlgorithm.MD5); %>
                             <% final String sha1sum = SecureEngine.hash(new ByteArrayInputStream(certificate.getEncoded()), PwmHashAlgorithm.SHA1); %>
@@ -113,13 +106,13 @@
                         At least one of the following options must be selected to continue.
                     </div>
                     <br/>
-                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_PROXY_DN%>" style="padding-left: 5px; padding-top: 5px">
+                    <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN%>" style="padding-left: 5px; padding-top: 5px">
                         Certificate(s) are trusted by default Java keystore
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
                         <button id="button_defaultTrustStore">Enabled</button> (Import/remove certificate manually into Java keystore to change)
                     </div>
-                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_PROXY_PW%>" style="padding-left: 5px; padding-top: 5px">
+                    <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_PW%>" style="padding-left: 5px; padding-top: 5px">
                         Use application to manage certificate(s) and automatically import certificates into configuration file
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>

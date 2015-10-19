@@ -25,6 +25,7 @@ package password.pwm.util.localdb;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
+import password.pwm.util.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
@@ -94,9 +95,9 @@ public class LocalDBFactory {
 
         final StringBuilder debugText = new StringBuilder();
         debugText.append("LocalDB open in ").append(openTime.asCompactString());
-        debugText.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(localDB.getFileLocation())));
+        debugText.append(", db size: ").append(Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
         debugText.append(" at ").append(dbDirectory.toString());
-        final long freeSpace = Helper.diskSpaceRemaining(localDB.getFileLocation());
+        final long freeSpace = FileSystemUtility.diskSpaceRemaining(localDB.getFileLocation());
         if (freeSpace >= 0) {
             debugText.append(", ").append(Helper.formatDiskSize(freeSpace)).append(" free");
         }

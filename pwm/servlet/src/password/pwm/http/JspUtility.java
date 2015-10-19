@@ -25,8 +25,8 @@ package password.pwm.http;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.PwmDisplayBundle;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletRequest;

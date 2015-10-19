@@ -25,6 +25,7 @@ package password.pwm.http;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
@@ -40,10 +41,10 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ContextManager implements Serializable {
 // ------------------------------ FIELDS ------------------------------
@@ -60,8 +61,6 @@ public class ContextManager implements Serializable {
     private volatile boolean restartRequestedFlag = false;
     private int restartCount = 0;
     private final String instanceGuid;
-
-    private final transient Set<HttpSession> activeSessions = Collections.newSetFromMap(new ConcurrentHashMap<HttpSession, Boolean>());
 
     private enum ContextParameter {
         applicationPath,
@@ -127,6 +126,7 @@ public class ContextManager implements Serializable {
 // -------------------------- OTHER METHODS --------------------------
 
     public void initialize() {
+
         try {
             Locale.setDefault(PwmConstants.DEFAULT_LOCALE);
         } catch (Exception e) {
@@ -143,18 +143,18 @@ public class ContextManager implements Serializable {
         Configuration configuration = null;
         PwmApplication.MODE mode = PwmApplication.MODE.ERROR;
 
-        final File webInfPath = locateWebInfFilePath();
 
         final File applicationPath;
-        final PwmApplication.PwmEnvironment.ApplicationPathType applicationPathType;
         {
-            final String applicationPathStr = readSpecifiedApplicationPath();
+            final String applicationPathStr = readApplicationPath();
             if (applicationPathStr == null || applicationPathStr.isEmpty()) {
-                applicationPathType = PwmApplication.PwmEnvironment.ApplicationPathType.derived;
-                applicationPath = webInfPath;
+                applicationPath = locateWebInfFilePath();
+                /*
+                startupErrorInformation = new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,"applicationPath is not specified");
+                return;
+                */
             } else {
                 applicationPath = new File(applicationPathStr);
-                applicationPathType = PwmApplication.PwmEnvironment.ApplicationPathType.specified;
             }
         }
 
@@ -184,13 +184,16 @@ public class ContextManager implements Serializable {
         }
         LOGGER.debug("configuration file was loaded from " + (configurationFile == null ? "null" : configurationFile.getAbsoluteFile()));
 
+        final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = readApplicationFlags();
 
         try {
-            pwmApplication = new PwmApplication.PwmEnvironment(configuration, applicationPath)
+            final PwmEnvironment pwmEnvironment= new PwmEnvironment.Builder(configuration, applicationPath)
                     .setApplicationMode(mode)
                     .setConfigurationFile(configurationFile)
-                    .setWebInfPath(webInfPath)
-                    .setApplicationPathType(applicationPathType).createPwmApplication();
+                    .setContextManager(this)
+                    .setFlags(applicationFlags)
+                    .createPwmEnvironment();
+            pwmApplication = new PwmApplication(pwmEnvironment);
         } catch (Exception e) {
             handleStartupError("unable to initialize application: ", e);
         }
@@ -290,39 +293,6 @@ public class ContextManager implements Serializable {
         }
     }
 
-    public Set<HttpSession> getHttpSessions() {
-        return Collections.unmodifiableSet(activeSessions);
-    }
-
-    public Map<HttpSession,PwmSession> getPwmSessions() {
-        final Collection<HttpSession> copiedSet = getHttpSessions();
-        final Map<HttpSession,PwmSession> returnSet = new HashMap<>();
-        for (final HttpSession httpSession : copiedSet) {
-            try {
-                returnSet.put(httpSession, PwmSessionWrapper.readPwmSession(httpSession));
-            } catch (PwmUnrecoverableException e) {
-                /* */
-            }
-        }
-        return returnSet;
-    }
-
-    public void addHttpSession(final HttpSession httpSession) {
-        try {
-            activeSessions.add(httpSession);
-        } catch (Exception e) {
-            LOGGER.trace("error adding new session to list of known sessions: " + e.getMessage());
-        }
-    }
-
-    public void removeHttpSession(final HttpSession pwmSession) {
-        try {
-            activeSessions.remove(pwmSession);
-        } catch (Exception e) {
-            LOGGER.trace("error adding removing session from list of known sessions: " + e.getMessage());
-        }
-    }
-
     public ConfigurationReader getConfigReader() {
         return configReader;
     }
@@ -392,37 +362,6 @@ public class ContextManager implements Serializable {
         }
     }
 
-    public enum DebugKey {
-        HttpSessionCount,
-        HttpSessionTotalSize,
-        HttpSessionAvgSize,
-    }
-
-    public Map<DebugKey, String> getDebugData() {
-        try {
-            final Collection<PwmSession> sessionCopy = this.getPwmSessions().values();
-            int sessionCounter = 0;
-            long sizeTotal = 0;
-            for (final PwmSession pwmSession : sessionCopy) {
-                try {
-                    sizeTotal += pwmSession.size();
-                    sessionCounter++;
-                } catch (Exception e) {
-                    LOGGER.error("error during session size calculation: " + e.getMessage());
-                }
-            }
-            Map<DebugKey, String> returnMap = new HashMap<>();
-            returnMap.put(DebugKey.HttpSessionCount, String.valueOf(sessionCounter));
-            returnMap.put(DebugKey.HttpSessionTotalSize, String.valueOf(sizeTotal));
-            returnMap.put(DebugKey.HttpSessionAvgSize,
-                    sessionCounter < 1 ? "0" : String.valueOf((int) (sizeTotal / sessionCounter)));
-            return returnMap;
-        } catch (Exception e) {
-            LOGGER.error("error during session debug generation: " + e.getMessage());
-        }
-        return Collections.emptyMap();
-    }
-
     public int getRestartCount()
     {
         return restartCount;
@@ -459,37 +398,39 @@ public class ContextManager implements Serializable {
         return null;
     }
 
-    public String readSpecifiedApplicationPath() {
-
-        {
-            final String contextName = this.servletContext.getContextPath() == null
-                    ? PwmConstants.PWM_APP_NAME.toLowerCase()
-                    : this.servletContext.getContextPath().replaceAll("^/", ""); // strip leading slash
-
-            // java prop command name
-            final String propertyName = PwmConstants.PWM_APP_NAME.toLowerCase()
-                    + "."
-                    + contextName
-                    + "."
-                    + "applicationPath";
-
-            final String propertyAppPath = System.getProperty(propertyName);
-            if (propertyAppPath != null && !propertyAppPath.isEmpty()) {
-                return propertyAppPath;
-            }
-        }
+    public String readApplicationPath() {
 
         {
             final String contextAppPathSetting = servletContext.getInitParameter(
                     ContextParameter.applicationPath.toString());
 
             if (contextAppPathSetting != null && !contextAppPathSetting.isEmpty()) {
-                if (!"unspecified".equals(contextAppPathSetting)) {
+                if (!"unspecified".equalsIgnoreCase(contextAppPathSetting)) {
                     return contextAppPathSetting;
                 }
             }
 
-            return null;
+            final String contextPath = servletContext.getContextPath().replace("/","");
+            return PwmEnvironment.ParseHelper.readValueFromSystem(
+                    PwmEnvironment.EnvironmentParameter.applicationPath,
+                    contextPath
+            );
+        }
+    }
+
+    public Collection<PwmEnvironment.ApplicationFlag> readApplicationFlags() {
+
+        {
+            final String contextAppFlagsSetting = servletContext.getInitParameter(
+                    PwmEnvironment.EnvironmentParameter.applicationFlags.toString()
+            );
+
+            if (contextAppFlagsSetting != null && !contextAppFlagsSetting.isEmpty()) {
+                return PwmEnvironment.ParseHelper.parseApplicationFlagValueParameter(contextAppFlagsSetting);
+            }
+
+            final String contextPath = servletContext.getContextPath().replace("/","");
+            return PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(contextPath);
         }
     }
 
@@ -535,5 +476,10 @@ public class ContextManager implements Serializable {
 
     public String getInstanceGuid() {
         return instanceGuid;
+    }
+
+    public InputStream getResourceAsStream(String path)
+    {
+        return servletContext.getResourceAsStream(path);
     }
 }

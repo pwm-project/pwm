@@ -39,7 +39,6 @@ import java.util.Locale;
 public class UserReportCommand extends AbstractCliCommand {
     protected static final String OUTPUT_FILE_OPTIONNAME = "outputFile";
 
-
     @Override
     void doCommand()
             throws Exception

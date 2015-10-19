@@ -24,7 +24,6 @@ package password.pwm.util;
 
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Display;
-import password.pwm.i18n.LocaleHelper;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

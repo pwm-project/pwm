@@ -163,23 +163,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     )
             throws IOException, ServletException
     {
-        LOGGER.error(this.getSessionLabel() ,errorInformation);
-
-        if (isJsonRequest()) {
-            outputJsonResult(RestResultBean.fromError(errorInformation, this));
-            return;
-        }
-
-        this.setResponseError(errorInformation);
-
-        try {
-            forwardToJsp(PwmConstants.JSP_URL.ERROR);
-            if (forceLogout) {
-                pwmSession.unauthenticateUser(this);
-            }
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unexpected error sending user to error page: " + e.toString());
-        }
+        getPwmResponse().respondWithError(errorInformation, forceLogout);
     }
 
     public void forwardToSuccessPage(Message message)
@@ -237,7 +221,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         final Map<String,FileUploadItem> returnObj = new LinkedHashMap<>();
         try {
             if (ServletFileUpload.isMultipartContent(this.getHttpServletRequest())) {
-                final byte[] buffer = new byte[1024];
+                final byte[] buffer = new byte[1024 * 4];
 
                 final ServletFileUpload upload = new ServletFileUpload();
                 final FileItemIterator iter = upload.getItemIterator(this.getHttpServletRequest());
@@ -249,7 +233,13 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
                     while ((length = inputStream.read(buffer)) > 0) {
                         baos.write(buffer, 0, length);
                         if (baos.size() > maxFileSize) {
-                            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"upload file size limit exceeded"));
+                            while ((inputStream.read(buffer)) > 0) {
+                                // read & ignore file.
+                            }
+                            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"upload file size limit exceeded");
+                            LOGGER.error(this, errorInformation);
+                            respondWithError(errorInformation);
+                            return Collections.emptyMap();
                         }
                     }
                     final byte[] outputFile = baos.toByteArray();

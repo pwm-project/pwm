@@ -26,7 +26,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -34,9 +33,6 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.ServletHelper;
 import password.pwm.http.servlet.AbstractPwmServlet;
-import password.pwm.i18n.Config;
-import password.pwm.i18n.Display;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
@@ -50,7 +46,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @WebServlet(
         name = "ConfigManagerWordlistServlet",
@@ -113,27 +112,8 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
             return;
         }
 
-        initRequestAttributes(pwmRequest);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_WORDLISTS);
     }
-
-    void initRequestAttributes(final PwmRequest pwmRequest)
-            throws PwmUnrecoverableException
-    {
-        final ConfigurationReader configurationReader = pwmRequest.getContextManager().getConfigReader();
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.PageTitle,LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, pwmRequest));
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ApplicationPath, pwmRequest.getPwmApplication().getApplicationPath().getAbsolutePath());
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigFilename, configurationReader.getConfigFile().getAbsolutePath());
-        {
-            final Date lastModifyTime = configurationReader.getStoredConfiguration().modifyTime();
-            final String output = lastModifyTime == null
-                    ? LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable,pwmRequest)
-                    : PwmConstants.DEFAULT_DATETIME_FORMAT.format(lastModifyTime);
-            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigLastModified, output);
-        }
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigHasPassword, LocaleHelper.booleanString(configurationReader.getStoredConfiguration().hasPassword(), pwmRequest.getLocale(), pwmRequest.getConfig()));
-    }
-
 
     void restUploadWordlist(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException

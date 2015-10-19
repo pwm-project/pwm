@@ -279,7 +279,7 @@ PWM_HELPDESK.processHelpdeskSearch = function() {
             if (sizeExceeded) {
                 PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
                 PWM_MAIN.showTooltip({id:'maxResultsIndicator',position:'below',text:PWM_MAIN.showString('Display_SearchResultsExceeded')})
-            } else if (PWM_MAIN.isEmpty(data['data']['searchResults']) && validationProps['usernameField'].length > 0) {
+            } else if (PWM_MAIN.JSLibrary.isEmpty(data['data']['searchResults']) && validationProps['usernameField'].length > 0) {
                 PWM_MAIN.getObject('maxResultsIndicator').style.display = 'inherit';
                 PWM_MAIN.showTooltip({
                     id: 'maxResultsIndicator',
@@ -441,14 +441,14 @@ PWM_HELPDESK.initHelpdeskSearchPage = function() {
             PWM_HELPDESK.processHelpdeskSearch();
             try {
                 var helpdeskFieldUsername = PWM_MAIN.getObject('username').value;
-                sessionStorage.setItem("helpdesk_field_username",helpdeskFieldUsername);
+                PWM_MAIN.Preferences.writeSessionStorage("helpdesk_field_username", helpdeskFieldUsername);
             } catch (e) {
                 console.log('error writing username field from sessionStorage: ' + e);
             }
         });
 
         try {
-            var helpdeskFieldUsername = sessionStorage.getItem("helpdesk_field_username");
+            var helpdeskFieldUsername = PWM_MAIN.Preferences.readSessionStorage("helpdesk_field_username","");
             PWM_MAIN.getObject('username').value = helpdeskFieldUsername;
         } catch (e) {
             console.log('error reading username field from sessionStorage: ' + e);

@@ -40,8 +40,8 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -91,12 +91,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
             throws Exception
     {
         final Configuration config = new Configuration(storedConfiguration);
-        final PwmApplication tempApplication = new PwmApplication.PwmEnvironment(config,pwmApplication.getApplicationPath())
-                .setApplicationMode(PwmApplication.MODE.NEW)
-                .setInternalRuntimeInstance(true)
-                .setConfigurationFile(null)
-                .setWebInfPath(pwmApplication.getWebInfPath())
-                .createPwmApplication();
+        final PwmApplication tempApplication = pwmApplication.makePwmRuntimeInstance(config);
         final List<UserPermission> permissions = (List<UserPermission>)storedConfiguration.readSetting(setting,profile).toNativeObject();
 
         for (final UserPermission userPermission : permissions) {

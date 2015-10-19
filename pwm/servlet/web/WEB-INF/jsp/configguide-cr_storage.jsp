@@ -1,5 +1,4 @@
-<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
-<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -33,29 +32,23 @@
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
-    <div id="header">
-        <div id="header-center">
-            <div id="header-page">
-                <pwm:display key="title" bundle="ConfigGuide"/>
-            </div>
-        </div>
-    </div>
+    <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
         <form id="configForm">
-            <%--<input type="text" id="value_<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>" value="v1">q</input>--%>
+            <%--<input type="text" id="value_<%=ConfigGuideServlet.FormParameter.PARAM_CR_STORAGE_PREF%>" value="v1">q</input>--%>
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <pwm:display key="Display_ConfigGuideSelectCrStorage" bundle="Config"/>
             <br/>
-            <select id="<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>" name="<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>"
+            <select id="<%=ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF%>" name="<%=ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF%>"
                     style="width:300px">
-                <% final String current = configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_CR_STORAGE_PREF);%>
-                <option value="LDAP"<% if ("LDAP".equals(current)) { %> selected="selected"<% } %>>
+                <% final String current = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF);%>
+                <option value="<%=ConfigGuideForm.Cr_Storage_Pref.LDAP%>"<% if (ConfigGuideForm.Cr_Storage_Pref.LDAP.toString().equals(current)) { %> selected="selected"<% } %>>
                     LDAP
                 </option>
-                <option value="DB"<% if ("DB".equals(current)) { %> selected="selected"<% } %>>
+                <option value="<%=ConfigGuideForm.Cr_Storage_Pref.DB%>"<% if (ConfigGuideForm.Cr_Storage_Pref.DB.toString().equals(current)) { %> selected="selected"<% } %>>
                     Remote Database
                 </option>
-                <option value="LOCALDB"<% if ("LOCALDB".equals(current)) { %> selected="selected"<% } %>>
+                <option value="<%=ConfigGuideForm.Cr_Storage_Pref.LOCALDB%>"<% if (ConfigGuideForm.Cr_Storage_Pref.LOCALDB.toString().equals(current)) { %> selected="selected"<% } %>>
                     LocalDB (Testing only)
                 </option>
             </select>
@@ -64,13 +57,13 @@
         </form>
         <p>
             <b>LDAP</b>: Storing the challenge/response data in LDAP is ideal if your LDAP directory is extensible and can accommodate the storage.  You will need to extend
-            the LDAP server's schema or adjust the configure to use pre-existing defined attributes.  You will also need to adjust the ACLs or rights
-            in the directory to accommodate the challenge/response storage and other data.  See the documentation for more information.
+            the LDAP server's schema or adjust the configuration to use pre-existing defined attributes.  You will also need to adjust the access control lists (ACLs) or rights
+            in the LDAP directory to accommodate the challenge/response storage and other data.  See the documentation for more information.
         </p>
         <p>
             <b>Remote Database</b>: If modifying the LDAP's server schema and rights is not desired or possible, you can use a database to store the user's challenge/response data.
-            After the configuration guide process is complete, you will need to edit the Database settings and place your database vendor's JDBC driver on this server.  See
-            the documentation for more information.
+            After the configuration guide process is complete, you will need to edit the Database settings and upload your database vendor's JDBC driver into the configuration.
+            Your database vendor will supply you with the appropriate JDBC driver file and configuration instructions.
         </p>
         <p>
             <b>LocalDB (Testing only)</b>: This server has it's own embedded local database (LocalDB) that is capable of storing user challenge/responses.  This option should never be used in a production
@@ -87,7 +80,7 @@
             PWM_MAIN.addEventHandler('button_next','click',function(){ PWM_GUIDE.gotoStep('NEXT')});
             PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
 
-            PWM_MAIN.addEventHandler('configForm','input',function(){
+            PWM_MAIN.addEventHandler('configForm','input,change',function(){
                 PWM_GUIDE.updateForm();
             });
         });

@@ -30,13 +30,7 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
-    <div id="header">
-        <div id="header-center">
-            <div id="header-page">
-                <pwm:display key="title" bundle="ConfigGuide"/>
-            </div>
-        </div>
-    </div>
+    <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
         <pwm:display key="Display_ConfigManagerNew" bundle="Config" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>

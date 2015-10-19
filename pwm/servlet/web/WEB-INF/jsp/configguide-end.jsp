@@ -1,5 +1,4 @@
-<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
-<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -35,13 +34,7 @@
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
-    <div id="header">
-        <div id="header-center">
-            <div id="header-page">
-                <pwm:display key="title" bundle="ConfigGuide"/>
-            </div>
-        </div>
-    </div>
+    <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p>The installation process is now complete.  You can go back to any previous step if you would like to make changes, or click
@@ -62,28 +55,28 @@
                         <td><b>Site URL</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_APP_SITEURL))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>LDAP Server Hostname</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_HOST))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>LDAP Port</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_PORT))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>Secure (SSL) Connection</b>
                         </td>
                         <td>
-                            <%if (Boolean.parseBoolean(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_SECURE))) {%>
+                            <%if (Boolean.parseBoolean(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE))) {%>
                             <pwm:display key="Value_True"/>
                             <% } else { %>
                             <pwm:display key="Value_False"/>
@@ -91,10 +84,10 @@
                         </td>
                     </tr>
                     <tr>
-                        <td><b>Proxy/Admin LDAP DN</b>
+                        <td><b>Proxy LDAP DN</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PROXY_DN))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN))%>
                         </td>
                     </tr>
                     <tr>
@@ -102,32 +95,32 @@
                         </td>
                         <td>
                             <%=StringUtil.escapeHtml(
-                                    configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_CONTEXT))%>
+                                    configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT))%>
                         </td>
                     </tr>
                     <tr>
-                        <td><b>Administrator Search Filter</b>
+                        <td><b>Administrator Group DN</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_ADMIN_GROUP))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>LDAP Test User DN</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_TEST_USER))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_TEST_USER))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>Response Storage Preference</b>
                         </td>
                         <td>
-                            <% if ("LDAP".equals(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_CR_STORAGE_PREF))) { %>
+                            <% if ("LDAP".equals(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF))) { %>
                             LDAP
-                            <% } else if ("DB".equals(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_CR_STORAGE_PREF))) { %>
+                            <% } else if ("DB".equals(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF))) { %>
                             Remote Database
-                            <% } else if ("LOCALDB".equals(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_CR_STORAGE_PREF))) { %>
+                            <% } else if ("LOCALDB".equals(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF))) { %>
                             Local Embedded Database (Testing only)
                             <% } else { %>
                             Not Configured

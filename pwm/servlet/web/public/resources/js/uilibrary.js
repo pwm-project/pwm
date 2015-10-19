@@ -98,39 +98,31 @@ UILibrary.addTextValueToElement = function(elementID, input) {
 };
 
 UILibrary.addAddLocaleButtonRow = function(parentDiv, keyName, addFunction, existingLocales) {
-    var availableLocales = PWM_GLOBAL['localeInfo'];
+    existingLocales === undefined ? [] : existingLocales;
+    existingLocales.push('en');
+
+    var totalLocales = PWM_MAIN.JSLibrary.itemCount(PWM_GLOBAL['localeInfo']);
+    var excludeLocales = PWM_MAIN.JSLibrary.itemCount(existingLocales);
+
+    if (totalLocales < excludeLocales) {
+        return;
+    }
 
     var tableRowElement = document.createElement('tr');
     tableRowElement.setAttribute("style","border-width: 0");
 
     var bodyHtml = '';
     bodyHtml += '<td style="border-width: 0" colspan="5">';
-    bodyHtml += '<select id="' + keyName + '-addLocaleValue">';
-
-    var localesAdded = 0;
-    for (var localeIter in availableLocales) {
-        if (localeIter != PWM_GLOBAL['defaultLocale']) {
-            if (!existingLocales || (existingLocales.indexOf(localeIter) == -1)) {
-                localesAdded++;
-                var labelText = availableLocales[localeIter] + " (" + localeIter + ")";
-                bodyHtml += '<option value="' + localeIter + '">' + labelText + '</option>';
-            }
-        }
-    }
-    bodyHtml += '</select>';
-
     bodyHtml += '<button type="button" class="btn" id="' + keyName + '-addLocaleButton"><span class="btn-icon fa fa-plus-square"></span>Add Locale</button>'
 
     bodyHtml += '</td>';
-    if (localesAdded == 0) {
-        bodyHtml = '<td style="border-width: 0" colspan="5"><span class="footnote">All locales present</span></td>';
-    }
     tableRowElement.innerHTML = bodyHtml;
     PWM_MAIN.getObject(parentDiv).appendChild(tableRowElement);
 
     PWM_MAIN.addEventHandler(keyName + '-addLocaleButton','click',function(){
-        var value = PWM_MAIN.getObject(keyName + "-addLocaleValue").value;
-        addFunction(value);
+        PWM_MAIN.showLocaleSelectionMenu(function(locale){
+            addFunction(locale)
+        },{excludeLocales:existingLocales});
     });
 };
 
@@ -186,7 +178,7 @@ UILibrary.editLdapDN = function(nextFunction, options) {
             return;
         }
 
-        if (!PWM_MAIN.isEmpty(data['data']['profileList'])) {
+        if (!PWM_MAIN.JSLibrary.isEmpty(data['data']['profileList'])) {
             body += '<div style="text-align: center">LDAP Profile <select id="select-profileList"></select></div><br/>';
         }
         body += '<div style="text-align: center">';
@@ -221,13 +213,13 @@ UILibrary.editLdapDN = function(nextFunction, options) {
             return out;
         };
 
-        if (data['data']['navigableDNlist'] && !PWM_MAIN.isEmpty(data['data']['navigableDNlist'])) {
+        if (data['data']['navigableDNlist'] && !PWM_MAIN.JSLibrary.isEmpty(data['data']['navigableDNlist'])) {
             var navigableDNlist = data['data']['navigableDNlist'];
             for (var i in navigableDNlist) {
                 body += makeEntryHtml(navigableDNlist[i],true);
             }
         }
-        if (data['data']['selectableDNlist'] && !PWM_MAIN.isEmpty(data['data']['selectableDNlist'])) {
+        if (data['data']['selectableDNlist'] && !PWM_MAIN.JSLibrary.isEmpty(data['data']['selectableDNlist'])) {
             var selectableDNlist = data['data']['selectableDNlist'];
             for (var i in selectableDNlist) {
                 body += makeEntryHtml(selectableDNlist[i],false);
@@ -270,7 +262,7 @@ UILibrary.editLdapDN = function(nextFunction, options) {
                 });
             });
 
-            if (!PWM_MAIN.isEmpty(data['data']['profileList'])) {
+            if (!PWM_MAIN.JSLibrary.isEmpty(data['data']['profileList'])) {
                 var profileList = data['data']['profileList'];
                 var profileSelect = PWM_MAIN.getObject('select-profileList');
                 for (var i in profileList) {
@@ -335,9 +327,13 @@ UILibrary.uploadFileDialog = function(options) {
         }
     };
 
-    var errorFunction = function(data) {
+    var errorFunction = function(status,statusText) {
+        PWM_MAIN.closeWaitDialog();
         var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
-        PWM_MAIN.showErrorDialog(data,{text:errorText});
+        errorText += '<br/><br/>Status: ' + status;
+        errorText += '<br/><br/>' + statusText;
+        PWM_MAIN.showErrorDialog('',{text:errorText});
+        //PWM_MAIN.showErrorDialog(errorText);
     };
 
     var progressFunction = function(data) {
@@ -366,16 +362,21 @@ UILibrary.uploadFileDialog = function(options) {
     var uploadFunction = function() {
         var files = PWM_MAIN.getObject('uploadFile').files;
         if (!files[0]) {
-            alert('File not selected');
+            alert('File is not selected.');
+            return;
         }
         var xhr = new XMLHttpRequest();
         var fd = new FormData();
         xhr.onreadystatechange = function() {
             console.log('on ready state change');
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                // Every thing ok, file uploaded
-                console.log(xhr.responseText); // handle response.
-                completeFunction(xhr.responseText);
+            if (xhr.readyState == 4) {
+                if( xhr.status == 200) {
+                    // Every thing ok, file uploaded
+                    console.log(xhr.responseText); // handle response.
+                    completeFunction(xhr.responseText);
+                } else {
+                    errorFunction(xhr.status, xhr.statusText)
+                }
             }
         };
         xhr.upload.addEventListener('progress',progressFunction,false);

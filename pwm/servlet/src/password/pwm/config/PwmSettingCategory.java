@@ -26,7 +26,7 @@ import org.jdom2.Attribute;
 import org.jdom2.Element;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.ConfigEditor;
-import password.pwm.i18n.LocaleHelper;
+import password.pwm.util.LocaleHelper;
 
 import java.util.*;
 
@@ -38,14 +38,15 @@ public enum PwmSettingCategory {
     MODULES                     (null),
 
     LDAP_PROFILE                (LDAP),
-    LDAP_GLOBAL                 (LDAP),
+    LDAP_SETTINGS               (LDAP),
+    LDAP_GLOBAL                 (LDAP_SETTINGS),
 
-    EDIRECTORY                  (LDAP),
+    EDIRECTORY                  (LDAP_SETTINGS),
     EDIR_SETTINGS               (EDIRECTORY),
     EDIR_CR_SETTINGS            (EDIRECTORY),
 
-    ACTIVE_DIRECTORY            (LDAP),
-    ORACLE_DS                   (LDAP),
+    ACTIVE_DIRECTORY            (LDAP_SETTINGS),
+    ORACLE_DS                   (LDAP_SETTINGS),
 
     GENERAL                     (SETTINGS),
 
@@ -121,14 +122,14 @@ public enum PwmSettingCategory {
     PEOPLE_SEARCH               (MODULES),
     HELPDESK_PROFILE            (MODULES),
 
+    HTTPS_SERVER                (SETTINGS),
+
     ;
 
     private final PwmSettingCategory parent;
     private static final Map<PwmSettingCategory,PwmSetting> CACHE_PROFILE_SETTING = new HashMap<>();
     private static List<PwmSettingCategory> cached_sortedSettings;
 
-    private String label;
-    private String description;
     private Integer level;
     private Boolean hidden;
 

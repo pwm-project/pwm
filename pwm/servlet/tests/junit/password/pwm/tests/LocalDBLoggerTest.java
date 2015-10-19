@@ -27,8 +27,9 @@ import junit.framework.TestCase;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.util.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.Percent;
 import password.pwm.util.TimeDuration;
@@ -67,9 +68,9 @@ public class LocalDBLoggerTest extends TestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
-        TestHelper.setupLogging();
-        final File localDBPath = new File(TestHelper.getParameter("localDBPath"));
-        final File configFile = new File(TestHelper.getParameter("configurationFile"));
+        password.pwm.tests.TestHelper.setupLogging();
+        final File localDBPath = new File(password.pwm.tests.TestHelper.getParameter("localDBPath"));
+        final File configFile = new File(password.pwm.tests.TestHelper.getParameter("configurationFile"));
         final ConfigurationReader reader = new ConfigurationReader(configFile);
         config = reader.getConfiguration();
 
@@ -89,7 +90,7 @@ public class LocalDBLoggerTest extends TestCase {
         localDBLogger = new LocalDBLogger(null, localDB, settings);
 
         {
-            final int randomLength = 4000;
+            final int randomLength = 84000;
             while (randomValue.length() < randomLength) {
                 randomValue.append(PwmRandom.getInstance().nextChar());
             }
@@ -177,11 +178,11 @@ public class LocalDBLoggerTest extends TestCase {
             final Percent percent = new Percent(eventCount,maxEvents);
             sb.append(new SimpleDateFormat("HH:mm:ss").format(new Date()));
             sb.append(", added ").append(eventsAdded);
-            sb.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(localDB.getFileLocation())));
+            sb.append(", db size: ").append(Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
             sb.append(", events: ").append(localDBLogger.getStoredEventCount()).append("/").append(maxEvents);
             sb.append(" (").append(percent.pretty(3)).append(")");
             sb.append(", free space: ").append(Helper.formatDiskSize(
-                    Helper.diskSpaceRemaining(localDB.getFileLocation())));
+                    FileSystemUtility.diskSpaceRemaining(localDB.getFileLocation())));
             sb.append(", pending: ").append(localDBLogger.getPendingEventCount());
             sb.append(", eps: ").append(eventRateMeter.readEventRate().setScale(0, RoundingMode.UP));
             System.out.println(sb);

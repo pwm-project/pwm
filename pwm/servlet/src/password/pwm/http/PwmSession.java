@@ -34,9 +34,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.*;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.LoginCookieManager;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -100,6 +100,8 @@ public class PwmSession implements Serializable {
         if (pwmApplication.getStatisticsManager() != null) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.HTTP_SESSIONS);
         }
+
+        pwmApplication.getSessionTrackService().addSessionData(this);
 
         settings.restKeyLength = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_WS_REST_CLIENT_KEY_LENGTH));
         LOGGER.trace(this,"created new session");
@@ -214,19 +216,6 @@ public class PwmSession implements Serializable {
         }
 
         clearSessionBeans();
-
-        // clear CAS session if it exists.
-        // @todo add this back if needed (but recycle session should also take care of this
-        /*
-        try {
-            if (httpSession.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION) != null) {
-                httpSession.removeAttribute(AbstractCasFilter.CONST_CAS_ASSERTION);
-                LOGGER.debug("CAS assertion removed");
-            }
-        } catch (Exception e) {
-            // session already invalided
-        }
-        */
 
         if (pwmRequest != null) {
             try {

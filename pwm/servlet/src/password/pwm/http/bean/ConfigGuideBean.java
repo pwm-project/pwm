@@ -24,8 +24,10 @@ package password.pwm.http.bean;
 
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.value.FileValue;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.servlet.ConfigGuideServlet;
+import password.pwm.http.servlet.configguide.ConfigGuideForm;
+import password.pwm.http.servlet.configguide.GuideStep;
 
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
@@ -33,14 +35,14 @@ import java.util.Map;
 
 public class ConfigGuideBean implements PwmSessionBean {
 
-    private ConfigGuideServlet.STEP step = ConfigGuideServlet.STEP.START;
+    private GuideStep step = GuideStep.START;
     private StoredConfigurationImpl storedConfiguration;
     private PwmSettingTemplate selectedTemplate = null;
-    private Map<String,String> formData = new HashMap<>();
+    private Map<ConfigGuideForm.FormParameter,String> formData = new HashMap<>();
     private X509Certificate[] ldapCertificates;
     private boolean certsTrustedbyKeystore = false;
     private boolean useConfiguredCerts = false;
-    private boolean needsDbConfiguration = false;
+    private FileValue databaseDriver = null;
 
     public ConfigGuideBean() {
         try {
@@ -50,11 +52,11 @@ public class ConfigGuideBean implements PwmSessionBean {
         }
     }
 
-    public ConfigGuideServlet.STEP getStep() {
+    public GuideStep getStep() {
         return step;
     }
 
-    public void setStep(ConfigGuideServlet.STEP step) {
+    public void setStep(GuideStep step) {
         this.step = step;
     }
 
@@ -66,11 +68,11 @@ public class ConfigGuideBean implements PwmSessionBean {
         this.storedConfiguration = storedConfiguration;
     }
 
-    public Map<String, String> getFormData() {
+    public Map<ConfigGuideForm.FormParameter, String> getFormData() {
         return formData;
     }
 
-    public void setFormData(Map<String, String> formData) {
+    public void setFormData(Map<ConfigGuideForm.FormParameter, String> formData) {
         this.formData = formData;
     }
 
@@ -106,5 +108,13 @@ public class ConfigGuideBean implements PwmSessionBean {
     public void setSelectedTemplate(PwmSettingTemplate selectedTemplate)
     {
         this.selectedTemplate = selectedTemplate;
+    }
+
+    public FileValue getDatabaseDriver() {
+        return databaseDriver;
+    }
+
+    public void setDatabaseDriver(FileValue databaseDriver) {
+        this.databaseDriver = databaseDriver;
     }
 }

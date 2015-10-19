@@ -1,4 +1,6 @@
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.i18n.Config" %>
+<%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -33,29 +35,14 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
+<link href="<pwm:context/><pwm:url url='/public/resources/configmanagerStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="<%=JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.PageTitle)%>"/>
+        <jsp:param name="pwm.PageName" value="<%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%>"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/configmanager-nav.jsp" %>
         <style nonce="<pwm:value name="cspNonce"/>">
-            .buttoncell {
-                border: 0;
-                width:50%;
-            }
-            .buttonrow {
-                height: 45px;
-                margin-top: 20px;
-                margin-bottom: 20px;
-            }
-            .menubutton {
-                cursor: pointer;
-                display: block;
-                margin-left: auto;
-                margin-right: auto;
-
-            }
         </style>
         <table style="width:550px">
             <col class="key" style="width:150px">
@@ -147,6 +134,44 @@
             </tr>
             <tr class="buttonrow">
                 <td class="buttoncell">
+                    <a class="menubutton" id="MenuItem_ConfigurationSummary" href="#">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-files-o"></span></pwm:if>
+                        Configuration Summary
+                    </a>
+                    <pwm:script>
+                        <script type="application/javascript">
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                PWM_MAIN.addEventHandler('MenuItem_ConfigurationSummary','click',function(){
+                                    window.open('ConfigManager?processAction=summary','_blank', 'width=650,toolbar=0,location=0,menubar=0');
+                                });
+                            });
+                        </script>
+                    </pwm:script>
+
+                </td>
+                <td class="buttoncell">
+                    <a class="menubutton" id="MenuItem_UploadConfig"  title="<pwm:display key="MenuDisplay_UploadConfig" bundle="Config"/>">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-upload"></span></pwm:if>
+                        <pwm:display key="MenuItem_UploadConfig" bundle="Config"/>
+                    </a>
+                    <pwm:script>
+                        <script type="application/javascript">
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                PWM_MAIN.addEventHandler('MenuItem_UploadConfig',"click",function(){
+                                    <pwm:if test="configurationOpen">
+                                    PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('MenuDisplay_UploadConfig'),okAction:function(){PWM_CONFIG.uploadConfigDialog()}})
+                                    </pwm:if>
+                                    <pwm:if test="configurationOpen" negate="true">
+                                    PWM_CONFIG.configClosedWarning();
+                                    </pwm:if>
+                                });
+                            });
+                        </script>
+                    </pwm:script>
+                </td>
+            </tr>
+            <tr class="buttonrow">
+                <td class="buttoncell">
                     <pwm:if test="configurationOpen">
                         <a class="menubutton" id="MenuItem_LockConfig" title="<pwm:display key="MenuDisplay_LockConfig" bundle="Config"/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-lock"></span></pwm:if>
@@ -184,81 +209,6 @@
                         </pwm:script>
                     </pwm:if>
                 </td>
-                <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_UploadConfig"  title="<pwm:display key="MenuDisplay_UploadConfig" bundle="Config"/>">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-upload"></span></pwm:if>
-                        <pwm:display key="MenuItem_UploadConfig" bundle="Config"/>
-                    </a>
-                    <pwm:script>
-                        <script type="application/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                PWM_MAIN.addEventHandler('MenuItem_UploadConfig',"click",function(){
-                                    <pwm:if test="configurationOpen">
-                                    PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('MenuDisplay_UploadConfig'),okAction:function(){PWM_CONFIG.uploadConfigDialog()}})
-                                    </pwm:if>
-                                    <pwm:if test="configurationOpen" negate="true">
-                                    configClosedWarning();
-                                    </pwm:if>
-                                });
-                            });
-                        </script>
-                    </pwm:script>
-                </td>
-            </tr>
-            <tr class="buttonrow">
-                <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_ExportLocalDB">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
-                        <pwm:display key="MenuItem_ExportLocalDB" bundle="Config"/>
-                    </a>
-                    <pwm:script>
-                        <script type="application/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                PWM_MAIN.addEventHandler('MenuItem_ExportLocalDB','click',function(){PWM_CONFIG.downloadLocalDB()});
-                                makeTooltip('MenuItem_ExportLocalDB',PWM_CONFIG.showString('MenuDisplay_ExportLocalDB'));
-                            });
-                        </script>
-                    </pwm:script>
-                </td>
-                <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_UploadLocalDB">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-upload"></span></pwm:if>
-                        Import (Upload) LocalDB Archive File
-                    </a>
-                    <pwm:script>
-                        <script type="application/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                makeTooltip('MenuItem_UploadConfig',PWM_CONFIG.showString('MenuDisplay_UploadConfig'));
-                                PWM_MAIN.addEventHandler('MenuItem_UploadLocalDB',"click",function(){
-                                    <pwm:if test="configurationOpen">
-                                    PWM_CONFIG.uploadLocalDB();
-                                    </pwm:if>
-                                    <pwm:if test="configurationOpen" negate="true">
-                                    configClosedWarning();
-                                    </pwm:if>
-                                });
-                            });
-                        </script>
-                    </pwm:script>
-                </td>
-            </tr>
-            <tr class="buttonrow">
-                <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_ConfigurationSummary" href="#">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-files-o"></span></pwm:if>
-                        Configuration Summary
-                    </a>
-                    <pwm:script>
-                        <script type="application/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                PWM_MAIN.addEventHandler('MenuItem_ConfigurationSummary','click',function(){
-                                    window.open('ConfigManager?processAction=summary','_blank', 'width=650,toolbar=0,location=0,menubar=0');
-                                });
-                            });
-                        </script>
-                    </pwm:script>
-
-                </td>
             </tr>
         </table>
     </div>
@@ -276,23 +226,6 @@
                 PWM_ADMIN.showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});
             });
         });
-
-        function makeTooltip(id,text) {
-            PWM_MAIN.showTooltip({
-                id: id,
-                showDelay: 800,
-                position: ['below','above'],
-                text: text,
-                width: 300
-            });
-        }
-
-        function configClosedWarning() {
-            PWM_MAIN.showDialog({
-                title:PWM_MAIN.showString('Title_Error'),
-                text:"This operation is not available when the configuration is closed."
-            });
-        }
 
     </script>
 </pwm:script>

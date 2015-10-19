@@ -27,8 +27,8 @@ import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.*;
@@ -51,7 +51,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
                     return new LocalizedStringValue(Collections.<String, String>emptyMap());
                 } else {
                     Map<String, String> srcMap = JsonUtil.deserialize(input, new TypeToken<Map<String, String>>() {});
-                    srcMap = srcMap == null ? Collections.<String, String>emptyMap() : new TreeMap(srcMap);
+                    srcMap = srcMap == null ? Collections.<String, String>emptyMap() : new TreeMap<>(srcMap);
                     return new LocalizedStringValue(Collections.unmodifiableMap(srcMap));
                 }
             }

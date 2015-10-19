@@ -1,5 +1,4 @@
-<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
-<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -34,13 +33,7 @@
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
-    <div id="header">
-        <div id="header-center">
-            <div id="header-page">
-                <pwm:display key="title" bundle="ConfigGuide"/>
-            </div>
-        </div>
-    </div>
+    <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
         <form id="configForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
@@ -53,10 +46,10 @@
                     The URL to this application, as seen by users.  The value is used in email and other user facing communications.
                     Example: <b>http://www.example.com/password</b>.  The Site URL must use a valid fully qualified hostname.  Do not use a network address.                    <br/><br/>
                     <div class="setting_item">
-                        <div id="titlePane_<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" style="padding-left: 5px; padding-top: 5px">
+                        <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>" style="padding-left: 5px; padding-top: 5px">
                             <b>Site URL</b>
                             <br/>
-                            <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" name="<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_APP_SITEURL))%>" required autofocus/>
+                            <input class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>" name="<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL))%>" required autofocus/>
                         </div>
                     </div>
                 </div>

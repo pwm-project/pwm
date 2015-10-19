@@ -1,5 +1,4 @@
-<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
-<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.Map" %>
 <%--
@@ -29,20 +28,14 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
-<% Map<String,String> PLACEHOLDER_FORM = ConfigGuideServlet.placeholderForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
+<% Map<ConfigGuideForm.FormParameter,String> PLACEHOLDER_FORM = ConfigGuideForm.placeholderForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
-    <div id="header">
-        <div id="header-center">
-            <div id="header-page">
-                <pwm:display key="title" bundle="ConfigGuide"/>
-            </div>
-        </div>
-    </div>
+    <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
         <form id="configForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
@@ -55,32 +48,10 @@
                     <div class="setting_item">
                         <b>User Container DN</b>
                         <br/>
-                        <input style="width:400px" class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_CONTEXT%>" name="<%=ConfigGuideServlet.PARAM_LDAP_CONTEXT%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_CONTEXT))%>" placeholder="<%=PLACEHOLDER_FORM.get(ConfigGuideServlet.PARAM_LDAP_CONTEXT)%>" required autofocus/>
+                        <input style="width:400px" class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT))%>" placeholder="<%=PLACEHOLDER_FORM.get(ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT)%>" required autofocus/>
                         <button type="button" class="btn" id="button-browse-context">
                             <span class="btn-icon fa fa-sitemap"></span>
                             <pwm:display key="Button_Browse"/>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <br/>
-            <div class="setting_outline">
-                <div class="setting_title">
-                    <pwm:display key="ldap_context_admin_title" bundle="ConfigGuide"/>
-                </div>
-                <div class="setting_body">
-                    <pwm:display key="ldap_context_admin_description" bundle="ConfigGuide"/>
-                    <div class="setting_item">
-                        <b>Administrator Group DN</b>
-                        <br/>
-                        <input style="width:400px;" class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP))%>" placeholder="<%=PLACEHOLDER_FORM.get(ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP)%>" required/>
-                        <button type="button" class="btn" id="button-browse-adminGroup">
-                            <span class="btn-icon fa fa-sitemap"></span>
-                            <pwm:display key="Button_Browse"/>
-                        </button>
-                        <button type="button" id="button-viewAdminMatches" class="btn">
-                            <span class="btn-icon fa fa-eye"></span>
-                            View Matches
                         </button>
                     </div>
                 </div>
@@ -123,30 +94,15 @@
             PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
             PWM_MAIN.addEventHandler('healthBody','click',function(){loadHealth()});
 
-            PWM_MAIN.addEventHandler('button-viewAdminMatches','click',function(){
-                PWM_MAIN.showWaitDialog({loadFunction:function(){
-                    var url = 'ConfigGuide?processAction=viewAdminMatches';
-                    var loadFunction = function(data){
-                        if (data['error']) {
-                            PWM_MAIN.showErrorDialog(data);
-                        } else {
-                            var html = PWM_CONFIG.convertListOfIdentitiesToHtml(data['data']);
-                            PWM_MAIN.showDialog({title:'Matches',text:html});
-                        }
-                    };
-                    PWM_MAIN.ajaxRequest(url,loadFunction);
-                }});
-            });
-
             PWM_MAIN.addEventHandler('button-browse-context','click',function(){
                 UILibrary.editLdapDN(function(value){
-                    PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_CONTEXT%>').value = value;
+                    PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT%>').value = value;
                     handleFormActivity();
                 })
             });
             PWM_MAIN.addEventHandler('button-browse-adminGroup','click',function(){
                 UILibrary.editLdapDN(function(value){
-                    PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_GROUP%>').value = value;
+                    PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_LDAP_ADMIN_GROUP%>').value = value;
                     handleFormActivity();
                 })
             });

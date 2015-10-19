@@ -47,7 +47,7 @@ public class SecureEngine {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(SecureEngine.class);
 
-    private static final int HASH_BUFFER_SIZE = 1024;
+    private static final int HASH_BUFFER_SIZE = 1024 * 4;
 
     private SecureEngine() {
     }

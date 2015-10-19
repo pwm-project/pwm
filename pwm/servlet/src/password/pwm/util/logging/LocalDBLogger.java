@@ -30,10 +30,7 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
-import password.pwm.util.TransactionSizeCalculator;
+import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
@@ -70,7 +67,11 @@ public class LocalDBLogger implements PwmService {
     private volatile boolean writerThreadActive = false;
     private boolean hasShownReadError = false;
 
-    private final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(2049, 5, PwmConstants.LOCALDB_LOGGER_MAX_QUEUE_SIZE);
+    private final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
+            2049, // transaction time goal
+            5,
+            PwmConstants.LOCALDB_LOGGER_MAX_QUEUE_SIZE
+    );
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -138,7 +139,7 @@ public class LocalDBLogger implements PwmService {
         sb.append(", tailAge=").append(TimeDuration.fromCurrent(tailTimestampMs).asCompactString());
         sb.append(", maxEvents=").append(settings.getMaxEvents());
         sb.append(", maxAge=").append(settings.getMaxAgeMs() > 1 ? new TimeDuration(settings.getMaxAgeMs()).asCompactString() : "none");
-        sb.append(", localDBSize=").append(Helper.formatDiskSize(Helper.getFileDirectorySize(localDB.getFileLocation())));
+        sb.append(", localDBSize=").append(Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
         return sb.toString();
     }
 

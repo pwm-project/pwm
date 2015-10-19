@@ -440,7 +440,7 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
             var bodyText = '';
             var resultCount = 0;
             var elapsedTime = (new Date().getTime()) - startTime;
-            if (PWM_MAIN.isEmpty(data['data'])) {
+            if (PWM_MAIN.JSLibrary.isEmpty(data['data'])) {
                 PWM_MAIN.getObject('indicator-noResults').style.display = 'inline';
                 console.log('search #' + iteration + ', 0 results, ' + elapsedTime + 'ms');
             } else {
@@ -701,6 +701,23 @@ PWM_CFGEDIT.databaseHealthCheck = function() {
     }});
 };
 
+PWM_CFGEDIT.httpsCertificateView = function() {
+    PWM_MAIN.showWaitDialog({title:'Parsing...',loadFunction:function(){
+        var url =  "ConfigEditor?processAction=httpsCertificateView";
+        var loadFunction = function(data) {
+            PWM_MAIN.closeWaitDialog();
+            if (data['error']) {
+                PWM_MAIN.showErrorDialog(data);
+            } else {
+                var bodyText = '<pre>' + data['data'] + '</pre>';
+                var titleText = 'HTTPS Certificate';
+                PWM_MAIN.showDialog({text:bodyText,title:titleText});
+            }
+        };
+        PWM_MAIN.ajaxRequest(url,loadFunction);
+    }});
+};
+
 PWM_CFGEDIT.smsHealthCheck = function() {
     require(["dojo/dom-form"], function(domForm){
         var dialogBody = '<p>' + PWM_CONFIG.showString('Warning_SmsTestData') + '</p><form id="smsCheckParametersForm"><table>';
@@ -744,9 +761,9 @@ PWM_CFGEDIT.loadMainPageBody = function() {
 
     PWM_CFGEDIT.drawNavigationMenu();
 
-    var storedPreferences = PWM_MAIN.readLocalStorage();
-    if (storedPreferences['configeditor-lastSelected']) {
-        PWM_CFGEDIT.dispatchNavigationItem(storedPreferences['configeditor-lastSelected']);
+    var lastSelected = PWM_MAIN.Preferences.readSessionStorage('configEditor-lastSelected',null);
+    if (lastSelected) {
+        PWM_CFGEDIT.dispatchNavigationItem(lastSelected);
     } else {
         PWM_CFGEDIT.drawHomePage();
     }
@@ -794,6 +811,10 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
             + '<button class="btn" id="button-test-SMS"><span class="btn-icon fa fa-bolt"></span>Test SMS Settings</button>'
             + '</div>';
+    } else if (category == 'HTTPS_SERVER') {
+        htmlSettingBody += '<div style="width: 100%; text-align: center">'
+            + '<button class="btn" id="button-test-HTTPS_SERVER"><span class="btn-icon fa fa-bolt"></span>View Certificate Info</button>'
+            + '</div>';
     }
 
     PWM_VAR['skippedSettingCount'] = 0;
@@ -822,6 +843,8 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
         PWM_MAIN.addEventHandler('button-test-DATABASE', 'click', function(){PWM_CFGEDIT.databaseHealthCheck();});
     } else if (category == 'SMS_GATEWAY') {
         PWM_MAIN.addEventHandler('button-test-SMS', 'click', function(){PWM_CFGEDIT.smsHealthCheck();});
+    } else if (category == 'HTTPS_SERVER') {
+        PWM_MAIN.addEventHandler('button-test-HTTPS_SERVER', 'click', function(){PWM_CFGEDIT.httpsCertificateView();});
     }
     PWM_CFGEDIT.applyGotoSettingHandlers();
 };
@@ -854,8 +877,8 @@ PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo, options) {
         + '<div id="titlePane_' + settingKey + '" class="setting_body">';
 
     if (settingInfo['description']) {
-        var prefs = PWM_MAIN.readLocalStorage();
-        var expandHelp = 'helpExpanded' in prefs && settingKey in prefs['helpExpanded'];
+        var prefs = PWM_MAIN.Preferences.readSessionStorage('helpExpanded',{});
+        var expandHelp = settingKey in prefs;
         htmlBody += '<div class="pane-help" id="pane-help-' + settingKey + '" style="display:' + (expandHelp ? 'inherit' : 'none') + '">'
             + settingInfo['description'] + '</div>';
     }
@@ -1020,9 +1043,7 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
                     openOnClick: true,
                     id: 'navigationTree',
                     onClick: function(item){
-                        var storedPreferences = PWM_MAIN.readLocalStorage();
-                        storedPreferences['configeditor-lastSelected'] = item;
-                        PWM_MAIN.writeLocalStorage(storedPreferences);
+                        PWM_MAIN.Preferences.writeSessionStorage('configEditor-lastSelected',item);
                         PWM_CFGEDIT.dispatchNavigationItem(item);
                     }
                 });
@@ -1224,18 +1245,17 @@ PWM_CFGEDIT.initConfigSettingsDefinition=function(nextFunction) {
 
 PWM_CFGEDIT.displaySettingHelp = function(settingKey) {
     console.log('toggle help for ' + settingKey);
-    var prefs = PWM_MAIN.readLocalStorage();
-    prefs['helpExpanded'] = 'helpExpanded' in prefs ? prefs['helpExpanded'] : {};
+    var helpExpandedPrefs = PWM_MAIN.Preferences.readSessionStorage('helpExpanded',{});
     var element = PWM_MAIN.getObject('pane-help-' + settingKey);
     if (element) {
         if (element.style.display == 'none') {
             element.style.display = 'inherit';
-            prefs['helpExpanded'][settingKey] = true;
+            helpExpandedPrefs[settingKey] = true;
         } else {
             element.style.display = 'none';
-            delete prefs['helpExpanded'][settingKey];
+            delete helpExpandedPrefs[settingKey];
         }
-        PWM_MAIN.writeLocalStorage(prefs);
+        PWM_MAIN.Preferences.writeSessionStorage('helpExpanded',helpExpandedPrefs);
     }
 };
 

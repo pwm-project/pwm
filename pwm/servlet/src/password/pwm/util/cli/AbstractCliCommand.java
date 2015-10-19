@@ -28,7 +28,6 @@ import java.util.Scanner;
 
 public abstract class AbstractCliCommand implements CliCommand  {
     protected CliEnvironment cliEnvironment;
-    protected String cliString;
 
     protected AbstractCliCommand()
     {
@@ -53,7 +52,6 @@ public abstract class AbstractCliCommand implements CliCommand  {
     )
     {
         this.cliEnvironment = cliEnvironment;
-        this.cliString = cli;
 
         try {
             doCommand();

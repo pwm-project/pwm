@@ -709,7 +709,7 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 
 .icon-peoplesearch-orgChart { background-image: url("orgChart.png"); position: absolute; top:5px; right:5px; height:30px; width:30px; cursor: pointer; }
 .panel-peoplesearch-userDetailPhoto { display: inline;  }
-.img-peoplesearch-userDetailPhoto { width: auto; height: 80px; border-radius: 2px; border: 1px solid #d8e2e2; }
+.img-peoplesearch-userDetailPhoto { width: 80px; max-width: 100%; height: auto; max-height: 100%; border-radius: 2px; border: 1px solid #d8e2e2; animation: fadein 1s; }
 .panel-peoplesearch-person { margin-left:5px; background: #eaeaea; position: relative; padding: 6px; width: auto; height: 83px; margin-right: 5px; margin-bottom: 10px; border:  1px solid transparent; }
 .panel-peoplesearch-displayNames { margin-left: 10px; vertical-align: top; display: inline-block; position: relative }
 
@@ -734,7 +734,7 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 .panel-orgChart-sibling { float: left; display: block; }
 .panel-orgChart-siblings { margin-left: 40px; }
 .panel-orgChart-userPhoto { width: 40px;  height: 40px; float: left; border-radius: 2px; margin-right: 6px; margin-bottom: 35px;  }
-.img-orgChart-userPhoto { display: block; width: auto; height:auto; max-height: 100%; margin: auto; max-width: 100%; border: 1px solid #D4D4D4; border-radius: 2px; }
+.img-orgChart-userPhoto { display: block; width: auto; height:auto; max-height: 100%; margin: auto; max-width: 100%; border: 1px solid #D4D4D4; border-radius: 2px; animation: fadein 1s; }
 .icon-orgChart-up { position: absolute; left: 12px; top: 54px; padding: 4px 8px; border: 1px solid #b6b6b6; }
 .icon-orgChart-down {position: absolute; left: 12px; top: 54px; padding: 4px 8px; border: 1px solid #b6b6b6;}
 .panel-orgChart-displayNames { }

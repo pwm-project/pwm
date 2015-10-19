@@ -1,4 +1,6 @@
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.i18n.Config" %>
+<%@ page import="password.pwm.util.LocaleHelper" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -27,33 +29,12 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<div id="wrapper">
+<link href="<pwm:context/><pwm:url url='/public/resources/configmanagerStyle.css'/>" rel="stylesheet" type="text/css"/><div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="<%=JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.PageTitle)%>"/>
+        <jsp:param name="pwm.PageName" value="<%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%>"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/configmanager-nav.jsp" %>
-        <style nonce="<pwm:value name="cspNonce"/>">
-            .buttoncell {
-                border: 0;
-                width:50%;
-            }
-            .buttonrow {
-                height: 45px;
-                margin-top: 20px;
-                margin-bottom: 20px;
-            }
-            .menubutton {
-                cursor: pointer;
-                display: block;
-                margin-left: auto;
-                margin-right: auto;
-
-            }.menubutton:disabled {
-                 background-color: purple;
-             }
-        </style>
-
         <% { %>
         <table style="width:550px" id="table-wordlistInfo">
         </table>

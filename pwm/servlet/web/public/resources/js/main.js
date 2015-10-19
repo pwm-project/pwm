@@ -607,28 +607,32 @@ PWM_MAIN.clearDijitWidget = function (widgetName) {
     });
 };
 
+PWM_MAIN.showLocaleSelectionMenu = function(nextFunction, options) {
+    require(["dojo/_base/array","dojo/_base/Deferred","dojo/promise/all"], function(array,Deferred,all) {
+        options = options === undefined ? {} : options;
+        var excludeLocales = 'excludeLocales' in options ? options['excludeLocales'] : [];
 
-PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
-    var localeData = PWM_GLOBAL['localeInfo'];
-    var localeIterator = function(f) {
-        for (var iter in localeData)
-            f(iter);
+        var localeData = PWM_GLOBAL['localeInfo'];
+        var localeIterator = function(f) {
+            for (var iter in localeData)
+                f(iter);
 
-    };
+        };
 
-    var bodyHtml = '<div><table class="noborder" style="width:auto;margin-right:auto;margin-left:auto">';
-    localeIterator(function(localeKey){
-        var loopDisplayName = localeData[localeKey];
-        var flagCode = PWM_GLOBAL['localeFlags'][localeKey];
-        var flagUrl = PWM_GLOBAL['url-resources'] + '/flags/png/' + flagCode + '.png';
-        bodyHtml += '<tr style="cursor:pointer" id="locale-row-' + localeKey + '">';
-        bodyHtml += '<td><img src="' + flagUrl + '"/></td>';
-        bodyHtml += '<td>' + loopDisplayName + '</td>';
-        bodyHtml += '</tr>';
-    });
-    bodyHtml += '</table></div>';
+        var bodyHtml = '<table class="noborder" style="width:auto;margin-right:auto;margin-left:auto">';
+        localeIterator(function(localeKey){
+            if (array.indexOf(excludeLocales, localeKey) == -1) {
+                var loopDisplayName = localeData[localeKey];
+                var flagCode = PWM_GLOBAL['localeFlags'][localeKey];
+                var flagUrl = PWM_GLOBAL['url-resources'] + '/flags/png/' + flagCode + '.png';
+                bodyHtml += '<tr style="cursor:pointer" id="locale-row-' + localeKey + '">';
+                bodyHtml += '<td><img src="' + flagUrl + '"/></td>';
+                bodyHtml += '<td>' + loopDisplayName + '</td>';
+                bodyHtml += '</tr>';
+            }
+        });
+        bodyHtml += '</table>';
 
-    PWM_MAIN.addEventHandler(attachNode,'click',function(){
         PWM_MAIN.showDialog({
             showClose:true,
             showOk:false,
@@ -637,21 +641,33 @@ PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
             loadFunction:function(){
                 localeIterator(function(localeKey) {
                     PWM_MAIN.addEventHandler('locale-row-' + localeKey, 'click', function () {
-                        require(["dojo"], function (dojo) {
-                            var nextUrl = window.location.toString();
-                            if (window.location.toString().indexOf('?') > 0) {
-                                var params = dojo.queryToObject(window.location.search.substring(1, window.location.search.length));
-                                params['locale'] = localeKey;
-                                nextUrl = window.location.toString().substring(0, window.location.toString().indexOf('?') + 1)
-                                    + dojo.objectToQuery(params);
-                            } else {
-                                nextUrl = PWM_MAIN.addParamToUrl(nextUrl, 'locale', localeKey)
-                            }
-                            PWM_MAIN.goto(nextUrl);
-                        });
+                        PWM_MAIN.closeWaitDialog();
+                        nextFunction(localeKey);
                     });
                 });
             }
+        });
+
+    });
+};
+
+
+PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
+
+    PWM_MAIN.addEventHandler(attachNode,'click',function(){
+        PWM_MAIN.showLocaleSelectionMenu(function(localeKey){
+            require(["dojo"], function (dojo) {
+                var nextUrl = window.location.toString();
+                if (window.location.toString().indexOf('?') > 0) {
+                    var params = dojo.queryToObject(window.location.search.substring(1, window.location.search.length));
+                    params['locale'] = localeKey;
+                    nextUrl = window.location.toString().substring(0, window.location.toString().indexOf('?') + 1)
+                        + dojo.objectToQuery(params);
+                } else {
+                    nextUrl = PWM_MAIN.addParamToUrl(nextUrl, 'locale', localeKey)
+                }
+                PWM_MAIN.goto(nextUrl);
+            });
         });
     });
 };
@@ -1274,12 +1290,12 @@ PWM_MAIN.preloadImages = function(imgArray){
     }
 };
 
-
-PWM_MAIN.isEmpty = function(o) {
-    return PWM_MAIN.itemCount(o) < 1;
+PWM_MAIN.JSLibrary = {};
+PWM_MAIN.JSLibrary.isEmpty = function(o) {
+    return PWM_MAIN.JSLibrary.itemCount(o) < 1;
 };
 
-PWM_MAIN.itemCount = function(o) {
+PWM_MAIN.JSLibrary.itemCount = function(o) {
     var i = 0;
     for (var key in o) if (o.hasOwnProperty(key)) i++;
     return i;
@@ -1315,7 +1331,7 @@ PWM_MAIN.updateLoginContexts = function() {
     if (contextElement && ldapProfileElement) {
         var selectedProfile = ldapProfileElement.options[ldapProfileElement.selectedIndex].value;
         var contextList = PWM_GLOBAL['ldapProfiles'][selectedProfile];
-        if (PWM_MAIN.isEmpty(contextList)) {
+        if (PWM_MAIN.JSLibrary.isEmpty(contextList)) {
             PWM_MAIN.getObject('contextSelectorWrapper').style.display = 'none';
         } else {
             contextElement.innerHTML = '';
@@ -1617,7 +1633,7 @@ PWM_MAIN.IdleTimeoutHandler.closeIdleWarning = function() {
 };
 
 PWM_MAIN.TimestampHandler = PWM_MAIN.TimestampHandler || {};
-PWM_MAIN.TimestampHandler.Key_ToggleState = false;
+PWM_MAIN.TimestampHandler.PreferencesKey = 'timestampLocalized';
 PWM_MAIN.TimestampHandler.ElementList = [];
 
 PWM_MAIN.TimestampHandler.initAllElements = function() {
@@ -1654,46 +1670,43 @@ PWM_MAIN.TimestampHandler.initElement = function(element) {
         innerText = dojo.trim(innerText);
         PWM_MAIN.TimestampHandler.testIfStringIsTimestamp(innerText, function (dateObj) {
             element.setAttribute('data-timestamp-original', innerText);
-            require(["dojo", "dojo/on"], function (dojo, on) {
-                on(element, "click", function (event) {
-                    PWM_MAIN.TimestampHandler.toggleAllElements();
-                });
+            PWM_MAIN.addEventHandler(element.id, 'click', function(){
+                var LocalizedState = !PWM_MAIN.Preferences.readSessionStorage(PWM_MAIN.TimestampHandler.PreferencesKey,true);
+                PWM_MAIN.Preferences.writeSessionStorage(PWM_MAIN.TimestampHandler.PreferencesKey, LocalizedState);
+                PWM_MAIN.TimestampHandler.updateAllElements();
             });
-
             if (!dojo.hasClass(element,"timestamp")) {
                 dojo.addClass(element,"timestamp");
             }
 
             element.setAttribute('data-timestamp-init', 'true');
             PWM_MAIN.TimestampHandler.ElementList.push(element);
-            PWM_MAIN.TimestampHandler.toggleElement(element);
+            PWM_MAIN.TimestampHandler.updateElement(element);
         });
     });
 };
 
-PWM_MAIN.TimestampHandler.toggleAllElements = function() {
+PWM_MAIN.TimestampHandler.updateAllElements = function() {
     for (var el in PWM_MAIN.TimestampHandler.ElementList) {
         var element = PWM_MAIN.TimestampHandler.ElementList[el];
         if (document.body.contains(element)) {
-            PWM_MAIN.TimestampHandler.toggleElement(element);
+            PWM_MAIN.TimestampHandler.updateElement(element);
         } else {
             delete PWM_MAIN.TimestampHandler.ElementList[el];
         }
     }
 };
 
-PWM_MAIN.TimestampHandler.toggleElement = function(element) {
+PWM_MAIN.TimestampHandler.updateElement = function(element) {
     require(["dojo","dojo/date/stamp","dojo/date/locale"], function(dojo,IsoDate,LocaleDate) {
-        var localized = element.getAttribute('data-timestamp-state') === 'localized';
+        var localized = PWM_MAIN.Preferences.readSessionStorage(PWM_MAIN.TimestampHandler.PreferencesKey,true);
         if (localized) {
-            dojo.attr(element,'innerHTML',element.getAttribute('data-timestamp-original'));
-            element.setAttribute('data-timestamp-state','iso');
-        } else {
             var isoDateStr = element.getAttribute('data-timestamp-original');
             var date = IsoDate.fromISOString(isoDateStr);
             var localizedStr = LocaleDate.format(date,{formatLength:'long'});
             dojo.attr(element,'innerHTML',localizedStr);
-            element.setAttribute('data-timestamp-state','localized');
+        } else {
+            dojo.attr(element,'innerHTML',element.getAttribute('data-timestamp-original'));
         }
     })
 };
@@ -1982,32 +1995,29 @@ PWM_MAIN.clearFocus = function() {
     document.activeElement.blur();
 };
 
-PWM_MAIN.prefsValues = {
-    attrTimestamp:"ClientPreferencesTimestamp",
-    attrPrefs:"ClientPreferences",
-    persistanceTime:(24 * 60 * 60 * 1000)
-};
-
-PWM_MAIN.readLocalStorage = function() {
+PWM_MAIN.Preferences = {};
+PWM_MAIN.Preferences.StorageKeyName = 'preferences';
+PWM_MAIN.Preferences.Key_Timestamp = 'timestamp';
+PWM_MAIN.Preferences.Key_ExpireSeconds = 'expireSeconds';
+PWM_MAIN.Preferences.Key_Value = 'value';
+PWM_MAIN.Preferences.readLocalStorage = function(key,valueIfMissing) {
     if(typeof(Storage) !== "undefined") {
         try {
-            var storedTimeStr = localStorage.getItem(PWM_MAIN.prefsValues.attrTimestamp);
-            if (storedTimeStr) {
-                var lastStoredDate = Date.parse(storedTimeStr);
-                if (lastStoredDate) {
-                    var MAX_AGE = PWM_MAIN.prefsValues.persistanceTime;
-                    if (((new Date) - lastStoredDate) > MAX_AGE) {
-                        localStorage.setItem(PWM_MAIN.prefsValues.attrPrefs, "{}");
+            var baseObjStr = localStorage.getItem(PWM_MAIN.Preferences.StorageKeyName);
+            if (baseObjStr != null) {
+                var baseJson = JSON.parse(baseObjStr);
+                var wrappedValue = baseJson[key];
+                if (wrappedValue != null) {
+                    var timestamp = new Date(Date.parse(wrappedValue[PWM_MAIN.Preferences.Key_Timestamp]));
+                    var expireSeconds = parseInt(wrappedValue[PWM_MAIN.Preferences.Key_ExpireSeconds]);
+                    var valueAgeSeconds = (new Date().getTime()) - timestamp.getTime();
+                    if (valueAgeSeconds > (expireSeconds * 1000)) {
+                        delete baseJson[key];
+                        localStorage.setItem(PWM_MAIN.Preferences.StorageKeyName,JSON.stringify(baseJson));
+                        return valueIfMissing;
                     }
-                }
-            }
 
-            var storedStr = localStorage.getItem(PWM_MAIN.prefsValues.attrPrefs);
-            if (storedStr) {
-                try {
-                    return JSON.parse(storedStr);
-                } catch (e) {
-                    console.log('Error decoding existing local storage value: ' + e);
+                    return wrappedValue[PWM_MAIN.Preferences.Key_Value];
                 }
             }
         } catch (e) {
@@ -2016,25 +2026,63 @@ PWM_MAIN.readLocalStorage = function() {
     } else {
         console.log("browser doesn't support local storage");
     }
-    return {};
+    return valueIfMissing;
 };
 
-PWM_MAIN.writeLocalStorage = function(dataUpdate) {
-    try {
-        if (typeof(Storage) !== "undefined") {
-            if (dataUpdate) {
-                localStorage.setItem(PWM_MAIN.prefsValues.attrTimestamp, new Date().toISOString());
-                localStorage.setItem(PWM_MAIN.prefsValues.attrPrefs, JSON.stringify(dataUpdate));
-            }
+PWM_MAIN.Preferences.writeLocalStorage = function(key, value, lifetimeSeconds) {
+    if(typeof(Storage) !== "undefined") {
+        try {
+            var baseObjStr = localStorage.getItem(PWM_MAIN.Preferences.StorageKeyName);
+            var baseJson = baseObjStr != null ? JSON.parse(baseObjStr) : {};
+            var wrapperValue = {};
+            wrapperValue[PWM_MAIN.Preferences.Key_Timestamp] = new Date().toISOString();
+            wrapperValue[PWM_MAIN.Preferences.Key_ExpireSeconds] = lifetimeSeconds;
+            wrapperValue[PWM_MAIN.Preferences.Key_Value] = value;
+            baseJson[key] = wrapperValue;
+            localStorage.setItem(PWM_MAIN.Preferences.StorageKeyName,JSON.stringify(baseJson));
+        } catch (e) {
+            console.log("error writing locale storage preferences: " + e);
         }
-    } catch (e) {
-        console.log("error storing local storage preferences: " + e);
+    } else {
+        console.log("browser doesn't support local storage");
+    }
+};
+
+PWM_MAIN.Preferences.readSessionStorage = function(key,valueIfMissing) {
+    if(typeof(Storage) !== "undefined") {
+        try {
+            var baseObjStr = sessionStorage.getItem(PWM_MAIN.Preferences.StorageKeyName);
+            if (baseObjStr != null) {
+                var baseJson = JSON.parse(baseObjStr);
+                return key in baseJson ? baseJson[key] : valueIfMissing;
+            }
+        } catch (e) {
+            console.log("error reading session storage preferences: " + e);
+        }
+    } else {
+        console.log("browser doesn't support session storage");
+    }
+    return valueIfMissing;
+};
+
+PWM_MAIN.Preferences.writeSessionStorage = function(key, value) {
+    if(typeof(Storage) !== "undefined") {
+        try {
+            var baseObjStr = sessionStorage.getItem(PWM_MAIN.Preferences.StorageKeyName);
+            var baseJson = baseObjStr != null ? JSON.parse(baseObjStr) : {};
+            baseJson[key] = value;
+            sessionStorage.setItem(PWM_MAIN.Preferences.StorageKeyName,JSON.stringify(baseJson));
+        } catch (e) {
+            console.log("error writing session storage preferences: " + e);
+        }
+    } else {
+        console.log("browser doesn't support session storage");
     }
 };
 
 PWM_MAIN.copyObject = function(input) {
     return JSON.parse(JSON.stringify(input));
-}
+};
 
 PWM_MAIN.pageLoadHandler();
 

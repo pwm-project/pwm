@@ -26,7 +26,7 @@
   <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager.servletUrl()%>" method="get">
     <button type="submit" class="navbutton">
       <pwm:if test="showIcons"><span class="btn-icon fa fa-dashboard"></span></pwm:if>
-      Config Manager
+      Overview
     </button>
   </form>
   <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager_Wordlists.servletUrl()%>" method="get">
@@ -35,17 +35,12 @@
       Wordlists
     </button>
   </form>
-  <button type="submit" id="MenuItem_ConfigEditor" title="<pwm:display key="MenuDisplay_ConfigEditor" bundle="Config"/>">
-    <pwm:if test="showIcons"><span class="btn-icon fa fa-book"></span></pwm:if>
-    <pwm:display key="MenuItem_ConfigEditor" bundle="Admin"/>
-  </button>
-  <pwm:script>
-    <script type="application/javascript">
-      PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.addEventHandler('MenuItem_ConfigEditor','click',function(){PWM_CONFIG.startConfigurationEditor()});
-      });
-    </script>
-  </pwm:script>
+  <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager_LocalDB.servletUrl()%>" method="get">
+    <button type="submit" class="navbutton">
+      <pwm:if test="showIcons"><span class="btn-icon fa fa-database"></span></pwm:if>
+      LocalDB
+    </button>
+  </form>
 </div>
 <br/>
 

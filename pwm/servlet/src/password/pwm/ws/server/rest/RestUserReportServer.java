@@ -28,8 +28,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.ClosableIterator;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.report.ReportService;
@@ -198,7 +198,7 @@ public class RestUserReportServer extends AbstractRestServer {
                 presentableMap.put("Updated Records", numberFormat.format(reportInfo.getUpdated()));
             }
             if (reportInfo.getCount() > reportInfo.getUpdated()) {
-                presentableMap.put("Skipped Records", numberFormat.format(reportInfo.getCount() - reportInfo.getUpdated()));
+                presentableMap.put("Skipped Updates", numberFormat.format(reportInfo.getCount() - reportInfo.getUpdated()));
             }
             if (reportInfo.getErrors() > 0) {
                 presentableMap.put("Error Count", numberFormat.format(reportInfo.getErrors()));

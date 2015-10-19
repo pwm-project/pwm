@@ -22,11 +22,17 @@
 
 package password.pwm.http.servlet.configmanager;
 
+import com.novell.ldapchai.ChaiEntry;
+import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.util.ChaiUtility;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.*;
 import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.ErrorInformation;
@@ -37,15 +43,15 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.*;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
-import password.pwm.http.servlet.ConfigGuideServlet;
+import password.pwm.http.servlet.configguide.ConfigGuideServlet;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
-import password.pwm.util.*;
-import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.localdb.LocalDBFactory;
-import password.pwm.util.localdb.LocalDBUtility;
+import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.util.FileSystemUtility;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
@@ -76,11 +82,9 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         lockConfiguration(HttpMethod.POST),
         startEditing(HttpMethod.POST),
         downloadConfig(HttpMethod.GET),
-        exportLocalDB(HttpMethod.GET),
         generateSupportZip(HttpMethod.GET),
         uploadConfig(HttpMethod.POST),
         uploadWordlist(HttpMethod.POST),
-        importLocalDB(HttpMethod.POST),
         summary(HttpMethod.GET),
         viewLog(HttpMethod.GET),
 
@@ -130,10 +134,6 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
                     doDownloadConfig(pwmRequest);
                     break;
 
-                case exportLocalDB:
-                    doExportLocalDB(pwmRequest);
-                    break;
-
                 case generateSupportZip:
                     doGenerateSupportZip(pwmRequest);
                     break;
@@ -144,10 +144,6 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
 
                 case uploadWordlist:
                     restUploadWordlist(pwmRequest);
-                    return;
-
-                case importLocalDB:
-                    restUploadLocalDB(pwmRequest);
                     return;
 
                 case summary:
@@ -166,7 +162,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
     {
         final ConfigurationReader configurationReader = pwmRequest.getContextManager().getConfigReader();
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.PageTitle,LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, pwmRequest));
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ApplicationPath, pwmRequest.getPwmApplication().getApplicationPath().getAbsolutePath());
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ApplicationPath, pwmRequest.getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath());
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigFilename, configurationReader.getConfigFile().getAbsolutePath());
         {
             final Date lastModifyTime = configurationReader.getStoredConfiguration().modifyTime();
@@ -178,78 +174,12 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigHasPassword, LocaleHelper.booleanString(configurationReader.getStoredConfiguration().hasPassword(), pwmRequest.getLocale(), pwmRequest.getConfig()));
     }
 
-    void restUploadLocalDB(final PwmRequest pwmRequest)
-            throws IOException, ServletException, PwmUnrecoverableException
-
-    {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
-            final String errorMsg = "database upload is not permitted when in running mode";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE,errorMsg,new String[]{errorMsg});
-            pwmRequest.respondWithError(errorInformation, true);
-            return;
-        }
-
-        if (!ServletFileUpload.isMultipartContent(req)) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"no file found in upload");
-            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
-            LOGGER.error(pwmRequest, "error during database import: " + errorInformation.toDebugStr());
-            return;
-        }
-
-        final InputStream inputStream = ServletHelper.readFileUpload(pwmRequest.getHttpServletRequest(),"uploadFile");
-
-        final ContextManager contextManager = ContextManager.getContextManager(pwmRequest);
-        LocalDB localDB = null;
-        try {
-            final File localDBLocation = pwmApplication.getLocalDB().getFileLocation();
-            final Configuration configuration = pwmApplication.getConfig();
-            contextManager.shutdown();
-
-            localDB = LocalDBFactory.getInstance(localDBLocation, false, null, configuration);
-            final LocalDBUtility localDBUtility = new LocalDBUtility(localDB);
-            LOGGER.info(pwmRequest, "beginning LocalDB import");
-            localDBUtility.importLocalDB(inputStream,
-                    LOGGER.asAppendable(PwmLogLevel.DEBUG, pwmRequest.getSessionLabel()));
-            LOGGER.info(pwmRequest, "completed LocalDB import");
-        } catch (Exception e) {
-            final ErrorInformation errorInformation = e instanceof PwmException
-                    ? ((PwmException) e).getErrorInformation()
-                    : new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
-            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
-            LOGGER.error(pwmRequest, "error during LocalDB import: " + errorInformation.toDebugStr());
-            return;
-        } finally {
-            if (localDB != null) {
-                try {
-                    localDB.close();
-                } catch (Exception e) {
-                    LOGGER.error(pwmRequest, "error closing LocalDB after import process: " + e.getMessage());
-                }
-            }
-            contextManager.initialize();
-        }
-
-        pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
-    }
-
     void restUploadWordlist(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException
 
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-
-        /*
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
-            final String errorMsg = "wordlist upload is not permitted when in running mode";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg,new String[]{errorMsg});
-            pwmRequest.respondWithError(errorInformation, true);
-            return;
-        }
-        */
 
         if (!ServletFileUpload.isMultipartContent(req)) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"no file found in upload");
@@ -464,25 +394,6 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         return StoredConfigurationImpl.copy(runningConfig);
     }
 
-    private void doExportLocalDB(final PwmRequest pwmRequest)
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
-        final PwmResponse resp = pwmRequest.getPwmResponse();
-        final Date startTime = new Date();
-        resp.setHeader(PwmConstants.HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak");
-        resp.setContentType(PwmConstants.ContentTypeValue.octetstream);
-        resp.setHeader(PwmConstants.HttpHeader.ContentTransferEncoding, "binary");
-        final LocalDBUtility localDBUtility = new LocalDBUtility(pwmRequest.getPwmApplication().getLocalDB());
-        try {
-            final int bufferSize = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_DOWNLOAD_BUFFER_SIZE));
-            final OutputStream bos = new BufferedOutputStream(resp.getOutputStream(),bufferSize);
-            localDBUtility.exportLocalDB(bos, LOGGER.asAppendable(PwmLogLevel.DEBUG, pwmRequest.getSessionLabel()), false);
-            LOGGER.debug(pwmRequest, "completed localDBExport process in " + TimeDuration.fromCurrent(startTime).asCompactString());
-        } catch (Exception e) {
-            LOGGER.error(pwmRequest, "error downloading export localdb: " + e.getMessage());
-        }
-    }
-
     private void restSummary(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException
     {
@@ -504,7 +415,8 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
             HealthDebugItemGenerator.class,
             ThreadDumpDebugItemGenerator.class,
             FileInfoDebugItemGenerator.class,
-            LogDebugItemGenerator.class
+            LogDebugItemGenerator.class,
+            LdapDebugItemGenerator.class
     ));
 
     interface DebugItemGenerator {
@@ -735,6 +647,50 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         }
     }
 
+    static class LdapDebugItemGenerator implements DebugItemGenerator {
+        @Override
+        public String getFilename() {
+            return "ldap.txt";
+        }
+
+        @Override
+        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception {
+            final Writer writer = new OutputStreamWriter(outputStream, PwmConstants.DEFAULT_CHARSET);
+            for (LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values()) {
+                writer.write("ldap profile: " + ldapProfile.getIdentifier() + "\n");
+                try {
+                    final ChaiProvider chaiProvider = ldapProfile.getProxyChaiProvider(pwmApplication);
+                    {
+                        final ChaiEntry rootDSEentry = ChaiUtility.getRootDSE(chaiProvider);
+                        final Map<String, List<String>> rootDSEdata = LdapOperationsHelper.readAllEntryAttributeValues(rootDSEentry);
+                        writer.write("Root DSE: " + JsonUtil.serializeMap(rootDSEdata, JsonUtil.Flag.PrettyPrint) + "\n");
+                    }
+                    {
+                        final String proxyUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+                        final ChaiEntry proxyUserEntry = ChaiFactory.createChaiEntry(proxyUserDN, chaiProvider);
+                        final Map<String, List<String>> proxyUserData = LdapOperationsHelper.readAllEntryAttributeValues(proxyUserEntry);
+                        writer.write("Proxy User: " + JsonUtil.serializeMap(proxyUserData, JsonUtil.Flag.PrettyPrint) + "\n");
+                    }
+                    {
+                        final String testUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+                        if (testUserDN != null) {
+                            final ChaiEntry testUserEntry = ChaiFactory.createChaiEntry(testUserDN, chaiProvider);
+                            if (testUserEntry.isValid()) {
+                                final Map<String, List<String>> testUserdata = LdapOperationsHelper.readAllEntryAttributeValues(testUserEntry);
+                                writer.write("Test User: " + JsonUtil.serializeMap(testUserdata, JsonUtil.Flag.PrettyPrint) + "\n");
+                            }
+                        }
+                    }
+                    writer.write("\n\n");
+                } catch (Exception e) {
+                    LOGGER.error("error during output of ldap profile debug data profile: " + ldapProfile + ", error: " + e.getMessage());
+                }
+            }
+
+            writer.flush();
+        }
+    }
+
     static class FileInfoDebugItemGenerator implements DebugItemGenerator {
         @Override
         public String getFilename() {
@@ -743,21 +699,32 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
 
         @Override
         public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception {
-            final List<BuildChecksumMaker.FileInformation> fileInformations = new ArrayList<>();
-            if (pwmApplication.getApplicationPath() != null) {
+            final List<FileSystemUtility.FileSummaryInformation> fileSummaryInformations = new ArrayList<>();
+            final File applicationPath = pwmApplication.getPwmEnvironment().getApplicationPath();
+
+            if (pwmApplication.getPwmEnvironment().getContextManager() != null) {
                 try {
-                    fileInformations.addAll(BuildChecksumMaker.readFileInformation(pwmApplication.getApplicationPath()));
-                } catch (Exception e) {
-                    LOGGER.error(pwmRequest, "unable to generate appPath fileMd5sums during zip debug building: " + e.getMessage());
-                }
-            }
-            if (pwmApplication.getWebInfPath() != null && !pwmApplication.getWebInfPath().equals(pwmApplication.getApplicationPath())) {
-                try {
-                    fileInformations.addAll(BuildChecksumMaker.readFileInformation(pwmApplication.getWebInfPath()));
+                    final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                    if (webInfPath != null && webInfPath.exists()) {
+                        final File servletRootPath = webInfPath.getParentFile();
+
+                        if (servletRootPath != null) {
+                            fileSummaryInformations.addAll(FileSystemUtility.readFileInformation(webInfPath));
+                        }
+                    }
                 } catch (Exception e) {
                     LOGGER.error(pwmRequest, "unable to generate webInfPath fileMd5sums during zip debug building: " + e.getMessage());
                 }
             }
+
+            if (applicationPath != null ) {
+                try {
+                    fileSummaryInformations.addAll(FileSystemUtility.readFileInformation(applicationPath));
+                } catch (Exception e) {
+                    LOGGER.error(pwmRequest, "unable to generate appPath fileMd5sums during zip debug building: " + e.getMessage());
+                }
+            }
+
             {
                 final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 final CSVPrinter csvPrinter = Helper.makeCsvPrinter(byteArrayOutputStream);
@@ -770,13 +737,13 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
                     headerRow.add("sha1sum");
                     csvPrinter.printRecord(headerRow);
                 }
-                for (final BuildChecksumMaker.FileInformation fileInformation : fileInformations) {
+                for (final FileSystemUtility.FileSummaryInformation fileSummaryInformation : fileSummaryInformations) {
                     final List<String> headerRow = new ArrayList<>();
-                    headerRow.add(fileInformation.getFilename());
-                    headerRow.add(fileInformation.getFilepath());
-                    headerRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(fileInformation.getModified()));
-                    headerRow.add(String.valueOf(fileInformation.getSize()));
-                    headerRow.add(fileInformation.getSha1sum());
+                    headerRow.add(fileSummaryInformation.getFilename());
+                    headerRow.add(fileSummaryInformation.getFilepath());
+                    headerRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(fileSummaryInformation.getModified()));
+                    headerRow.add(String.valueOf(fileSummaryInformation.getSize()));
+                    headerRow.add(fileSummaryInformation.getSha1sum());
                     csvPrinter.printRecord(headerRow);
                 }
                 csvPrinter.flush();

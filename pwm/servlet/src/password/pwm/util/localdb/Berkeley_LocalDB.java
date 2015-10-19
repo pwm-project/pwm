@@ -168,7 +168,9 @@ public class Berkeley_LocalDB implements LocalDBProvider {
                     for (final Database database : cachedDatabases.values()) {
                         database.close();
                     }
-                    environment.close();
+                    if (environment != null) {
+                        environment.close();
+                    }
                     closed = true;
                 } catch (Exception e) {
                     LOGGER.error("error while closing environment (will retry for " + CLOSE_RETRY_SECONDS + " seconds): " + e.getMessage());

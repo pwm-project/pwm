@@ -3090,7 +3090,9 @@
         </options>
     </setting>
     <setting key="naaf.userIdentifier" level="2">
-        <default>@User:ID@</default>
+        <default>
+            <value/>
+        </default>
     </setting>
     <setting key="naaf.requiredMethods" level="2">
         <default/>
@@ -3106,6 +3108,31 @@
             <option value="HOTP">HOTP</option>
             <option value="VOICE">Voice</option>
         </options>
+    </setting>
+    <setting key="https.server.cert.pkcs12" level="1">
+        <default/>
+    </setting>
+    <setting key="https.server.cert.password" level="1">
+        <default/>
+    </setting>
+    <setting key="https.server.tls.protocols" level="1">
+        <default>
+            <value>TLS_1_0</value>
+            <value>TLS_1_1</value>
+            <value>TLS_1_2</value>
+        </default>
+        <options>
+            <option value="SSL_2_0">SSL v2.0</option>
+            <option value="SSL_3_0">SSL v3.0</option>
+            <option value="TLS_1_0">TLS v1.0</option>
+            <option value="TLS_1_1">TLS v1.1</option>
+            <option value="TLS_1_2">TLS v1.2</option>
+        </options>
+    </setting>
+    <setting key="https.server.tls.ciphers" level="1">
+        <default>
+            <value>TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_SHA,TLS_DHE_RSA_WITH_AES_128_SHA256,TLS_DHE_RSA_WITH_AES_128_SHA,TLS_DHE_DSS_WITH_AES_128_SHA256</value>
+        </default>
     </setting>
     <!-- DEPRECATED SETTINGS -->
     <setting key="pwm.wordlist.location" level="1" hidden="true">
@@ -3142,12 +3169,16 @@
     </category>
     <category key="MODULES">
     </category>
-    <category key="LDAP_PROFILE" profiles="true">
-        <profile setting="ldap.profile.list"/>
+    <category key="HTTPS_SERVER">
     </category>
     <category key="LDAP">
     </category>
+    <category key="LDAP_PROFILE" profiles="true">
+        <profile setting="ldap.profile.list"/>
+    </category>
     <category key="LDAP_GLOBAL">
+    </category>
+    <category key="LDAP_SETTINGS">
     </category>
     <category key="GENERAL">
     </category>
@@ -3283,5 +3314,12 @@
     <template key="OPEN_LDAP">
     </template>
     <template key="DEFAULT">
+    </template>
+
+    <template key="LOCALDB">
+    </template>
+    <template key="DB">
+    </template>
+    <template key="LDAP">
     </template>
 </settings>

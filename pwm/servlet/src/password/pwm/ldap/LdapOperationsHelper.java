@@ -23,6 +23,7 @@
 package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiConstant;
+import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Answer;
@@ -32,6 +33,7 @@ import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
+import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
@@ -331,7 +333,7 @@ public class LdapOperationsHelper {
         final List<String> ldapURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
         final String userDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
         final PasswordData userPassword = ldapProfile.readSettingAsPassword(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-        return createChaiConfiguration(config,ldapProfile,ldapURLs,userDN,userPassword);
+        return createChaiConfiguration(config, ldapProfile, ldapURLs, userDN, userPassword);
     }
 
     public static ChaiConfiguration createChaiConfiguration(
@@ -467,5 +469,18 @@ public class LdapOperationsHelper {
         }
 
         return success;
+    }
+
+    public static Map<String, List<String>> readAllEntryAttributeValues(final ChaiEntry chaiEntry)
+            throws ChaiUnavailableException, ChaiOperationException
+    {
+        final SearchHelper searchHelper = new SearchHelper();
+        searchHelper.setSearchScope(ChaiProvider.SEARCH_SCOPE.BASE);
+        searchHelper.setFilter("(objectClass=*)");
+        final Map<String, Map<String, List<String>>> results = chaiEntry.getChaiProvider().searchMultiValues(chaiEntry.getEntryDN(), searchHelper);
+        if (!results.isEmpty()) {
+            return results.values().iterator().next();
+        }
+        return Collections.emptyMap();
     }
 }

@@ -29,11 +29,14 @@ import org.apache.log4j.PatternLayout;
 import org.apache.log4j.varia.NullAppender;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
+import password.pwm.util.FileSystemUtility;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBFactory;
@@ -75,6 +78,10 @@ public class MainClass {
         commandList.add(new LdapSchemaExtendCommand());
         commandList.add(new ConfigDeleteCommand());
         commandList.add(new ResponseStatsCommand());
+        commandList.add(new ExportHttpsKeyStoreCommand());
+        commandList.add(new ExportHttpsTomcatConfigCommand());
+        commandList.add(new ShellCommand());
+        commandList.add(new ConfigResetHttpsCommand());
 
         final Map<String,CliCommand> sortedMap = new TreeMap<>();
         for (CliCommand command : commandList) {
@@ -83,9 +90,9 @@ public class MainClass {
         COMMANDS = Collections.unmodifiableMap(sortedMap);
     }
 
-    private static String makeHelpTextOutput() {
+    public static String helpTextFromCommands(Collection<CliCommand> commands) {
         final StringBuilder output = new StringBuilder();
-        for (CliCommand command : COMMANDS.values()) {
+        for (CliCommand command : commands) {
             output.append(command.getCliParameters().commandName);
             if (command.getCliParameters().options != null) {
                 for (CliParameters.Option option : command.getCliParameters().options) {
@@ -101,6 +108,12 @@ public class MainClass {
             output.append("       ").append(command.getCliParameters().description);
             output.append("\n");
         }
+        return output.toString();
+    }
+
+    public static String makeHelpTextOutput() {
+        final StringBuilder output = new StringBuilder();
+        output.append(helpTextFromCommands(COMMANDS.values()));
         output.append("\n");
         output.append("options:\n");
         output.append(" -force                force operations skipping any confirmation\n");
@@ -123,7 +136,8 @@ public class MainClass {
         final Map<String,Object> options = parseCommandOptions(parameters, args);
         final File applicationPath = figureApplicationPath(MAIN_OPTIONS);
         out("applicationPath=" + applicationPath.getAbsolutePath());
-        PwmApplication.verifyApplicationPath(applicationPath);
+        PwmEnvironment.verifyApplicationPath(applicationPath);
+
         final File configurationFile = locateConfigurationFile(applicationPath);
 
         final ConfigurationReader configReader = loadConfiguration(configurationFile);
@@ -131,6 +145,7 @@ public class MainClass {
 
         final PwmApplication pwmApplication;
         final LocalDB localDB;
+
         if (parameters.needsPwmApplication) {
             pwmApplication = loadPwmApplication(applicationPath, config, configurationFile, parameters.readOnly);
             localDB = pwmApplication.getLocalDB();
@@ -156,7 +171,7 @@ public class MainClass {
         );
     }
 
-    private static Map<String,Object> parseCommandOptions(
+    static Map<String,Object> parseCommandOptions(
             final CliParameters cliParameters,
             final List<String> args
     )
@@ -224,7 +239,7 @@ public class MainClass {
             throws Exception
     {
         System.out.println(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " Command Line Utility");
-        args = parseCommandOptions(args);
+        args = parseMainCommandLineOptions(args);
 
         initLog4j(MAIN_OPTIONS.pwmLogLevel);
 
@@ -280,7 +295,7 @@ public class MainClass {
         }
     }
 
-    static String[] parseCommandOptions(String[] args) {
+    static String[] parseMainCommandLineOptions(String[] args) {
         final String OPT_DEBUG_LEVEL = "-debugLevel";
         final String OPT_APP_PATH = "-applicationPath";
         final String OPT_FORCE = "-force";
@@ -314,7 +329,6 @@ public class MainClass {
                     } else {
                         final String pathStr = arg.substring(OPT_APP_PATH.length() + 1, arg.length());
                         MAIN_OPTIONS.applicationPath = new File(pathStr);
-                        MAIN_OPTIONS.applicationPathType = PwmApplication.PwmEnvironment.ApplicationPathType.specified;
                     }
                 } else if (arg.equals(OPT_FORCE)) {
                     MAIN_OPTIONS.forceFlag = true;
@@ -355,7 +369,7 @@ public class MainClass {
     {
         final File databaseDirectory;
         final String pwmDBLocationSetting = config.readSettingAsString(PwmSetting.PWMDB_LOCATION);
-        databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, applicationPath);
+        databaseDirectory = FileSystemUtility.figureFilepath(pwmDBLocationSetting, applicationPath);
         return LocalDBFactory.getInstance(databaseDirectory, readonly, null, config);
     }
 
@@ -375,13 +389,13 @@ public class MainClass {
             throws LocalDBException, PwmUnrecoverableException
     {
         final PwmApplication.MODE mode = readonly ? PwmApplication.MODE.READ_ONLY : PwmApplication.MODE.RUNNING;
-        final PwmApplication pwmApplication = new PwmApplication.PwmEnvironment(config, applicationPath)
+        final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder(config, applicationPath)
                 .setApplicationMode(mode)
-                .setApplicationPathType(MAIN_OPTIONS.applicationPathType)
                 .setInternalRuntimeInstance(true)
                 .setConfigurationFile(configurationFile)
-                .setWebInfPath(null)
-                .createPwmApplication();
+                .setFlags(PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(null))
+                .createPwmEnvironment();
+        final PwmApplication pwmApplication = new PwmApplication(pwmEnvironment);
         final PwmApplication.MODE runningMode = pwmApplication.getApplicationMode();
 
         if (runningMode != mode) {
@@ -403,7 +417,6 @@ public class MainClass {
     public static class MainOptions {
         private PwmLogLevel pwmLogLevel = null;
         private File applicationPath = null;
-        private PwmApplication.PwmEnvironment.ApplicationPathType applicationPathType = PwmApplication.PwmEnvironment.ApplicationPathType.derived;
         private boolean forceFlag = false;
 
         public PwmLogLevel getPwmLogLevel() {
@@ -417,10 +430,6 @@ public class MainClass {
         public boolean isForceFlag() {
             return forceFlag;
         }
-
-        public PwmApplication.PwmEnvironment.ApplicationPathType getApplicationPathType() {
-            return applicationPathType;
-        }
     }
 
     private static void exitWithError(final String msg) {
@@ -428,12 +437,21 @@ public class MainClass {
         System.exit(-1);
     }
 
-    private static File figureApplicationPath(final MainOptions mainOptions) throws IOException {
+    private static File figureApplicationPath(final MainOptions mainOptions) throws IOException, PwmUnrecoverableException {
         final File applicationPath;
         if (mainOptions != null && mainOptions.applicationPath != null) {
             applicationPath = mainOptions.applicationPath;
         } else {
-            applicationPath = new File(".").getCanonicalFile();
+            final String appPathStr = PwmEnvironment.ParseHelper.readValueFromSystem(PwmEnvironment.EnvironmentParameter.applicationPath,null);
+            if (appPathStr != null && !appPathStr.isEmpty()) {
+                applicationPath = new File(appPathStr);
+            } else {
+                final String errorMsg = "unable to locate applicationPath.  Specify using -applicationPath option, java option "
+                        + "\"" + PwmEnvironment.EnvironmentParameter.applicationPath.conicalJavaOptionSystemName() + "\""
+                        + ", or system environment setting "
+                        + "\"" + PwmEnvironment.EnvironmentParameter.applicationPath.conicalEnvironmentSystemName() + "\"";
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,errorMsg));
+            }
         }
 
         LOGGER.debug("using applicationPath " + applicationPath.getAbsolutePath());

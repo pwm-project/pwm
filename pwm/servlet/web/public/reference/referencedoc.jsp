@@ -5,8 +5,8 @@
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.event.AuditEvent" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.i18n.PwmLocaleBundle" %>
+<%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="java.util.*" %>
@@ -300,9 +300,11 @@
                             <tbody>
                             <%
                                 for (final PwmSettingTemplate template : defaultValues.keySet()) {
-                                    final String defaultValue = defaultValues.values().iterator().next();
+                                    final String defaultValue = defaultValues.get(template);
                             %>
-                            <tr><td><%=template.toString()%></td><td><pre><%=defaultValue == null ? "" : StringUtil.escapeHtml(defaultValue)%></pre></td></tr>
+                            <tr><td><%=template.getLabel(userLocale)%></td><td>
+                                <%=defaultValue == null ? "" : StringUtil.escapeHtml(defaultValue)%>
+                            </td></tr>
                             <% } %>
                             </tbody>
                         </table>

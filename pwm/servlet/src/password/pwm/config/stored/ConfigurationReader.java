@@ -33,6 +33,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.SystemAuditRecord;
+import password.pwm.util.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -168,8 +169,8 @@ public class ConfigurationReader {
             final Configuration configuration = new Configuration(storedConfiguration);
             final String backupDirSetting = configuration.readAppProperty(AppProperty.BACKUP_LOCATION);
             if (backupDirSetting != null && backupDirSetting.length() > 0) {
-                final File pwmPath = pwmApplication.getApplicationPath();
-                backupDirectory = Helper.figureFilepath(backupDirSetting, pwmPath);
+                final File pwmPath = pwmApplication.getPwmEnvironment().getApplicationPath();
+                backupDirectory = FileSystemUtility.figureFilepath(backupDirSetting, pwmPath);
             }
             backupRotations = Integer.parseInt(configuration.readAppProperty(AppProperty.BACKUP_CONFIG_COUNT));
         }

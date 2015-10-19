@@ -22,6 +22,7 @@
 
 package password.pwm.http;
 
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
@@ -54,7 +55,6 @@ public class HttpEventManager implements
         final HttpSession httpSession = httpSessionEvent.getSession();
         try {
             final ContextManager contextManager = ContextManager.getContextManager(httpSession);
-            contextManager.addHttpSession(httpSessionEvent.getSession());
             httpSession.setAttribute(PwmConstants.SESSION_ATTR_CONTEXT_GUID,contextManager.getInstanceGuid());
             LOGGER.trace("new http session created");
         } catch (PwmUnrecoverableException e) {
@@ -66,12 +66,14 @@ public class HttpEventManager implements
     {
         final HttpSession httpSession = httpSessionEvent.getSession();
         try {
-            final ContextManager contextManager = ContextManager.getContextManager(httpSession);
-            contextManager.removeHttpSession(httpSession);
             if (httpSession.getAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION) != null) {
                 final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(httpSession);
                 if (pwmSession != null) {
                     pwmSession.unauthenticateUser(null);
+                }
+                final PwmApplication pwmApplication = ContextManager.getPwmApplication(httpSession);
+                if (pwmApplication != null) {
+                    pwmApplication.getSessionTrackService().removeSessionData(pwmSession);
                 }
                 LOGGER.trace(pwmSession, "destroyed session");
             } else {
@@ -128,9 +130,13 @@ public class HttpEventManager implements
     public void sessionDidActivate(final HttpSessionEvent event)
     {
         try {
-            final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(event.getSession());
+            final HttpSession httpSession = event.getSession();
+            final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(httpSession);
             LOGGER.trace(pwmSession.getLabel(),"activating (de-passivating) session");
-            ContextManager.getContextManager(event.getSession()).addHttpSession(event.getSession());
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(httpSession);
+            if (pwmApplication != null) {
+                pwmApplication.getSessionTrackService().addSessionData(pwmSession);
+            }
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unable to activate (de-passivate) session: " + e.getMessage());
         }

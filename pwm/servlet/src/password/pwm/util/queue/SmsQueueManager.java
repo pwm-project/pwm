@@ -76,7 +76,15 @@ public class SmsQueueManager extends AbstractQueueManager {
         SQL
     }
 
+    public static final String TOKEN_USER       = "%USER%";
+    public static final String TOKEN_SENDERID   = "%SENDERID%";
+    public static final String TOKEN_MESSAGE    = "%MESSAGE%";
+    public static final String TOKEN_TO         = "%TO%";
+    public static final String TOKEN_PASS       = "%PASS%";
+    public static final String TOKEN_REQUESTID  = "%REQUESTID%";
+
     private SmsSendEngine smsSendEngine;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public SmsQueueManager() {
@@ -274,13 +282,13 @@ public class SmsQueueManager extends AbstractQueueManager {
     }
 
     protected static String formatSmsNumber(final Configuration config, final String smsNumber) {
-        long ccLong = config.readSettingAsLong(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
+        final long ccLong = config.readSettingAsLong(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
         String countryCodeNumber = "";
         if (ccLong > 0) {
             countryCodeNumber = String.valueOf(ccLong);
         }
 
-        final SmsNumberFormat format = SmsNumberFormat.valueOf(config.readSettingAsString(PwmSetting.SMS_PHONE_NUMBER_FORMAT).toUpperCase());
+        final SmsNumberFormat format = config.readSettingAsEnum(PwmSetting.SMS_PHONE_NUMBER_FORMAT,SmsNumberFormat.class);
         String returnValue = smsNumber;
 
         // Remove (0)
@@ -302,22 +310,17 @@ public class SmsQueueManager extends AbstractQueueManager {
         }
 
         // Remove any non-numeric, non-plus characters
-        {
-            final String tmp = returnValue;
-            returnValue = "";
-            for(int i=0; i < tmp.length(); i++) {
-                if ((i==0 && tmp.charAt(i) == '+') || ((tmp.charAt(i) >= '0' && tmp.charAt(i) <= '9'))) {
-                    returnValue += tmp.charAt(i);
-                }
-            }
-        }
+        returnValue = returnValue.replaceAll("[^0-9\\+]","");
 
         // Now the number should be in full international format
         // Let's see if we need to change anything:
         switch(format) {
             case PLAIN:
                 // remove plus
-                returnValue = returnValue.substring(1);
+                returnValue = returnValue.replaceAll("^\\+","");
+
+                // add country code
+                returnValue = countryCodeNumber + returnValue;
                 break;
             case PLUS:
                 // keep full international format
@@ -389,24 +392,24 @@ public class SmsQueueManager extends AbstractQueueManager {
             // Replace strings in requestData
             {
                 final String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);
-                requestData = requestData.replace("%USER%", smsDataEncode(gatewayUser, encoding));
-                requestData = requestData.replace("%SENDERID%", smsDataEncode(senderId, encoding));
-                requestData = requestData.replace("%MESSAGE%", smsDataEncode(message, encoding));
-                requestData = requestData.replace("%TO%", smsDataEncode(formatSmsNumber(config, to), encoding));
+                requestData = requestData.replace(TOKEN_USER, smsDataEncode(gatewayUser, encoding));
+                requestData = requestData.replace(TOKEN_SENDERID, smsDataEncode(senderId, encoding));
+                requestData = requestData.replace(TOKEN_MESSAGE, smsDataEncode(message, encoding));
+                requestData = requestData.replace(TOKEN_TO, smsDataEncode(formatSmsNumber(config, to), encoding));
             }
 
             try {
                 final String gatewayStrPass = gatewayPass == null ? null : gatewayPass.getStringValue();
-                requestData = requestData.replace("%PASS%", smsDataEncode(gatewayStrPass, encoding));
+                requestData = requestData.replace(TOKEN_PASS, smsDataEncode(gatewayStrPass, encoding));
             } catch (PwmUnrecoverableException e) {
                 LOGGER.error("unable to read sms password while reading configuration");
             }
 
-            if (requestData.contains("%REQUESTID%")) {
+            if (requestData.contains(TOKEN_REQUESTID)) {
                 final String chars = config.readSettingAsString(PwmSetting.SMS_REQUESTID_CHARS);
                 final int idLength = new Long(config.readSettingAsLong(PwmSetting.SMS_REQUESTID_LENGTH)).intValue();
                 final String requestId = PwmRandom.getInstance().alphaNumericString(chars, idLength);
-                requestData = requestData.replaceAll("%REQUESTID%", smsDataEncode(requestId, encoding));
+                requestData = requestData.replaceAll(TOKEN_REQUESTID, smsDataEncode(requestId, encoding));
             }
 
             final String gatewayUrl = config.readSettingAsString(PwmSetting.SMS_GATEWAY_URL);

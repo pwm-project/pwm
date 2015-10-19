@@ -29,6 +29,7 @@ package password.pwm.tests;
 import junit.framework.TestCase;
 import org.junit.*;
 import password.pwm.PwmApplication;
+import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.error.PwmUnrecoverableException;
@@ -66,10 +67,11 @@ public class LdapOtpOperatorTest extends TestCase {
         //final File fileLocation = new File(password.pwm.tests.TestHelper.getParameter("pwmDBlocation"));
         final File configFileLocation = new File(password.pwm.tests.TestHelper.getParameter("pwmConfigurationLocation"));
         final ConfigurationReader reader = new ConfigurationReader(configFileLocation);
-        final PwmApplication pwmApplication = new PwmApplication.PwmEnvironment(config, configFileLocation)
-                .setInitLogging(true)
+        final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder(config,configFileLocation)
+                .setInternalRuntimeInstance(true)
                 .setApplicationMode(PwmApplication.MODE.RUNNING)
-                .createPwmApplication();
+                .createPwmEnvironment();
+        final PwmApplication pwmApplication = new PwmApplication(pwmEnvironment);
         config = reader.getConfiguration();
         operator = new LdapOtpOperator(pwmApplication);
     }

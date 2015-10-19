@@ -25,19 +25,50 @@ package password.pwm.config;
 import org.jdom2.Attribute;
 import org.jdom2.Element;
 import password.pwm.i18n.ConfigEditor;
-import password.pwm.i18n.LocaleHelper;
+import password.pwm.util.LocaleHelper;
 
 import java.util.*;
 
 public enum PwmSettingTemplate {
-    NOVL,
-    AD,
-    ORACLE_DS,
-    DEFAULT,
-    NOVL_IDM,
-    OPEN_LDAP,
+    NOVL(Type.LDAP_VENDOR),
+    AD(Type.LDAP_VENDOR),
+    ORACLE_DS(Type.LDAP_VENDOR),
+    DEFAULT(Type.LDAP_VENDOR),
+    NOVL_IDM(Type.LDAP_VENDOR),
+    OPEN_LDAP(Type.LDAP_VENDOR),
+
+    LOCALDB(Type.STORAGE),
+    DB(Type.STORAGE),
+    LDAP(Type.STORAGE),
 
     ;
+
+    private final Type type;
+
+    public enum Type {
+        LDAP_VENDOR,
+        STORAGE,
+    }
+
+    PwmSettingTemplate(Type type) {
+        this.type = type;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public static List<PwmSettingTemplate> valuesOrderedByLabel(final Locale locale) {
+        return valuesOrderedByLabel(locale, Collections.<Type>emptySet());
+    }
+    public static List<PwmSettingTemplate> valuesOrderedByLabel(final Locale locale, final Collection<Type> types) {
+        final TreeMap<String,PwmSettingTemplate> tempMap = new TreeMap<>();
+        for (final PwmSettingTemplate template : values()) {
+            if (types == null || types.isEmpty() || types.contains(template.getType()) )
+            tempMap.put(template.getLabel(locale),template);
+        }
+        return Collections.unmodifiableList(new ArrayList<>(tempMap.values()));
+    }
 
     public String getLabel(final Locale locale) {
         final String key = "Template_Label_" + this.toString();
@@ -56,15 +87,5 @@ public enum PwmSettingTemplate {
             throw new IllegalStateException("missing PwmSetting.xml template element for " + pwmSettingTemplate);
         }
         return element;
-    }
-
-    public static List<PwmSettingTemplate> sortedValues(final Locale locale) {
-        final Map<String,PwmSettingTemplate> sortedValues = new TreeMap<>();
-
-        for (final PwmSettingTemplate pwmSettingTemplate : values()) {
-            sortedValues.put(pwmSettingTemplate.getLabel(locale), pwmSettingTemplate);
-        }
-
-        return Collections.unmodifiableList(new ArrayList<>(sortedValues.values()));
     }
 }

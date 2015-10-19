@@ -24,8 +24,9 @@
 <%@ page import="password.pwm.config.profile.LdapProfile" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.health.HealthRecord" %>
-<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.Display" %>
+<%@ page import="password.pwm.svc.sessiontrack.SessionTrackService" %>
+<%@ page import="password.pwm.util.FileSystemUtility" %>
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.localdb.LocalDB" %>
@@ -42,6 +43,7 @@
     final NumberFormat numberFormat = NumberFormat.getInstance(locale);
     final DateFormat dateFormat = PwmConstants.DEFAULT_DATETIME_FORMAT;
     final Map<Thread,StackTraceElement[]> threads = Thread.getAllStackTraces();
+    SessionTrackService sessionTrackService = null;
 
     PwmRequest dashboard_pwmRequest = null;
     PwmApplication dashboard_pwmApplication = null;
@@ -50,6 +52,7 @@
         dashboard_pwmRequest = PwmRequest.forRequest(request, response);
         dashboard_pwmApplication = dashboard_pwmRequest.getPwmApplication();
         dashboard_pwmSession = dashboard_pwmRequest.getPwmSession();
+        sessionTrackService = dashboard_pwmApplication.getSessionTrackService();
     } catch (PwmException e) {
         JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
     }
@@ -71,14 +74,14 @@
                             <pwm:display key="Title_Sessions" bundle="Admin"/>
                         </td>
                         <td>
-                            <%= ContextManager.getContextManager(session).getPwmSessions().size() %>
+                            <%= sessionTrackService.sessionCount() %>
                         </td>
                         <td class="key">
                             <pwm:display key="Title_LDAPConnections" bundle="Admin"/>
 
                         </td>
                         <td>
-                            <%= Helper.figureLdapConnectionCount(dashboard_pwmApplication, ContextManager.getContextManager(session)) %>
+                            <%= sessionTrackService.ldapConnectionCount() %>
                         </td>
                     </tr>
                 </table>
@@ -477,7 +480,7 @@
                                         ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                                         : dashboard_pwmApplication.getLocalDB().getFileLocation() == null
                                         ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                        : Helper.formatDiskSize(Helper.getFileDirectorySize(
+                                        : Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(
                                         dashboard_pwmApplication.getLocalDB().getFileLocation()))
                                 %>
                             </td>
@@ -505,7 +508,7 @@
                                         ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                                         : dashboard_pwmApplication.getLocalDB().getFileLocation() == null
                                         ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                        : Helper.formatDiskSize(Helper.diskSpaceRemaining(dashboard_pwmApplication.getLocalDB().getFileLocation())) %>
+                                        : Helper.formatDiskSize(FileSystemUtility.diskSpaceRemaining(dashboard_pwmApplication.getLocalDB().getFileLocation())) %>
                             </td>
                         </tr>
                         <tr>
@@ -656,13 +659,13 @@
                             <%= dashboard_pwmApplication.getResourceServletService().cacheHitRatio().pretty(2) %>
                         </td>
                     </tr>
-                    <% Map<ContextManager.DebugKey,String> debugInfoMap = ContextManager.getContextManager(session).getDebugData(); %>
+                    <% Map<SessionTrackService.DebugKey,String> debugInfoMap = sessionTrackService.getDebugData(); %>
                     <tr>
                         <td class="key">
                             Session Total Size
                         </td>
                         <td>
-                            <%= numberFormat.format(Integer.valueOf(debugInfoMap.get(ContextManager.DebugKey.HttpSessionTotalSize))) %> bytes
+                            <%= numberFormat.format(Integer.valueOf(debugInfoMap.get(SessionTrackService.DebugKey.HttpSessionTotalSize))) %> bytes
                         </td>
                     </tr>
                     <tr>
@@ -670,7 +673,7 @@
                             Session Average Size
                         </td>
                         <td>
-                            <%= numberFormat.format(Integer.valueOf(debugInfoMap.get(ContextManager.DebugKey.HttpSessionAvgSize))) %> bytes
+                            <%= numberFormat.format(Integer.valueOf(debugInfoMap.get(SessionTrackService.DebugKey.HttpSessionAvgSize))) %> bytes
                         </td>
                     </tr>
                 </table>

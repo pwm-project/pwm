@@ -33,7 +33,6 @@ import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.value.*;
 import password.pwm.error.*;
 import password.pwm.i18n.Config;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.*;
 import password.pwm.util.logging.PwmLogger;

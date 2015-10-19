@@ -23,13 +23,11 @@
 package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
-import password.pwm.Validator;
+import password.pwm.*;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
+import password.pwm.config.function.HttpsCertParseFunction;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.ValueFactory;
@@ -43,11 +41,11 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.i18n.Config;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -84,6 +82,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         resetSetting(HttpMethod.POST),
         ldapHealthCheck(HttpMethod.POST),
         databaseHealthCheck(HttpMethod.POST),
+        httpsCertificateView(HttpMethod.POST),
         smsHealthCheck(HttpMethod.POST),
         finishEditing(HttpMethod.POST),
         executeSettingFunction(HttpMethod.POST),
@@ -199,6 +198,10 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
 
                 case databaseHealthCheck:
                     restDatabaseHealthCheck(pwmRequest, configManagerBean);
+                    return;
+
+                case httpsCertificateView:
+                    restHttpsCertificateView(pwmRequest, configManagerBean);
                     return;
 
                 case smsHealthCheck:
@@ -663,6 +666,22 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         LOGGER.debug(pwmRequest, "completed restDatabaseHealthCheck in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
 
+    private void restHttpsCertificateView(
+            final PwmRequest pwmRequest,
+            final ConfigManagerBean configManagerBean
+    )
+            throws IOException, PwmUnrecoverableException {
+        final Date startTime = new Date();
+        LOGGER.debug(pwmRequest, "beginning restHttpsCertificateView");
+        final HttpsCertParseFunction httpsCertParseFunction = new HttpsCertParseFunction();
+        final String output = httpsCertParseFunction.provideFunction(pwmRequest, configManagerBean.getStoredConfiguration(),null,null);
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(output);
+        pwmRequest.outputJsonResult(restResultBean);
+        LOGGER.debug(pwmRequest, "completed restHttpsCertificateView in " + TimeDuration.fromCurrent(startTime).asCompactString());
+    }
+
+
     private void restSmsHealthCheck(
             final PwmRequest pwmRequest,
             final ConfigManagerBean configManagerBean
@@ -699,24 +718,42 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             final PwmRequest pwmRequest,
             final ConfigManagerBean configManagerBean
     )
-            throws PwmUnrecoverableException, IOException, ServletException {
+            throws PwmUnrecoverableException, IOException, ServletException
+    {
         final String key = pwmRequest.readParameterAsString("key");
         final PwmSetting setting = PwmSetting.forKey(key);
+        final int maxFileSize = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_JDBC_JAR_SIZE));
+
+        final FileValue fileValue = readFileUploadToSettingValue(pwmRequest, maxFileSize);
+        if (fileValue != null) {
+            final UserIdentity userIdentity = pwmRequest.isAuthenticated()
+                    ? pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity()
+                    : null;
+
+            configManagerBean.getStoredConfiguration().writeSetting(setting, fileValue, userIdentity);
+            pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
+        }
+    }
+
+    public static FileValue readFileUploadToSettingValue(
+            final PwmRequest pwmRequest,
+            final int maxFileSize
+    )
+            throws PwmUnrecoverableException, IOException, ServletException
+    {
 
         final Map<String, PwmRequest.FileUploadItem> fileUploads;
         try {
-            final int maxFileSize = Integer.parseInt(
-                    pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_JDBC_JAR_SIZE));
             fileUploads = pwmRequest.readFileUploads(maxFileSize, 1);
         } catch (PwmException e) {
             pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest));
             LOGGER.error(pwmRequest, "error during file upload: " + e.getErrorInformation().toDebugStr());
-            return;
+            return null;
         } catch (Throwable e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error during file upload: " + e.getMessage());
             pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
             LOGGER.error(pwmRequest, errorInformation);
-            return;
+            return null;
         }
 
         if (fileUploads.containsKey("uploadFile")) {
@@ -725,19 +762,13 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             final Map<FileValue.FileInformation, FileValue.FileContent> newFileValueMap = new LinkedHashMap<>();
             newFileValueMap.put(new FileValue.FileInformation(uploadItem.getName(), uploadItem.getType()), new FileValue.FileContent(uploadItem.getContent()));
 
-            final UserIdentity userIdentity = pwmRequest.isAuthenticated()
-                    ? pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity()
-                    : null;
-            configManagerBean.getStoredConfiguration().writeSetting(setting, new FileValue(newFileValueMap), userIdentity);
-
-            pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
-
-            return;
+            return new FileValue(newFileValueMap);
         }
 
         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "no file found in upload");
         pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
         LOGGER.error(pwmRequest, "error during file upload: " + errorInformation.toDebugStr());
+        return null;
     }
 
     private void restMenuTreeData(
@@ -771,7 +802,14 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
 
         final StoredConfigurationImpl storedConfiguration = configManagerBean.getStoredConfiguration();
         for (final PwmSettingCategory loopCategory : PwmSettingCategory.sortedValues(pwmRequest.getLocale())) {
-            if (NavTreeHelper.categoryMatcher(loopCategory, storedConfiguration, modifiedSettingsOnly, (int)level, filterText)) {
+            if (NavTreeHelper.categoryMatcher(
+                    pwmRequest.getPwmApplication(),
+                    loopCategory,
+                    storedConfiguration,
+                    modifiedSettingsOnly,
+                    (int)level,
+                    filterText
+            )) {
                 final Map<String, Object> categoryInfo = new LinkedHashMap<>();
                 categoryInfo.put("id", loopCategory.getKey());
                 categoryInfo.put("name", loopCategory.getLabel(pwmRequest.getLocale()));
@@ -881,6 +919,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         }
 
         private static boolean categoryMatcher(
+                PwmApplication pwmApplication,
                 PwmSettingCategory category,
                 StoredConfigurationImpl storedConfiguration,
                 final boolean modifiedOnly,
@@ -891,8 +930,14 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 return false;
             }
 
+            if (category == PwmSettingCategory.HTTPS_SERVER) {
+                if (!pwmApplication.getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.ManageHttps)) {
+                    return false;
+                }
+            }
+
             for (PwmSettingCategory childCategory : category.getChildCategories()) {
-                if (categoryMatcher(childCategory, storedConfiguration, modifiedOnly, minLevel, text)) {
+                if (categoryMatcher(pwmApplication, childCategory, storedConfiguration, modifiedOnly, minLevel, text)) {
                     return true;
                 }
             }
@@ -1007,7 +1052,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         }
         {
             final LinkedHashMap<String, Object> templateMap = new LinkedHashMap<>();
-            for (final PwmSettingTemplate loopTemplate : PwmSettingTemplate.sortedValues(pwmRequest.getLocale())) {
+            for (final PwmSettingTemplate loopTemplate : PwmSettingTemplate.valuesOrderedByLabel(pwmRequest.getLocale(),Collections.singletonList(PwmSettingTemplate.Type.LDAP_VENDOR))) {
                 final TemplateInfo templateInfo = new TemplateInfo();
                 templateInfo.description = loopTemplate.getLabel(locale);
                 templateInfo.key = loopTemplate.toString();

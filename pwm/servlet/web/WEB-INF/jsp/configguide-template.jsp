@@ -1,6 +1,6 @@
 <%@ page import="password.pwm.config.PwmSettingTemplate" %>
-<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
-<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
+<%@ page import="java.util.Collections" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -34,23 +34,17 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
-    <div id="header">
-        <div id="header-center">
-            <div id="header-page">
-                <pwm:display key="title" bundle="ConfigGuide"/>
-            </div>
-        </div>
-    </div>
+    <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <pwm:display key="template_description" bundle="ConfigGuide"/>
         <br/>
         <form id="configForm">
-            <select id="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>" name="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>" style="width:300px">
+            <select id="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME%>" name="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME%>" style="width:300px">
                 <% if (selectedTemplate == null) { %>
                 <option value="NOTSELECTED" selected disabled>-- Please select a template --</option>
                 <% } %>
-                <% for (final PwmSettingTemplate loopTemplate : PwmSettingTemplate.sortedValues(JspUtility.locale(request))) { %>
+                <% for (final PwmSettingTemplate loopTemplate : PwmSettingTemplate.valuesOrderedByLabel(JspUtility.locale(request), Collections.singletonList(PwmSettingTemplate.Type.LDAP_VENDOR))) { %>
                 <% boolean selected = loopTemplate.equals(selectedTemplate); %>
                 <% if (selected || !loopTemplate.isHidden()) { %>
                 <option value="<%=loopTemplate.toString()%>"<% if (selected) { %> selected="selected"<% } %>>
@@ -88,8 +82,8 @@
         }
 
         function getSelectedValue() {
-            var selectedIndex = PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>').selectedIndex;
-            var newTemplate = PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>').options[selectedIndex];
+            var selectedIndex = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME%>').selectedIndex;
+            var newTemplate = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME%>').options[selectedIndex];
             return newTemplate.value;
         }
 
@@ -102,7 +96,7 @@
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
             PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
-            PWM_MAIN.addEventHandler('<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>','change',function(){formHandler()});
+            PWM_MAIN.addEventHandler('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME%>','change',function(){formHandler()});
             updateNextButton();
         });
     </script>

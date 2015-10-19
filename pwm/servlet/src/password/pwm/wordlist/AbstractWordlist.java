@@ -33,6 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
+import password.pwm.http.ContextManager;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
@@ -42,7 +43,9 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 abstract class AbstractWordlist implements Wordlist, PwmService {
@@ -373,14 +376,10 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     }
 
     protected InputStream getBuiltInWordlist() throws FileNotFoundException, PwmUnrecoverableException {
-        final File webInfPath = pwmApplication.getWebInfPath();
-        if (webInfPath != null) {
+        final ContextManager contextManager = pwmApplication.getPwmEnvironment().getContextManager();
+        if (contextManager != null) {
             final String wordlistFilename = pwmApplication.getConfig().readAppProperty(getBuiltInWordlistLocationProperty());
-            final File wordlistFile =  Helper.figureFilepath(wordlistFilename,webInfPath);
-            if (wordlistFile.exists()) {
-                return new FileInputStream(wordlistFile);
-            }
-
+            return contextManager.getResourceAsStream(wordlistFilename);
         }
         throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"unable to locate builtin wordlist file"));
     }

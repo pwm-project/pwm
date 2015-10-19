@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -31,13 +31,7 @@
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
-    <div id="header">
-        <div id="header-center">
-            <div id="header-page">
-                <pwm:display key="title" bundle="ConfigGuide"/>
-            </div>
-        </div>
-    </div>
+    <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
         <form id="configForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
@@ -52,12 +46,12 @@
                     <div class="setting_item">
                         <b><pwm:display key="password_title" bundle="ConfigGuide"/></b>
                         <br/>
-                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" class="configStringInput passwordfield" style="width:200px" <pwm:autofocus/>/>
+                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD%>" class="configStringInput passwordfield" style="width:200px" <pwm:autofocus/>/>
                     </div>
                     <div class="setting_item">
                         <b><pwm:display key="password_title_verify" bundle="ConfigGuide"/></b>
                         <br/>
-                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" class="configStringInput passwordfield" style="width:200px"/>
+                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD_VERIFY%>" name="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD_VERIFY%>" class="configStringInput passwordfield" style="width:200px"/>
                         <div style="display: inline; padding-top:45px;">
                             <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"
                                  src="<pwm:context/><pwm:url url='/public/resources/greenCheck.png'/>">
@@ -93,8 +87,8 @@
     });
 
     function checkIfNextEnabled() {
-        var password = PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>').value;
-        var password2 = PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>').value;
+        var password = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD%>').value;
+        var password2 = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD_VERIFY%>').value;
 
         PWM_MAIN.getObject('button_next').disabled = true;
         PWM_MAIN.getObject('confirmCheckMark').style.visibility = 'hidden';

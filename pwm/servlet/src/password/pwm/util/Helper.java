@@ -37,15 +37,16 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.PwmRandom;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.URI;
@@ -231,30 +232,6 @@ public class
         return new String(chars);
     }
 
-    public static long getFileDirectorySize(final File dir) {
-        long size = 0;
-        try {
-            if (dir.isFile()) {
-                size = dir.length();
-            } else {
-                final File[] subFiles = dir.listFiles();
-
-                for (final File file : subFiles) {
-                    if (file.isFile()) {
-                        size += file.length();
-                    } else {
-                        size += getFileDirectorySize(file);
-                    }
-
-                }
-            }
-        } catch (NullPointerException e) {
-            // file was deleted before file size could be read
-        }
-
-        return size;
-    }
-
     public static String formatDiskSize(final long diskSize) {
         final float COUNT = 1000;
         if (diskSize < 1) {
@@ -285,66 +262,6 @@ public class
         return NumberFormat.getInstance().format(diskSize) + " bytes";
     }
 
-
-    public static File figureFilepath(final String filename, final File suggestedPath)
-    {
-        if (filename == null || filename.length() < 1) {
-            return null;
-        }
-
-        if ((new File(filename)).isAbsolute()) {
-            return new File(filename);
-        }
-
-        return new File(suggestedPath + File.separator + filename);
-    }
-
-    public static String readFileAsString(final File filePath, final long maxLength, final String charset)
-            throws IOException {
-        final StringBuilder fileData = new StringBuilder();
-
-        final BufferedReader reader = new BufferedReader(
-                charset == null ?
-                        new InputStreamReader(new FileInputStream(filePath)) :
-                        new InputStreamReader(new FileInputStream(filePath), PwmConstants.DEFAULT_CHARSET));
-
-        char[] buf = new char[1024];
-        int numRead;
-        int charsRead = 0;
-        while ((numRead = reader.read(buf)) != -1 && (charsRead < maxLength)) {
-            final String readData = String.valueOf(buf, 0, numRead);
-            fileData.append(readData);
-            buf = new char[1024];
-            charsRead += numRead;
-        }
-        reader.close();
-        return fileData.toString();
-    }
-
-    public static void writeFileAsString(final File filePath, final String output, final String charset)
-            throws IOException {
-        final OutputStreamWriter osw =
-                charset == null ?
-                        new OutputStreamWriter(new FileOutputStream(filePath, false)) :
-                        new OutputStreamWriter(new FileOutputStream(filePath, false), charset);
-
-        osw.write(output);
-        osw.flush();
-        osw.close();
-    }
-
-    public static long diskSpaceRemaining(final File file) {
-        try {
-            final Method getFreeSpaceMethod = File.class.getMethod("getFreeSpace");
-            final Object rawResult = getFreeSpaceMethod.invoke(file);
-            return (Long) rawResult;
-        } catch (NoSuchMethodException e) {
-            /* no error, pre java 1.6 doesn't have this method */
-        } catch (Exception e) {
-            LOGGER.debug("error reading file space remaining for " + file.toString() + ",: " + e.getMessage());
-        }
-        return -1;
-    }
 
     static public String buildPwmFormID(final SessionStateBean ssBean) {
         return ssBean.getSessionVerificationKey() + ssBean.getRequestVerificationKey();
@@ -384,27 +301,6 @@ public class
         return nextZuluMidnight.getTime();
     }
 
-    public static int figureLdapConnectionCount(final PwmApplication pwmApplication, final ContextManager contextManager) {
-        int counter = 0;
-        try {
-            for (final String identifer : pwmApplication.getConfig().getLdapProfiles().keySet()) {
-                if (pwmApplication.getProxyChaiProvider(identifer).isConnected()) {
-                    counter++;
-                }
-            }
-
-            for (final PwmSession loopSession : contextManager.getPwmSessions().values()) {
-                if (loopSession != null) {
-                    if (loopSession.getSessionManager().hasActiveLdapConnection()) {
-                        counter++;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("unexpected error counting ldap connections: " + e.getMessage());
-        }
-        return counter;
-    }
 
 
     public static String makeThreadName(final PwmApplication pwmApplication, final Class theClass) {
@@ -591,8 +487,8 @@ public class
             aboutMap.put(PwmAboutProperty.app_localDbLogSize,       Integer.toString(pwmApplication.getLocalDBLogger().getStoredEventCount()));
             aboutMap.put(PwmAboutProperty.app_localDbLogOldestTime, dateFormatForInfoBean(pwmApplication.getLocalDBLogger().getTailDate()));
 
-            aboutMap.put(PwmAboutProperty.app_localDbStorageSize,   formatDiskSize(getFileDirectorySize(pwmApplication.getLocalDB().getFileLocation())));
-            aboutMap.put(PwmAboutProperty.app_localDbFreeSpace,     formatDiskSize(diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())));
+            aboutMap.put(PwmAboutProperty.app_localDbStorageSize,   formatDiskSize(FileSystemUtility.getFileDirectorySize(pwmApplication.getLocalDB().getFileLocation())));
+            aboutMap.put(PwmAboutProperty.app_localDbFreeSpace,     formatDiskSize(FileSystemUtility.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())));
         }
 
 
@@ -690,4 +586,6 @@ public class
             }
         };
     }
+
+
 }

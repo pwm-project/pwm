@@ -25,8 +25,8 @@ package password.pwm.config;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.error.*;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.LocaleHelper;
 
 import java.io.Serializable;
 import java.math.BigInteger;

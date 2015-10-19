@@ -30,7 +30,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.util.Helper;
+import password.pwm.util.FileSystemUtility;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 
@@ -134,7 +134,7 @@ public class PwmLogManager {
 
         // configure file logging
         final String logDirectorySetting = config.readAppProperty(AppProperty.LOGGING_FILE_PATH);
-        final File logDirectory = Helper.figureFilepath(logDirectorySetting, pwmApplicationPath);
+        final File logDirectory = FileSystemUtility.figureFilepath(logDirectorySetting, pwmApplicationPath);
 
         if (logDirectory != null && fileLogLevel != null && fileLogLevel.length() > 0 && !"Off".equals(fileLogLevel)) {
             try {

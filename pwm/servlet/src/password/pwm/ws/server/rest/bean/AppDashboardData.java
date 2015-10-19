@@ -28,7 +28,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Display;
-import password.pwm.i18n.LocaleHelper;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.TimeDuration;
 
 import java.io.Serializable;

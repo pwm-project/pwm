@@ -55,6 +55,10 @@ public class PwmPasswordRuleValidator {
     private final PwmPasswordPolicy policy;
     private final Locale locale;
 
+    public enum Flag {
+        FailFast,
+    }
+
     public PwmPasswordRuleValidator(final PwmApplication pwmApplication, final PwmPasswordPolicy policy) {
         this.pwmApplication = pwmApplication;
         this.policy = policy;
@@ -126,7 +130,7 @@ public class PwmPasswordRuleValidator {
     )
             throws PwmUnrecoverableException
     {
-        final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, oldPassword, uiBean, false);
+        final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, oldPassword, uiBean);
         if (pwmApplication != null) {
             final List<ErrorInformation> externalResults = invokeExternalRuleMethods(pwmApplication.getConfig(), policy, password, uiBean);
             internalResults.addAll(externalResults);
@@ -138,23 +142,25 @@ public class PwmPasswordRuleValidator {
             final PasswordData password,
             final PasswordData oldPassword,
             final UserInfoBean uiBean,
-            final boolean failFast
+            final Flag... flags
     )
             throws PwmUnrecoverableException
     {
         final String passwordString = password == null ? "" : password.getStringValue();
         final String oldPasswordString = oldPassword == null ? null : oldPassword.getStringValue();
-        return internalPwmPolicyValidator(passwordString, oldPasswordString, uiBean, failFast);
+        return internalPwmPolicyValidator(passwordString, oldPasswordString, uiBean, flags);
     }
 
     public List<ErrorInformation> internalPwmPolicyValidator(
             final String passwordString,
             final String oldPasswordString,
             final UserInfoBean uiBean,
-            final boolean failFast
+            final Flag... flags
     )
             throws PwmUnrecoverableException
     {
+        final boolean failFast = flags != null && Arrays.asList(flags).contains(Flag.FailFast);
+
         // null check
         if (passwordString == null) {
             return Collections.singletonList(new ErrorInformation(PwmError.ERROR_UNKNOWN, "empty (null) new password"));

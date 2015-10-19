@@ -47,7 +47,6 @@
         PWM_MAIN.showWaitDialog({loadFunction:function() {
             PWM_CONFIG.openLogViewer('INFO');
         }});
-        PWM_MAIN.TimestampHandler.toggleAllElements();
     });
 </script>
 </pwm:script>

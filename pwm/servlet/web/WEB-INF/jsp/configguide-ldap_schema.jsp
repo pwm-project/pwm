@@ -1,5 +1,4 @@
-<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
-<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.ldap.schema.SchemaOperationResult" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -46,13 +45,7 @@
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
-    <div id="header">
-        <div id="header-center">
-            <div id="header-page">
-                <pwm:display key="title" bundle="ConfigGuide"/>
-            </div>
-        </div>
-    </div>
+    <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
         <form id="formData">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
@@ -66,7 +59,7 @@
                     <pwm:display key="Display_ConfigGuideLdapSchema" bundle="Config"/>
                     </p>
                     <div>
-                        <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
+                        <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
                             <table style="width:100%">
                                 <tr><td>Schema Detail</td></tr>
                                 <tr><td class="setting_table_value"><pre><%=schemaActivityLog%></pre></td></tr>

@@ -61,7 +61,7 @@ LocalizedStringValueHandler.draw = function(settingKey) {
 
     var resultValue = PWM_VAR['clientSettingCache'][settingKey];
     PWM_CFGEDIT.clearDivElements(parentDiv, false);
-    if (PWM_MAIN.isEmpty(resultValue)) {
+    if (PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
         parentDiv.innerHTML = '<button class="btn" id="button-' + settingKey + '-addValue"><span class="btn-icon fa fa-plus-square"></span>Add Value</button>';
         PWM_MAIN.addEventHandler('button-' + settingKey + '-addValue','click',function(){
             UILibrary.stringEditorDialog({
@@ -108,7 +108,7 @@ LocalizedStringValueHandler.drawRow = function(parentDiv, settingKey, localeStri
 
     var defaultLocale = (localeString == null || localeString.length < 1);
     var required = settingData['required'];
-    var hasNonDefaultValues = PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][settingKey]) > 1 ;
+    var hasNonDefaultValues = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) > 1 ;
 
     if (!defaultLocale || !required && !hasNonDefaultValues) {
         tableHtml += '<div style="width: 10px; height: 10px;" class="delete-row-icon action-icon fa fa-times"'
@@ -228,7 +228,7 @@ StringArrayValueHandler.draw = function(settingKey) {
     }
 
     var counter = 0;
-    var itemCount = PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
+    var itemCount = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
     parentDivElement.appendChild(tableElement);
 
     for (var i in resultValue) {
@@ -619,7 +619,7 @@ FormTableHandler.redraw = function(keyName) {
     parentDiv = 'table-top-' + keyName;
     parentDivElement = PWM_MAIN.getObject(parentDiv);
 
-    if (!PWM_MAIN.isEmpty(resultValue)) {
+    if (!PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
         var headerRow = document.createElement("tr");
         var rowHtml = '<td>Name</td><td></td><td>Label</td>';
         headerRow.innerHTML = rowHtml;
@@ -644,7 +644,7 @@ FormTableHandler.redraw = function(keyName) {
 
 FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
     require(["dojo/json"], function(JSON){
-        var itemCount = PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
+        var itemCount = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
         var inputID = 'value_' + settingKey + '_' + iteration + "_";
         var options = PWM_SETTINGS['settings'][settingKey]['options'];
 
@@ -661,7 +661,7 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         if ('types' in options) {
             optionList = JSON.parse(options['types']);
         }
-        if (!PWM_MAIN.isEmpty(optionList)) {
+        if (!PWM_MAIN.JSLibrary.isEmpty(optionList)) {
             htmlRow += '<td style="width:15px;">';
             htmlRow += '<select id="' + inputID + 'type">';
             for (var optionItem in optionList) {
@@ -776,7 +776,7 @@ FormTableHandler.addRow = function(keyName) {
                     return;
                 }
             }
-            var currentSize = PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][keyName]);
+            var currentSize = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][keyName]);
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = FormTableHandler.newRowValue;
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1].name = value;
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1].labels = {'':value};
@@ -1376,7 +1376,7 @@ ActionHandler.redraw = function(keyName) {
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     var html = '';
-    if (!PWM_MAIN.isEmpty(resultValue)) {
+    if (!PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
         html += '<table class="noborder">';
         html += '<tr><td>Name</td><td></td><td>Description</td></tr>';
 
@@ -1485,7 +1485,7 @@ ActionHandler.addRow = function(keyName) {
         title:'New Action',
         regex:'^[0-9a-zA-Z]+$',
         completeFunction:function(value){
-            var currentSize = PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][keyName]);
+            var currentSize = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][keyName]);
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = ActionHandler.defaultValue;
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1].name = value;
             ActionHandler.write(keyName,function(){
@@ -1709,7 +1709,7 @@ EmailTableHandler.draw = function(settingKey) {
         EmailTableHandler.instrumentRow(settingKey,localeName)
     }
 
-    if (PWM_MAIN.isEmpty(resultValue)) {
+    if (PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
         var htmlBody = '<button class="btn" id="button-addValue-' + settingKey + '">';
         htmlBody += '<span class="btn-icon fa fa-plus-square"></span>Add Value';
         htmlBody += '</button>';
@@ -1738,7 +1738,7 @@ EmailTableHandler.drawRowHtml = function(settingKey, localeName) {
     var htmlBody = '';
     htmlBody += '<table style="border:0"><tr ><td style="border:0">';
     htmlBody += '<table>';
-    if (PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][settingKey]) > 1) {
+    if (PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) > 1) {
         htmlBody += '<tr><td colspan="5" class="title" style="font-size:100%; font-weight:normal">' + localeLabel + '</td></tr>';
     }
     var outputFunction = function (labelText, typeText) {
@@ -1754,7 +1754,7 @@ EmailTableHandler.drawRowHtml = function(settingKey, localeName) {
     outputFunction('HTML Body', 'bodyHtml');
 
     htmlBody += '</table></td><td style="width:20px; border:0; vertical-align:top">';
-    if (localeName != '' || PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][settingKey]) < 2) { // add remove locale x
+    if (localeName != '' || PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) < 2) { // add remove locale x
         htmlBody += '<div id="button-deleteRow-' + idPrefix + '" style="vertical-align:top" class="delete-row-icon action-icon fa fa-times"></div>';
     }
     htmlBody += '</td></tr></table><br/>';
@@ -1894,7 +1894,7 @@ ChallengeSettingHandler.init = function(settingKey) {
     PWM_CFGEDIT.clearDivElements(parentDiv, true);
     PWM_CFGEDIT.readSetting(settingKey, function(resultValue) {
         PWM_VAR['clientSettingCache'][settingKey] = resultValue;
-        if (PWM_MAIN.isEmpty(resultValue)) {
+        if (PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
             var htmlBody = '<button class="btn" id="button-addValue-' + settingKey + '">';
             htmlBody += '<span class="btn-icon fa fa-plus-square"></span>Add Value';
             htmlBody += '</button>';
@@ -1925,12 +1925,12 @@ ChallengeSettingHandler.draw = function(settingKey) {
     for (var localeName in resultValue) {
         (function(localeKey) {
             var multiValues = resultValue[localeKey];
-            var rowCount = PWM_MAIN.itemCount(multiValues);
+            var rowCount = PWM_MAIN.JSLibrary.itemCount(multiValues);
 
             bodyText += '<table class="noborder"><tr><td>';
             bodyText += '<table style="cursor: pointer; table-layout: fixed">';
             var localeLabel = localeName == '' ? 'Default Locale' : PWM_GLOBAL['localeInfo'][localeName] + " (" + localeName + ")";
-            if (PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][settingKey]) > 1) {
+            if (PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) > 1) {
                 bodyText += '<tr><td class="title" style="font-size:100%; font-weight:normal">' + localeLabel + '</td></tr>';
             }
 
@@ -1947,7 +1947,7 @@ ChallengeSettingHandler.draw = function(settingKey) {
             bodyText += '</td></tr>';
 
             bodyText += '</table></td><td style="width:20px; border:0; vertical-align:top">';
-            if (localeName != '' || PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][settingKey]) < 2) { // add remove locale x
+            if (localeName != '' || PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) < 2) { // add remove locale x
                 bodyText += '<div id="button-deleteRow-' + settingKey + '-' + localeKey + '" style="vertical-align:top" class="delete-row-icon action-icon fa fa-times"></div>';
             }
             bodyText += '</td></tr></table><br/>';
@@ -1978,7 +1978,7 @@ ChallengeSettingHandler.draw = function(settingKey) {
             });
 
             var multiValues = resultValue[localeKey];
-            var rowCount = PWM_MAIN.itemCount(multiValues);
+            var rowCount = PWM_MAIN.JSLibrary.itemCount(multiValues);
             if (rowCount > 0) {
                 for (var iteration in multiValues) {
                     (function (rowKey) {
@@ -2046,7 +2046,7 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
 
             dialogBody += '</td></tr>';
             dialogBody += '</table></td><td style="border:0; vertical-align: top">';
-            if (PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][keyName][localeKey]) > 1) { // add remove locale x
+            if (PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][keyName][localeKey]) > 1) { // add remove locale x
 
                 dialogBody += '<div class="delete-row-icon action-icon fa fa-times" id="button-deleteRow-' + inputID + '"/>';
             }
@@ -2685,7 +2685,7 @@ X509CertificateHandler.draw = function(keyName) {
     }
     htmlBody += '</div>';
 
-    if (!PWM_MAIN.isEmpty(resultValue)) {
+    if (!PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
         htmlBody += '<button id="' + keyName + '_ClearButton" class="btn"><span class="btn-icon fa fa-times"></span>Clear</button>'
     }
     htmlBody += '<button id="' + keyName + '_AutoImportButton" class="btn"><span class="btn-icon fa fa-download"></span>Import From Server</button>'
@@ -2706,7 +2706,7 @@ X509CertificateHandler.draw = function(keyName) {
         })(certCounter);
     }
 
-    if (!PWM_MAIN.isEmpty(resultValue)) {
+    if (!PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
         PWM_MAIN.addEventHandler(keyName + '_ClearButton','click',function(){
             handleResetClick(keyName);
         });
@@ -2859,7 +2859,7 @@ FileValueHandler.draw = function(keyName) {
 
     var htmlBody = '';
 
-    if (PWM_MAIN.isEmpty(resultValue)) {
+    if (PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
         htmlBody = '<p>No File Present</p>';
     } else {
         for (var fileCounter in resultValue) {
@@ -2876,7 +2876,7 @@ FileValueHandler.draw = function(keyName) {
         }
     }
 
-    if (PWM_MAIN.isEmpty(resultValue)) {
+    if (PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
         htmlBody += '<button class="btn" id="button-uploadFile-' + keyName + '"><span class="btn-icon fa fa-upload"></span>Upload File</button>';
     } else {
         htmlBody += '<button class="btn" id="button-removeFile-' + keyName + '"><span class="btn-icon fa fa-trash-o"></span>Remove File</button>';

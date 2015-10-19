@@ -64,6 +64,11 @@ public abstract class PwmHttpRequestWrapper {
         return acceptHeader.contains(PwmConstants.AcceptValue.json.getHeaderValue());
     }
 
+    public boolean isHtmlRequest() {
+        final String acceptHeader = this.readHeaderValueAsString(PwmConstants.HttpHeader.Accept);
+        return acceptHeader.contains(PwmConstants.AcceptValue.json.getHeaderValue());
+    }
+
     public String getContextPath() {
         return httpServletRequest.getContextPath();
     }

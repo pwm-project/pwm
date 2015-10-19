@@ -22,6 +22,7 @@
 
 package password.pwm.util.cli;
 
+import password.pwm.util.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
@@ -36,7 +37,7 @@ public class LocalDBInfoCommand extends AbstractCliCommand {
     public void doCommand() throws Exception {
         final Date startTime = new Date();
         final LocalDB localDB = cliEnvironment.getLocalDB();
-        final long localDBdiskSpace = Helper.getFileDirectorySize(localDB.getFileLocation());
+        final long localDBdiskSpace = FileSystemUtility.getFileDirectorySize(localDB.getFileLocation());
         out("beginning LocalDBInfo");
         out("LocalDB total disk space = " + NumberFormat.getInstance().format(localDBdiskSpace) + " (" + Helper.formatDiskSize(localDBdiskSpace) + ")");
         out("examining LocalDB, this may take a while.... ");

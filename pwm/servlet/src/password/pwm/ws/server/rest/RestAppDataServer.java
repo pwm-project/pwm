@@ -27,8 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.SessionStateInfoBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -42,12 +41,11 @@ import password.pwm.event.AuditRecord;
 import password.pwm.event.HelpdeskAuditRecord;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.event.UserAuditRecord;
-import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Display;
-import password.pwm.i18n.LocaleHelper;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -159,32 +157,8 @@ public class RestAppDataServer extends AbstractRestServer {
             return RestResultBean.fromError(errorInfo, restRequestBean).asJsonResponse();
         }
 
-        final ContextManager theManager = ContextManager.getContextManager(request.getSession().getServletContext());
-        final Set<PwmSession> activeSessions = new LinkedHashSet<>(theManager.getPwmSessions().values());
-        final ArrayList<Map<String,Object>> gridData = new ArrayList<>();
-        for (Iterator<PwmSession> iterator = activeSessions.iterator(); iterator.hasNext() && gridData.size() <= maximum;) {
-            final PwmSession loopSession = iterator.next();
-            if (loopSession != null) {
-                try {
-                    final SessionStateBean loopSsBean = loopSession.getSessionStateBean();
-                    final UserInfoBean loopUiBean = loopSession.getUserInfoBean();
-                    final Map<String, Object> rowData = new HashMap<>();
-                    rowData.put("label", loopSession.getSessionStateBean().getSessionID());
-                    rowData.put("createTime", loopSession.getSessionStateBean().getSessionCreationTime());
-                    rowData.put("lastTime", loopSession.getSessionStateBean().getSessionLastAccessedTime());
-                    rowData.put("idle", loopSession.getIdleTime().asCompactString());
-                    rowData.put("locale", loopSsBean.getLocale() == null ? "" : loopSsBean.getLocale().toString());
-                    rowData.put("ldapProfile", loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().getLdapProfileID() : "");
-                    rowData.put("userDN", loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().getUserDN() : "");
-                    rowData.put("userID", loopSsBean.isAuthenticated() ? loopUiBean.getUsername() : "");
-                    rowData.put("srcAddress", loopSsBean.getSrcAddress());
-                    rowData.put("srcHost", loopSsBean.getSrcHostname());
-                    rowData.put("lastUrl", loopSsBean.getLastRequestURL());
-                    rowData.put("intruderAttempts", loopSsBean.getIntruderAttempts());
-                    gridData.add(rowData);
-                } catch (IllegalStateException e) { /* ignore */ }
-            }
-        }
+        final ArrayList<SessionStateInfoBean> gridData = new ArrayList<>();
+        gridData.addAll(restRequestBean.getPwmApplication().getSessionTrackService().getSessionList(maximum));
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(gridData);
         return restResultBean.asJsonResponse();

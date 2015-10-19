@@ -1,5 +1,5 @@
 <%@ page import="password.pwm.i18n.Config" %>
-<%@ page import="password.pwm.i18n.LocaleHelper" %>
+<%@ page import="password.pwm.util.LocaleHelper" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -29,7 +29,6 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
-    String pageTitle = LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, pwmRequest);
 %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE);%>
@@ -39,7 +38,7 @@
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
 <div id="wrapper" class="login-wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="<%=pageTitle%>"/>
+        <jsp:param name="pwm.PageName" value="<%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%>"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>

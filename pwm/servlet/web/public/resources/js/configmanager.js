@@ -122,7 +122,7 @@ PWM_CONFIG.uploadLocalDB=function() {
         text:PWM_CONFIG.showString('Confirm_UploadLocalDB'),
         okAction:function(){
             var uploadOptions = {};
-            uploadOptions['url'] = 'ConfigManager?processAction=importLocalDB';
+            uploadOptions['url'] = 'localdb?processAction=importLocalDB';
             uploadOptions['title'] = 'Upload and Import LocalDB Archive';
             uploadOptions['nextFunction'] = function() {
                 PWM_MAIN.showWaitDialog({title:'Save complete, restarting application...',loadFunction:function(){
@@ -139,18 +139,14 @@ PWM_CONFIG.closeHeaderWarningPanel = function() {
     console.log('action closeHeader');
     PWM_MAIN.setStyle('header-warning','display','none');
     PWM_MAIN.setStyle('button-openHeader','display','inherit');
-    var prefs = PWM_MAIN.readLocalStorage();
-    prefs['headerVisibility'] = 'hide';
-    PWM_MAIN.writeLocalStorage(prefs);
+    PWM_MAIN.Preferences.writeSessionStorage('headerVisibility','hide');
 };
 
 PWM_CONFIG.openHeaderWarningPanel = function() {
     console.log('action openHeader');
     PWM_MAIN.setStyle('header-warning','display','inherit');
     PWM_MAIN.setStyle('button-openHeader','display','none');
-    var prefs = PWM_MAIN.readLocalStorage();
-    prefs['headerVisibility'] = 'show';
-    PWM_MAIN.writeLocalStorage(prefs);
+    PWM_MAIN.Preferences.writeSessionStorage('headerVisibility','show');
 };
 
 
@@ -213,7 +209,7 @@ PWM_CONFIG.downloadLocalDB = function () {
         okAction:function(){
             PWM_MAIN.showWaitDialog({
                 loadFunction:function(){
-                    PWM_MAIN.goto('ConfigManager?processAction=exportLocalDB',{addFormID:true,hideDialog:true});
+                    PWM_MAIN.goto('localdb?processAction=exportLocalDB',{addFormID:true,hideDialog:true});
                     setTimeout(function(){PWM_MAIN.closeWaitDialog()},5000);
                 }
             });
@@ -330,8 +326,7 @@ PWM_CONFIG.initConfigHeader = function() {
 
     PWM_CONFIG.showHeaderHealth();
 
-    var prefs = PWM_MAIN.readLocalStorage();
-    if (prefs['headerVisibility'] != 'hide') {
+    if (PWM_MAIN.Preferences.readSessionStorage('headerVisibility') != 'hide') {
         PWM_CONFIG.openHeaderWarningPanel();
     }
 
@@ -430,7 +425,7 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
 PWM_CONFIG.convertListOfIdentitiesToHtml = function(data) {
     var html = '<div style="max-height: 500px; overflow-y: auto">';
     var users = data['users'];
-    if (users && !PWM_MAIN.isEmpty(users)) {
+    if (users && !PWM_MAIN.JSLibrary.isEmpty(users)) {
         html += '<table style="">';
         html += '<thead><tr><td class="title" style="width: 75px">' + PWM_MAIN.showString('Field_LdapProfile') + '</td>';
         html += '<td class="title" style="max-width: 375px">'+ PWM_MAIN.showString('Field_UserDN') + '</td></tr></thead>';
@@ -453,3 +448,11 @@ PWM_CONFIG.convertListOfIdentitiesToHtml = function(data) {
     html += '</div>';
     return html;
 };
+
+PWM_CONFIG.configClosedWarning = function() {
+    PWM_MAIN.showDialog({
+        title:PWM_MAIN.showString('Title_Error'),
+        text:"This operation is not available when the configuration is restricted."
+    });
+};
+

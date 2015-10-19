@@ -39,8 +39,11 @@ public class ConfigDeleteCommand extends AbstractCliCommand {
             return;
         }
 
-        configurationFile.delete();
-        out("success");
+        if (configurationFile.delete()) {
+            out("success");
+        } else {
+            out("unable to delete file");
+        }
     }
 
     @Override
@@ -48,7 +51,7 @@ public class ConfigDeleteCommand extends AbstractCliCommand {
     {
         CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigDelete";
-        cliParameters.description = "Unlock a configuration, allows config to be edited without LDAP authentication.";
+        cliParameters.description = "Delete configuration.";
         cliParameters.needsPwmApplication = false;
         cliParameters.readOnly = true;
         return cliParameters;

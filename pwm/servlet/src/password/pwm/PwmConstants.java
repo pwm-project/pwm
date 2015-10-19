@@ -250,6 +250,7 @@ public abstract class PwmConstants {
         CONFIG_MANAGER_EDITOR_SUMMARY("configmanager-summary.jsp"),
         CONFIG_MANAGER_MODE_CONFIGURATION("configmanager.jsp"),
         CONFIG_MANAGER_WORDLISTS("configmanager-wordlists.jsp"),
+        CONFIG_MANAGER_LOCALDB("configmanager-localdb.jsp"),
         CONFIG_MANAGER_LOGIN("configmanager-login.jsp"),
         HELPDESK_SEARCH("helpdesk.jsp"),
         HELPDESK_DETAIL("helpdesk-detail.jsp"),
@@ -428,6 +429,7 @@ public abstract class PwmConstants {
 
     public enum AcceptValue {
         json("application/json"),
+        html("text/html"),
         ;
 
         private String headerValue;

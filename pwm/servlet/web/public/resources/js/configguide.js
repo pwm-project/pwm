@@ -86,17 +86,13 @@ PWM_GUIDE.gotoStep = function(step) {
 };
 
 PWM_GUIDE.setUseConfiguredCerts = function(value) {
-    PWM_MAIN.showWaitDialog({title:'Loading...',loadFunction:function() {
-        var url = "config-guide?processAction=useConfiguredCerts&value=" + value;
-        var loadFunction = function(result) {
-            if (!result['error']) {
-                PWM_MAIN.goto("config-guide");
-            } else {
-                PWM_MAIN.showError(result['errorDetail']);
-            }
-        };
-        PWM_MAIN.ajaxRequest(url,loadFunction);
-    }});
+    var url = "config-guide?processAction=useConfiguredCerts&value=" + value;
+    var loadFunction = function(result) {
+        if (result['error']) {
+            PWM_MAIN.showError(result['errorDetail']);
+        }
+    };
+    PWM_MAIN.ajaxRequest(url,loadFunction);
 };
 
 PWM_GUIDE.extendSchema = function() {

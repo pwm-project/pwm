@@ -27,6 +27,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
@@ -108,6 +109,40 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         }
     }
 
+    public void respondWithError(
+            final ErrorInformation errorInformation,
+            final boolean forceLogout
+    )
+            throws IOException, ServletException
+    {
+        LOGGER.error(pwmRequest.getSessionLabel(), errorInformation);
+
+        pwmRequest.setResponseError(errorInformation);
+
+        {
+            boolean showDetail = Helper.determineIfDetailErrorMsgShown(pwmRequest.getPwmApplication());
+            final String errorStatusText = showDetail
+                    ? errorInformation.toDebugStr()
+                    : errorInformation.toUserStr(pwmRequest.getPwmSession(),pwmRequest.getPwmApplication());
+            getHttpServletResponse().sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorStatusText);
+        }
+
+        if (pwmRequest.isJsonRequest()) {
+            outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
+        } else if (pwmRequest.isHtmlRequest()) {
+            try {
+                forwardToJsp(PwmConstants.JSP_URL.ERROR);
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("unexpected error sending user to error page: " + e.toString());
+            }
+        }
+
+        if (forceLogout) {
+            pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
+        }
+    }
+
+
     public void outputJsonResult(
             final RestResultBean restResultBean
     )
@@ -131,7 +166,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     {
         final String jsonValue = JsonUtil.serialize(cookieValue);
         final String encryptedValue = pwmRequest.getPwmApplication().getSecureService().encryptToString(jsonValue);
-        pwmRequest.getPwmResponse().writeCookie(cookieName, encryptedValue, seconds, path);
+        writeCookie(cookieName, encryptedValue, seconds, path);
     }
 
     public void markAsDownload(final PwmConstants.ContentTypeValue contentType, final String filename) {

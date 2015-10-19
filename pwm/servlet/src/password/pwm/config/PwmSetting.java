@@ -32,7 +32,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.ConfigEditor;
-import password.pwm.i18n.LocaleHelper;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -913,6 +913,8 @@ public enum PwmSetting {
 
 
     // Database
+    DATABASE_JDBC_DRIVER(
+            "db.jdbc.driver", PwmSettingSyntax.FILE, PwmSettingCategory.DATABASE),
     DATABASE_CLASS(
             "db.classname", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE),
     DATABASE_URL(
@@ -921,8 +923,6 @@ public enum PwmSetting {
             "db.username", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE),
     DATABASE_PASSWORD(
             "db.password", PwmSettingSyntax.PASSWORD, PwmSettingCategory.DATABASE),
-    DATABASE_JDBC_DRIVER(
-            "db.jdbc.driver", PwmSettingSyntax.FILE, PwmSettingCategory.DATABASE),
     DATABASE_COLUMN_TYPE_KEY(
             "db.columnType.key", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE),
     DATABASE_COLUMN_TYPE_VALUE(
@@ -1013,6 +1013,16 @@ public enum PwmSetting {
             "naaf.userIdentifier", PwmSettingSyntax.STRING, PwmSettingCategory.NAAF),
     NAAF_METHODS(
             "naaf.requiredMethods", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.NAAF),
+
+    //appliance
+    HTTPS_CERT_PKCS12(
+            "https.server.cert.pkcs12", PwmSettingSyntax.FILE, PwmSettingCategory.HTTPS_SERVER),
+    HTTPS_CERT_PASSWORD(
+            "https.server.cert.password", PwmSettingSyntax.PASSWORD, PwmSettingCategory.HTTPS_SERVER),
+    HTTPS_PROTOCOLS(
+            "https.server.tls.protocols", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.HTTPS_SERVER),
+    HTTPS_CIPHERS(
+            "https.server.tls.ciphers", PwmSettingSyntax.STRING, PwmSettingCategory.HTTPS_SERVER),
 
 
     // deprecated.
@@ -1123,20 +1133,28 @@ public enum PwmSetting {
     }
 
     public Map<PwmSettingTemplate, String> getDefaultValueDebugStrings(final Locale locale)
-            throws PwmOperationalException, PwmUnrecoverableException {
+            throws PwmOperationalException, PwmUnrecoverableException
+    {
         final Map<PwmSettingTemplate, String> returnObj = new LinkedHashMap<>();
         final String defaultDebugStr = this.getDefaultValue(PwmSettingTemplate.DEFAULT).toDebugString(locale);
-        returnObj.put(PwmSettingTemplate.DEFAULT, defaultDebugStr);
+        boolean hasNonDefaultValue = false;
         if (defaultDebugStr != null) {
-            for (final PwmSettingTemplate template : PwmSettingTemplate.values()) {
-                if (template != PwmSettingTemplate.DEFAULT) {
+            for (final PwmSettingTemplate template : PwmSettingTemplate.valuesOrderedByLabel(locale)) {
+                if (!template.isHidden()) {
                     final String debugStr = this.getDefaultValue(template).toDebugString(locale);
                     if (!defaultDebugStr.equals(debugStr)) {
-                        returnObj.put(template, debugStr);
+                        hasNonDefaultValue = true;
                     }
+                    returnObj.put(template, debugStr);
                 }
             }
         }
+
+        if (!hasNonDefaultValue) {
+            returnObj.clear();
+            returnObj.put(PwmSettingTemplate.DEFAULT, this.getDefaultValue(PwmSettingTemplate.DEFAULT).toDebugString(locale));
+        }
+
         return returnObj;
     }
 

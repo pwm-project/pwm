@@ -1,5 +1,4 @@
-<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
-<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.X509Utils" %>
 <%@ page import="password.pwm.util.secure.PwmHashAlgorithm" %>
@@ -40,20 +39,14 @@
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
-    <div id="header">
-        <div id="header-center">
-            <div id="header-page">
-                <pwm:display key="title" bundle="ConfigGuide"/>
-            </div>
-        </div>
-    </div>
+    <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
         <% if (configGuideBean.getLdapCertificates() == null) { %>
         <div>
             <pwm:display key="Display_ConfigGuideNotSecureLDAP" bundle="Config"/>
         </div>
         <% } else { %>
-        <form id="formData">
+        <form id="configForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br class="clear"/>
             <div id="outline_ldap-server" class="setting_outline">
@@ -61,10 +54,10 @@
                     LDAP Server Certificates
                 </div>
                 <div class="setting_body">
-                    <% final String serverInfo = configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST) + ":" + configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT); %>
+                    <% final String serverInfo = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_HOST) + ":" + configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_PORT); %>
                     <pwm:display key="ldap_cert_description" bundle="ConfigGuide" value1="<%=serverInfo%>"/>
                     <div>
-                        <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
+                        <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
                             <% int counter=0;for (X509Certificate certificate : configGuideBean.getLdapCertificates()) {%>
                             <% final String md5sum = SecureEngine.hash(new ByteArrayInputStream(certificate.getEncoded()), PwmHashAlgorithm.MD5); %>
                             <% final String sha1sum = SecureEngine.hash(new ByteArrayInputStream(certificate.getEncoded()), PwmHashAlgorithm.SHA1); %>
@@ -112,42 +105,24 @@
                         At least one of the following options must be selected to continue.
                     </div>
                     <br/>
-                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_PROXY_DN%>" style="padding-left: 5px; padding-top: 5px">
+                    <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN%>" style="padding-left: 5px; padding-top: 5px">
                         Certificate(s) are trusted by default Java keystore
                         <br/>
-                        <button id="button_defaultTrustStore">Enabled</button> (Import/remove certificate manually into Java keystore to change)
+                        <label class="checkboxWrapper">
+                            <input readonly disabled type="checkbox" id="defaultTrustStore" name="defaultTrustStore" <%=configGuideBean.isCertsTrustedbyKeystore() ? "checked" : ""%>/> Enabled
+                        </label>
+                        (Import/remove certificate manually into Java keystore to change)
                     </div>
-                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_PROXY_PW%>" style="padding-left: 5px; padding-top: 5px">
+                    <br/>
+                    <div id="titlePane_useConfig" style="padding-left: 5px; padding-top: 5px">
                         Use application to manage certificate(s) and automatically import certificates into configuration file
                         <br/>
-                        <button id="button_useConfig">Enabled</button>
+                        <label class="checkboxWrapper">
+                            <input type="checkbox" id="useConfig" name="useConfig" <%=configGuideBean.isUseConfiguredCerts() ? "checked" : ""%>/> Enabled
+                        </label>
+
                     </div>
                 </div>
-                <pwm:script>
-                    <script type="text/javascript">
-                        PWM_GLOBAL['startupFunctions'].push(function(){
-                            require(["dijit/form/ToggleButton"],function(ToggleButton){
-                                new ToggleButton({
-                                    id: 'button_defaultTrustStore',
-                                    iconClass:'dijitCheckBoxIcon',
-                                    showLabel: 'Enabled',
-                                    disabled: true,
-                                    checked: <%=configGuideBean.isCertsTrustedbyKeystore()%>
-                                },'button_defaultTrustStore');
-
-                                new ToggleButton({
-                                    id: 'button_useConfig',
-                                    iconClass:'dijitCheckBoxIcon',
-                                    showLabel: 'Enabled',
-                                    checked: <%=configGuideBean.isUseConfiguredCerts()%>,
-                                    onChange: function(){
-                                        PWM_GUIDE.setUseConfiguredCerts(<%=!configGuideBean.isUseConfiguredCerts()%>);
-                                    }
-                                },'button_useConfig');
-                            });
-                        });
-                    </script>
-                </pwm:script>
             </div>
         </form>
         <% } %>
@@ -161,7 +136,27 @@
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
             PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
+            PWM_MAIN.addEventHandler('configForm','input',function(){PWM_GUIDE.updateForm()});
+
+            PWM_MAIN.addEventHandler('useConfig','change',function(){
+                var checked = PWM_MAIN.getObject('useConfig').checked;
+                PWM_GUIDE.setUseConfiguredCerts(checked);
+                checkIfNextEnabled();
+            });
+            checkIfNextEnabled();
         });
+
+        function checkIfNextEnabled() {
+            var useConfigChecked = PWM_MAIN.getObject('useConfig').checked;
+            var defaultTrustStoreChecked = PWM_MAIN.getObject('defaultTrustStore').checked;
+
+            if (useConfigChecked || defaultTrustStoreChecked) {
+                PWM_MAIN.getObject('button_next').disabled = false;
+            } else {
+                PWM_MAIN.getObject('button_next').disabled = true;
+            }
+        }
+
     </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/configguide.js"/>

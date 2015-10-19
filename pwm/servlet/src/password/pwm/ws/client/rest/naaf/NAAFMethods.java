@@ -24,7 +24,7 @@ package password.pwm.ws.client.rest.naaf;
 
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
-import password.pwm.i18n.LocaleHelper;
+import password.pwm.util.LocaleHelper;
 
 import java.util.*;
 
