@@ -44,6 +44,7 @@ import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.HelpdeskAuditRecord;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.servlet.AbstractPwmServlet;
@@ -234,7 +235,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final String userKey = pwmRequest.readBodyAsJsonStringMap().get("userKey");
+        final String userKey = pwmRequest.readBodyAsJsonStringMap(PwmHttpRequestWrapper.Flag.BypassValidation).get("userKey");
         if (userKey == null || userKey.length() < 1) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"userKey parameter is missing");
             pwmRequest.setResponseError(errorInformation);
@@ -311,7 +312,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        final String userKey = pwmRequest.readParameterAsString("userKey");
+        final String userKey = pwmRequest.readParameterAsString("userKey", PwmHttpRequestWrapper.Flag.BypassValidation);
         if (userKey.length() < 1) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"userKey parameter is missing");
             pwmRequest.setResponseError(errorInformation);
@@ -366,7 +367,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final String userKey = pwmRequest.readParameterAsString("userKey");
+        final String userKey = pwmRequest.readParameterAsString("userKey", PwmHttpRequestWrapper.Flag.BypassValidation);
         if (userKey.length() < 1) {
             pwmRequest.respondWithError(
                     new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, "userKey parameter is missing"));
@@ -574,7 +575,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
-        final String userKey = pwmRequest.readParameterAsString("userKey");
+        final String userKey = pwmRequest.readParameterAsString("userKey", PwmHttpRequestWrapper.Flag.BypassValidation);
         if (userKey.length() < 1) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"userKey parameter is missing");
             pwmRequest.respondWithError(errorInformation, false);
@@ -797,7 +798,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final String userKey = pwmRequest.readBodyAsJsonStringMap().get("userKey");
+        final String userKey = pwmRequest.readBodyAsJsonStringMap(PwmHttpRequestWrapper.Flag.BypassValidation).get("userKey");
         if (userKey == null || userKey.length() < 1) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"userKey parameter is missing");
             pwmRequest.respondWithError(errorInformation, false);

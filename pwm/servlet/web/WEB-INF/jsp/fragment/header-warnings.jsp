@@ -84,7 +84,7 @@
             <pwm:display key="MenuItem_ConfigEditor" bundle="Admin"/>
         </a>
         <% if (adminUser) { %>
-        <a class="header-warning-button" href="<pwm:url url="/private/admin"/>">
+        <a class="header-warning-button" id="header_administrationButton" href="<pwm:url url="/private/admin"/>">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
             <pwm:display key="Title_Admin"/>
         </a>
