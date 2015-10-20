@@ -297,6 +297,7 @@ public abstract class PwmConstants {
     // don't worry.  look over there.
     public static final String[] X_AMB_HEADER = new String[]{
             "bonjour!",
+            "something witty!",
             "just like X-Fry, only ambier",
             "mooooooo!",
             "amby wamby",
