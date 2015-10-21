@@ -35,7 +35,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -162,9 +161,11 @@ public class GZIPFilter implements Filter {
 
     public static class ServletResponseGZIPOutputStream extends ServletOutputStream {
         private final AtomicBoolean open = new AtomicBoolean(true);
+        private ServletOutputStream servletOutputStream;
         private GZIPOutputStream gzipStream;
 
-        public ServletResponseGZIPOutputStream(OutputStream output) throws IOException {
+        public ServletResponseGZIPOutputStream(ServletOutputStream output) throws IOException {
+            servletOutputStream = output;
             gzipStream = new GZIPOutputStream(output);
         }
 
@@ -181,12 +182,12 @@ public class GZIPFilter implements Filter {
         }
 
         @Override
-        public void write(byte b[]) throws IOException {
+        public void write(final byte b[]) throws IOException {
             write(b, 0, b.length);
         }
 
         @Override
-        public void write(byte b[], int off, int len) throws IOException {
+        public void write(final byte b[], final int off, final int len) throws IOException {
             if (!open.get()) {
                 throw new IOException("Stream closed!");
             }
@@ -199,6 +200,18 @@ public class GZIPFilter implements Filter {
                 throw new IOException("Stream closed!");
             }
             gzipStream.write(b);
+        }
+
+        // servlet 3.1 method
+        public void setWriteListener(WriteListener writeListener)
+        {
+            servletOutputStream.setWriteListener(writeListener);
+        }
+
+        // servlet 3.1 method
+        public boolean isReady()
+        {
+            return servletOutputStream.isReady();
         }
     }
 }
