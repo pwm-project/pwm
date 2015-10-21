@@ -2,11 +2,12 @@
 
 PWM is an open source password self service application for LDAP directories. PWM is an ideal candidate for organizations that wish to “roll their own” password self service solution, but do not wish to start from scratch. [Overview/Screenshots](https://docs.google.com/presentation/d/1LxDXV_iiToJXAzzT9mc1xXO0atVObmRpCame6qXOyxM/pub?slide=id.p8)
 
+Official project page is at [https://github.com/pwm-project/pwm/](https://github.com/pwm-project/pwm/).
+
 # Links
 * [Release Downloads](https://drive.google.com/folderview?id=0B3oHdiTrftrGV3ZrMi1LUzVCY1U&usp=sharing#list) - the release versions are quite dated, consider using a daily build.
 * [Daily Builds](https://www.dropbox.com/sh/pyixtnug2nddm7w/gV5vt7E-uP/pwm-daily)  
-* [Google Groups](https://groups.google.com/group/pwm-general)
-* [Google Code Project Page](https://code.google.com/p/pwm/) - migration to github in progress
+* [Google Groups](https://groups.google.com/group/pwm-general) - please ask for assistance here.
 * [PWM Admin Guide](http://pwm.googlecode.com/svn/trunk/pwm/supplemental/PWMAdministrationGuide.pdf)
 
 Features
