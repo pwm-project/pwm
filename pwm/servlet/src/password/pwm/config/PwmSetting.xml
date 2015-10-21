@@ -364,7 +364,7 @@
             <value>default</value>
         </default>
     </setting>
-    <setting key="ldap.serverUrls" level="0" required="true">
+    <setting key="ldap.serverUrls" level="0" required="false">
         <regex>^(ldap|ldaps)://[a-zA-Z0-9.-]+:[0-9]+$</regex>
         <placeholder>ldaps://ldap.example.com:636</placeholder>
         <default/>
@@ -375,7 +375,7 @@
             <option value="ImportHandler">password.pwm.config.function.LdapCertImportFunction</option>
         </options>
     </setting>
-    <setting key="ldap.proxy.username" level="0" required="true">
+    <setting key="ldap.proxy.username" level="0" required="false">
         <placeholder>cn=@PwmAppName@-Proxy,o=example</placeholder>
         <placeholder template="AD">CN=@PwmAppName@-Proxy,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</placeholder>
         <placeholder template="ORACLE_DS">cn=@PwmAppName@-Proxy,cn=Administrators,cn=config</placeholder>
