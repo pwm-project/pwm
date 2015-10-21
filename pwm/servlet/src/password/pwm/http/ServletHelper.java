@@ -35,14 +35,14 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.IPMatcher;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
-import password.pwm.util.stats.Statistic;
-import password.pwm.util.stats.StatisticsManager;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;

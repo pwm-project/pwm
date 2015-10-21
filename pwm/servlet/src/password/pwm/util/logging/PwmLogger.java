@@ -28,11 +28,11 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.event.AuditEvent;
-import password.pwm.event.SystemAuditRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.LoginInfoBean;
+import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.SystemAuditRecord;
 import password.pwm.util.JsonUtil;
 
 import java.io.IOException;

@@ -34,10 +34,10 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.ServletHelper;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.i18n.Message;
+import password.pwm.svc.wordlist.StoredWordlistDataBean;
+import password.pwm.svc.wordlist.WordlistType;
 import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.wordlist.StoredWordlistDataBean;
-import password.pwm.wordlist.WordlistType;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;

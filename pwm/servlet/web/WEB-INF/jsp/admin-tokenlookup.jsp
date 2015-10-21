@@ -1,7 +1,7 @@
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.error.PwmOperationalException" %>
-<%@ page import="password.pwm.token.TokenPayload" %>
+<%@ page import="password.pwm.svc.token.TokenPayload" %>
 <%@ page import="java.util.Iterator" %>
 <%--
   ~ Password Management Servlets (PWM)

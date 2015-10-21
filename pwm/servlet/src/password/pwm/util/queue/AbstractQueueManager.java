@@ -24,11 +24,11 @@ package password.pwm.util.queue;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmService;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;

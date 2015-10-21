@@ -43,13 +43,13 @@ import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.CASAuthenticationHelper;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.LoginCookieManager;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.stats.Statistic;
-import password.pwm.util.stats.StatisticsManager;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;

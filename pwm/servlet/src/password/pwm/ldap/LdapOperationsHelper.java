@@ -45,13 +45,13 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
 import password.pwm.util.StringUtil;
 import password.pwm.util.X509Utils;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.stats.Statistic;
-import password.pwm.util.stats.StatisticsManager;
 
 import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;

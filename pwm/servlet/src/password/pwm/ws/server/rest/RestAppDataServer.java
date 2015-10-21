@@ -37,21 +37,21 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.event.AuditRecord;
-import password.pwm.event.HelpdeskAuditRecord;
-import password.pwm.event.SystemAuditRecord;
-import password.pwm.event.UserAuditRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Display;
+import password.pwm.svc.event.AuditRecord;
+import password.pwm.svc.event.HelpdeskAuditRecord;
+import password.pwm.svc.event.SystemAuditRecord;
+import password.pwm.svc.event.UserAuditRecord;
+import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.stats.Statistic;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.intruder.RecordType;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
-import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -231,9 +231,9 @@ public class RestAppDataServer extends AbstractRestServer {
             return Response.notModified().build();
         }
 
-        response.setHeader("ETag",eTagValue);
+        response.setHeader("ETag", eTagValue);
         response.setDateHeader("Expires", System.currentTimeMillis() + (maxCacheAgeSeconds * 1000));
-        response.setHeader("Cache-Control","public, max-age=" + maxCacheAgeSeconds);
+        response.setHeader("Cache-Control", "public, max-age=" + maxCacheAgeSeconds);
 
         final AppData appData = makeAppData(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), request, response);
         final RestResultBean restResultBean = new RestResultBean();
@@ -260,7 +260,7 @@ public class RestAppDataServer extends AbstractRestServer {
         final String eTagValue = makeClientEtag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), request);
         response.setHeader("ETag",eTagValue);
         response.setDateHeader("Expires", System.currentTimeMillis() + (maxCacheAgeSeconds * 1000));
-        response.setHeader("Cache-Control","public, max-age=" + maxCacheAgeSeconds);
+        response.setHeader("Cache-Control", "public, max-age=" + maxCacheAgeSeconds);
 
         try {
             final LinkedHashMap<String,String> displayData = new LinkedHashMap<>(makeDisplayData(restRequestBean.getPwmApplication(),

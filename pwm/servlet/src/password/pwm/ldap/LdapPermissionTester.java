@@ -41,8 +41,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.cache.CacheKey;
-import password.pwm.util.cache.CachePolicy;
+import password.pwm.svc.cache.CacheKey;
+import password.pwm.svc.cache.CachePolicy;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;

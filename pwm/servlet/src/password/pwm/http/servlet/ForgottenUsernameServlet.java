@@ -42,9 +42,9 @@ import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
+import password.pwm.svc.stats.Statistic;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

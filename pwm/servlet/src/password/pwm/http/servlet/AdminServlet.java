@@ -32,9 +32,9 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
+import password.pwm.svc.report.ReportService;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.report.ReportService;
-import password.pwm.util.stats.StatisticsManager;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

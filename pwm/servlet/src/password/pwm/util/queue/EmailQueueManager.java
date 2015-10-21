@@ -35,6 +35,8 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.StringUtil;
@@ -42,8 +44,6 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.stats.Statistic;
-import password.pwm.util.stats.StatisticsManager;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;

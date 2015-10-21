@@ -24,11 +24,11 @@ package password.pwm.util.secure;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmService;
 import password.pwm.config.Configuration;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;

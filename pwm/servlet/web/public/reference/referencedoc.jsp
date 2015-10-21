@@ -3,12 +3,12 @@
 <%@ page import="password.pwm.config.PwmSettingTemplate" %>
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="password.pwm.event.AuditEvent" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.PwmLocaleBundle" %>
+<%@ page import="password.pwm.svc.event.AuditEvent" %>
+<%@ page import="password.pwm.svc.stats.Statistic" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
-<%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="java.util.*" %>
 <%--
   ~ Password Management Servlets (PWM)

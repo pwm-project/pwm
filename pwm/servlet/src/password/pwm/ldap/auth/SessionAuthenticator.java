@@ -41,12 +41,12 @@ import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
+import password.pwm.svc.intruder.IntruderManager;
+import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
-import password.pwm.util.intruder.IntruderManager;
-import password.pwm.util.intruder.RecordType;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.stats.Statistic;
-import password.pwm.util.stats.StatisticsManager;
 
 import java.util.Date;
 

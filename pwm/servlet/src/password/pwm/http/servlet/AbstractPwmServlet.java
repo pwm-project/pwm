@@ -27,8 +27,8 @@ import password.pwm.PwmApplication;
 import password.pwm.Validator;
 import password.pwm.error.*;
 import password.pwm.http.*;
+import password.pwm.svc.stats.Statistic;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;

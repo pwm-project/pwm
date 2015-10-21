@@ -34,8 +34,8 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.svc.stats.Statistic;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

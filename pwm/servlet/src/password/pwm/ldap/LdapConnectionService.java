@@ -25,7 +25,6 @@ package password.pwm.ldap;
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
-import password.pwm.PwmService;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -33,6 +32,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.PwmService;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 

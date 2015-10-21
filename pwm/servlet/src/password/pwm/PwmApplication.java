@@ -34,19 +34,30 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.event.AuditEvent;
-import password.pwm.event.AuditManager;
-import password.pwm.event.SystemAuditRecord;
 import password.pwm.health.HealthMonitor;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.ldap.LdapConnectionService;
+import password.pwm.svc.PwmService;
+import password.pwm.svc.cache.CacheService;
+import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditService;
+import password.pwm.svc.event.SystemAuditRecord;
+import password.pwm.svc.intruder.IntruderManager;
+import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.report.ReportService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
-import password.pwm.token.TokenService;
-import password.pwm.util.*;
-import password.pwm.util.cache.CacheService;
+import password.pwm.svc.shorturl.UrlShortenerService;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.token.TokenService;
+import password.pwm.svc.wordlist.SeedlistManager;
+import password.pwm.svc.wordlist.SharedHistoryManager;
+import password.pwm.svc.wordlist.WordlistManager;
+import password.pwm.util.FileSystemUtility;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.db.DatabaseAccessorImpl;
-import password.pwm.util.intruder.IntruderManager;
-import password.pwm.util.intruder.RecordType;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.logging.LocalDBLogger;
@@ -58,14 +69,8 @@ import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.queue.EmailQueueManager;
 import password.pwm.util.queue.SmsQueueManager;
-import password.pwm.util.report.ReportService;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.SecureService;
-import password.pwm.util.stats.Statistic;
-import password.pwm.util.stats.StatisticsManager;
-import password.pwm.wordlist.SeedlistManager;
-import password.pwm.wordlist.SharedHistoryManager;
-import password.pwm.wordlist.WordlistManager;
 
 import java.io.File;
 import java.util.*;
@@ -131,7 +136,7 @@ public class PwmApplication {
             DatabaseAccessorImpl.class,
             SharedHistoryManager.class,
             HealthMonitor.class,
-            AuditManager.class,
+            AuditService.class,
             StatisticsManager.class,
             WordlistManager.class,
             SeedlistManager.class,
@@ -410,8 +415,8 @@ public class PwmApplication {
         return (EmailQueueManager)pwmServices.get(EmailQueueManager.class);
     }
 
-    public AuditManager getAuditManager() {
-        return (AuditManager)pwmServices.get(AuditManager.class);
+    public AuditService getAuditManager() {
+        return (AuditService)pwmServices.get(AuditService.class);
     }
 
     public SmsQueueManager getSmsQueue() {

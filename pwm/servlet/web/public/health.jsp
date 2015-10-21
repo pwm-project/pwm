@@ -2,7 +2,7 @@
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.PwmSessionWrapper" %>
-<%@ page import="password.pwm.util.stats.Statistic" %>
+<%@ page import="password.pwm.svc.stats.Statistic" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/

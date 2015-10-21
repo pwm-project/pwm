@@ -34,11 +34,11 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.ServletHelper;
 import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.svc.stats.EventRateMeter;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.stats.EventRateMeter;
-import password.pwm.util.stats.Statistic;
-import password.pwm.util.stats.StatisticsManager;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;

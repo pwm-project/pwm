@@ -22,8 +22,8 @@
 
 package password.pwm.util.db;
 
-import password.pwm.PwmService;
 import password.pwm.error.PwmDataStoreException;
+import password.pwm.svc.PwmService;
 import password.pwm.util.ClosableIterator;
 import password.pwm.util.DataStore;
 

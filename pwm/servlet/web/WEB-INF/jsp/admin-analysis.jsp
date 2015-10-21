@@ -1,8 +1,8 @@
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="password.pwm.util.stats.Statistic" %>
-<%@ page import="password.pwm.util.stats.StatisticsBundle" %>
-<%@ page import="password.pwm.util.stats.StatisticsManager" %>
+<%@ page import="password.pwm.svc.stats.Statistic" %>
+<%@ page import="password.pwm.svc.stats.StatisticsBundle" %>
+<%@ page import="password.pwm.svc.stats.StatisticsManager" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.Map" %>
 <%--

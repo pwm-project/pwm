@@ -36,6 +36,7 @@ import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.i18n.Display;
+import password.pwm.svc.PwmService;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;

@@ -25,12 +25,13 @@
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.health.HealthRecord" %>
 <%@ page import="password.pwm.i18n.Display" %>
+<%@ page import="password.pwm.svc.PwmService" %>
 <%@ page import="password.pwm.svc.sessiontrack.SessionTrackService" %>
+<%@ page import="password.pwm.svc.stats.Statistic" %>
 <%@ page import="password.pwm.util.FileSystemUtility" %>
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.localdb.LocalDB" %>
-<%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.*" %>
@@ -331,7 +332,7 @@
                             Health
                         </td>
                     </tr>
-                    <% for (final password.pwm.PwmService loopService : dashboard_pwmApplication.getPwmServices()) { %>
+                    <% for (final PwmService loopService : dashboard_pwmApplication.getPwmServices()) { %>
                     <tr>
                         <td>
                             <%= loopService.getClass().getSimpleName() %>

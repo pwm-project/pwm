@@ -23,13 +23,13 @@
 package password.pwm.svc.sessiontrack;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmService;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.SessionStateInfoBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
+import password.pwm.svc.PwmService;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.*;

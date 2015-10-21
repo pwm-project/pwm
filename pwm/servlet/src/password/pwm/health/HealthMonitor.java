@@ -24,9 +24,9 @@ package password.pwm.health;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmService;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
+import password.pwm.svc.PwmService;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;

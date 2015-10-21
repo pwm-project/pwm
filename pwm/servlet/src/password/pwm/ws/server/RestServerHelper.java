@@ -38,9 +38,9 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.ServletHelper;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.ldap.UserSearchEngine;
+import password.pwm.svc.intruder.RecordType;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
-import password.pwm.util.intruder.RecordType;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;

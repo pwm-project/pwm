@@ -41,12 +41,12 @@ import password.pwm.http.ServletHelper;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.stats.Statistic;
-import password.pwm.util.stats.StatisticsManager;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

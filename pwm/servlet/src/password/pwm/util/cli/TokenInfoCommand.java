@@ -26,8 +26,8 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
-import password.pwm.token.TokenPayload;
-import password.pwm.token.TokenService;
+import password.pwm.svc.token.TokenPayload;
+import password.pwm.svc.token.TokenService;
 import password.pwm.util.Helper;
 
 import java.io.Console;

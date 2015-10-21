@@ -46,19 +46,19 @@ import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.*;
 import password.pwm.error.*;
-import password.pwm.event.AuditEvent;
-import password.pwm.event.HelpdeskAuditRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.ldap.*;
 import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.svc.cache.CacheKey;
+import password.pwm.svc.cache.CachePolicy;
+import password.pwm.svc.cache.CacheService;
+import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.HelpdeskAuditRecord;
+import password.pwm.svc.stats.Statistic;
 import password.pwm.util.*;
-import password.pwm.util.cache.CacheKey;
-import password.pwm.util.cache.CachePolicy;
-import password.pwm.util.cache.CacheService;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.stats.Statistic;
 
 import java.io.Serializable;
 import java.util.*;
@@ -532,7 +532,7 @@ public class PasswordUtility {
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
         final Collection<ChaiConfiguration> perReplicaConfigs = ChaiUtility.splitConfigurationPerReplica(
                 chaiProvider.getChaiConfiguration(),
-                Collections.singletonMap(ChaiSetting.FAILOVER_CONNECT_RETRIES,"1")
+                Collections.singletonMap(ChaiSetting.FAILOVER_CONNECT_RETRIES, "1")
         );
         for (final ChaiConfiguration loopConfiguration : perReplicaConfigs) {
             final String loopReplicaUrl = loopConfiguration.getSetting(ChaiSetting.BIND_DN);

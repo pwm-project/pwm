@@ -24,12 +24,12 @@ package password.pwm.util.logging;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmService;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
+import password.pwm.svc.PwmService;
 import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;

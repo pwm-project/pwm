@@ -24,9 +24,9 @@ package password.pwm.util.cli;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmService;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.report.ReportService;
+import password.pwm.svc.PwmService;
+import password.pwm.svc.report.ReportService;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

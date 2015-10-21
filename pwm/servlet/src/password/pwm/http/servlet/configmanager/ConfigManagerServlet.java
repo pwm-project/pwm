@@ -48,6 +48,7 @@ import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.svc.PwmService;
 import password.pwm.util.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;

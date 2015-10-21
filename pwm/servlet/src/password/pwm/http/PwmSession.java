@@ -35,14 +35,14 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.*;
 import password.pwm.ldap.UserStatusReader;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.LoginCookieManager;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
-import password.pwm.util.stats.Statistic;
-import password.pwm.util.stats.StatisticsManager;
 
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;

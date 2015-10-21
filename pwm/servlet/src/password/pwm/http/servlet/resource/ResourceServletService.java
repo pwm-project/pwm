@@ -25,11 +25,11 @@ package password.pwm.http.servlet.resource;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmService;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.PwmService;
+import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.util.Percent;
-import password.pwm.util.stats.EventRateMeter;
 
 import java.math.BigDecimal;
 import java.util.Collections;

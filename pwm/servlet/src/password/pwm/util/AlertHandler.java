@@ -31,9 +31,9 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.i18n.Display;
+import password.pwm.svc.report.ReportSummaryData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.report.ReportSummaryData;
 
 import java.util.*;
 

@@ -24,7 +24,6 @@ package password.pwm.util.db;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmService;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -36,13 +35,14 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
+import password.pwm.svc.PwmService;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.ClosableIterator;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.stats.Statistic;
-import password.pwm.util.stats.StatisticsManager;
 
 import java.io.*;
 import java.lang.reflect.Method;

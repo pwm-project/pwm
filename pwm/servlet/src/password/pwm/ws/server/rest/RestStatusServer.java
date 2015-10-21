@@ -22,7 +22,6 @@
 
 package password.pwm.ws.server.rest;
 
-import password.pwm.PwmService;
 import password.pwm.bean.PublicUserInfoBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.ErrorInformation;
@@ -30,11 +29,12 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserStatusReader;
+import password.pwm.svc.PwmService;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.stats.Statistic;
-import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;

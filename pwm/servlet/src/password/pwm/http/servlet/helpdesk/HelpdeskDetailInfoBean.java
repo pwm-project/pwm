@@ -24,7 +24,7 @@ package password.pwm.http.servlet.helpdesk;
 
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.FormConfiguration;
-import password.pwm.event.UserAuditRecord;
+import password.pwm.svc.event.UserAuditRecord;
 
 import java.io.Serializable;
 import java.util.Date;

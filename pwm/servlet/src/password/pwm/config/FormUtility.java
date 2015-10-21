@@ -36,11 +36,11 @@ import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
+import password.pwm.svc.cache.CacheKey;
+import password.pwm.svc.cache.CachePolicy;
+import password.pwm.svc.cache.CacheService;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
-import password.pwm.util.cache.CacheKey;
-import password.pwm.util.cache.CachePolicy;
-import password.pwm.util.cache.CacheService;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.*;

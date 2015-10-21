@@ -29,10 +29,10 @@ import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.*;
-import password.pwm.event.SyslogAuditService;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Message;
+import password.pwm.svc.event.SyslogAuditService;
 import password.pwm.util.X509Utils;
 
 import java.security.cert.X509Certificate;

@@ -34,11 +34,11 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.*;
+import password.pwm.svc.stats.Statistic;
 import password.pwm.util.Helper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;

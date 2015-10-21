@@ -23,9 +23,9 @@
 package password.pwm.util.cli;
 
 import password.pwm.PwmApplication;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.stats.StatisticsManager;
 
 import java.io.File;
 import java.io.FileOutputStream;

@@ -1,7 +1,7 @@
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.i18n.Admin" %>
+<%@ page import="password.pwm.svc.intruder.RecordType" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
-<%@ page import="password.pwm.util.intruder.RecordType" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/

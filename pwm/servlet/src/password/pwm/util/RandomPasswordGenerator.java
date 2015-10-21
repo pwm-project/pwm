@@ -25,7 +25,6 @@ package password.pwm.util;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmService;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -35,11 +34,12 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
+import password.pwm.svc.PwmService;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.secure.PwmRandom;
-import password.pwm.util.stats.Statistic;
-import password.pwm.wordlist.SeedlistManager;
 
 import java.util.*;
 
