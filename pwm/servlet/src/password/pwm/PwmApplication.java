@@ -38,6 +38,7 @@ import password.pwm.health.HealthMonitor;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.ldap.LdapConnectionService;
 import password.pwm.svc.PwmService;
+import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditService;
@@ -123,38 +124,13 @@ public class PwmApplication {
     private LocalDB localDB;
     private LocalDBLogger localDBLogger;
 
-    private final Map<Class<? extends PwmService>,PwmService> pwmServices = new LinkedHashMap<>();
-
     private final Date startupTime = new Date();
     private Date installTime = new Date();
     private ErrorInformation lastLocalDBFailure = null;
 
     private final PwmEnvironment pwmEnvironment;
 
-    private static final List<Class<? extends PwmService>> PWM_SERVICE_CLASSES  = Collections.unmodifiableList(Arrays.asList(
-            SecureService.class,
-            LdapConnectionService.class,
-            DatabaseAccessorImpl.class,
-            SharedHistoryManager.class,
-            HealthMonitor.class,
-            AuditService.class,
-            StatisticsManager.class,
-            WordlistManager.class,
-            SeedlistManager.class,
-            EmailQueueManager.class,
-            SmsQueueManager.class,
-            UrlShortenerService.class,
-            TokenService.class,
-            VersionChecker.class,
-            IntruderManager.class,
-            ReportService.class,
-            CrService.class,
-            OtpService.class,
-            CacheService.class,
-            ResourceServletService.class,
-            SessionTrackService.class
-    ));
-
+    private final PwmServiceManager pwmServiceManager = new PwmServiceManager(this);
 
     public PwmApplication(final PwmEnvironment pwmEnvironment)
             throws PwmUnrecoverableException
@@ -235,7 +211,7 @@ public class PwmApplication {
         installTime = fetchInstallDate(startupTime);
         LOGGER.debug("this application instance first installed on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(installTime));
 
-        initServices();
+        pwmServiceManager.initAllServices();
 
         if (!pwmEnvironment.isInternalRuntimeInstance()) {
             final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
@@ -252,40 +228,6 @@ public class PwmApplication {
             postInitThread.setDaemon(true);
             postInitThread.setName(Helper.makeThreadName(this, PwmApplication.class));
             postInitThread.start();
-        }
-    }
-
-    private void initServices()
-            throws PwmUnrecoverableException
-    {
-        for (final Class<? extends PwmService> serviceClass : PWM_SERVICE_CLASSES) {
-            final Date startTime = new Date();
-            final PwmService newServiceInstance;
-            final String serviceName = serviceClass.getName();
-            try {
-                final Object newInstance = serviceClass.newInstance();
-                newServiceInstance = (PwmService)newInstance;
-            } catch (Exception e) {
-                final String errorMsg = "unexpected error instantiating service class '" + serviceName + "', error: " + e.toString();
-                LOGGER.fatal(errorMsg,e);
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,errorMsg));
-            }
-
-            try {
-                LOGGER.debug("initializing service " + serviceName);
-                newServiceInstance.init(this);
-                LOGGER.debug("completed initialization of service " + serviceName + " in " + TimeDuration.fromCurrent(startTime).asCompactString() + ", status=" + newServiceInstance.status());
-            } catch (PwmException e) {
-                LOGGER.warn("error instantiating service class '" + serviceName + "', service will remain unavailable, error: " + e.getMessage());
-            } catch (Exception e) {
-                String errorMsg = "unexpected error instantiating service class '" + serviceName + "', cannot load, error: " + e.getMessage();
-                if (e.getCause() != null) {
-                    errorMsg += ", cause: " + e.getCause();
-                }
-                LOGGER.fatal(errorMsg);
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,errorMsg));
-            }
-            pwmServices.put(serviceClass,newServiceInstance);
         }
     }
 
@@ -360,11 +302,11 @@ public class PwmApplication {
     }
 
     public SharedHistoryManager getSharedHistoryManager() {
-        return (SharedHistoryManager)pwmServices.get(SharedHistoryManager.class);
+        return (SharedHistoryManager)pwmServiceManager.getService(SharedHistoryManager.class);
     }
 
     public IntruderManager getIntruderManager() {
-        return (IntruderManager)pwmServices.get(IntruderManager.class);
+        return (IntruderManager)pwmServiceManager.getService(IntruderManager.class);
     }
 
     public ChaiUser getProxiedChaiUser(final UserIdentity userIdentity)
@@ -389,47 +331,47 @@ public class PwmApplication {
     }
 
     public HealthMonitor getHealthMonitor() {
-        return (HealthMonitor)pwmServices.get(HealthMonitor.class);
+        return (HealthMonitor)pwmServiceManager.getService(HealthMonitor.class);
     }
 
     public List<PwmService> getPwmServices() {
         final List<PwmService> pwmServices = new ArrayList<>();
         pwmServices.add(this.localDBLogger);
-        pwmServices.addAll(this.pwmServices.values());
+        pwmServices.addAll(this.pwmServiceManager.getPwmServices());
         pwmServices.remove(null);
         return Collections.unmodifiableList(pwmServices);
     }
 
     public WordlistManager getWordlistManager() {
-        return (WordlistManager)pwmServices.get(WordlistManager.class);
+        return (WordlistManager)pwmServiceManager.getService(WordlistManager.class);
     }
 
     public SeedlistManager getSeedlistManager() {
-        return (SeedlistManager)pwmServices.get(SeedlistManager.class);
+        return (SeedlistManager)pwmServiceManager.getService(SeedlistManager.class);
     }
 
     public ReportService getReportService() {
-        return (ReportService)pwmServices.get(ReportService.class);
+        return (ReportService)pwmServiceManager.getService(ReportService.class);
     }
 
     public EmailQueueManager getEmailQueue() {
-        return (EmailQueueManager)pwmServices.get(EmailQueueManager.class);
+        return (EmailQueueManager)pwmServiceManager.getService(EmailQueueManager.class);
     }
 
     public AuditService getAuditManager() {
-        return (AuditService)pwmServices.get(AuditService.class);
+        return (AuditService)pwmServiceManager.getService(AuditService.class);
     }
 
     public SmsQueueManager getSmsQueue() {
-        return (SmsQueueManager)pwmServices.get(SmsQueueManager.class);
+        return (SmsQueueManager)pwmServiceManager.getService(SmsQueueManager.class);
     }
 
     public UrlShortenerService getUrlShortener() {
-        return (UrlShortenerService)pwmServices.get(UrlShortenerService.class);
+        return (UrlShortenerService)pwmServiceManager.getService(UrlShortenerService.class);
     }
 
     public VersionChecker getVersionChecker() {
-        return (VersionChecker)pwmServices.get(VersionChecker.class);
+        return (VersionChecker)pwmServiceManager.getService(VersionChecker.class);
     }
 
     public ErrorInformation getLastLocalDBFailure() {
@@ -437,19 +379,19 @@ public class PwmApplication {
     }
 
     public TokenService getTokenService() {
-        return (TokenService)pwmServices.get(TokenService.class);
+        return (TokenService)pwmServiceManager.getService(TokenService.class);
     }
 
     public LdapConnectionService getLdapConnectionService() {
-        return (LdapConnectionService)pwmServices.get(LdapConnectionService.class);
+        return (LdapConnectionService)pwmServiceManager.getService(LdapConnectionService.class);
     }
 
     public SessionTrackService getSessionTrackService() {
-        return (SessionTrackService)pwmServices.get(SessionTrackService.class);
+        return (SessionTrackService)pwmServiceManager.getService(SessionTrackService.class);
     }
 
     public ResourceServletService getResourceServletService() {
-        return (ResourceServletService)pwmServices.get(ResourceServletService.class);
+        return (ResourceServletService)pwmServiceManager.getService(ResourceServletService.class);
     }
 
     public Configuration getConfig() {
@@ -462,7 +404,7 @@ public class PwmApplication {
 
     public synchronized DatabaseAccessorImpl getDatabaseAccessor()
     {
-        return (DatabaseAccessorImpl)pwmServices.get(DatabaseAccessorImpl.class);
+        return (DatabaseAccessorImpl)pwmServiceManager.getService(DatabaseAccessorImpl.class);
     }
 
     private Date fetchInstallDate(final Date startupTime) {
@@ -509,23 +451,23 @@ public class PwmApplication {
     }
 
     public StatisticsManager getStatisticsManager() {
-        return (StatisticsManager)pwmServices.get(StatisticsManager.class);
+        return (StatisticsManager)pwmServiceManager.getService(StatisticsManager.class);
     }
 
     public OtpService getOtpService() {
-        return (OtpService)pwmServices.get(OtpService.class);
+        return (OtpService)pwmServiceManager.getService(OtpService.class);
     }
 
     public CrService getCrService() {
-        return (CrService)pwmServices.get(CrService.class);
+        return (CrService)pwmServiceManager.getService(CrService.class);
     }
 
     public CacheService getCacheService() {
-        return (CacheService)pwmServices.get(CacheService.class);
+        return (CacheService)pwmServiceManager.getService(CacheService.class);
     }
 
     public SecureService getSecureService() {
-        return (SecureService)pwmServices.get(SecureService.class);
+        return (SecureService)pwmServiceManager.getService(SecureService.class);
     }
 
     public void sendSmsUsingQueue(
@@ -566,22 +508,7 @@ public class PwmApplication {
             }
         }
 
-        {
-            final List<Class> reverseServiceList = new ArrayList<Class>(PWM_SERVICE_CLASSES);
-            Collections.reverse(reverseServiceList);
-            for (final Class serviceClass : reverseServiceList) {
-                if (pwmServices.containsKey(serviceClass)) {
-                    LOGGER.trace("closing service " + serviceClass.getName());
-                    final PwmService loopService = pwmServices.get(serviceClass);
-                    LOGGER.trace("successfully closed service " + serviceClass.getName());
-                    try {
-                        loopService.close();
-                    } catch (Exception e) {
-                        LOGGER.error("error closing " + loopService.getClass().getSimpleName() + ": " + e.getMessage(),e);
-                    }
-                }
-            }
-        }
+        pwmServiceManager.shutdownAllServices();
 
         if (localDBLogger != null) {
             try {
