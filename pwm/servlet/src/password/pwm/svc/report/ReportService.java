@@ -172,17 +172,14 @@ public class ReportService implements PwmService {
     private void initTempData()
             throws LocalDBException, PwmUnrecoverableException
     {
-        final String cleanFlag = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG);
-        if (!"true".equals(cleanFlag)) {
+        final Boolean cleanFlag = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG, Boolean.class);
+        if (cleanFlag != null && cleanFlag) {
             LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL, "did not shut down cleanly");
             reportStatus = new ReportStatusInfo(settings.getSettingsHash());
             reportStatus.setTotal(userCacheService.size());
         } else {
             try {
-                final String jsonInfo = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_STATUS);
-                if (jsonInfo != null && !jsonInfo.isEmpty()) {
-                    reportStatus = JsonUtil.deserialize(jsonInfo,ReportStatusInfo.class);
-                }
+                reportStatus = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_STATUS, ReportStatusInfo.class);
             } catch (Exception e) {
                 LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL,"error loading cached report status info into memory: " + e.getMessage());
             }
@@ -198,7 +195,7 @@ public class ReportService implements PwmService {
 
         reportStatus.setInProgress(false);
 
-        pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG, "false");
+        pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG, false);
     }
 
     @Override

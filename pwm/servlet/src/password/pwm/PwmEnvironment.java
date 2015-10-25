@@ -202,6 +202,20 @@ public class PwmEnvironment implements Serializable {
         */
     }
 
+    public PwmEnvironment makeRuntimeInstance(
+            final Configuration configuration
+    )
+            throws PwmUnrecoverableException
+    {
+        return new Builder(this)
+                .setApplicationMode(PwmApplication.MODE.NEW)
+                .setInternalRuntimeInstance(true)
+                .setConfigurationFile(null)
+                .setConfig(configuration)
+                .createPwmEnvironment();
+    }
+
+
     public static void verifyApplicationPath(final File applicationPath) throws PwmUnrecoverableException {
 
         if (applicationPath == null) {

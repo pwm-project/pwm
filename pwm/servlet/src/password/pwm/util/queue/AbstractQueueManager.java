@@ -207,7 +207,7 @@ public abstract class AbstractQueueManager implements PwmService {
     }
 
     protected int readItemIDCounter() {
-        final String itemCountStr = pwmApplication.readAppAttribute(itemCountAppAttribute);
+        final String itemCountStr = pwmApplication.readAppAttribute(itemCountAppAttribute, String.class);
         if (itemCountStr != null) {
             try {
                 return Integer.parseInt(itemCountStr);

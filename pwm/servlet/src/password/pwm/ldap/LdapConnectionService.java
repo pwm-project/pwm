@@ -149,7 +149,7 @@ public class LdapConnectionService implements PwmService {
     private static Map<LdapProfile,ErrorInformation> readLastLdapFailure(final PwmApplication pwmApplication) {
         String lastLdapFailureStr = null;
         try {
-            lastLdapFailureStr = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR);
+            lastLdapFailureStr = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR, String.class);
             if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
                 final Map<String, ErrorInformation> fromJson = JsonUtil.deserialize(lastLdapFailureStr,new TypeToken<Map<String, ErrorInformation>>() {});
                 final Map<LdapProfile, ErrorInformation> returnMap = new HashMap<>();

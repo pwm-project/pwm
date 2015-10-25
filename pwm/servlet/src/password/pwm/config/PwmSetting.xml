@@ -443,7 +443,7 @@
             <value><![CDATA[pwmLastPwdUpdate]]></value>
         </default>
         <default template="ORACLE_DS">
-            <value></value>
+            <value/>
         </default>
     </setting>
     <setting key="ldap.user.group.attribute" level="2">

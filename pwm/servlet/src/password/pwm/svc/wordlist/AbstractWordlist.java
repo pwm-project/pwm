@@ -274,12 +274,9 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     }
 
     public StoredWordlistDataBean readMetadata() {
-        final String storedValue = pwmApplication.readAppAttribute(getMetaDataAppAttribute());
-        if (storedValue != null && !storedValue.isEmpty()) {
-            final StoredWordlistDataBean metaDataBean = JsonUtil.deserialize(storedValue, StoredWordlistDataBean.class);
-            if (metaDataBean != null) {
-                return metaDataBean;
-            }
+        final StoredWordlistDataBean storedValue = pwmApplication.readAppAttribute(getMetaDataAppAttribute(),StoredWordlistDataBean.class);
+        if (storedValue != null) {
+            return storedValue;
         }
         return new StoredWordlistDataBean();
     }

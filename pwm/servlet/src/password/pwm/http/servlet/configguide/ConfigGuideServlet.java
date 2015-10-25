@@ -285,7 +285,9 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     {
 
         final Configuration tempConfiguration = new Configuration(configGuideBean.getStoredConfiguration());
-        final PwmApplication tempApplication = pwmRequest.getPwmApplication().makePwmRuntimeInstance(tempConfiguration);
+        final PwmApplication tempApplication = new PwmApplication(pwmRequest.getPwmApplication()
+                .getPwmEnvironment()
+                .makeRuntimeInstance(tempConfiguration));
 
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
         final List<HealthRecord> records = new ArrayList<>();

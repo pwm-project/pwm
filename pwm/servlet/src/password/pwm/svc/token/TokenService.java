@@ -177,7 +177,7 @@ public class TokenService implements PwmService {
         executorService.scheduleAtFixedRate(cleanerTask, 10 * 1000, cleanerFrequency, TimeUnit.MILLISECONDS);
         LOGGER.trace("token cleanup will occur every " + TimeDuration.asCompactString(cleanerFrequency));
 
-        final String counterString = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.TOKEN_COUNTER);
+        final String counterString = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.TOKEN_COUNTER, String.class);
         try {
             counter = Long.parseLong(counterString);
         } catch (Exception e) {

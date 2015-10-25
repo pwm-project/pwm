@@ -73,6 +73,7 @@ import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.SecureService;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -295,7 +296,7 @@ public class PwmApplication {
 
         // detect if config has been modified since previous startup
         try {
-            final String previousHash = readAppAttribute(AppAttribute.CONFIG_HASH);
+            final String previousHash = readAppAttribute(AppAttribute.CONFIG_HASH, String.class);
             final String currentHash = pwmEnvironment.getConfig().configurationHash();
             if (previousHash == null || !previousHash.equals(currentHash)) {
                 writeAppAttribute(AppAttribute.CONFIG_HASH, currentHash);
@@ -467,7 +468,7 @@ public class PwmApplication {
     private Date fetchInstallDate(final Date startupTime) {
         if (localDB != null) {
             try {
-                final String storedDateStr = readAppAttribute(AppAttribute.INSTALL_DATE);
+                final String storedDateStr = readAppAttribute(AppAttribute.INSTALL_DATE,String.class);
                 if (storedDateStr == null || storedDateStr.length() < 1) {
                     writeAppAttribute(AppAttribute.INSTALL_DATE, String.valueOf(startupTime.getTime()));
                 } else {
@@ -487,7 +488,7 @@ public class PwmApplication {
             return newInstanceID;
         }
 
-        newInstanceID = readAppAttribute(AppAttribute.INSTANCE_ID);
+        newInstanceID = readAppAttribute(AppAttribute.INSTANCE_ID, String.class);
 
         if (newInstanceID == null || newInstanceID.length() < 1) {
             newInstanceID = Long.toHexString(PwmRandom.getInstance().nextLong()).toUpperCase();
@@ -662,7 +663,7 @@ public class PwmApplication {
         return instanceNonce;
     }
 
-    public String readAppAttribute(final AppAttribute appAttribute) {
+    public <T extends Serializable> T readAppAttribute(final AppAttribute appAttribute, final Class<T> returnClass) {
         if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
             LOGGER.error("error retrieving key '" + appAttribute.getKey() + "', localDB unavailable: ");
             return null;
@@ -673,14 +674,15 @@ public class PwmApplication {
         }
 
         try {
-            return localDB.get(LocalDB.DB.PWM_META, appAttribute.getKey());
+            final String strValue = localDB.get(LocalDB.DB.PWM_META, appAttribute.getKey());
+            return JsonUtil.deserialize(strValue, returnClass);
         } catch (Exception e) {
             LOGGER.error("error retrieving key '" + appAttribute.getKey() + "' installation date from localDB: " + e.getMessage());
         }
         return null;
     }
 
-    public void writeAppAttribute(final AppAttribute appAttribute, final String value) {
+    public void writeAppAttribute(final AppAttribute appAttribute, final Serializable value) {
         if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
             LOGGER.error("error writing key '" + appAttribute.getKey() + "', localDB unavailable: ");
             return;
@@ -694,29 +696,13 @@ public class PwmApplication {
             if (value == null) {
                 localDB.remove(LocalDB.DB.PWM_META, appAttribute.getKey());
             } else {
-                localDB.put(LocalDB.DB.PWM_META, appAttribute.getKey(), value);
+                final String jsonValue = JsonUtil.serialize(value);
+                localDB.put(LocalDB.DB.PWM_META, appAttribute.getKey(), jsonValue);
             }
         } catch (Exception e) {
             LOGGER.error("error retrieving key '" + appAttribute.getKey() + "' installation date from localDB: " + e.getMessage());
         }
     }
-
-    public PwmApplication makePwmRuntimeInstance(
-            final Configuration configuration
-    )
-            throws PwmUnrecoverableException
-    {
-        final PwmEnvironment runtimeEnvironment = new PwmEnvironment.Builder(pwmEnvironment)
-                .setApplicationMode(PwmApplication.MODE.NEW)
-                .setInternalRuntimeInstance(true)
-                .setConfigurationFile(null)
-                .setConfig(configuration)
-                .createPwmEnvironment();
-        return new PwmApplication(runtimeEnvironment);
-    }
-
-
-
 }
 
 

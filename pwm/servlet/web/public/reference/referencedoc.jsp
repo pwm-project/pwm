@@ -191,7 +191,7 @@
         </p>
         <% for (final PwmSetting setting : category.getSettings()) { %>
         <% if (!setting.isHidden()) { %>
-        <a id="setting_key_<%=setting.getKey()%>"  style="font-weight: inherit">
+        <a id="setting_key_<%=setting.getKey()%>"  style="font-weight: inherit; text-decoration: none">
             <table>
                 <tr>
                     <td class="key" style="width: 100px">
