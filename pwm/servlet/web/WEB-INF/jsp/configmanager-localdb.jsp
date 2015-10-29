@@ -67,7 +67,7 @@
                         <li>Data Caches</li>
                         <li>Email and SMS Queues</li>
                     </ul>
-                    The LocalDB can be downloaded or uploaded.  This is generally only useful when upgrading or migrating a server, and the data is
+                    The LocalDB can be downloaded or uploaded.  This is generally only useful when upgrading or migrating a server, and the data is being backed up or restored.
                 </td>
             </tr>
         </table>
