@@ -22,6 +22,7 @@
 
 package password.pwm.config.stored;
 
+import org.apache.commons.io.FileUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -120,7 +121,8 @@ public class ConfigurationReader {
 
         final InputStream theFileData;
         try {
-            theFileData = new FileInputStream(configFile);
+            final byte[] contents = FileUtils.readFileToByteArray(configFile);
+            theFileData = new ByteArrayInputStream(contents);
         } catch (Exception e) {
             final String errorMsg = "unable to read configuration file: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{errorMsg});

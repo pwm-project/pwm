@@ -269,6 +269,10 @@ public class TimeDuration implements Comparable, Serializable {
         return this.isLongerThan(timeUnit.toMillis(duration));
     }
 
+    public boolean isShorterThan(final long duration, final TimeUnit timeUnit) {
+        return this.isShorterThan(timeUnit.toMillis(duration));
+    }
+
     public long getSeconds() {
         return getTimeDetail().seconds;
     }

@@ -22,6 +22,8 @@
 
 package password.pwm.config.function;
 
+import password.pwm.PwmApplication;
+import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationImpl;
@@ -29,7 +31,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.util.secure.HttpsKeyStoreCreator;
+import password.pwm.util.secure.HttpsServerCertificateManager;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -42,7 +44,10 @@ public class HttpsCertParseFunction extends AbstractUriCertImportFunction {
     public String provideFunction(PwmRequest pwmRequest, StoredConfigurationImpl storedConfiguration, PwmSetting setting, String profile)
             throws PwmUnrecoverableException
     {
-        return keyStoreToStringOutput(HttpsKeyStoreCreator.configToKeystore(new Configuration(storedConfiguration)));
+        final PwmEnvironment pwmEnvironment = pwmRequest.getPwmApplication().getPwmEnvironment().makeRuntimeInstance(new Configuration(storedConfiguration));
+        final PwmApplication tempApplication = new PwmApplication(pwmEnvironment);
+        final HttpsServerCertificateManager httpsCertificateManager = new HttpsServerCertificateManager(tempApplication);
+        return keyStoreToStringOutput(httpsCertificateManager.configToKeystore());
     }
 
     @Override
@@ -57,7 +62,7 @@ public class HttpsCertParseFunction extends AbstractUriCertImportFunction {
             for (final Enumeration<String> aliases = keyStore.aliases(); aliases.hasMoreElements(); ) {
                 final String alias = aliases.nextElement();
                 final X509Certificate certificate = (X509Certificate)keyStore.getCertificate(alias);
-                sb.append("--- Certificate alias \"" + alias + "\" ---\n");
+                sb.append("--- Certificate alias \"").append(alias).append("\" ---\n");
                 sb.append(certificate.toString());
                 if (aliases.hasMoreElements()) {
                     sb.append("\n\n");

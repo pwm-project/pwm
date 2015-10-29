@@ -27,16 +27,24 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.io.Serializable;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class PwmEnvironment implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmEnvironment.class);
 
+    // data elements
     private final PwmApplication.MODE applicationMode;
     private final Configuration config;
     private final File applicationPath;
@@ -45,9 +53,12 @@ public class PwmEnvironment implements Serializable {
     private final ContextManager contextManager;
     private final Collection<ApplicationFlag> flags;
 
+    private final FileLocker fileLocker;
+
     public enum ApplicationFlag {
         Appliance,
         ManageHttps,
+        NoFileLock,
 
         ;
 
@@ -118,6 +129,9 @@ public class PwmEnvironment implements Serializable {
         this.configurationFile = configurationFile;
         this.contextManager = contextManager;
         this.flags = flags == null ? Collections.<ApplicationFlag>emptySet() : Collections.unmodifiableSet(new HashSet<>(flags));
+
+        this.fileLocker = new FileLocker();
+
         verify();
     }
 
@@ -243,8 +257,6 @@ public class PwmEnvironment implements Serializable {
                     + "  This happens when an applicationPath was previously configured, but is not now being specified."
                     + "  An explicit applicationPath parameter must be specified, or the file can be removed if the applicationPath should be changed to the default /WEB-INF directory.";
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, errorMsg));
-        } else {
-            LOGGER.trace("marker file " + infoFile.getAbsolutePath() + " does not exist (this is usually a good thing, this file should not exist in a configured applicationPath");
         }
 
     }
@@ -311,7 +323,6 @@ public class PwmEnvironment implements Serializable {
             }
             return returnFlags;
         }
-
     }
 
 
@@ -373,11 +384,6 @@ public class PwmEnvironment implements Serializable {
             return this;
         }
 
-        public Builder setApplicationPath(File applicationPath) {
-            this.applicationPath = applicationPath;
-            return this;
-        }
-
         public PwmEnvironment createPwmEnvironment() {
             return new PwmEnvironment(
                     applicationMode,
@@ -388,6 +394,89 @@ public class PwmEnvironment implements Serializable {
                     contextManager,
                     flags
             );
+        }
+    }
+
+    public void attemptFileLock() {
+        fileLocker.attemptFileLock();
+    }
+
+    public void releaseFileLock()
+    {
+        fileLocker.releaseFileLock();
+    }
+
+    public boolean isFileLocked() {
+        return fileLocker.isLocked();
+    }
+
+    public void waitForFileLock() throws PwmUnrecoverableException {
+        final int maxWaitSeconds = Integer.parseInt(getConfig().readAppProperty(AppProperty.APPLICATION_FILELOCK_WAIT_SECONDS));
+        final Date startTime = new Date();
+        final int attemptInterval = 5021; //ms
+
+        while (!this.isFileLocked() && TimeDuration.fromCurrent(startTime).isShorterThan(maxWaitSeconds, TimeUnit.SECONDS)) {
+            attemptFileLock();
+
+            if (!isFileLocked()) {
+                LOGGER.debug("can't establish application file lock after "
+                        + TimeDuration.fromCurrent(startTime).asCompactString()
+                        + ", will retry;");
+                Helper.pause(attemptInterval);
+            }
+        }
+
+        if (!isFileLocked()) {
+            final String errorMsg = "unable to obtain application path file lock";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,errorMsg);
+            throw new PwmUnrecoverableException(errorInformation);
+        }
+    }
+
+    private class FileLocker {
+        private FileLock lock;
+        private final File lockfile;
+
+        public FileLocker() {
+            final String lockfileName = config.readAppProperty(AppProperty.APPLICATION_FILELOCK_FILENAME);
+            lockfile = new File(getApplicationPath(), lockfileName);
+        }
+
+        private boolean lockingAllowed() {
+            return !isInternalRuntimeInstance() && !getFlags().contains(ApplicationFlag.NoFileLock);
+        }
+
+        public boolean isLocked() {
+            return !lockingAllowed() || lock != null && lock.isValid();
+        }
+
+        public void attemptFileLock() {
+            if (lockingAllowed() && !isLocked()) {
+                try {
+                    final RandomAccessFile file = new RandomAccessFile(lockfile, "rw");
+                    final FileChannel f = file.getChannel();
+                    lock = f.tryLock();
+                    if (lock != null) {
+                        LOGGER.debug("obtained file lock on file " + lockfile.getAbsolutePath());
+                    } else {
+                        LOGGER.debug("unable to obtain file lock on file " + lockfile.getAbsolutePath());
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("unable to obtain file lock on file " + lockfile.getAbsolutePath() + " due to error: " + e.getMessage());
+                }
+            }
+        }
+
+        public void releaseFileLock() {
+            if (lock != null && lock.isValid()) {
+                try {
+                    lock.release();
+                } catch (IOException e) {
+                    LOGGER.error("error releasing file lock: " + e.getMessage());
+                }
+                lock = null;
+                LOGGER.debug("released file lock on file " + lockfile.getAbsolutePath());
+            }
         }
     }
 }

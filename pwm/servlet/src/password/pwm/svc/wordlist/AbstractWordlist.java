@@ -35,7 +35,6 @@ import password.pwm.health.HealthTopic;
 import password.pwm.http.ContextManager;
 import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -282,8 +281,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     }
 
     void writeMetadata(final StoredWordlistDataBean metadataBean) {
-        final String jsonValue = JsonUtil.serialize(metadataBean);
-        pwmApplication.writeAppAttribute(getMetaDataAppAttribute(),jsonValue);
+        pwmApplication.writeAppAttribute(getMetaDataAppAttribute(),metadataBean);
     }
 
     @Override

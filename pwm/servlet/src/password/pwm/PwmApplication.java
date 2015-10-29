@@ -103,6 +103,7 @@ public class PwmApplication {
         LOCALDB_IMPORT_STATUS("localDB.import.status"),
         WORDLIST_METADATA("wordlist.metadata"),
         SEEDLIST_METADATA("seedlist.metadata"),
+        HTTPS_SELF_CERT("https.selfCert"),
 
         ;
 
@@ -184,6 +185,10 @@ public class PwmApplication {
                     break;
             }
         }
+
+        // get file lock
+        pwmEnvironment.waitForFileLock();;
+
 
         LOGGER.info("initializing, application mode=" + getApplicationMode()
                         + ", applicationPath=" + (pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath().getAbsolutePath())
@@ -337,7 +342,7 @@ public class PwmApplication {
     public List<PwmService> getPwmServices() {
         final List<PwmService> pwmServices = new ArrayList<>();
         pwmServices.add(this.localDBLogger);
-        pwmServices.addAll(this.pwmServiceManager.getPwmServices());
+        pwmServices.addAll(this.pwmServiceManager.getRunningServices());
         pwmServices.remove(null);
         return Collections.unmodifiableList(pwmServices);
     }
@@ -529,6 +534,8 @@ public class PwmApplication {
             localDB = null;
         }
 
+        pwmEnvironment.releaseFileLock();
+
         LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " closed for bidness, cya!");
     }
 
@@ -628,6 +635,11 @@ public class PwmApplication {
             }
         } catch (Exception e) {
             LOGGER.error("error retrieving key '" + appAttribute.getKey() + "' installation date from localDB: " + e.getMessage());
+            try {
+                localDB.remove(LocalDB.DB.PWM_META, appAttribute.getKey());
+            } catch (Exception e2) {
+                LOGGER.error("error removing bogus appAttribute value for key " + appAttribute.getKey() + ", error: " + localDB);
+            }
         }
     }
 }

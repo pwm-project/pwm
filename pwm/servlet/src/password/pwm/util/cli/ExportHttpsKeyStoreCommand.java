@@ -22,9 +22,8 @@
 
 package password.pwm.util.cli;
 
-import password.pwm.config.Configuration;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.secure.HttpsKeyStoreCreator;
+import password.pwm.util.secure.HttpsServerCertificateManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -52,18 +51,17 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand {
             password = promptForPassword();
         }
 
-        final Configuration config = cliEnvironment.getConfig();
-
+        final HttpsServerCertificateManager httpsCertificateManager = new HttpsServerCertificateManager(this.cliEnvironment.pwmApplication);
         KeyStore keyStore = null;
         try {
-            keyStore = HttpsKeyStoreCreator.configToKeystore(config);
+            keyStore = httpsCertificateManager.configToKeystore();
             out("output configured https certificates");
         } catch (PwmUnrecoverableException e) {
             out("unable to load configured https certificate: " + e.getMessage());
         }
 
         if (keyStore == null) {
-            keyStore = HttpsKeyStoreCreator.makeSelfSignedCert(config, password);
+            keyStore = httpsCertificateManager.makeSelfSignedCert(password);
             out("output self-signed certificate");
         }
 
@@ -99,8 +97,8 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand {
         cliParameters.options = Arrays.asList(CliParameters.REQUIRED_NEW_OUTPUT_FILE, passwordValueOption);
 
         cliParameters.needsLocalDB = false;
-        cliParameters.needsPwmApplication = false;
-        cliParameters.readOnly = true;
+        cliParameters.needsPwmApplication = true;
+        cliParameters.readOnly = false;
 
         return cliParameters;
     }

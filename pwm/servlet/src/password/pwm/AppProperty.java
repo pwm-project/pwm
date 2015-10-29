@@ -31,6 +31,8 @@ import java.util.ResourceBundle;
  */
 public enum AppProperty {
 
+    APPLICATION_FILELOCK_FILENAME                   ("application.fileLock.filename"),
+    APPLICATION_FILELOCK_WAIT_SECONDS               ("application.fileLock.waitSeconds"),
     AUDIT_EVENTS_EMAILFROM                          ("audit.events.emailFrom"),
     AUDIT_VAULT_MAX_RECORDS                         ("audit.vault.maxRecords"),
     BACKUP_LOCATION                                 ("backup.path"),
@@ -201,6 +203,7 @@ public enum AppProperty {
     SECURITY_STRIP_INLINE_JAVASCRIPT                ("security.html.stripInlineJavascript"),
     SECURITY_HTTP_STRIP_HEADER_REGEX                ("security.http.stripHeaderRegex"),
     SECURITY_HTTP_PROMISCUOUS_ENABLE                ("security.http.promiscuousEnable"),
+    SECURITY_HTTPSSERVER_SELF_FUTURESECONDS         ("security.httpsServer.selfCert.futureSeconds"),
     SECURITY_RESPONSES_HASH_ITERATIONS              ("security.responses.hashIterations"),
     SECURITY_INPUT_TRIM                             ("security.input.trim"),
     SECURITY_INPUT_PASSWORD_TRIM                    ("security.input.password.trim"),

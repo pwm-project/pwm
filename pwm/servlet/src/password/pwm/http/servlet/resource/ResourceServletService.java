@@ -30,6 +30,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.util.Percent;
+import password.pwm.util.logging.PwmLogger;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -38,11 +39,14 @@ import java.util.List;
 import java.util.Map;
 
 public class ResourceServletService implements PwmService {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ResourceServletService.class);
+
 
     private ResourceServletConfiguration resourceServletConfiguration;
     private Map<CacheKey, CacheEntry> cacheMap;
     private EventRateMeter.MovingAverage cacheHitRatio = new EventRateMeter.MovingAverage(60 * 60 * 1000);
     private String resourceNonce;
+    private STATUS status = STATUS.NEW;
 
     public String getResourceNonce() {
         return resourceNonce;
@@ -86,18 +90,25 @@ public class ResourceServletService implements PwmService {
 
     @Override
     public STATUS status() {
-        return STATUS.OPEN;
+        return status;
     }
 
     @Override
     public void init(PwmApplication pwmApplication) throws PwmException {
-        this.resourceServletConfiguration = new ResourceServletConfiguration(pwmApplication);
+        status = STATUS.OPENING;
+        try {
+            this.resourceServletConfiguration = new ResourceServletConfiguration(pwmApplication);
 
-        cacheMap = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
-                .maximumWeightedCapacity(resourceServletConfiguration.getMaxCacheItems())
-                .build();
+            cacheMap = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
+                    .maximumWeightedCapacity(resourceServletConfiguration.getMaxCacheItems())
+                    .build();
 
-        resourceNonce = makeResourcePathNonce(pwmApplication);
+            resourceNonce = makeResourcePathNonce(pwmApplication);
+            status = STATUS.OPEN;
+        } catch (Exception e) {
+            LOGGER.error("error during initialization, will remain closed; error: " + e.getMessage());
+            status = STATUS.CLOSED;
+        }
     }
 
     @Override

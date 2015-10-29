@@ -147,7 +147,7 @@ public class MainClass {
         final LocalDB localDB;
 
         if (parameters.needsPwmApplication) {
-            pwmApplication = loadPwmApplication(applicationPath, config, configurationFile, parameters.readOnly);
+            pwmApplication = loadPwmApplication(applicationPath, MAIN_OPTIONS.applicationFlags, config, configurationFile, parameters.readOnly);
             localDB = pwmApplication.getLocalDB();
         } else if (parameters.needsLocalDB) {
             pwmApplication = null;
@@ -298,6 +298,7 @@ public class MainClass {
     static String[] parseMainCommandLineOptions(String[] args) {
         final String OPT_DEBUG_LEVEL = "-debugLevel";
         final String OPT_APP_PATH = "-applicationPath";
+        final String OPT_APP_FLAGS= "-applicationFlags";
         final String OPT_FORCE = "-force";
 
         if (args == null || args.length < 1) {
@@ -332,6 +333,15 @@ public class MainClass {
                     }
                 } else if (arg.equals(OPT_FORCE)) {
                     MAIN_OPTIONS.forceFlag = true;
+                } else if (arg.startsWith(OPT_APP_FLAGS)){
+                    if (arg.length() < OPT_APP_FLAGS.length() + 2) {
+                        out(OPT_APP_FLAGS + " option must include value (example: -" + OPT_APP_FLAGS + "=Flag1,Flag2");
+                        System.exit(-1);
+                    } else {
+                        final String flagStr = arg.substring(OPT_APP_PATH.length() + 1, arg.length());
+                        MAIN_OPTIONS.applicationFlags = PwmEnvironment.ParseHelper.parseApplicationFlagValueParameter(flagStr);
+                    }
+                    outputArgs.add(arg);
                 } else {
                     outputArgs.add(arg);
                 }
@@ -385,15 +395,23 @@ public class MainClass {
         return reader;
     }
 
-    static PwmApplication loadPwmApplication(final File applicationPath, final Configuration config, final File configurationFile, final boolean readonly)
+    static PwmApplication loadPwmApplication(
+            final File applicationPath,
+            final Collection<PwmEnvironment.ApplicationFlag> flags,
+            final Configuration config,
+            final File configurationFile,
+            final boolean readonly
+    )
             throws LocalDBException, PwmUnrecoverableException
     {
         final PwmApplication.MODE mode = readonly ? PwmApplication.MODE.READ_ONLY : PwmApplication.MODE.RUNNING;
+        final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = flags == null
+                ? PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(null)
+                : flags;
         final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder(config, applicationPath)
                 .setApplicationMode(mode)
-                .setInternalRuntimeInstance(true)
                 .setConfigurationFile(configurationFile)
-                .setFlags(PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(null))
+                .setFlags(applicationFlags)
                 .createPwmEnvironment();
         final PwmApplication pwmApplication = new PwmApplication(pwmEnvironment);
         final PwmApplication.MODE runningMode = pwmApplication.getApplicationMode();
@@ -418,6 +436,7 @@ public class MainClass {
         private PwmLogLevel pwmLogLevel = null;
         private File applicationPath = null;
         private boolean forceFlag = false;
+        private Collection<PwmEnvironment.ApplicationFlag> applicationFlags;
 
         public PwmLogLevel getPwmLogLevel() {
             return pwmLogLevel;
@@ -430,11 +449,6 @@ public class MainClass {
         public boolean isForceFlag() {
             return forceFlag;
         }
-    }
-
-    private static void exitWithError(final String msg) {
-        out(msg);
-        System.exit(-1);
     }
 
     private static File figureApplicationPath(final MainOptions mainOptions) throws IOException, PwmUnrecoverableException {
