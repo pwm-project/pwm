@@ -69,13 +69,13 @@
             <% } %>
             <% if (!footer_pwmRequest.isFlag(PwmRequest.Flag.HIDE_LOCALE)) { %>
             <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
-            <span id="localeSelectionMenu">
+            <a id="localeSelectionMenu">
                 <% String flagFileName = pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter);%>
                 <% if (flagFileName != null && !flagFileName.isEmpty()) { %>
                 <img src="<pwm:context/><pwm:url url='/public/resources/flags/png/'/><%=flagFileName%>.png"/>
                 <% } %>
                 &nbsp;<%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayName(userLocaleFooter)%>
-            </span>
+            </a>
             <% segmentDisplayed = true; } %>
         </div>
     </div>

@@ -622,6 +622,8 @@ select {
 #localeSelectionMenu {
     white-space: nowrap;
     cursor: pointer;
+    text-decoration: none;
+    font-weight: normal;
 }
 
 .login-wrapper {
