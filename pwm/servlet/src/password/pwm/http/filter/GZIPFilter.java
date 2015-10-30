@@ -202,6 +202,7 @@ public class GZIPFilter implements Filter {
             gzipStream.write(b);
         }
 
+        /*
         // servlet 3.1 method
         public void setWriteListener(WriteListener writeListener)
         {
@@ -213,5 +214,6 @@ public class GZIPFilter implements Filter {
         {
             return servletOutputStream.isReady();
         }
+        */
     }
 }
