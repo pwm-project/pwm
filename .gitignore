@@ -1,0 +1,11 @@
+/pwm/supplemental/build/work
+/pwm/supplemental/build/artifacts
+/.project
+/.settings
+/target
+/.classpath
+/src/main/webapp/WEB-INF/logs
+/src/main/webapp/WEB-INF/PwmConfiguration.xml
+/src/main/webapp/WEB-INF/backup
+/src/main/webapp/WEB-INF/LocalDB
+/bin/
