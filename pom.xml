@@ -16,6 +16,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <profiles>
+        <profile>
+            <id>codeship</id>
+            <build>
+                <finalName>${timestamp.iso}-${project.artifactId}-${project.version}</finalName>
+            </build>
+        </profile>
+    </profiles>
+
     <build>
         <resources>
             <resource>
