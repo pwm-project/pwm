@@ -9,3 +9,4 @@
 /src/main/webapp/WEB-INF/backup
 /src/main/webapp/WEB-INF/LocalDB
 /bin/
+/src/main/webapp/WEB-INF/applicationPath.lock
