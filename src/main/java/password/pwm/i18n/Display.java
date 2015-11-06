@@ -89,6 +89,7 @@ public enum Display implements PwmDisplayBundle {
     Display_Day,
     Display_Days,
     Display_ErrorBody,
+    Display_ErrorReference,
     Display_ExpirationDate,
     Display_FooterInfoText,
     Display_ForgottenPassword,

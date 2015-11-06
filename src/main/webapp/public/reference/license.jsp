@@ -33,22 +33,14 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
-<style nonce="<pwm:value name="cspNonce"/>" type="text/css">
-    <!--
-    .licenseBlock {
-        background-color: #F5F5F5;
-        border-radius: 5px;
-        box-shadow: 2px 2px 1px 1px #bfbfbf;
-        padding: 5px;
-        margin-bottom: 10px;
-    }
-    -->
-</style>
+<link href="<pwm:url url='/public/resources/referenceStyle.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
     <jsp:include page="../../WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Software License Reference"/>
     </jsp:include>
     <div id="centerbody">
+        <%@ include file="reference-nav.jsp"%>
+
     <p style="font-style: italic; text-align: center; width: 100%">nanos gigantum humeris insidentes</p>
         <div class="licenseBlock">
             <h1>PWM License</h1>

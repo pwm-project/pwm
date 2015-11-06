@@ -60,6 +60,10 @@ public class LocaleHelper {
         return getLocalizedMessage(locale, key.getKey(), config, key.getClass());
     }
 
+    public static String getLocalizedMessage(final Locale locale, final PwmDisplayBundle key, final Configuration config, final String[] args) {
+        return getLocalizedMessage(locale, key.getKey(), config, key.getClass(), args);
+    }
+
     public static String getLocalizedMessage(final PwmDisplayBundle key, final PwmRequest pwmRequest, final String... values) {
         return getLocalizedMessage(
                 pwmRequest == null ? PwmConstants.DEFAULT_LOCALE : pwmRequest.getLocale(),
@@ -236,17 +240,21 @@ public class LocaleHelper {
     }
 
     public static Map<Locale,String> getUniqueLocalizations(
-            final PwmApplication pwmApplication,
+            final Configuration configuration,
             final Class<? extends PwmDisplayBundle> bundleClass,
             final String key,
             final Locale defaultLocale
     )
     {
         final Map<Locale, String> returnObj = new LinkedHashMap<>();
-        final String defaultValue = getLocalizedMessage(defaultLocale, key, pwmApplication.getConfig(), bundleClass);
+        final Collection<Locale> localeList = configuration == null
+                ? new ArrayList<>(PwmConstants.INCLUDED_LOCALES)
+                : new ArrayList<>(configuration.getKnownLocales());
+
+        final String defaultValue = getLocalizedMessage(defaultLocale, key, configuration, bundleClass);
         returnObj.put(defaultLocale, defaultValue);
 
-        for (final Locale loopLocale : pwmApplication.getConfig().getKnownLocales()) {
+        for (final Locale loopLocale : localeList) {
             final String localizedValue = ResourceBundle.getBundle(bundleClass.getName(), loopLocale).getString(key);
             if (!defaultValue.equals(localizedValue)) {
                 returnObj.put(loopLocale, localizedValue);

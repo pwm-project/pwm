@@ -27,7 +27,6 @@ import password.pwm.http.PwmRequest;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.jsp.tagext.TagSupport;
-import java.io.IOException;
 
 public class PwmScriptRefTag extends TagSupport {
 // --------------------- Interface Tag ---------------------
@@ -58,11 +57,6 @@ public class PwmScriptRefTag extends TagSupport {
             final String output = "<script type=\"text/javascript\" nonce=\"" + cspNonce + "\" src=\"" + url + "\"></script>";
             pageContext.getOut().write(output);
         } catch (Exception e) {
-            try {
-                pageContext.getOut().write("error-generating-script-ref-tag");
-            } catch (IOException e1) {
-                /* ignore */
-            }
             LOGGER.error("error during scriptRef output of pwmFormID: " + e.getMessage());
         }
         return EVAL_PAGE;

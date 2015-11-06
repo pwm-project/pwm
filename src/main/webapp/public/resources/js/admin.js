@@ -58,21 +58,9 @@ PWM_ADMIN.initAdminNavMenu = function() {
                 }));
                 pMenu.addChild(new MenuSeparator());
                 pMenu.addChild(new MenuItem({
-                    label: '<span class="fa fa-external-link"></span> Software License Reference',
-                    onClick: function() {
-                        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/license.jsp','license');
-                    }
-                }));
-                pMenu.addChild(new MenuItem({
                     label: '<span class="fa fa-external-link"></span> Application Reference',
                     onClick: function() {
-                        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/referencedoc.jsp','referencedoc');
-                    }
-                }));
-                pMenu.addChild(new MenuItem({
-                    label: '<span class="fa fa-external-link"></span> REST Web Services Reference',
-                    onClick: function() {
-                        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/rest.jsp','restreference');
+                        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference','referencedoc');
                     }
                 }));
                 if (PWM_GLOBAL['setting-displayEula'] == true) {

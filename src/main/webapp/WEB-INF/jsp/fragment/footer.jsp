@@ -81,7 +81,7 @@
     </div>
 </div>
 <% } %>
-<% if (footer_pwmRequest.isFlag(PwmRequest.Flag.NO_IDLE_TIMEOUT)) { %>
+<% if (footer_pwmRequest != null && footer_pwmRequest.isFlag(PwmRequest.Flag.NO_IDLE_TIMEOUT)) { %>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['idle_suspendTimeout'] = true;

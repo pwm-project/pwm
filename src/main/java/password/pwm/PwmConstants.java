@@ -24,16 +24,14 @@ package password.pwm;
 
 import org.apache.commons.csv.CSVFormat;
 import password.pwm.bean.SessionLabel;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmHashAlgorithm;
 
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * Constant values used throughout the servlet.
@@ -183,9 +181,18 @@ public abstract class PwmConstants {
     public static final String DOWNLOAD_FILENAME_USER_REPORT_RECORDS_CSV = "UserReportRecords.csv";
     public static final String DOWNLOAD_FILENAME_AUDIT_RECORDS_CSV = "AuditRecords.csv";
 
-    public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
-
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle("log.removedValue");
+
+    public static final Collection<Locale> INCLUDED_LOCALES;
+    static {
+        final List<Locale> localeList = new ArrayList<>();
+        final String inputString = readPwmConstantsBundle("includedLocales");
+        final List<String> inputList = JsonUtil.deserializeStringList(inputString);
+        for (final String localeKey : inputList) {
+            localeList.add(new Locale(localeKey));
+        }
+        INCLUDED_LOCALES = Collections.unmodifiableCollection(localeList);
+    }
 
     public enum JSP_URL {
 

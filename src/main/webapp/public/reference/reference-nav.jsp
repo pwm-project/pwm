@@ -18,13 +18,7 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  ~
   --%>
 
-<!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<%@ taglib uri="pwm" prefix="pwm" %>
-<html dir="<pwm:LocaleOrientation/>">
-<body>
-This page has moved to <a href=".">Reference Library</a>.
-</body>
-</html>
+<pwm:if test="showIcons"><span class="btn-icon fa fa-level-up"></span></pwm:if><a href=".">Reference Library</a>

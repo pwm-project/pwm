@@ -49,6 +49,9 @@
     <jsp:param name="pwm.PageName" value="REST Services Reference"/>
 </jsp:include>
 <div id="centerbody">
+    <%@ include file="reference-nav.jsp"%>
+
+    <br/><br/>
 <% if ("true".equals(request.getParameter("forwardedFromRestServer"))) { %>
 <div class="message message-info">
     It appears you have attempted to request a web service url, however the <i>Accept</i> header was not specified or included a value of <i>html</i>, so you are

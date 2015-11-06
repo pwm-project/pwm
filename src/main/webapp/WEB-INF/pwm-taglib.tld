@@ -233,7 +233,13 @@
         <name>current-url</name>
         <tag-class>password.pwm.http.tag.CurrentUrlTag</tag-class>
         <body-content>empty</body-content>
-        <description>External Script Reference</description>
+        <description>output the current page url</description>
+    </tag>
+    <tag>
+        <name>throwableHandler</name>
+        <tag-class>password.pwm.http.tag.JspThrowableHandlerTag</tag-class>
+        <body-content>empty</body-content>
+        <description>process jsp level exceptions</description>
     </tag>
 </taglib>
 

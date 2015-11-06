@@ -54,7 +54,7 @@ public class PwmURL {
     }
 
     public boolean isResourceURL() {
-        return checkIfStartsWithURL("/public/resources/");
+        return checkIfStartsWithURL("/public/resources/") || isReferenceURL();
     }
 
     public boolean isReferenceURL() {
