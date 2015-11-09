@@ -26,7 +26,6 @@ import password.pwm.http.PwmSessionWrapper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.jsp.JspTagException;
 import java.awt.*;
 import java.util.Locale;
 
@@ -36,7 +35,6 @@ public class LocaleOrientationTag extends PwmAbstractTag {
 
     private String locale;
 
-// --------------------- GETTER / SETTER METHODS ---------------------
 
     public String getLocale() {
         return locale;
@@ -46,10 +44,6 @@ public class LocaleOrientationTag extends PwmAbstractTag {
         this.locale = locale;
     }
 
-    // ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface Tag ---------------------
 
     public int doEndTag()
             throws javax.servlet.jsp.JspTagException {
@@ -72,8 +66,8 @@ public class LocaleOrientationTag extends PwmAbstractTag {
             }
 
         } catch (Exception e) {
-            LOGGER.error("error while executing jsp locale orientation tag: " + e.getMessage(), e);
-            throw new JspTagException(e.getMessage());
+            LOGGER.error("error while executing jsp locale orientation tag: " + e.getMessage());
+            return EVAL_PAGE;
         }
         return EVAL_PAGE;
     }

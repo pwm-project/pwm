@@ -1,7 +1,6 @@
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
-<%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -30,6 +29,7 @@
 <%@ page isErrorPage="true" %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_REQ_COUNTER); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
+<html>
 <%@ include file="fragment/header.jsp" %>
 <% response.setHeader("Content-Encoding",""); //remove gzip encoding header %>
 <% final int statusCode = pageContext.getErrorData().getStatusCode(); %>
@@ -52,14 +52,7 @@
         </span>
         <br/>
         <br/>
-        <% if (500 == statusCode) { %>
-        <textarea rows="10" style="width: 98%; font-size:small;" readonly="true">
-            <%=StringUtil.escapeHtml(pageContext.getErrorData().getThrowable().toString())%>
-            <% for (final StackTraceElement stElement : pageContext.getErrorData().getThrowable().getStackTrace()) { %>
-            <%=StringUtil.escapeHtml(stElement.toString())%>
-            <% } %>
-        </textarea>
-        <% } %>
+        <pwm:throwableHandler/>
         <br/>
         <br/>
         <div class="buttonbar">

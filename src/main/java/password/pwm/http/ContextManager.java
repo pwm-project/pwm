@@ -43,7 +43,6 @@ import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.net.URL;
 import java.util.*;
 
 public class ContextManager implements Serializable {
@@ -148,11 +147,8 @@ public class ContextManager implements Serializable {
         {
             final String applicationPathStr = readApplicationPath();
             if (applicationPathStr == null || applicationPathStr.isEmpty()) {
-                applicationPath = locateWebInfFilePath();
-                /*
-                startupErrorInformation = new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,"applicationPath is not specified");
+                startupErrorInformation = new ErrorInformation(PwmError.ERROR_ENVIRONMENT_ERROR,"application path is not specified");
                 return;
-                */
             } else {
                 applicationPath = new File(applicationPathStr);
             }
@@ -432,40 +428,6 @@ public class ContextManager implements Serializable {
             final String contextPath = servletContext.getContextPath().replace("/","");
             return PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(contextPath);
         }
-    }
-
-    public File deriveApplicationPath()
-            throws PwmException
-    {
-        if (this.servletContext == null) {
-            return null;
-        }
-
-        final String realPath = servletContext.getRealPath("/WEB-INF");
-
-        if (realPath != null) {
-            final File servletPath = new File(realPath);
-            if (servletPath.exists()) {
-                return servletPath;
-            }
-        }
-
-        outputError("servlet container unable to return real file system path, will attempt discovery using classloader");
-
-        // for containers which do not return the real path, try to use the class loader to find the path.
-        final String cManagerName = PwmApplication.class.getCanonicalName();
-        final String resourcePathname = "/" + cManagerName.replace(".", "/") + ".class";
-        final URL fileURL = PwmApplication.class.getResource(resourcePathname);
-        if (fileURL != null) {
-            final String newString = fileURL.toString().replace("WEB-INF/classes" + resourcePathname, "");
-            try {
-                return new File(new URL(newString).toURI());
-            } catch (Exception e) {
-                outputError("unable to determine application path using class loader: " + e.getMessage());
-            }
-        }
-
-        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE,"unable to determine applicationPath working directory"));
     }
 
     static void outputError(String outputText) {

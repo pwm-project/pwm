@@ -14,6 +14,8 @@
         <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <build.number>0</build.number>  <!-- default in case not set on command line -->
+        <build.revision>0</build.revision>  <!-- default in case not set on command line -->
     </properties>
 
     <profiles>

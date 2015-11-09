@@ -59,6 +59,7 @@ public class PwmEnvironment implements Serializable {
         Appliance,
         ManageHttps,
         NoFileLock,
+        CommandLineInstance,
 
         ;
 

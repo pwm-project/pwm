@@ -67,11 +67,12 @@ public class RequestInitializationFilter implements Filter {
         final HttpServletResponse resp = (HttpServletResponse)servletResponse;
 
         try {
-            //if (!(new PwmURL(req).isResourceURL())) {
+            final PwmURL pwmURL = new PwmURL(req);
+            if (!pwmURL.isResourceURL()) {
                 checkAndInitSessionState(req);
                 final PwmRequest pwmRequest = PwmRequest.forRequest(req,resp);
                 checkIfSessionRecycleNeeded(pwmRequest);
-            //}
+            }
         } catch (Throwable e) {
             LOGGER.error("can't load application: " + e.getMessage(),e);
             if (!(new PwmURL(req).isResourceURL())) {

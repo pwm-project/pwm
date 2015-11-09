@@ -219,20 +219,24 @@ public class PwmApplication {
         pwmServiceManager.initAllServices();
 
         if (!pwmEnvironment.isInternalRuntimeInstance()) {
-            final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
-            LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
-            StatisticsManager.incrementStat(this,Statistic.PWM_STARTUPS);
-            LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE);
+            if (pwmEnvironment.getFlags().contains(PwmEnvironment.ApplicationFlag.CommandLineInstance)) {
+                postInitTasks();
+            } else {
+                final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
+                LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
+                StatisticsManager.incrementStat(this, Statistic.PWM_STARTUPS);
+                LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE);
 
-            final Thread postInitThread = new Thread() {
-                @Override
-                public void run() {
-                    postInitTasks();
-                }
-            };
-            postInitThread.setDaemon(true);
-            postInitThread.setName(Helper.makeThreadName(this, PwmApplication.class));
-            postInitThread.start();
+                final Thread postInitThread = new Thread() {
+                    @Override
+                    public void run() {
+                        postInitTasks();
+                    }
+                };
+                postInitThread.setDaemon(true);
+                postInitThread.setName(Helper.makeThreadName(this, PwmApplication.class));
+                postInitThread.start();
+            }
         }
     }
 

@@ -408,6 +408,7 @@ public class MainClass {
         final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = flags == null
                 ? PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(null)
                 : flags;
+        applicationFlags.add(PwmEnvironment.ApplicationFlag.CommandLineInstance);
         final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder(config, applicationPath)
                 .setApplicationMode(mode)
                 .setConfigurationFile(configurationFile)

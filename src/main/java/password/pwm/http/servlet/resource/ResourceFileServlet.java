@@ -22,7 +22,6 @@
 
 package password.pwm.http.servlet.resource;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -33,7 +32,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.ServletHelper;
-import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.http.servlet.PwmServlet;
 import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -43,10 +42,12 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -60,18 +61,60 @@ import java.util.zip.ZipFile;
                 PwmConstants.URL_PREFIX_PUBLIC + "/resources/*"
         }
 )
-public class ResourceFileServlet extends AbstractPwmServlet {
+public class ResourceFileServlet extends HttpServlet implements PwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ResourceFileServlet.class);
 
 
     @Override
-    protected ProcessAction readProcessAction(PwmRequest request) throws PwmUnrecoverableException {
-        return null;
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException
+    {
+        PwmRequest pwmRequest = null;
+        try {
+            pwmRequest = PwmRequest.forRequest(req, resp);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unable to satisfy request using standard mechanism, reverting to raw resource server");
+        }
+
+        if (pwmRequest != null) {
+            try {
+                processAction(pwmRequest);
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error(pwmRequest,"error during resource servlet request processing: " + e.getMessage());
+            }
+        } else {
+            try {
+                rawRequestProcessor(req,resp);
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("error serving raw resource request: " + e.getMessage());
+            }
+        }
     }
 
-    @Override
+    protected void rawRequestProcessor(final HttpServletRequest req, final HttpServletResponse resp)
+            throws IOException, PwmUnrecoverableException
+    {
+
+        final FileResource file = resolveRequestedFile(
+                req.getServletContext(),
+                req.getRequestURI(),
+                req,
+                Collections.<String, ZipFile>emptyMap(),
+                Collections.<String, FileResource>emptyMap()
+        );
+
+        if (file == null || !file.exists()) {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        handleUncachedResponse(resp, file, false);
+    }
+
+
+
     protected void processAction(PwmRequest pwmRequest)
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+            throws ServletException, IOException, PwmUnrecoverableException
     {
         if (pwmRequest.getMethod() != HttpMethod.GET) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"unable to process resource request for request method " + pwmRequest.getMethod()));

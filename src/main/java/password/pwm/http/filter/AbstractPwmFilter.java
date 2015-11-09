@@ -23,9 +23,9 @@
 package password.pwm.http.filter;
 
 
-import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmException;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmURL;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.*;
@@ -53,18 +53,28 @@ public abstract class AbstractPwmFilter implements Filter {
         final HttpServletRequest req = (HttpServletRequest)servletRequest;
         final HttpServletResponse resp = (HttpServletResponse)servletResponse;
 
-        final PwmFilterChain pwmFilterChain = new PwmFilterChain(servletRequest, servletResponse, filterChain);
-        
-        SessionLabel sessionLabel = null;
+        PwmRequest pwmRequest = null;
         try {
-            final PwmRequest pwmRequest = PwmRequest.forRequest(req,resp);
-            sessionLabel = pwmRequest.getSessionLabel();
+            pwmRequest = PwmRequest.forRequest(req, resp);
+        } catch (PwmException e) {
+            final PwmURL pwmURL = new PwmURL(req);
+            if (pwmURL.isResourceURL()) {
+                filterChain.doFilter(req,resp);
+                return;
+            }
+
+            LOGGER.error(pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e);
+        }
+
+        try {
+            final PwmFilterChain pwmFilterChain = new PwmFilterChain(servletRequest, servletResponse, filterChain);
             processFilter(pwmRequest, pwmFilterChain);
         } catch (PwmException e) {
-            LOGGER.error(sessionLabel, "unexpected error processing filter chain: " + e.getMessage(), e);
+            LOGGER.error(pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e);
         } catch (IOException e) {
-            LOGGER.debug(sessionLabel, "i/o error processing request: " + e.getMessage());
+            LOGGER.debug(pwmRequest, "i/o error processing request: " + e.getMessage());
         }
+
     }
 
     abstract void processFilter(

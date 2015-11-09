@@ -556,7 +556,7 @@ public class LDAPStatusChecker implements HealthChecker {
                         try {
                             returnList.addAll(checkUserPermission(pwmApplication, userPermission, pwmSetting));
                         } catch (PwmUnrecoverableException e) {
-                            LOGGER.error(e.getMessage(),e);
+                            LOGGER.error("error checking configured permission settings:" + e.getMessage());
                         }
                     }
                 }

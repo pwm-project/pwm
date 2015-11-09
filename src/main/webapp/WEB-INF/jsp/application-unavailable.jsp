@@ -25,35 +25,38 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<% final ErrorInformation startupError = (ErrorInformation)request.getAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo.toString()); %>
+<%
+    final ErrorInformation startupError = request.getAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo.toString()) == null
+            ? new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE)
+            : (ErrorInformation)request.getAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo.toString());
+%>
 <html>
 <head>
-    <meta http-equiv="refresh" content="5">
     <title><%=PwmConstants.PWM_APP_NAME%></title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=10; IE=9; IE=8; IE=7" />
-    <meta http-equiv="refresh" content="30">
+    <meta http-equiv="refresh" content="60">
+    <link href="<%=request.getContextPath()%>/public/resources/style.css" rel="stylesheet" type="text/css" media="screen"/>
 </head>
-<body class="nihilo">
+<body class="nihilo" data-jsp-page="application-unavailable.jsp">
 <div id="wrapper">
     <div id="centerbody">
         <br/>
         <h1><%=PwmConstants.PWM_APP_NAME%></h1>
         <br/>
         <br/>
-        <h2><%=PwmError.ERROR_APP_UNAVAILABLE.toInfo().toDebugStr()%></h2>
+        <h2><%=startupError.toDebugStr()%></h2>
         <br/>
         <br/>
-        <p><%=PwmError.ERROR_APP_UNAVAILABLE.toInfo().toUserStr(request.getLocale(), null)%></p>
-        <% if (startupError != null) { %>
-        <br/>
-        <br/>
-        <p><%=startupError.toDebugStr()%></p>
-        <% } %>
+        <p><%=startupError.toUserStr(request.getLocale(), null)%></p>
         <br/>
         <br/>
         <br/>
         <a href="#">Refresh</a>
+        <% if (startupError.getError() == PwmError.ERROR_ENVIRONMENT_ERROR) { %>
+        <br/><br/><br/>
+        <a href="<%=request.getContextPath()%>/public/reference/environment.jsp">Environment Configuration Reference</a>
+        <% } %>
     </div>
     <div class="push"></div>
 </div>

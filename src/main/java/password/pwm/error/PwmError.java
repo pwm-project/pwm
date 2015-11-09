@@ -159,6 +159,7 @@ public enum PwmError {
     ERROR_MACRO_PARSE_ERROR("Error_MacroParseError",5080,true),
     ERROR_NO_PROFILE_ASSIGNED("Error_NoProfileAssigned",5081,true),
     ERROR_STARTUP_ERROR("Error_StartupError",5082,true),
+    ERROR_ENVIRONMENT_ERROR("Error_EnvironmentError",5083,true),
 
     ERROR_REMOTE_ERROR_VALUE("Error_RemoteErrorValue",6000,true),
 
