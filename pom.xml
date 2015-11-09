@@ -70,22 +70,6 @@
     </profiles>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>**/BuildInformation.properties</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-                <excludes>
-                    <exclude>**/BuildInformation.properties</exclude>
-                </excludes>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -165,8 +149,28 @@
                             </resources>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>replace-build-properties</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <filtering>true</filtering>
+                                    <directory>src/main/resources</directory>
+                                    <includes>
+                                        <include>password/pwm/BuildInformation.properties</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
                 </executions>
-          </plugin>
+            </plugin>
         </plugins>
     </build>
 
