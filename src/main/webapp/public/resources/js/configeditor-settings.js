@@ -1766,9 +1766,10 @@ EmailTableHandler.instrumentRow = function(settingKey, localeName) {
     var settingData = PWM_SETTINGS['settings'][settingKey];
     var idPrefix = "setting-" + localeName + "-" + settingKey;
 
-    var editor = function(drawTextArea, type){
+    var editor = function(drawTextArea, type, instructions){
         UILibrary.stringEditorDialog({
             title:'Edit Value - ' + settingData['label'],
+            instructions: instructions,
             textarea:drawTextArea,
             value:PWM_VAR['clientSettingCache'][settingKey][localeName][type],
             completeFunction:function(value){
@@ -1781,8 +1782,8 @@ EmailTableHandler.instrumentRow = function(settingKey, localeName) {
     };
 
     UILibrary.addTextValueToElement('panel-to-' + idPrefix,PWM_VAR['clientSettingCache'][settingKey][localeName]['to']);
-    PWM_MAIN.addEventHandler('button-to-' + idPrefix,'click',function(){ editor(false,'to'); });
-    PWM_MAIN.addEventHandler('panel-to-' + idPrefix,'click',function(){ editor(false,'to'); });
+    PWM_MAIN.addEventHandler('button-to-' + idPrefix,'click',function(){ editor(false,'to',PWM_CONFIG.showString('Instructions_Edit_Email')); });
+    PWM_MAIN.addEventHandler('panel-to-' + idPrefix,'click',function(){ editor(false,'to',PWM_CONFIG.showString('Instructions_Edit_Email')); });
 
     UILibrary.addTextValueToElement('panel-from-' + idPrefix,PWM_VAR['clientSettingCache'][settingKey][localeName]['from']);
     PWM_MAIN.addEventHandler('button-from-' + idPrefix,'click',function(){ editor(false,'from'); });
