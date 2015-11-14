@@ -33,6 +33,7 @@ import password.pwm.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.ErrorInformation;
@@ -250,7 +251,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
                 return;
             }
 
-            storedConfiguration.writeConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
+            storedConfiguration.writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
             saveConfiguration(pwmRequest, storedConfiguration);
             final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
             configManagerBean.setConfiguration(null);

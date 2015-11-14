@@ -46,6 +46,7 @@ import java.net.URISyntaxException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -53,13 +54,21 @@ import java.util.concurrent.TimeUnit;
 public class HttpsServerCertificateManager {
     private static PwmLogger LOGGER = PwmLogger.forClass(HttpsServerCertificateManager.class);
 
-    private static final Provider BC_PROVIDER = new BouncyCastleProvider();
     private static final String KEYSTORE_ALIAS = "https";
+
+    private static boolean bouncyCastleInitialized;
 
     private final PwmApplication pwmApplication;
 
     public HttpsServerCertificateManager(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
+    }
+
+    private static void initBouncyCastleProvider() {
+        if (!bouncyCastleInitialized) {
+            Security.addProvider(new BouncyCastleProvider());
+            bouncyCastleInitialized = true;
+        }
     }
 
     public KeyStore configToKeystore() throws PwmUnrecoverableException {
@@ -166,7 +175,7 @@ public class HttpsServerCertificateManager {
             }
 
             if (storedCertData == null) {
-                storedCertData = makeSelfSignedCert(password);
+                storedCertData = makeSelfSignedCert(cnName);
                 pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.HTTPS_SELF_CERT, storedCertData);
             }
 
@@ -203,10 +212,10 @@ public class HttpsServerCertificateManager {
         public StoredCertData makeSelfSignedCert(final String cnName)
                 throws Exception
         {
-            Security.addProvider(BC_PROVIDER);
+            initBouncyCastleProvider();
 
             LOGGER.debug("creating self-signed certificate with cn of " + cnName);
-            final KeyPair keyPair = generateRSAKeyPair();
+            final KeyPair keyPair = generateRSAKeyPair(config);
             final X509Certificate certificate = generateV3Certificate(keyPair, cnName, config);
             return new StoredCertData(certificate, keyPair);
         }
@@ -219,12 +228,12 @@ public class HttpsServerCertificateManager {
             X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
 
             final X509Principal x509Principal = new X509Principal("CN=" + cnValue);
-            certGen.setSerialNumber(BigInteger.valueOf(System.currentTimeMillis()));
+            certGen.setSerialNumber(new BigInteger(new SimpleDateFormat("yyyyMMddhhmmss").format(new Date())));
             certGen.setIssuerDN(x509Principal);
-            certGen.setNotBefore(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)));
+            certGen.setNotBefore(new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1)));
             {
-                final Long futureSeconds = Long.parseLong(config.readAppProperty(AppProperty.SECURITY_HTTPSSERVER_SELF_FUTURESECONDS));
-                certGen.setNotAfter(new Date(System.currentTimeMillis() + futureSeconds));
+                final long futureSeconds = Long.parseLong(config.readAppProperty(AppProperty.SECURITY_HTTPSSERVER_SELF_FUTURESECONDS));
+                certGen.setNotAfter(new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(futureSeconds)));
             }
             certGen.setSubjectDN(x509Principal);
             certGen.setPublicKey(pair.getPublic());
@@ -239,11 +248,13 @@ public class HttpsServerCertificateManager {
             return certGen.generateX509Certificate(pair.getPrivate(), "BC");
         }
 
-        static KeyPair generateRSAKeyPair()
+        static KeyPair generateRSAKeyPair(final Configuration config)
                 throws Exception
         {
-            KeyPairGenerator kpGen = KeyPairGenerator.getInstance("RSA", "BC");
-            kpGen.initialize(1024, new SecureRandom());
+            final int keySize = Integer.parseInt(config.readAppProperty(AppProperty.SECURITY_HTTPSSERVER_SELF_KEY_SIZE));
+            final String keyAlg = config.readAppProperty(AppProperty.SECURITY_HTTPSSERVER_SELF_ALG);
+            KeyPairGenerator kpGen = KeyPairGenerator.getInstance(keyAlg, "BC");
+            kpGen.initialize(keySize, new SecureRandom());
             return kpGen.generateKeyPair();
         }
     }

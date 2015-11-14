@@ -1,11 +1,17 @@
 package password.pwm.config.stored;
 
-public interface StoredConfigReference {
-    Type getType();
-    String getKey();
-    String getProfileID();
+import java.io.Serializable;
 
-    enum Type {
-        Setting;
+public interface StoredConfigReference extends Serializable, Comparable {
+    public RecordType getRecordType();
+
+    public String getRecordID();
+
+    public String getProfileID();
+
+    enum RecordType {
+        SETTING,
+        LOCALE_BUNDLE,
+        PROPERTY,
     }
 }

@@ -36,6 +36,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
 import password.pwm.config.function.UserMatchViewerFunction;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.*;
@@ -591,7 +592,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         if (configPassword != null && configPassword.length() > 0) {
             storedConfiguration.setPassword(configPassword);
         } else {
-            storedConfiguration.writeConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH, null);
+            storedConfiguration.writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_PASSWORD_HASH, null);
         }
 
         { // determine Cr Preference setting.
@@ -616,7 +617,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             // add a random security key
             storedConfiguration.initNewRandomSecurityKey();
 
-            storedConfiguration.writeConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
+            storedConfiguration.writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
             configReader.saveConfiguration(storedConfiguration, pwmApplication, null);
 
             contextManager.requestPwmApplicationRestart();

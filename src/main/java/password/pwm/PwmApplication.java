@@ -104,6 +104,7 @@ public class PwmApplication {
         WORDLIST_METADATA("wordlist.metadata"),
         SEEDLIST_METADATA("seedlist.metadata"),
         HTTPS_SELF_CERT("https.selfCert"),
+        CONFIG_LOGIN_HISTORY("config.loginHistory"),
 
         ;
 

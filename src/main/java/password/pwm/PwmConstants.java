@@ -157,6 +157,7 @@ public abstract class PwmConstants {
         ConfigLastModified,
         ConfigHasPassword,
         ConfigPasswordRememberTime,
+        ConfigLoginHistory,
         ApplicationPath,
 
         CaptchaClientUrl,

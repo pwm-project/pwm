@@ -2,33 +2,31 @@ package password.pwm.config.stored;
 
 import java.io.Serializable;
 
-class StoredConfigReferenceBean implements StoredConfigReference, Serializable {
-    private final StoredConfigReference.Type type;
-    private final String key;
-    private final String profileID;
+class StoredConfigReferenceBean implements StoredConfigReference, Serializable, Comparable {
+    private RecordType recordType;
+    private String recordID;
+    private String profileID;
 
-    StoredConfigReferenceBean(Type type, String key, String profileID) {
+    StoredConfigReferenceBean(RecordType type, String recordID, String profileID) {
         if (type == null) {
-            throw new NullPointerException("type can not be null");
+            throw new NullPointerException("recordType can not be null");
         }
 
-        if (key == null) {
-            throw new NullPointerException("key can not be null");
+        if (recordID == null) {
+            throw new NullPointerException("recordID can not be null");
         }
 
-        this.type = type;
-        this.key = key;
+        this.recordType = type;
+        this.recordID = recordID;
         this.profileID = profileID;
     }
 
-    @Override
-    public Type getType() {
-        return type;
+    public RecordType getRecordType() {
+        return recordType;
     }
 
-    @Override
-    public String getKey() {
-        return key;
+    public String getRecordID() {
+        return recordID;
     }
 
     @Override
@@ -38,22 +36,26 @@ class StoredConfigReferenceBean implements StoredConfigReference, Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        StoredConfigReferenceBean that = (StoredConfigReferenceBean) o;
-
-        if (type != that.type) return false;
-        if (!key.equals(that.key)) return false;
-        return !(profileID != null ? !profileID.equals(that.profileID) : that.profileID != null);
+        return o instanceof StoredConfigReference && toString().equals(o);
 
     }
 
     @Override
     public int hashCode() {
-        int result = type.hashCode();
-        result = 31 * result + key.hashCode();
-        result = 31 * result + (profileID != null ? profileID.hashCode() : 0);
-        return result;
+        return toString().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return this.getRecordType().toString()
+                + "-"
+                + (this.getProfileID() == null ? "" : this.getProfileID())
+                + "-"
+                + this.getRecordID();
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        return toString().compareTo(o.toString());
     }
 }

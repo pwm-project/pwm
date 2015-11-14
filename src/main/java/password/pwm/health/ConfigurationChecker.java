@@ -173,7 +173,7 @@ public class ConfigurationChecker implements HealthChecker {
                 final PwmSetting setting = PwmSetting.LDAP_PROXY_USER_PASSWORD;
                 try {
                     final PasswordData passwordValue = profile.readSettingAsPassword(setting);
-                    final int strength = PasswordUtility.judgePasswordStrength(passwordValue.getStringValue());
+                    final int strength = PasswordUtility.judgePasswordStrength(passwordValue == null ? null : passwordValue.getStringValue());
                     if (strength < 50) {
                         records.add(HealthRecord.forMessage(HealthMessage.Config_WeakPassword,
                                 settingToOutputText(setting, profile),

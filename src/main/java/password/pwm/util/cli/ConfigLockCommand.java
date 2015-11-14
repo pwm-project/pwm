@@ -23,6 +23,7 @@
 package password.pwm.util.cli;
 
 import password.pwm.PwmConstants;
+import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
 
@@ -32,12 +33,12 @@ public class ConfigLockCommand extends AbstractCliCommand {
     {
         final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
         final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
-        if (!Boolean.parseBoolean(storedConfiguration.readConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE))) {
+        if (!Boolean.parseBoolean(storedConfiguration.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE))) {
             out("configuration is already locked");
             return;
         }
 
-        storedConfiguration.writeConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE,Boolean.toString(false));
+        storedConfiguration.writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE,Boolean.toString(false));
         configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), PwmConstants.CLI_SESSION_LABEL);
         out("success");
     }

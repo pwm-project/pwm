@@ -37,10 +37,13 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class PwmSettingXml {
     private static final String SETTING_XML_FILENAME = (PwmSetting.class.getPackage().getName() +
-           "." + PwmSetting.class.getSimpleName()).replace(".","/") + ".xml";
+            "." + PwmSetting.class.getSimpleName()).replace(".","/") + ".xml";
 
     private static Document xmlDocCache = null;
 
@@ -107,4 +110,22 @@ public class PwmSettingXml {
         return (Element)xp.evaluateFirst(readXml());
     }
 
+    static List<PwmSettingTemplate> parseTemplateAttribute(final Element element) {
+        if (element == null) {
+            return Collections.emptyList();
+        }
+        final String templateStrValues = element.getAttributeValue("template");
+        final String[] templateSplitValues = templateStrValues == null
+                ? new String[0]
+                : templateStrValues.split(",");
+        final List<PwmSettingTemplate> definedTemplates = new ArrayList<>();
+        for (final String templateStrValue : templateSplitValues) {
+            final PwmSettingTemplate template = PwmSettingTemplate.valueOf(templateStrValue);
+            if (template != null) {
+                definedTemplates.add(template);
+            }
+        }
+        return definedTemplates;
+    }
 }
+

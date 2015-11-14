@@ -4,7 +4,9 @@ import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.ErrorInformation;
@@ -29,7 +31,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 public class ConfigAccessFilter extends AbstractPwmFilter {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigAccessFilter.class);
@@ -112,13 +117,13 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
             if (PwmApplication.MODE.RUNNING == pwmRequest.getPwmApplication().getApplicationMode()) {
                 persistentLoginValue = SecureEngine.hash(
-                        storedConfig.readConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH)
+                        storedConfig.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_PASSWORD_HASH)
                                 + pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey(),
                         PwmHashAlgorithm.SHA512);
 
             } else {
                 persistentLoginValue = SecureEngine.hash(
-                        storedConfig.readConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH),
+                        storedConfig.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_PASSWORD_HASH),
                         PwmHashAlgorithm.SHA512);
             }
 
@@ -163,22 +168,24 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                 if (storedConfig.verifyPassword(password)) {
                     passwordAccepted = true;
                     LOGGER.trace(pwmRequest, "valid configuration password accepted");
+                    updateLoginHistory(pwmRequest,pwmRequest.getUserInfoIfLoggedIn(), true);
                 } else{
                     LOGGER.trace(pwmRequest, "configuration password is not correct");
                     pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                     pwmApplication.getIntruderManager().mark(RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmSession.getLabel());
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_WRONGPASSWORD);
                     pwmRequest.setResponseError(errorInformation);
+                    updateLoginHistory(pwmRequest,pwmRequest.getUserInfoIfLoggedIn(), false);
                 }
             }
         }
 
-        final int persistentSeconds = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_PERSISTENT_LOGIN_SECONDS));
         if ((persistentLoginAccepted || passwordAccepted)) {
             configManagerBean.setPasswordVerified(true);
             pwmApplication.getIntruderManager().convenience().clearAddressAndSession(pwmSession);
             pwmApplication.getIntruderManager().clear(RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME);
             if (persistentLoginEnabled && !persistentLoginAccepted && "on".equals(pwmRequest.readParameterAsString("remember"))) {
+                final int persistentSeconds = figureMaxLoginSeconds(pwmRequest);
                 if (persistentSeconds > 0) {
                     final Date expirationDate = new Date(System.currentTimeMillis() + (persistentSeconds * 1000));
                     final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo(expirationDate, persistentLoginValue);
@@ -209,10 +216,41 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
             configManagerBean.setPrePasswordEntryUrl(pwmRequest.getHttpServletRequest().getRequestURL().toString());
         }
 
+        forwardToJsp(pwmRequest);
+        return true;
+    }
+
+    private static void forwardToJsp(final PwmRequest pwmRequest)
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final int persistentSeconds = figureMaxLoginSeconds(pwmRequest);
         final String time = new TimeDuration(persistentSeconds * 1000).asLongString(pwmRequest.getLocale());
+
+        final ConfigLoginHistory configLoginHistory = readConfigLoginHistory(pwmRequest);
+
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigLoginHistory, configLoginHistory);
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigPasswordRememberTime,time);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_LOGIN);
-        return true;
+
+    }
+
+    private static ConfigLoginHistory readConfigLoginHistory(final PwmRequest pwmRequest) {
+        ConfigLoginHistory configLoginHistory = pwmRequest.getPwmApplication().readAppAttribute(PwmApplication.AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class);
+        return configLoginHistory == null
+                ? new ConfigLoginHistory()
+                : configLoginHistory;
+    }
+
+    private static void updateLoginHistory(final PwmRequest pwmRequest, final UserIdentity userIdentity, boolean successful) {
+        final ConfigLoginHistory configLoginHistory = readConfigLoginHistory(pwmRequest);
+        final ConfigLoginEvent event = new ConfigLoginEvent(
+                userIdentity == null ? "n/a" : userIdentity.toDisplayString(),
+                new Date(),
+                pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress()
+        );
+        final int maxEvents = Integer.parseInt(pwmRequest.getPwmApplication().getConfig().readAppProperty(AppProperty.CONFIG_HISTORY_MAX_ITEMS));
+        configLoginHistory.addEvent(event, maxEvents, successful);
+        pwmRequest.getPwmApplication().writeAppAttribute(PwmApplication.AppAttribute.CONFIG_LOGIN_HISTORY, configLoginHistory);
     }
 
     private static class PersistentLoginInfo implements Serializable {
@@ -237,5 +275,58 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         {
             return password;
         }
+    }
+
+
+
+    public static class ConfigLoginHistory implements Serializable {
+        final private List<ConfigLoginEvent> successEvents = new ArrayList<>();
+        final private List<ConfigLoginEvent> failedEvents = new ArrayList<>();
+
+        void addEvent(ConfigLoginEvent event, int maxEvents, boolean successful) {
+            final List<ConfigLoginEvent> events = successful ? successEvents : failedEvents;
+            events.add(event);
+            if (maxEvents > 0) {
+                while (events.size() > maxEvents) {
+                    events.remove(0);
+                }
+            }
+        }
+
+        public List<ConfigLoginEvent> successEvents() {
+            return Collections.unmodifiableList(successEvents);
+        }
+
+        public List<ConfigLoginEvent> failedEvents() {
+            return Collections.unmodifiableList(failedEvents);
+        }
+    }
+
+    public static class ConfigLoginEvent implements Serializable {
+        final private String userIdentity;
+        final private Date date;
+        final private String networkAddress;
+
+        public ConfigLoginEvent(String userIdentity, Date date, String networkAddress) {
+            this.userIdentity = userIdentity;
+            this.date = date;
+            this.networkAddress = networkAddress;
+        }
+
+        public String getUserIdentity() {
+            return userIdentity;
+        }
+
+        public Date getDate() {
+            return date;
+        }
+
+        public String getNetworkAddress() {
+            return networkAddress;
+        }
+    }
+
+    static int figureMaxLoginSeconds(final PwmRequest pwmRequest) {
+        return Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_PERSISTENT_LOGIN_SECONDS));
     }
 }

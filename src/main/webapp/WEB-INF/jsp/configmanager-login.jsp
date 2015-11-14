@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.filter.ConfigAccessFilter" %>
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%--
@@ -44,8 +45,8 @@
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <form action="<pwm:current-url/>" method="post" id="configLogin" name="configLogin" enctype="application/x-www-form-urlencoded"
               class="pwm-form">
-            <h1>Configuration Password</h1>
             <br class="clear"/>
+            <h1>Configuration Password</h1>
             <input type="<pwm:value name="passwordFieldType"/>" class="inputfield passwordfield" name="password" id="password" <pwm:autofocus/>/>
             <div class="buttonbar">
                 <% if (!pwmRequest.getConfig().isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) { %>
@@ -63,6 +64,44 @@
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>" autofocus="autofocus"/>
             </div>
         </form>
+        <br/><br/>
+        <% final ConfigAccessFilter.ConfigLoginHistory configLoginHistory = (ConfigAccessFilter.ConfigLoginHistory)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigLoginHistory); %>
+        <% if (configLoginHistory != null && !configLoginHistory.successEvents().isEmpty()) { %>
+        <h2>Previous Authentications</h2>
+        <table>
+            <tr>
+                <td class="title">Identity</td>
+                <td class="title">Timestamp</td>
+                <td class="title">Network Address</td>
+            </tr>
+            <% for (final ConfigAccessFilter.ConfigLoginEvent event : configLoginHistory.successEvents()) { %>
+            <tr>
+                <td><%=event.getUserIdentity()%></td>
+                <td><span  class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(event.getDate())%></span></td>
+                <td><%=event.getNetworkAddress()%></td>
+            </tr>
+            <% } %>
+        </table>
+        <% } %>
+        <br/>
+        <% if (configLoginHistory != null && !configLoginHistory.failedEvents().isEmpty()) { %>
+        <h2>Previous Failed Authentications</h2>
+        <table>
+            <tr>
+                <td class="title">Identity</td>
+                <td class="title">Timestamp</td>
+                <td class="title">Network Address</td>
+            </tr>
+            <% for (final ConfigAccessFilter.ConfigLoginEvent event : configLoginHistory.failedEvents()) { %>
+            <tr>
+                <td><%=event.getUserIdentity()%></td>
+                <td><span  class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(event.getDate())%></span></td>
+                <td><%=event.getNetworkAddress()%></td>
+            </tr>
+            <% } %>
+        </table>
+        <% } %>
+
     </div>
     <div class="push"></div>
 </div>

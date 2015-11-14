@@ -148,7 +148,7 @@ public class ConfigurationReader {
             throw new PwmUnrecoverableException(errorInformation);
         }
 
-        final String configIsEditable = storedConfiguration.readConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE);
+        final String configIsEditable = storedConfiguration.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE);
         if (PwmConstants.TRIAL_MODE || (configIsEditable != null && configIsEditable.equalsIgnoreCase("true"))) {
             this.configMode = PwmApplication.MODE.CONFIGURATION;
         } else {
@@ -179,7 +179,7 @@ public class ConfigurationReader {
 
 
         { // increment the config epoch
-            String epochStrValue = storedConfiguration.readConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_CONFIG_EPOCH);
+            String epochStrValue = storedConfiguration.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_CONFIG_EPOCH);
             try {
                 final BigInteger epochValue = epochStrValue == null || epochStrValue.length() < 0 ? BigInteger.ZERO : new BigInteger(epochStrValue);
                 epochStrValue = epochValue.add(BigInteger.ONE).toString();
@@ -187,7 +187,7 @@ public class ConfigurationReader {
                 LOGGER.error(sessionLabel, "error trying to parse previous config epoch property: " + e.getMessage());
                 epochStrValue = "0";
             }
-            storedConfiguration.writeConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_CONFIG_EPOCH, epochStrValue);
+            storedConfiguration.writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_CONFIG_EPOCH, epochStrValue);
         }
 
         if (backupDirectory != null && !backupDirectory.exists()) {

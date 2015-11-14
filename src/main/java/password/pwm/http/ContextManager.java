@@ -27,6 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
+import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.ErrorInformation;
@@ -223,21 +224,21 @@ public class ContextManager implements Serializable {
         }
 
         final String saveConfigOnRestartStrValue = configReader.getStoredConfiguration().readConfigProperty(
-                StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START);
+                ConfigurationProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START);
 
         if (saveConfigOnRestartStrValue == null ||  !Boolean.parseBoolean(saveConfigOnRestartStrValue)) {
             return;
         }
 
-        LOGGER.warn("configuration file contains property \"" + StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START + "\"=true, will save configuration and set property to false.");
+        LOGGER.warn("configuration file contains property \"" + ConfigurationProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START + "\"=true, will save configuration and set property to false.");
 
         try {
             final StoredConfigurationImpl newConfig = StoredConfigurationImpl.copy(configReader.getStoredConfiguration());
-            newConfig.writeConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START, "false");
+            newConfig.writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START, "false");
             configReader.saveConfiguration(newConfig, pwmApplication, null);
             restartRequestedFlag = true;
         } catch (Exception e) {
-            LOGGER.error("error while saving configuration file commanded by property \"" + StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START + "\"=true, error: " + e.getMessage());
+            LOGGER.error("error while saving configuration file commanded by property \"" + ConfigurationProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START + "\"=true, error: " + e.getMessage());
         }
     }
 

@@ -31,6 +31,7 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.*;
+import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.*;
 import password.pwm.error.ErrorInformation;
@@ -458,7 +459,7 @@ public class Configuration implements Serializable, SettingReader {
         return returnCollection;
     }
 
-    public String readProperty(final StoredConfigurationImpl.ConfigProperty key) {
+    public String readProperty(final ConfigurationProperty key) {
         return storedConfiguration.readConfigProperty(key);
     }
 
@@ -482,7 +483,7 @@ public class Configuration implements Serializable, SettingReader {
     }
 
     public String getNotes() {
-        return storedConfiguration.readConfigProperty(StoredConfigurationImpl.ConfigProperty.PROPERTY_KEY_NOTES);
+        return storedConfiguration.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_NOTES);
     }
 
     public PwmSecurityKey getSecurityKey() throws PwmUnrecoverableException {

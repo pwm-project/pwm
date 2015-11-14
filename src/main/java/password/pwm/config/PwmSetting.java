@@ -1041,6 +1041,10 @@ public enum PwmSetting {
 
     ;
 
+    public enum PwmSettingFlag {
+
+    }
+
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmSetting.class);
 
     private final String key;
@@ -1048,7 +1052,7 @@ public enum PwmSetting {
     private final PwmSettingCategory category;
     private final Set<PwmSettingTemplate> templates;
 
-    private Map<PwmSettingTemplate, StoredValue> defaultValues;
+    private Map <StoredValue,List<PwmSettingTemplate>> defaultValues;
     private Map<PwmSettingTemplate, String> placeholder;
     private Map<String,String> options;
     private Boolean required;
@@ -1100,36 +1104,34 @@ public enum PwmSetting {
 
     // -------------------------- OTHER METHODS --------------------------
 
-    public StoredValue getDefaultValue(final PwmSettingTemplate templates)
+    public StoredValue getDefaultValue(final PwmSettingTemplate template)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         if (defaultValues == null) {
-            final Map<PwmSettingTemplate, StoredValue> returnObj = new HashMap<>();
-            for (final PwmSettingTemplate loopTemplate : PwmSettingTemplate.values()) {
-                if (this.getSyntax() == PwmSettingSyntax.PASSWORD) {
-                    returnObj.put(loopTemplate, new PasswordValue(null));
-                } else {
-                    final Element settingElement = PwmSettingXml.readSettingXml(this);
-                    final XPathFactory xpfac = XPathFactory.instance();
-                    Element defaultElement = null;
-                    if (loopTemplate != null) {
-                        XPathExpression xp = xpfac.compile("default[@template=\"" + loopTemplate.toString() + "\"]");
-                        defaultElement = (Element) xp.evaluateFirst(settingElement);
-                    }
-                    if (defaultElement == null) {
-                        XPathExpression xp = xpfac.compile("default[not(@template)]");
-                        defaultElement = (Element) xp.evaluateFirst(settingElement);
-                    }
-                    if (defaultElement == null) {
-                        throw new IllegalStateException("no default value for setting " + this.getKey());
-                    }
-                    returnObj.put(loopTemplate, ValueFactory.fromXmlValues(this, defaultElement, null));
+            final Map<StoredValue, List<PwmSettingTemplate>> returnObj = new LinkedHashMap<>();
+            final Element settingElement = PwmSettingXml.readSettingXml(this);
+            final List<Element> defaultElements = settingElement.getChildren("default");
+            if (this.getSyntax() == PwmSettingSyntax.PASSWORD) {
+                returnObj.put(new PasswordValue(null), Collections.<PwmSettingTemplate>emptyList());
+            } else {
+                for (final Element defaultElement : defaultElements) {
+                    final List<PwmSettingTemplate> definedTemplates = PwmSettingXml.parseTemplateAttribute(defaultElement);
+                    final StoredValue storedValue = ValueFactory.fromXmlValues(this, defaultElement, null);
+                    returnObj.put(storedValue, definedTemplates);
                 }
-
             }
-            defaultValues = returnObj;
+            if (returnObj.isEmpty()) {
+                throw new IllegalStateException("no default value for setting " + this.getKey());
+            }
+            defaultValues = Collections.unmodifiableMap(returnObj);
         }
-        return defaultValues.get(templates);
+        for (final StoredValue storedValue : defaultValues.keySet()) {
+            final List<PwmSettingTemplate> settingTemplateList = defaultValues.get(storedValue);
+            if (settingTemplateList.contains(template)) {
+                return storedValue;
+            }
+        }
+        return defaultValues.keySet().iterator().next(); // return top if no template matches.
     }
 
     public Map<PwmSettingTemplate, String> getDefaultValueDebugStrings(final Locale locale)
@@ -1264,8 +1266,7 @@ public enum PwmSetting {
                 }
             }
             if (pattern == null) {
-                final Pattern DEFAULT_REGEX = Pattern.compile(".*", Pattern.DOTALL);
-                pattern = DEFAULT_REGEX;
+                pattern = Pattern.compile(".*", Pattern.DOTALL);
             }
         }
         return pattern;

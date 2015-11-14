@@ -54,28 +54,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class StoredConfigurationImpl implements Serializable, StoredConfiguration {
 // ------------------------------ FIELDS ------------------------------
 
-    public enum ConfigProperty {
-        PROPERTY_KEY_CONFIG_IS_EDITABLE("configIsEditable"),
-        PROPERTY_KEY_CONFIG_EPOCH("configEpoch"),
-        PROPERTY_KEY_TEMPLATE("configTemplate"),
-        PROPERTY_KEY_NOTES("notes"),
-        PROPERTY_KEY_PASSWORD_HASH("configPasswordHash"),
-        PROPERTY_KEY_SAVE_CONFIG_ON_START("saveConfigOnStart"),
-        ;
-
-        private final String key;
-
-        private ConfigProperty(String key)
-        {
-            this.key = key;
-        }
-
-        public String getKey()
-        {
-            return key;
-        }
-    }
-
     public static class SettingMetaData implements Serializable {
         private Date modifyDate;
         private UserIdentity userIdentity;
@@ -209,14 +187,14 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     }
 
 
-    public String readConfigProperty(final ConfigProperty propertyName) {
+    public String readConfigProperty(final ConfigurationProperty propertyName) {
         final XPathExpression xp = XPathBuilder.xpathForConfigProperty(propertyName);
         final Element propertyElement = (Element)xp.evaluateFirst(document);
         return propertyElement == null ? null : propertyElement.getText();
     }
 
     public void writeConfigProperty(
-            final ConfigProperty propertyName,
+            final ConfigurationProperty propertyName,
             final String value
     ) {
         domModifyLock.writeLock().lock();
@@ -365,7 +343,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     }
 
     public PwmSettingTemplate getTemplate() {
-        final String propertyValue = readConfigProperty(ConfigProperty.PROPERTY_KEY_TEMPLATE);
+        final String propertyValue = readConfigProperty(ConfigurationProperty.PROPERTY_KEY_TEMPLATE);
         try {
             return PwmSettingTemplate.valueOf(propertyValue);
         } catch (IllegalArgumentException e) {
@@ -376,7 +354,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     }
 
     public void setTemplate(PwmSettingTemplate template) {
-        writeConfigProperty(ConfigProperty.PROPERTY_KEY_TEMPLATE, template.toString());
+        writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_TEMPLATE, template.toString());
     }
 
     public String toString(final PwmSetting setting, final String profileID ) {
@@ -913,19 +891,19 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
         final String salt = BCrypt.gensalt();
         final String passwordHash = BCrypt.hashpw(password,salt);
-        this.writeConfigProperty(ConfigProperty.PROPERTY_KEY_PASSWORD_HASH, passwordHash);
+        this.writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_PASSWORD_HASH, passwordHash);
     }
 
     public boolean verifyPassword(final String password) {
         if (!hasPassword()) {
             return false;
         }
-        final String passwordHash = this.readConfigProperty(ConfigProperty.PROPERTY_KEY_PASSWORD_HASH);
+        final String passwordHash = this.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_PASSWORD_HASH);
         return BCrypt.checkpw(password,passwordHash);
     }
 
     public boolean hasPassword() {
-        final String passwordHash = this.readConfigProperty(ConfigProperty.PROPERTY_KEY_PASSWORD_HASH);
+        final String passwordHash = this.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_PASSWORD_HASH);
         return passwordHash != null && passwordHash.length() > 0;
     }
 
@@ -964,7 +942,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             return xpfac.compile(xpathString);
         }
 
-        private static XPathExpression xpathForConfigProperty(final ConfigProperty configProperty) {
+        private static XPathExpression xpathForConfigProperty(final ConfigurationProperty configProperty) {
             final XPathFactory xpfac = XPathFactory.instance();
             final String xpathString;
             xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\"]/"
