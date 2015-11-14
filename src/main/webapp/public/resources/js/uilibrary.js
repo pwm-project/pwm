@@ -26,6 +26,7 @@ var UILibrary = {};
 UILibrary.stringEditorDialog = function(options){
     options = options === undefined ? {} : options;
     var title = 'title' in options ? options['title'] : 'Edit Value';
+    var instructions = 'instructions' in options ? options['instructions'] : null;
     var completeFunction = 'completeFunction' in options ? options['completeFunction'] : function() {alert('no string editor dialog complete function')};
     var regexString = 'regex' in options && options['regex'] ? options['regex'] : '.+';
     var initialValue = 'value' in options ? options['value'] : '';
@@ -36,6 +37,11 @@ UILibrary.stringEditorDialog = function(options){
     var text = '';
     text += '<div style="visibility: hidden;" id="panel-valueWarning"><span class="fa fa-warning message-error"></span>&nbsp;' + PWM_CONFIG.showString('Warning_ValueIncorrectFormat') + '</div>';
     text += '<br/>';
+
+    if (instructions != null) {
+        text += '<div id="panel-valueInstructions">&nbsp;' + options['instructions'] + '</div>';
+        text += '<br/>';
+    }
 
     if (textarea) {
         text += '<textarea style="max-width: 480px; width: 480px; height:300px; max-height:300px; overflow-y: auto" class="configStringInput" autofocus required id="addValueDialog_input"></textarea>';

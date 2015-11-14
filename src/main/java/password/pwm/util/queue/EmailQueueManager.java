@@ -49,6 +49,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Transport;
 import javax.mail.internet.*;
+
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
@@ -165,7 +166,7 @@ public class
 
         // create a new MimeMessage object (using the Session created above)
         try {
-            final Message message = convertEmailItemToMessage(emailItemBean, this.pwmApplication.getConfig());
+            final List<Message> messages = convertEmailItemToMessages(emailItemBean, this.pwmApplication.getConfig());
             final String mailuser = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_USERNAME);
             final PasswordData mailpassword = this.pwmApplication.getConfig().readSettingAsPassword(PwmSetting.EMAIL_PASSWORD);
 
@@ -174,7 +175,10 @@ public class
             if (mailuser == null || mailuser.length() < 1 || mailpassword == null) {
 
                 logText = "plaintext";
-                Transport.send(message);
+
+                for (Message message : messages) {
+                    Transport.send(message);
+                }
             } else {
                 // create a new Session object for the message
                 final javax.mail.Session session = javax.mail.Session.getInstance(javaMailProps, null);
@@ -184,8 +188,12 @@ public class
 
                 final Transport tr = session.getTransport("smtp");
                 tr.connect(mailhost, mailport, mailuser, mailpassword.getStringValue());
-                message.saveChanges();
-                tr.sendMessage(message, message.getAllRecipients());
+
+                for (Message message : messages) {
+                    message.saveChanges();
+                    tr.sendMessage(message, message.getAllRecipients());
+                }
+
                 tr.close();
                 logText = "authenticated ";
             }
@@ -213,45 +221,52 @@ public class
         return Collections.singletonList(HealthRecord.forMessage(HealthMessage.Email_SendFailure, failureInfo.getErrorInformation().toDebugStr()));
     }
 
-    private Message convertEmailItemToMessage(final EmailItemBean emailItemBean, final Configuration config)
-            throws MessagingException {
+    protected List<Message> convertEmailItemToMessages(final EmailItemBean emailItemBean, final Configuration config) throws MessagingException {
+        final List<Message> messages = new ArrayList<>();
         final boolean hasPlainText = emailItemBean.getBodyPlain() != null && emailItemBean.getBodyPlain().length() > 0;
         final boolean hasHtml = emailItemBean.getBodyHtml() != null && emailItemBean.getBodyHtml().length() > 0;
-
+        final String subjectEncodingCharset = config.readAppProperty(AppProperty.SMTP_SUBJECT_ENCODING_CHARSET);
 
         // create a new Session object for the message
         final javax.mail.Session session = javax.mail.Session.getInstance(javaMailProps, null);
 
-        final MimeMessage message = new MimeMessage(session);
-        message.setFrom();
-        message.setFrom(makeInternetAddress(emailItemBean.getFrom()));
-        message.setRecipients(Message.RecipientType.TO, new InternetAddress[]{makeInternetAddress(emailItemBean.getTo())});
-        {
-            final String subjectEncodingCharset = pwmApplication.getConfig().readAppProperty(AppProperty.SMTP_SUBJECT_ENCODING_CHARSET);
-            if (subjectEncodingCharset != null && !subjectEncodingCharset.isEmpty()) {
-                message.setSubject(emailItemBean.getSubject(), subjectEncodingCharset);
-            } else {
-                message.setSubject(emailItemBean.getSubject());
+        String emailTo = emailItemBean.getTo();
+        if (emailTo != null) {
+            InternetAddress[] recipients = InternetAddress.parse(emailTo);
+            for (InternetAddress recipient : recipients) {
+                final MimeMessage message = new MimeMessage(session);
+                message.setFrom();
+                message.setFrom(makeInternetAddress(emailItemBean.getFrom()));
+                message.setRecipient(Message.RecipientType.TO, recipient);
+                {
+                    if (subjectEncodingCharset != null && !subjectEncodingCharset.isEmpty()) {
+                        message.setSubject(emailItemBean.getSubject(), subjectEncodingCharset);
+                    } else {
+                        message.setSubject(emailItemBean.getSubject());
+                    }
+                }
+                message.setSentDate(new Date());
+
+                if (hasPlainText && hasHtml) {
+                    final MimeMultipart content = new MimeMultipart("alternative");
+                    final MimeBodyPart text = new MimeBodyPart();
+                    final MimeBodyPart html = new MimeBodyPart();
+                    text.setContent(emailItemBean.getBodyPlain(), PwmConstants.ContentTypeValue.plain.getHeaderValue());
+                    html.setContent(emailItemBean.getBodyHtml(), PwmConstants.ContentTypeValue.html.getHeaderValue());
+                    content.addBodyPart(text);
+                    content.addBodyPart(html);
+                    message.setContent(content);
+                } else if (hasPlainText) {
+                    message.setContent(emailItemBean.getBodyPlain(), PwmConstants.ContentTypeValue.plain.getHeaderValue());
+                } else if (hasHtml) {
+                    message.setContent(emailItemBean.getBodyHtml(), PwmConstants.ContentTypeValue.html.getHeaderValue());
+                }
+
+                messages.add(message);
             }
         }
-        message.setSentDate(new Date());
 
-        if (hasPlainText && hasHtml) {
-            final MimeMultipart content = new MimeMultipart("alternative");
-            final MimeBodyPart text = new MimeBodyPart();
-            final MimeBodyPart html = new MimeBodyPart();
-            text.setContent(emailItemBean.getBodyPlain(), PwmConstants.ContentTypeValue.plain.getHeaderValue());
-            html.setContent(emailItemBean.getBodyHtml(), PwmConstants.ContentTypeValue.html.getHeaderValue());
-            content.addBodyPart(text);
-            content.addBodyPart(html);
-            message.setContent(content);
-        } else if (hasPlainText) {
-            message.setContent(emailItemBean.getBodyPlain(), PwmConstants.ContentTypeValue.plain.getHeaderValue());
-        } else if (hasHtml) {
-            message.setContent(emailItemBean.getBodyHtml(), PwmConstants.ContentTypeValue.html.getHeaderValue());
-        }
-
-        return message;
+        return messages;
     }
 
     protected static Properties makeJavaMailProps(final Configuration config) {
