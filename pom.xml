@@ -20,12 +20,6 @@
 
     <profiles>
         <profile>
-            <id>codeship</id>
-            <build>
-                <finalName>${timestamp.iso}-${project.artifactId}-${project.version}</finalName>
-            </build>
-        </profile>
-        <profile>
             <id>doclint-java8-disable</id>
             <activation>
                 <jdk>[1.8,)</jdk>
@@ -36,7 +30,7 @@
         </profile>
         <profile>
             <!-- Builds a zip file containing the built war file, along with the supplemental directory -->
-            <id>release</id>
+            <id>release-bundle</id>
             <build>
                 <plugins>
                     <plugin>
@@ -47,6 +41,7 @@
                             <descriptors>
                                 <descriptor>src/assembly/pwm.xml</descriptor>
                             </descriptors>
+                            <finalName>${project.build.finalName}-${timestamp.iso}</finalName>
                         </configuration>
                         <executions>
                             <execution>
