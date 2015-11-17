@@ -22,10 +22,15 @@
 
 package password.pwm.util.secure;
 
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.*;
-import org.bouncycastle.jce.X509Principal;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.x509.X509V3CertificateGenerator;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -147,7 +152,7 @@ public class HttpsServerCertificateManager {
     }
 
 
-    private static class SelfCertGenerator {
+    public static class SelfCertGenerator {
         private final Configuration config;
 
         public SelfCertGenerator(Configuration config) {
@@ -216,36 +221,39 @@ public class HttpsServerCertificateManager {
 
             LOGGER.debug("creating self-signed certificate with cn of " + cnName);
             final KeyPair keyPair = generateRSAKeyPair(config);
-            final X509Certificate certificate = generateV3Certificate(keyPair, cnName, config);
+            final long futureSeconds = Long.parseLong(config.readAppProperty(AppProperty.SECURITY_HTTPSSERVER_SELF_FUTURESECONDS));
+            final X509Certificate certificate = generateV3Certificate(keyPair, cnName, futureSeconds);
             return new StoredCertData(certificate, keyPair);
         }
 
 
-        static X509Certificate generateV3Certificate(final KeyPair pair, final String cnValue, final Configuration config)
+        public static X509Certificate generateV3Certificate(final KeyPair pair, final String cnValue, final long futureSeconds)
                 throws Exception
         {
+            X500NameBuilder subjectName = new X500NameBuilder(BCStyle.INSTANCE);
+            subjectName.addRDN(BCStyle.CN, cnValue);
 
-            X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddhhmmss");
+            String serNumStr = formatter.format(new Date(System.currentTimeMillis()));
+            BigInteger serialNumber = new BigInteger(serNumStr);
 
-            final X509Principal x509Principal = new X509Principal("CN=" + cnValue);
-            certGen.setSerialNumber(new BigInteger(new SimpleDateFormat("yyyyMMddhhmmss").format(new Date())));
-            certGen.setIssuerDN(x509Principal);
-            certGen.setNotBefore(new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1)));
-            {
-                final long futureSeconds = Long.parseLong(config.readAppProperty(AppProperty.SECURITY_HTTPSSERVER_SELF_FUTURESECONDS));
-                certGen.setNotAfter(new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(futureSeconds)));
-            }
-            certGen.setSubjectDN(x509Principal);
-            certGen.setPublicKey(pair.getPublic());
-            certGen.setSignatureAlgorithm("SHA256WithRSAEncryption");
+            Date notBefore = new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(2)); // 2 days in the past
+            Date notAfter = new Date(System.currentTimeMillis() + futureSeconds);
 
-            certGen.addExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(false));
-            certGen.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.digitalSignature
-                    | KeyUsage.keyEncipherment));
-            certGen.addExtension(X509Extensions.ExtendedKeyUsage, true, new ExtendedKeyUsage(
-                    KeyPurposeId.id_kp_serverAuth));
+            X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(subjectName.build(), serialNumber, notBefore, notAfter, subjectName.build(), pair.getPublic());
 
-            return certGen.generateX509Certificate(pair.getPrivate(), "BC");
+            BasicConstraints basic = new BasicConstraints(false); // not a CA
+            certGen.addExtension(Extension.basicConstraints, true, basic.getEncoded()); // OID, critical, ASN.1 encoded value
+
+            KeyUsage keyUsage = new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment); // sign and key encipher
+            certGen.addExtension(Extension.keyUsage, true, keyUsage.getEncoded()); // OID, critical, ASN.1 encoded value
+
+            ExtendedKeyUsage extKeyUsage = new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth); // server authentication
+            certGen.addExtension(Extension.extendedKeyUsage, true, extKeyUsage.getEncoded()); // OID, critical, ASN.1 encoded value
+
+            ContentSigner sigGen = new JcaContentSignerBuilder("SHA256WithRSAEncryption").setProvider("BC").build(pair.getPrivate());
+
+            return new JcaX509CertificateConverter().setProvider("BC").getCertificate(certGen.build(sigGen));
         }
 
         static KeyPair generateRSAKeyPair(final Configuration config)
