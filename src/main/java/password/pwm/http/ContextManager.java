@@ -224,21 +224,21 @@ public class ContextManager implements Serializable {
         }
 
         final String saveConfigOnRestartStrValue = configReader.getStoredConfiguration().readConfigProperty(
-                ConfigurationProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START);
+                ConfigurationProperty.CONFIG_ON_START);
 
         if (saveConfigOnRestartStrValue == null ||  !Boolean.parseBoolean(saveConfigOnRestartStrValue)) {
             return;
         }
 
-        LOGGER.warn("configuration file contains property \"" + ConfigurationProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START + "\"=true, will save configuration and set property to false.");
+        LOGGER.warn("configuration file contains property \"" + ConfigurationProperty.CONFIG_ON_START + "\"=true, will save configuration and set property to false.");
 
         try {
             final StoredConfigurationImpl newConfig = StoredConfigurationImpl.copy(configReader.getStoredConfiguration());
-            newConfig.writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START, "false");
+            newConfig.writeConfigProperty(ConfigurationProperty.CONFIG_ON_START, "false");
             configReader.saveConfiguration(newConfig, pwmApplication, null);
             restartRequestedFlag = true;
         } catch (Exception e) {
-            LOGGER.error("error while saving configuration file commanded by property \"" + ConfigurationProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START + "\"=true, error: " + e.getMessage());
+            LOGGER.error("error while saving configuration file commanded by property \"" + ConfigurationProperty.CONFIG_ON_START + "\"=true, error: " + e.getMessage());
         }
     }
 

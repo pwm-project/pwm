@@ -54,41 +54,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class StoredConfigurationImpl implements Serializable, StoredConfiguration {
 // ------------------------------ FIELDS ------------------------------
 
-    public static class SettingMetaData implements Serializable {
-        private Date modifyDate;
-        private UserIdentity userIdentity;
-
-        public Date getModifyDate()
-        {
-            return modifyDate;
-        }
-
-        public UserIdentity getUserIdentity()
-        {
-            return userIdentity;
-        }
-    }
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(StoredConfigurationImpl.class);
     private static final String XML_FORMAT_VERSION = "4";
-
-    public static final String XML_ELEMENT_ROOT = "PwmConfiguration";
-    public static final String XML_ELEMENT_PROPERTIES = "properties";
-    public static final String XML_ELEMENT_PROPERTY = "property";
-    public static final String XML_ELEMENT_SETTINGS = "settings";
-    public static final String XML_ELEMENT_SETTING = "setting";
-    public static final String XML_ELEMENT_DEFAULT = "default";
-
-    public static final String XML_ATTRIBUTE_TYPE = "type";
-    public static final String XML_ATTRIBUTE_KEY = "key";
-    public static final String XML_ATTRIBUTE_SYNTAX = "syntax";
-    public static final String XML_ATTRIBUTE_PROFILE = "profile";
-    public static final String XML_ATTRIBUTE_VALUE_APP = "app";
-    public static final String XML_ATTRIBUTE_VALUE_CONFIG = "config";
-    public static final String XML_ATTRIBUTE_CREATE_TIME = "createTime";
-    public static final String XML_ATTRIBUTE_MODIFY_TIME = "modifyTime";
-    public static final String XML_ATTRIBUTE_MODIFY_USER = "modifyUser";
-    public static final String XML_ATTRIBUTE_SYNTAX_VERSION = "syntaxVersion";
 
     private Document document = new Document(new Element(XML_ELEMENT_ROOT));
     private ChangeLog changeLog = new ChangeLog();
@@ -187,12 +154,14 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     }
 
 
+    @Override
     public String readConfigProperty(final ConfigurationProperty propertyName) {
         final XPathExpression xp = XPathBuilder.xpathForConfigProperty(propertyName);
         final Element propertyElement = (Element)xp.evaluateFirst(document);
         return propertyElement == null ? null : propertyElement.getText();
     }
 
+    @Override
     public void writeConfigProperty(
             final ConfigurationProperty propertyName,
             final String value
@@ -262,7 +231,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             if (settingValueRecord.getStoredValue() != null) {
                 recordMap.put("value", settingValueRecord.getStoredValue().toDebugString(locale));
             }
-            final SettingMetaData settingMetaData = readSettingMetadata(settingValueRecord.getSetting(), settingValueRecord.getProfile());
+            final ValueMetaData settingMetaData = readSettingMetadata(settingValueRecord.getSetting(), settingValueRecord.getProfile());
             if (settingMetaData != null) {
                 if (settingMetaData.getModifyDate() != null) {
                     recordMap.put("modifyTime", PwmConstants.DEFAULT_DATETIME_FORMAT.format(settingMetaData.getModifyDate()));
@@ -343,7 +312,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     }
 
     public PwmSettingTemplate getTemplate() {
-        final String propertyValue = readConfigProperty(ConfigurationProperty.PROPERTY_KEY_TEMPLATE);
+        final String propertyValue = readConfigProperty(ConfigurationProperty.LDAP_TEMPLATE);
         try {
             return PwmSettingTemplate.valueOf(propertyValue);
         } catch (IllegalArgumentException e) {
@@ -354,7 +323,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     }
 
     public void setTemplate(PwmSettingTemplate template) {
-        writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_TEMPLATE, template.toString());
+        writeConfigProperty(ConfigurationProperty.LDAP_TEMPLATE, template.toString());
     }
 
     public String toString(final PwmSetting setting, final String profileID ) {
@@ -454,27 +423,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     }
 
     public List<String> profilesForSetting(final PwmSetting pwmSetting) {
-        if (!pwmSetting.getCategory().hasProfiles() && pwmSetting.getSyntax() != PwmSettingSyntax.PROFILE) {
-            throw new IllegalArgumentException("cannot build profile list for non-profile setting " + pwmSetting.toString());
-        }
-
-        final PwmSetting profileSetting;
-        if (pwmSetting.getSyntax() == PwmSettingSyntax.PROFILE) {
-            profileSetting = pwmSetting;
-        } else {
-            profileSetting = pwmSetting.getCategory().getProfileSetting();
-        }
-
-        final List<String> settingValues = (List<String>)readSetting(profileSetting).toNativeObject();
-        final LinkedList<String> profiles = new LinkedList<>();
-        profiles.addAll(settingValues);
-        for (Iterator<String> iterator = profiles.iterator(); iterator.hasNext();) {
-            final String profile = iterator.next();
-            if (profile == null || profile.length() < 1) {
-                iterator.remove();
-            }
-        }
-        return Collections.unmodifiableList(profiles);
+        return StoredConfigurationUtil.profilesForSetting(pwmSetting, this);
     }
 
     public List<String> validateValues() {
@@ -514,7 +463,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         return errorStrings;
     }
 
-    public SettingMetaData readSettingMetadata(final PwmSetting setting, final String profileID) {
+    public ValueMetaData readSettingMetadata(final PwmSetting setting, final String profileID) {
         final XPathExpression xp = XPathBuilder.xpathForSetting(setting, profileID);
         final Element settingElement = (Element)xp.evaluateFirst(document);
 
@@ -522,24 +471,27 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             return null;
         }
 
-        final SettingMetaData metaData = new SettingMetaData();
+        Date modifyDate = null;
         try {
             if (settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME) != null) {
-                metaData.modifyDate = PwmConstants.DEFAULT_DATETIME_FORMAT.parse(
+                modifyDate = PwmConstants.DEFAULT_DATETIME_FORMAT.parse(
                         settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME));
             }
         } catch (Exception e) {
             LOGGER.error("can't read modifyDate for setting " + setting.getKey() + ", profile " + profileID + ", error: " + e.getMessage());
         }
+
+        UserIdentity userIdentity = null;
         try {
             if (settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_USER) != null) {
-                metaData.userIdentity = UserIdentity.fromDelimitedKey(
+                userIdentity = UserIdentity.fromDelimitedKey(
                         settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_USER));
             }
         } catch (Exception e) {
             LOGGER.error("can't read userIdentity for setting " + setting.getKey() + ", profile " + profileID + ", error: " + e.getMessage());
         }
-        return metaData;
+
+        return new ValueMetaData(modifyDate, userIdentity);
     }
 
     public List<ConfigRecordID> search(final String searchTerm, final Locale locale) {
@@ -891,19 +843,19 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
         final String salt = BCrypt.gensalt();
         final String passwordHash = BCrypt.hashpw(password,salt);
-        this.writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_PASSWORD_HASH, passwordHash);
+        this.writeConfigProperty(ConfigurationProperty.PASSWORD_HASH, passwordHash);
     }
 
     public boolean verifyPassword(final String password) {
         if (!hasPassword()) {
             return false;
         }
-        final String passwordHash = this.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_PASSWORD_HASH);
+        final String passwordHash = this.readConfigProperty(ConfigurationProperty.PASSWORD_HASH);
         return BCrypt.checkpw(password,passwordHash);
     }
 
     public boolean hasPassword() {
-        final String passwordHash = this.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_PASSWORD_HASH);
+        final String passwordHash = this.readConfigProperty(ConfigurationProperty.PASSWORD_HASH);
         return passwordHash != null && passwordHash.length() > 0;
     }
 
@@ -1506,6 +1458,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         return createTimeString;
     }
 
+    @Override
     public Date modifyTime() {
         final Element rootElement = document.getRootElement();
         final String modifyTimeString = rootElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME);
@@ -1535,4 +1488,9 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         LOGGER.debug("initialized new random security key");
     }
 
+
+    @Override
+    public boolean isLocked() {
+        return locked;
+    }
 }

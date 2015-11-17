@@ -24,26 +24,20 @@
 package password.pwm.config.stored;
 
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.StoredValue;
 
-import java.io.Serializable;
-import java.util.Date;
+interface StorageEngine {
+    StoredValue read(StoredConfigReference storedConfigReference);
 
-public class ValueMetaData implements Serializable {
-    private Date modifyDate;
-    private UserIdentity userIdentity;
+    void write(StoredConfigReference storedConfigReference, StoredValue value, UserIdentity userIdentity);
 
-    public ValueMetaData(Date modifyDate, UserIdentity userIdentity) {
-        this.modifyDate = modifyDate;
-        this.userIdentity = userIdentity;
-    }
+    void reset(StoredConfigReference storedConfigReference, UserIdentity userIdentity);
 
-    public Date getModifyDate()
-    {
-        return modifyDate;
-    }
+    boolean isWriteLocked();
 
-    public UserIdentity getUserIdentity()
-    {
-        return userIdentity;
-    }
+    void writeLock();
+
+    ValueMetaData readMetaData(StoredConfigReference storedConfigReference);
+
+    ConfigChangeLog changeLog();
 }

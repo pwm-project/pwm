@@ -23,27 +23,19 @@
 
 package password.pwm.config.stored;
 
-import password.pwm.bean.UserIdentity;
+import password.pwm.config.StoredValue;
 
-import java.io.Serializable;
-import java.util.Date;
+import java.util.Collection;
+import java.util.Locale;
 
-public class ValueMetaData implements Serializable {
-    private Date modifyDate;
-    private UserIdentity userIdentity;
+public interface ConfigChangeLog {
+    boolean isModified();
 
-    public ValueMetaData(Date modifyDate, UserIdentity userIdentity) {
-        this.modifyDate = modifyDate;
-        this.userIdentity = userIdentity;
-    }
+    String changeLogAsDebugString(Locale locale, boolean asHtml);
 
-    public Date getModifyDate()
-    {
-        return modifyDate;
-    }
+    void updateChangeLog(StoredConfigReference reference, StoredValue newValue);
 
-    public UserIdentity getUserIdentity()
-    {
-        return userIdentity;
-    }
+    public void updateChangeLog(final StoredConfigReference reference, final StoredValue currentValue, final StoredValue newValue);
+
+    public Collection<StoredConfigReference> changedValues();
 }

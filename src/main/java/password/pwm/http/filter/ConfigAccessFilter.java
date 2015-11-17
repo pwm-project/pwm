@@ -117,13 +117,13 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
             if (PwmApplication.MODE.RUNNING == pwmRequest.getPwmApplication().getApplicationMode()) {
                 persistentLoginValue = SecureEngine.hash(
-                        storedConfig.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_PASSWORD_HASH)
+                        storedConfig.readConfigProperty(ConfigurationProperty.PASSWORD_HASH)
                                 + pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey(),
                         PwmHashAlgorithm.SHA512);
 
             } else {
                 persistentLoginValue = SecureEngine.hash(
-                        storedConfig.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_PASSWORD_HASH),
+                        storedConfig.readConfigProperty(ConfigurationProperty.PASSWORD_HASH),
                         PwmHashAlgorithm.SHA512);
             }
 

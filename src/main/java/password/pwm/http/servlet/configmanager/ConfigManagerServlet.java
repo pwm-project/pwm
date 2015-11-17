@@ -251,7 +251,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
                 return;
             }
 
-            storedConfiguration.writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
+            storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE, "false");
             saveConfiguration(pwmRequest, storedConfiguration);
             final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
             configManagerBean.setConfiguration(null);

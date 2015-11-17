@@ -30,6 +30,7 @@ import password.pwm.config.*;
 import password.pwm.config.function.HttpsCertParseFunction;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.ValueMetaData;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.config.value.X509CertificateValue;
@@ -372,7 +373,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 returnMap.put("options", theSetting.getOptions());
             }
             {
-                final StoredConfigurationImpl.SettingMetaData settingMetaData = storedConfig.readSettingMetadata(theSetting, profile);
+                final ValueMetaData settingMetaData = storedConfig.readSettingMetadata(theSetting, profile);
                 if (settingMetaData != null) {
                     if (settingMetaData.getModifyDate() != null) {
                         returnMap.put("modifyTime", settingMetaData.getModifyDate());
@@ -532,7 +533,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 try {
                     final String bodyString = pwmRequest.readRequestBodyAsString();
                     final String value = JsonUtil.deserialize(bodyString, String.class);
-                    configManagerBean.getStoredConfiguration().writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_NOTES,
+                    configManagerBean.getStoredConfiguration().writeConfigProperty(ConfigurationProperty.NOTES,
                             value);
                     LOGGER.trace("updated notesText");
                 } catch (Exception e) {
@@ -545,11 +546,11 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                     try {
                         final PwmSettingTemplate template = PwmSettingTemplate.valueOf(requestedTemplate);
                         configManagerBean.getStoredConfiguration().writeConfigProperty(
-                                ConfigurationProperty.PROPERTY_KEY_TEMPLATE, template.toString());
+                                ConfigurationProperty.LDAP_TEMPLATE, template.toString());
                         LOGGER.trace("setting template to: " + requestedTemplate);
                     } catch (IllegalArgumentException e) {
                         configManagerBean.getStoredConfiguration().writeConfigProperty(
-                                ConfigurationProperty.PROPERTY_KEY_TEMPLATE, PwmSettingTemplate.DEFAULT.toString());
+                                ConfigurationProperty.LDAP_TEMPLATE, PwmSettingTemplate.DEFAULT.toString());
                         LOGGER.error("unknown template set request: " + requestedTemplate);
                     }
                 }
@@ -1072,7 +1073,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                     configManagerBean.setConfigUnlockedWarningShown(true);
                 }
             }
-            varMap.put("configurationNotes", configManagerBean.getStoredConfiguration().readConfigProperty(ConfigurationProperty.PROPERTY_KEY_NOTES));
+            varMap.put("configurationNotes", configManagerBean.getStoredConfiguration().readConfigProperty(ConfigurationProperty.NOTES));
             returnMap.put("var", varMap);
         }
 

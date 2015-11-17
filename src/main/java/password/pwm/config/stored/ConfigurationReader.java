@@ -111,14 +111,6 @@ public class ConfigurationReader {
             return null;
         }
 
-        try {
-            //InputStream is = new FileInputStream(configFile);
-            //StoredConfiguration sg = new NGStoredConfiguration().fromXml(is);
-            //System.out.print(sg);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         final InputStream theFileData;
         try {
             final byte[] contents = FileUtils.readFileToByteArray(configFile);
@@ -133,6 +125,7 @@ public class ConfigurationReader {
         final StoredConfigurationImpl storedConfiguration;
         try {
             storedConfiguration = StoredConfigurationImpl.fromXml(theFileData);
+            //restoredConfiguration = (new NGStoredConfigurationFactory()).fromXml(theFileData);
         } catch (PwmUnrecoverableException e) {
             final String errorMsg = "unable to parse configuration file: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{errorMsg});
@@ -148,7 +141,7 @@ public class ConfigurationReader {
             throw new PwmUnrecoverableException(errorInformation);
         }
 
-        final String configIsEditable = storedConfiguration.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE);
+        final String configIsEditable = storedConfiguration.readConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE);
         if (PwmConstants.TRIAL_MODE || (configIsEditable != null && configIsEditable.equalsIgnoreCase("true"))) {
             this.configMode = PwmApplication.MODE.CONFIGURATION;
         } else {
@@ -179,7 +172,7 @@ public class ConfigurationReader {
 
 
         { // increment the config epoch
-            String epochStrValue = storedConfiguration.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_CONFIG_EPOCH);
+            String epochStrValue = storedConfiguration.readConfigProperty(ConfigurationProperty.CONFIG_EPOCH);
             try {
                 final BigInteger epochValue = epochStrValue == null || epochStrValue.length() < 0 ? BigInteger.ZERO : new BigInteger(epochStrValue);
                 epochStrValue = epochValue.add(BigInteger.ONE).toString();
@@ -187,7 +180,7 @@ public class ConfigurationReader {
                 LOGGER.error(sessionLabel, "error trying to parse previous config epoch property: " + e.getMessage());
                 epochStrValue = "0";
             }
-            storedConfiguration.writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_CONFIG_EPOCH, epochStrValue);
+            storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_EPOCH, epochStrValue);
         }
 
         if (backupDirectory != null && !backupDirectory.exists()) {

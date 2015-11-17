@@ -33,12 +33,12 @@ public class ConfigLockCommand extends AbstractCliCommand {
     {
         final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
         final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
-        if (!Boolean.parseBoolean(storedConfiguration.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE))) {
+        if (!Boolean.parseBoolean(storedConfiguration.readConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE))) {
             out("configuration is already locked");
             return;
         }
 
-        storedConfiguration.writeConfigProperty(ConfigurationProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE,Boolean.toString(false));
+        storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE,Boolean.toString(false));
         configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), PwmConstants.CLI_SESSION_LABEL);
         out("success");
     }

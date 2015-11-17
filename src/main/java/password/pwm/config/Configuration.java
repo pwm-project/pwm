@@ -33,6 +33,7 @@ import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.*;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -71,7 +72,7 @@ public class Configuration implements Serializable, SettingReader {
     public String toDebugString() {
         final StringBuilder outputText = new StringBuilder();
         outputText.append("  ");
-        outputText.append(JsonUtil.serialize(storedConfiguration.toJsonDebugObject()));
+        outputText.append(JsonUtil.serialize(StoredConfigurationUtil.toJsonDebugObject(storedConfiguration)));
         return outputText.toString().replaceAll("\n","\n  ");
     }
 
@@ -90,7 +91,7 @@ public class Configuration implements Serializable, SettingReader {
             return dataCache.ldapProfiles;
         }
 
-        final List<String> profiles = storedConfiguration.profilesForSetting(PwmSetting.LDAP_PROFILE_LIST);
+        final List<String> profiles = StoredConfigurationUtil.profilesForSetting(PwmSetting.LDAP_PROFILE_LIST, storedConfiguration);
         final LinkedHashMap<String,LdapProfile> returnList = new LinkedHashMap<>();
         for (final String profileID : profiles) {
             final LdapProfile ldapProfile = LdapProfile.makeFromStoredConfiguration(this.storedConfiguration, profileID);
@@ -335,7 +336,7 @@ public class Configuration implements Serializable, SettingReader {
     }
 
     public List<String> getChallengeProfileIDs() {
-        return storedConfiguration.profilesForSetting(PwmSetting.CHALLENGE_PROFILE_LIST);
+        return StoredConfigurationUtil.profilesForSetting(PwmSetting.CHALLENGE_PROFILE_LIST, storedConfiguration);
     }
 
     public ChallengeProfile getChallengeProfile(final String profile, final Locale locale) {
@@ -368,7 +369,7 @@ public class Configuration implements Serializable, SettingReader {
     }
 
     public List<String> getPasswordProfileIDs() {
-        return storedConfiguration.profilesForSetting(PwmSetting.PASSWORD_PROFILE_LIST);
+        return StoredConfigurationUtil.profilesForSetting(PwmSetting.PASSWORD_PROFILE_LIST, storedConfiguration);
     }
 
     protected PwmPasswordPolicy initPasswordPolicy(final String profile, final Locale locale)
@@ -483,7 +484,7 @@ public class Configuration implements Serializable, SettingReader {
     }
 
     public String getNotes() {
-        return storedConfiguration.readConfigProperty(ConfigurationProperty.PROPERTY_KEY_NOTES);
+        return storedConfiguration.readConfigProperty(ConfigurationProperty.NOTES);
     }
 
     public PwmSecurityKey getSecurityKey() throws PwmUnrecoverableException {

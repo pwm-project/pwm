@@ -1,45 +1,47 @@
 package password.pwm.config.stored;
 
+import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredValue;
 import password.pwm.config.value.StringValue;
-import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmSecurityKey;
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-class NGStoredConfiguration {
+class NGStoredConfiguration implements StoredConfiguration {
     final static private PwmLogger LOGGER = PwmLogger.forClass(NGStoredConfiguration.class);
+    private final PwmSecurityKey configurationSecurityKey;
+    private final StorageEngine engine;
 
-    final private Engine engine = new Engine();
-
-    NGStoredConfiguration(Map<StoredConfigReference, ValueWrapper> values) {
-        engine.values.putAll(values);
+    NGStoredConfiguration(
+            final Map<StoredConfigReference, StoredValue> values,
+            final Map<StoredConfigReference, ValueMetaData> metaValues,
+            final PwmSecurityKey pwmSecurityKey)
+    {
+        engine = new NGStorageEngineImpl(values, metaValues);
+        configurationSecurityKey = pwmSecurityKey;
     }
 
-    private String readProperty(final ConfigurationProperty configurationProperty) {
+    public String readConfigProperty(final ConfigurationProperty configurationProperty) {
         StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.PROPERTY,
                 configurationProperty.getKey(),
                 null
         );
-        final ValueWrapper valueWrapper = engine.read(storedConfigReference);
-        if (valueWrapper != null) {
-            final StoredValue storedValue = valueWrapper.getStoredValue();
-            if (storedValue == null | !(storedValue instanceof StringValue)) {
-                return null;
-            }
-            return (String) storedValue.toNativeObject();
+        final StoredValue storedValue = engine.read(storedConfigReference);
+        if (storedValue == null | !(storedValue instanceof StringValue)) {
+            return null;
         }
-        return null;
+        return (String) storedValue.toNativeObject();
     }
 
-    private void writeProperty(final ConfigurationProperty configurationProperty, final String value, final UserIdentity userIdentity)
-            throws PwmOperationalException
+    public void writeConfigProperty(final ConfigurationProperty configurationProperty, final String value)
     {
         StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.PROPERTY,
@@ -47,10 +49,10 @@ class NGStoredConfiguration {
                 null
         );
         final StoredValue storedValue = new StringValue(value);
-        engine.write(storedConfigReference, storedValue, userIdentity);
+        engine.write(storedConfigReference, storedValue, null);
     }
 
-    void resetSetting(PwmSetting setting, String profileID, UserIdentity userIdentity) {
+    public void resetSetting(PwmSetting setting, String profileID, UserIdentity userIdentity) {
         final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.SETTING,
                 setting.getKey(),
@@ -59,101 +61,97 @@ class NGStoredConfiguration {
         engine.reset(storedConfigReference, userIdentity);
     }
 
-    /*
-    boolean isDefaultValue(PwmSetting setting);
+    public boolean isDefaultValue(PwmSetting setting) {
+        return isDefaultValue(setting, null);
+    }
 
-    boolean isDefaultValue(PwmSetting setting, String profileID);
+    public boolean isDefaultValue(PwmSetting setting, String profileID) {
+        final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
+                StoredConfigReference.RecordType.SETTING,
+                setting.getKey(),
+                profileID
+        );
+        StoredValue value = engine.read(storedConfigReference);
+        return value == null;
+    }
 
-    StoredValue readSetting(PwmSetting setting);
+    public StoredValue readSetting(PwmSetting setting) {
+        return readSetting(setting, null);
+    }
 
-    StoredValue readSetting(PwmSetting setting, String profileID);
+    public StoredValue readSetting(PwmSetting setting, String profileID) {
+        final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
+                StoredConfigReference.RecordType.SETTING,
+                setting.getKey(),
+                profileID
+        );
+        return engine.read(storedConfigReference);
+    }
 
-    void copyProfileID(PwmSettingCategory category, String sourceID, String destinationID, UserIdentity userIdentity)
-            throws PwmUnrecoverableException;
+    public void copyProfileID(PwmSettingCategory category, String sourceID, String destinationID, UserIdentity userIdentity)
+            throws PwmUnrecoverableException {
+        throw new IllegalStateException("not implemented"); //@todo
+    }
 
-    void writeSetting(
+    public void writeSetting(
             PwmSetting setting,
             StoredValue value,
             UserIdentity userIdentity
-    ) throws PwmUnrecoverableException;
+    ) throws PwmUnrecoverableException {
+        writeSetting(setting, null, value, userIdentity);
+    }
 
-    void writeSetting(
+    public void writeSetting(
             PwmSetting setting,
             String profileID,
             StoredValue value,
             UserIdentity userIdentity
-    ) throws PwmUnrecoverableException;
-       */
+    )
+            throws PwmUnrecoverableException
+    {
+        final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
+                StoredConfigReference.RecordType.SETTING,
+                setting.getKey(),
+                profileID
+        );
+        engine.write(storedConfigReference, value, userIdentity);
+    }
 
-    public boolean isWriteLocked() {
+    @Override
+    public PwmSecurityKey getKey() throws PwmUnrecoverableException {
+        return configurationSecurityKey;
+    }
+
+    @Override
+    public boolean isLocked() {
         return engine.isWriteLocked();
     }
 
-    ;
-
-    public void writeLock() {
+    @Override
+    public void lock() {
         engine.writeLock();
     }
 
-
-    private class Engine {
-        private final Map<StoredConfigReference, ValueWrapper> values = new TreeMap<>();
-        private final ReentrantReadWriteLock bigLock = new ReentrantReadWriteLock();
-        private boolean writeLocked = false;
-
-        public ValueWrapper read(StoredConfigReference storedConfigReference) {
-            bigLock.readLock().lock();
-            try {
-                return values.get(storedConfigReference);
-            } finally {
-                bigLock.readLock().unlock();
-            }
-        }
-
-        public void write(StoredConfigReference storedConfigReference, StoredValue value, UserIdentity userIdentity)
-        {
-            checkWriteLock();
-            bigLock.writeLock().lock();
-            try {
-                ValueWrapper valueWrapper = new ValueWrapper(value, new ValueMetaData(new Date(), userIdentity));
-                if (values.containsKey(storedConfigReference)) {
-                    values.put(storedConfigReference, valueWrapper);
-                }
-
-            } finally {
-                bigLock.writeLock().unlock();
-            }
-        }
-
-        public void reset(StoredConfigReference storedConfigReference, UserIdentity userIdentity)
-        {
-            checkWriteLock();
-            bigLock.writeLock().lock();
-            try {
-                if (values.containsKey(storedConfigReference)) {
-                    ValueWrapper emptyValue = new ValueWrapper(null, new ValueMetaData(new Date(), userIdentity));
-                    values.put(storedConfigReference, emptyValue);
-                }
-            } finally {
-                bigLock.writeLock().unlock();
-            }
-        }
-
-        private void checkWriteLock()
-        {
-            if (writeLocked) {
-                throw new IllegalStateException("attempt to modify writeLock configuration");
-            }
-        }
-
-        public boolean isWriteLocked() {
-            return writeLocked;
-        }
-
-        ;
-
-        public void writeLock() {
-            writeLocked = true;
-        }
+    @Override
+    public ValueMetaData readSettingMetadata(PwmSetting setting, String profileID) {
+        final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
+                StoredConfigReference.RecordType.SETTING,
+                setting.getKey(),
+                profileID
+        );
+        return engine.readMetaData(storedConfigReference);
     }
+
+    public Date modifyTime() {
+        final String modifyTimeString = readConfigProperty(ConfigurationProperty.MODIFIFICATION_TIMESTAMP);
+        if (modifyTimeString != null) {
+            try {
+                return PwmConstants.DEFAULT_DATETIME_FORMAT.parse(modifyTimeString);
+            } catch (ParseException e) {
+                LOGGER.error("error parsing last modified timestamp property: " + e.getMessage());
+            }
+        }
+        return null;
+    }
+
 }
