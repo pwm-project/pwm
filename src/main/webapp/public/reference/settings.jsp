@@ -176,7 +176,7 @@
                     </td>
                 </tr>
                 <% } %>
-                <% final Map<PwmSettingTemplate,String> defaultValues = setting.getDefaultValueDebugStrings(userLocale); %>
+                <% final Map<PwmSettingTemplate,String> defaultValues = setting.getDefaultValueDebugStrings(userLocale, PwmSettingTemplate.Type.LDAP_VENDOR); %>
                 <tr>
                     <td class="key" style="width: 100px">
                         Default

@@ -67,6 +67,8 @@ public class ContextManager implements Serializable {
         configurationFile,
     }
 
+    private final static String UNSPECIFIED_VALUE = "unspecified";
+
     public ContextManager(ServletContext servletContext) {
         this.servletContext = servletContext;
         this.instanceGuid = PwmRandom.getInstance().randomUUID().toString();
@@ -367,8 +369,15 @@ public class ContextManager implements Serializable {
     public File locateConfigurationFile(final File applicationPath)
             throws Exception
     {
-        final String configurationFileSetting = servletContext.getInitParameter(
+        String configurationFileSetting = servletContext.getInitParameter(
                 ContextParameter.configurationFile.toString());
+
+        if (configurationFileSetting == null
+                || configurationFileSetting.trim().isEmpty()
+                || UNSPECIFIED_VALUE.equalsIgnoreCase(configurationFileSetting.trim())
+                ) {
+            configurationFileSetting = PwmConstants.DEFAULT_CONFIG_FILE_FILENAME;
+        }
 
         try {
             File file = new File(configurationFileSetting);
@@ -402,7 +411,7 @@ public class ContextManager implements Serializable {
                     ContextParameter.applicationPath.toString());
 
             if (contextAppPathSetting != null && !contextAppPathSetting.isEmpty()) {
-                if (!"unspecified".equalsIgnoreCase(contextAppPathSetting)) {
+                if (!UNSPECIFIED_VALUE.equalsIgnoreCase(contextAppPathSetting)) {
                     return contextAppPathSetting;
                 }
             }

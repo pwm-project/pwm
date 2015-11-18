@@ -1134,7 +1134,7 @@ public enum PwmSetting {
         return defaultValues.keySet().iterator().next(); // return top if no template matches.
     }
 
-    public Map<PwmSettingTemplate, String> getDefaultValueDebugStrings(final Locale locale)
+    public Map<PwmSettingTemplate, String> getDefaultValueDebugStrings(final Locale locale, final PwmSettingTemplate.Type templateType)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final Map<PwmSettingTemplate, String> returnObj = new LinkedHashMap<>();
@@ -1142,7 +1142,7 @@ public enum PwmSetting {
         boolean hasNonDefaultValue = false;
         if (defaultDebugStr != null) {
             for (final PwmSettingTemplate template : PwmSettingTemplate.valuesOrderedByLabel(locale)) {
-                if (!template.isHidden()) {
+                if (!template.isHidden()  && template.getType() == templateType) {
                     final String debugStr = this.getDefaultValue(template).toDebugString(locale);
                     if (!defaultDebugStr.equals(debugStr)) {
                         hasNonDefaultValue = true;

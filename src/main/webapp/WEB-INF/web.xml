@@ -39,10 +39,10 @@
     <context-param>
         <description>
             Name of configuration XML file file. If a relative path is specified, it is relative to the applicationPath
-            param.
+            param.  If blank, the default config file name will be used relative to the application path.
         </description>
         <param-name>configurationFile</param-name>
-        <param-value>PwmConfiguration.xml</param-value>
+        <param-value>unspecified</param-value>
     </context-param>
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>

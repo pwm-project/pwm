@@ -26,62 +26,62 @@
   modified by administrators.  Any changes must match the compiled PwmSettings.java enum object.
 -->
 <settings>
-    <setting key="pwm.selfURL" level="0">
+    <setting hidden="false" key="pwm.selfURL" level="0">
         <regex>^(http|https)://.+$</regex>
         <default>
             <value>http://www.example.com/password</value>
         </default>
     </setting>
-    <setting key="pwm.versionCheck.enable" level="1" required="true">
+    <setting hidden="false" key="pwm.versionCheck.enable" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="pwm.publishStats.enable" level="1" required="true">
+    <setting hidden="false" key="pwm.publishStats.enable" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="pwm.publishStats.siteDescription" level="1">
+    <setting hidden="false" key="pwm.publishStats.siteDescription" level="1">
         <regex>^.{0,100}$</regex>
         <default>
             <value />
         </default>
     </setting>
-    <setting key="pwm.forwardURL" level="1">
+    <setting hidden="false" key="pwm.forwardURL" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="pwm.logoutURL" level="1">
+    <setting hidden="false" key="pwm.logoutURL" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="pwm.homeURL" level="1">
+    <setting hidden="false" key="pwm.homeURL" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="pwmInstanceName" level="2">
+    <setting hidden="false" key="pwmInstanceName" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="idleTimeoutSeconds" level="1" required="true">
+    <setting hidden="false" key="idleTimeoutSeconds" level="1" required="true">
         <default>
             <value>300</value>
         </default>
     </setting>
-    <setting key="display.hideConfigHealthWarnings" level="2">
+    <setting hidden="false" key="display.hideConfigHealthWarnings" level="2">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="pwm.appProperty.overrides" level="2">
+    <setting hidden="false" key="pwm.appProperty.overrides" level="2">
         <default/>
     </setting>
-    <setting key="knownLocales" level="2">
+    <setting hidden="false" key="knownLocales" level="2">
         <default>
             <value><![CDATA[en::us]]></value>
             <value><![CDATA[cs::cz]]></value>
@@ -109,12 +109,12 @@
             <value><![CDATA[zh_TW::tw]]></value>
         </default>
     </setting>
-    <setting key="locale.cookie.age" level="2">
+    <setting hidden="false" key="locale.cookie.age" level="2">
         <default>
             <value>604800</value>
         </default>
     </setting>
-    <setting key="interface.theme" level="1" required="true">
+    <setting hidden="false" key="interface.theme" level="1" required="true">
         <default>
             <value><![CDATA[pwm]]></value>
         </default>
@@ -133,52 +133,52 @@
             <option value="embed">Embedded</option>
         </options>
     </setting>
-    <setting key="password.showAutoGen" level="1" required="true">
+    <setting hidden="false" key="password.showAutoGen" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="password.showStrengthMeter" level="1" required="true">
+    <setting hidden="false" key="password.showStrengthMeter" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.showHidePasswordFields" level="1" required="true">
+    <setting hidden="false" key="display.showHidePasswordFields" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.maskPasswordFields" level="2" required="true">
+    <setting hidden="false" key="display.maskPasswordFields" level="2" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.maskResponseFields" level="2" required="true">
+    <setting hidden="false" key="display.maskResponseFields" level="2" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.showCancelButton" level="1" required="true">
+    <setting hidden="false" key="display.showCancelButton" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.showSuccessPage" level="1" required="true">
+    <setting hidden="false" key="display.showSuccessPage" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.accountInformation" level="1" required="true">
+    <setting hidden="false" key="display.accountInformation" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.passwordHistory" level="1" required="true">
+    <setting hidden="false" key="display.passwordHistory" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="accountInfo.viewStatusValues" level="1">
+    <setting hidden="false" key="accountInfo.viewStatusValues" level="1">
         <default>
             <value>ForwardURL</value>
             <value>LogoutURL</value>
@@ -225,67 +225,67 @@
             <option value="UserSMS">User SMS</option>
         </options>
     </setting>
-    <setting key="display.showLoginPageOptions" level="1" required="true">
+    <setting hidden="false" key="display.showLoginPageOptions" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.logoutButton" level="1" required="true">
+    <setting hidden="false" key="display.logoutButton" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.homeButton" level="1" required="true">
+    <setting hidden="false" key="display.homeButton" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.idleTimeout" level="1" required="true">
+    <setting hidden="false" key="display.idleTimeout" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.css.customStyleLocation" level="2">
+    <setting hidden="false" key="display.css.customStyleLocation" level="2">
         <default>
             <value><![CDATA[]]></value>
         </default>
     </setting>
-    <setting key="display.css.customMobileStyleLocation" level="2">
+    <setting hidden="false" key="display.css.customMobileStyleLocation" level="2">
         <default>
             <value><![CDATA[]]></value>
         </default>
     </setting>
-    <setting key="display.css.customStyle" level="2">
+    <setting hidden="false" key="display.css.customStyle" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="display.css.customMobileStyle" level="2">
+    <setting hidden="false" key="display.css.customMobileStyle" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="display.js.custom" level="2">
+    <setting hidden="false" key="display.js.custom" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="display.custom.resourceBundle" level="2">
+    <setting hidden="false" key="display.custom.resourceBundle" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="password.allowChange.queryMatch" level="2" required="true">
+    <setting hidden="false" key="password.allowChange.queryMatch" level="2" required="true">
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
-    <setting key="logoutAfterPasswordChange" level="1" required="true">
+    <setting hidden="false" key="logoutAfterPasswordChange" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="password.require.form" level="1">
+    <setting hidden="false" key="password.require.form" level="1">
         <default>
             <value />
         </default>
@@ -295,7 +295,7 @@
             <option value="hideOptions">true</option>
         </options>
     </setting>
-    <setting key="password.change.requireCurrent" level="1" required="true">
+    <setting hidden="false" key="password.change.requireCurrent" level="1" required="true">
         <default>
             <value><![CDATA[FALSE]]></value>
         </default>
@@ -305,22 +305,22 @@
             <option value="NOTEXPIRED">Only when not expired</option>
         </options>
     </setting>
-    <setting key="display.password.changeAgreement" level="1">
+    <setting hidden="false" key="display.password.changeAgreement" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="display.password.completeMessage" level="1">
+    <setting hidden="false" key="display.password.completeMessage" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="display.password.guideText" level="1">
+    <setting hidden="false" key="display.password.guideText" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="passwordSync.enableReplicaCheck" level="2">
+    <setting hidden="false" key="passwordSync.enableReplicaCheck" level="2">
         <default>
             <value>ENABLED</value>
         </default>
@@ -330,52 +330,52 @@
             <option value="ENABLED_SHOW">ENABLED and Display - Enable replica sync checking and display progress to user</option>
         </options>
     </setting>
-    <setting key="passwordSyncMinWaitTime" level="2" required="true">
+    <setting hidden="false" key="passwordSyncMinWaitTime" level="2" required="true">
         <default>
             <value>15</value>
         </default>
     </setting>
-    <setting key="passwordSyncMaxWaitTime" level="2" required="true">
+    <setting hidden="false" key="passwordSyncMaxWaitTime" level="2" required="true">
         <default>
             <value>90</value>
         </default>
     </setting>
-    <setting key="expirePreTime" level="1" required="true">
+    <setting hidden="false" key="expirePreTime" level="1" required="true">
         <default>
             <value>86400</value>
         </default>
     </setting>
-    <setting key="expireWarnTime" level="1" required="true">
+    <setting hidden="false" key="expireWarnTime" level="1" required="true">
         <default>
             <value>432000</value>
         </default>
     </setting>
-    <setting key="expireCheckDuringAuth" level="2" required="true">
+    <setting hidden="false" key="expireCheckDuringAuth" level="2" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="changePassword.writeAttributes" level="1">
+    <setting hidden="false" key="changePassword.writeAttributes" level="1">
         <default />
     </setting>
-    <setting key="ldap.profile.list" level="1" hidden="true" required="true">
+    <setting hidden="true" key="ldap.profile.list" level="1" required="true">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default>
             <value>default</value>
         </default>
     </setting>
-    <setting key="ldap.serverUrls" level="0" required="false">
+    <setting hidden="false" key="ldap.serverUrls" level="0" required="false">
         <regex>^(ldap|ldaps)://[a-zA-Z0-9.-]+:[0-9]+$</regex>
         <placeholder>ldaps://ldap.example.com:636</placeholder>
         <default/>
     </setting>
-    <setting key="ldap.serverCerts" level="0" required="true">
+    <setting hidden="false" key="ldap.serverCerts" level="0" required="true">
         <default/>
         <options>
             <option value="ImportHandler">password.pwm.config.function.LdapCertImportFunction</option>
         </options>
     </setting>
-    <setting key="ldap.proxy.username" level="0" required="false">
+    <setting hidden="false" key="ldap.proxy.username" level="0" required="false">
         <placeholder>cn=@PwmAppName@-Proxy,o=example</placeholder>
         <placeholder template="AD">CN=@PwmAppName@-Proxy,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</placeholder>
         <placeholder template="ORACLE_DS">cn=@PwmAppName@-Proxy,cn=Administrators,cn=config</placeholder>
@@ -385,9 +385,9 @@
             <option value="ldapDNsyntax">true</option>
         </options>
     </setting>
-    <setting key="ldap.proxy.password" level="0">
+    <setting hidden="false" key="ldap.proxy.password" level="0">
     </setting>
-    <setting key="ldap.rootContexts" level="0">
+    <setting hidden="false" key="ldap.rootContexts" level="0">
         <placeholder>ou=users,o=example</placeholder>
         <placeholder template="AD">cn=users,dc=site,dc=example,dc=net</placeholder>
         <default/>
@@ -395,11 +395,11 @@
             <option value="ldapDNsyntax">true</option>
         </options>
     </setting>
-    <setting key="ldap.selectableContexts" level="2">
+    <setting hidden="false" key="ldap.selectableContexts" level="2">
         <regex>^.+:::.+$</regex>
         <default />
     </setting>
-    <setting key="ldap.testuser.username" level="0">
+    <setting hidden="false" key="ldap.testuser.username" level="0">
         <placeholder>cn=@PwmAppName@-Testuser,o=example</placeholder>
         <placeholder template="AD">CN=@PwmAppName@-Testuser,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</placeholder>
         <placeholder template="ORACLE_DS">cn=@PwmAppName@-Testuser,cn=Administrators,cn=config</placeholder>
@@ -411,7 +411,7 @@
             <option value="ldapDNsyntax">true</option>
         </options>
     </setting>
-    <setting key="pwmAdmin.queryMatch" level="0" required="true">
+    <setting hidden="false" key="pwmAdmin.queryMatch" level="0" required="true">
         <placeholder>cn=@PwmAppName@-Admins,ou=Groups,o=example</placeholder>
         <placeholder template="AD">CN=@PwmAppName@-Administrators,CN=Builtin,DC=site,DC=example,DC=net</placeholder>
         <placeholder template="ORACLE_DS">cn=@PwmAppName@-Admins,OU=Groups,DC=ad,DC=site,DC=example,DC=net</placeholder>
@@ -420,7 +420,7 @@
             <value/>
         </default>
     </setting>
-    <setting key="ldap.usernameSearchFilter" level="1" required="true">
+    <setting hidden="false" key="ldap.usernameSearchFilter" level="1" required="true">
         <default>
             <value><![CDATA[(&(objectClass=person)(cn=%USERNAME%))]]></value>
         </default>
@@ -431,13 +431,13 @@
             <value><![CDATA[(&(objectClass=person)(uid=%USERNAME%))]]></value>
         </default>
     </setting>
-    <setting key="ldap.addObjectClasses" level="2">
+    <setting hidden="false" key="ldap.addObjectClasses" level="2">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmUser]]></value>
         </default>
     </setting>
-    <setting key="passwordLastUpdateAttribute" level="2">
+    <setting hidden="false" key="passwordLastUpdateAttribute" level="2">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmLastPwdUpdate]]></value>
@@ -446,7 +446,7 @@
             <value/>
         </default>
     </setting>
-    <setting key="ldap.user.group.attribute" level="2">
+    <setting hidden="false" key="ldap.user.group.attribute" level="2">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[groupMembership]]></value>
@@ -464,12 +464,12 @@
             <value>memberof</value>
         </default>
     </setting>
-    <setting key="ldap.group.label.attribute" level="2" hidden="true">
+    <setting hidden="true" key="ldap.group.label.attribute" level="2">
         <default>
             <value><![CDATA[@LDAP:DN@]]></value>
         </default>
     </setting>
-    <setting key="ldap.search.timeoutSeconds" level="2" hidden="true">
+    <setting hidden="true" key="ldap.search.timeoutSeconds" level="2">
         <default>
             <value>30</value>
         </default>
@@ -478,7 +478,7 @@
             <option value="min">1</option>
         </options>
     </setting>
-    <setting key="ldap.guidAttribute" level="1" required="true">
+    <setting hidden="false" key="ldap.guidAttribute" level="1" required="true">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[VENDORGUID]]></value>
@@ -487,7 +487,7 @@
             <value><![CDATA[pwmGUID]]></value>
         </default>
     </setting>
-    <setting key="ldap.namingAttribute" level="1" required="true">
+    <setting hidden="false" key="ldap.namingAttribute" level="1" required="true">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
@@ -496,12 +496,12 @@
             <value><![CDATA[uid]]></value>
         </default>
     </setting>
-    <setting key="ldap.idleTimeout" level="1" required="true">
+    <setting hidden="false" key="ldap.idleTimeout" level="1" required="true">
         <default>
             <value>30</value>
         </default>
     </setting>
-    <setting key="ldap.guid.autoAddValue" level="2" required="true">
+    <setting hidden="false" key="ldap.guid.autoAddValue" level="2" required="true">
         <default>
             <value>false</value>
         </default>
@@ -509,7 +509,7 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.duplicateMode" level="2">
+    <setting hidden="false" key="ldap.duplicateMode" level="2">
         <default>
             <value>NONE</value>
         </default>
@@ -519,7 +519,7 @@
             <option value="NONE">No duplicates Permitted - Fail whenever duplicate users are found in any context or profile</option>
         </options>
     </setting>
-    <setting key="ldap.selectableContextMode" level="2">
+    <setting hidden="false" key="ldap.selectableContextMode" level="2">
         <default>
             <value>NONE</value>
         </default>
@@ -529,22 +529,22 @@
             <option value="NONE">Do not show</option>
         </options>
     </setting>
-    <setting key="ldap.ignoreUnreachableProfiles" level="2">
+    <setting hidden="false" key="ldap.ignoreUnreachableProfiles" level="2">
         <default>
             <value >true</value>
         </default>
     </setting>
-    <setting key="ldap.profile.displayName" level="2">
+    <setting hidden="false" key="ldap.profile.displayName" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="ldap.profile.enabled" level="2">
+    <setting hidden="false" key="ldap.profile.enabled" level="2">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.username.attr" level="2">
+    <setting hidden="false" key="ldap.username.attr" level="2">
         <regex>(^$|^[a-zA-Z][a-zA-Z0-9-]*$)</regex>
         <default>
             <value />
@@ -553,7 +553,7 @@
             <value><![CDATA[sAMAccountName]]></value>
         </default>
     </setting>
-    <setting key="ldap.followReferrals" level="2" required="true">
+    <setting hidden="false" key="ldap.followReferrals" level="2" required="true">
         <regex>Follow LDAP Referrals.  Not typically required.</regex>
         <default>
             <value>false</value>
@@ -562,7 +562,7 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.defaultObjectClasses" level="2">
+    <setting hidden="false" key="ldap.defaultObjectClasses" level="2">
         <regex>^[a-zA-Z][a-zA-Z0-9]+$</regex>
         <default>
             <value><![CDATA[inetOrgPerson]]></value>
@@ -571,13 +571,13 @@
             <value><![CDATA[User]]></value>
         </default>
     </setting>
-    <setting key="email.smtp.address" level="1">
+    <setting hidden="false" key="email.smtp.address" level="1">
         <regex>^[a-zA-Z0-9.-]*$</regex>
         <default>
             <value />
         </default>
     </setting>
-    <setting key="email.smtp.port" level="1">
+    <setting hidden="false" key="email.smtp.port" level="1">
         <default>
             <value>25</value>
         </default>
@@ -586,129 +586,129 @@
             <option value="max">65535</option>
         </options>
     </setting>
-    <setting key="email.default.fromAddress" level="1">
+    <setting hidden="false" key="email.default.fromAddress" level="1">
         <default>
             <value>noreply@example.org</value>
         </default>
     </setting>
-    <setting key="email.smtp.username" level="2">
+    <setting hidden="false" key="email.smtp.username" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="email.smtp.userpassword" level="2">
+    <setting hidden="false" key="email.smtp.userpassword" level="2">
     </setting>
-    <setting key="email.userMailAttribute" level="2" required="true">
+    <setting hidden="false" key="email.userMailAttribute" level="2" required="true">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[mail]]></value>
         </default>
     </setting>
-    <setting key="email.queueMaxAge" level="2" required="true">
+    <setting hidden="false" key="email.queueMaxAge" level="2" required="true">
         <default>
             <value>3600</value>
         </default>
     </setting>
-    <setting key="email.changePassword" level="1">
+    <setting hidden="false" key="email.changePassword" level="1">
         <default>
             <value>{"to":"@User:Email@","from":"Change Password Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Change Notification","bodyPlain":"You have changed your password.  If you did not initiate a password change please contact your help desk immediately.","bodyHtml":"\u003cb\u003eYou have changed your password.\u003c/b\u003e  If you have changed your password, then no action is required.  If you did not initiate a password change please contact your help desk."}</value>
         </default>
     </setting>
-    <setting key="email.changePassword.helpdesk" level="1">
+    <setting hidden="false" key="email.changePassword.helpdesk" level="1">
         <default>
             <value>{"to":"@User:Email@","from":"Change Password Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Change Notification","bodyPlain":"Your password has been changed by the heldesk.   You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk.","bodyHtml":"\u003cb\u003eYour password has been changed by the helpdesk.\u003c/b\u003e  You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk."}</value>
         </default>
     </setting>
-    <setting key="email.updateProfile" level="1">
+    <setting hidden="false" key="email.updateProfile" level="1">
         <default>
             <value>{"to":"@User:Email@","from":"Profile Update \u003c@DefaultEmailFromAddress@\u003e","subject":"Profile Update","bodyPlain":"Thank you for updating your profile information, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for updating your profile information, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
-    <setting key="email.newUser" level="1">
+    <setting hidden="false" key="email.newUser" level="1">
         <default>
             <value>{"to":"@User:Email@","from":"New User Registration \u003c@DefaultEmailFromAddress@\u003e","subject":"Welcome","bodyPlain":"Thank you for registering your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for registering your account, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
-    <setting key="email.newUser.token" level="1">
+    <setting hidden="false" key="email.newUser.token" level="1">
         <default>
             <value>{"to":"@User:Email@","from":"New User Registration \u003c@DefaultEmailFromAddress@\u003e","subject":"New User Verification","bodyPlain":"Thank you for requesting a new account. To continue with your account registration, please copy and paste the following code on the registration form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting a new account.  To continue with your account registration, please \u003ca href\u003d\"@SiteURL@/public/NewUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link does not work, you can copy and paste the following code on the registration form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
         </default>
     </setting>
-    <setting key="email.activation" level="1">
+    <setting hidden="false" key="email.activation" level="1">
         <default>
             <value>{"to":"@User:Email@","from":"Activation Notification \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Activated","bodyPlain":"Thank you for activating your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for activating your account, @LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
-    <setting key="email.activation.token" level="1">
+    <setting hidden="false" key="email.activation.token" level="1">
         <default>
             <value>{"to":"@User:Email@","from":"Activation Verification \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Verification","bodyPlain":"Thank you for requesting your account activation. To continue with your account activation, please copy and paste the following code onto the activation form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting your account activation.  To continue with your account activation, please \u003ca href\u003d\"@SiteURL@/public/ActivateUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the activation form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
         </default>
     </setting>
-    <setting key="email.challenge.token" level="1">
+    <setting hidden="false" key="email.challenge.token" level="1">
         <default>
             <value>{"to":"@User:Email@","from":"Forgotten Password \u003c@DefaultEmailFromAddress@\u003e","subject":"Forgotten Password Verification","bodyPlain":"Thank you for requesting a password reset. To continue with your password reset, please copy and paste the following code onto the password reset form:\n\n%TOKEN%\n\nIf you do not wish to change your password at this time, you do not need to take any action.","bodyHtml":"Thank you for requesting a password reset.  To continue with your password reset, please \u003ca href\u003d\"@SiteURL@/public/ForgottenPassword/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the password reset form:\u003cbr /\u003e\u003cbr /\u003e%TOKEN%\u003cbr /\u003e\u003cbr /\u003eIf you do not wish to change your password at this time, you do not need to take any action."}</value>
         </default>
     </setting>
-    <setting key="email.helpdesk.token" level="1">
+    <setting hidden="false" key="email.helpdesk.token" level="1">
         <default>
             <value>{"to":"@User:Email@","from":"Helpdesk \u003c@DefaultEmailFromAddress@\u003e","subject":"Helpdesk Verification","bodyPlain":"Your helpdesk has sent you a code to verify your identity. Your verification code is:\n\n%TOKEN%","bodyHtml":"Your helpdesk has sent you a code to verify your identity. Your verification code is: %TOKEN%."}</value>
         </default>
     </setting>
-    <setting key="email.guest" level="2">
+    <setting hidden="false" key="email.guest" level="2">
         <default>
             <value>{"to":"@User:Email@","from":"Guest Registration Agent \u003c@DefaultEmailFromAddress@\u003e","subject":"Welcome","bodyPlain":"Your account has been created.\n\nYour username is: @User:ID@\nYour password is: @User:Password@","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e\u003cp\u003eYour username is:@User:ID@\u003cbr /\u003eYour password is: \u003cb\u003e@User:Password@\u003c/b\u003e\u003c/p\u003e"}</value>
         </default>
     </setting>
-    <setting key="email.updateguest" level="2">
+    <setting hidden="false" key="email.updateguest" level="2">
         <default>
             <value>{"to":"@User:Email@","from":"Guest Registration Agent \u003c@DefaultEmailFromAddress@\u003e","subject":"Account update notification","bodyPlain":"Your account has been updated.","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e"}</value>
         </default>
     </setting>
-    <setting key="email.sendpassword" level="2">
+    <setting hidden="false" key="email.sendpassword" level="2">
         <default>
             <value>{"to":"@User:Email@","from":"Password Notifier \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Information","bodyPlain":"Your new password is:\n\n@User:Password@\n\nPlease change your password as soon as possible.","bodyHtml":"Thank you for requesting a password reset.  Your new password is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:Password@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
         </default>
     </setting>
-    <setting key="email.sendUsername" level="2">
+    <setting hidden="false" key="email.sendUsername" level="2">
         <default>
             <value>{"to":"@User:Email@","from":"Username Notifier \u003c@DefaultEmailFromAddress@\u003e","subject":"Username Information","bodyPlain":"Your username is:\n\n@User:ID@\n\n","bodyHtml":"Your username is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:ID@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
         </default>
     </setting>
-    <setting key="email.intruderNotice" level="1">
+    <setting hidden="false" key="email.intruderNotice" level="1">
         <default>
             <value>{"to":"@User:Email@","from":"Intruder Notifier \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Information","bodyPlain":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator.","bodyHtml":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator."}</value>
         </default>
     </setting>
-    <setting key="email.smtp.advancedSettings" level="2">
+    <setting hidden="false" key="email.smtp.advancedSettings" level="2">
         <regex>^[a-zA-Z0-9.]+=.+$</regex>
         <default/>
     </setting>
-    <setting key="sms.userSmsAttribute" level="1" required="true">
+    <setting hidden="false" key="sms.userSmsAttribute" level="1" required="true">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[personalMobile]]></value>
         </default>
     </setting>
-    <setting key="sms.queueMaxAge" level="2" required="true">
+    <setting hidden="false" key="sms.queueMaxAge" level="2" required="true">
         <default>
             <value>300</value>
         </default>
     </setting>
-    <setting key="sms.gatewayURL" level="1">
+    <setting hidden="false" key="sms.gatewayURL" level="1">
         <regex>^$|^https?://[A-Za-z0-9_\.-]{3,}(\:[0-9]{1,5})?(/.*)?</regex>
         <placeholder>https://sms.example.com/service</placeholder>
         <default>
             <value/>
         </default>
     </setting>
-    <setting key="sms.gatewayUser" level="1">
+    <setting hidden="false" key="sms.gatewayUser" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="sms.gatewayPassword" level="1">
+    <setting hidden="false" key="sms.gatewayPassword" level="1">
     </setting>
-    <setting key="sms.gatewayMethod" level="1" required="true">
+    <setting hidden="false" key="sms.gatewayMethod" level="1" required="true">
         <default>
             <value><![CDATA[POST]]></value>
         </default>
@@ -717,7 +717,7 @@
             <option value="GET">GET</option>
         </options>
     </setting>
-    <setting key="sms.gatewayAuthMethod" level="2" required="true">
+    <setting hidden="false" key="sms.gatewayAuthMethod" level="2" required="true">
         <default>
             <value><![CDATA[REQUEST]]></value>
         </default>
@@ -726,18 +726,18 @@
             <option value="HTTP">HTTP - Use HTTP basic authentication</option>
         </options>
     </setting>
-    <setting key="sms.requestData" level="2">
+    <setting hidden="false" key="sms.requestData" level="2">
         <default>
             <value><![CDATA[user=%USER%&pass=%PASS%&to=%TO%&msg=%MESSAGE%]]></value>
         </default>
     </setting>
-    <setting key="sms.requestContentType" level="2">
+    <setting hidden="false" key="sms.requestContentType" level="2">
         <regex>^[A-Za-z0-9_\.-]+/[A-Za-z0-9\+_\.-]+([ 	]*;[ 	]*[A-Za-z0-9_\.-]+=([A-Za-z0-9_\.-]|\".+\")+)*$</regex>
         <default>
             <value><![CDATA[application/x-www-form-urlencoded]]></value>
         </default>
     </setting>
-    <setting key="sms.requestContentEncoding" level="2" required="true">
+    <setting hidden="false" key="sms.requestContentEncoding" level="2" required="true">
         <default>
             <value><![CDATA[URL]]></value>
         </default>
@@ -752,13 +752,13 @@
             <option value="XML">XML - for XML and/or SOAP services</option>
         </options>
     </setting>
-    <setting key="sms.httpRequestHeaders" level="2">
+    <setting hidden="false" key="sms.httpRequestHeaders" level="2">
         <regex>^[A-Za-z0-9_\.-]+:.*</regex>
         <default>
             <value />
         </default>
     </setting>
-    <setting key="sms.maxTextLength" level="2" required="true">
+    <setting hidden="false" key="sms.maxTextLength" level="2" required="true">
         <default>
             <value>140</value>
         </default>
@@ -767,17 +767,17 @@
             <option value="max">10000</option>
         </options>
     </setting>
-    <setting key="sms.responseOkRegex" level="2">
+    <setting hidden="false" key="sms.responseOkRegex" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="sms.senderID" level="1">
+    <setting hidden="false" key="sms.senderID" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="sms.phoneNumberFormat" level="2" required="true">
+    <setting hidden="false" key="sms.phoneNumberFormat" level="2" required="true">
         <default>
             <value><![CDATA[ZEROS]]></value>
         </default>
@@ -787,80 +787,80 @@
             <option value="ZEROS">Zeros -  Same as plain, but prefixed with a double zero: 00112312345</option>
         </options>
     </setting>
-    <setting key="sms.defaultCountryCode" level="2">
+    <setting hidden="false" key="sms.defaultCountryCode" level="2">
         <regex>^[0-9]{0,3}$</regex>
         <default>
             <value>1</value>
         </default>
     </setting>
-    <setting key="sms.requestId.characters" level="2" required="true">
+    <setting hidden="false" key="sms.requestId.characters" level="2" required="true">
         <default>
             <value><![CDATA[0123456789abcdef]]></value>
         </default>
     </setting>
-    <setting key="sms.requestId.length" level="2" required="true">
+    <setting hidden="false" key="sms.requestId.length" level="2" required="true">
         <default>
             <value>6</value>
         </default>
     </setting>
-    <setting key="sms.challenge.token.message" level="1" required="true">
+    <setting hidden="false" key="sms.challenge.token.message" level="1" required="true">
         <default>
             <value><![CDATA[Your security code is %TOKEN%.]]></value>
         </default>
     </setting>
-    <setting key="sms.challenge.newpassword.message" level="1" required="true">
+    <setting hidden="false" key="sms.challenge.newpassword.message" level="1" required="true">
         <default>
             <value><![CDATA[Your new password is %TOKEN%.]]></value>
         </default>
     </setting>
-    <setting key="sms.newUser.token.message" level="1" required="true">
+    <setting hidden="false" key="sms.newUser.token.message" level="1" required="true">
         <default>
             <value><![CDATA[Your account verification token is %TOKEN%.]]></value>
         </default>
     </setting>
-    <setting key="sms.helpdesk.token.message" level="1" required="true">
+    <setting hidden="false" key="sms.helpdesk.token.message" level="1" required="true">
         <default>
             <value><![CDATA[Your security code is %TOKEN%.]]></value>
         </default>
     </setting>
-    <setting key="sms.forgottenUsername.message" level="1" required="true">
+    <setting hidden="false" key="sms.forgottenUsername.message" level="1" required="true">
         <default>
             <value><![CDATA[Your username is @User:ID@]]></value>
         </default>
     </setting>
-    <setting key="sms.activation.token.message" level="1" required="true">
+    <setting hidden="false" key="sms.activation.token.message" level="1" required="true">
         <default>
             <value><![CDATA[Your activation token is %TOKEN%.]]></value>
         </default>
     </setting>
-    <setting key="sms.activation.message" level="1" required="true">
+    <setting hidden="false" key="sms.activation.message" level="1" required="true">
         <default>
             <value><![CDATA[Thank you for activating your account.]]></value>
         </default>
     </setting>
-    <setting key="sms.useUrlShortener" level="2">
+    <setting hidden="false" key="sms.useUrlShortener" level="2">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="sms.successResultCodes" required="true" level="2">
+    <setting hidden="false" key="sms.successResultCodes" required="true" level="2">
         <regex>^[0-9]{3}$</regex>
         <default>
             <value>200</value>
         </default>
     </setting>
-    <setting key="password.profile.list" level="1" hidden="true">
+    <setting hidden="true" key="password.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default>
             <value>default</value>
         </default>
     </setting>
-    <setting key="password.policy.queryMatch" level="1">
+    <setting hidden="false" key="password.policy.queryMatch" level="1">
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
-    <setting key="password.policy.source" level="1" required="true">
+    <setting hidden="false" key="password.policy.source" level="1" required="true">
         <default>
             <value><![CDATA[MERGE]]></value>
         </default>
@@ -870,132 +870,132 @@
             <option value="PWM">Local</option>
         </options>
     </setting>
-    <setting key="password.policy.minimumLength" level="1" required="true">
+    <setting hidden="false" key="password.policy.minimumLength" level="1" required="true">
         <default>
             <value>2</value>
         </default>
     </setting>
-    <setting key="password.policy.maximumLength" level="1" required="true">
+    <setting hidden="false" key="password.policy.maximumLength" level="1" required="true">
         <default>
             <value>64</value>
         </default>
     </setting>
-    <setting key="password.policy.maximumRepeat" level="1" required="true">
+    <setting hidden="false" key="password.policy.maximumRepeat" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.maximumSequentialRepeat" level="1" required="true">
+    <setting hidden="false" key="password.policy.maximumSequentialRepeat" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.allowNumeric" level="1" required="true">
+    <setting hidden="false" key="password.policy.allowNumeric" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="password.policy.allowFirstCharNumeric" level="1" required="true">
+    <setting hidden="false" key="password.policy.allowFirstCharNumeric" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="password.policy.allowLastCharNumeric" level="1" required="true">
+    <setting hidden="false" key="password.policy.allowLastCharNumeric" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="password.policy.maximumNumeric" level="1" required="true">
+    <setting hidden="false" key="password.policy.maximumNumeric" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.minimumNumeric" level="1" required="true">
+    <setting hidden="false" key="password.policy.minimumNumeric" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.allowSpecial" level="1" required="true">
+    <setting hidden="false" key="password.policy.allowSpecial" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="password.policy.allowFirstCharSpecial" level="1" required="true">
+    <setting hidden="false" key="password.policy.allowFirstCharSpecial" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="password.policy.allowLastCharSpecial" level="1" required="true">
+    <setting hidden="false" key="password.policy.allowLastCharSpecial" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="password.policy.maximumSpecial" level="1" required="true">
+    <setting hidden="false" key="password.policy.maximumSpecial" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.minimumSpecial" level="1" required="true">
+    <setting hidden="false" key="password.policy.minimumSpecial" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.maximumAlpha" level="1" required="true">
+    <setting hidden="false" key="password.policy.maximumAlpha" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.minimumAlpha" level="1" required="true">
+    <setting hidden="false" key="password.policy.minimumAlpha" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.maximumNonAlpha" level="1" required="true">
+    <setting hidden="false" key="password.policy.maximumNonAlpha" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.minimumNonAlpha" level="1" required="true">
+    <setting hidden="false" key="password.policy.minimumNonAlpha" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.maximumUpperCase" level="1" required="true">
+    <setting hidden="false" key="password.policy.maximumUpperCase" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.minimumUpperCase" level="1" required="true">
+    <setting hidden="false" key="password.policy.minimumUpperCase" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.maximumLowerCase" level="1" required="true">
+    <setting hidden="false" key="password.policy.maximumLowerCase" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.minimumLowerCase" level="1" required="true">
+    <setting hidden="false" key="password.policy.minimumLowerCase" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.minimumUnique" level="1" required="true">
+    <setting hidden="false" key="password.policy.minimumUnique" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.maximumOldPasswordChars" level="1" required="true">
+    <setting hidden="false" key="password.policy.maximumOldPasswordChars" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.minimumLifetime" level="1" required="true">
+    <setting hidden="false" key="password.policy.minimumLifetime" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.caseSensitivity" level="1" required="true">
+    <setting hidden="false" key="password.policy.caseSensitivity" level="1" required="true">
         <default>
             <value><![CDATA[read]]></value>
         </default>
@@ -1005,12 +1005,12 @@
             <option value="false">False (Case Insensitive)</option>
         </options>
     </setting>
-    <setting key="password.policy.checkWordlist" level="1" required="true">
+    <setting hidden="false" key="password.policy.checkWordlist" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="password.policy.ADComplexityLevel" level="1" required="true">
+    <setting hidden="false" key="password.policy.ADComplexityLevel" level="1" required="true">
         <default>
             <value>NONE</value>
         </default>
@@ -1023,7 +1023,7 @@
             <option value="AD2008">AD 2008 Level Complexity</option>
         </options>
     </setting>
-    <setting key="password.policy.ADComplexityMaxViolations" level="1" required="true">
+    <setting hidden="false" key="password.policy.ADComplexityMaxViolations" level="1" required="true">
         <default>
             <value>2</value>
         </default>
@@ -1032,19 +1032,19 @@
             <option value="max">5</option>
         </options>
     </setting>
-    <setting key="password.policy.regExMatch" level="2">
+    <setting hidden="false" key="password.policy.regExMatch" level="2">
         <default/>
     </setting>
-    <setting key="password.policy.regExNoMatch" level="2">
+    <setting hidden="false" key="password.policy.regExNoMatch" level="2">
         <default/>
     </setting>
-    <setting key="password.policy.disallowedValues" level="1">
+    <setting hidden="false" key="password.policy.disallowedValues" level="1">
         <default>
             <value><![CDATA[password]]></value>
             <value><![CDATA[test]]></value>
         </default>
     </setting>
-    <setting key="password.policy.disallowedAttributes" level="2">
+    <setting hidden="false" key="password.policy.disallowedAttributes" level="2">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
@@ -1052,45 +1052,45 @@
             <value><![CDATA[sn]]></value>
         </default>
     </setting>
-    <setting key="password.sharedHistory.enable" level="1" required="true">
+    <setting hidden="false" key="password.sharedHistory.enable" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="password.sharedHistory.age" level="2" required="true">
+    <setting hidden="false" key="password.sharedHistory.age" level="2" required="true">
         <default>
             <value>2419200</value>
         </default>
     </setting>
-    <setting key="password.policy.minimumStrength" level="1" required="true">
+    <setting hidden="false" key="password.policy.minimumStrength" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.maximumConsecutive" level="1" required="true">
+    <setting hidden="false" key="password.policy.maximumConsecutive" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.changeMessage" level="1">
+    <setting hidden="false" key="password.policy.changeMessage" level="1">
         <default/>
     </setting>
-    <setting key="password.policy.ruleText" level="2">
+    <setting hidden="false" key="password.policy.ruleText" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="password.policy.disallowCurrent" level="2" required="true">
+    <setting hidden="false" key="password.policy.disallowCurrent" level="2" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="password.policy.charGroup.minimumMatch" level="2" required="false">
+    <setting hidden="false" key="password.policy.charGroup.minimumMatch" level="2" required="false">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="password.policy.charGroup.regExValues" level="2" required="false">
+    <setting hidden="false" key="password.policy.charGroup.regExValues" level="2" required="false">
         <default>
             <value><![CDATA[.*[0-9]]]></value>
             <value><![CDATA[.*[a-z]]]></value>
@@ -1098,90 +1098,90 @@
             <value><![CDATA[.*[^A-Za-z0-9]]]></value>
         </default>
     </setting>
-    <setting key="wordlistCaseSensitive" level="1" required="true">
+    <setting hidden="false" key="wordlistCaseSensitive" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="password.wordlist.wordSize" level="2" required="true">
+    <setting hidden="false" key="password.wordlist.wordSize" level="2" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="pwm.securityKey" level="0">
+    <setting hidden="false" key="pwm.securityKey" level="0">
         <regex>.{32}.*</regex>
     </setting>
-    <setting key="intruder.user.resetTime" level="1" required="true">
+    <setting hidden="false" key="intruder.user.resetTime" level="1" required="true">
         <default>
             <value>1800</value>
         </default>
     </setting>
-    <setting key="intruder.user.maxAttempts" level="1" required="true">
+    <setting hidden="false" key="intruder.user.maxAttempts" level="1" required="true">
         <default>
             <value>10</value>
         </default>
     </setting>
-    <setting key="intruder.user.checkTime" level="1" required="true">
+    <setting hidden="false" key="intruder.user.checkTime" level="1" required="true">
         <default>
             <value>300</value>
         </default>
     </setting>
-    <setting key="intruder.attribute.resetTime" level="1" required="true">
+    <setting hidden="false" key="intruder.attribute.resetTime" level="1" required="true">
         <default>
             <value>1800</value>
         </default>
     </setting>
-    <setting key="intruder.attribute.maxAttempts" level="1" required="true">
+    <setting hidden="false" key="intruder.attribute.maxAttempts" level="1" required="true">
         <default>
             <value>10</value>
         </default>
     </setting>
-    <setting key="intruder.attribute.checkTime" level="1" required="true">
+    <setting hidden="false" key="intruder.attribute.checkTime" level="1" required="true">
         <default>
             <value>300</value>
         </default>
     </setting>
-    <setting key="intruder.tokenDest.resetTime" level="1" required="true">
+    <setting hidden="false" key="intruder.tokenDest.resetTime" level="1" required="true">
         <default>
             <value>1800</value>
         </default>
     </setting>
-    <setting key="intruder.tokenDest.maxAttempts" level="1" required="true">
+    <setting hidden="false" key="intruder.tokenDest.maxAttempts" level="1" required="true">
         <default>
             <value>10</value>
         </default>
     </setting>
-    <setting key="intruder.tokenDest.checkTime" level="1" required="true">
+    <setting hidden="false" key="intruder.tokenDest.checkTime" level="1" required="true">
         <default>
             <value>300</value>
         </default>
     </setting>
-    <setting key="intruder.address.resetTime" level="1" required="true">
+    <setting hidden="false" key="intruder.address.resetTime" level="1" required="true">
         <default>
             <value>1800</value>
         </default>
     </setting>
-    <setting key="intruder.address.maxAttempts" level="1" required="true">
+    <setting hidden="false" key="intruder.address.maxAttempts" level="1" required="true">
         <default>
             <value>30</value>
         </default>
     </setting>
-    <setting key="intruder.address.checkTime" level="1" required="true">
+    <setting hidden="false" key="intruder.address.checkTime" level="1" required="true">
         <default>
             <value>300</value>
         </default>
     </setting>
-    <setting key="intruder.address.checkTime" level="1" required="true">
+    <setting hidden="false" key="intruder.address.checkTime" level="1" required="true">
         <default>
             <value>300</value>
         </default>
     </setting>
-    <setting key="intruder.enable" level="1" required="true">
+    <setting hidden="false" key="intruder.enable" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="intruder.storageMethod" level="1" required="true">
+    <setting hidden="false" key="intruder.storageMethod" level="1" required="true">
         <default>
             <value><![CDATA[LOCALDB]]></value>
         </default>
@@ -1191,24 +1191,24 @@
             <option value="LOCALDB">LocalDB</option>
         </options>
     </setting>
-    <setting key="intruder.session.maxAttempts" level="1" required="true">
+    <setting hidden="false" key="intruder.session.maxAttempts" level="1" required="true">
         <default>
             <value>8</value>
         </default>
     </setting>
-    <setting key="security.ldap.simulateBadPassword" level="1">
+    <setting hidden="false" key="security.ldap.simulateBadPassword" level="1">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="captcha.recaptcha.publicKey" level="1">
+    <setting hidden="false" key="captcha.recaptcha.publicKey" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="captcha.recaptcha.privateKey" level="1">
+    <setting hidden="false" key="captcha.recaptcha.privateKey" level="1">
     </setting>
-    <setting key="captcha.protectedPages" level="1">
+    <setting hidden="false" key="captcha.protectedPages" level="1">
         <default>
             <value>NEW_USER_REGISTRATION</value>
         </default>
@@ -1220,27 +1220,27 @@
             <option value="NEW_USER_REGISTRATION">New User Registration</option>
         </options>
     </setting>
-    <setting key="captcha.skip.param" level="2">
+    <setting hidden="false" key="captcha.skip.param" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="captcha.skip.cookie" level="2">
+    <setting hidden="false" key="captcha.skip.cookie" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="security.page.enableRequestSequence" level="2" required="true">
+    <setting hidden="false" key="security.page.enableRequestSequence" level="2" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="security.formNonce.enable" level="2" required="true">
+    <setting hidden="false" key="security.formNonce.enable" level="2" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="enableSessionVerification" level="2" required="true">
+    <setting hidden="false" key="enableSessionVerification" level="2" required="true">
         <default>
             <value>VERIFY</value>
         </default>
@@ -1250,7 +1250,7 @@
             <option value="VERIFY_AND_CACHE">Enabled - And pre-load browser cache</option>
         </options>
     </setting>
-    <setting key="disallowedInputs" level="2">
+    <setting hidden="false" key="disallowedInputs" level="2">
         <default>
             <value><![CDATA[(?s)(?i)<.*script.*]]></value>
             <value><![CDATA[(?s)(?i)<.*xml.*]]></value>
@@ -1259,61 +1259,61 @@
             <value><![CDATA[(?s)(?i)<.*href.*]]></value>
         </default>
     </setting>
-    <setting key="pwm.requireHTTPS" level="1" required="true">
+    <setting hidden="false" key="pwm.requireHTTPS" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="forceBasicAuth" level="2" required="true">
+    <setting hidden="false" key="forceBasicAuth" level="2" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="useXForwardedForHeader" level="2" required="true">
+    <setting hidden="false" key="useXForwardedForHeader" level="2" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="network.reverseDNS.enable" level="2" required="true">
+    <setting hidden="false" key="network.reverseDNS.enable" level="2" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="network.allowMultiIPSession" level="2" required="true">
+    <setting hidden="false" key="network.allowMultiIPSession" level="2" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="network.requiredHttpHeaders" level="2" required="false">
+    <setting hidden="false" key="network.requiredHttpHeaders" level="2" required="false">
         <default/>
         <regex>^[a-zA-Z0-9.-]{1,1024}=.{1,1024}$</regex>
     </setting>
-    <setting key="network.ip.permittedRange" level="2" required="false">
+    <setting hidden="false" key="network.ip.permittedRange" level="2" required="false">
         <default>
             <value/>
         </default>
     </setting>
-    <setting key="security.page.leaveNoticeTimeout" level="2" required="true">
+    <setting hidden="false" key="security.page.leaveNoticeTimeout" level="2" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="display.showDetailedErrors" level="2" required="true">
+    <setting hidden="false" key="display.showDetailedErrors" level="2" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="security.sso.authHeaderName" level="2">
+    <setting hidden="false" key="security.sso.authHeaderName" level="2">
         <default>
             <value/>
         </default>
     </setting>
-    <setting key="session.maxSeconds" level="2">
+    <setting hidden="false" key="session.maxSeconds" level="2">
         <default>
             <value>28800</value>
         </default>
     </setting>
-    <setting key="security.preventFraming" level="2">
+    <setting hidden="false" key="security.preventFraming" level="2">
         <default>
             <value>true</value>
         </default>
@@ -1321,20 +1321,20 @@
             <value>false</value>
         </default>
     </setting>
-    <setting key="security.redirectUrl.whiteList" level="2">
+    <setting hidden="false" key="security.redirectUrl.whiteList" level="2">
         <default/>
     </setting>
-    <setting key="security.cspHeader" level="2">
+    <setting hidden="false" key="security.cspHeader" level="2">
         <default>
             <value><![CDATA[]]></value>
             <!--<value><![CDATA[default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'nonce-%NONCE%' www.google.com/recaptcha]]></value>-->
         </default>
     </setting>
-    <setting key="email.adminAlert.toAddress" level="1">
+    <setting hidden="false" key="email.adminAlert.toAddress" level="1">
         <default/>
         <placeholder><![CDATA[admin@example.com]]></placeholder>
     </setting>
-    <setting key="audit.system.eventList" level="1">
+    <setting hidden="false" key="audit.system.eventList" level="1">
         <default>
             <value>STARTUP</value>
             <value>SHUTDOWN</value>
@@ -1351,11 +1351,11 @@
             <option value="INTRUDER_LOCK">Intruder Lock</option>
         </options>
     </setting>
-    <setting key="audit.userEvent.toAddress" level="1">
+    <setting hidden="false" key="audit.userEvent.toAddress" level="1">
         <default/>
         <placeholder><![CDATA[admin@example.com]]></placeholder>
     </setting>
-    <setting key="audit.user.eventList" level="1">
+    <setting hidden="false" key="audit.user.eventList" level="1">
         <default>
             <value>AUTHENTICATE</value>
             <value>AGREEMENT_PASSED</value>
@@ -1405,19 +1405,19 @@
             <option value="HELPDESK_VERIFY_OTP">Helpdesk Verify OTP</option>
         </options>
     </setting>
-    <setting key="audit.syslog.servers" level="1" required="false">
+    <setting hidden="false" key="audit.syslog.servers" level="1" required="false">
         <default>
             <value/>
         </default>
         <regex>^$|^(udp|tcp|sslTcp|tls)\,.+\,[0-9]*$</regex>
     </setting>
-    <setting key="audit.syslog.certificates" level="1" required="false">
+    <setting hidden="false" key="audit.syslog.certificates" level="1" required="false">
         <default/>
         <options>
             <option value="ImportHandler">password.pwm.config.function.SyslogCertImportFunction</option>
         </options>
     </setting>
-    <setting key="token.storageMethod" level="1" required="true">
+    <setting hidden="false" key="token.storageMethod" level="1" required="true">
         <default>
             <value><![CDATA[STORE_CRYPTO]]></value>
         </default>
@@ -1428,33 +1428,33 @@
             <option value="STORE_LDAP">LDAP</option>
         </options>
     </setting>
-    <setting key="token.characters" level="1" required="true">
+    <setting hidden="false" key="token.characters" level="1" required="true">
         <default>
             <value><![CDATA[ABCDEFGHJKLMNPQRSTUVWXY3456789]]></value>
         </default>
     </setting>
-    <setting key="token.length" level="1" required="true">
+    <setting hidden="false" key="token.length" level="1" required="true">
         <default>
             <value>16</value>
         </default>
     </setting>
-    <setting key="token.lifetime" level="1" required="true">
+    <setting hidden="false" key="token.lifetime" level="1" required="true">
         <default>
             <value>3600</value>
         </default>
     </setting>
-    <setting key="token.ldap.attribute" level="1" required="true">
+    <setting hidden="false" key="token.ldap.attribute" level="1" required="true">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmToken]]></value>
         </default>
     </setting>
-    <setting key="otp.enabled" level="1" required="true">
+    <setting hidden="false" key="otp.enabled" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="otp.forceSetup" level="1" required="true">
+    <setting hidden="false" key="otp.forceSetup" level="1" required="true">
         <default>
             <value><![CDATA[SKIP]]></value>
         </default>
@@ -1464,7 +1464,7 @@
             <option value="SKIP">Do not force setup</option>
         </options>
     </setting>
-    <setting key="otp.secret.readPreference" level="1" required="true">
+    <setting hidden="false" key="otp.secret.readPreference" level="1" required="true">
         <default>
             <value><![CDATA[LDAP]]></value>
         </default>
@@ -1486,7 +1486,7 @@
             <option value="LOCALDB-LDAP-DB">LocalDB, LDAP, Database</option>
         </options>
     </setting>
-    <setting key="otp.secret.writePreference" level="1" required="true">
+    <setting hidden="false" key="otp.secret.writePreference" level="1" required="true">
         <default>
             <value><![CDATA[LDAP]]></value>
         </default>
@@ -1500,7 +1500,7 @@
             <option value="LOCALDB">LocalDB</option>
         </options>
     </setting>
-    <setting key="otp.secret.storageFormat" level="1" required="true">
+    <setting hidden="false" key="otp.secret.storageFormat" level="1" required="true">
         <default>
             <value><![CDATA[PWM]]></value>
         </default>
@@ -1511,32 +1511,32 @@
             <option value="PAM">PAM text</option>
         </options>
     </setting>
-    <setting key="otp.secret.encrypt" level="1" required="true">
+    <setting hidden="false" key="otp.secret.encrypt" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="otp.secret.ldap.attribute" level="2" required="false">
+    <setting hidden="false" key="otp.secret.ldap.attribute" level="2" required="false">
         <default>
             <value>pwmOtpSecret</value>
         </default>
     </setting>
-    <setting key="otp.secret.allowSetup.queryMatch" level="1" required="true">
+    <setting hidden="false" key="otp.secret.allowSetup.queryMatch" level="1" required="true">
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
-    <setting key="otp.secret.identifier" level="2" required="true">
+    <setting hidden="false" key="otp.secret.identifier" level="2" required="true">
         <default>
             <value><![CDATA[@User:Email@]]></value>
         </default>
     </setting>
-    <setting key="otp.secret.recoveryCodes" level="2" required="true">
+    <setting hidden="false" key="otp.secret.recoveryCodes" level="2" required="true">
         <default>
             <value>5</value>
         </default>
     </setting>
-    <setting key="events.java.stdoutLevel" level="1">
+    <setting hidden="false" key="events.java.stdoutLevel" level="1">
         <default>
             <value><![CDATA[INFO]]></value>
         </default>
@@ -1550,12 +1550,12 @@
             <option value="Off">0 - Off</option>
         </options>
     </setting>
-    <setting key="events.java.log4jconfigFile" level="2">
+    <setting hidden="false" key="events.java.log4jconfigFile" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="events.pwmDB.maxEvents" level="1" required="true">
+    <setting hidden="false" key="events.pwmDB.maxEvents" level="1" required="true">
         <default>
             <value>1000000</value>
         </default>
@@ -1564,12 +1564,12 @@
             <option value="max">1000000000</option>
         </options>
     </setting>
-    <setting key="events.pwmDB.maxAge" level="1" required="true">
+    <setting hidden="false" key="events.pwmDB.maxAge" level="1" required="true">
         <default>
             <value>2419200</value>
         </default>
     </setting>
-    <setting key="events.pwmDB.logLevel" level="1" required="true">
+    <setting hidden="false" key="events.pwmDB.logLevel" level="1" required="true">
         <default>
             <value><![CDATA[INFO]]></value>
         </default>
@@ -1583,7 +1583,7 @@
             <option value="Off">0 - Off</option>
         </options>
     </setting>
-    <setting key="events.fileAppender.level" level="1" required="true">
+    <setting hidden="false" key="events.fileAppender.level" level="1" required="true">
         <default>
             <value><![CDATA[INFO]]></value>
         </default>
@@ -1597,7 +1597,7 @@
             <option value="Off">0 - Off</option>
         </options>
     </setting>
-    <setting key="events.user.storageMethod" level="2" required="true">
+    <setting hidden="false" key="events.user.storageMethod" level="2" required="true">
         <default>
             <value><![CDATA[AUTO]]></value>
         </default>
@@ -1607,7 +1607,7 @@
             <option value="LDAP">LDAP</option>
         </options>
     </setting>
-    <setting key="events.user.eventList" level="1">
+    <setting hidden="false" key="events.user.eventList" level="1">
         <default>
             <value>CHANGE_PASSWORD</value>
             <value>UNLOCK_PASSWORD</value>
@@ -1650,13 +1650,13 @@
             <option value="HELPDESK_VERIFY_OTP">Helpdesk Verify OTP</option>
         </options>
     </setting>
-    <setting key="events.ldap.attribute" level="2">
+    <setting hidden="false" key="events.ldap.attribute" level="2">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmEventLog]]></value>
         </default>
     </setting>
-    <setting key="events.ldap.maxEvents" level="2" required="true">
+    <setting hidden="false" key="events.ldap.maxEvents" level="2" required="true">
         <default>
             <value>20</value>
         </default>
@@ -1665,32 +1665,32 @@
             <option value="max">1000</option>
         </options>
     </setting>
-    <setting key="ldap.wireTrace.enable" level="2" required="true">
+    <setting hidden="false" key="ldap.wireTrace.enable" level="2" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="events.alert.dailySummary.enable" level="1" required="true">
+    <setting hidden="false" key="events.alert.dailySummary.enable" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="events.audit.maxAge" level="2" required="true">
+    <setting hidden="false" key="events.audit.maxAge" level="2" required="true">
         <default>
             <value>2592000</value>
         </default>
     </setting>
-    <setting key="challenge.enable" level="1">
+    <setting hidden="false" key="challenge.enable" level="1">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="challenge.forceSetup" level="1" required="true">
+    <setting hidden="false" key="challenge.forceSetup" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="challenge.randomChallenges" level="1">
+    <setting hidden="false" key="challenge.randomChallenges" level="1">
         <default>
             <value><![CDATA[{"text":"What is the name of the main character in your favorite book?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
             <value><![CDATA[{"text":"What is the name of your favorite teacher?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
@@ -1838,72 +1838,72 @@
             <value locale="zh_TW"><![CDATA[{"text":"您最討厭的食物？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
         </default>
     </setting>
-    <setting key="challenge.requiredChallenges" level="1">
+    <setting hidden="false" key="challenge.requiredChallenges" level="1">
         <default/>
     </setting>
-    <setting key="challenge.minRandomRequired" level="1" required="true">
+    <setting hidden="false" key="challenge.minRandomRequired" level="1" required="true">
         <default>
             <value>2</value>
         </default>
     </setting>
-    <setting key="challenge.minRandomsSetup" level="1" required="true">
+    <setting hidden="false" key="challenge.minRandomsSetup" level="1" required="true">
         <default>
             <value>4</value>
         </default>
     </setting>
-    <setting key="challenge.showConfirmation" level="1" required="true">
+    <setting hidden="false" key="challenge.showConfirmation" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="challenge.caseInsensitive" level="2" required="true">
+    <setting hidden="false" key="challenge.caseInsensitive" level="2" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="challenge.allowDuplicateResponses" level="2" required="true">
+    <setting hidden="false" key="challenge.allowDuplicateResponses" level="2" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="challenge.helpdesk.randomChallenges" level="1">
+    <setting hidden="false" key="challenge.helpdesk.randomChallenges" level="1">
         <default/>
     </setting>
-    <setting key="challenge.helpdesk.requiredChallenges" level="1">
+    <setting hidden="false" key="challenge.helpdesk.requiredChallenges" level="1">
         <default/>
     </setting>
-    <setting key="challenge.helpdesk.minRandomsSetup" level="1" required="true">
+    <setting hidden="false" key="challenge.helpdesk.minRandomsSetup" level="1" required="true">
         <default>
             <value>4</value>
         </default>
     </setting>
-    <setting key="challenge.allowSetup.queryMatch" level="2" required="true">
+    <setting hidden="false" key="challenge.allowSetup.queryMatch" level="2" required="true">
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
-    <setting key="command.checkResponses.queryMatch" level="2" required="true">
+    <setting hidden="false" key="command.checkResponses.queryMatch" level="2" required="true">
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
-    <setting key="challenge.enforceMinimumPasswordLifetime" level="2" required="true">
+    <setting hidden="false" key="challenge.enforceMinimumPasswordLifetime" level="2" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="challenge.profile.list" level="1" hidden="true">
+    <setting hidden="true" key="challenge.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default>
             <value>default</value>
         </default>
     </setting>
-    <setting key="challenge.policy.queryMatch" level="1">
+    <setting hidden="false" key="challenge.policy.queryMatch" level="1">
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
-    <setting key="recovery.verificationMethods" level="1">
+    <setting hidden="false" key="recovery.verificationMethods" level="1">
         <default>
             <value>{"methodSettings":{"CHALLENGE_RESPONSES":{"enabledState":"required"}},"minOptionalRequired":0}</value>
         </default>
@@ -1916,12 +1916,12 @@
             <option value="REMOTE_RESPONSES">External Responses</option>
         </options>
     </setting>
-    <setting key="recovery.enable" level="1">
+    <setting hidden="false" key="recovery.enable" level="1">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="recovery.form" level="1" required="true">
+    <setting hidden="false" key="recovery.form" level="1" required="true">
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
@@ -1932,10 +1932,10 @@
             <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
-    <setting key="recovery.searchFilter" level="2">
+    <setting hidden="false" key="recovery.searchFilter" level="2">
         <default/>
     </setting>
-    <setting key="recovery.response.readPreference" level="1" required="true">
+    <setting hidden="false" key="recovery.response.readPreference" level="1" required="true">
         <default>
             <value><![CDATA[LDAP]]></value>
         </default>
@@ -1957,7 +1957,7 @@
             <option value="LOCALDB-LDAP-DB">LocalDB, LDAP, Database</option>
         </options>
     </setting>
-    <setting key="recovery.response.writePreference" level="1" required="true">
+    <setting hidden="false" key="recovery.response.writePreference" level="1" required="true">
         <default>
             <value><![CDATA[LDAP]]></value>
         </default>
@@ -1971,18 +1971,18 @@
             <option value="LOCALDB">LocalDB</option>
         </options>
     </setting>
-    <setting key="challenge.userAttribute" level="1">
+    <setting hidden="false" key="challenge.userAttribute" level="1">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmResponseSet]]></value>
         </default>
     </setting>
-    <setting key="challenge.allowUnlock" level="1" required="true">
+    <setting hidden="false" key="challenge.allowUnlock" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="response.hashMethod" level="2" required="true">
+    <setting hidden="false" key="response.hashMethod" level="2" required="true">
         <default>
             <value>PBKDF2</value>
         </default>
@@ -1998,15 +1998,15 @@
             <option value="SCRYPT">SCrypt</option>
         </options>
     </setting>
-    <setting key="challenge.requiredAttributes" level="1">
+    <setting hidden="false" key="challenge.requiredAttributes" level="1">
         <default />
     </setting>
-    <setting key="challenge.token.enable" level="1" required="true">
+    <setting hidden="false" key="challenge.token.enable" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="challenge.token.sendMethod" level="1" required="true">
+    <setting hidden="false" key="challenge.token.sendMethod" level="1" required="true">
         <default>
             <value><![CDATA[EMAILONLY]]></value>
         </default>
@@ -2019,7 +2019,7 @@
             <option value="CHOICE_SMS_EMAIL">User Choice - If both SMS and email address is available, user decides</option>
         </options>
     </setting>
-    <setting key="recovery.action" level="1" required="true">
+    <setting hidden="false" key="recovery.action" level="1" required="true">
         <default>
             <value><![CDATA[RESETPW]]></value>
         </default>
@@ -2029,7 +2029,7 @@
             <option value="SENDNEWPW_AND_EXPIRE">Send new password and mark as expired</option>
         </options>
     </setting>
-    <setting key="recovery.sendNewPassword.sendMethod" level="2">
+    <setting hidden="false" key="recovery.sendNewPassword.sendMethod" level="2">
         <default>
             <value><![CDATA[EMAILONLY]]></value>
         </default>
@@ -2041,31 +2041,31 @@
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
         </options>
     </setting>
-    <setting key="recovery.postActions" level="2">
+    <setting hidden="false" key="recovery.postActions" level="2">
         <default>
             <value/>
         </default>
     </setting>
-    <setting key="recovery.allowWhenLocked" level="2">
+    <setting hidden="false" key="recovery.allowWhenLocked" level="2">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="forgottenUsername.enable" level="1" required="true">
+    <setting hidden="false" key="forgottenUsername.enable" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="forgottenUsername.form" level="1" required="true">
+    <setting hidden="false" key="forgottenUsername.form" level="1" required="true">
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
-    <setting key="forgottenUsername.searchFilter" level="2">
+    <setting hidden="false" key="forgottenUsername.searchFilter" level="2">
         <default/>
     </setting>
-    <setting key="forgottenUsername.usernameAttribute" level="1" required="true">
+    <setting hidden="false" key="forgottenUsername.usernameAttribute" level="1" required="true">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
@@ -2074,7 +2074,7 @@
             <value>sAMAccountName</value>
         </default>
     </setting>
-    <setting key="forgottenUsername.sendUsername.sendMethod" level="1">
+    <setting hidden="false" key="forgottenUsername.sendUsername.sendMethod" level="1">
         <default>
             <value><![CDATA[NONE]]></value>
         </default>
@@ -2087,18 +2087,18 @@
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
         </options>
     </setting>
-    <setting key="newUser.enable" level="1" required="true">
+    <setting hidden="false" key="newUser.enable" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="newUser.profile.list" level="1" hidden="true">
+    <setting hidden="true" key="newUser.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default>
             <value>default</value>
         </default>
     </setting>
-    <setting key="newUser.createContext" level="1" required="true">
+    <setting hidden="false" key="newUser.createContext" level="1" required="true">
         <default>
             <value><![CDATA[ou=users,o=example]]></value>
         </default>
@@ -2106,12 +2106,12 @@
             <option value="ldapDNsyntax">true</option>
         </options>
     </setting>
-    <setting key="display.newuser.agreement" level="1">
+    <setting hidden="false" key="display.newuser.agreement" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="newUser.form" level="1" required="true">
+    <setting hidden="true" key="newUser.form" level="1">
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"placeholder":"username@example.com","selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
@@ -2121,50 +2121,50 @@
             <option value="unique">show</option>
         </options>
     </setting>
-    <setting key="newUser.writeAttributes" level="1">
+    <setting hidden="false" key="newUser.writeAttributes" level="1">
         <default />
     </setting>
-    <setting key="newUser.deleteOnFail" level="2">
+    <setting hidden="false" key="newUser.deleteOnFail" level="2">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="newUser.username.definition" level="1">
+    <setting hidden="false" key="newUser.username.definition" level="1">
         <default>
             <value><![CDATA[@RandomChar:16:ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@]]></value>
         </default>
     </setting>
-    <setting key="newUser.email.verification" level="1">
+    <setting hidden="false" key="newUser.email.verification" level="1">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="newUser.sms.verification" level="1">
+    <setting hidden="false" key="newUser.sms.verification" level="1">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="newUser.passwordPolicy.user" level="1" required="true">
+    <setting hidden="false" key="newUser.passwordPolicy.user" level="1" required="true">
         <default>
             <value><![CDATA[TESTUSER]]></value>
         </default>
     </setting>
-    <setting key="newUser.minimumWaitTime" level="2">
+    <setting hidden="false" key="newUser.minimumWaitTime" level="2">
         <default>
             <value>10</value>
         </default>
     </setting>
-    <setting key="newUser.profile.displayName" level="1">
+    <setting hidden="false" key="newUser.profile.displayName" level="1">
         <default>
             <value></value>
         </default>
     </setting>
-    <setting key="guest.enable" level="1" required="true">
+    <setting hidden="false" key="guest.enable" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="guest.createContext" level="1" required="true">
+    <setting hidden="false" key="guest.createContext" level="1" required="true">
         <default>
             <value><![CDATA[ou=guests,o=example]]></value>
         </default>
@@ -2172,12 +2172,12 @@
             <option value="ldapDNsyntax">true</option>
         </options>
     </setting>
-    <setting key="guest.adminGroup" level="1" required="true">
+    <setting hidden="false" key="guest.adminGroup" level="1" required="true">
         <default syntaxVersion="2">
             <value/>
         </default>
     </setting>
-    <setting key="guest.form" level="1" required="true">
+    <setting hidden="false" key="guest.form" level="1" required="true">
         <default>
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2189,7 +2189,7 @@
             <option value="unique">show</option>
         </options>
     </setting>
-    <setting key="guest.update.form" level="1" required="true">
+    <setting hidden="false" key="guest.update.form" level="1" required="true">
         <default>
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2201,59 +2201,59 @@
             <option value="unique">show</option>
         </options>
     </setting>
-    <setting key="guest.creationUniqueAttributes" level="1">
+    <setting hidden="false" key="guest.creationUniqueAttributes" level="1">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
             <value><![CDATA[mail]]></value>
         </default>
     </setting>
-    <setting key="guest.writeAttributes" level="1">
+    <setting hidden="false" key="guest.writeAttributes" level="1">
         <default />
     </setting>
-    <setting key="guest.adminAttribute" level="1">
+    <setting hidden="false" key="guest.adminAttribute" level="1">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[manager]]></value>
         </default>
     </setting>
-    <setting key="guest.editOriginalAdminOnly" level="1" required="true">
+    <setting hidden="false" key="guest.editOriginalAdminOnly" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="guest.maxValidDays" level="1" required="true">
+    <setting hidden="false" key="guest.maxValidDays" level="1" required="true">
         <default>
             <value>30</value>
         </default>
     </setting>
-    <setting key="guest.expirationAttribute" level="1">
+    <setting hidden="false" key="guest.expirationAttribute" level="1">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[loginExpirationTime]]></value>
         </default>
     </setting>
-    <setting key="activateUser.enable" level="1" required="true">
+    <setting hidden="false" key="activateUser.enable" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="activateUser.allowUnlock" level="1" required="true">
+    <setting hidden="false" key="activateUser.allowUnlock" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="activateUser.token.verification" level="1" required="true">
+    <setting hidden="false" key="activateUser.token.verification" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="display.activateUser.agreement" level="1">
+    <setting hidden="false" key="display.activateUser.agreement" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="activateUser.form" level="1" required="true">
+    <setting hidden="false" key="activateUser.form" level="1" required="true">
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
@@ -2264,10 +2264,10 @@
             <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
-    <setting key="activateUser.searchFilter" level="2" required="false">
+    <setting hidden="false" key="activateUser.searchFilter" level="2" required="false">
         <default/>
     </setting>
-    <setting key="activateUser.queryMatch" level="1" required="true">
+    <setting hidden="false" key="activateUser.queryMatch" level="1" required="true">
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(&(objectclass=person)(!(loginDisabled=TRUE))(!(loginTime=*)))"}]]></value>
         </default>
@@ -2275,17 +2275,17 @@
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(lastLogon=0)(!(lastLogonTimestamp=*))))"}]]></value>
         </default>
     </setting>
-    <setting key="activateUser.writePreAttributes" level="1">
+    <setting hidden="false" key="activateUser.writePreAttributes" level="1">
         <default>
             <value/>
         </default>
     </setting>
-    <setting key="activateUser.writePostAttributes" level="1">
+    <setting hidden="false" key="activateUser.writePostAttributes" level="1">
         <default>
             <value/>
         </default>
     </setting>
-    <setting key="activateUser.token.sendMethod" level="1" required="true">
+    <setting hidden="false" key="activateUser.token.sendMethod" level="1" required="true">
         <default>
             <value><![CDATA[NONE]]></value>
         </default>
@@ -2298,30 +2298,30 @@
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
         </options>
     </setting>
-    <setting key="updateAttributes.enable" level="1" required="true">
+    <setting hidden="false" key="updateAttributes.enable" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="updateAttributes.forceSetup" level="1" required="true">
+    <setting hidden="false" key="updateAttributes.forceSetup" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="display.updateAttributes.agreement" level="1">
+    <setting hidden="false" key="display.updateAttributes.agreement" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="updateAttributes.queryMatch" level="1" required="true">
+    <setting hidden="false" key="updateAttributes.queryMatch" level="1" required="true">
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=person)"}]]></value>
         </default>
     </setting>
-    <setting key="updateAttributes.writeAttributes" level="1">
+    <setting hidden="false" key="updateAttributes.writeAttributes" level="1">
         <default />
     </setting>
-    <setting key="updateAttributes.form" level="1" required="true">
+    <setting hidden="false" key="updateAttributes.form" level="1" required="true">
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2332,59 +2332,59 @@
             <option value="unique">show</option>
         </options>
     </setting>
-    <setting key="updateAttributes.check.queryMatch" level="1">
+    <setting hidden="false" key="updateAttributes.check.queryMatch" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="updateAttributes.showConfirmation" level="1" required="true">
+    <setting hidden="false" key="updateAttributes.showConfirmation" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="shortcut.enable" level="1">
+    <setting hidden="false" key="shortcut.enable" level="1">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="shortcut.items" level="1">
+    <setting hidden="false" key="shortcut.items" level="1">
         <default>
             <value><![CDATA[Google::http://www.google.com::(objectClass=person)::Google Search]]></value>
             <value><![CDATA[Example::http://www.Example.com::(&(objectClass=person)(cn=n*))::Example Page]]></value>
             <value><![CDATA[Yahoo::http://www.yahoo.com::(objectClass=person)::Yahoo Home Page]]></value>
         </default>
     </setting>
-    <setting key="shortcut.httpHeaders" level="1">
+    <setting hidden="false" key="shortcut.httpHeaders" level="1">
         <default>
             <value><![CDATA[X-Shortcuts]]></value>
         </default>
     </setting>
-    <setting key="shortcut.httpHeaders" level="1">
+    <setting hidden="false" key="shortcut.httpHeaders" level="1">
         <default>
             <value><![CDATA[X-Shortcuts]]></value>
         </default>
     </setting>
-    <setting key="shortcut.newWindow" level="1">
+    <setting hidden="false" key="shortcut.newWindow" level="1">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="peopleSearch.enable" level="1">
+    <setting hidden="false" key="peopleSearch.enable" level="1">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="peopleSearch.enablePublic" level="1">
+    <setting hidden="false" key="peopleSearch.enablePublic" level="1">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="peopleSearch.queryMatch" level="1" required="true">
+    <setting hidden="false" key="peopleSearch.queryMatch" level="1" required="true">
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
-    <setting key="peopleSearch.searchAttributes" level="1" required="false">
+    <setting hidden="false" key="peopleSearch.searchAttributes" level="1" required="false">
         <default>
             <value>givenName</value>
             <value>sn</value>
@@ -2392,16 +2392,16 @@
             <value>mail</value>
         </default>
     </setting>
-    <setting key="peopleSearch.searchFilter" level="2" required="false">
+    <setting hidden="false" key="peopleSearch.searchFilter" level="2" required="false">
         <default/>
     </setting>
-    <setting key="peopleSearch.searchBase" level="2">
+    <setting hidden="false" key="peopleSearch.searchBase" level="2">
         <default />
         <options>
             <option value="ldapDNsyntax">true</option>
         </options>
     </setting>
-    <setting key="peopleSearch.result.form" level="1" required="true">
+    <setting hidden="false" key="peopleSearch.result.form" level="1" required="true">
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2415,7 +2415,7 @@
             <option value="hideOptions">true</option>
         </options>
     </setting>
-    <setting key="peopleSearch.detail.form" level="1" required="true">
+    <setting hidden="false" key="peopleSearch.detail.form" level="1" required="true">
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2444,7 +2444,7 @@
             <option value="readonly">true</option>
         </options>
     </setting>
-    <setting key="peopleSearch.result.limit" level="1" required="true">
+    <setting hidden="false" key="peopleSearch.result.limit" level="1" required="true">
         <default>
             <value>200</value>
         </default>
@@ -2453,12 +2453,12 @@
             <option value="max">10000</option>
         </options>
     </setting>
-    <setting key="peopleSearch.useProxy" level="2" required="true">
+    <setting hidden="false" key="peopleSearch.useProxy" level="2" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="peopleSearch.displayName.cardLabels" level="1">
+    <setting hidden="false" key="peopleSearch.displayName.cardLabels" level="1">
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@</value>
             <value>@LDAP:title@</value>
@@ -2469,45 +2469,45 @@
             <option value="max">4</option>
         </options>
     </setting>
-    <setting key="peopleSearch.displayName.user" level="1" required="true">
+    <setting hidden="false" key="peopleSearch.displayName.user" level="1" required="true">
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @LDAP:title@</value>
         </default>
     </setting>
-    <setting key="peopleSearch.photo.ldapAttribute" level="2">
+    <setting hidden="false" key="peopleSearch.photo.ldapAttribute" level="2">
         <default>
             <value>photo</value>
         </default>
     </setting>
-    <setting key="peopleSearch.photo.urlOverride" level="2">
+    <setting hidden="false" key="peopleSearch.photo.urlOverride" level="2">
         <default/>
     </setting>
-    <setting key="peopleSearch.maxCacheSeconds" level="2">
+    <setting hidden="false" key="peopleSearch.maxCacheSeconds" level="2">
         <default>
             <value>120</value>
         </default>
     </setting>
-    <setting key="peopleSearch.photo.queryFilter" level="2">
+    <setting hidden="false" key="peopleSearch.photo.queryFilter" level="2">
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
-    <setting key="peopleSearch.idleTimeout" level="1">
+    <setting hidden="false" key="peopleSearch.idleTimeout" level="1">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="peopleSearch.orgChart.parentAttribute" level="1">
+    <setting hidden="false" key="peopleSearch.orgChart.parentAttribute" level="1">
         <default>
             <value>manager</value>
         </default>
     </setting>
-    <setting key="peopleSearch.orgChart.childAttribute" level="1">
+    <setting hidden="false" key="peopleSearch.orgChart.childAttribute" level="1">
         <default>
             <value>directReports</value>
         </default>
     </setting>
-    <setting key="ldap.edirectory.enableNmas" level="1" required="true">
+    <setting hidden="false" key="ldap.edirectory.enableNmas" level="1" required="true">
         <default>
             <value>false</value>
         </default>
@@ -2518,7 +2518,7 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.edirectory.storeNmasResponses" level="1" required="true">
+    <setting hidden="false" key="ldap.edirectory.storeNmasResponses" level="1" required="true">
         <default>
             <value>false</value>
         </default>
@@ -2529,7 +2529,7 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.edirectory.useNmasResponses" level="1" required="true">
+    <setting hidden="false" key="ldap.edirectory.useNmasResponses" level="1" required="true">
         <default>
             <value>false</value>
         </default>
@@ -2540,7 +2540,7 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.edirectory.readUserPwd" level="2">
+    <setting hidden="false" key="ldap.edirectory.readUserPwd" level="2">
         <default>
             <value>false</value>
         </default>
@@ -2551,7 +2551,7 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.edirectory.readChallengeSets" level="1" required="true">
+    <setting hidden="false" key="ldap.edirectory.readChallengeSets" level="1" required="true">
         <default>
             <value>false</value>
         </default>
@@ -2562,27 +2562,27 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.edirectory.ws.pwdMgtURL" level="1" hidden="true">
+    <setting hidden="true" key="ldap.edirectory.ws.pwdMgtURL" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="ldap.edirectory.cr.minRandomDuringSetup" level="1" required="true">
+    <setting hidden="false" key="ldap.edirectory.cr.minRandomDuringSetup" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="ldap.edirectory.cr.applyWordlist" level="1" required="true">
+    <setting hidden="false" key="ldap.edirectory.cr.applyWordlist" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="ldap.edirectory.cr.maxQuestionCharsInAnswer" level="1" required="true">
+    <setting hidden="false" key="ldap.edirectory.cr.maxQuestionCharsInAnswer" level="1" required="true">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="ldap.ad.proxyForgotten" level="1" required="true">
+    <setting hidden="false" key="ldap.ad.proxyForgotten" level="1" required="true">
         <default>
             <value>false</value>
         </default>
@@ -2590,40 +2590,40 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.ad.allowAuth.requireNewPassword" level="1" required="true">
+    <setting hidden="false" key="ldap.ad.allowAuth.requireNewPassword" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.ad.allowAuth.expired" level="1" required="true">
+    <setting hidden="false" key="ldap.ad.allowAuth.expired" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="ldap.ad.enforcePwHistoryOnSet" level="1" required="true">
+    <setting hidden="false" key="ldap.ad.enforcePwHistoryOnSet" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="ldap.oracleDS.enable.manipAllowChangeTime" level="1" required="true">
+    <setting hidden="false" key="ldap.oracleDS.enable.manipAllowChangeTime" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.oracleDS.allowAuth.requireNewPassword" level="1" required="true">
+    <setting hidden="false" key="ldap.oracleDS.allowAuth.requireNewPassword" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="helpdesk.enable" level="1">
+    <setting hidden="false" key="helpdesk.enable" level="1">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="helpdesk.filter" level="1">
+    <setting hidden="false" key="helpdesk.filter" level="1">
         <default/>
     </setting>
-    <setting key="helpdesk.result.form" level="1" required="true">
+    <setting hidden="false" key="helpdesk.result.form" level="1" required="true">
         <default>
             <value>{"name":"CN","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2643,7 +2643,7 @@
             <option value="hideOptions">true</option>
         </options>
     </setting>
-    <setting key="helpdesk.detail.form" level="1" required="true">
+    <setting hidden="false" key="helpdesk.detail.form" level="1" required="true">
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"CN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"uid"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2674,13 +2674,13 @@
             <option value="readonly">true</option>
         </options>
     </setting>
-    <setting key="helpdesk.searchBase" level="1">
+    <setting hidden="false" key="helpdesk.searchBase" level="1">
         <default />
         <options>
             <option value="ldapDNsyntax">true</option>
         </options>
     </setting>
-    <setting key="helpdesk.result.limit" level="2" required="true">
+    <setting hidden="false" key="helpdesk.result.limit" level="2" required="true">
         <default>
             <value>500</value>
         </default>
@@ -2689,7 +2689,7 @@
             <option value="max">10000</option>
         </options>
     </setting>
-    <setting key="helpdesk.setPassword.mode" level="1">
+    <setting hidden="false" key="helpdesk.setPassword.mode" level="1">
         <default>
             <value><![CDATA[autogen]]></value>
         </default>
@@ -2701,28 +2701,28 @@
             <option value="random">Set the password to a random value unknown to the helpdesk operator</option>
         </options>
     </setting>
-    <setting key="helpdesk.setPassword.writeAttributes" level="2">
+    <setting hidden="false" key="helpdesk.setPassword.writeAttributes" level="2">
         <default />
     </setting>
-    <setting key="helpdesk.sendPassword" level="1" required="true">
+    <setting hidden="false" key="helpdesk.sendPassword" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="helpdesk.actions" level="2">
+    <setting hidden="false" key="helpdesk.actions" level="2">
         <default />
     </setting>
-    <setting key="helpdesk.enableUnlock" level="1" required="true">
+    <setting hidden="false" key="helpdesk.enableUnlock" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="helpdesk.enforcePasswordPolicy" level="1">
+    <setting hidden="false" key="helpdesk.enforcePasswordPolicy" level="1">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <setting key="helpdesk.viewStatusValues" level="1">
+    <setting hidden="false" key="helpdesk.viewStatusValues" level="1">
         <default>
             <value>AccountEnabled</value>
             <value>IntruderDetect</value>
@@ -2769,22 +2769,22 @@
             <option value="UserSMS">User SMS</option>
         </options>
     </setting>
-    <setting key="helpdesk.idleTimeout" level="1">
+    <setting hidden="false" key="helpdesk.idleTimeout" level="1">
         <default>
             <value>3600</value>
         </default>
     </setting>
-    <setting key="helpdesk.deleteUser.button" level="1">
+    <setting hidden="false" key="helpdesk.deleteUser.button" level="1">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="helpdesk.clearResponses.button" level="1">
+    <setting hidden="false" key="helpdesk.clearResponses.button" level="1">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="helpdesk.clearResponses" level="1">
+    <setting hidden="false" key="helpdesk.clearResponses" level="1">
         <default>
             <value><![CDATA[ask]]></value>
         </default>
@@ -2794,33 +2794,33 @@
             <option value="no">False</option>
         </options>
     </setting>
-    <setting key="helpdesk.forcePwExpiration" level="1">
+    <setting hidden="false" key="helpdesk.forcePwExpiration" level="1">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="helpdesk.clearOtp.button" level="2" hidden="false">
+    <setting hidden="false" key="helpdesk.clearOtp.button" level="2">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="helpdesk.useProxy" level="2">
+    <setting hidden="false" key="helpdesk.useProxy" level="2">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="helpdesk.displayName" level="2">
+    <setting hidden="false" key="helpdesk.displayName" level="2">
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @User:ID@ - @User:Email@</value>
         </default>
     </setting>
-    <setting key="helpdesk.profile.list" level="1" hidden="true">
+    <setting hidden="true" key="helpdesk.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default>
             <value>default</value>
         </default>
     </setting>
-    <setting key="helpdesk.queryMatch" level="1" required="true">
+    <setting hidden="false" key="helpdesk.queryMatch" level="1" required="true">
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=Helpdesk,ou=Groups,o=example"}]]></value>
         </default>
@@ -2831,7 +2831,7 @@
             <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=Helpdesk,cn=Users,DC=site,DC=example,DC=net"}]]></value>
         </default>
     </setting>
-    <setting key="helpdesk.search.filters" level="1"  hidden="true">
+    <setting hidden="true" key="helpdesk.search.filters" level="1">
         <default syntaxVersion="2">
         </default>
         <options>
@@ -2839,13 +2839,13 @@
             <option value="hideMatch">true</option>
         </options>
     </setting>
-    <setting key="recovery.profile.list" level="1" hidden="true">
+    <setting hidden="true" key="recovery.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default>
             <value>default</value>
         </default>
     </setting>
-    <setting key="recovery.queryMatch" level="1" required="true">
+    <setting hidden="false" key="recovery.queryMatch" level="1" required="true">
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
@@ -2856,7 +2856,7 @@
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
-    <setting key="helpdesk.token.sendMethod" level="1">
+    <setting hidden="false" key="helpdesk.token.sendMethod" level="1">
         <default>
             <value><![CDATA[NONE]]></value>
         </default>
@@ -2870,79 +2870,79 @@
             <option value="CHOICE_SMS_EMAIL">Operator Choice - If both SMS and email address is available, helpdesk operator decides</option>
         </options>
     </setting>
-    <setting key="helpdesk.otp.verify" level="1">
+    <setting hidden="false" key="helpdesk.otp.verify" level="1">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="helpdesk.setPassword.maskValue" level="1">
+    <setting hidden="false" key="helpdesk.setPassword.maskValue" level="1">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="pwmDb.location" level="2" required="true">
+    <setting hidden="false" key="pwmDb.location" level="2" required="true">
         <default>
             <value><![CDATA[LocalDB]]></value>
         </default>
     </setting>
-    <setting key="db.classname" level="1">
+    <setting hidden="false" key="db.classname" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="db.url" level="1">
+    <setting hidden="false" key="db.url" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="db.username" level="1">
+    <setting hidden="false" key="db.username" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="db.password" level="1">
+    <setting hidden="false" key="db.password" level="1">
     </setting>
-    <setting key="db.jdbc.driver" level="1">
+    <setting hidden="false" key="db.jdbc.driver" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="db.columnType.key" level="2" required="true">
+    <setting hidden="false" key="db.columnType.key" level="2" required="true">
         <default>
             <value>VARCHAR</value>
         </default>
     </setting>
-    <setting key="db.columnType.value" level="2" required="true">
+    <setting hidden="false" key="db.columnType.value" level="2" required="true">
         <default>
             <value>TEXT</value>
         </default>
     </setting>
-    <setting key="db.debugTrace.enable" level="2" required="true">
+    <setting hidden="false" key="db.debugTrace.enable" level="2" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="reporting.enable" level="1">
+    <setting hidden="false" key="reporting.enable" level="1">
         <default>
             <value/>
         </default>
     </setting>
-    <setting key="reporting.ldap.searchFilter" level="1">
+    <setting hidden="false" key="reporting.ldap.searchFilter" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="reporting.maxCacheAge" level="1">
+    <setting hidden="false" key="reporting.maxCacheAge" level="1">
         <default>
             <value>2592000</value>
         </default>
     </setting>
-    <setting key="reporting.minCacheAge" level="1">
+    <setting hidden="false" key="reporting.minCacheAge" level="1">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="reporting.reportRestTimeMS" level="1">
+    <setting hidden="false" key="reporting.reportRestTimeMS" level="1">
         <default>
             <value>-1</value>
         </default>
@@ -2951,7 +2951,7 @@
             <option value="max">10000</option>
         </options>
     </setting>
-    <setting key="reporting.ldap.maxQuerySize" level="2">
+    <setting hidden="false" key="reporting.ldap.maxQuerySize" level="2">
         <default>
             <value>100000</value>
         </default>
@@ -2960,12 +2960,12 @@
             <option value="max">100000000</option>
         </options>
     </setting>
-    <setting key="reporting.job.timeOffset" level="2">
+    <setting hidden="false" key="reporting.job.timeOffset" level="2">
         <default>
             <value>0</value>
         </default>
     </setting>
-    <setting key="reporting.summary.dayValues" level="2">
+    <setting hidden="false" key="reporting.summary.dayValues" level="2">
         <default>
             <value>-90</value>
             <value>-60</value>
@@ -2979,28 +2979,28 @@
         </default>
         <regex>^-?[0-9]{1,2}$</regex>
     </setting>
-    <setting key="http.proxy.url" level="1">
+    <setting hidden="false" key="http.proxy.url" level="1">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="cas.clearPassUrl" level="2">
+    <setting hidden="false" key="cas.clearPassUrl" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="urlshortener.classname" level="2">
+    <setting hidden="false" key="urlshortener.classname" level="2">
         <default>
             <value />
         </default>
     </setting>
-    <setting key="urlshortener.parameters" level="2">
+    <setting hidden="false" key="urlshortener.parameters" level="2">
         <regex>^[a-zA-Z0-9.]+=.+$</regex>
         <default>
             <value />
         </default>
     </setting>
-    <setting key="external.webservices.enable" level="2">
+    <setting hidden="false" key="external.webservices.enable" level="2">
         <default>
             <value>false</value>
         </default>
@@ -3008,22 +3008,22 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="webservices.enableReadAnswers" level="2">
+    <setting hidden="false" key="webservices.enableReadAnswers" level="2">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="webservices.healthStats.makePublic" level="2">
+    <setting hidden="false" key="webservices.healthStats.makePublic" level="2">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="webservices.external.secret" level="2">
+    <setting hidden="false" key="webservices.external.secret" level="2">
         <default>
             <value/>
         </default>
     </setting>
-    <setting key="webservices.queryMatch" level="2">
+    <setting hidden="false" key="webservices.queryMatch" level="2">
         <default syntaxVersion="2">
             <value/>
         </default>
@@ -3031,70 +3031,70 @@
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
-    <setting key="webservices.thirdParty.queryMatch" level="2">
+    <setting hidden="false" key="webservices.thirdParty.queryMatch" level="2">
         <default syntaxVersion="2">
             <value/>
         </default>
     </setting>
-    <setting key="external.macros.urls" level="2">
+    <setting hidden="false" key="external.macros.urls" level="2">
         <default />
     </setting>
-    <setting key="external.remoteResponses.url" level="2">
+    <setting hidden="false" key="external.remoteResponses.url" level="2">
         <default />
     </setting>
-    <setting key="external.destToken.urls" level="2">
+    <setting hidden="false" key="external.destToken.urls" level="2">
         <default />
     </setting>
-    <setting key="external.pwcheck.urls" level="2">
+    <setting hidden="false" key="external.pwcheck.urls" level="2">
         <default />
     </setting>
-    <setting key="webservice.userAttributes" level="2">
+    <setting hidden="false" key="webservice.userAttributes" level="2">
         <default />
     </setting>
-    <setting key="oauth.idserver.loginUrl" level="2">
+    <setting hidden="false" key="oauth.idserver.loginUrl" level="2">
         <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/grant</placeholder>
         <default/>
     </setting>
-    <setting key="oauth.idserver.codeResolveUrl" level="2">
+    <setting hidden="false" key="oauth.idserver.codeResolveUrl" level="2">
         <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/authcoderesolve</placeholder>
         <default/>
     </setting>
-    <setting key="oauth.idserver.attributesUrl" level="2">
+    <setting hidden="false" key="oauth.idserver.attributesUrl" level="2">
         <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/getattributes</placeholder>
         <default/>
     </setting>
-    <setting key="oauth.idserver.serverCerts" level="2">
+    <setting hidden="false" key="oauth.idserver.serverCerts" level="2">
         <default/>
         <options>
             <option value="ImportHandler">password.pwm.config.function.OAuthCertImportFunction</option>
         </options>
     </setting>
-    <setting key="oauth.idserver.clientName" level="2">
+    <setting hidden="false" key="oauth.idserver.clientName" level="2">
         <default/>
     </setting>
-    <setting key="oauth.idserver.secret" level="2">
+    <setting hidden="false" key="oauth.idserver.secret" level="2">
         <default/>
     </setting>
-    <setting key="oauth.idserver.dnAttributeName" level="2">
+    <setting hidden="false" key="oauth.idserver.dnAttributeName" level="2">
         <default/>
     </setting>
-    <setting key="naaf.ws.url" level="2">
+    <setting hidden="false" key="naaf.ws.url" level="2">
         <placeholder>https://www.example.com/api/v1</placeholder>
         <regex>^(http|https)://.+</regex>
         <default/>
     </setting>
-    <setting key="naaf.ws.serverCerts" level="2">
+    <setting hidden="false" key="naaf.ws.serverCerts" level="2">
         <default/>
         <options>
             <option value="ImportHandler">password.pwm.config.function.NAAFCertImportFunction</option>
         </options>
     </setting>
-    <setting key="naaf.userIdentifier" level="2">
+    <setting hidden="false" key="naaf.userIdentifier" level="2">
         <default>
             <value/>
         </default>
     </setting>
-    <setting key="naaf.requiredMethods" level="2">
+    <setting hidden="false" key="naaf.requiredMethods" level="2">
         <default/>
         <options>
             <option value="PASSWORD">Password</option>
@@ -3109,13 +3109,13 @@
             <option value="VOICE">Voice</option>
         </options>
     </setting>
-    <setting key="https.server.cert.pkcs12" level="1">
+    <setting hidden="false" key="https.server.cert.pkcs12" level="1">
         <default/>
     </setting>
-    <setting key="https.server.cert.password" level="1">
+    <setting hidden="false" key="https.server.cert.password" level="1">
         <default/>
     </setting>
-    <setting key="https.server.tls.protocols" level="1">
+    <setting hidden="false" key="https.server.tls.protocols" level="1">
         <default>
             <value>TLS_1_0</value>
             <value>TLS_1_1</value>
@@ -3129,23 +3129,23 @@
             <option value="TLS_1_2">TLS v1.2</option>
         </options>
     </setting>
-    <setting key="https.server.tls.ciphers" level="1">
+    <setting hidden="false" key="https.server.tls.ciphers" level="1">
         <default>
             <value>TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_SHA256,TLS_ECDHE_RSA_WITH_AES_128_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_SHA,TLS_DHE_RSA_WITH_AES_128_SHA256,TLS_DHE_RSA_WITH_AES_128_SHA,TLS_DHE_DSS_WITH_AES_128_SHA256</value>
         </default>
     </setting>
     <!-- DEPRECATED SETTINGS -->
-    <setting key="pwm.wordlist.location" level="1" hidden="true">
+    <setting hidden="true" key="pwm.wordlist.location" level="1">
         <default>
             <value><![CDATA[wordlist.zip]]></value>
         </default>
     </setting>
-    <setting key="pwm.seedlist.location" level="2" hidden="true">
+    <setting hidden="true" key="pwm.seedlist.location" level="2">
         <default>
             <value><![CDATA[seedlist.zip]]></value>
         </default>
     </setting>
-    <setting key="password.policy.ADComplexity" level="99" required="false" hidden="true">
+    <setting hidden="true" key="password.policy.ADComplexity" level="99" required="false">
         <default>
             <value>false</value>
         </default>
@@ -3153,173 +3153,173 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="recovery.require.otp" level="1" required="true" hidden="true">
+    <setting hidden="true" key="recovery.require.otp" level="1" required="true">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting key="challenge.requireResponses" level="1" hidden="true">
+    <setting hidden="true" key="challenge.requireResponses" level="1">
         <default>
             <value>true</value>
         </default>
     </setting>
-    <category key="SETTINGS">
+    <category hidden="false" key="SETTINGS">
     </category>
-    <category key="PROFILES">
+    <category hidden="false" key="PROFILES">
     </category>
-    <category key="MODULES">
+    <category hidden="false" key="MODULES">
     </category>
-    <category key="HTTPS_SERVER">
+    <category hidden="false" key="HTTPS_SERVER">
     </category>
-    <category key="LDAP">
+    <category hidden="false" key="LDAP">
     </category>
-    <category key="LDAP_PROFILE" profiles="true">
+    <category hidden="false" key="LDAP_PROFILE" profiles="true">
         <profile setting="ldap.profile.list"/>
     </category>
-    <category key="LDAP_GLOBAL">
+    <category hidden="false" key="LDAP_GLOBAL">
     </category>
-    <category key="LDAP_SETTINGS">
+    <category hidden="false" key="LDAP_SETTINGS">
     </category>
-    <category key="GENERAL">
+    <category hidden="false" key="GENERAL">
     </category>
-    <category key="USER_INTERFACE">
+    <category hidden="false" key="USER_INTERFACE">
     </category>
-    <category key="UI_FEATURES">
+    <category hidden="false" key="UI_FEATURES">
     </category>
-    <category key="UI_WEB">
+    <category hidden="false" key="UI_WEB">
     </category>
-    <category key="PASSWORD_POLICY">
+    <category hidden="false" key="PASSWORD_POLICY">
         <profile setting="password.profile.list"/>
     </category>
-    <category key="PASSWORD_GLOBAL">
+    <category hidden="false" key="PASSWORD_GLOBAL">
     </category>
-    <category key="CHALLENGE">
+    <category hidden="false" key="CHALLENGE">
     </category>
-    <category key="CHALLENGE_POLICY">
+    <category hidden="false" key="CHALLENGE_POLICY">
         <profile setting="challenge.profile.list"/>
     </category>
-    <category key="EMAIL">
+    <category hidden="false" key="EMAIL">
     </category>
-    <category key="EMAIL_SETTINGS">
+    <category hidden="false" key="EMAIL_SETTINGS">
     </category>
-    <category key="EMAIL_TEMPLATES">
+    <category hidden="false" key="EMAIL_TEMPLATES">
     </category>
-    <category key="SMS">
+    <category hidden="false" key="SMS">
     </category>
-    <category key="SMS_GATEWAY">
+    <category hidden="false" key="SMS_GATEWAY">
     </category>
-    <category key="SMS_MESSAGES">
+    <category hidden="false" key="SMS_MESSAGES">
     </category>
-    <category key="SECURITY">
+    <category hidden="false" key="SECURITY">
     </category>
-    <category key="APP_SECURITY">
+    <category hidden="false" key="APP_SECURITY">
     </category>
-    <category key="WEB_SECURITY">
+    <category hidden="false" key="WEB_SECURITY">
     </category>
-    <category key="CAPTCHA">
+    <category hidden="false" key="CAPTCHA">
     </category>
-    <category key="INTRUDER">
+    <category hidden="false" key="INTRUDER">
     </category>
-    <category key="INTRUDER_SETTINGS">
+    <category hidden="false" key="INTRUDER_SETTINGS">
     </category>
-    <category key="INTRUDER_TIMEOUTS">
+    <category hidden="false" key="INTRUDER_TIMEOUTS">
     </category>
-    <category key="TOKEN">
+    <category hidden="false" key="TOKEN">
     </category>
-    <category key="OTP">
+    <category hidden="false" key="OTP">
     </category>
-    <category key="LOGGING">
+    <category hidden="false" key="LOGGING">
     </category>
-    <category key="AUDITING">
+    <category hidden="false" key="AUDITING">
     </category>
-    <category key="AUDIT_CONFIG">
+    <category hidden="false" key="AUDIT_CONFIG">
     </category>
-    <category key="USER_HISTORY">
+    <category hidden="false" key="USER_HISTORY">
     </category>
-    <category key="AUDIT_FORWARD">
+    <category hidden="false" key="AUDIT_FORWARD">
     </category>
-    <category key="EDIRECTORY">
+    <category hidden="false" key="EDIRECTORY">
     </category>
-    <category key="EDIR_SETTINGS">
+    <category hidden="false" key="EDIR_SETTINGS">
     </category>
-    <category key="EDIR_CR_SETTINGS">
+    <category hidden="false" key="EDIR_CR_SETTINGS">
     </category>
-    <category key="ACTIVE_DIRECTORY">
+    <category hidden="false" key="ACTIVE_DIRECTORY">
     </category>
-    <category key="ORACLE_DS">
+    <category hidden="false" key="ORACLE_DS">
     </category>
-    <category key="DATABASE">
+    <category hidden="false" key="DATABASE">
     </category>
-    <category key="REPORTING">
+    <category hidden="false" key="REPORTING">
     </category>
-    <category key="WEB_SERVICES" level="2">
+    <category hidden="false" key="WEB_SERVICES" level="2">
     </category>
-    <category key="REST_SERVER" level="2">
+    <category hidden="false" key="REST_SERVER" level="2">
     </category>
-    <category key="REST_CLIENT" level="2">
+    <category hidden="false" key="REST_CLIENT" level="2">
     </category>
-    <category key="SSO" level="2">
+    <category hidden="false" key="SSO" level="2">
     </category>
-    <category key="OAUTH" level="2">
+    <category hidden="false" key="OAUTH" level="2">
     </category>
-    <category key="HTTP_SSO" level="2">
+    <category hidden="false" key="HTTP_SSO" level="2">
     </category>
-    <category key="CAS_SSO" level="2">
+    <category hidden="false" key="CAS_SSO" level="2">
     </category>
-    <category key="CHANGE_PASSWORD">
+    <category hidden="false" key="CHANGE_PASSWORD">
     </category>
-    <category key="ACCOUNT_INFO">
+    <category hidden="false" key="ACCOUNT_INFO">
     </category>
-    <category key="RECOVERY">
+    <category hidden="false" key="RECOVERY">
     </category>
-    <category key="RECOVERY_SETTINGS">
+    <category hidden="false" key="RECOVERY_SETTINGS">
     </category>
-    <category key="RECOVERY_PROFILE" profiles="true" hidden="false">
+    <category hidden="false" key="RECOVERY_PROFILE" profiles="true">
         <profile setting="recovery.profile.list"/>
     </category>
-    <category key="ADMINISTRATION">
+    <category hidden="false" key="ADMINISTRATION">
     </category>
-    <category key="FORGOTTEN_USERNAME">
+    <category hidden="false" key="FORGOTTEN_USERNAME">
     </category>
-    <category key="NEWUSER">
+    <category hidden="false" key="NEWUSER">
     </category>
-    <category key="NEWUSER_SETTINGS">
+    <category hidden="false" key="NEWUSER_SETTINGS">
     </category>
-    <category key="NEWUSER_PROFILE" profiles="true">
+    <category hidden="false" key="NEWUSER_PROFILE" profiles="true">
         <profile setting="newUser.profile.list"/>
     </category>
-    <category key="GUEST" hidden="false">
+    <category hidden="false" key="GUEST">
     </category>
-    <category key="ACTIVATION">
+    <category hidden="false" key="ACTIVATION">
     </category>
-    <category key="UPDATE">
+    <category hidden="false" key="UPDATE">
     </category>
-    <category key="SHORTCUT">
+    <category hidden="false" key="SHORTCUT">
     </category>
-    <category key="PEOPLE_SEARCH">
+    <category hidden="false" key="PEOPLE_SEARCH">
     </category>
-    <category key="HELPDESK_PROFILE">
+    <category hidden="false" key="HELPDESK_PROFILE">
         <profile setting="helpdesk.profile.list"/>
     </category>
-    <category key="NAAF" hidden="true">
+    <category hidden="true" key="NAAF">
     </category>
-    <template key="NOVL">
+    <template hidden="false" key="NOVL">
     </template>
-    <template key="NOVL_IDM">
+    <template hidden="false" key="NOVL_IDM">
     </template>
-    <template key="AD">
+    <template hidden="false" key="AD">
     </template>
-    <template key="ORACLE_DS">
+    <template hidden="false" key="ORACLE_DS">
     </template>
-    <template key="OPEN_LDAP">
+    <template hidden="false" key="OPEN_LDAP">
     </template>
-    <template key="DEFAULT">
+    <template hidden="false" key="DEFAULT">
     </template>
 
-    <template key="LOCALDB">
+    <template hidden="false" key="LOCALDB">
     </template>
-    <template key="DB">
+    <template hidden="false" key="DB">
     </template>
-    <template key="LDAP">
+    <template hidden="false" key="LDAP">
     </template>
 </settings>
