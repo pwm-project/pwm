@@ -1,0 +1,83 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://code.google.com/p/pwm/
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2012 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+.login-wrapper a.menubutton {
+	white-space: nowrap;
+}
+
+#centerbody {
+    margin-top: 0;
+}
+
+#wrapper.login-wrapper #centerbody {
+	margin-left: -120px;
+	min-width: 200px;
+	width: 200px;
+}
+
+#login .inputfield, #configLogin .inputfield {
+	width: 185px;
+}
+
+#wrapper.login-wrapper #centerbody > p:first-child {
+	background: url("sspr-login-title-mobile.png") no-repeat scroll 0 0 rgba(0, 0, 0, 0);
+	border-bottom: 1px solid rgb(80, 83, 84);
+	height: 85px;
+}
+
+#header-company-logo {
+	background: url("sspr-product-title-mobile.png") no-repeat scroll 0 0 transparent;
+	width: 250px;
+}
+
+#wrapper.login-wrapper #header-company-logo {
+	display: none;
+}
+
+.btn, .dialogBody.narrow .btn {
+	max-width: 150px;
+	min-width: 150px;
+}
+
+#header-warning .btn {
+	background: none repeat scroll 0 0 transparent;
+	color: #2D2D2D;
+	text-decoration: underline;
+	font-size: 10px;
+	font-weight: bold;
+	min-width: initial;
+	max-width: initial;
+	cursor: pointer;
+}
+
+#header-warning  .btn > .fa {
+	display: none;
+}
+
+#login #submitBtn, #configLogin #submitBtn, #configLogin #button_cancel {
+	max-width: 90px;
+	min-width: 90px;
+}
+
+#login #submitBtn .fa, #configLogin #submitBtn .fa, #configLogin #button_cancel .fa {
+	display: none;
+}

@@ -1,0 +1,493 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://code.google.com/p/pwm/
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2012 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+
+html, body {
+	color: #2d3d45;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	background-color: #ffffff;
+}
+
+.inputfield {
+	border: 1px solid #dae1e1;
+	border-radius: 1px;
+	padding: 3px 3px;
+}
+
+.changepasswordfield {
+	margin: 5px;
+	height: 18px;
+	border: 1px solid #949494;
+	border-radius: 2px;
+	padding: 3px 3px;
+}
+
+.menubutton {
+	color: black;
+	font-size: 13px;
+	text-decoration: none;
+	/*	white-space: nowrap; */
+}
+
+.menubutton:hover {
+	color: rgb(43, 156, 232);
+}
+
+
+.btn {
+	/* background: linear-gradient(to bottom, rgb(115,119,116), rgb(75,79,82)) repeat scroll 0 0 #ffffff;  */
+	background-color: #f6f9f8; /* For IE9 */
+	border: 1px solid #dae1e1;
+	border-radius: 3px;
+	color: #434c50;
+	/* display: table-cell; */
+	font-size: 14px;
+	height: auto;
+	/* margin: 0; */
+	margin-right: 5px;
+	min-width: 80px;
+	max-width: 250px;
+	padding: 5px 10px;
+	position: relative;
+	text-align: center;
+	text-decoration: none;
+	vertical-align: middle;
+}.btn:hover {
+	 /* background: linear-gradient(to bottom, rgb(43,156,232), rgb(35,128,191)) repeat scroll 0 0 #ffffff; */
+	 color: #1773bb;
+	 border: 1px solid #28A9E1;
+ }
+
+.btn > .btn-icon {
+	display: none;
+	/* background-color: rgb(31, 31, 31);
+	border-radius: 10px;
+	height: 18px;
+	position: absolute;
+	right: 0;
+	top: 2px;
+	width: 18px;  */
+}.btn:hover > .btn-icon {
+	display: none;
+	/* background-color: rgb(19, 92, 143); */
+ }
+
+.dialogBody.narrow .btn {
+	max-width: 160px;
+	min-width: 160px;
+}
+
+#header-warning span {
+	display: inline-block;
+}
+
+.btn > .btn-icon::before {
+	height: 18px;
+	position: absolute;
+	right: 0;
+	text-align: center;
+	top: 3px;
+	width: 18px;
+}
+
+/* Firefox-specific styles */
+@-moz-document url-prefix() {
+	.btn > .btn-icon::before {
+		top: 2px;
+	}
+}
+
+/* Webkit-specific styles (Chrome, Safari, Opera) */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+	.foo {
+		background-color: white;
+	}
+}
+
+.btn-icon.fa-forward:before, .btn-icon.fa-edit:before {
+	right: -1px;
+}
+
+.btn[type=submit] {
+	background: linear-gradient(to bottom, rgb(43,156,232), rgb(35,128,191)) repeat scroll 0 0 #ffffff;
+	background-color: #278ed3; /* For IE9 */
+}.btn[type=submit]:hover {
+	 background: none repeat scroll 0 0 rgb(43,156,232);
+ }
+
+.btn[type=submit] > .btn-icon {
+	background-color: rgb(19, 92, 143);
+}
+
+.btn[type=submit][disabled] > .btn-icon {
+	background-color: rgb(184, 184, 184);
+	color: rgb(237,237,237);
+}
+
+.btn[type=submit][disabled] {
+	background: none repeat scroll 0 0 rgb(237,237,237);
+	color: rgb(184,184,184);
+}
+
+.dijitContentPane .btn {
+	display: inline-block;
+}
+
+form#clearExistingForm .btn, form#clearExistingForm+.btn,
+form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
+{
+	display: inline-block;
+}
+
+#centerbody {
+	background: #f6f9f8;
+	padding: 15px;
+	border-radius: 3px;
+	margin-top: 30px;
+	min-width: 600px;
+	border: 1px solid #dae1e1;
+}
+.centerbody-head {
+	font-size: 15px;
+	margin-bottom: 5px;
+	color: #434c50;
+	}
+
+#header {
+	background: linear-gradient(to right, #26a9e0, #0088ce) repeat scroll 0 0 rgba(0, 0, 0, 0);
+	background-color: #26a9e0; /* For IE9 */
+	height: 60px;
+}
+
+#header-company-logo {
+	background: url("sspr-product-title.png") no-repeat scroll 0 0 rgba(0, 0, 0, 0);
+	color: #2b9ce8;
+	height: 42px;
+	left: 25px;
+	position: absolute;
+	top: 8px;
+	width: 450px;
+}
+
+#wrapper.login-wrapper #header-company-logo {}
+
+#header-warning {
+	background-color: #ebeca6;
+	top:70px;
+    border: none;
+    box-shadow: 2px 2px 2px rgb(80, 83, 84);
+}
+
+.message-info {
+	background-color: #f0f0f0;
+	color: black;
+}
+
+.message-error {
+	background-color: #f0f0f0;
+	font-weight: bold;
+	color: #FF0000;
+}
+
+.message-success {
+	background-color: #8096ab;
+}
+
+#header-center-right {
+    height: 67px;
+    padding: 0;
+    position: absolute;
+    right: 10px;
+    top: 25px;
+    width: auto;
+}
+
+
+.header-button {
+	background: none repeat scroll 0 0 rgba(0, 0, 0, 0);
+	border: medium none;
+	color: #b8b8b8;
+	padding: auto;
+	margin: auto;
+	display: inline-block;
+    float: none;
+
+}
+
+.header-button:not(:first-child) {
+    border-left: 1px solid #b8b8b8;
+    padding-left: 10px;
+}
+
+.header-button:hover {
+}
+
+.fa-home, .fa-sign-out {
+	display: none;
+}
+
+#header-center {
+	height: 67px;
+	left: 0;
+	padding: 0;
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: auto;
+}
+
+#header-center-left {
+	display: none;
+}
+
+#centerbody td.menubutton_key, #centerbody td.menubutton_key+td {
+	padding: 15px;
+	vertical-align: top;
+}
+
+#centerbody td.menubutton_key > p, #centerbody td.menubutton_key+td > p {
+	margin: 0;
+}
+
+#wrapper {
+	margin: 0 auto -45px;
+}
+
+#footer {
+	background: linear-gradient(to bottom, #4b5052, #3A3E40) repeat scroll 0 0 rgba(0, 0, 0, 0);
+	background-color: #434749; /* For IE9 */
+	font-size: 12px;
+	height: 45px;
+}
+
+#footer, #footer-content > .infotext {
+	color: #b8b8b8;
+}
+
+#footer-content {
+	padding: 0;
+	position: relative;
+	vertical-align: middle;
+}
+
+#login label, #configLogin h1 {
+	color: white;
+	font-weight: normal;
+	font-size: 12px;
+}
+
+#login .buttonbar {
+	border-bottom: 0px solid rgb(80, 83, 84);
+	height: 48px;
+	position: relative;
+	text-align: left;
+	margin-top: 25px;
+}
+
+#login .buttonbar #submitBtn {
+	/* position: absolute; 
+	right: 0;   */
+	margin: 0;
+	background: #f6f9f8;
+	border: 1px solid #dae1e1;
+	border-radius: 3px;
+	color: #434c50;
+	width: auto;
+	height: auto;
+	min-width: 80px;
+	padding: 5px 10px;
+	font-size: 14px;
+}
+	#login .buttonbar #submitBtn span {
+		display: none;
+	}
+
+#configLogin .buttonbar {
+	margin-top: 10px;
+	position: relative;
+	text-align: right;
+}
+
+#configLogin .buttonbar .checkboxWrapper {
+	background-color: transparent;
+	color: white;
+	left: 0;
+	padding: 0;
+	position: absolute;
+}
+
+.buttonbar button {
+	display: inline-block;
+}
+
+#login button, #configLogin #submitBtn, #configLogin #button_cancel {
+	width: 120px;
+}
+
+#configLogin .buttonbar .btn {
+	margin-top: 40px;
+}
+
+#login .inputfield {
+	margin: 0;
+	padding: 8px;
+	width: 250px;
+	font-size: 15px;
+}
+#configLogin .inputfield {
+	margin: 0;
+	padding: 0 3px;
+	width: 310px;
+}
+
+#login #password-eye-icon:before, #configLogin #password-eye-icon:before {
+	color: white;
+}
+
+#login > h2 {
+	margin: 5px 0 2px;
+}
+#configLogin > h1 {
+	margin: 20px 0 4px;
+}
+
+#login .buttonbar:before {
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	border-bottom: 0px solid rgb(53, 56, 56);
+	box-sizing: border-box;
+	content: '';
+	display: block;
+	height: 100%;
+	position: absolute;
+	width: 100%;
+}
+
+#login+br, #configLogin>br {
+	display: none;
+}
+
+#wrapper.login-wrapper  {
+	background: none repeat scroll 0 0 transparent;
+}
+
+#wrapper.login-wrapper #centerbody {
+	/* background: linear-gradient(to bottom, rgb(75, 80, 82), rgb(58, 62, 64)) repeat scroll 0 0 rgba(0, 0, 0, 0); 
+	position: fixed;
+	left: 50%;
+	top: 50%; */
+	display: block;
+	min-width: 300px; 
+	margin-left: 50px;
+	margin-top: 0px;
+	padding-left: 20px;
+	padding-right: 20px; 
+	padding-top: 10px;
+	background-color: transparent; /* for IE9 */
+	width: 300px;
+	border: 0;
+}
+
+#wrapper.login-wrapper #centerbody .menubutton {
+	color: rgb(43, 156, 232);
+	font-size: 11px;
+	font-weight: normal;
+	margin: 0;
+	padding: 0;
+	min-width: 300px;
+}
+
+#wrapper.login-wrapper #centerbody .menubutton:hover {
+	text-shadow: none;
+}
+
+#wrapper.login-wrapper #centerbody td.menubutton_key {
+	padding: 0 0 15px 0;
+}
+
+#wrapper.login-wrapper #centerbody td.menubutton_key+td {
+	display: none;
+}
+
+#wrapper.login-wrapper #centerbody > table {
+	width: 100%;
+}
+
+#wrapper.login-wrapper #centerbody > p:first-child {
+	display: none;
+	background: url("sspr-login-title.png") no-repeat scroll 0 0 rgba(0, 0, 0, 0);
+	border-bottom: 1px solid rgb(80, 83, 84);
+	height: 85px;
+}
+
+#wrapper.login-wrapper #centerbody > p:first-child:before {
+	border-bottom: 1px solid rgb(53, 56, 56);
+	box-sizing: border-box;
+	content: "";
+	display: block;
+	height: 100%;
+	position: absolute;
+	width: 100%;
+}
+
+#wrapper.login-wrapper ~ #footer {
+	background: none repeat scroll 0 0 transparent;
+	color: black;
+}
+
+#wrapper.login-wrapper #centerbody #message_wrapper {
+	bottom: -50px;
+	left: 0;
+	position: absolute;
+	width: 398px;
+}
+
+#wrapper.login-wrapper #centerbody #message_wrapper #message {
+	background-color: rgb(250, 255, 189);
+	color: rgb(80, 83, 84);
+	display: inherit;
+	opacity: 1;
+}
+
+.panel-peoplesearch-person { background: #eef2f2; border-radius: 3px; }
+.panel-orgChart-person { background: #eef2f2; border-radius: 3px; }
+
+#button-openHeader {
+	top: 75px;
+    background-color: rgb(31, 31, 31);
+    border-radius:50%;
+}
+
+.panel-login-display-message {
+	visibility: hidden;
+}
+
+@supports (box-shadow: 0 0 2pt 2pt rgba(0, 0, 0, 0.75)) {
+    button::-moz-focus-inner {
+        border:0;
+    }
+    button:focus {
+        outline: 0;
+        box-shadow: 0 0 2pt 2pt rgba(0, 0, 0, 0.75);
+    }
+}
