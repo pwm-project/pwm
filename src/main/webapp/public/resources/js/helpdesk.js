@@ -99,7 +99,7 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
                 bodyText += PWM_MAIN.showString('Field_NewPassword');
 
                 if (PWM_VAR['helpdesk_setting_maskPasswords']) {
-                    bodyText += '<button id="button-password-display" class="btn"><span class="btn-icon fa fa-eye"></span>' + PWM_MAIN.showString('Button_Show') + '</button>';
+                    bodyText += '<button id="button-password-display" class="btn"><span class="btn-icon pwm-icon pwm-eye"></span>' + PWM_MAIN.showString('Button_Show') + '</button>';
                     bodyText += ' <input id="panel-password-display" style="display:none" class="inputfield" value="' + password + '" readonly/>';
                 } else {
                     bodyText += ' <input class="inputfield" value="' + password + '" readonly/>';
@@ -108,11 +108,11 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
                 bodyText += '<br/>';
             }
             bodyText += '<br/><br/><button class="btn" id="button-continue">'
-                + '<span class="btn-icon fa fa-forward"></span>' + PWM_MAIN.showString('Button_OK') + '</button>';
+                + '<span class="btn-icon pwm-icon pwm-forward"></span>' + PWM_MAIN.showString('Button_OK') + '</button>';
             if (PWM_VAR['helpdesk_setting_clearResponses'] == 'ask') {
                 bodyText += '<span style="padding-left: 10px">&nbsp;</span>';
                 bodyText += '<button class="btn" id="button-clearResponses">';
-                bodyText += '<span class="btn-icon fa fa-eraser"></span>' + PWM_MAIN.showString('Button_ClearResponses') + '</button>';
+                bodyText += '<span class="btn-icon pwm-icon pwm-eraser"></span>' + PWM_MAIN.showString('Button_ClearResponses') + '</button>';
             }
             PWM_MAIN.closeWaitDialog();
             PWM_MAIN.showDialog({
@@ -187,9 +187,9 @@ PWM_HELPDESK.changePasswordPopup = function() {
     bodyText += '</div></td>';
 
     bodyText += '</tr></table><br/>';
-    bodyText += '<button name="change" class="btn" id="password_button" disabled="true"><span class="btn-icon fa fa-key"></span>' + PWM_MAIN.showString('Button_ChangePassword') + '</button>';
+    bodyText += '<button name="change" class="btn" id="password_button" disabled="true"><span class="btn-icon pwm-icon pwm-key"></span>' + PWM_MAIN.showString('Button_ChangePassword') + '</button>';
     if (PWM_VAR['helpdesk_setting_PwUiMode'] == 'both') {
-        bodyText += '<button name="random" class="btn" id="button-autoGeneratePassword"><span class="btn-icon fa fa-retweet"></span>' + PWM_MAIN.showString('Title_RandomPasswords') + '</button>';
+        bodyText += '<button name="random" class="btn" id="button-autoGeneratePassword"><span class="btn-icon pwm-icon pwm-retweet"></span>' + PWM_MAIN.showString('Title_RandomPasswords') + '</button>';
     }
 
     try { PWM_MAIN.getObject('message').id = "base-message"; } catch (e) {}
@@ -364,10 +364,10 @@ PWM_HELPDESK.validateOtpCode = function(userKey) {
         PWM_MAIN.ajaxRequest(url,loadFunction,{content:content});
     };
     var text = '<div></div><table class="noborder"><tr><td style="width: 100px"><input style="width: 100px" id="otpCode" name="otpCode"/></td><td style="width:40px">'
-        + '<span style="display:none;color:green" id="icon-check" class="btn-icon fa fa-lg fa-check"></span>'
-        + '<span style="display:none;color:red" id="icon-cross" class="btn-icon fa fa-lg fa-times"></span>'
-        + '<span style="display:none;" id="icon-working" class="fa fa-lg fa-spin fa-spinner"></span></td><td>'
-        + '<button type="button" class="btn" id="button-checkCode"><span class="btn-icon fa fa-check"></span>' + PWM_MAIN.showString('Button_CheckCode') + '</button>'
+        + '<span style="display:none;color:green" id="icon-check" class="btn-icon pwm-icon pwm-lg pwm-check"></span>'
+        + '<span style="display:none;color:red" id="icon-cross" class="btn-icon pwm-icon pwm-lg pwm-times"></span>'
+        + '<span style="display:none;" id="icon-working" class="pwm-icon pwm-lg pwm-spin pwm-spinner"></span></td><td>'
+        + '<button type="button" class="btn" id="button-checkCode"><span class="btn-icon pwm-icon pwm-check"></span>' + PWM_MAIN.showString('Button_CheckCode') + '</button>'
         + '</td></table></div>';
     PWM_MAIN.showDialog({
         showClose:true,
@@ -410,9 +410,9 @@ PWM_HELPDESK.sendVerificationToken = function() {
 
     if (choiceFlag) {
         var confirmText = '<div style="text-align:center"><br/><br/><button class="btn" type="button" name="emailChoiceButton" id="emailChoiceButton">'
-            + '<span class="btn-icon fa fa-file-text"></span>' + PWM_MAIN.showString('Button_Email') + '</button>'
+            + '<span class="btn-icon pwm-icon pwm-file-text"></span>' + PWM_MAIN.showString('Button_Email') + '</button>'
             + '<br/><br/><button class="btn" type="button" name="smsChoiceButton" id="smsChoiceButton">'
-            + '<span class="btn-icon fa fa-phone"></span>' + PWM_MAIN.showString('Button_SMS') + '</button></div>';
+            + '<span class="btn-icon pwm-icon pwm-phone"></span>' + PWM_MAIN.showString('Button_SMS') + '</button></div>';
         var dialoagLoadFunction = function() {
             PWM_MAIN.addEventHandler('emailChoiceButton','click',function(){sendTokenAction('email')});
             PWM_MAIN.addEventHandler('smsChoiceButton','click',function(){sendTokenAction('sms')});

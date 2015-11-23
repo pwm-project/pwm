@@ -39,7 +39,7 @@
                 <tr>
                     <td class="menubutton_key">
                         <a id="button_ChangePassword" class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ChangePassword.servletUrl()%>'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-key"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-key"></span></pwm:if>
                             <pwm:display key="Title_ChangePassword"/>
                         </a>
                     </td>
@@ -53,7 +53,7 @@
                     <tr>
                         <td class="menubutton_key">
                             <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupResponses.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon fa fa-list-ol"></span></pwm:if>
+                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-list-ol"></span></pwm:if>
                                 <pwm:display key="Title_SetupResponses"/>
                             </a>
                         </td>
@@ -68,7 +68,7 @@
                     <tr>
                         <td class="menubutton_key">
                             <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupOtp.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon fa fa-qrcode"></span></pwm:if>
+                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-qrcode"></span></pwm:if>
                                 <pwm:display key="Title_SetupOtpSecret"/>
                             </a>
                         </td>
@@ -83,7 +83,7 @@
                     <tr>
                         <td class="menubutton_key">
                             <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.UpdateProfile.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon fa fa-edit"></span></pwm:if>
+                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-edit"></span></pwm:if>
                                 <pwm:display key="Title_UpdateProfile"/>
                             </a>
                         </td>
@@ -97,7 +97,7 @@
                 <tr>
                     <td class="menubutton_key">
                         <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Shortcuts.servletUrl()%>'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-external-link"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-external-link"></span></pwm:if>
                             <pwm:display key="Title_Shortcuts"/>
                         </a>
                     </td>
@@ -111,7 +111,7 @@
                     <tr>
                         <td class="menubutton_key">
                             <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon fa fa-search"></span></pwm:if>
+                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-search"></span></pwm:if>
                                 <pwm:display key="Title_PeopleSearch"/>
                             </a>
                         </td>
@@ -125,7 +125,7 @@
                 <tr>
                     <td class="menubutton_key">
                         <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.AccountInformation.servletUrl()%>'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-file-o"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-file-o"></span></pwm:if>
                             <pwm:display key="Title_UserInformation"/>
                         </a>
                     </td>
@@ -138,7 +138,7 @@
                 <tr>
                     <td class="menubutton_key">
                         <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Helpdesk.servletUrl()%>'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-user"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-user"></span></pwm:if>
                             <pwm:display key="Title_Helpdesk"/>
                         </a>
                     </td>
@@ -152,7 +152,7 @@
                 <tr>
                     <td class="menubutton_key">
                         <a class="menubutton" href="<pwm:url url='<%=PwmServletDefinition.GuestRegistration.servletUrl()%>' addContext="true"/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-group"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-group"></span></pwm:if>
                             <pwm:display key="Title_GuestRegistration"/>
                         </a>
                     </td>
@@ -166,7 +166,7 @@
                 <tr>
                     <td class="menubutton_key">
                         <a class="menubutton" href="<pwm:url url='<%=PwmServletDefinition.Admin.servletUrl()%>' addContext="true"/> ">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-dashboard"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-dashboard"></span></pwm:if>
                             <pwm:display key="Title_Admin"/>
                         </a>
                     </td>

@@ -80,7 +80,7 @@
                         <% } %>
                     </p>
                     <button class="btn" type="button" id="button-extendSchema" <%=existingSchemaGood?"disabled=\"disabled\"":""%>>
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-bolt"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-bolt"></span></pwm:if>
                         Extend Schema
                     </button>
                 </div>

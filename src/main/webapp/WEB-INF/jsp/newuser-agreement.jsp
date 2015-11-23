@@ -46,7 +46,7 @@
                 </label>
                 <input type="hidden" name="processAction" value="agree"/>
                 <button type="submit" name="button" class="btn" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
@@ -56,7 +56,7 @@
             <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                 <input type="hidden" name="processAction" value="reset"/>
                 <button type="submit" name="button" class="btn" id="button_reset">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

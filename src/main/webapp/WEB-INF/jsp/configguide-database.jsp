@@ -70,7 +70,7 @@
                             </table>
                             <% }  %>
                             <button type="button" id="button-uploadJDBCDriver" class="btn">
-                                <span class="btn-icon fa fa-upload"></span>
+                                <span class="btn-icon pwm-icon pwm-upload"></span>
                                 Upload JDBC JAR Driver
                             </button>
 
@@ -154,7 +154,7 @@
         <div id="healthBody" style="border:0; margin:0; padding:0; cursor: pointer">
             <div style="text-align: center">
                 <button class="menubutton" style="margin-left: auto; margin-right: auto">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-check"></span></pwm:if>
                     <pwm:display key="Button_CheckSettings" bundle="Config"/>
                 </button>
             </div>

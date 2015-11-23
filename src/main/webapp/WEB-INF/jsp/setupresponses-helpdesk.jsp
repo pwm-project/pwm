@@ -46,7 +46,7 @@
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="setHelpdeskResponses"/>
                 <button type="submit" name="setResponses" class="btn" id="button-setResponses">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-forward"></span></pwm:if>
                     <pwm:display key="Button_SetResponses"/>
                 </button>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

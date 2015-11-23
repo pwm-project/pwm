@@ -258,8 +258,8 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
     dialogBody += "</table><br/><br/>";
 
     dialogBody += '<table style="border: 0">';
-    dialogBody += '<tr style="border: 0"><td style="border: 0"><button class="btn" id="moreRandomsButton" disabled="true"><span class="btn-icon fa fa-refresh"></span>' + PWM_MAIN.showString('Button_More') + '</button></td>';
-    dialogBody += '<td style="border: 0; text-align:right;"><button class="btn" id="cancelRandomsButton"><span class="btn-icon fa fa-times"></span>' + PWM_MAIN.showString('Button_Cancel') + '</button></td></tr>';
+    dialogBody += '<tr style="border: 0"><td style="border: 0"><button class="btn" id="moreRandomsButton" disabled="true"><span class="btn-icon pwm-icon pwm-refresh"></span>' + PWM_MAIN.showString('Button_More') + '</button></td>';
+    dialogBody += '<td style="border: 0; text-align:right;"><button class="btn" id="cancelRandomsButton"><span class="btn-icon pwm-icon pwm-times"></span>' + PWM_MAIN.showString('Button_Cancel') + '</button></td></tr>';
     dialogBody += "</table>";
 
     randomConfig['dialogBody'] = dialogBody;

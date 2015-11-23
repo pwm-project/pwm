@@ -76,7 +76,7 @@
                     <div style="text-align: center">
                         <form action="<pwm:current-url/>" method="post">
                             <button type="submit" class="btn" id="button-downloadUserSummaryCsv">
-                                <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
+                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-download">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                             </button>
                             <input type="hidden" name="processAction" value="downloadUserSummaryCsv"/>
@@ -92,12 +92,12 @@
                                data-dojo-props="constraints:{min:10,max:50000,pattern:'#'},smallDelta:100"/>
                         Rows
                         <button class="btn" type="button" id="button-refreshReportDataGrid">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-refresh">&nbsp;</span></pwm:if>
                             <pwm:display key="Button_Refresh" bundle="Admin"/>
                         </button>
                         <form action="<pwm:current-url/>" method="post">
                             <button type="submit" class="btn" id="button-downloadUserReportCsv">
-                                <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
+                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-download">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                             </button>
                             <pwm:script>
@@ -130,17 +130,17 @@
                     <table style="width:450px;">
                         <tr><td style="text-align: center; cursor: pointer">
                             <button id="reportStartButton" class="btn">
-                                <pwm:if test="showIcons"><span class="btn-icon fa fa-play">&nbsp;</span></pwm:if>
+                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-play">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_Report_Start" bundle="Admin"/>
                             </button>
                             &nbsp;&nbsp;
                             <button id="reportStopButton" class="btn">
-                                <pwm:if test="showIcons"><span class="btn-icon fa fa-stop">&nbsp;</span></pwm:if>
+                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-stop">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_Report_Stop" bundle="Admin"/>
                             </button>
                             &nbsp;&nbsp;
                             <button id="reportClearButton" class="btn">
-                                <pwm:if test="showIcons"><span class="btn-icon fa fa-trash-o">&nbsp;</span></pwm:if>
+                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-trash-o">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_Report_Clear" bundle="Admin"/>
                             </button>
                         </td></tr>
@@ -177,7 +177,7 @@
                                             <% } %>
                                         </select>
                                         <button class="btn" type="submit">
-                                            <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-refresh">&nbsp;</span></pwm:if>
                                             <pwm:display key="Button_Refresh" bundle="Admin"/>
                                         </button>
                                     </form>
@@ -201,7 +201,7 @@
                     <div style="text-align: center">
                         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                             <button type="submit" class="btn" id="button-downloadStatisticsLogCsv">
-                                <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
+                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-download"></span></pwm:if>
                                 <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                             </button>
                             <input type="hidden" name="processAction" value="downloadStatisticsLogCsv"/>

@@ -25,19 +25,19 @@
 <div style="text-align: center">
   <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager.servletUrl()%>" method="get">
     <button type="submit" class="navbutton">
-      <pwm:if test="showIcons"><span class="btn-icon fa fa-dashboard"></span></pwm:if>
+      <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-dashboard"></span></pwm:if>
       Overview
     </button>
   </form>
   <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager_Wordlists.servletUrl()%>" method="get">
     <button type="submit" class="navbutton">
-      <pwm:if test="showIcons"><span class="btn-icon fa fa-book"></span></pwm:if>
+      <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-book"></span></pwm:if>
       Wordlists
     </button>
   </form>
   <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager_LocalDB.servletUrl()%>" method="get">
     <button type="submit" class="navbutton">
-      <pwm:if test="showIcons"><span class="btn-icon fa fa-database"></span></pwm:if>
+      <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-database"></span></pwm:if>
       LocalDB
     </button>
   </form>

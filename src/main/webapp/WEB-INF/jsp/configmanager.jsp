@@ -107,7 +107,7 @@
             <tr class="buttonrow">
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_DownloadBundle" title="<pwm:display key="MenuDisplay_DownloadBundle" bundle="Config"/>">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-suitcase"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-suitcase"></span></pwm:if>
                         <pwm:display key="MenuItem_DownloadBundle" bundle="Config"/>
                     </a>
                     <pwm:script>
@@ -120,7 +120,7 @@
                 </td>
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_DownloadConfig" title="<pwm:display key="MenuDisplay_DownloadConfig" bundle="Config"/>">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-download"></span></pwm:if>
                         <pwm:display key="MenuItem_DownloadConfig" bundle="Config"/>
                     </a>
                     <pwm:script>
@@ -135,7 +135,7 @@
             <tr class="buttonrow">
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_ConfigurationSummary" href="#">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-files-o"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-files-o"></span></pwm:if>
                         Configuration Summary
                     </a>
                     <pwm:script>
@@ -151,7 +151,7 @@
                 </td>
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_UploadConfig"  title="<pwm:display key="MenuDisplay_UploadConfig" bundle="Config"/>">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-upload"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-upload"></span></pwm:if>
                         <pwm:display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
                     <pwm:script>
@@ -174,7 +174,7 @@
                 <td class="buttoncell">
                     <pwm:if test="configurationOpen">
                         <a class="menubutton" id="MenuItem_LockConfig" title="<pwm:display key="MenuDisplay_LockConfig" bundle="Config"/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-lock"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-lock"></span></pwm:if>
                             <pwm:display key="MenuItem_LockConfig" bundle="Config"/>
                         </a>
                         <pwm:script>
@@ -189,7 +189,7 @@
                     </pwm:if>
                     <pwm:if test="configurationOpen" negate="true">
                         <a class="menubutton" id="MenuItem_UnlockConfig">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-unlock"></span></pwm:if>
                             <pwm:display key="MenuItem_UnlockConfig" bundle="Config"/>
                         </a>
                         <pwm:script>

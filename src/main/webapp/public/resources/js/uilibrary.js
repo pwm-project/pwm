@@ -35,7 +35,7 @@ UILibrary.stringEditorDialog = function(options){
 
     var regexObject = new RegExp(regexString);
     var text = '';
-    text += '<div style="visibility: hidden;" id="panel-valueWarning"><span class="fa fa-warning message-error"></span>&nbsp;' + PWM_CONFIG.showString('Warning_ValueIncorrectFormat') + '</div>';
+    text += '<div style="visibility: hidden;" id="panel-valueWarning"><span class="pwm-icon pwm-warning message-error"></span>&nbsp;' + PWM_CONFIG.showString('Warning_ValueIncorrectFormat') + '</div>';
     text += '<br/>';
 
     if (instructions != null) {
@@ -119,7 +119,7 @@ UILibrary.addAddLocaleButtonRow = function(parentDiv, keyName, addFunction, exis
 
     var bodyHtml = '';
     bodyHtml += '<td style="border-width: 0" colspan="5">';
-    bodyHtml += '<button type="button" class="btn" id="' + keyName + '-addLocaleButton"><span class="btn-icon fa fa-plus-square"></span>Add Locale</button>'
+    bodyHtml += '<button type="button" class="btn" id="' + keyName + '-addLocaleButton"><span class="btn-icon pwm-icon pwm-plus-square"></span>Add Locale</button>'
 
     bodyHtml += '</td>';
     tableRowElement.innerHTML = bodyHtml;
@@ -199,7 +199,7 @@ UILibrary.editLdapDN = function(nextFunction, options) {
         body += '<table class="noborder">';
         if ('parentDN' in data['data']) {
             var parentDN = data['data']['parentDN'];
-            body += '<tr><td style="width:10px" class="navigableDN" data-dn="' + parentDN + '"><span class="fa fa-level-up"></span></td>';
+            body += '<tr><td style="width:10px" class="navigableDN" data-dn="' + parentDN + '"><span class="pwm-icon pwm-level-up"></span></td>';
             body += '<td title="' + parentDN + '">[parent]</td>';
             body += '</td>';
             body += '</tr>';
@@ -210,7 +210,7 @@ UILibrary.editLdapDN = function(nextFunction, options) {
             var entryName = dnInformation['entryName'];
             var out = '';
             if (navigable) {
-                out += '<tr><td style="width:10px" class="navigableDN" data-dn="' + loopDN + '"><span class="fa fa-level-down"></span></td>';
+                out += '<tr><td style="width:10px" class="navigableDN" data-dn="' + loopDN + '"><span class="pwm-icon pwm-level-down"></span></td>';
             } else {
                 out += '<tr><td style="width:10px"></td>';
             }
@@ -237,9 +237,9 @@ UILibrary.editLdapDN = function(nextFunction, options) {
             body += '<div class="footnote">' + PWM_MAIN.showString('Display_SearchResultsExceeded') + '</div>';
         }
 
-        body += '<div class="buttonbar"><button class="btn" id="button-editDN"><span class="btn-icon fa fa-edit"></span>Edit Text</button>';
-        body += '<button class="btn" id="button-refresh"><span class="btn-icon fa fa-refresh"></span>Refresh</button>';
-        body += '<button class="btn" id="button-clearDN"><span class="btn-icon fa fa-times"></span>Clear Value</button></div>';
+        body += '<div class="buttonbar"><button class="btn" id="button-editDN"><span class="btn-icon pwm-icon pwm-edit"></span>Edit Text</button>';
+        body += '<button class="btn" id="button-refresh"><span class="btn-icon pwm-icon pwm-refresh"></span>Refresh</button>';
+        body += '<button class="btn" id="button-clearDN"><span class="btn-icon pwm-icon pwm-times"></span>Clear Value</button></div>';
 
         PWM_MAIN.showDialog({title:'LDAP Browser',dialogClass:'auto',showOk:false,showClose:true,text:body,loadFunction:function(){
             PWM_MAIN.addEventHandler('button-editDN','click',function(){
@@ -306,7 +306,7 @@ UILibrary.uploadFileDialog = function(options) {
     body += '<div id="fileList"></div>';
     body += '<input style="width:80%" class="btn" name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
     body += '<div class="buttonbar">';
-    body += '<button class="btn" type="submit" id="uploadButton" name="Upload"><span class="fa fa-upload"></span> Upload</button>';
+    body += '<button class="btn" type="submit" id="uploadButton" name="Upload"><span class="pwm-icon pwm-upload"></span> Upload</button>';
     body += '</div></div>';
 
     var currentUrl = window.location.pathname;

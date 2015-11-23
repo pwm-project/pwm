@@ -63,7 +63,7 @@
     </select>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <button class="btn" id="button-refresh">
-        <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh"></span></pwm:if>
+        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-refresh"></span></pwm:if>
         <pwm:display key="Button_Refresh" bundle="Admin"/>
     </button>
 </div>

@@ -138,7 +138,7 @@ PWM_PS.convertDetailResultToHtml = function(data) {
             }
             if (attributeData['searchable'] == true) {
                 var likeSearchID = 'link-' + attributeData['name'] + '-' + '-likeUserSearch';
-                htmlBody += '<span id="' + likeSearchID + '" class="icon-likeUserSearch btn-icon fa fa-search" title="' + PWM_MAIN.showString('Button_Search') + '"></span>';
+                htmlBody += '<span id="' + likeSearchID + '" class="icon-likeUserSearch btn-icon pwm-icon pwm-search" title="' + PWM_MAIN.showString('Button_Search') + '"></span>';
             }
             htmlBody += '</div></td>'
         })(iter);
@@ -236,7 +236,7 @@ PWM_PS.convertOrgChartDataToOrgChartHtml = function(data) {
         output += '<div class="panel-orgChart-' + type + '">';  //1
         output += '<div class="panel-orgChart-person" id="panel-orgChart-person-' + userKey + '">'; //2
         if (userReference['hasMoreNodes']) {
-            output += '<a id="link-' + userKey + '"><span class="icon-orgChart-' + direction + ' fa fa-arrow-' + direction + '"/> </a>';
+            output += '<a id="link-' + userKey + '"><span class="icon-orgChart-' + direction + ' pwm-icon pwm-arrow-' + direction + '"/> </a>';
         }
         if (PWM_VAR['peoplesearch_enablePhoto']) {
             var blankSrc = PWM_MAIN.addPwmFormIDtoURL(PWM_GLOBAL['url-resources'] + '/UserPhoto.png');

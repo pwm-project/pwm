@@ -44,12 +44,12 @@
             <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput" required="required" <pwm:autofocus/> ></textarea>
             <div class="buttonbar">
                 <button type="submit" class="btn" name="search" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-check"></span></pwm:if>
                     <pwm:display key="Button_CheckCode"/>
                 </button>
                 <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ForgottenPasswordOptionalPageView))) { %>
                 <button type="submit" id="button-goBack" name="button-goBack" class="btn" form="form-goBack">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <% } %>
@@ -57,7 +57,7 @@
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                 <pwm:if test="showCancel">
                     <button type="submit" name="button" class="btn" id="button-sendReset" form="form-cancel">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-times"></span></pwm:if>
                         <pwm:display key="Button_Cancel"/>
                     </button>
                 </pwm:if>

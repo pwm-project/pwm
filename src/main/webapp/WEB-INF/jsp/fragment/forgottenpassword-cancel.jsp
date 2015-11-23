@@ -26,7 +26,7 @@
 
 <pwm:if test="showCancel">
     <button type="button" name="button" class="btn" id="button-sendReset">
-        <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
+        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-times"></span></pwm:if>
         <pwm:display key="Button_Cancel"/>
     </button>
     <pwm:script>

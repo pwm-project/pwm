@@ -38,7 +38,7 @@
                 <td>
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
                         <button class="btn" type="submit" name="submitBtn">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-unlock"></span></pwm:if>
                             <pwm:display key="Button_UnlockPassword"/>
                         </button>
                         <input type="hidden" name="choice" value="unlock"/>
@@ -59,7 +59,7 @@
                 <td>
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
                         <button class="btn" type="submit" name="submitBtn">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-key"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-key"></span></pwm:if>
                             <pwm:display key="Button_ChangePassword"/>
                         </button>
                         <input type="hidden" name="choice" value="resetPassword"/>

@@ -36,7 +36,7 @@
             <table class="noborder" style="margin-left: auto; margin-right: auto; width:100px;" >
                 <tr>
                     <td style="width:5%">
-                        <span class="fa fa-search"></span>
+                        <span class="pwm-icon pwm-search"></span>
                     </td>
                     <td style="width:90%">
                         <input type="search" id="username" name="username" class="peoplesearch-input-username" <pwm:autofocus/> autocomplete="off"/>
@@ -44,10 +44,10 @@
                     <td style="width:5%">
                         <div style="width:20px; max-width: 20px">
                             <div id="searchIndicator" style="display: none">
-                                <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
+                                <span style="" class="pwm-icon pwm-lg pwm-spin pwm-spinner"></span>
                             </div>
                             <div id="maxResultsIndicator" style="display: none;">
-                                <span style="color: #ffcd59;" class="fa fa-lg fa-exclamation-circle"></span>
+                                <span style="color: #ffcd59;" class="pwm-icon pwm-lg pwm-exclamation-circle"></span>
                             </div>
                         </div>
                     </td>

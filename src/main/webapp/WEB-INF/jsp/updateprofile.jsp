@@ -42,7 +42,7 @@
 
             <div class="buttonbar">
                 <button id="submitBtn" type="submit" class="btn" name="button">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-forward"></span></pwm:if>
                     <pwm:display key="Button_Update"/>
                 </button>
                 <input type="hidden" name="processAction" value="updateProfile"/>

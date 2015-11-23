@@ -83,12 +83,12 @@ body {
     cursor: pointer;
 }
 
-.fa-question-circle {
+.pwm-question-circle {
     border-bottom-right-radius: 3px;
     box-shadow: 2px 2px 2px 2px #bfbfbf;
 }
 
-.fa-reply {
+.pwm-reply {
     color: #920000;
     visibility: hidden;
     border-bottom-right-radius: 3px;
