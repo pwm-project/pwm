@@ -33,22 +33,22 @@ import java.util.concurrent.TimeUnit;
 
 public class MakeSelfSignedCertTest extends TestCase
 {
-	private static final Provider BC_PROVIDER = new BouncyCastleProvider();
+   private static final Provider BC_PROVIDER = new BouncyCastleProvider();
 
-	public void testSelfSignedCert() throws Exception
-	{
-		Security.addProvider(BC_PROVIDER);
+   public void testSelfSignedCert() throws Exception
+   {
+      Security.addProvider(BC_PROVIDER);
 
-		KeyPairGenerator kpGen = KeyPairGenerator.getInstance("RSA", "BC");
-		kpGen.initialize(2048, new SecureRandom());
-		final KeyPair keyPair = kpGen.generateKeyPair();
+      final KeyPairGenerator kpGen = KeyPairGenerator.getInstance("RSA", "BC");
+      kpGen.initialize(2048, new SecureRandom());
+      final KeyPair keyPair = kpGen.generateKeyPair();
 
 
-		final String cnName = "test.myname.com";
-		final long futureSeconds = TimeUnit.DAYS.toMillis(2 * 265);
+      final String cnName = "test.myname.com";
+      final long futureSeconds = (TimeUnit.DAYS.toMillis(2 * 365)) / 1000;
 
-		X509Certificate storedCertData = HttpsServerCertificateManager.SelfCertGenerator.generateV3Certificate(keyPair, cnName, futureSeconds);
-		Assert.assertNotNull(storedCertData);
-		Assert.assertEquals(storedCertData.getSubjectDN().getName(), storedCertData.getIssuerDN().getName());
-	}
+      final X509Certificate storedCertData = HttpsServerCertificateManager.SelfCertGenerator.generateV3Certificate(keyPair, cnName, futureSeconds);
+      Assert.assertNotNull(storedCertData);
+      Assert.assertEquals(storedCertData.getSubjectDN().getName(), storedCertData.getIssuerDN().getName());
+   }
 }
