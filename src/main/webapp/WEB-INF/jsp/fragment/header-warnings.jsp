@@ -61,7 +61,6 @@
     </script>
 </pwm:script>
 <div id="header-warning" style="display: none">
-    <div class="header-warning-row header-warning-version"><%=PwmConstants.PWM_APP_NAME_VERSION%></div>
     <div id="header-warning-message" class="header-warning-row header-warning-message">
     <% if (PwmConstants.TRIAL_MODE) { %>
     <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
@@ -99,6 +98,7 @@
         <% } %>
     </div>
     <div id="panel-header-healthData" class="header-warning-row header-warning-healthData"></div>
+    <div class="header-warning-version"><%=PwmConstants.PWM_APP_NAME_VERSION%></div>
     <div id="button-closeHeader" title="<pwm:display key="Button_Hide"/>">
         <span class="fa fa-chevron-circle-right"></span>
     </div>

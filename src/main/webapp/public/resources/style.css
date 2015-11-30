@@ -259,6 +259,57 @@ input[type=password]::-ms-reveal{display: none;}
     width: auto;
 }
 
+/* tile styles */
+#centerbody.tile-centerbody {
+	position: relative;
+	background-color: transparent;
+	border: 0;
+	padding: 25px;
+	margin-top: 0;
+	min-width: 150px;
+	box-shadow: none;
+	}
+.tile {
+	position: relative;
+	float: left;
+	background: #fff;
+	border: 1px solid #f6f9f8;
+	border-radius: 2px;
+	margin-right: 5px;
+	margin-bottom: 5px;
+	text-align: center;
+	padding: 10px;
+	width: 140px;
+	height: 170px;
+	overflow: hidden;
+	z-index: 600;
+	}
+	.tile:hover {
+		background: #fff;
+		border: 1px solid #808080;
+		cursor: pointer;
+		}
+	.tile-image {
+		height: 50px;
+		margin-bottom: 5px;
+		}
+	.tile-title {
+		color: #434c50;
+		font-size: 16px;
+		line-height: 18px;
+		max-height: 34px;
+		overflow: hidden;
+		margin-bottom: 2px;
+		text-overflow: ellipsis;
+		}
+	.tile-subtitle {
+		font-size: 12px;
+		font-weight: normal;
+		line-height: 14px;
+		color: #808080;
+		overflow: hidden;
+		height: 70px;
+		}
 
 /* all forms use a buttonbar div containing the action buttons */
 .buttonbar {
@@ -279,7 +330,7 @@ input[type=password]::-ms-reveal{display: none;}
     cursor: pointer;
 }.btn:disabled {
      color: #9e9e9e;
- }
+}
 
 .helpdesk-detail-btn {
     margin-bottom: 10px;
@@ -385,6 +436,11 @@ div.progress-container > div {
     z-index: 10;
     padding: 10px;
 }
+	#header-warning span {
+		padding-left: 3px;
+		padding-right: 3px;
+	}
+
 
 .header-warning-row {
     margin-bottom: 15px;
@@ -395,7 +451,10 @@ div.progress-container > div {
 }
 
 .header-warning-version {
-    font-weight: bold;
+	font-size: 10px;
+	text-align: center;
+	letter-spacing: .5px;
+	margin-top: 20px;
 }
 
 .header-warning-buttons {
@@ -417,18 +476,16 @@ div.progress-container > div {
 
 
 .header-error {
-    text-align: center;
+	color: #fff;
     white-space: normal;
     max-width: 600px;
-    padding-left: 6px;
-    padding-right: 6px;
+    padding: 5px;
     margin-top: 10px;
     margin-left: auto;
     margin-right: auto;
     position: relative;
-    background-color: red;
-    border: 1px solid white;
-    border-radius: 4px;
+    background-color: #ff0000;
+    border-radius: 3px;
 }
 
 .clear {
@@ -598,15 +655,18 @@ select {
     right: 10px;
     z-index: 100;
     cursor: pointer;
-    color: #ffcd59;
+    color: #f39c12;
 }
 
 #button-closeHeader {
     position: absolute;
-    top: 3px;
-    right: 4px;
+    top: 5px;
+    right: 5px;
     cursor: pointer
 }
+	#button-closeHeader img {
+		width: 20px;
+	}
 
 .footnote {
     font-style: italic;
@@ -622,8 +682,6 @@ select {
 #localeSelectionMenu {
     white-space: nowrap;
     cursor: pointer;
-    text-decoration: none;
-    font-weight: normal;
 }
 
 .login-wrapper {
@@ -688,7 +746,11 @@ progress[value] {
 }
 
 .dgrid-row-odd {
-    background: #fdfdfd;
+    background: #f6f9f8;
+}
+.dgrid-selected {
+	background: #70cff0;
+	color: #fff;
 }
 
 
@@ -696,7 +758,7 @@ progress[value] {
 .dialogBody { width: 500px; max-width: 500px; }
 .dialogBody.narrow { width: 350px; max-width: 350px; }
 .dialogBody.wide { width: 95%; max-width: 100%; min-width: 800px; }
-.WaitDialogBlank { height: 46px; width: 46px; margin-left: auto; margin-right: auto; background-image: url('wait.gif');}
+.WaitDialogBlank { height: 35px; width: 35px; margin-left: auto; margin-right: auto; background-image: url('wait.gif'); background-size: 35px; background-repeat: no-repeat;}
 #dialogPopup_underlay { background-color: #222222; }
 #idleDialog_underlay { background-color: #111111; }
 dialog::backdrop { background: rgba(0,0,0,0.6); }
@@ -711,7 +773,7 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 
 .icon-peoplesearch-orgChart { background-image: url("orgChart.png"); position: absolute; top:5px; right:5px; height:30px; width:30px; cursor: pointer; }
 .panel-peoplesearch-userDetailPhoto { display: inline;  }
-.img-peoplesearch-userDetailPhoto { width: 80px; max-width: 100%; height: auto; max-height: 100%; border-radius: 2px; border: 1px solid #d8e2e2; animation: fadein 1s; }
+.img-peoplesearch-userDetailPhoto { width: auto; height: 80px; border-radius: 3px; border: 1px solid #dae1e1; }
 .panel-peoplesearch-person { margin-left:5px; background: #eaeaea; position: relative; padding: 6px; width: auto; height: 83px; margin-right: 5px; margin-bottom: 10px; border:  1px solid transparent; }
 .panel-peoplesearch-displayNames { margin-left: 10px; vertical-align: top; display: inline-block; position: relative }
 
@@ -729,23 +791,23 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 
 /* begin peoplesearch org chart section */
 .dialogBody.orgChart { width: 550px; max-width: 550px; }
-.panel-orgChart-parent .panel-orgChart-person {border-left: 5px solid #697374;}
-.panel-orgChart-parent .panel-orgChart-person:hover {border-left: 5px solid #697374;}
+.panel-orgChart-parent .panel-orgChart-person {border-left: 5px solid #697c87;}
+.panel-orgChart-parent .panel-orgChart-person:hover {border-left: 5px solid #26A9E0;}
 .panel-orgChart-parent { margin-left: 5px }
 .panel-orgChart-person { position: relative; background: #eaeaea; padding: 6px; width: 220px; height: 70px; margin-right: 10px; margin-bottom: 10px; border: 1px solid transparent; cursor:pointer; }
 .panel-orgChart-sibling { float: left; display: block; }
 .panel-orgChart-siblings { margin-left: 40px; }
 .panel-orgChart-userPhoto { width: 40px;  height: 40px; float: left; border-radius: 2px; margin-right: 6px; margin-bottom: 35px;  }
-.img-orgChart-userPhoto { display: block; width: auto; height:auto; max-height: 100%; margin: auto; max-width: 100%; border: 1px solid #D4D4D4; border-radius: 2px; animation: fadein 1s; }
-.icon-orgChart-up { position: absolute; left: 12px; top: 54px; padding: 4px 8px; border: 1px solid #b6b6b6; }
-.icon-orgChart-down {position: absolute; left: 12px; top: 54px; padding: 4px 8px; border: 1px solid #b6b6b6;}
+.img-orgChart-userPhoto { display: block; width: auto; height:auto; max-height: 100%; margin: auto; max-width: 100%; border: 1px solid #dae1e1; border-radius: 2px; }
+.icon-orgChart-up { position: absolute; left: 12px; top: 54px; padding: 4px 8px; border: 1px solid #abb5b7; }
+.icon-orgChart-down {position: absolute; left: 12px; top: 54px; padding: 4px 8px; border: 1px solid #abb5b7;}
 .panel-orgChart-displayNames { }
-.panel-orgChart-displayName-1 { font-weight: bold; }
+.panel-orgChart-displayName-1 { font-weight: bold; font-size: 14px; }
 .panel-orgChart-displayName-2 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.panel-orgChart-displayName-3 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
-.panel-orgChart-displayName-4 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
-.panel-orgChart-displayName-5 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
-.panel-orgChart-person:hover { border:  1px solid #d8e2e2; }
+.panel-orgChart-displayName-3 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px;}
+.panel-orgChart-displayName-4 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
+.panel-orgChart-displayName-5 { color: #697374; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
+.panel-orgChart-person:hover { border:  1px solid #26A9E0; }
 .panel-orgChart { max-height: 80vh; overflow-y: auto }
 .panel-orgChart-footer {clear: both; margin-bottom: 10px; }
 /* end peoplesearch org chart section */

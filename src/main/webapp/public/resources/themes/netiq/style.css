@@ -31,28 +31,40 @@ html, body {
 .inputfield {
 	border: 1px solid #dae1e1;
 	border-radius: 1px;
-	padding: 3px 3px;
+	padding: 5px;
+	margin: 0;
+	margin-right: 5px;
+	width: 350px;
+	font-size: 14px;
 }
 
-.changepasswordfield {
-	margin: 5px;
-	height: 18px;
-	border: 1px solid #949494;
+.changepasswordfield { 
+	font-size: 15px;
+	height: 18px; 
+	margin-right: 5px;
+	border: 1px solid #dae1e1;
 	border-radius: 2px;
-	padding: 3px 3px;
+	padding: 6px;
+	width: 300px;
 }
 
 .menubutton {
-	color: black;
+	color: #434c50;
 	font-size: 13px;
 	text-decoration: none;
 	/*	white-space: nowrap; */
 }
 
 .menubutton:hover {
-	color: rgb(43, 156, 232);
+	color: #26A9E0;
 }
 
+.label-b1 {
+	font-size: 13px;
+	font-weight: bold;
+	line-height: 18px;
+	margin-right: 5px;
+	}
 
 .btn {
 	/* background: linear-gradient(to bottom, rgb(115,119,116), rgb(75,79,82)) repeat scroll 0 0 #ffffff;  */
@@ -63,7 +75,7 @@ html, body {
 	/* display: table-cell; */
 	font-size: 14px;
 	height: auto;
-	/* margin: 0; */
+	margin: 0;
 	margin-right: 5px;
 	min-width: 80px;
 	max-width: 250px;
@@ -96,11 +108,6 @@ html, body {
 	max-width: 160px;
 	min-width: 160px;
 }
-
-#header-warning span {
-	display: inline-block;
-}
-
 .btn > .btn-icon::before {
 	height: 18px;
 	position: absolute;
@@ -129,10 +136,11 @@ html, body {
 }
 
 .btn[type=submit] {
-	background: linear-gradient(to bottom, rgb(43,156,232), rgb(35,128,191)) repeat scroll 0 0 #ffffff;
-	background-color: #278ed3; /* For IE9 */
+	/* background: linear-gradient(to bottom, rgb(43,156,232), rgb(35,128,191)) repeat scroll 0 0 #ffffff;  */
+	background-color: #f6f9f8; /* For IE9 */
 }.btn[type=submit]:hover {
-	 background: none repeat scroll 0 0 rgb(43,156,232);
+	color: #1773bb;
+	border: 1px solid #28A9E1;
  }
 
 .btn[type=submit] > .btn-icon {
@@ -160,7 +168,7 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 }
 
 #centerbody {
-	background: #f6f9f8;
+	background: #eef2f2;
 	padding: 15px;
 	border-radius: 3px;
 	margin-top: 30px;
@@ -168,10 +176,17 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 	border: 1px solid #dae1e1;
 }
 .centerbody-head {
-	font-size: 15px;
-	margin-bottom: 5px;
+	font-size: 16px;
+	margin-bottom: 10px;
 	color: #434c50;
 	}
+#centerbody .buttonbar {
+	text-align: left;
+	margin-top: 20px;
+	}	
+	#centerbody .buttonbar button {
+		background-color: #f6f9f8;
+		}
 
 #header {
 	background: linear-gradient(to right, #26a9e0, #0088ce) repeat scroll 0 0 rgba(0, 0, 0, 0);
@@ -192,25 +207,63 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 #wrapper.login-wrapper #header-company-logo {}
 
 #header-warning {
-	background-color: #ebeca6;
-	top:70px;
+	text-align: left;
+	color: #f6f6f6;
+	background-color: #434c50;
+	top: 40px;
+	right: 15px;
+	width: 240px;
+	padding: 15px;
     border: none;
-    box-shadow: 2px 2px 2px rgb(80, 83, 84);
+	border-radius: 3px;
+    box-shadow: 0 0 2px #697c87;
+	z-index: 1000;
 }
+	.header-warning-version {}
+	#header-warning span {
+		display: inline-block;
+	}
+	.header-warning-buttons {
+		text-align: left;
+	}
+	.header-warning-button {
+		text-align: left;
+		color: #f6f6f6;
+		font-size: 15px;
+		font-weight: normal;
+		text-decoration: none;
+		width: auto;
+		padding: 8px;
+		border-radius: 3px;
+	}
+	.header-warning-button:hover {
+		background-color: #59656a;
+		}
+	.header-warning-button span.btn-icon {
+			display: none !important;		
+		}
+
+#message_wrapper {
+	margin-top: 5px;
+	background-color: #f6f9f8;
+	border-radius: 2px;
+	}
+	#message_wrapper span {
+		background-color: transparent;
+		}
 
 .message-info {
-	background-color: #f0f0f0;
 	color: black;
 }
 
 .message-error {
-	background-color: #f0f0f0;
 	font-weight: bold;
 	color: #FF0000;
+	background-color: #f6f9f8;
 }
 
 .message-success {
-	background-color: #8096ab;
+	background-color: #26A9E0;
 }
 
 #header-center-right {
@@ -218,7 +271,7 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
     padding: 0;
     position: absolute;
     right: 10px;
-    top: 25px;
+    top: 20px;
     width: auto;
 }
 
@@ -226,7 +279,7 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 .header-button {
 	background: none repeat scroll 0 0 rgba(0, 0, 0, 0);
 	border: medium none;
-	color: #b8b8b8;
+	color: #ffffff;
 	padding: auto;
 	margin: auto;
 	display: inline-block;
@@ -235,8 +288,9 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 }
 
 .header-button:not(:first-child) {
-    border-left: 1px solid #b8b8b8;
+    border-left: 1px solid #e0e0e0;
     padding-left: 10px;
+	border-radius: 0;
 }
 
 .header-button:hover {
@@ -256,9 +310,9 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 	width: auto;
 }
 
-#header-center-left {
+ #header-center-left {
 	display: none;
-}
+} 
 
 #centerbody td.menubutton_key, #centerbody td.menubutton_key+td {
 	padding: 15px;
@@ -273,15 +327,67 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 	margin: 0 auto -45px;
 }
 
+/* tile styles */
+#centerbody.tile-centerbody {
+	position: relative;
+	background-color: transparent;
+	border: 0;
+	padding: 25px;
+	margin-top: 0;
+	width: 90%;
+	min-width: 150px;
+	}
+.tile {
+	position: relative;
+	float: left;
+	background: #eef2f2;
+	border: 1px solid #eef2f2;
+	border-radius: 2px;
+	margin-right: 5px;
+	margin-bottom: 5px;
+	text-align: center;
+	padding: 10px;
+	width: 140px;
+	height: 170px;
+	overflow: hidden;
+	z-index: 600;
+	}
+	.tile:hover {
+		background: #f6f9f8;
+		border: 1px solid #26A9E0;
+		cursor: pointer;
+		}
+	.tile-image {
+		height: 50px;
+		margin-bottom: 5px;
+		}
+	.tile-title {
+		color: #3C515C;
+		font-size: 16px;
+		line-height: 18px;
+		max-height: 34px;
+		overflow: hidden;
+		margin-bottom: 2px;
+		text-overflow: ellipsis;
+		}
+	.tile-subtitle {
+		font-size: 12px;
+		font-weight: normal;
+		line-height: 14px;
+		color: #abb5b7;
+		overflow: hidden;
+		height: 70px;
+		}			
+
 #footer {
-	background: linear-gradient(to bottom, #4b5052, #3A3E40) repeat scroll 0 0 rgba(0, 0, 0, 0);
-	background-color: #434749; /* For IE9 */
+	/* background: linear-gradient(to bottom, #4b5052, #3A3E40) repeat scroll 0 0 rgba(0, 0, 0, 0);  */
+	background-color: transparent; /* For IE9 */
 	font-size: 12px;
 	height: 45px;
 }
 
 #footer, #footer-content > .infotext {
-	color: #b8b8b8;
+	color: #434c50;
 }
 
 #footer-content {
@@ -318,6 +424,11 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 	padding: 5px 10px;
 	font-size: 14px;
 }
+	#login .buttonbar #submitBtn:hover {
+		 color: #1773bb;
+		 border: 1px solid #28A9E1;
+	}
+
 	#login .buttonbar #submitBtn span {
 		display: none;
 	}
@@ -325,12 +436,11 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 #configLogin .buttonbar {
 	margin-top: 10px;
 	position: relative;
-	text-align: right;
 }
 
 #configLogin .buttonbar .checkboxWrapper {
 	background-color: transparent;
-	color: white;
+	color: #434c50;
 	left: 0;
 	padding: 0;
 	position: absolute;
@@ -341,27 +451,29 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 }
 
 #login button, #configLogin #submitBtn, #configLogin #button_cancel {
-	width: 120px;
+	min-width: 80px;
 }
 
 #configLogin .buttonbar .btn {
-	margin-top: 40px;
+	margin-top: 25px;
 }
 
 #login .inputfield {
 	margin: 0;
-	padding: 8px;
+	padding: 6px;
 	width: 250px;
+	margin-right: 8px;
 	font-size: 15px;
 }
 #configLogin .inputfield {
 	margin: 0;
-	padding: 0 3px;
-	width: 310px;
+	padding: 6px;
+	width: 250px;
+	margin-right: 8px;
 }
 
 #login #password-eye-icon:before, #configLogin #password-eye-icon:before {
-	color: white;
+	color: #434c50;
 }
 
 #login > h2 {
@@ -463,19 +575,63 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 }
 
 #wrapper.login-wrapper #centerbody #message_wrapper #message {
-	background-color: rgb(250, 255, 189);
-	color: rgb(80, 83, 84);
+	background-color: #dae1e1;
+	color: #434c50;
 	display: inherit;
 	opacity: 1;
 }
 
+#wrapper.peoplesearch-wrapper #centerbody {
+	background-color: transparent;
+	border: 0;
+	padding: 5px;
+}
+
+#wrapper.peoplesearch-wrapper #centerbody.tall {
+	top: 70px;
+	bottom: 70px;
+	left: 25px;
+	right: 25px;
+	}
+
 .panel-peoplesearch-person { background: #eef2f2; border-radius: 3px; }
 .panel-orgChart-person { background: #eef2f2; border-radius: 3px; }
 
+.peoplesearch-input-username {
+	font-size: 14px;
+	width: 350px;
+	border: 1px solid #dae1e1;
+	border-radius: 2px;
+	padding: 5px;
+	}
+#peoplesearch-searchResultsGrid {
+	top: 48px;
+	left: 5px;
+	right: 5px;
+	bottom: 5px;
+	}
+	
+#peoplesearch-searchResultsGrid .dgrid {
+	border: 1px solid #dae1e1;
+	}
+#peoplesearch-searchResultsGrid .dgrid-header, .dgrid-header-row, .dgrid-footer {
+	color: #abb5b7;
+	background-color: #f6f9f8;
+	}
+#peoplesearch-searchResultsGrid .dgrid-cell {
+	font-weight: normal;
+	padding: 5px;
+	text-align: left;
+	overflow: hidden;
+	vertical-align: top;
+	border: 1px solid #dae1e1;
+	border-top-style: none;
+	}	
+
 #button-openHeader {
-	top: 75px;
-    background-color: rgb(31, 31, 31);
-    border-radius:50%;
+	top: 65px;
+	right: 15px;
+    background-color: transparent;
 }
 
 .panel-login-display-message {

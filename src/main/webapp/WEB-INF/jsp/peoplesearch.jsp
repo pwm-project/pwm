@@ -32,33 +32,21 @@
     </jsp:include>
     <div id="centerbody" class="wide tall" style="height:100%">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <div id="panel-searchbar" class="searchbar">
-            <table class="noborder" style="margin-left: auto; margin-right: auto; width:100px;" >
-                <tr>
-                    <td style="width:5%">
-                        <span class="fa fa-search"></span>
-                    </td>
-                    <td style="width:90%">
-                        <input type="search" id="username" name="username" class="peoplesearch-input-username" <pwm:autofocus/> autocomplete="off"/>
-                    </td>
-                    <td style="width:5%">
-                        <div style="width:20px; max-width: 20px">
-                            <div id="searchIndicator" style="display: none">
-                                <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
-                            </div>
-                            <div id="maxResultsIndicator" style="display: none;">
-                                <span style="color: #ffcd59;" class="fa fa-lg fa-exclamation-circle"></span>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            </table>
+        <div id="panel-searchbar">
+	        <input id="username" name="username" placeholder="People Search" class="peoplesearch-input-username" <pwm:autofocus/> autocomplete="off" />
+            <div style="width:20px; max-width: 20px; display: inline-block;">
+                <div id="searchIndicator" style="display: none">
+                    <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
+                </div>
+                <div id="maxResultsIndicator" style="display: none;">
+                    <span style="color: #ffcd59;" class="fa fa-lg fa-exclamation-circle"></span>
+                </div>
+            </div>
             <noscript>
                 <span><pwm:display key="Display_JavascriptRequired"/></span>
                 <a href="<pwm:context/>"><pwm:display key="Title_MainPage"/></a>
             </noscript>
         </div>
-        <br/>
         <div id="peoplesearch-searchResultsGrid" class="grid tall">
         </div>
     </div>
