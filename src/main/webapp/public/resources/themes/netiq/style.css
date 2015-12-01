@@ -631,7 +631,9 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 	top: 65px;
 	right: 15px;
     background-color: transparent;
-}
+	}
+	#button-openHeader span {font-size: 18px;}
+
 
 .panel-login-display-message {
 	visibility: hidden;
