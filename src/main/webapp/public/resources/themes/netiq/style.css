@@ -245,7 +245,6 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 
 #message_wrapper {
 	margin-top: 5px;
-	background-color: #f6f9f8;
 	border-radius: 2px;
 	}
 	#message_wrapper span {
