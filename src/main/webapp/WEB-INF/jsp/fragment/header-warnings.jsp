@@ -68,7 +68,6 @@
     <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
 
     <pwm:if test="showIcons"><span id="icon-configModeHelp" class="btn-icon fa fa-question-circle"></span></pwm:if>
-        <br/><br/>
     <% } else if (adminUser) { %>
     <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
     <% } %>

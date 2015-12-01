@@ -443,7 +443,7 @@ div.progress-container > div {
 
 
 .header-warning-row {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .header-warning-healthData {
@@ -462,6 +462,7 @@ div.progress-container > div {
     padding-right: 1px;
     text-align: center;
     width: 100%;
+    margin-top: 10px;
     margin-bottom: 15px;
 }
 
