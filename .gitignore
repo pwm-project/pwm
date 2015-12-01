@@ -1,9 +1,18 @@
-/pwm/supplemental/build/work
-/pwm/supplemental/build/artifacts
+# PWM Project gitignore files
+#
+# Maven Output
+/target
+
+# Eclipse Project Files
 /.project
 /.settings
-/target
 /.classpath
+
+# IntelliJ Project Files
+.idea/
+/*.iml
+
+# Older PWM versions defaulted the applicationPath dir to WEB-INF.  This section ignores them if the applicationPath is set to WEB-INF.
 /src/main/webapp/WEB-INF/logs
 /src/main/webapp/WEB-INF/PwmConfiguration.xml
 /src/main/webapp/WEB-INF/backup
