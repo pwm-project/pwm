@@ -65,7 +65,7 @@
                     <tr style="border:0">
                         <td style="border:0" class="menubutton_key">
                             <a class="menubutton" id="Title_ForgottenPassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenPassword.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-icon-unlock"></span></pwm:if>
+                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
                                 <pwm:display key="Title_ForgottenPassword"/>
                             </a>
                         </td>
@@ -78,7 +78,7 @@
                     <tr style="border:0">
                         <td style="border:0" class="menubutton_key">
                             <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenUsername.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-icon-unlock"></span></pwm:if>
+                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
                                 <pwm:display key="Title_ForgottenUsername"/>
                             </a>
                         </td>
