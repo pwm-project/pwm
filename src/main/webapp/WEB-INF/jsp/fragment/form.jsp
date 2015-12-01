@@ -83,7 +83,7 @@
     <% boolean readonly = loopConfiguration.isReadonly() || forceReadOnly; %>
     <% if (readonly) { %>
         <span id="<%=loopConfiguration.getName()%>">
-        <span class="pwm-icon pwm-chevron-circle-right"></span>
+        <span class="pwm-icon pwm-icon-chevron-circle-right"></span>
         <%= currentValue %>
         </span>
     <% } else if (loopConfiguration.getType() == FormConfiguration.Type.select) { %>

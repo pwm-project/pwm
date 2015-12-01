@@ -51,7 +51,7 @@
             <div class="buttonbar" style="width:100%">
                 <input type="hidden" name="processAction" value="form"/>
                 <button type="submit" name="change" class="btn" id="continue_button">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-forward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
                 <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>

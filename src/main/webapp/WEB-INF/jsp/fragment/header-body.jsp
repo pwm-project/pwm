@@ -66,14 +66,14 @@
             <%-- this section handles the home button link (if user is logged in) --%>
             <% if (showHome) { %>
             <a class="header-button" href="<pwm:value name="homeURL"/>" id="HomeButton">
-                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-home"></span></pwm:if>
+                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-home"></span></pwm:if>
                 <pwm:display key="Button_Home"/>
             </a>
             <% } %>
             <%-- this section handles the logout link (if user is logged in) --%>
             <% if (showLogout) { %>
             <a class="header-button" href="<pwm:url url='<%=PwmServletDefinition.Logout.servletUrl()%>' addContext="true"/>" id="LogoutButton">
-                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-sign-out"></span></pwm:if>
+                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-sign-out"></span></pwm:if>
                 <pwm:display key="Button_Logout"/>
             </a>
             <% } %>

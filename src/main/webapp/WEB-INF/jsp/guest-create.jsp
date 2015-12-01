@@ -55,7 +55,7 @@
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="create"/>
                 <button type="submit" name="Create" class="btn" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-user-plus"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-user-plus"></span></pwm:if>
                     <pwm:display key="Button_Create"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>

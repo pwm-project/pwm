@@ -58,10 +58,10 @@
                                 <label style="" for="password1"><pwm:display key="Field_NewPassword"/></label>
                             </h2>
                             &nbsp;&nbsp;
-                            <div class="pwm-icon pwm-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden"></div>
+                            <div class="pwm-icon pwm-icon-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden"></div>
                             <pwm:if test="showRandomPasswordGenerator">
                             &nbsp;&nbsp;
-                            <div class="pwm-icon pwm-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" ></div>
+                            <div class="pwm-icon pwm-icon-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" ></div>
                             </pwm:if>
                         </div>
                         <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" <pwm:autofocus/>/>
@@ -100,7 +100,7 @@
             <div class="buttonbar" style="width:100%">
                 <input type="hidden" name="processAction" value="change"/>
                 <button type="submit" name="change" class="btn" id="password_button">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-forward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_ChangePassword"/>
                 </button>
                 <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>

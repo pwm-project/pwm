@@ -43,20 +43,20 @@
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="processForm"/>
                 <button type="submit" name="Create" class="btn" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-forward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 
                 <% if ((Boolean)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.NewUser_FormShowBackButton)) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-backward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <% } %>
                 <pwm:if test="showCancel">
                     <button  type="button" id="button-cancel" name="button-cancel" class="btn">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-times"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
                         <pwm:display key="Button_Cancel"/>
                     </button>
                 </pwm:if>

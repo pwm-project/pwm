@@ -56,7 +56,7 @@
                 <input type="hidden" name="warnResponse" value="change"/>
 
                 <button type="submit" name="changePassword" class="btn" id="changePassword">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-key"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
                     <pwm:display key="Button_ChangePassword"/>
                 </button>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
@@ -66,7 +66,7 @@
                 <input type="hidden" name="processAction" value="warnResponse"/>
                 <input type="hidden" name="warnResponse" value="skip"/>
                 <button type="submit" name="skipbutton" class="btn" id="skipbutton">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-fighter-jet"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-fighter-jet"></span></pwm:if>
                     <pwm:display key="Button_Skip"/>
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

@@ -47,11 +47,11 @@
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="testOtpSecret"/>
                 <button type="submit" name="testOtpSecret" class="btn" id="setotpsecret_button">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-check"></span>&nbsp</pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-check"></span>&nbsp</pwm:if>
                     <pwm:display key="Button_CheckCode"/>
                 </button>
                 <button type="submit" name="testOtpSecret" class="btn" id="button-goback">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-backward"></span>&nbsp</pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-backward"></span>&nbsp</pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

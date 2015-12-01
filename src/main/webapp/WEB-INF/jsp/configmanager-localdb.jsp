@@ -125,7 +125,7 @@
             <tr class="buttonrow">
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_ExportLocalDB">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-download"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
                         <pwm:display key="MenuItem_ExportLocalDB" bundle="Config"/>
                     </a>
                     <pwm:script>
@@ -139,7 +139,7 @@
                 </td>
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_UploadLocalDB">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-upload"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
                         Import (Upload) LocalDB Archive File
                     </a>
                     <pwm:script>

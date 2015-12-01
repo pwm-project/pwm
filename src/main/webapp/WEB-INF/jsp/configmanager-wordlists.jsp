@@ -43,13 +43,13 @@
             <tr class="buttonrow">
                 <td class="buttoncell">
                     <button class="menubutton" id="MenuItem_UploadWordlist" style="visibility: hidden;">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-upload"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
                         Upload Wordlist
                     </button>
                 </td>
                 <td class="buttoncell">
                     <button class="menubutton" id="MenuItem_ClearWordlist" style="visibility: hidden;">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-trash"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-trash"></span></pwm:if>
                         Clear Uploaded Wordlist
                     </button>
                 </td>
@@ -65,13 +65,13 @@
             <tr class="buttonrow">
                 <td class="buttoncell">
                     <button class="menubutton" id="MenuItem_UploadSeedlist" style="visibility: hidden;">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-upload"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
                         Upload Seedlist
                     </button>
                 </td>
                 <td class="buttoncell">
                     <button class="menubutton" id="MenuItem_ClearSeedlist" style="visibility: hidden;">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-trash"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-trash"></span></pwm:if>
                         Clear Uploaded Seedlist
                     </button>
                 </td>

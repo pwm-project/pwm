@@ -40,7 +40,7 @@
             <input type="<pwm:value name="passwordFieldType"/>" name="password" id="password" class="inputfield passwordfield" <pwm:autofocus/> />
             <div class="buttonbar">
                 <button type="submit" class="btn" name="button" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-sign-in"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-sign-in"></span></pwm:if>
                     <pwm:display key="Button_Login"/>
                 </button>
                 <input type="hidden" name="processAction" value="login">

@@ -43,12 +43,12 @@
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.search%>"/>
                 <button type="submit" class="btn" name="search" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-search"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
                     <pwm:display key="Button_Search"/>
                 </button>
                 <pwm:if test="showCancel">
                     <button type="submit" name="button" class="btn" id="button-cancelButton" form="form-cancelButton">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-times"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
                         <pwm:display key="Button_Cancel"/>
                     </button>
                 </pwm:if>
