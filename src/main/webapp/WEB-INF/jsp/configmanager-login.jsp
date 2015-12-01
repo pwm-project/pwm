@@ -47,7 +47,7 @@
               class="pwm-form">
             <br class="clear"/>
             <h1>Configuration Password</h1>
-            <input type="<pwm:value name="passwordFieldType"/>" class="inputfield passwordfield" name="password" id="password" <pwm:autofocus/>/>
+            <input type="<pwm:value name="passwordFieldType"/>" class="inputfield passwordfield" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" <pwm:autofocus/>/>
             <div class="buttonbar">
                 <% if (!pwmRequest.getConfig().isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) { %>
                 <label class="checkboxWrapper">
@@ -61,7 +61,7 @@
                     <pwm:display key="Button_Login"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
-                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>" autofocus="autofocus"/>
+                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>" autofocus/>
             </div>
         </form>
         <br/><br/>
