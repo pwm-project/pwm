@@ -183,12 +183,12 @@ PWM_CONFIG.showHeaderHealth = function() {
                     }
                 }
                 if (hasWarnTopics) {
-                    PWM_MAIN.addCssClass('button-openHeader','blink');
+//                  PWM_MAIN.addCssClass('button-openHeader','blink');
                     PWM_MAIN.setStyle('button-openHeader','color','red');
 
                     parentDiv.innerHTML = '<div id="panel-healthHeaderErrors" class="header-error"><span class="fa fa-warning"></span> ' + PWM_ADMIN.showString('Header_HealthWarningsPresent') + '</div>';
                 } else {
-                    PWM_MAIN.removeCssClass('button-openHeader','blink');
+//                  PWM_MAIN.removeCssClass('button-openHeader','blink');
                     PWM_MAIN.setStyle('button-openHeader','color');
                 }
                 setTimeout(function () {
