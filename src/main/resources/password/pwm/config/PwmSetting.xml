@@ -306,11 +306,13 @@
         </options>
     </setting>
     <setting hidden="false" key="display.password.changeAgreement" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value />
         </default>
     </setting>
     <setting hidden="false" key="display.password.completeMessage" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value />
         </default>
@@ -376,30 +378,27 @@
         </options>
     </setting>
     <setting hidden="false" key="ldap.proxy.username" level="0" required="false">
+        <flag>ldapDNsyntax</flag>
         <placeholder>cn=@PwmAppName@-Proxy,o=example</placeholder>
         <placeholder template="AD">CN=@PwmAppName@-Proxy,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</placeholder>
         <placeholder template="ORACLE_DS">cn=@PwmAppName@-Proxy,cn=Administrators,cn=config</placeholder>
         <placeholder template="OPEN_LDAP">cn=@PwmAppName@-Proxy,dc=example,dc=com</placeholder>
         <default/>
-        <options>
-            <option value="ldapDNsyntax">true</option>
-        </options>
     </setting>
     <setting hidden="false" key="ldap.proxy.password" level="0">
     </setting>
     <setting hidden="false" key="ldap.rootContexts" level="0">
+        <flag>ldapDNsyntax</flag>
         <placeholder>ou=users,o=example</placeholder>
         <placeholder template="AD">cn=users,dc=site,dc=example,dc=net</placeholder>
         <default/>
-        <options>
-            <option value="ldapDNsyntax">true</option>
-        </options>
     </setting>
     <setting hidden="false" key="ldap.selectableContexts" level="2">
         <regex>^.+:::.+$</regex>
         <default />
     </setting>
     <setting hidden="false" key="ldap.testuser.username" level="0">
+        <flag>ldapDNsyntax</flag>
         <placeholder>cn=@PwmAppName@-Testuser,o=example</placeholder>
         <placeholder template="AD">CN=@PwmAppName@-Testuser,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</placeholder>
         <placeholder template="ORACLE_DS">cn=@PwmAppName@-Testuser,cn=Administrators,cn=config</placeholder>
@@ -407,9 +406,6 @@
         <default>
             <value />
         </default>
-        <options>
-            <option value="ldapDNsyntax">true</option>
-        </options>
     </setting>
     <setting hidden="false" key="pwmAdmin.queryMatch" level="0" required="true">
         <placeholder>cn=@PwmAppName@-Admins,ou=Groups,o=example</placeholder>
@@ -610,71 +606,85 @@
         </default>
     </setting>
     <setting hidden="false" key="email.changePassword" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Change Password Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Change Notification","bodyPlain":"You have changed your password.  If you did not initiate a password change please contact your help desk immediately.","bodyHtml":"\u003cb\u003eYou have changed your password.\u003c/b\u003e  If you have changed your password, then no action is required.  If you did not initiate a password change please contact your help desk."}</value>
         </default>
     </setting>
     <setting hidden="false" key="email.changePassword.helpdesk" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Change Password Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Change Notification","bodyPlain":"Your password has been changed by the heldesk.   You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk.","bodyHtml":"\u003cb\u003eYour password has been changed by the helpdesk.\u003c/b\u003e  You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk."}</value>
         </default>
     </setting>
     <setting hidden="false" key="email.updateProfile" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Profile Update \u003c@DefaultEmailFromAddress@\u003e","subject":"Profile Update","bodyPlain":"Thank you for updating your profile information, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for updating your profile information, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting hidden="false" key="email.newUser" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"New User Registration \u003c@DefaultEmailFromAddress@\u003e","subject":"Welcome","bodyPlain":"Thank you for registering your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for registering your account, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting hidden="false" key="email.newUser.token" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"New User Registration \u003c@DefaultEmailFromAddress@\u003e","subject":"New User Verification","bodyPlain":"Thank you for requesting a new account. To continue with your account registration, please copy and paste the following code on the registration form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting a new account.  To continue with your account registration, please \u003ca href\u003d\"@SiteURL@/public/NewUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link does not work, you can copy and paste the following code on the registration form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
         </default>
     </setting>
     <setting hidden="false" key="email.activation" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Activation Notification \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Activated","bodyPlain":"Thank you for activating your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for activating your account, @LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting hidden="false" key="email.activation.token" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Activation Verification \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Verification","bodyPlain":"Thank you for requesting your account activation. To continue with your account activation, please copy and paste the following code onto the activation form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting your account activation.  To continue with your account activation, please \u003ca href\u003d\"@SiteURL@/public/ActivateUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the activation form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
         </default>
     </setting>
     <setting hidden="false" key="email.challenge.token" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Forgotten Password \u003c@DefaultEmailFromAddress@\u003e","subject":"Forgotten Password Verification","bodyPlain":"Thank you for requesting a password reset. To continue with your password reset, please copy and paste the following code onto the password reset form:\n\n%TOKEN%\n\nIf you do not wish to change your password at this time, you do not need to take any action.","bodyHtml":"Thank you for requesting a password reset.  To continue with your password reset, please \u003ca href\u003d\"@SiteURL@/public/ForgottenPassword/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the password reset form:\u003cbr /\u003e\u003cbr /\u003e%TOKEN%\u003cbr /\u003e\u003cbr /\u003eIf you do not wish to change your password at this time, you do not need to take any action."}</value>
         </default>
     </setting>
     <setting hidden="false" key="email.helpdesk.token" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Helpdesk \u003c@DefaultEmailFromAddress@\u003e","subject":"Helpdesk Verification","bodyPlain":"Your helpdesk has sent you a code to verify your identity. Your verification code is:\n\n%TOKEN%","bodyHtml":"Your helpdesk has sent you a code to verify your identity. Your verification code is: %TOKEN%."}</value>
         </default>
     </setting>
     <setting hidden="false" key="email.guest" level="2">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Guest Registration Agent \u003c@DefaultEmailFromAddress@\u003e","subject":"Welcome","bodyPlain":"Your account has been created.\n\nYour username is: @User:ID@\nYour password is: @User:Password@","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e\u003cp\u003eYour username is:@User:ID@\u003cbr /\u003eYour password is: \u003cb\u003e@User:Password@\u003c/b\u003e\u003c/p\u003e"}</value>
         </default>
     </setting>
     <setting hidden="false" key="email.updateguest" level="2">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Guest Registration Agent \u003c@DefaultEmailFromAddress@\u003e","subject":"Account update notification","bodyPlain":"Your account has been updated.","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting hidden="false" key="email.sendpassword" level="2">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Password Notifier \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Information","bodyPlain":"Your new password is:\n\n@User:Password@\n\nPlease change your password as soon as possible.","bodyHtml":"Thank you for requesting a password reset.  Your new password is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:Password@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
         </default>
     </setting>
     <setting hidden="false" key="email.sendUsername" level="2">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Username Notifier \u003c@DefaultEmailFromAddress@\u003e","subject":"Username Information","bodyPlain":"Your username is:\n\n@User:ID@\n\n","bodyHtml":"Your username is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:ID@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
         </default>
     </setting>
     <setting hidden="false" key="email.intruderNotice" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value>{"to":"@User:Email@","from":"Intruder Notifier \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Information","bodyPlain":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator.","bodyHtml":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator."}</value>
         </default>
@@ -2099,14 +2109,13 @@
         </default>
     </setting>
     <setting hidden="false" key="newUser.createContext" level="1" required="true">
+        <flag>ldapDNsyntax</flag>
         <default>
             <value><![CDATA[ou=users,o=example]]></value>
         </default>
-        <options>
-            <option value="ldapDNsyntax">true</option>
-        </options>
     </setting>
     <setting hidden="false" key="display.newuser.agreement" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value />
         </default>
@@ -2165,12 +2174,10 @@
         </default>
     </setting>
     <setting hidden="false" key="guest.createContext" level="1" required="true">
+        <flag>ldapDNsyntax</flag>
         <default>
             <value><![CDATA[ou=guests,o=example]]></value>
         </default>
-        <options>
-            <option value="ldapDNsyntax">true</option>
-        </options>
     </setting>
     <setting hidden="false" key="guest.adminGroup" level="1" required="true">
         <default syntaxVersion="2">
@@ -2249,6 +2256,7 @@
         </default>
     </setting>
     <setting hidden="false" key="display.activateUser.agreement" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value />
         </default>
@@ -2309,6 +2317,7 @@
         </default>
     </setting>
     <setting hidden="false" key="display.updateAttributes.agreement" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value />
         </default>
@@ -2396,10 +2405,8 @@
         <default/>
     </setting>
     <setting hidden="false" key="peopleSearch.searchBase" level="2">
+        <flag>ldapDNsyntax</flag>
         <default />
-        <options>
-            <option value="ldapDNsyntax">true</option>
-        </options>
     </setting>
     <setting hidden="false" key="peopleSearch.result.form" level="1" required="true">
         <default>
@@ -2675,10 +2682,8 @@
         </options>
     </setting>
     <setting hidden="false" key="helpdesk.searchBase" level="1">
+        <flag>ldapDNsyntax</flag>
         <default />
-        <options>
-            <option value="ldapDNsyntax">true</option>
-        </options>
     </setting>
     <setting hidden="false" key="helpdesk.result.limit" level="2" required="true">
         <default>

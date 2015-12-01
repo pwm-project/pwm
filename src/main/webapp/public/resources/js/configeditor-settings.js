@@ -352,7 +352,6 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
 };
 
 StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
-    var isLdapDN = PWM_SETTINGS['settings'][settingKey]['options']['ldapDNsyntax'] == 'true';
     var okAction = function(value) {
         if (iteration > -1) {
             PWM_VAR['clientSettingCache'][settingKey][iteration] = value;
@@ -368,7 +367,8 @@ StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
     editorOptions['placeholder'] = PWM_SETTINGS['settings'][settingKey]['placeholder'];
     editorOptions['completeFunction'] = okAction;
     editorOptions['value'] = iteration > -1 ? PWM_VAR['clientSettingCache'][settingKey][iteration] : '';
-    var isLdapDN = PWM_SETTINGS['settings'][settingKey]['options']['ldapDNsyntax'] == 'true';
+
+    var isLdapDN = 'ldapDNsyntax' in PWM_SETTINGS['settings'][settingKey]['flags'];
     if (isLdapDN) {
         UILibrary.editLdapDN(okAction);
     } else {
@@ -2548,8 +2548,7 @@ StringValueHandler.init = function(settingKey) {
             });
         });
 
-
-        var isLdapDN = settingData['options']['ldapDNsyntax'] == 'true';
+        var isLdapDN = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'], 'ldapDNsyntax');
         var editor = function(){
             var writeBackFunc = function(value){
                 PWM_CFGEDIT.writeSetting(settingKey,value,function(){

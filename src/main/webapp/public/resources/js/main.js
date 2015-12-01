@@ -1301,6 +1301,14 @@ PWM_MAIN.JSLibrary.itemCount = function(o) {
     return i;
 };
 
+PWM_MAIN.JSLibrary.arrayContains = function(array,element) {
+    if (!array) {
+        return false;
+    }
+
+    return array.indexOf(element) > -1;
+};
+
 PWM_MAIN.toggleFullscreen = function(iconObj,divName) {
     var obj = PWM_MAIN.getObject(divName);
 

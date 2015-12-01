@@ -1,8 +1,10 @@
 <%@ page import="password.pwm.config.PwmSettingCategory" %>
+<%@ page import="password.pwm.config.PwmSettingFlag" %>
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
 <%@ page import="password.pwm.config.PwmSettingTemplate" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Iterator" %>
@@ -134,12 +136,22 @@
                         <% } %>
                     </td>
                 </tr>
+                <% if (setting.getFlags().contains(PwmSettingFlag.MacroSupport)) { %>
+                <tr>
+                    <td class="key" style="width: 100px">
+                        Macro Support
+                    </td>
+                    <td>
+                        <%= LocaleHelper.booleanString(setting.getFlags().contains(PwmSettingFlag.MacroSupport),pwmRequest) %>
+                    </td>
+                </tr>
+                <% } %>
                 <tr>
                     <td class="key" style="width: 100px">
                         Required
                     </td>
                     <td>
-                        <%=setting.isRequired()%>
+                       <%= LocaleHelper.booleanString(setting.isRequired(),pwmRequest) %>
                     </td>
                 </tr>
                 <tr>
@@ -147,7 +159,7 @@
                         Confidential
                     </td>
                     <td>
-                        <%=setting.isConfidential()%>
+                        <%= LocaleHelper.booleanString(setting.isConfidential(),pwmRequest) %>
                     </td>
                 </tr>
                 <% if (setting.getSyntax() == PwmSettingSyntax.OPTIONLIST || setting.getSyntax() == PwmSettingSyntax.SELECT) { %>
