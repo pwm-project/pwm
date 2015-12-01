@@ -88,7 +88,7 @@
 
                         <div style="text-align: left">
                             <a href="#setting_key_<%=setting.getKey()%>" style="text-decoration: inherit">
-                                <span class="btn-icon fa fa-link"></span>
+                                <span class="btn-icon pwm-icon pwm-icon-link"></span>
                             </a>
                         </div>
                         Label

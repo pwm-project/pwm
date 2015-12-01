@@ -109,13 +109,13 @@
                     <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN%>" style="padding-left: 5px; padding-top: 5px">
                         Certificate(s) are trusted by default Java keystore
                         <br/>
-                        <span class="fa fa-chevron-circle-right"></span>
+                        <span class="pwm-icon pwm-icon-chevron-circle-right"></span>
                         <button id="button_defaultTrustStore">Enabled</button> (Import/remove certificate manually into Java keystore to change)
                     </div>
                     <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_PW%>" style="padding-left: 5px; padding-top: 5px">
                         Use application to manage certificate(s) and automatically import certificates into configuration file
                         <br/>
-                        <span class="fa fa-chevron-circle-right"></span>
+                        <span class="pwm-icon pwm-icon-chevron-circle-right"></span>
                         <button id="button_useConfig">Enabled</button>
                     </div>
                 </div>

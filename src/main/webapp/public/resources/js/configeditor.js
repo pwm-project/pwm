@@ -454,9 +454,9 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
                         var settingID = "search_" + (profileID ? profileID + '_' : '') + settingIter;
                         bodyText += '<div><span id="' + linkID + '" class="panel-searchResultItem">';
                         bodyText += PWM_SETTINGS['settings'][settingIter]['label'];
-                        bodyText += '</span>&nbsp;<span id="' + settingID + '_popup" class="btn-icon fa fa-info-circle"></span>';
+                        bodyText += '</span>&nbsp;<span id="' + settingID + '_popup" class="btn-icon pwm-icon pwm-icon-info-circle"></span>';
                         if (!setting['default']) {
-                            bodyText += '<span class="fa fa-pencil-square modifiedNoticeIcon" title="' + PWM_CONFIG.showString('Tooltip_ModifiedNotice') + '">&nbsp;</span>';
+                            bodyText += '<span class="pwm-icon pwm-icon-pencil-square modifiedNoticeIcon" title="' + PWM_CONFIG.showString('Tooltip_ModifiedNotice') + '">&nbsp;</span>';
                         }
                         bodyText += '</div>';
                         resultCount++;
@@ -801,19 +801,19 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
 
     if (category == 'LDAP_PROFILE') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
-            + '<button class="btn" id="button-test-LDAP_PROFILE"><span class="btn-icon fa fa-bolt"></span>Test LDAP Profile</button>'
+            + '<button class="btn" id="button-test-LDAP_PROFILE"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test LDAP Profile</button>'
             + '</div>';
     } else if (category == 'DATABASE') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
-            + '<button class="btn" id="button-test-DATABASE"><span class="btn-icon fa fa-bolt"></span>Test Database Settings</button>'
+            + '<button class="btn" id="button-test-DATABASE"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test Database Settings</button>'
             + '</div>';
     } else if (category == 'SMS_GATEWAY') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
-            + '<button class="btn" id="button-test-SMS"><span class="btn-icon fa fa-bolt"></span>Test SMS Settings</button>'
+            + '<button class="btn" id="button-test-SMS"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test SMS Settings</button>'
             + '</div>';
     } else if (category == 'HTTPS_SERVER') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
-            + '<button class="btn" id="button-test-HTTPS_SERVER"><span class="btn-icon fa fa-bolt"></span>View Certificate Info</button>'
+            + '<button class="btn" id="button-test-HTTPS_SERVER"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>View Certificate Info</button>'
             + '</div>';
     }
 
@@ -866,13 +866,13 @@ PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo, options) {
     var htmlBody = '<div id="outline_' + settingKey + '" class="setting_outline" style="display:none">'
         + '<div class="setting_title" id="title_' + settingKey + '">'
         + '<a id="setting-' + settingKey + '" class="text">' + settingLabel + '</a>'
-        + '<div class="fa fa-pencil-square modifiedNoticeIcon" title="' + PWM_CONFIG.showString('Tooltip_ModifiedNotice') + '" id="modifiedNoticeIcon-' + settingKey + '" style="display: none" ></div>';
+        + '<div class="pwm-icon pwm-icon-pencil-square modifiedNoticeIcon" title="' + PWM_CONFIG.showString('Tooltip_ModifiedNotice') + '" id="modifiedNoticeIcon-' + settingKey + '" style="display: none" ></div>';
 
     if (settingInfo['description']) {
-        htmlBody += '<div class="fa fa-question-circle icon_button" title="' + PWM_CONFIG.showString('Tooltip_HelpButton') + '" id="helpButton-' + settingKey + '"></div>';
+        htmlBody += '<div class="pwm-icon pwm-icon-question-circle icon_button" title="' + PWM_CONFIG.showString('Tooltip_HelpButton') + '" id="helpButton-' + settingKey + '"></div>';
     }
 
-    htmlBody += '<div style="visibility: hidden" class="fa fa-undo icon_button" title="' + PWM_CONFIG.showString('Tooltip_ResetButton') + '" id="resetButton-' + settingKey + '"></div>'
+    htmlBody += '<div style="visibility: hidden" class="pwm-icon pwm-icon-undo icon_button" title="' + PWM_CONFIG.showString('Tooltip_ResetButton') + '" id="resetButton-' + settingKey + '"></div>'
         + '</div>' // close title
         + '<div id="titlePane_' + settingKey + '" class="setting_body">';
 

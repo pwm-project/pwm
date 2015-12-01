@@ -53,7 +53,7 @@
                 <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
                     <input type="hidden" name="processAction" value="continue"/>
                     <button type="submit" name="button" class="btn" id="button_continue" autofocus="autofocus">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                         <pwm:display key="Button_Continue"/>
                     </button>
                     <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

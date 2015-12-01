@@ -807,12 +807,12 @@ PWM_MAIN.showDialog = function(options) {
         bodyText += '<div class="buttonbar">';
         if (showOk) {
             bodyText += '<button class="btn" id="dialog_ok_button">'
-                + '<span class="btn-icon fa fa-check-square-o"></span>'
+                + '<span class="btn-icon pwm-icon pwm-icon-check-square-o"></span>'
                 + okLabel + '</button>  ';
         }
         if (showCancel) {
             bodyText += '<button class="btn" id="dialog_cancel_button">'
-                + '<span class="btn-icon fa fa-times"></span>'
+                + '<span class="btn-icon pwm-icon pwm-icon-times"></span>'
                 + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
         }
         bodyText += buttonHtml;
@@ -832,7 +832,7 @@ PWM_MAIN.showDialog = function(options) {
         //dialogElement.setAttribute("draggable","true");
         var html5DialogHtml = '<div class="titleBar">' + title;
         if (showClose) {
-            html5DialogHtml += '<div id="icon-closeDialog" class="closeIcon fa fa-times"></div>'
+            html5DialogHtml += '<div id="icon-closeDialog" class="closeIcon pwm-icon pwm-icon-times"></div>'
         }
         html5DialogHtml += '</div><div class="body">' + bodyText + '</div>';
         dialogElement.innerHTML = html5DialogHtml;
@@ -1401,7 +1401,7 @@ ShowHidePasswordHandler.init = function(nodeName) {
         divElement.onclick = function(){ShowHidePasswordHandler.toggle(nodeName)};
         divElement.style.cursor = 'pointer';
         divElement.style.visibility = 'hidden';
-        divElement.setAttribute('class','fa icon-showhidepassword');
+        divElement.setAttribute('class','pwm-icon icon-showhidepassword');
         domConstruct.place(divElement,node,'after');
 
         ShowHidePasswordHandler.state[nodeName] = (defaultType == "password");
@@ -1498,14 +1498,14 @@ ShowHidePasswordHandler.setupTooltip = function(nodeName) {
 
     if (state) {
         PWM_MAIN.showTooltip({id:eyeNodeId,text:PWM_MAIN.showString('Button_Show')});
-        PWM_MAIN.removeCssClass(eyeNodeId,"fa-eye-slash");
-        PWM_MAIN.addCssClass(eyeNodeId,"fa-eye");
-        if (ShowHidePasswordHandler.debugOutput) console.log('set class to fa-eye');
+        PWM_MAIN.removeCssClass(eyeNodeId,"pwm-icon-eye-slash");
+        PWM_MAIN.addCssClass(eyeNodeId,"pwm-icon-eye");
+        if (ShowHidePasswordHandler.debugOutput) console.log('set class to pwm-icon-eye');
     } else {
         PWM_MAIN.showTooltip({id:eyeNodeId,text:PWM_MAIN.showString('Button_Hide')});
-        PWM_MAIN.removeCssClass(eyeNodeId,"fa-eye");
-        PWM_MAIN.addCssClass(eyeNodeId,"fa-eye-slash");
-        if (ShowHidePasswordHandler.debugOutput) console.log('set class to fa-slash');
+        PWM_MAIN.removeCssClass(eyeNodeId,"pwm-icon-eye");
+        PWM_MAIN.addCssClass(eyeNodeId,"pwm-icon-eye-slash");
+        if (ShowHidePasswordHandler.debugOutput) console.log('set class to pwm-icon-slash');
     }
 };
 

@@ -68,7 +68,7 @@
     <% } else if (configMode) { %>
     <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
 
-    <pwm:if test="showIcons"><span id="icon-configModeHelp" class="btn-icon fa fa-question-circle"></span></pwm:if>
+    <pwm:if test="showIcons"><span id="icon-configModeHelp" class="btn-icon pwm-icon pwm-icon-question-circle"></span></pwm:if>
         <br/><br/>
     <% } else if (adminUser) { %>
     <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
@@ -76,34 +76,34 @@
     </div>
     <div class="header-warning-row header-warning-buttons">
         <a class="header-warning-button" id="header_configManagerButton" href="<pwm:url addContext="true" url="<%=PwmServletDefinition.ConfigManager.servletUrl()%>"/>">
-            <pwm:if test="showIcons"><span class="btn-icon fa fa-gears"></span></pwm:if>
+            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-gears"></span></pwm:if>
             <pwm:display key="MenuItem_ConfigManager" bundle="Admin"/>
         </a>
         <a class="header-warning-button" id="header_configEditorButton">
-            <pwm:if test="showIcons"><span class="btn-icon fa fa-edit"></span></pwm:if>
+            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-edit"></span></pwm:if>
             <pwm:display key="MenuItem_ConfigEditor" bundle="Admin"/>
         </a>
         <% if (adminUser) { %>
         <a class="header-warning-button" id="header_administrationButton" href="<pwm:url url="/private/admin"/>">
-            <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
+            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-list-alt"></span></pwm:if>
             <pwm:display key="Title_Admin"/>
         </a>
         <pwm:if test="forcedPageView" negate="true">
         <a class="header-warning-button" id="header_openLogViewerButton">
-            <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
+            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-list-alt"></span></pwm:if>
             <pwm:display key="MenuItem_ViewLog" bundle="Config"/>
             &nbsp;
-            <pwm:if test="showIcons"><span class="btn-icon fa fa-external-link"></span></pwm:if>
+            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-external-link"></span></pwm:if>
         </a>
         </pwm:if>
         <% } %>
     </div>
     <div id="panel-header-healthData" class="header-warning-row header-warning-healthData"></div>
     <div id="button-closeHeader" title="<pwm:display key="Button_Hide"/>">
-        <span class="fa fa-chevron-circle-right"></span>
+        <span class="pwm-icon pwm-icon-chevron-circle-right"></span>
     </div>
 </div>
 <div id="button-openHeader" title="<pwm:display key="Button_Show"/>">
-    <span class="fa fa-chevron-circle-left"></span>
+    <span class="pwm-icon pwm-icon-chevron-circle-left"></span>
 </div>
 <% } %>

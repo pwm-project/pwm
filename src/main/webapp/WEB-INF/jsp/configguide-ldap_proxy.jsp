@@ -50,7 +50,7 @@
                             <br/>
                             <input class="configStringInput" type="text" style="width:400px" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN%>" value="<%=configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN)%>" placeholder="<%=PLACEHOLDER_FORM.get(ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN)%>"/>
                             <button type="button" class="btn" id="button-browse-adminDN">
-                                <span class="btn-icon fa fa-sitemap"></span>
+                                <span class="btn-icon pwm-icon pwm-icon-sitemap"></span>
                                 <pwm:display key="Button_Browse"/>
                             </button>
                         </label>
@@ -70,7 +70,7 @@
         <div id="healthBody" style="border:0; margin:0; padding:0; cursor: pointer">
             <div style="text-align: center">
                 <button class="menubutton" style="margin-left: auto; margin-right: auto">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                     <pwm:display key="Button_CheckSettings" bundle="Config"/>
                 </button>
             </div>

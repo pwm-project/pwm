@@ -47,14 +47,14 @@
                 <input type="hidden" name="processAction"
                        value="agree"/>
                 <button type="submit" name="button" class="btn" id="button_continue">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <form action="<pwm:url url='<%=PwmServletDefinition.Logout.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
                 <button type="submit" name="button" class="btn" id="button_logout">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-sign-out"></span></pwm:if>
                     <pwm:display key="Button_Logout"/>
                 </button>
             </form>

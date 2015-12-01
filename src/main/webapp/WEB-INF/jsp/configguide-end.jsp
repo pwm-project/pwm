@@ -133,12 +133,12 @@
         <br/>
         <div class="buttonbar">
             <button class="btn" id="button_previous">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                 <pwm:display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <button class="btn" id="button_next">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-save"></span></pwm:if>
+                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-save"></span></pwm:if>
                 Save Configuration
             </button>
         </div>
