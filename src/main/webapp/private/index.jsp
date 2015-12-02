@@ -33,8 +33,8 @@
     <jsp:include page="../WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_MainPage"/>
     </jsp:include>
-    <div id="centerbody" class="tile-centerbody">
-        
+    
+    <div id="centerbody" class="tile-centerbody">        
 		<pwm:if test="permission" arg1="CHANGE_PASSWORD">
             <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ChangePassword.servletUrl()%>'/>" style="font-weight: normal;">
             <div id="tile01" class="tile">

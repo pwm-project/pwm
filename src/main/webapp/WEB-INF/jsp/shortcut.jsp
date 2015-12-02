@@ -61,7 +61,7 @@
                         <input type="hidden" name="link" value="<%=item.getLabel()%>">
                         <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
                         <button type="submit" class="menubutton">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-external-link"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-external-link"></span></pwm:if>
                             <%=item.getLabel()%>
                         </button>
                     </form>

@@ -1041,10 +1041,6 @@ public enum PwmSetting {
 
     ;
 
-    public enum PwmSettingFlag {
-
-    }
-
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmSetting.class);
 
     private final String key;
@@ -1052,9 +1048,10 @@ public enum PwmSetting {
     private final PwmSettingCategory category;
     private final Set<PwmSettingTemplate> templates;
 
-    private Map <StoredValue,List<PwmSettingTemplate>> defaultValues;
+    private Map<StoredValue,List<PwmSettingTemplate>> defaultValues;
     private Map<PwmSettingTemplate, String> placeholder;
     private Map<String,String> options;
+    private Collection<PwmSettingFlag> flags;
     private Boolean required;
     private Boolean hidden;
     private Integer level;
@@ -1180,6 +1177,29 @@ public enum PwmSetting {
         }
 
         return options;
+    }
+
+    public Collection<PwmSettingFlag> getFlags() {
+        if (flags == null) {
+            final Collection<PwmSettingFlag> returnObj = new ArrayList<>();
+            final Element settingElement = PwmSettingXml.readSettingXml(this);
+            final List<Element> flagElements = settingElement.getChildren("flag");
+            for (final Element flagElement : flagElements) {
+                final String value = flagElement.getTextTrim();
+
+                try {
+                    final PwmSettingFlag flag = PwmSettingFlag.valueOf(value);
+                    if (flag != null) {
+                        returnObj.add(flag);
+                    }
+                } catch (IllegalArgumentException e) {
+                    LOGGER.error("unknown flag for setting " + this.getKey() + ", error: unknown flag value: " + value);
+                }
+
+            }
+            flags = Collections.unmodifiableCollection(returnObj);
+        }
+        return flags;
     }
 
     public String getLabel(final Locale locale) {

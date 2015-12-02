@@ -243,15 +243,20 @@ public class SessionAuthenticator {
     )
             throws PwmUnrecoverableException
     {
-        final IntruderManager intruderManager = pwmApplication.getIntruderManager();
-        intruderManager.convenience().markAddressAndSession(pwmSession);
-        if (username != null) {
-            pwmApplication.getIntruderManager().mark(RecordType.USERNAME, username, pwmSession.getLabel());
-        }
-        if (userIdentity != null) {
-            intruderManager.convenience().markUserIdentity(userIdentity, sessionLabel);
-        }
+        LOGGER.error(sessionLabel, "ldap error during search: " + exception.getMessage());
 
+        final IntruderManager intruderManager = pwmApplication.getIntruderManager();
+        if (intruderManager != null) {
+            intruderManager.convenience().markAddressAndSession(pwmSession);
+
+            if (username != null) {
+                intruderManager.mark(RecordType.USERNAME, username, pwmSession.getLabel());
+            }
+
+            if (userIdentity != null) {
+                intruderManager.convenience().markUserIdentity(userIdentity, sessionLabel);
+            }
+        }
     }
 
     private void postAuthenticationSequence(

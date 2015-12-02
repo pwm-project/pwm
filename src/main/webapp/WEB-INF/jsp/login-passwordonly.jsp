@@ -37,10 +37,10 @@
         <form action="<pwm:current-url/>" method="post" name="login-password" enctype="application/x-www-form-urlencoded" id="login-password" autocomplete="off" class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="password"><pwm:display key="Field_Password"/></label></h2>
-            <input type="<pwm:value name="passwordFieldType"/>" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" class="inputfield passwordfield" <pwm:autofocus/> />
+            <input type="<pwm:value name="passwordFieldType"/>" name="password" id="password" class="inputfield passwordfield" placeholder="<pwm:display key="Field_Password"/>" <pwm:autofocus/> />
             <div class="buttonbar">
                 <button type="submit" class="btn" name="button" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-in"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-sign-in"></span></pwm:if>
                     <pwm:display key="Button_Login"/>
                 </button>
                 <input type="hidden" name="processAction" value="login">

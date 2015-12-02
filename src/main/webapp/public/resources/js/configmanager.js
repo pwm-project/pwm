@@ -183,12 +183,12 @@ PWM_CONFIG.showHeaderHealth = function() {
                     }
                 }
                 if (hasWarnTopics) {
-//                  PWM_MAIN.addCssClass('button-openHeader','blink');
+//                    PWM_MAIN.addCssClass('button-openHeader','blink');
                     PWM_MAIN.setStyle('button-openHeader','color','red');
 
-                    parentDiv.innerHTML = '<div id="panel-healthHeaderErrors" class="header-error"><span class="fa fa-warning"></span> ' + PWM_ADMIN.showString('Header_HealthWarningsPresent') + '</div>';
+                    parentDiv.innerHTML = '<div id="panel-healthHeaderErrors" class="header-error"><span class="pwm-icon pwm-icon-warning"></span> ' + PWM_ADMIN.showString('Header_HealthWarningsPresent') + '</div>';
                 } else {
-//                  PWM_MAIN.removeCssClass('button-openHeader','blink');
+//                    PWM_MAIN.removeCssClass('button-openHeader','blink');
                     PWM_MAIN.setStyle('button-openHeader','color');
                 }
                 setTimeout(function () {
@@ -455,4 +455,3 @@ PWM_CONFIG.configClosedWarning = function() {
         text:"This operation is not available when the configuration is restricted."
     });
 };
-

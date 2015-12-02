@@ -67,7 +67,7 @@
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" id="button-activeSessionRefresh">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
                     <pwm:script>
@@ -97,12 +97,12 @@
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" id="button-refreshAuditUser">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                         <button type="submit" class="btn">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
                             <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                         </button>
                         <input type="hidden" name="processAction" value="downloadAuditLogCsv"/>
@@ -118,12 +118,12 @@
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" id="button-refreshHelpdeskUser">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                         <button type="submit" class="btn">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
                             <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                         </button>
                         <input type="hidden" name="processAction" value="downloadAuditLogCsv"/>
@@ -139,12 +139,12 @@
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" id="button-refreshSystemAudit">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                         <button type="submit" class="btn">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
                             <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                         </button>
                         <input type="hidden" name="processAction" value="downloadAuditLogCsv"/>
@@ -160,7 +160,7 @@
                    data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
             Rows
             <button class="btn" type="button" onclick="PWM_ADMIN.refreshIntruderGrid()">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
                 <pwm:display key="Button_Refresh" bundle="Admin"/>
             </button>
         </div>

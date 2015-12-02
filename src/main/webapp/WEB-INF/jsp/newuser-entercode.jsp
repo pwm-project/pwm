@@ -49,13 +49,13 @@
             <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" <pwm:autofocus/> class="tokenInput"></textarea>
             <div class="buttonbar">
                 <button type="submit" class="btn" name="search" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                     <pwm:display key="Button_CheckCode"/>
                 </button>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
                 <button type="button" name="button-cancel" class="btn" id="button-cancel">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
                     <pwm:display key="Button_Cancel"/>
                 </button>
             </div>

@@ -51,12 +51,12 @@
             <input type="text" pattern="[0-9]*" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield" required="required" autofocus/>
             <div class="buttonbar">
                 <button type="submit" class="btn" name="search" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                     <pwm:display key="Button_CheckCode"/>
                 </button>
                 <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ForgottenPasswordOptionalPageView))) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <% } %>

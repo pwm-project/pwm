@@ -60,12 +60,12 @@ PWM_OTP.openCheckCodeDialog = function() {
         + '<tr><td style="width:115px">'
         + '<input type="text" class="inputfield" style="max-width: 100px; width: 100px" pattern="[0-9].*" id="verifyCodeInput" autofocus maxlength="6" />'
         + '</td><td style="width:20px">'
-        + '<span style="display:none;color:green" id="checkIcon" class="btn-icon fa fa-lg fa-check"></span>'
-        + '<span style="display:none;color:red" id="crossIcon" class="btn-icon fa fa-lg fa-times"></span>'
-        + '<span style="display:none" id="workingIcon" class="fa fa-lg fa-spin fa-spinner"></span>'
+        + '<span style="display:none;color:green" id="checkIcon" class="btn-icon pwm-icon pwm-icon-lg pwm-icon-check"></span>'
+        + '<span style="display:none;color:red" id="crossIcon" class="btn-icon pwm-icon pwm-icon-lg pwm-icon-times"></span>'
+        + '<span style="display:none" id="workingIcon" class="pwm-icon pwm-icon-lg pwm-icon-spin pwm-icon-spinner"></span>'
         + '</td><td style="width:150px">'
         + '<button type="submit" name="button-verifyCode" class="btn" id="button-verifyCode">'
-        + '<span class="btn-icon fa fa-check"></span>' + PWM_MAIN.showString("Button_CheckCode") + '</button>'
+        + '<span class="btn-icon pwm-icon pwm-icon-check"></span>' + PWM_MAIN.showString("Button_CheckCode") + '</button>'
         + '</td></tr></table></div>';
 
     PWM_MAIN.showDialog({

@@ -125,6 +125,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         public String pattern;
         public String placeholder;
         public int level;
+        public List<PwmSettingFlag> flags;
     }
 
     public static class CategoryInfo implements Serializable {
@@ -1021,6 +1022,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 settingInfo.options = setting.getOptions();
                 settingInfo.pattern = setting.getRegExPattern().toString();
                 settingInfo.placeholder = setting.getPlaceholder(template);
+                settingInfo.flags = new ArrayList<>(setting.getFlags());
                 settingMap.put(setting.getKey(), settingInfo);
             }
             returnMap.put("settings", settingMap);

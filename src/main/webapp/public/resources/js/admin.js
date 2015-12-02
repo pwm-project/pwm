@@ -58,7 +58,7 @@ PWM_ADMIN.initAdminNavMenu = function() {
                 }));
                 pMenu.addChild(new MenuSeparator());
                 pMenu.addChild(new MenuItem({
-                    label: '<span class="fa fa-external-link"></span> Application Reference',
+                    label: '<span class="pwm-icon pwm-icon-external-link"></span> Application Reference',
                     onClick: function() {
                         PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference','referencedoc');
                     }
@@ -716,7 +716,7 @@ PWM_ADMIN.makeHealthHtml = function(healthData, showTimestamp, showRefresh) {
             htmlBody += '</span>&nbsp;&nbsp;&nbsp;&nbsp;';
         }
         if (showRefresh) {
-            htmlBody += '<span id="button-refreshHealth" class="fa btn-icon fa-refresh"></span>';
+            htmlBody += '<span id="button-refreshHealth" class="pwm-icon btn-icon pwm-icon-refresh"></span>';
         }
         htmlBody += "</td></tr>";
     }

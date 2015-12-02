@@ -146,7 +146,7 @@
                     </td>
                     <td class="key" style="border: 0; vertical-align: middle">
                         <button type="submit" name="submit_button" id="submit_button" class="btn">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-search"></span></pwm:if>
+                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
                             Search
                         </button>
                     </td>
