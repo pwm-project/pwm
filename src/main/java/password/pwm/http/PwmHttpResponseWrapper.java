@@ -22,6 +22,7 @@
 
 package password.pwm.http;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
 import password.pwm.config.Configuration;
@@ -29,6 +30,7 @@ import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -38,15 +40,22 @@ import java.util.Arrays;
 public class PwmHttpResponseWrapper {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmHttpRequestWrapper.class);
 
+    private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
     private final Configuration configuration;
 
     public enum Flag {
-        NonHttpOnly
+        NonHttpOnly,
+        BypassSanitation,
     }
 
-    protected PwmHttpResponseWrapper(HttpServletResponse response, final Configuration configuration)
+    protected PwmHttpResponseWrapper(
+            final HttpServletRequest request,
+            final HttpServletResponse response,
+            final Configuration configuration
+    )
     {
+        this.httpServletRequest = request;
         this.httpServletResponse = response;
         this.configuration = configuration;
     }
@@ -73,11 +82,6 @@ public class PwmHttpResponseWrapper {
         );
     }
 
-    public void addCookie(final Cookie cookie) {
-        cookie.setValue(Validator.sanitizeHeaderValue(configuration, cookie.getValue()));
-        httpServletResponse.addCookie(cookie);
-    }
-
     public void setStatus(final int status) {
         httpServletResponse.setStatus(status);
     }
@@ -98,17 +102,55 @@ public class PwmHttpResponseWrapper {
         return this.getHttpServletResponse().getOutputStream();
     }
 
-    public void writeCookie(final String cookieName, final String cookieValue, final int seconds, final Flag... flags) {
+    public void writeCookie(
+            final String cookieName,
+            final String cookieValue,
+            final int seconds,
+            final Flag... flags
+    ) {
         writeCookie(cookieName, cookieValue, seconds, null, flags);
     }
 
-    public void writeCookie(final String cookieName, final String cookieValue, final int seconds, final String path, final Flag... flags) {
+    public void writeCookie(
+            final String cookieName,
+            final String cookieValue,
+            final int seconds,
+            final String path,
+            final Flag... flags
+    ) {
+        final boolean secureFlag;
+        {
+            final String configValue = configuration.readAppProperty(AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG);
+            if (configValue == null || "auto".equalsIgnoreCase(configValue)) {
+                secureFlag = this.httpServletRequest.isSecure();
+            } else {
+                secureFlag = Boolean.parseBoolean(configValue);
+            }
+        }
+
         final boolean httpOnly = flags == null || !Arrays.asList(flags).contains(Flag.NonHttpOnly);
-        final Cookie theCookie = new Cookie(cookieName, cookieValue == null ? null : StringUtil.urlEncode(cookieValue));
+
+        final String value;
+        {
+            if (cookieValue == null) {
+                value = null;
+            } else {
+                if (flags != null && Arrays.asList(flags).contains(Flag.BypassSanitation)) {
+                    value = StringUtil.urlEncode(cookieValue);
+                } else {
+                    value = StringUtil.urlEncode(
+                            Validator.sanitizeHeaderValue(configuration, cookieValue)
+                    );
+                }
+            }
+        }
+
+        final Cookie theCookie = new Cookie(cookieName, value);
         if (seconds > 0) {
             theCookie.setMaxAge(seconds);
         }
         theCookie.setHttpOnly(httpOnly);
+        theCookie.setSecure(secureFlag);
         if (path != null) {
             theCookie.setPath(path);
         }
