@@ -39,6 +39,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
+import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.PwmRandom;
@@ -519,6 +520,18 @@ public class
             aboutMap.put(PwmAboutProperty.build_Version,            PwmConstants.BUILD_VERSION);
         }
 
+        { // database info
+            try {
+                final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+                if (databaseAccessor != null) {
+                    final Map<PwmAboutProperty,String> debugData = databaseAccessor.getConnectionDebugProperties();
+                    aboutMap.putAll(debugData);
+                }
+            } catch (Throwable t) {
+                LOGGER.error("error reading database debug properties");
+            }
+        }
+
         return Collections.unmodifiableMap(aboutMap);
     }
 
@@ -592,4 +605,23 @@ public class
         return sw.toString();
     }
 
+    public static String readHostileExceptionMessage(Throwable e) {
+        String errorMsg = e.getClass().getName();
+        if (e.getMessage() != null) {
+            errorMsg += ": " + e.getMessage();
+        }
+
+        Throwable cause = e.getCause();
+        int safetyCounter = 0;
+        while (cause != null && safetyCounter < 10) {
+            safetyCounter++;
+            errorMsg += ", cause:" + cause.getClass().getName();
+            if (cause.getMessage() != null) {
+                errorMsg += ": " + cause.getMessage();
+            }
+            cause = cause.getCause();
+        }
+
+        return errorMsg;
+    }
 }
