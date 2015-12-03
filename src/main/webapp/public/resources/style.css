@@ -84,7 +84,7 @@ form {
 
 table {
     border-collapse: collapse;
-    border: 2px solid #D4D4D4;
+    border: 1px solid #D4D4D4;
     width: 98%;
     margin-left: auto;
     margin-right: auto
@@ -104,7 +104,7 @@ table.nomargin {
 
 table td {
     border: 1px solid #D4D4D4;
-    padding-left: 5px;
+    padding: 5px;
 }
 
 table td.title {
@@ -161,7 +161,9 @@ table td.key {
 
 .selectfield {
     height: auto;
+    width: 60%;
 }
+
 
 .noticebar {
     width: 100%;
@@ -180,11 +182,6 @@ table td.key {
 
 /* disable ie password reveal */
 input[type=password]::-ms-reveal{display: none;}
-
-.selectfield {
-    width: 60%;
-    margin: 5px;
-}
 
 .tokenInput {
     height: 130px;
@@ -313,17 +310,16 @@ input[type=password]::-ms-reveal{display: none;}
 
 /* all forms use a buttonbar div containing the action buttons */
 .buttonbar {
-    margin-top: 30px;
+    margin-top: 20px;
     width: 100%;
     margin-bottom: 15px;
-    text-align: center
 }
 
 .btn {
     border-style:none;
     border-radius: 3px;
-    padding: 4px 12px;
-    margin: 9px 7px;
+    padding: 5px 10px;
+/*    margin: 9px 7px;  */
     text-decoration: none;
     color: white;
     background: #3e374c;
@@ -390,6 +386,7 @@ div.progress-container > div {
     width: 100px;
     height: 60px;
     padding-top: 7px;
+	padding-right: 30px;
 }
 
 .header-button {
@@ -439,6 +436,9 @@ div.progress-container > div {
 	#header-warning span {
 		padding-left: 3px;
 		padding-right: 3px;
+		}
+	#header-warning-message {
+		margin-right: 20px;
 	}
 
 
@@ -455,26 +455,32 @@ div.progress-container > div {
 	text-align: center;
 	letter-spacing: .5px;
 	margin-top: 20px;
+	margin-bottom: 0;
 }
 
-.header-warning-buttons {
-    padding-left: 1px;
-    padding-right: 1px;
-    text-align: center;
-    width: 100%;
-    margin-top: 10px;
-    margin-bottom: 15px;
-}
 
-.header-warning-button {
-    text-align: center;
-    width: 100%;
-    padding-bottom: 10px;
-    display: block;
-    color: black;
-    cursor: pointer;
-}
-
+	.header-warning-buttons {
+		text-align: left;
+	}
+	.header-warning-button {
+		text-align: left;
+		color: #f6f6f6;
+		font-size: 15px;
+		font-weight: normal;
+		text-decoration: none;
+		width: auto;
+		padding: 8px;
+		border-radius: 3px;
+	    display: block;
+    	color: black;
+    	cursor: pointer;
+	}
+	.header-warning-button:hover {
+		background-color: #c4c4c4;
+		}
+	.header-warning-button span.btn-icon {
+			display: none !important;		
+		}
 
 .header-error {
 	color: #fff;
@@ -485,7 +491,7 @@ div.progress-container > div {
     margin-left: auto;
     margin-right: auto;
     position: relative;
-    background-color: #ff0000;
+    background-color: #d1281b;
     border-radius: 3px;
 }
 
@@ -502,7 +508,7 @@ div.progress-container > div {
 }
 
 .message-info {
-    background-color: #DDDDDD;
+    background-color: #dae1e1;
 }
 
 .message-error {
@@ -510,9 +516,8 @@ div.progress-container > div {
 }
 
 .message-success {
-    background-color: #EFEFEF;
+    background-color: #70cff0;
 }
-
 
 .push, #footer {
     height: 60px;
@@ -658,6 +663,7 @@ select {
     cursor: pointer;
     color: #f39c12;
 }
+	#button-openHeader span {font-size: 16px;}
 
 #button-closeHeader {
     position: absolute;
@@ -688,6 +694,33 @@ select {
 .login-wrapper {
     width:400px;
 }
+#login .inputfield {
+	margin: 0;
+	padding: 6px;
+	width: 250px;
+	margin-right: 8px;
+	font-size: 15px;
+}
+#configLogin .inputfield {
+	margin: 0;
+	padding: 6px;
+	width: 250px;
+	margin-right: 8px;
+}
+
+#login .buttonbar #submitBtn {
+	margin: 0;
+	width: auto;
+	height: auto;
+	min-width: 80px;
+	padding: 5px 10px;
+	font-size: 14px;
+	border: 1px solid transparent;
+}
+
+	#login .buttonbar #submitBtn span {
+		display: none;
+	}
 
 input[type=search] {
 }

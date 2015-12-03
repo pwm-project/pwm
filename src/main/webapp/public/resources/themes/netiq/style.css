@@ -210,7 +210,7 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 	text-align: left;
 	color: #f6f6f6;
 	background-color: #434c50;
-	top: 40px;
+	top: 37px;
 	right: 15px;
 	width: 240px;
 	padding: 15px;
@@ -218,7 +218,7 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 	border-radius: 3px;
     box-shadow: 0 0 2px #697c87;
 	z-index: 1000;
-}
+	}
 	.header-warning-version {}
 	#header-warning span {
 		display: inline-block;
