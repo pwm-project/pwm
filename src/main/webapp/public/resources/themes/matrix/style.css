@@ -60,7 +60,10 @@ html, body {
 
 .header-warning-button {
     color: #00cc00;
-}
+	}
+.header-warning-button:hover {
+	background-color: #273d28;
+	}
 
 #header-company-logo {
     position: relative;
