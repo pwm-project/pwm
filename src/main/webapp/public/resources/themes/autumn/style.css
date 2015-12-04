@@ -40,7 +40,7 @@ p {
     padding-top: 4px;
     padding-bottom: 4px;
     text-decoration: none;
-    opacity: 0.75;
+    opacity: 0.9;
 }
 
 #header-page {
@@ -75,7 +75,7 @@ p {
 #centerbody {
     background-color: white;
     color: black;
-    padding: 5px 10px 40px 15px;
+    padding: 5px 5px 40px 5px;
     border: 0;
     border-radius: 5px;
     filter:alpha(opacity=80);

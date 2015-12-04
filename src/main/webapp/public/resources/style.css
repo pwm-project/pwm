@@ -310,8 +310,8 @@ input[type=password]::-ms-reveal{display: none;}
 
 /* all forms use a buttonbar div containing the action buttons */
 .buttonbar {
-    margin-top: 20px;
     width: 100%;
+    margin-top: 15px;
     margin-bottom: 15px;
 }
 
@@ -476,7 +476,7 @@ div.progress-container > div {
     	cursor: pointer;
 	}
 	.header-warning-button:hover {
-		background-color: #c4c4c4;
+		background-color: #ededed;
 		}
 	.header-warning-button span.btn-icon {
 			display: none !important;		
@@ -639,10 +639,8 @@ img.qrcodeimage {
 
 .checkboxWrapper {
     border: 0;
-    padding: 5px;
+    padding: 5px 10px 5px 0;
     border-radius: 3px;
-    background-color: #DBDBDB;
-    display: inline;
 }
 
 select {
@@ -694,18 +692,12 @@ select {
 .login-wrapper {
     width:400px;
 }
-#login .inputfield {
+#login .inputfield, #configLogin .inputfield {
 	margin: 0;
 	padding: 6px;
 	width: 250px;
 	margin-right: 8px;
 	font-size: 15px;
-}
-#configLogin .inputfield {
-	margin: 0;
-	padding: 6px;
-	width: 250px;
-	margin-right: 8px;
 }
 
 #login .buttonbar #submitBtn {

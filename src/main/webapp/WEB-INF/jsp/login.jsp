@@ -39,21 +39,23 @@
         <form action="<pwm:current-url/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login" autocomplete="off">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
-            <div style="margin-top: 15px;"><input type="text" name="username" id="username" placeholder="<pwm:display key="Field_Username"/>" class="inputfield" <pwm:autofocus/> required="required"></div>
-            <div style="margin-top: 15px;"><input type="<pwm:value name="passwordFieldType"/>" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" required="required" class="inputfield passwordfield"/></div>
-            <input type="hidden" id="<%=PwmConstants.PARAM_POST_LOGIN_URL%>" name="<%=PwmConstants.PARAM_POST_LOGIN_URL%>"
-                   value="<%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).readParameterAsString(PwmConstants.PARAM_POST_LOGIN_URL))%>"/>
-            <div class="buttonbar">
-                <button type="submit" class="btn" name="button" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-sign-in"></span></pwm:if>
-                    <pwm:display key="Button_Login"/>
-                </button>
-                <input type="hidden" name="processAction" value="login">
-                <pwm:if test="<%=PwmIfTag.TESTS.forwardUrlDefined.toString()%>">
-                    <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
-                </pwm:if>
-                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-            </div>
+            <div style="margin-left: 15px;">
+                <div style="margin-top: 15px;"><input type="text" name="username" id="username" placeholder="<pwm:display key="Field_Username"/>" class="inputfield" <pwm:autofocus/> required="required"></div>
+                <div style="margin-top: 15px;"><input type="<pwm:value name="passwordFieldType"/>" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" required="required" class="inputfield passwordfield"/></div>
+                <input type="hidden" id="<%=PwmConstants.PARAM_POST_LOGIN_URL%>" name="<%=PwmConstants.PARAM_POST_LOGIN_URL%>"
+                       value="<%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).readParameterAsString(PwmConstants.PARAM_POST_LOGIN_URL))%>"/>
+                <div class="buttonbar">
+                    <button type="submit" class="btn" name="button" id="submitBtn">
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-sign-in"></span></pwm:if>
+                        <pwm:display key="Button_Login"/>
+                    </button>
+                    <input type="hidden" name="processAction" value="login">
+                    <pwm:if test="<%=PwmIfTag.TESTS.forwardUrlDefined.toString()%>">
+                        <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
+                    </pwm:if>
+                    <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
+                </div>
+			</div>
         </form>
         <br/>
         <pwm:if test="showLoginOptions">
