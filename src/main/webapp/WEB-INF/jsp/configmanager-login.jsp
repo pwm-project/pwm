@@ -63,10 +63,9 @@
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>" autofocus/>
             </div>
         </form>
-        <br/><br/>
         <% final ConfigAccessFilter.ConfigLoginHistory configLoginHistory = (ConfigAccessFilter.ConfigLoginHistory)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigLoginHistory); %>
         <% if (configLoginHistory != null && !configLoginHistory.successEvents().isEmpty()) { %>
-        <h2>Previous Authentications</h2>
+        <h2 style="margin-top: 15px;">Previous Authentications</h2>
         <table>
             <tr>
                 <td class="title">Identity</td>

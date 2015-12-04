@@ -692,6 +692,8 @@ select {
 .login-wrapper {
     width:400px;
 }
+.sign-in { margin-left: 15px;}
+
 #login .inputfield, #configLogin .inputfield {
 	margin: 0;
 	padding: 6px;

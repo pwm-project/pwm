@@ -26,12 +26,13 @@
 
 #centerbody {
     margin-top: 0;
+	border-radius: 0;
 }
 
 #wrapper.login-wrapper #centerbody {
-	margin-left: -120px;
+	margin-left: 20px;
 	min-width: 200px;
-	width: 200px;
+	width: 100%;
 }
 
 #login .inputfield, #configLogin .inputfield {
@@ -50,7 +51,6 @@
 }
 
 #wrapper.login-wrapper #header-company-logo {
-	display: none;
 }
 
 .btn, .dialogBody.narrow .btn {
@@ -73,11 +73,11 @@
 	display: none;
 }
 
-#login #submitBtn, #configLogin #submitBtn, #configLogin #button_cancel {
+#login #submitBtn, #configLogin #submitBtn, #configLogin #button-cancel {
 	max-width: 90px;
 	min-width: 90px;
 }
 
-#login #submitBtn .fa, #configLogin #submitBtn .fa, #configLogin #button_cancel .fa {
+#login #submitBtn .fa, #configLogin #submitBtn .fa, #configLogin #button-cancel .fa {
 	display: none;
 }

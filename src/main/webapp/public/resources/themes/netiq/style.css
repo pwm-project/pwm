@@ -59,6 +59,8 @@ html, body {
 	color: #26A9E0;
 }
 
+.menubutton span.pwm-icon { display: none;}
+
 .label-b1 {
 	font-size: 13px;
 	font-weight: bold;
@@ -396,9 +398,8 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 }
 
 #login label, #configLogin h1 {
-	color: white;
-	font-weight: normal;
-	font-size: 12px;
+	color: #434c50;
+	font-size: 14px;
 }
 
 #login .buttonbar {
@@ -433,7 +434,7 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 	}
 
 #configLogin .buttonbar {
-	margin-top: 10px;
+	margin-top: 15px;
 	position: relative;
 }
 
@@ -451,10 +452,6 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 
 #login button, #configLogin #submitBtn, #configLogin #button_cancel {
 	min-width: 80px;
-}
-
-#configLogin .buttonbar .btn {
-	margin-top: 25px;
 }
 
 #login .inputfield {
@@ -511,13 +508,11 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 	min-width: 300px; 
 	margin-left: 50px;
 	margin-top: 0px;
-	padding-left: 20px;
-	padding-right: 20px; 
 	padding-top: 10px;
 	background-color: transparent; /* for IE9 */
-	width: 300px;
 	border: 0;
 }
+.sign-in {margin-left: 0;}
 
 #wrapper.login-wrapper #centerbody .menubutton {
 	color: rgb(43, 156, 232);
@@ -536,8 +531,8 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 	padding: 0 0 15px 0;
 }
 
-#wrapper.login-wrapper #centerbody td.menubutton_key+td {
-	display: none;
+#wrapper.login-wrapper #centerbody td.menubutton-description {
+	display:none;
 }
 
 #wrapper.login-wrapper #centerbody > table {
@@ -632,7 +627,7 @@ form#setupOtpSecret .btn, form#setupOtpSecret-skip .btn
 	right: 15px;
     background-color: transparent;
 	}
-	#button-openHeader span {font-size: 18px;}
+	#button-openHeader span {font-size: 16px;}
 
 
 .panel-login-display-message {

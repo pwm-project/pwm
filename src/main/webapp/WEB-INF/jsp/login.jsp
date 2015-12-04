@@ -39,7 +39,7 @@
         <form action="<pwm:current-url/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login" autocomplete="off">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
-            <div style="margin-left: 15px;">
+            <div class="sign-in">
                 <div style="margin-top: 15px;"><input type="text" name="username" id="username" placeholder="<pwm:display key="Field_Username"/>" class="inputfield" <pwm:autofocus/> required="required"></div>
                 <div style="margin-top: 15px;"><input type="<pwm:value name="passwordFieldType"/>" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" required="required" class="inputfield passwordfield"/></div>
                 <input type="hidden" id="<%=PwmConstants.PARAM_POST_LOGIN_URL%>" name="<%=PwmConstants.PARAM_POST_LOGIN_URL%>"
@@ -57,7 +57,6 @@
                 </div>
 			</div>
         </form>
-        <br/>
         <pwm:if test="showLoginOptions">
             <table style="border:0">
                 <pwm:if test="forgottenPasswordEnabled">
@@ -68,7 +67,7 @@
                                 <pwm:display key="Title_ForgottenPassword"/>
                             </a>
                         </td>
-                        <td style="border: 0">
+                        <td style="border: 0" class="menubutton-description">
                             <p><pwm:display key="Long_Title_ForgottenPassword"/></p>
                         </td>
                     </tr>
@@ -81,7 +80,7 @@
                                 <pwm:display key="Title_ForgottenUsername"/>
                             </a>
                         </td>
-                        <td style="border: 0">
+                        <td style="border: 0" class="menubutton-description">
                             <p><pwm:display key="Long_Title_ForgottenUsername"/></p>
                         </td>
                     </tr>
@@ -94,7 +93,7 @@
                                 <pwm:display key="Title_ActivateUser"/>
                             </a>
                         </td>
-                        <td style="border: 0">
+                        <td style="border: 0" class="menubutton-description">
                             <p><pwm:display key="Long_Title_ActivateUser"/></p>
                         </td>
                     </tr>
@@ -107,7 +106,7 @@
                                 <pwm:display key="Title_NewUser"/>
                             </a>
                         </td>
-                        <td style="border: 0">
+                        <td style="border: 0" class="menubutton-description">
                             <p><pwm:display key="Long_Title_NewUser"/></p>
                         </td>
                     </tr>
