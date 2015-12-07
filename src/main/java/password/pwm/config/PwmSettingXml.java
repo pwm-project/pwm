@@ -45,6 +45,11 @@ public class PwmSettingXml {
     private static final String SETTING_XML_FILENAME = (PwmSetting.class.getPackage().getName() +
             "." + PwmSetting.class.getSimpleName()).replace(".","/") + ".xml";
 
+    public static final String XML_ELEMENT_LDAP_PERMISSION = "ldapPermission";
+    public static final String XML_ATTRIBUTE_PERMISSION_ACTOR = "actor";
+    public static final String XML_ATTRIBUTE_PERMISSION_ACCESS = "access";
+
+
     private static Document xmlDocCache = null;
 
     private static Document readXml() {

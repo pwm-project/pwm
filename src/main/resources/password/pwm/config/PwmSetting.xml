@@ -484,6 +484,7 @@
         </default>
     </setting>
     <setting hidden="false" key="ldap.namingAttribute" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
@@ -541,6 +542,7 @@
         </default>
     </setting>
     <setting hidden="false" key="ldap.username.attr" level="2">
+        <ldapPermission actor="proxy" access="read"/>
         <regex>(^$|^[a-zA-Z][a-zA-Z0-9-]*$)</regex>
         <default>
             <value />
@@ -595,6 +597,7 @@
     <setting hidden="false" key="email.smtp.userpassword" level="2">
     </setting>
     <setting hidden="false" key="email.userMailAttribute" level="2" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[mail]]></value>
@@ -694,6 +697,7 @@
         <default/>
     </setting>
     <setting hidden="false" key="sms.userSmsAttribute" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[personalMobile]]></value>
@@ -1055,6 +1059,7 @@
         </default>
     </setting>
     <setting hidden="false" key="password.policy.disallowedAttributes" level="2">
+        <ldapPermission actor="proxy" access="read"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
@@ -1527,6 +1532,8 @@
         </default>
     </setting>
     <setting hidden="false" key="otp.secret.ldap.attribute" level="2" required="false">
+        <ldapPermission actor="proxy" access="read"/>
+        <ldapPermission actor="self" access="write"/>
         <default>
             <value>pwmOtpSecret</value>
         </default>
@@ -1661,6 +1668,7 @@
         </options>
     </setting>
     <setting hidden="false" key="events.ldap.attribute" level="2">
+        <ldapPermission actor="proxy" access="write"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmEventLog]]></value>
@@ -1932,6 +1940,7 @@
         </default>
     </setting>
     <setting hidden="false" key="recovery.form" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
@@ -1982,6 +1991,8 @@
         </options>
     </setting>
     <setting hidden="false" key="challenge.userAttribute" level="1">
+        <ldapPermission actor="self" access="write"/>
+        <ldapPermission actor="proxy" access="read"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmResponseSet]]></value>
@@ -2009,6 +2020,7 @@
         </options>
     </setting>
     <setting hidden="false" key="challenge.requiredAttributes" level="1">
+        <ldapPermission actor="proxy" access="read"/>
         <default />
     </setting>
     <setting hidden="false" key="challenge.token.enable" level="1" required="true">
@@ -2067,6 +2079,7 @@
         </default>
     </setting>
     <setting hidden="false" key="forgottenUsername.form" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2076,6 +2089,7 @@
         <default/>
     </setting>
     <setting hidden="false" key="forgottenUsername.usernameAttribute" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
@@ -2121,6 +2135,7 @@
         </default>
     </setting>
     <setting hidden="true" key="newUser.form" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"placeholder":"username@example.com","selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
@@ -2131,6 +2146,7 @@
         </options>
     </setting>
     <setting hidden="false" key="newUser.writeAttributes" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <default />
     </setting>
     <setting hidden="false" key="newUser.deleteOnFail" level="2">
@@ -2185,6 +2201,7 @@
         </default>
     </setting>
     <setting hidden="false" key="guest.form" level="1" required="true">
+        <ldapPermission actor="guestManager" access="write"/>
         <default>
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2197,6 +2214,7 @@
         </options>
     </setting>
     <setting hidden="false" key="guest.update.form" level="1" required="true">
+        <ldapPermission actor="guestManager" access="write"/>
         <default>
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2216,9 +2234,11 @@
         </default>
     </setting>
     <setting hidden="false" key="guest.writeAttributes" level="1">
+        <ldapPermission actor="guestManager" access="write"/>
         <default />
     </setting>
     <setting hidden="false" key="guest.adminAttribute" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[manager]]></value>
@@ -2235,6 +2255,7 @@
         </default>
     </setting>
     <setting hidden="false" key="guest.expirationAttribute" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[loginExpirationTime]]></value>
@@ -2262,6 +2283,7 @@
         </default>
     </setting>
     <setting hidden="false" key="activateUser.form" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
@@ -2284,11 +2306,13 @@
         </default>
     </setting>
     <setting hidden="false" key="activateUser.writePreAttributes" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <default>
             <value/>
         </default>
     </setting>
     <setting hidden="false" key="activateUser.writePostAttributes" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <default>
             <value/>
         </default>
@@ -2328,9 +2352,11 @@
         </default>
     </setting>
     <setting hidden="false" key="updateAttributes.writeAttributes" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <default />
     </setting>
     <setting hidden="false" key="updateAttributes.form" level="1" required="true">
+        <ldapPermission actor="self" access="write"/>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2394,6 +2420,7 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.searchAttributes" level="1" required="false">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>givenName</value>
             <value>sn</value>
@@ -2409,6 +2436,7 @@
         <default />
     </setting>
     <setting hidden="false" key="peopleSearch.result.form" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2423,6 +2451,7 @@
         </options>
     </setting>
     <setting hidden="false" key="peopleSearch.detail.form" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2482,6 +2511,7 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.photo.ldapAttribute" level="2">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>photo</value>
         </default>
@@ -2505,11 +2535,13 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.orgChart.parentAttribute" level="1">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>manager</value>
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.orgChart.childAttribute" level="1">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>directReports</value>
         </default>
@@ -2631,6 +2663,7 @@
         <default/>
     </setting>
     <setting hidden="false" key="helpdesk.result.form" level="1" required="true">
+        <ldapPermission actor="helpdesk" access="read"/>
         <default>
             <value>{"name":"CN","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2651,6 +2684,7 @@
         </options>
     </setting>
     <setting hidden="false" key="helpdesk.detail.form" level="1" required="true">
+        <ldapPermission actor="helpdesk" access="read"/>
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"CN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"uid"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2707,6 +2741,7 @@
         </options>
     </setting>
     <setting hidden="false" key="helpdesk.setPassword.writeAttributes" level="2">
+        <ldapPermission actor="helpdesk" access="write"/>
         <default />
     </setting>
     <setting hidden="false" key="helpdesk.sendPassword" level="1" required="true">
@@ -2715,6 +2750,7 @@
         </default>
     </setting>
     <setting hidden="false" key="helpdesk.actions" level="2">
+        <ldapPermission actor="helpdesk" access="write"/>
         <default />
     </setting>
     <setting hidden="false" key="helpdesk.enableUnlock" level="1" required="true">
@@ -3054,6 +3090,7 @@
         <default />
     </setting>
     <setting hidden="false" key="webservice.userAttributes" level="2">
+        <ldapPermission actor="proxy" access="read"/>
         <default />
     </setting>
     <setting hidden="false" key="oauth.idserver.loginUrl" level="2">

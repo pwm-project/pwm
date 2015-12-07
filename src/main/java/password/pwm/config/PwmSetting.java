@@ -32,6 +32,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.ConfigEditor;
+import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -1200,6 +1201,31 @@ public enum PwmSetting {
             flags = Collections.unmodifiableCollection(returnObj);
         }
         return flags;
+    }
+
+    public Collection<LDAPPermissionInfo> getLDAPPermissionInfo() {
+        final Element settingElement = PwmSettingXml.readSettingXml(this);
+        final List<Element> permissionElements = settingElement.getChildren(PwmSettingXml.XML_ELEMENT_LDAP_PERMISSION);
+        final List<LDAPPermissionInfo> returnObj = new ArrayList<>();
+        if (permissionElements != null) {
+            for (final Element permissionElement : permissionElements) {
+                final LDAPPermissionInfo.Actor actor = Helper.readEnumFromString(
+                        LDAPPermissionInfo.Actor.class,
+                        null,
+                        permissionElement.getAttributeValue(PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACTOR)
+                );
+                final LDAPPermissionInfo.Access type = Helper.readEnumFromString(
+                        LDAPPermissionInfo.Access.class,
+                        null,
+                        permissionElement.getAttributeValue(PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACCESS)
+                );
+                if (actor != null && type != null) {
+                    LDAPPermissionInfo permissionInfo = new LDAPPermissionInfo(type, actor);
+                    returnObj.add(permissionInfo);
+                }
+            }
+        }
+        return Collections.unmodifiableList(returnObj);
     }
 
     public String getLabel(final Locale locale) {

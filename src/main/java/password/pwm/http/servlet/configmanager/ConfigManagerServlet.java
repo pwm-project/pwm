@@ -50,10 +50,7 @@ import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.PwmService;
-import password.pwm.util.FileSystemUtility;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.*;
 import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
@@ -88,6 +85,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         uploadConfig(HttpMethod.POST),
         uploadWordlist(HttpMethod.POST),
         summary(HttpMethod.GET),
+        permissions(HttpMethod.GET),
         viewLog(HttpMethod.GET),
 
         ;
@@ -149,7 +147,11 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
                     return;
 
                 case summary:
-                    restSummary(pwmRequest);
+                    showSummary(pwmRequest);
+                    return;
+
+                case permissions:
+                    showPermissions(pwmRequest);
                     return;
             }
             return;
@@ -396,13 +398,22 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         return StoredConfigurationImpl.copy(runningConfig);
     }
 
-    private void restSummary(final PwmRequest pwmRequest)
+    private void showSummary(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
         final LinkedHashMap<String,Object> outputMap = new LinkedHashMap<>(storedConfiguration.toOutputMap(pwmRequest.getLocale()));
         pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigurationSummaryOutput,outputMap);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_SUMMARY);
+    }
+
+    private void showPermissions(final PwmRequest pwmRequest)
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
+        LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(storedConfiguration);
+        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigurationSummaryOutput,ldapPermissionCalculator);
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_PERMISSIONS);
     }
 
     private static final List<Class<? extends DebugItemGenerator>> DEBUG_ZIP_ITEM_GENERATORS  = Collections.unmodifiableList(Arrays.asList(

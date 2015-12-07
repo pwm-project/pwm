@@ -256,6 +256,7 @@ public abstract class PwmConstants {
         PEOPLE_SEARCH("peoplesearch.jsp"),
         CONFIG_MANAGER_EDITOR("configeditor.jsp"),
         CONFIG_MANAGER_EDITOR_SUMMARY("configmanager-summary.jsp"),
+        CONFIG_MANAGER_PERMISSIONS("configmanager-permissions.jsp"),
         CONFIG_MANAGER_MODE_CONFIGURATION("configmanager.jsp"),
         CONFIG_MANAGER_WORDLISTS("configmanager-wordlists.jsp"),
         CONFIG_MANAGER_LOCALDB("configmanager-localdb.jsp"),
