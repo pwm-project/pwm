@@ -26,6 +26,32 @@
   modified by administrators.  Any changes must match the compiled PwmSettings.java enum object.
 -->
 <settings>
+    <setting hidden="false" key="template.ldap" level="0">
+        <default>
+            <value>DEFAULT</value>
+        </default>
+        <options>
+            <option value="AD">Microsoft Active Directory</option>
+            <option value="ORACLE_DS">Oracle Directory Server</option>
+            <option value="NOVL">NetIQ eDirectory</option>
+            <option value="NOVL_IDM">NetIQ IDM / OAuth Integration</option>
+            <option value="OPEN_LDAP">OpenLDAP</option>
+            <option value="DEFAULT">Others</option>
+        </options>
+    </setting>
+    <setting hidden="false" key="template.storage" level="0">
+        <default>
+            <value>LDAP</value>
+        </default>
+        <options>
+            <option value="LDAP">LDAP</option>
+            <option value="DB">Remote Database</option>
+            <option value="LOCALDB">LocalDB (Testing Only)</option>
+        </options>
+    </setting>
+    <setting hidden="false" key="notes.noteText" level="0">
+        <default/>
+    </setting>
     <setting hidden="false" key="pwm.selfURL" level="0">
         <regex>^(http|https)://.+$</regex>
         <default>
@@ -368,7 +394,7 @@
     </setting>
     <setting hidden="false" key="ldap.serverUrls" level="0" required="false">
         <regex>^(ldap|ldaps)://[a-zA-Z0-9.-]+:[0-9]+$</regex>
-        <placeholder>ldaps://ldap.example.com:636</placeholder>
+        <example>ldaps://ldap.example.com:636</example>
         <default/>
     </setting>
     <setting hidden="false" key="ldap.serverCerts" level="0" required="true">
@@ -379,18 +405,18 @@
     </setting>
     <setting hidden="false" key="ldap.proxy.username" level="0" required="false">
         <flag>ldapDNsyntax</flag>
-        <placeholder>cn=@PwmAppName@-Proxy,o=example</placeholder>
-        <placeholder template="AD">CN=@PwmAppName@-Proxy,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</placeholder>
-        <placeholder template="ORACLE_DS">cn=@PwmAppName@-Proxy,cn=Administrators,cn=config</placeholder>
-        <placeholder template="OPEN_LDAP">cn=@PwmAppName@-Proxy,dc=example,dc=com</placeholder>
+        <example>cn=@PwmAppName@-Proxy,o=example</example>
+        <example template="AD">CN=@PwmAppName@-Proxy,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</example>
+        <example template="ORACLE_DS">cn=@PwmAppName@-Proxy,cn=Administrators,cn=config</example>
+        <example template="OPEN_LDAP">cn=@PwmAppName@-Proxy,dc=example,dc=com</example>
         <default/>
     </setting>
     <setting hidden="false" key="ldap.proxy.password" level="0">
     </setting>
     <setting hidden="false" key="ldap.rootContexts" level="0">
         <flag>ldapDNsyntax</flag>
-        <placeholder>ou=users,o=example</placeholder>
-        <placeholder template="AD">cn=users,dc=site,dc=example,dc=net</placeholder>
+        <example>ou=users,o=example</example>
+        <example template="AD">cn=users,dc=site,dc=example,dc=net</example>
         <default/>
     </setting>
     <setting hidden="false" key="ldap.selectableContexts" level="2">
@@ -399,19 +425,19 @@
     </setting>
     <setting hidden="false" key="ldap.testuser.username" level="0">
         <flag>ldapDNsyntax</flag>
-        <placeholder>cn=@PwmAppName@-Testuser,o=example</placeholder>
-        <placeholder template="AD">CN=@PwmAppName@-Testuser,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</placeholder>
-        <placeholder template="ORACLE_DS">cn=@PwmAppName@-Testuser,cn=Administrators,cn=config</placeholder>
-        <placeholder template="OPEN_LDAP">cn=@PwmAppName@-Testuser,dc=example,dc=com</placeholder>
+        <example>cn=@PwmAppName@-Testuser,o=example</example>
+        <example template="AD">CN=@PwmAppName@-Testuser,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</example>
+        <example template="ORACLE_DS">cn=@PwmAppName@-Testuser,cn=Administrators,cn=config</example>
+        <example template="OPEN_LDAP">cn=@PwmAppName@-Testuser,dc=example,dc=com</example>
         <default>
             <value />
         </default>
     </setting>
     <setting hidden="false" key="pwmAdmin.queryMatch" level="0" required="true">
-        <placeholder>cn=@PwmAppName@-Admins,ou=Groups,o=example</placeholder>
-        <placeholder template="AD">CN=@PwmAppName@-Administrators,CN=Builtin,DC=site,DC=example,DC=net</placeholder>
-        <placeholder template="ORACLE_DS">cn=@PwmAppName@-Admins,OU=Groups,DC=ad,DC=site,DC=example,DC=net</placeholder>
-        <placeholder template="OPEN_LDAP">cn=@PwmAppName@-Admins,dc=example,dc=com</placeholder>
+        <example>cn=@PwmAppName@-Admins,ou=Groups,o=example</example>
+        <example template="AD">CN=@PwmAppName@-Administrators,CN=Builtin,DC=site,DC=example,DC=net</example>
+        <example template="ORACLE_DS">cn=@PwmAppName@-Admins,OU=Groups,DC=ad,DC=site,DC=example,DC=net</example>
+        <example template="OPEN_LDAP">cn=@PwmAppName@-Admins,dc=example,dc=com</example>
         <default>
             <value/>
         </default>
@@ -710,7 +736,7 @@
     </setting>
     <setting hidden="false" key="sms.gatewayURL" level="1">
         <regex>^$|^https?://[A-Za-z0-9_\.-]{3,}(\:[0-9]{1,5})?(/.*)?</regex>
-        <placeholder>https://sms.example.com/service</placeholder>
+        <example>https://sms.example.com/service</example>
         <default>
             <value/>
         </default>
@@ -1347,7 +1373,7 @@
     </setting>
     <setting hidden="false" key="email.adminAlert.toAddress" level="1">
         <default/>
-        <placeholder><![CDATA[admin@example.com]]></placeholder>
+        <example><![CDATA[admin@example.com]]></example>
     </setting>
     <setting hidden="false" key="audit.system.eventList" level="1">
         <default>
@@ -1368,7 +1394,7 @@
     </setting>
     <setting hidden="false" key="audit.userEvent.toAddress" level="1">
         <default/>
-        <placeholder><![CDATA[admin@example.com]]></placeholder>
+        <example><![CDATA[admin@example.com]]></example>
     </setting>
     <setting hidden="false" key="audit.user.eventList" level="1">
         <default>
@@ -3094,15 +3120,15 @@
         <default />
     </setting>
     <setting hidden="false" key="oauth.idserver.loginUrl" level="2">
-        <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/grant</placeholder>
+        <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/grant</example>
         <default/>
     </setting>
     <setting hidden="false" key="oauth.idserver.codeResolveUrl" level="2">
-        <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/authcoderesolve</placeholder>
+        <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/authcoderesolve</example>
         <default/>
     </setting>
     <setting hidden="false" key="oauth.idserver.attributesUrl" level="2">
-        <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/getattributes</placeholder>
+        <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/getattributes</example>
         <default/>
     </setting>
     <setting hidden="false" key="oauth.idserver.serverCerts" level="2">
@@ -3121,7 +3147,7 @@
         <default/>
     </setting>
     <setting hidden="false" key="naaf.ws.url" level="2">
-        <placeholder>https://www.example.com/api/v1</placeholder>
+        <example>https://www.example.com/api/v1</example>
         <regex>^(http|https)://.+</regex>
         <default/>
     </setting>
@@ -3205,6 +3231,10 @@
             <value>true</value>
         </default>
     </setting>
+    <category hidden="false" key="TEMPLATES">
+    </category>
+    <category hidden="false" key="NOTES">
+    </category>
     <category hidden="false" key="SETTINGS">
     </category>
     <category hidden="false" key="PROFILES">

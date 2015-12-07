@@ -32,6 +32,9 @@ import java.util.*;
 
 public enum PwmSettingCategory {
 
+    TEMPLATES                   (null),
+    NOTES                       (null),
+
     LDAP                        (null),
     SETTINGS                    (null),
     PROFILES                    (null),

@@ -604,7 +604,7 @@ public class Configuration implements Serializable, SettingReader {
         }
     }
 
-    public PwmSettingTemplate getTemplate() {
+    public PwmSettingLdapTemplate getTemplate() {
         return storedConfiguration.getTemplate();
     }
 

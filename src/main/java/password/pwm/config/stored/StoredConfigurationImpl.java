@@ -300,7 +300,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         }
     }
 
-    private static StoredValue defaultValue(final PwmSetting pwmSetting, final PwmSettingTemplate template)
+    private static StoredValue defaultValue(final PwmSetting pwmSetting, final PwmSettingLdapTemplate template)
     {
         try {
             return pwmSetting.getDefaultValue(template);
@@ -311,18 +311,21 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         }
     }
 
-    public PwmSettingTemplate getTemplate() {
-        final String propertyValue = readConfigProperty(ConfigurationProperty.LDAP_TEMPLATE);
-        try {
-            return PwmSettingTemplate.valueOf(propertyValue);
-        } catch (IllegalArgumentException e) {
-            return PwmSettingTemplate.DEFAULT;
-        } catch (NullPointerException e) {
-            return PwmSettingTemplate.DEFAULT;
+    public PwmSettingLdapTemplate getTemplate() {
+        final XPathExpression xp = XPathBuilder.xpathForSetting(PwmSetting.TEMPLATE_LDAP, null);
+        final Element settingElement = (Element)xp.evaluateFirst(document);
+        if (settingElement != null) {
+            try {
+                final String strValue = (String) ValueFactory.fromXmlValues(PwmSetting.TEMPLATE_LDAP, settingElement, null).toNativeObject();
+                return Helper.readEnumFromString(PwmSettingLdapTemplate.class, PwmSettingLdapTemplate.DEFAULT, strValue);
+            } catch (PwmException e) {
+                LOGGER.error("error reading template",e);
+            }
         }
+            return PwmSettingLdapTemplate.DEFAULT;
     }
 
-    public void setTemplate(PwmSettingTemplate template) {
+    public void setTemplate(PwmSettingLdapTemplate template) {
         writeConfigProperty(ConfigurationProperty.LDAP_TEMPLATE, template.toString());
     }
 
@@ -919,7 +922,10 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             stripOrphanedProfileSettings(configuration);
             migrateAppProperties(configuration);
             updateDeprecatedSettings(configuration);
+            migrateDeprecatedProperties(configuration);
         }
+
+
 
         private static void updateMandatoryElements(final Document document) {
             final Element rootElement = document.getRootElement();
@@ -1022,6 +1028,31 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
                             storedConfiguration.writeSetting(profileSetting,new StringArrayValue(profileStringDefinitions),null);
                         }
                     }
+                }
+            }
+        }
+
+        private static void migrateDeprecatedProperties(final StoredConfigurationImpl storedConfiguration) throws PwmUnrecoverableException {
+            final Document document = storedConfiguration.document;
+            final XPathFactory xpfac = XPathFactory.instance();
+            {
+                final String xpathString = "//property[@key=\"" + ConfigurationProperty.LDAP_TEMPLATE.getKey() + "\"]";
+                final XPathExpression xp = xpfac.compile(xpathString);
+                final List<Element> propertyElement = (List<Element>) xp.evaluate(document);
+                if (propertyElement != null && !propertyElement.isEmpty()) {
+                    final String value = propertyElement.get(0).getText();
+                    storedConfiguration.writeSetting(PwmSetting.TEMPLATE_LDAP, new StringValue(value), null);
+                    propertyElement.get(0).detach();
+                }
+            }
+            {
+                final String xpathString = "//property[@key=\"" + ConfigurationProperty.NOTES.getKey() + "\"]";
+                final XPathExpression xp = xpfac.compile(xpathString);
+                final List<Element> propertyElement = (List<Element>) xp.evaluate(document);
+                if (propertyElement != null && !propertyElement.isEmpty()) {
+                    final String value = propertyElement.get(0).getText();
+                    storedConfiguration.writeSetting(PwmSetting.NOTES, new StringValue(value), null);
+                    propertyElement.get(0).detach();
                 }
             }
         }

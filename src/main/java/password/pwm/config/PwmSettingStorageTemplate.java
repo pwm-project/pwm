@@ -23,5 +23,10 @@
 
 package password.pwm.config;
 
-public interface PwmSettingTemplate {
+public enum PwmSettingStorageTemplate implements PwmSettingTemplate {
+
+    LOCALDB,
+    DB,
+    LDAP,
+
 }

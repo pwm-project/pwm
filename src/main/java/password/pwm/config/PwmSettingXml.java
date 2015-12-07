@@ -46,8 +46,11 @@ public class PwmSettingXml {
             "." + PwmSetting.class.getSimpleName()).replace(".","/") + ".xml";
 
     public static final String XML_ELEMENT_LDAP_PERMISSION = "ldapPermission";
+    public static final String XML_ELEMENT_EXAMPLE = "example";
+
     public static final String XML_ATTRIBUTE_PERMISSION_ACTOR = "actor";
     public static final String XML_ATTRIBUTE_PERMISSION_ACCESS = "access";
+    public static final String XML_ATTRIBUTE_TEMPLATE = "template";
 
 
     private static Document xmlDocCache = null;
@@ -109,13 +112,13 @@ public class PwmSettingXml {
         return (Element)xp.evaluateFirst(readXml());
     }
 
-    static Element readTemplateXml(final PwmSettingTemplate template) {
+    static Element readTemplateXml(final PwmSettingLdapTemplate template) {
         final XPathFactory xpfac = XPathFactory.instance();
         final XPathExpression xp = xpfac.compile("/settings/template[@key=\"" + template.toString() + "\"]");
         return (Element)xp.evaluateFirst(readXml());
     }
 
-    static List<PwmSettingTemplate> parseTemplateAttribute(final Element element) {
+    static List<PwmSettingLdapTemplate> parseTemplateAttribute(final Element element) {
         if (element == null) {
             return Collections.emptyList();
         }
@@ -123,9 +126,9 @@ public class PwmSettingXml {
         final String[] templateSplitValues = templateStrValues == null
                 ? new String[0]
                 : templateStrValues.split(",");
-        final List<PwmSettingTemplate> definedTemplates = new ArrayList<>();
+        final List<PwmSettingLdapTemplate> definedTemplates = new ArrayList<>();
         for (final String templateStrValue : templateSplitValues) {
-            final PwmSettingTemplate template = PwmSettingTemplate.valueOf(templateStrValue);
+            final PwmSettingLdapTemplate template = PwmSettingLdapTemplate.valueOf(templateStrValue);
             if (template != null) {
                 definedTemplates.add(template);
             }

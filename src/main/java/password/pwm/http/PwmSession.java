@@ -90,7 +90,7 @@ public class PwmSession implements Serializable {
         if (statisticsManager != null) {
             String nextID = pwmApplication.getStatisticsManager().getStatBundleForKey(StatisticsManager.KEY_CUMULATIVE).getStatistic(Statistic.HTTP_SESSIONS);
             try {
-                nextID = new BigInteger(nextID).toString(Character.MAX_RADIX);
+                nextID = new BigInteger(nextID).toString();
             } catch (Exception e) { /* ignore */ }
             this.getSessionStateBean().setSessionID(nextID);
         }

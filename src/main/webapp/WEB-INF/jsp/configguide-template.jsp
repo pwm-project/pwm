@@ -1,6 +1,5 @@
-<%@ page import="password.pwm.config.PwmSettingTemplate" %>
+<%@ page import="password.pwm.config.PwmSettingLdapTemplate" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
-<%@ page import="java.util.Collections" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -29,7 +28,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
-<% PwmSettingTemplate selectedTemplate = configGuideBean.getSelectedTemplate(); %>
+<% PwmSettingLdapTemplate selectedTemplate = configGuideBean.getSelectedTemplate(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -44,7 +43,7 @@
                 <% if (selectedTemplate == null) { %>
                 <option value="NOTSELECTED" selected disabled>-- Please select a template --</option>
                 <% } %>
-                <% for (final PwmSettingTemplate loopTemplate : PwmSettingTemplate.valuesOrderedByLabel(JspUtility.locale(request), Collections.singletonList(PwmSettingTemplate.Type.LDAP_VENDOR))) { %>
+                <% for (final PwmSettingLdapTemplate loopTemplate : PwmSettingLdapTemplate.valuesOrderedByLabel(JspUtility.locale(request))) { %>
                 <% boolean selected = loopTemplate.equals(selectedTemplate); %>
                 <% if (selected || !loopTemplate.isHidden()) { %>
                 <option value="<%=loopTemplate.toString()%>"<% if (selected) { %> selected="selected"<% } %>>

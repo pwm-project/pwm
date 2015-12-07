@@ -22,7 +22,7 @@
 
 package password.pwm.http.servlet.configguide;
 
-import password.pwm.config.PwmSettingTemplate;
+import password.pwm.config.PwmSettingLdapTemplate;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.util.logging.PwmLogger;
 
@@ -86,7 +86,7 @@ public enum GuideStep {
         public boolean visible(ConfigGuideBean configGuideBean) {
             final ConfigGuideForm.Cr_Storage_Pref selectedPref = ConfigGuideForm.Cr_Storage_Pref.valueOf(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF));
             return ConfigGuideForm.Cr_Storage_Pref.LDAP == selectedPref
-                    && (configGuideBean.getSelectedTemplate() == PwmSettingTemplate.NOVL || configGuideBean.getSelectedTemplate() == PwmSettingTemplate.NOVL_IDM);
+                    && (configGuideBean.getSelectedTemplate() == PwmSettingLdapTemplate.NOVL || configGuideBean.getSelectedTemplate() == PwmSettingLdapTemplate.NOVL_IDM);
         }
     }
 

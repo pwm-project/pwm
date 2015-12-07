@@ -22,7 +22,7 @@
 
 package password.pwm.http.bean;
 
-import password.pwm.config.PwmSettingTemplate;
+import password.pwm.config.PwmSettingLdapTemplate;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.FileValue;
 import password.pwm.error.PwmUnrecoverableException;
@@ -37,7 +37,7 @@ public class ConfigGuideBean implements PwmSessionBean {
 
     private GuideStep step = GuideStep.START;
     private StoredConfigurationImpl storedConfiguration;
-    private PwmSettingTemplate selectedTemplate = null;
+    private PwmSettingLdapTemplate selectedTemplate = null;
     private Map<ConfigGuideForm.FormParameter,String> formData = new HashMap<>();
     private X509Certificate[] ldapCertificates;
     private boolean certsTrustedbyKeystore = false;
@@ -100,12 +100,12 @@ public class ConfigGuideBean implements PwmSessionBean {
         this.useConfiguredCerts = useConfiguredCerts;
     }
 
-    public PwmSettingTemplate getSelectedTemplate()
+    public PwmSettingLdapTemplate getSelectedTemplate()
     {
         return selectedTemplate;
     }
 
-    public void setSelectedTemplate(PwmSettingTemplate selectedTemplate)
+    public void setSelectedTemplate(PwmSettingLdapTemplate selectedTemplate)
     {
         this.selectedTemplate = selectedTemplate;
     }

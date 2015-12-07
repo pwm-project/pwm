@@ -441,7 +441,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
         if (incomingFormData != null && incomingFormData.get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME) != null && !incomingFormData.get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME).isEmpty()) {
             try {
-                final PwmSettingTemplate template = PwmSettingTemplate.valueOf(incomingFormData.get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME));
+                final PwmSettingLdapTemplate template = PwmSettingLdapTemplate.valueOf(incomingFormData.get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME));
                 if (configGuideBean.getSelectedTemplate() != template) {
                     LOGGER.debug(pwmRequest, "resetting form defaults using " + template.toString() + " template");
                     final Map<ConfigGuideForm.FormParameter, String> defaultForm = ConfigGuideForm.defaultForm(template);

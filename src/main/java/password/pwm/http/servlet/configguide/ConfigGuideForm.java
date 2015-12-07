@@ -23,7 +23,7 @@
 package password.pwm.http.servlet.configguide;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingTemplate;
+import password.pwm.config.PwmSettingLdapTemplate;
 import password.pwm.util.logging.PwmLogger;
 
 import java.net.URI;
@@ -35,14 +35,14 @@ public class ConfigGuideForm {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigGuideForm.class);
 
-    static Map<FormParameter,String> defaultForm(PwmSettingTemplate template) {
+    static Map<FormParameter,String> defaultForm(PwmSettingLdapTemplate template) {
         final Map<FormParameter,String> defaultLdapForm = new HashMap<>();
         for (final FormParameter formParameter : FormParameter.values()) {
             defaultLdapForm.put(formParameter, "");
         }
 
         try {
-            final String defaultLdapUrlString = PwmSetting.LDAP_SERVER_URLS.getPlaceholder(template);
+            final String defaultLdapUrlString = PwmSetting.LDAP_SERVER_URLS.getExample(template);
             final URI uri = new URI(defaultLdapUrlString);
 
             defaultLdapForm.put(FormParameter.PARAM_LDAP_PORT, String.valueOf(uri.getPort()));
@@ -56,24 +56,24 @@ public class ConfigGuideForm {
         return Collections.unmodifiableMap(defaultLdapForm);
     }
 
-    public static Map<FormParameter,String> placeholderForm(PwmSettingTemplate template) {
+    public static Map<FormParameter,String> placeholderForm(PwmSettingLdapTemplate template) {
         final Map<FormParameter,String> placeholderForm = new HashMap<>();
         placeholderForm.putAll(defaultForm(template));
 
         try {
-            final String defaultLdapUrlString = PwmSetting.LDAP_SERVER_URLS.getPlaceholder(template);
+            final String defaultLdapUrlString = PwmSetting.LDAP_SERVER_URLS.getExample(template);
             final URI uri = new URI(defaultLdapUrlString);
 
             placeholderForm.put(FormParameter.PARAM_LDAP_HOST, uri.getHost());
             placeholderForm.put(FormParameter.PARAM_LDAP_PORT, String.valueOf(uri.getPort()));
             placeholderForm.put(FormParameter.PARAM_LDAP_SECURE, "ldaps".equalsIgnoreCase(uri.getScheme()) ? "true" : "false");
 
-            placeholderForm.put(FormParameter.PARAM_LDAP_PROXY_DN, PwmSetting.LDAP_PROXY_USER_DN.getPlaceholder(template));
+            placeholderForm.put(FormParameter.PARAM_LDAP_PROXY_DN, PwmSetting.LDAP_PROXY_USER_DN.getExample(template));
             placeholderForm.put(FormParameter.PARAM_LDAP_PROXY_PW, "");
 
-            placeholderForm.put(FormParameter.PARAM_LDAP_CONTEXT, PwmSetting.LDAP_CONTEXTLESS_ROOT.getPlaceholder(template));
-            placeholderForm.put(FormParameter.PARAM_LDAP_TEST_USER, PwmSetting.LDAP_TEST_USER_DN.getPlaceholder(template));
-            placeholderForm.put(FormParameter.PARAM_LDAP_ADMIN_GROUP, PwmSetting.LDAP_TEST_USER_DN.getPlaceholder(template));
+            placeholderForm.put(FormParameter.PARAM_LDAP_CONTEXT, PwmSetting.LDAP_CONTEXTLESS_ROOT.getExample(template));
+            placeholderForm.put(FormParameter.PARAM_LDAP_TEST_USER, PwmSetting.LDAP_TEST_USER_DN.getExample(template));
+            placeholderForm.put(FormParameter.PARAM_LDAP_ADMIN_GROUP, PwmSetting.LDAP_TEST_USER_DN.getExample(template));
 
             placeholderForm.put(FormParameter.PARAM_CR_STORAGE_PREF, (String) PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.getDefaultValue(template).toNativeObject());
 
