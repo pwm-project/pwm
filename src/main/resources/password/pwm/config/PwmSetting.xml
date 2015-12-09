@@ -27,6 +27,7 @@
 -->
 <settings>
     <setting hidden="false" key="template.ldap" level="0">
+        <flag>NoDefault</flag>
         <default>
             <value>DEFAULT</value>
         </default>
@@ -38,8 +39,12 @@
             <option value="OPEN_LDAP">OpenLDAP</option>
             <option value="DEFAULT">Others</option>
         </options>
+        <properties>
+            <property key="modificationWarning">Changing this setting will change default values throughout the configuration.  Are you sure you wish to modify this setting?</property>
+        </properties>
     </setting>
     <setting hidden="false" key="template.storage" level="0">
+        <flag>NoDefault</flag>
         <default>
             <value>LDAP</value>
         </default>
@@ -48,12 +53,17 @@
             <option value="DB">Remote Database</option>
             <option value="LOCALDB">LocalDB (Testing Only)</option>
         </options>
+        <properties>
+            <property key="modificationWarning">Changing this setting will change default values throughout the configuration.  Are you sure you wish to modify this setting?</property>
+        </properties>
     </setting>
     <setting hidden="false" key="notes.noteText" level="0">
+        <flag>NoDefault</flag>
         <default/>
     </setting>
     <setting hidden="false" key="pwm.selfURL" level="0">
         <regex>^(http|https)://.+$</regex>
+        <example>http://www.example.com/password</example>
         <default>
             <value>http://www.example.com/password</value>
         </default>
@@ -395,6 +405,7 @@
     <setting hidden="false" key="ldap.serverUrls" level="0" required="false">
         <regex>^(ldap|ldaps)://[a-zA-Z0-9.-]+:[0-9]+$</regex>
         <example>ldaps://ldap.example.com:636</example>
+        <example template="AD">ldaps://server1.ad.example.com:636</example>
         <default/>
     </setting>
     <setting hidden="false" key="ldap.serverCerts" level="0" required="true">
@@ -457,6 +468,9 @@
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmUser]]></value>
+        </default>
+        <default template="DB">
+            <value><![CDATA[]]></value>
         </default>
     </setting>
     <setting hidden="false" key="passwordLastUpdateAttribute" level="2">
@@ -1462,6 +1476,12 @@
         <default>
             <value><![CDATA[STORE_CRYPTO]]></value>
         </default>
+        <default template="LOCALDB">
+            <value><![CDATA[STORE_LOCALDB]]></value>
+        </default>
+        <default template="DB">
+            <value><![CDATA[STORE_DB]]></value>
+        </default>
         <options>
             <option value="STORE_LOCALDB">LocalDB</option>
             <option value="STORE_DB">Database</option>
@@ -1509,6 +1529,12 @@
         <default>
             <value><![CDATA[LDAP]]></value>
         </default>
+        <default template="DB">
+            <value><![CDATA[DB]]></value>
+        </default>
+        <default template="LOCALDB">
+            <value><![CDATA[LOCALDB]]></value>
+        </default>
         <options>
             <option value="LDAP">LDAP</option>
             <option value="LDAP-DB">LDAP, Database</option>
@@ -1530,6 +1556,12 @@
     <setting hidden="false" key="otp.secret.writePreference" level="1" required="true">
         <default>
             <value><![CDATA[LDAP]]></value>
+        </default>
+        <default template="DB">
+            <value><![CDATA[DB]]></value>
+        </default>
+        <default template="LOCALDB">
+            <value><![CDATA[LOCALDB]]></value>
         </default>
         <options>
             <option value="LDAP">LDAP</option>
@@ -1643,6 +1675,9 @@
     <setting hidden="false" key="events.user.storageMethod" level="2" required="true">
         <default>
             <value><![CDATA[AUTO]]></value>
+        </default>
+        <default template="DB">
+            <value><![CDATA[DATABASE]]></value>
         </default>
         <options>
             <option value="AUTO">Auto Configure - Database if configured, LDAP otherwise</option>
@@ -1984,6 +2019,12 @@
         <default>
             <value><![CDATA[LDAP]]></value>
         </default>
+        <default template="DB">
+            <value><![CDATA[DB]]></value>
+        </default>
+        <default template="LOCALDB">
+            <value><![CDATA[LOCALDB]]></value>
+        </default>
         <options>
             <option value="LDAP">LDAP</option>
             <option value="LDAP-DB">LDAP, Database</option>
@@ -2005,6 +2046,12 @@
     <setting hidden="false" key="recovery.response.writePreference" level="1" required="true">
         <default>
             <value><![CDATA[LDAP]]></value>
+        </default>
+        <default template="DB">
+            <value><![CDATA[DB]]></value>
+        </default>
+        <default template="LOCALDB">
+            <value><![CDATA[LOCALDB]]></value>
         </default>
         <options>
             <option value="LDAP">LDAP</option>
@@ -2974,14 +3021,29 @@
             <value />
         </default>
     </setting>
+    <setting hidden="false" key="db.vendor.template" level="1">
+        <default>
+            <value>DB_ORACLE</value>
+        </default>
+        <options>
+            <option value="DB_ORACLE">Oracle</option>
+            <option value="DB_OTHER">Other</option>
+        </options>
+    </setting>
     <setting hidden="false" key="db.columnType.key" level="2" required="true">
         <default>
             <value>VARCHAR</value>
+        </default>
+        <default template="DB_ORACLE">
+            <value>VARCHAR2</value>
         </default>
     </setting>
     <setting hidden="false" key="db.columnType.value" level="2" required="true">
         <default>
             <value>TEXT</value>
+        </default>
+        <default template="DB_ORACLE">
+            <value>CLOB</value>
         </default>
     </setting>
     <setting hidden="false" key="db.debugTrace.enable" level="2" required="true">
@@ -3322,6 +3384,10 @@
     </category>
     <category hidden="false" key="DATABASE">
     </category>
+    <category hidden="false" key="DATABASE_SETTINGS">
+    </category>
+    <category hidden="false" key="DATABASE_ADV">
+    </category>
     <category hidden="false" key="REPORTING">
     </category>
     <category hidden="false" key="WEB_SERVICES" level="2">
@@ -3375,23 +3441,4 @@
     </category>
     <category hidden="true" key="NAAF">
     </category>
-    <template hidden="false" key="NOVL">
-    </template>
-    <template hidden="false" key="NOVL_IDM">
-    </template>
-    <template hidden="false" key="AD">
-    </template>
-    <template hidden="false" key="ORACLE_DS">
-    </template>
-    <template hidden="false" key="OPEN_LDAP">
-    </template>
-    <template hidden="false" key="DEFAULT">
-    </template>
-
-    <template hidden="false" key="LOCALDB">
-    </template>
-    <template hidden="false" key="DB">
-    </template>
-    <template hidden="false" key="LDAP">
-    </template>
 </settings>

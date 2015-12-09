@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.config.PwmSettingLdapTemplate" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -28,7 +27,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
-<% PwmSettingLdapTemplate selectedTemplate = configGuideBean.getSelectedTemplate(); %>
+<% String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -39,17 +38,15 @@
         <pwm:display key="template_description" bundle="ConfigGuide"/>
         <br/>
         <form id="configForm">
-            <select id="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME%>" name="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME%>" style="width:300px">
-                <% if (selectedTemplate == null) { %>
+            <select id="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP%>" name="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP%>" style="width:300px">
+                <% if (selectedTemplate == null || selectedTemplate.isEmpty()) { %>
                 <option value="NOTSELECTED" selected disabled>-- Please select a template --</option>
                 <% } %>
-                <% for (final PwmSettingLdapTemplate loopTemplate : PwmSettingLdapTemplate.valuesOrderedByLabel(JspUtility.locale(request))) { %>
+                <% for (final String loopTemplate : PwmSetting.TEMPLATE_LDAP.getOptions().keySet()) { %>
                 <% boolean selected = loopTemplate.equals(selectedTemplate); %>
-                <% if (selected || !loopTemplate.isHidden()) { %>
-                <option value="<%=loopTemplate.toString()%>"<% if (selected) { %> selected="selected"<% } %>>
-                    <%=loopTemplate.getLabel(JspUtility.locale(request))%>
+                <option value="<%=loopTemplate%>"<% if (selected) { %> selected="selected"<% } %>>
+                    <%=PwmSetting.TEMPLATE_LDAP.getOptions().get(loopTemplate)%>
                 </option>
-                <% } %>
                 <% } %>
             </select>
         </form>
@@ -61,28 +58,13 @@
 <pwm:script>
     <script type="text/javascript">
         function formHandler() {
-            var startTemplate = '<%=selectedTemplate == null ? "" : selectedTemplate.toString()%>';
-            var newTemplate = getSelectedValue();
-            if (startTemplate && startTemplate.length > 0 && startTemplate != newTemplate) {
-                PWM_MAIN.showConfirmDialog({
-                    text:'Changing the template will cause existing guide settings to be cleared.  Are you sure you wish to continue?',
-                    okAction:function(){
-                        PWM_GUIDE.updateForm();
-                        updateNextButton();
-                    },
-                    cancelAction:function(){
-                        PWM_MAIN.goto('/private/config/config-guide');
-                    }
-                });
-            } else {
-                PWM_GUIDE.updateForm();
-                updateNextButton();
-            }
+            PWM_GUIDE.updateForm();
+            updateNextButton();
         }
 
         function getSelectedValue() {
-            var selectedIndex = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME%>').selectedIndex;
-            var newTemplate = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME%>').options[selectedIndex];
+            var selectedIndex = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP%>').selectedIndex;
+            var newTemplate = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP%>').options[selectedIndex];
             return newTemplate.value;
         }
 
@@ -93,9 +75,16 @@
         }
 
         PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
+            PWM_MAIN.addEventHandler('button_previous','click',function(){
+                PWM_MAIN.showConfirmDialog({
+                    text:'Proceeding will cause existing guide settings to be cleared.  Are you sure you wish to continue?',
+                    okAction:function(){
+                        PWM_GUIDE.gotoStep('PREVIOUS');
+                    }
+                });
+            });
             PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
-            PWM_MAIN.addEventHandler('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_NAME%>','change',function(){formHandler()});
+            PWM_MAIN.addEventHandler('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP%>','change',function(){formHandler()});
             updateNextButton();
         });
     </script>

@@ -245,7 +245,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
         final HashMap<String,Object> outputObj = new HashMap<>();
         outputObj.put("settings", settingData);
-        outputObj.put("template", this.getTemplate().toString());
+        outputObj.put("template", this.getTemplateSet().toString());
 
         return Collections.unmodifiableMap(outputObj);
     }
@@ -267,7 +267,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     }
 
     public void resetSetting(final PwmSetting setting, final String profileID, final UserIdentity userIdentity) {
-        changeLog.updateChangeLog(setting, profileID, defaultValue(setting, this.getTemplate()));
+        changeLog.updateChangeLog(setting, profileID, defaultValue(setting, this.getTemplateSet()));
         domModifyLock.writeLock().lock();
         preModifyActions();
         try {
@@ -291,7 +291,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             if (setting.getSyntax() == PwmSettingSyntax.PASSWORD) {
                 return currentValue == null || currentValue.toNativeObject() == null;
             }
-            final StoredValue defaultValue = defaultValue(setting, this.getTemplate());
+            final StoredValue defaultValue = defaultValue(setting, this.getTemplateSet());
             final String currentJsonValue = JsonUtil.serialize((Serializable)currentValue.toNativeObject());
             final String defaultJsonValue = JsonUtil.serialize((Serializable)defaultValue.toNativeObject());
             return defaultJsonValue.equalsIgnoreCase(currentJsonValue);
@@ -300,7 +300,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         }
     }
 
-    private static StoredValue defaultValue(final PwmSetting pwmSetting, final PwmSettingLdapTemplate template)
+    private static StoredValue defaultValue(final PwmSetting pwmSetting, final PwmSettingTemplateSet template)
     {
         try {
             return pwmSetting.getDefaultValue(template);
@@ -311,21 +311,29 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         }
     }
 
-    public PwmSettingLdapTemplate getTemplate() {
-        final XPathExpression xp = XPathBuilder.xpathForSetting(PwmSetting.TEMPLATE_LDAP, null);
-        final Element settingElement = (Element)xp.evaluateFirst(document);
-        if (settingElement != null) {
-            try {
-                final String strValue = (String) ValueFactory.fromXmlValues(PwmSetting.TEMPLATE_LDAP, settingElement, null).toNativeObject();
-                return Helper.readEnumFromString(PwmSettingLdapTemplate.class, PwmSettingLdapTemplate.DEFAULT, strValue);
-            } catch (PwmException e) {
-                LOGGER.error("error reading template",e);
-            }
-        }
-            return PwmSettingLdapTemplate.DEFAULT;
+    public PwmSettingTemplateSet getTemplateSet() {
+        final Set<PwmSettingTemplate> templates = new HashSet<>();
+        templates.add(readTemplateValue(document, PwmSetting.TEMPLATE_LDAP));
+        templates.add(readTemplateValue(document, PwmSetting.TEMPLATE_STORAGE));
+        templates.add(readTemplateValue(document, PwmSetting.DB_VENDOR_TEMPLATE));
+        return new PwmSettingTemplateSet(templates);
     }
 
-    public void setTemplate(PwmSettingLdapTemplate template) {
+    private static PwmSettingTemplate readTemplateValue(final Document document, PwmSetting pwmSetting) {
+        final XPathExpression xp = XPathBuilder.xpathForSetting(pwmSetting, null);
+        final Element settingElement = (Element) xp.evaluateFirst(document);
+        if (settingElement != null) {
+            try {
+                final String strValue = (String) ValueFactory.fromXmlValues(pwmSetting, settingElement, null).toNativeObject();
+                return Helper.readEnumFromString(PwmSettingTemplate.class, null, strValue);
+            } catch (PwmException e) {
+                LOGGER.error("error reading template", e);
+            }
+        }
+        return null;
+    }
+
+    public void setTemplate(PwmSettingTemplate template) {
         writeConfigProperty(ConfigurationProperty.LDAP_TEMPLATE, template.toString());
     }
 
@@ -614,11 +622,11 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             final Element settingElement = (Element)xp.evaluateFirst(document);
 
             if (settingElement == null) {
-                return defaultValue(setting, getTemplate());
+                return defaultValue(setting, getTemplateSet());
             }
 
             if (settingElement.getChild(XML_ELEMENT_DEFAULT) != null) {
-                return defaultValue(setting, getTemplate());
+                return defaultValue(setting, getTemplateSet());
             }
 
             try {

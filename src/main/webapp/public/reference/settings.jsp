@@ -1,7 +1,7 @@
 <%@ page import="password.pwm.config.PwmSettingCategory" %>
 <%@ page import="password.pwm.config.PwmSettingFlag" %>
-<%@ page import="password.pwm.config.PwmSettingLdapTemplate" %>
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
+<%@ page import="password.pwm.config.PwmSettingTemplate" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
@@ -188,7 +188,7 @@
                     </td>
                 </tr>
                 <% } %>
-                <% final Map<PwmSettingLdapTemplate,String> defaultValues = setting.getDefaultValueDebugStrings(userLocale, PwmSettingLdapTemplate.Type.LDAP_VENDOR); %>
+                <% final Map<PwmSettingTemplate,String> defaultValues = setting.getDefaultValueDebugStrings(userLocale, PwmSettingTemplate.Type.LDAP_VENDOR); %>
                 <tr>
                     <td class="key" style="width: 100px">
                         Default
@@ -201,7 +201,7 @@
                             </thead>
                             <tbody>
                             <%
-                                for (final PwmSettingLdapTemplate template : defaultValues.keySet()) {
+                                for (final PwmSettingTemplate template : defaultValues.keySet()) {
                                     final String defaultValue = defaultValues.get(template);
                             %>
                             <tr><td><%=template.getLabel(userLocale)%></td><td>

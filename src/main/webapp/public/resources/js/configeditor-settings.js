@@ -2625,13 +2625,28 @@ SelectValueHandler.init = function(settingKey) {
         + '<option value="' + PWM_MAIN.showString('Display_PleaseWait') + '">' + PWM_MAIN.showString('Display_PleaseWait') + '</option></select>';
     parentDivElement.innerHTML = htmlBody;
 
-    PWM_MAIN.clearDijitWidget("value_" + settingKey);
-    PWM_MAIN.clearDijitWidget("setting_" + settingKey);
+
+
 
     PWM_MAIN.addEventHandler('setting_' + settingKey,'change',function(){
         var settingElement = PWM_MAIN.getObject('setting_' + settingKey);
-        var selectedValue = settingElement.options[settingElement.selectedIndex].value;
-        PWM_CFGEDIT.writeSetting(settingKey,selectedValue)
+        var changeFunction = function(){
+            var selectedValue = settingElement.options[settingElement.selectedIndex].value;
+            PWM_CFGEDIT.writeSetting(settingKey,selectedValue);
+            settingElement.setAttribute('previousValue',settingElement.selectedIndex);
+        };
+        if ('modificationWarning' in PWM_SETTINGS['settings'][settingKey]['properties']) {
+            PWM_MAIN.showConfirmDialog({
+                text:PWM_SETTINGS['settings'][settingKey]['properties']['modificationWarning'],
+                cancelAction: function(){
+                    settingElement.selectedIndex = settingElement.getAttribute('previousValue');
+                    PWM_MAIN.closeWaitDialog();
+                },
+                okAction:changeFunction
+            });
+        } else {
+            changeFunction();
+        }
     });
     PWM_CFGEDIT.readSetting(settingKey, function(dataValue) {
         var settingElement = PWM_MAIN.getObject('setting_' + settingKey);
@@ -2645,6 +2660,7 @@ SelectValueHandler.init = function(settingKey) {
         settingElement.innerHTML = optionsHtml;
         settingElement.value = dataValue;
         settingElement.disabled = false;
+        settingElement.setAttribute('previousValue',settingElement.selectedIndex);
     });
 };
 

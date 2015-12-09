@@ -24,8 +24,6 @@ package password.pwm.config;
 
 import org.jdom2.Attribute;
 import org.jdom2.Element;
-import org.jdom2.xpath.XPathExpression;
-import org.jdom2.xpath.XPathFactory;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.PwmOperationalException;
@@ -54,6 +52,8 @@ public enum PwmSetting {
     TEMPLATE_STORAGE(
             "template.storage", PwmSettingSyntax.SELECT, PwmSettingCategory.TEMPLATES),
 
+
+    // notes
     NOTES(
             "notes.noteText", PwmSettingSyntax.TEXT_AREA, PwmSettingCategory.NOTES),
 
@@ -922,24 +922,27 @@ public enum PwmSetting {
             "helpdesk.setPassword.maskValue", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
 
 
-
     // Database
     DATABASE_JDBC_DRIVER(
-            "db.jdbc.driver", PwmSettingSyntax.FILE, PwmSettingCategory.DATABASE),
+            "db.jdbc.driver", PwmSettingSyntax.FILE, PwmSettingCategory.DATABASE_SETTINGS),
     DATABASE_CLASS(
-            "db.classname", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE),
+            "db.classname", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE_SETTINGS),
     DATABASE_URL(
-            "db.url", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE),
+            "db.url", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE_SETTINGS),
     DATABASE_USERNAME(
-            "db.username", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE),
+            "db.username", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE_SETTINGS),
     DATABASE_PASSWORD(
-            "db.password", PwmSettingSyntax.PASSWORD, PwmSettingCategory.DATABASE),
+            "db.password", PwmSettingSyntax.PASSWORD, PwmSettingCategory.DATABASE_SETTINGS),
+    DB_VENDOR_TEMPLATE(
+            "db.vendor.template", PwmSettingSyntax.SELECT, PwmSettingCategory.DATABASE_SETTINGS),
+
+    // Database advanced
     DATABASE_COLUMN_TYPE_KEY(
-            "db.columnType.key", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE),
+            "db.columnType.key", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE_ADV),
     DATABASE_COLUMN_TYPE_VALUE(
-            "db.columnType.value", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE),
+            "db.columnType.value", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE_ADV),
     DATABASE_DEBUG_TRACE(
-            "db.debugTrace.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.DATABASE),
+            "db.debugTrace.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.DATABASE_ADV),
 
     // reporting
     REPORTING_ENABLE(
@@ -1058,8 +1061,8 @@ public enum PwmSetting {
     private final PwmSettingSyntax syntax;
     private final PwmSettingCategory category;
 
-    private Map<StoredValue,List<PwmSettingLdapTemplate>> defaultValues;
-    private Map<PwmSettingLdapTemplate, String> placeholder;
+    private List<TemplateSetAssociation> defaultValues;
+    private List<TemplateSetAssociation> examples;
     private Map<String,String> options;
     private Collection<PwmSettingFlag> flags;
     private Boolean required;
@@ -1104,58 +1107,38 @@ public enum PwmSetting {
 
     // -------------------------- OTHER METHODS --------------------------
 
-    public StoredValue getDefaultValue(final PwmSettingLdapTemplate template)
+    public StoredValue getDefaultValue(final PwmSettingTemplateSet templateSet)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         if (defaultValues == null) {
-            final Map<StoredValue, List<PwmSettingLdapTemplate>> returnObj = new LinkedHashMap<>();
+            final List<TemplateSetAssociation> returnObj = new ArrayList<>();
             final Element settingElement = PwmSettingXml.readSettingXml(this);
-            final List<Element> defaultElements = settingElement.getChildren("default");
+            final List<Element> defaultElements = settingElement.getChildren(PwmSettingXml.XML_ELEMENT_DEFAULT);
             if (this.getSyntax() == PwmSettingSyntax.PASSWORD) {
-                returnObj.put(new PasswordValue(null), Collections.<PwmSettingLdapTemplate>emptyList());
+                returnObj.add(new TemplateSetAssociation(new PasswordValue(null), Collections.<PwmSettingTemplate>emptySet()));
             } else {
                 for (final Element defaultElement : defaultElements) {
-                    final List<PwmSettingLdapTemplate> definedTemplates = PwmSettingXml.parseTemplateAttribute(defaultElement);
+                    final Set<PwmSettingTemplate> definedTemplates = PwmSettingXml.parseTemplateAttribute(defaultElement);
                     final StoredValue storedValue = ValueFactory.fromXmlValues(this, defaultElement, null);
-                    returnObj.put(storedValue, definedTemplates);
+                    returnObj.add(new TemplateSetAssociation(storedValue, definedTemplates));
                 }
             }
             if (returnObj.isEmpty()) {
                 throw new IllegalStateException("no default value for setting " + this.getKey());
             }
-            defaultValues = Collections.unmodifiableMap(returnObj);
+            defaultValues = Collections.unmodifiableList(returnObj);
         }
-        for (final StoredValue storedValue : defaultValues.keySet()) {
-            final List<PwmSettingLdapTemplate> settingTemplateList = defaultValues.get(storedValue);
-            if (settingTemplateList.contains(template)) {
-                return storedValue;
-            }
-        }
-        return defaultValues.keySet().iterator().next(); // return top if no template matches.
+
+        return (StoredValue)associationForTempleSet(defaultValues, templateSet).getObject();
     }
 
     public Map<PwmSettingTemplate, String> getDefaultValueDebugStrings(final Locale locale)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final Map<PwmSettingTemplate, String> returnObj = new LinkedHashMap<>();
-        final String defaultDebugStr = this.getDefaultValue(PwmSettingLdapTemplate.DEFAULT).toDebugString(locale);
+        final String defaultDebugStr = this.getDefaultValue(PwmSettingTemplateSet.getDefault()).toDebugString(locale);
         boolean hasNonDefaultValue = false;
-        if (defaultDebugStr != null) {
-            for (final PwmSettingLdapTemplate template : PwmSettingLdapTemplate.valuesOrderedByLabel(locale)) {
-                if (!template.isHidden()) {
-                    final String debugStr = this.getDefaultValue(template).toDebugString(locale);
-                    if (!defaultDebugStr.equals(debugStr)) {
-                        hasNonDefaultValue = true;
-                    }
-                    returnObj.put(template, debugStr);
-                }
-            }
-        }
 
-        if (!hasNonDefaultValue) {
-            returnObj.clear();
-            returnObj.put(PwmSettingLdapTemplate.DEFAULT, this.getDefaultValue(PwmSettingLdapTemplate.DEFAULT).toDebugString(locale));
-        }
 
         return returnObj;
     }
@@ -1180,6 +1163,25 @@ public enum PwmSetting {
         }
 
         return options;
+    }
+
+    public Map<String, String> getProperties() {
+        final Map<String, String> properties = new LinkedHashMap<>();
+        final Element settingElement = PwmSettingXml.readSettingXml(this);
+        final Element propertiesElement = settingElement.getChild("properties");
+        if (propertiesElement != null) {
+            final List<Element> propertyElements = propertiesElement.getChildren("property");
+            if (propertyElements != null) {
+                for (Element propertyElement : propertyElements) {
+                    if (propertyElement.getAttribute("key") == null) {
+                        throw new IllegalStateException("property element is missing 'key' attribute for value " + this.getKey());
+                    }
+                    properties.put(propertyElement.getAttribute("key").getValue(), propertyElement.getValue());
+                }
+            }
+        }
+
+        return properties;
     }
 
     public Collection<PwmSettingFlag> getFlags() {
@@ -1250,27 +1252,23 @@ public enum PwmSetting {
         }
     }
 
-    public String getExample(final PwmSettingLdapTemplate template) {
-        if (placeholder == null) {
-            final Map<PwmSettingLdapTemplate, String> returnObj = new HashMap<>();
+    public String getExample(final PwmSettingTemplateSet template) {
+        if (examples == null) {
+            final List<TemplateSetAssociation> returnObj = new ArrayList<>();
             final MacroMachine macroMachine = MacroMachine.forStatic();
-            for (final PwmSettingLdapTemplate loopTemplate : PwmSettingLdapTemplate.values()) {
-                final Element settingElement = PwmSettingXml.readSettingXml(this);
-                final XPathFactory xpfac = XPathFactory.instance();
-                Element defaultElement = null;
-                if (loopTemplate != null) {
-                    XPathExpression xp = xpfac.compile(PwmSettingXml.XML_ELEMENT_EXAMPLE + "[@" + PwmSettingXml.XML_ATTRIBUTE_TEMPLATE + "=\"" + loopTemplate.toString() + "\"]");
-                    defaultElement = (Element) xp.evaluateFirst(settingElement);
-                }
-                if (defaultElement == null) {
-                    XPathExpression xp = xpfac.compile(PwmSettingXml.XML_ELEMENT_EXAMPLE + "[not(@" + PwmSettingXml.XML_ATTRIBUTE_TEMPLATE + ")]");
-                    defaultElement = (Element) xp.evaluateFirst(settingElement);
-                }
-                returnObj.put(loopTemplate, defaultElement == null ? "" : macroMachine.expandMacros(defaultElement.getValue()));
+            final Element settingElement = PwmSettingXml.readSettingXml(this);
+            final List<Element> exampleElements = settingElement.getChildren(PwmSettingXml.XML_ELEMENT_EXAMPLE);
+            for (final Element exampleElement : exampleElements) {
+                final Set<PwmSettingTemplate> definedTemplates = PwmSettingXml.parseTemplateAttribute(exampleElement);
+                final String exampleString = macroMachine.expandMacros(exampleElement.getText());
+                returnObj.add(new TemplateSetAssociation(exampleString, definedTemplates));
             }
-            placeholder = returnObj;
+            if (returnObj.isEmpty()) {
+                returnObj.add(new TemplateSetAssociation("",Collections.<PwmSettingTemplate>emptySet()));
+            }
+            examples = returnObj;
         }
-        return placeholder.get(template);
+        return (String)associationForTempleSet(examples,template).getObject();
     }
 
     public boolean isRequired() {
@@ -1369,6 +1367,47 @@ public enum PwmSetting {
             returnObj.put(SettingStat.syntaxCounts, syntaxCounts);
         }
         return returnObj;
+    }
+
+    static class TemplateSetAssociation {
+        private final Object object;
+        private final Set<PwmSettingTemplate> settingTemplates;
+
+        public TemplateSetAssociation(Object association, Set<PwmSettingTemplate> settingTemplates) {
+            this.object = association;
+            this.settingTemplates = settingTemplates;
+        }
+
+        public Object getObject() {
+            return object;
+        }
+
+        public Set<PwmSettingTemplate> getSettingTemplates() {
+            return settingTemplates;
+        }
+    }
+
+    static TemplateSetAssociation associationForTempleSet(final List<TemplateSetAssociation> associationSets, final PwmSettingTemplateSet pwmSettingTemplate) {
+        if (associationSets == null || associationSets.isEmpty()) {
+            return null;
+        }
+
+        if (associationSets.size() == 1) {
+            return associationSets.iterator().next();
+        }
+
+        for (int matchCountExamSize  = associationSets.size(); matchCountExamSize > 0; matchCountExamSize--) {
+            for (final TemplateSetAssociation associationSet : associationSets) {
+                final Set<PwmSettingTemplate> temporarySet = new HashSet<>(associationSet.getSettingTemplates());
+                temporarySet.retainAll(pwmSettingTemplate.getTemplates());
+                final int matchCount = temporarySet.size();
+                if (matchCount == matchCountExamSize) {
+                    return associationSet;
+                }
+            }
+        }
+
+        return associationSets.iterator().next();
     }
 }
 

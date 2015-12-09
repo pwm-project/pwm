@@ -566,7 +566,7 @@ public class
             Object result = valueOfMethod.invoke(null,input);
             return (E)result;
         } catch (Exception e) {
-            LOGGER.warn("unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName(),e);
+            LOGGER.warn("unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName());
         }
 
         return defaultValue;

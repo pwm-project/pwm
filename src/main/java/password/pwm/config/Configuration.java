@@ -604,8 +604,8 @@ public class Configuration implements Serializable, SettingReader {
         }
     }
 
-    public PwmSettingLdapTemplate getTemplate() {
-        return storedConfiguration.getTemplate();
+    public PwmSettingTemplateSet getTemplate() {
+        return storedConfiguration.getTemplateSet();
     }
 
     public boolean hasDbConfigured() {

@@ -95,12 +95,10 @@
         PWM_MAIN.getObject('confirmCrossMark').style.visibility = 'hidden';
         if (password2.length > 0) {
             if (password === password2) {
-                console.log('yep');
                 PWM_MAIN.getObject('confirmCheckMark').style.visibility = 'visible';
                 PWM_MAIN.getObject('confirmCrossMark').style.visibility = 'hidden';
                 PWM_MAIN.getObject('button_next').disabled = false;
             } else {
-                console.log('nope');
                 PWM_MAIN.getObject('confirmCheckMark').style.visibility = 'hidden';
                 PWM_MAIN.getObject('confirmCrossMark').style.visibility = 'visible';
             }

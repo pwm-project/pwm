@@ -120,6 +120,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         public boolean hidden;
         public boolean required;
         public Map<String, String> options;
+        public Map<String, String> properties;
         public String pattern;
         public String placeholder;
         public int level;
@@ -543,13 +544,13 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 final String requestedTemplate = pwmRequest.readParameterAsString("template");
                 if (requestedTemplate != null && requestedTemplate.length() > 0) {
                     try {
-                        final PwmSettingLdapTemplate template = PwmSettingLdapTemplate.valueOf(requestedTemplate);
+                        final PwmSettingTemplate template = PwmSettingTemplate.valueOf(requestedTemplate);
                         configManagerBean.getStoredConfiguration().writeConfigProperty(
                                 ConfigurationProperty.LDAP_TEMPLATE, template.toString());
                         LOGGER.trace("setting template to: " + requestedTemplate);
                     } catch (IllegalArgumentException e) {
                         configManagerBean.getStoredConfiguration().writeConfigProperty(
-                                ConfigurationProperty.LDAP_TEMPLATE, PwmSettingLdapTemplate.DEFAULT.toString());
+                                ConfigurationProperty.LDAP_TEMPLATE, PwmSettingTemplate.DEFAULT.toString());
                         LOGGER.error("unknown template set request: " + requestedTemplate);
                     }
                 }
@@ -1012,7 +1013,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
     private void restConfigSettingData(final PwmRequest pwmRequest, final ConfigManagerBean configManagerBean)
             throws IOException
     {
-        final PwmSettingLdapTemplate template = configManagerBean.getStoredConfiguration().getTemplate();
+        final PwmSettingTemplateSet template = configManagerBean.getStoredConfiguration().getTemplateSet();
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
         final Locale locale = pwmRequest.getLocale();
         {
@@ -1025,6 +1026,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 settingInfo.label = setting.getLabel(locale);
                 settingInfo.syntax = setting.getSyntax();
                 settingInfo.category = setting.getCategory();
+                settingInfo.properties = setting.getProperties();
                 settingInfo.required = setting.isRequired();
                 settingInfo.hidden = setting.isHidden();
                 settingInfo.options = setting.getOptions();
@@ -1063,20 +1065,9 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             returnMap.put("locales", labelMap);
         }
         {
-            final LinkedHashMap<String, Object> templateMap = new LinkedHashMap<>();
-            for (final PwmSettingLdapTemplate loopTemplate : PwmSettingLdapTemplate.valuesOrderedByLabel(pwmRequest.getLocale())) {
-                final TemplateInfo templateInfo = new TemplateInfo();
-                templateInfo.description = loopTemplate.getLabel(locale);
-                templateInfo.key = loopTemplate.toString();
-                templateInfo.hidden = loopTemplate.isHidden();
-                templateMap.put(loopTemplate.toString(), templateInfo);
-            }
-            returnMap.put("templates", templateMap);
-        }
-        {
             final LinkedHashMap<String, Object> varMap = new LinkedHashMap<>();
             varMap.put("ldapProfileIds", configManagerBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_PROFILE_LIST).toNativeObject());
-            varMap.put("currentTemplate",configManagerBean.getStoredConfiguration().getTemplate());
+            varMap.put("currentTemplate",configManagerBean.getStoredConfiguration().getTemplateSet());
             if (pwmRequest.getPwmApplication().getApplicationMode() == PwmApplication.MODE.CONFIGURATION && !PwmConstants.TRIAL_MODE) {
                 if (!configManagerBean.isConfigUnlockedWarningShown()) {
                     varMap.put("configUnlocked",true);

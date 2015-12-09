@@ -29,27 +29,38 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PwmSettingTemplateSet implements Serializable {
-    private final PwmSettingLdapTemplate ldapTemplate;
-    private final PwmSettingStorageTemplate storageTemplate;
+    private final Set<PwmSettingTemplate> templates;
 
-    public PwmSettingTemplateSet(final PwmSettingLdapTemplate ldapTemplate, final PwmSettingStorageTemplate storageTemplate) {
-        this.ldapTemplate = ldapTemplate == null ? PwmSettingLdapTemplate.DEFAULT : ldapTemplate;
-        this.storageTemplate = storageTemplate == null ? PwmSettingStorageTemplate.LDAP : storageTemplate;
+    public PwmSettingTemplateSet(final Set<PwmSettingTemplate> templates) {
+        final Set<PwmSettingTemplate> workingSet = new HashSet<>();
 
-    }
+        if (templates != null) {
+            for (final PwmSettingTemplate template : templates) {
+                if (template != null) {
+                    workingSet.add(template);
+                }
+            }
+        }
 
-    public PwmSettingLdapTemplate getLdapTemplate() {
-        return ldapTemplate;
-    }
+        final Set<PwmSettingTemplate.Type> seenTypes = new HashSet<>();
+        for (final PwmSettingTemplate template : workingSet) {
+            seenTypes.add(template.getType());
+        }
 
-    public PwmSettingStorageTemplate getStorageTemplate() {
-        return storageTemplate;
+        for (final PwmSettingTemplate.Type type : PwmSettingTemplate.Type.values()) {
+            if (!seenTypes.contains(type)) {
+                workingSet.add(type.getDefaultValue());
+            }
+        }
+
+        this.templates = Collections.unmodifiableSet(workingSet);
     }
 
     public Set<PwmSettingTemplate> getTemplates() {
-        final HashSet<PwmSettingTemplate> returnObj = new HashSet<>();
-        returnObj.add(ldapTemplate);
-        returnObj.add(storageTemplate);
-        return Collections.unmodifiableSet(returnObj);
+        return templates;
+    }
+
+    public static PwmSettingTemplateSet getDefault() {
+        return new PwmSettingTemplateSet(null);
     }
 }
