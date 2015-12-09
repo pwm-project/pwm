@@ -44,12 +44,19 @@
                 </div>
                 <div class="setting_body">
                     The URL to this application, as seen by users.  The value is used in email and other user facing communications.
-                    Example: <b>http://www.example.com/password</b>.  The Site URL must use a valid fully qualified hostname.  Do not use a network address.                    <br/><br/>
+                    The Site URL must use a valid fully qualified hostname.  Do not use a network address.
+                    <br/><br/>
+                    Example: <code><%=PwmSetting.PWM_SITE_URL.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
+                    <br/><br/>
                     <div class="setting_item">
                         <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>" style="padding-left: 5px; padding-top: 5px">
-                            <b>Site URL</b>
-                            <br/>
-                            <input class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>" name="<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL))%>" required autofocus/>
+                            <label>
+                                <b>Site URL</b>
+                                <br/>
+                                <input class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>" name="<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>"
+                                       value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL))%>" required autofocus
+                                        pattern="<%=PwmSetting.PWM_SITE_URL.getRegExPattern()%>"/>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -61,20 +68,20 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    function handleFormActivity() {
-        PWM_GUIDE.updateForm();
-    }
+    <script type="text/javascript">
+        function handleFormActivity() {
+            PWM_GUIDE.updateForm();
+        }
 
-    PWM_GLOBAL['startupFunctions'].push(function(){
+        PWM_GLOBAL['startupFunctions'].push(function(){
 
-        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
-        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
+            PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
+            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
 
-        PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
-    });
+            PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
+        });
 
-</script>
+    </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/configguide.js"/>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>

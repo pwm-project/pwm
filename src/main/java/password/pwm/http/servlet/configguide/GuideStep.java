@@ -23,8 +23,11 @@
 package password.pwm.http.servlet.configguide;
 
 import password.pwm.config.PwmSettingTemplate;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.util.logging.PwmLogger;
+
+import java.util.Set;
 
 public enum GuideStep {
     START(null),
@@ -84,16 +87,23 @@ public enum GuideStep {
 
     static class LdapSchemeVisibilityCheck implements VisibilityCheck {
         public boolean visible(ConfigGuideBean configGuideBean) {
-            final ConfigGuideForm.Cr_Storage_Pref selectedPref = ConfigGuideForm.Cr_Storage_Pref.valueOf(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF));
-            return ConfigGuideForm.Cr_Storage_Pref.LDAP == selectedPref
-                    && (configGuideBean.getSelectedTemplate() == PwmSettingTemplate.NOVL || configGuideBean.getSelectedTemplate() == PwmSettingTemplate.NOVL_IDM);
+            try {
+                final Set<PwmSettingTemplate> templates = ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().getTemplates();
+                return templates.contains(PwmSettingTemplate.LDAP);
+            } catch (PwmUnrecoverableException e) {
+                return true;
+            }
         }
     }
 
     static class DbVisibilityCheck implements VisibilityCheck {
         public boolean visible(ConfigGuideBean configGuideBean) {
-            final ConfigGuideForm.Cr_Storage_Pref selectedPref = ConfigGuideForm.Cr_Storage_Pref.valueOf(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF));
-            return ConfigGuideForm.Cr_Storage_Pref.DB == selectedPref;
+            try {
+                final Set<PwmSettingTemplate> templates = ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().getTemplates();
+                return templates.contains(PwmSettingTemplate.DB);
+            } catch (PwmUnrecoverableException e) {
+                return true;
+            }
         }
     }
 }

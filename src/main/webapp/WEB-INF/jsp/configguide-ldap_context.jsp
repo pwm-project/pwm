@@ -1,6 +1,5 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.StringUtil" %>
-<%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -28,7 +27,6 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
-<% Map<ConfigGuideForm.FormParameter,String> PLACEHOLDER_FORM = ConfigGuideForm.placeholderForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -41,14 +39,16 @@
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br/>
             <div class="setting_outline">
-                <div class="setting_title">LDAP Contextless Login Root</div>
+                <div class="setting_title">LDAP Login Root Context</div>
                 <div class="setting_body">
                     <p><pwm:display key="ldap_context_description" bundle="ConfigGuide"/></p>
                     <br/>
+                    Example: <code><%=PwmSetting.LDAP_CONTEXTLESS_ROOT.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
+                    <br/><br/>
                     <div class="setting_item">
                         <b>User Container DN</b>
                         <br/>
-                        <input style="width:400px" class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT))%>" placeholder="<%=PLACEHOLDER_FORM.get(ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT)%>" required autofocus/>
+                        <input style="width:400px" class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_CONTEXT))%>" required autofocus/>
                         <button type="button" class="btn" id="button-browse-context">
                             <span class="btn-icon pwm-icon pwm-icon-sitemap"></span>
                             <pwm:display key="Button_Browse"/>

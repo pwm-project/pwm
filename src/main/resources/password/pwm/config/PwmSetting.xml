@@ -26,8 +26,44 @@
   modified by administrators.  Any changes must match the compiled PwmSettings.java enum object.
 -->
 <settings>
+    <setting hidden="false" key="template.ldap" level="0">
+        <flag>NoDefault</flag>
+        <default>
+            <value>DEFAULT</value>
+        </default>
+        <options>
+            <option value="AD">Microsoft Active Directory</option>
+            <option value="ORACLE_DS">Oracle Directory Server</option>
+            <option value="NOVL">NetIQ eDirectory</option>
+            <option value="NOVL_IDM">NetIQ IDM / OAuth Integration</option>
+            <option value="OPEN_LDAP">OpenLDAP</option>
+            <option value="DEFAULT">Others</option>
+        </options>
+        <properties>
+            <property key="modificationWarning">Changing this setting will change default values throughout the configuration.  Are you sure you wish to modify this setting?</property>
+        </properties>
+    </setting>
+    <setting hidden="false" key="template.storage" level="0">
+        <flag>NoDefault</flag>
+        <default>
+            <value>LDAP</value>
+        </default>
+        <options>
+            <option value="LDAP">LDAP</option>
+            <option value="DB">Remote Database</option>
+            <option value="LOCALDB">LocalDB (Testing Only)</option>
+        </options>
+        <properties>
+            <property key="modificationWarning">Changing this setting will change default values throughout the configuration.  Are you sure you wish to modify this setting?</property>
+        </properties>
+    </setting>
+    <setting hidden="false" key="notes.noteText" level="0">
+        <flag>NoDefault</flag>
+        <default/>
+    </setting>
     <setting hidden="false" key="pwm.selfURL" level="0">
         <regex>^(http|https)://.+$</regex>
+        <example>http://www.example.com/password</example>
         <default>
             <value>http://www.example.com/password</value>
         </default>
@@ -368,7 +404,8 @@
     </setting>
     <setting hidden="false" key="ldap.serverUrls" level="0" required="false">
         <regex>^(ldap|ldaps)://[a-zA-Z0-9.-]+:[0-9]+$</regex>
-        <placeholder>ldaps://ldap.example.com:636</placeholder>
+        <example>ldaps://ldap.example.com:636</example>
+        <example template="AD">ldaps://server1.ad.example.com:636</example>
         <default/>
     </setting>
     <setting hidden="false" key="ldap.serverCerts" level="0" required="true">
@@ -379,18 +416,18 @@
     </setting>
     <setting hidden="false" key="ldap.proxy.username" level="0" required="false">
         <flag>ldapDNsyntax</flag>
-        <placeholder>cn=@PwmAppName@-Proxy,o=example</placeholder>
-        <placeholder template="AD">CN=@PwmAppName@-Proxy,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</placeholder>
-        <placeholder template="ORACLE_DS">cn=@PwmAppName@-Proxy,cn=Administrators,cn=config</placeholder>
-        <placeholder template="OPEN_LDAP">cn=@PwmAppName@-Proxy,dc=example,dc=com</placeholder>
+        <example>cn=@PwmAppName@-Proxy,o=example</example>
+        <example template="AD">CN=@PwmAppName@-Proxy,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</example>
+        <example template="ORACLE_DS">cn=@PwmAppName@-Proxy,cn=Administrators,cn=config</example>
+        <example template="OPEN_LDAP">cn=@PwmAppName@-Proxy,dc=example,dc=com</example>
         <default/>
     </setting>
     <setting hidden="false" key="ldap.proxy.password" level="0">
     </setting>
     <setting hidden="false" key="ldap.rootContexts" level="0">
         <flag>ldapDNsyntax</flag>
-        <placeholder>ou=users,o=example</placeholder>
-        <placeholder template="AD">cn=users,dc=site,dc=example,dc=net</placeholder>
+        <example>ou=users,o=example</example>
+        <example template="AD">cn=users,dc=site,dc=example,dc=net</example>
         <default/>
     </setting>
     <setting hidden="false" key="ldap.selectableContexts" level="2">
@@ -399,19 +436,19 @@
     </setting>
     <setting hidden="false" key="ldap.testuser.username" level="0">
         <flag>ldapDNsyntax</flag>
-        <placeholder>cn=@PwmAppName@-Testuser,o=example</placeholder>
-        <placeholder template="AD">CN=@PwmAppName@-Testuser,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</placeholder>
-        <placeholder template="ORACLE_DS">cn=@PwmAppName@-Testuser,cn=Administrators,cn=config</placeholder>
-        <placeholder template="OPEN_LDAP">cn=@PwmAppName@-Testuser,dc=example,dc=com</placeholder>
+        <example>cn=@PwmAppName@-Testuser,o=example</example>
+        <example template="AD">CN=@PwmAppName@-Testuser,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</example>
+        <example template="ORACLE_DS">cn=@PwmAppName@-Testuser,cn=Administrators,cn=config</example>
+        <example template="OPEN_LDAP">cn=@PwmAppName@-Testuser,dc=example,dc=com</example>
         <default>
             <value />
         </default>
     </setting>
     <setting hidden="false" key="pwmAdmin.queryMatch" level="0" required="true">
-        <placeholder>cn=@PwmAppName@-Admins,ou=Groups,o=example</placeholder>
-        <placeholder template="AD">CN=@PwmAppName@-Administrators,CN=Builtin,DC=site,DC=example,DC=net</placeholder>
-        <placeholder template="ORACLE_DS">cn=@PwmAppName@-Admins,OU=Groups,DC=ad,DC=site,DC=example,DC=net</placeholder>
-        <placeholder template="OPEN_LDAP">cn=@PwmAppName@-Admins,dc=example,dc=com</placeholder>
+        <example>cn=@PwmAppName@-Admins,ou=Groups,o=example</example>
+        <example template="AD">CN=@PwmAppName@-Administrators,CN=Builtin,DC=site,DC=example,DC=net</example>
+        <example template="ORACLE_DS">cn=@PwmAppName@-Admins,OU=Groups,DC=ad,DC=site,DC=example,DC=net</example>
+        <example template="OPEN_LDAP">cn=@PwmAppName@-Admins,dc=example,dc=com</example>
         <default>
             <value/>
         </default>
@@ -431,6 +468,9 @@
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmUser]]></value>
+        </default>
+        <default template="DB">
+            <value><![CDATA[]]></value>
         </default>
     </setting>
     <setting hidden="false" key="passwordLastUpdateAttribute" level="2">
@@ -484,6 +524,7 @@
         </default>
     </setting>
     <setting hidden="false" key="ldap.namingAttribute" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
@@ -541,6 +582,7 @@
         </default>
     </setting>
     <setting hidden="false" key="ldap.username.attr" level="2">
+        <ldapPermission actor="proxy" access="read"/>
         <regex>(^$|^[a-zA-Z][a-zA-Z0-9-]*$)</regex>
         <default>
             <value />
@@ -595,6 +637,7 @@
     <setting hidden="false" key="email.smtp.userpassword" level="2">
     </setting>
     <setting hidden="false" key="email.userMailAttribute" level="2" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[mail]]></value>
@@ -694,6 +737,7 @@
         <default/>
     </setting>
     <setting hidden="false" key="sms.userSmsAttribute" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[personalMobile]]></value>
@@ -706,7 +750,7 @@
     </setting>
     <setting hidden="false" key="sms.gatewayURL" level="1">
         <regex>^$|^https?://[A-Za-z0-9_\.-]{3,}(\:[0-9]{1,5})?(/.*)?</regex>
-        <placeholder>https://sms.example.com/service</placeholder>
+        <example>https://sms.example.com/service</example>
         <default>
             <value/>
         </default>
@@ -1055,6 +1099,7 @@
         </default>
     </setting>
     <setting hidden="false" key="password.policy.disallowedAttributes" level="2">
+        <ldapPermission actor="proxy" access="read"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
@@ -1342,7 +1387,7 @@
     </setting>
     <setting hidden="false" key="email.adminAlert.toAddress" level="1">
         <default/>
-        <placeholder><![CDATA[admin@example.com]]></placeholder>
+        <example><![CDATA[admin@example.com]]></example>
     </setting>
     <setting hidden="false" key="audit.system.eventList" level="1">
         <default>
@@ -1363,7 +1408,7 @@
     </setting>
     <setting hidden="false" key="audit.userEvent.toAddress" level="1">
         <default/>
-        <placeholder><![CDATA[admin@example.com]]></placeholder>
+        <example><![CDATA[admin@example.com]]></example>
     </setting>
     <setting hidden="false" key="audit.user.eventList" level="1">
         <default>
@@ -1431,6 +1476,12 @@
         <default>
             <value><![CDATA[STORE_CRYPTO]]></value>
         </default>
+        <default template="LOCALDB">
+            <value><![CDATA[STORE_LOCALDB]]></value>
+        </default>
+        <default template="DB">
+            <value><![CDATA[STORE_DB]]></value>
+        </default>
         <options>
             <option value="STORE_LOCALDB">LocalDB</option>
             <option value="STORE_DB">Database</option>
@@ -1478,6 +1529,12 @@
         <default>
             <value><![CDATA[LDAP]]></value>
         </default>
+        <default template="DB">
+            <value><![CDATA[DB]]></value>
+        </default>
+        <default template="LOCALDB">
+            <value><![CDATA[LOCALDB]]></value>
+        </default>
         <options>
             <option value="LDAP">LDAP</option>
             <option value="LDAP-DB">LDAP, Database</option>
@@ -1499,6 +1556,12 @@
     <setting hidden="false" key="otp.secret.writePreference" level="1" required="true">
         <default>
             <value><![CDATA[LDAP]]></value>
+        </default>
+        <default template="DB">
+            <value><![CDATA[DB]]></value>
+        </default>
+        <default template="LOCALDB">
+            <value><![CDATA[LOCALDB]]></value>
         </default>
         <options>
             <option value="LDAP">LDAP</option>
@@ -1527,6 +1590,8 @@
         </default>
     </setting>
     <setting hidden="false" key="otp.secret.ldap.attribute" level="2" required="false">
+        <ldapPermission actor="proxy" access="read"/>
+        <ldapPermission actor="self" access="write"/>
         <default>
             <value>pwmOtpSecret</value>
         </default>
@@ -1611,6 +1676,9 @@
         <default>
             <value><![CDATA[AUTO]]></value>
         </default>
+        <default template="DB">
+            <value><![CDATA[DATABASE]]></value>
+        </default>
         <options>
             <option value="AUTO">Auto Configure - Database if configured, LDAP otherwise</option>
             <option value="DATABASE">Remote Database</option>
@@ -1661,6 +1729,7 @@
         </options>
     </setting>
     <setting hidden="false" key="events.ldap.attribute" level="2">
+        <ldapPermission actor="proxy" access="write"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmEventLog]]></value>
@@ -1932,6 +2001,7 @@
         </default>
     </setting>
     <setting hidden="false" key="recovery.form" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
@@ -1948,6 +2018,12 @@
     <setting hidden="false" key="recovery.response.readPreference" level="1" required="true">
         <default>
             <value><![CDATA[LDAP]]></value>
+        </default>
+        <default template="DB">
+            <value><![CDATA[DB]]></value>
+        </default>
+        <default template="LOCALDB">
+            <value><![CDATA[LOCALDB]]></value>
         </default>
         <options>
             <option value="LDAP">LDAP</option>
@@ -1971,6 +2047,12 @@
         <default>
             <value><![CDATA[LDAP]]></value>
         </default>
+        <default template="DB">
+            <value><![CDATA[DB]]></value>
+        </default>
+        <default template="LOCALDB">
+            <value><![CDATA[LOCALDB]]></value>
+        </default>
         <options>
             <option value="LDAP">LDAP</option>
             <option value="LDAP-DB">LDAP, Database</option>
@@ -1982,6 +2064,8 @@
         </options>
     </setting>
     <setting hidden="false" key="challenge.userAttribute" level="1">
+        <ldapPermission actor="self" access="write"/>
+        <ldapPermission actor="proxy" access="read"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmResponseSet]]></value>
@@ -2009,6 +2093,7 @@
         </options>
     </setting>
     <setting hidden="false" key="challenge.requiredAttributes" level="1">
+        <ldapPermission actor="proxy" access="read"/>
         <default />
     </setting>
     <setting hidden="false" key="challenge.token.enable" level="1" required="true">
@@ -2067,6 +2152,7 @@
         </default>
     </setting>
     <setting hidden="false" key="forgottenUsername.form" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2076,6 +2162,7 @@
         <default/>
     </setting>
     <setting hidden="false" key="forgottenUsername.usernameAttribute" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
@@ -2121,6 +2208,7 @@
         </default>
     </setting>
     <setting hidden="true" key="newUser.form" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"placeholder":"username@example.com","selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
@@ -2131,6 +2219,7 @@
         </options>
     </setting>
     <setting hidden="false" key="newUser.writeAttributes" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <default />
     </setting>
     <setting hidden="false" key="newUser.deleteOnFail" level="2">
@@ -2185,6 +2274,7 @@
         </default>
     </setting>
     <setting hidden="false" key="guest.form" level="1" required="true">
+        <ldapPermission actor="guestManager" access="write"/>
         <default>
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2197,6 +2287,7 @@
         </options>
     </setting>
     <setting hidden="false" key="guest.update.form" level="1" required="true">
+        <ldapPermission actor="guestManager" access="write"/>
         <default>
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2216,9 +2307,11 @@
         </default>
     </setting>
     <setting hidden="false" key="guest.writeAttributes" level="1">
+        <ldapPermission actor="guestManager" access="write"/>
         <default />
     </setting>
     <setting hidden="false" key="guest.adminAttribute" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[manager]]></value>
@@ -2235,6 +2328,7 @@
         </default>
     </setting>
     <setting hidden="false" key="guest.expirationAttribute" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[loginExpirationTime]]></value>
@@ -2262,6 +2356,7 @@
         </default>
     </setting>
     <setting hidden="false" key="activateUser.form" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
@@ -2284,11 +2379,13 @@
         </default>
     </setting>
     <setting hidden="false" key="activateUser.writePreAttributes" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <default>
             <value/>
         </default>
     </setting>
     <setting hidden="false" key="activateUser.writePostAttributes" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <default>
             <value/>
         </default>
@@ -2328,9 +2425,11 @@
         </default>
     </setting>
     <setting hidden="false" key="updateAttributes.writeAttributes" level="1">
+        <ldapPermission actor="proxy" access="write"/>
         <default />
     </setting>
     <setting hidden="false" key="updateAttributes.form" level="1" required="true">
+        <ldapPermission actor="self" access="write"/>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2394,6 +2493,7 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.searchAttributes" level="1" required="false">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>givenName</value>
             <value>sn</value>
@@ -2409,6 +2509,7 @@
         <default />
     </setting>
     <setting hidden="false" key="peopleSearch.result.form" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2423,6 +2524,7 @@
         </options>
     </setting>
     <setting hidden="false" key="peopleSearch.detail.form" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2482,6 +2584,7 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.photo.ldapAttribute" level="2">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>photo</value>
         </default>
@@ -2505,11 +2608,13 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.orgChart.parentAttribute" level="1">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>manager</value>
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.orgChart.childAttribute" level="1">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>directReports</value>
         </default>
@@ -2631,6 +2736,7 @@
         <default/>
     </setting>
     <setting hidden="false" key="helpdesk.result.form" level="1" required="true">
+        <ldapPermission actor="helpdesk" access="read"/>
         <default>
             <value>{"name":"CN","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2651,6 +2757,7 @@
         </options>
     </setting>
     <setting hidden="false" key="helpdesk.detail.form" level="1" required="true">
+        <ldapPermission actor="helpdesk" access="read"/>
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"CN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"uid"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2707,6 +2814,7 @@
         </options>
     </setting>
     <setting hidden="false" key="helpdesk.setPassword.writeAttributes" level="2">
+        <ldapPermission actor="helpdesk" access="write"/>
         <default />
     </setting>
     <setting hidden="false" key="helpdesk.sendPassword" level="1" required="true">
@@ -2715,6 +2823,7 @@
         </default>
     </setting>
     <setting hidden="false" key="helpdesk.actions" level="2">
+        <ldapPermission actor="helpdesk" access="write"/>
         <default />
     </setting>
     <setting hidden="false" key="helpdesk.enableUnlock" level="1" required="true">
@@ -2912,14 +3021,29 @@
             <value />
         </default>
     </setting>
+    <setting hidden="false" key="db.vendor.template" level="1">
+        <default>
+            <value>DB_ORACLE</value>
+        </default>
+        <options>
+            <option value="DB_ORACLE">Oracle</option>
+            <option value="DB_OTHER">Other</option>
+        </options>
+    </setting>
     <setting hidden="false" key="db.columnType.key" level="2" required="true">
         <default>
             <value>VARCHAR</value>
+        </default>
+        <default template="DB_ORACLE">
+            <value>VARCHAR2</value>
         </default>
     </setting>
     <setting hidden="false" key="db.columnType.value" level="2" required="true">
         <default>
             <value>TEXT</value>
+        </default>
+        <default template="DB_ORACLE">
+            <value>CLOB</value>
         </default>
     </setting>
     <setting hidden="false" key="db.debugTrace.enable" level="2" required="true">
@@ -3054,18 +3178,19 @@
         <default />
     </setting>
     <setting hidden="false" key="webservice.userAttributes" level="2">
+        <ldapPermission actor="proxy" access="read"/>
         <default />
     </setting>
     <setting hidden="false" key="oauth.idserver.loginUrl" level="2">
-        <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/grant</placeholder>
+        <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/grant</example>
         <default/>
     </setting>
     <setting hidden="false" key="oauth.idserver.codeResolveUrl" level="2">
-        <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/authcoderesolve</placeholder>
+        <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/authcoderesolve</example>
         <default/>
     </setting>
     <setting hidden="false" key="oauth.idserver.attributesUrl" level="2">
-        <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/getattributes</placeholder>
+        <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/getattributes</example>
         <default/>
     </setting>
     <setting hidden="false" key="oauth.idserver.serverCerts" level="2">
@@ -3084,7 +3209,7 @@
         <default/>
     </setting>
     <setting hidden="false" key="naaf.ws.url" level="2">
-        <placeholder>https://www.example.com/api/v1</placeholder>
+        <example>https://www.example.com/api/v1</example>
         <regex>^(http|https)://.+</regex>
         <default/>
     </setting>
@@ -3168,6 +3293,10 @@
             <value>true</value>
         </default>
     </setting>
+    <category hidden="false" key="TEMPLATES">
+    </category>
+    <category hidden="false" key="NOTES">
+    </category>
     <category hidden="false" key="SETTINGS">
     </category>
     <category hidden="false" key="PROFILES">
@@ -3255,6 +3384,10 @@
     </category>
     <category hidden="false" key="DATABASE">
     </category>
+    <category hidden="false" key="DATABASE_SETTINGS">
+    </category>
+    <category hidden="false" key="DATABASE_ADV">
+    </category>
     <category hidden="false" key="REPORTING">
     </category>
     <category hidden="false" key="WEB_SERVICES" level="2">
@@ -3308,23 +3441,4 @@
     </category>
     <category hidden="true" key="NAAF">
     </category>
-    <template hidden="false" key="NOVL">
-    </template>
-    <template hidden="false" key="NOVL_IDM">
-    </template>
-    <template hidden="false" key="AD">
-    </template>
-    <template hidden="false" key="ORACLE_DS">
-    </template>
-    <template hidden="false" key="OPEN_LDAP">
-    </template>
-    <template hidden="false" key="DEFAULT">
-    </template>
-
-    <template hidden="false" key="LOCALDB">
-    </template>
-    <template hidden="false" key="DB">
-    </template>
-    <template hidden="false" key="LDAP">
-    </template>
 </settings>

@@ -37,13 +37,22 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class PwmSettingXml {
     private static final String SETTING_XML_FILENAME = (PwmSetting.class.getPackage().getName() +
             "." + PwmSetting.class.getSimpleName()).replace(".","/") + ".xml";
+
+    public static final String XML_ELEMENT_LDAP_PERMISSION = "ldapPermission";
+    public static final String XML_ELEMENT_EXAMPLE = "example";
+    public static final String XML_ELEMENT_DEFAULT = "default";
+
+    public static final String XML_ATTRIBUTE_PERMISSION_ACTOR = "actor";
+    public static final String XML_ATTRIBUTE_PERMISSION_ACCESS = "access";
+    public static final String XML_ATTRIBUTE_TEMPLATE = "template";
+
 
     private static Document xmlDocCache = null;
 
@@ -110,15 +119,15 @@ public class PwmSettingXml {
         return (Element)xp.evaluateFirst(readXml());
     }
 
-    static List<PwmSettingTemplate> parseTemplateAttribute(final Element element) {
+    static Set<PwmSettingTemplate> parseTemplateAttribute(final Element element) {
         if (element == null) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
         final String templateStrValues = element.getAttributeValue("template");
         final String[] templateSplitValues = templateStrValues == null
                 ? new String[0]
                 : templateStrValues.split(",");
-        final List<PwmSettingTemplate> definedTemplates = new ArrayList<>();
+        final Set<PwmSettingTemplate> definedTemplates = new LinkedHashSet<>();
         for (final String templateStrValue : templateSplitValues) {
             final PwmSettingTemplate template = PwmSettingTemplate.valueOf(templateStrValue);
             if (template != null) {

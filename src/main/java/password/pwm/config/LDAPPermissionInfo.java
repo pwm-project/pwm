@@ -23,13 +23,44 @@
 
 package password.pwm.config;
 
-public enum PwmSettingFlag {
-    /* Marker to indicate in setting UI and generated docs that setting supports macros */
-    MacroSupport,
+import password.pwm.i18n.Config;
+import password.pwm.util.LocaleHelper;
 
-    /* Setting uses LDAP DN syntax */
-    ldapDNsyntax,
+import java.io.Serializable;
+import java.util.Locale;
 
-    /* No Default - Makes the setting UI act as if there is not a default to reset to */
-    NoDefault,
+public class LDAPPermissionInfo implements Serializable {
+    private final Access access;
+    private final Actor actor;
+
+    public LDAPPermissionInfo(Access type, Actor actor) {
+        this.access = type;
+        this.actor = actor;
+    }
+
+    public Access getAccess() {
+        return access;
+    }
+
+    public Actor getActor() {
+        return actor;
+    }
+
+    public enum Access {
+        read,
+        write,
+    }
+
+    public enum Actor {
+        proxy,
+        self,
+        helpdesk,
+        guestManager,
+
+        ;
+
+        public String getLabel(final Locale locale, final Configuration config) {
+            return LocaleHelper.getLocalizedMessage(locale, "Actor_" + this.toString(), config, Config.class);
+        }
+    }
 }

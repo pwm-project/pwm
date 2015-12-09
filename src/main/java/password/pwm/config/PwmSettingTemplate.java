@@ -24,10 +24,7 @@ package password.pwm.config;
 
 import org.jdom2.Attribute;
 import org.jdom2.Element;
-import password.pwm.i18n.ConfigEditor;
-import password.pwm.util.LocaleHelper;
-
-import java.util.*;
+import password.pwm.util.Helper;
 
 public enum PwmSettingTemplate {
     NOVL(Type.LDAP_VENDOR),
@@ -41,16 +38,14 @@ public enum PwmSettingTemplate {
     DB(Type.STORAGE),
     LDAP(Type.STORAGE),
 
+    DB_ORACLE(Type.DB_VENDOR),
+    DB_OTHER(Type.DB_VENDOR),
+
     ;
 
     private final Type type;
 
-    public enum Type {
-        LDAP_VENDOR,
-        STORAGE,
-    }
-
-    PwmSettingTemplate(Type type) {
+    PwmSettingTemplate(final Type type) {
         this.type = type;
     }
 
@@ -58,21 +53,9 @@ public enum PwmSettingTemplate {
         return type;
     }
 
-    public static List<PwmSettingTemplate> valuesOrderedByLabel(final Locale locale) {
-        return valuesOrderedByLabel(locale, Collections.<Type>emptySet());
-    }
-    public static List<PwmSettingTemplate> valuesOrderedByLabel(final Locale locale, final Collection<Type> types) {
-        final TreeMap<String,PwmSettingTemplate> tempMap = new TreeMap<>();
-        for (final PwmSettingTemplate template : values()) {
-            if (types == null || types.isEmpty() || types.contains(template.getType()) )
-            tempMap.put(template.getLabel(locale),template);
-        }
-        return Collections.unmodifiableList(new ArrayList<>(tempMap.values()));
-    }
-
-    public String getLabel(final Locale locale) {
-        final String key = "Template_Label_" + this.toString();
-        return LocaleHelper.getLocalizedMessage(locale, key, null, ConfigEditor.class);
+    public static PwmSettingTemplate templateForString(final String input, final Type type) {
+        final PwmSettingTemplate template = Helper.readEnumFromString(PwmSettingTemplate.class, type.getDefaultValue(), input);
+        return template == null || template.getType() != type ? type.getDefaultValue() : template;
     }
 
     public boolean isHidden() {
@@ -87,5 +70,25 @@ public enum PwmSettingTemplate {
             throw new IllegalStateException("missing PwmSetting.xml template element for " + pwmSettingTemplate);
         }
         return element;
+    }
+
+    public enum Type {
+        LDAP_VENDOR,
+        STORAGE,
+        DB_VENDOR,
+
+        ;
+
+        static {
+            LDAP_VENDOR.defaultValue = DEFAULT;
+            STORAGE.defaultValue = LDAP;
+            DB_VENDOR.defaultValue = DB_OTHER;
+        }
+
+        private PwmSettingTemplate defaultValue;
+
+        public PwmSettingTemplate getDefaultValue() {
+            return defaultValue;
+        }
     }
 }
