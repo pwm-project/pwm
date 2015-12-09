@@ -22,12 +22,16 @@
 
 package password.pwm.util.db;
 
+import password.pwm.PwmAboutProperty;
 import password.pwm.util.ClosableIterator;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Map;
 
 public interface DatabaseAccessor {
+    Map<PwmAboutProperty,String> getConnectionDebugProperties();
+
     /**
      * Indicates if the method is actually performing an DB operation.
      */

@@ -71,4 +71,9 @@ public enum PwmAboutProperty {
     java_osName,
     java_osVersion,
     java_randomAlgorithm,
+
+    database_driverName,
+    database_driverVersion,
+    database_databaseProductName,
+    database_databaseProductVersion,
 }

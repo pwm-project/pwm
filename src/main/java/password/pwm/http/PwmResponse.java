@@ -53,7 +53,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             PwmRequest pwmRequest,
             Configuration configuration
     ) {
-        super(response, configuration);
+        super(pwmRequest.getHttpServletRequest(), response, configuration);
         this.pwmRequest = pwmRequest;
     }
 
@@ -166,7 +166,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     {
         final String jsonValue = JsonUtil.serialize(cookieValue);
         final String encryptedValue = pwmRequest.getPwmApplication().getSecureService().encryptToString(jsonValue);
-        writeCookie(cookieName, encryptedValue, seconds, path);
+        writeCookie(cookieName, encryptedValue, seconds, path, Flag.BypassSanitation);
     }
 
     public void markAsDownload(final PwmConstants.ContentTypeValue contentType, final String filename) {

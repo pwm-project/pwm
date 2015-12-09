@@ -28,7 +28,6 @@ import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -151,9 +150,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                         LOGGER.error(pwmRequest, "error examining persistent config login cookie: " + e.getMessage());
                     }
                     if (!persistentLoginAccepted) {
-                        Cookie removalCookie = new Cookie(PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN, null);
-                        removalCookie.setMaxAge(0);
-                        pwmRequest.getPwmResponse().addCookie(removalCookie);
+                        pwmRequest.getPwmResponse().removeCookie(PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN, null);
                         LOGGER.debug(pwmRequest, "removing non-working persistent config login cookie");
                     }
                 }
