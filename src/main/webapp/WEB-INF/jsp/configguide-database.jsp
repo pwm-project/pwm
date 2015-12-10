@@ -149,6 +149,40 @@
                 </div>
                 </div>
             </div>
+
+            <div id="outline_ldap-server" class="setting_outline">
+                <div class="setting_title">
+                    <%=PwmSetting.DB_VENDOR_TEMPLATE.getLabel(userLocale)%>
+                </div>
+
+                <div class="setting_body">
+                    <div class="setting_item">
+                        <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_DB_VENDOR%>" style="padding-left: 5px; padding-top: 5px">
+                            <label>
+                                <%=PwmSetting.DB_VENDOR_TEMPLATE.getDescription(userLocale)%>
+                                <br/>
+
+                                <% String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_DB_VENDOR); %>
+
+                                <select id="<%=ConfigGuideForm.FormParameter.PARAM_DB_VENDOR%>" name="<%=ConfigGuideForm.FormParameter.PARAM_DB_VENDOR%>">
+                                    <% if (selectedTemplate == null || selectedTemplate.isEmpty()) { %>
+                                    <option value="NOTSELECTED" selected disabled> -- Please select a template -- </option>
+                                    <% } %>
+                                    <% for (final String loopTemplate : PwmSetting.DB_VENDOR_TEMPLATE.getOptions().keySet()) { %>
+                                    <% boolean selected = loopTemplate.equals(selectedTemplate); %>
+                                    <option value="<%=loopTemplate%>"<% if (selected) { %> selected="selected"<% } %>>
+                                        <%=PwmSetting.DB_VENDOR_TEMPLATE.getOptions().get(loopTemplate)%>
+                                    </option>
+                                    <% } %>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
         </form>
         <br/>
         <div id="healthBody" style="border:0; margin:0; padding:0; cursor: pointer">

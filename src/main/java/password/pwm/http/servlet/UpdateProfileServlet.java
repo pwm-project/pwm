@@ -368,6 +368,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, userIdentity)
                         .setExpandPwmMacros(true)
+                        .setMacroMachine(pwmSession.getSessionManager().getMacroMachine(pwmApplication))
                         .createActionExecutor();
 
                 actionExecutor.executeActions(actions, pwmSession);

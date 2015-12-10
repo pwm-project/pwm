@@ -27,8 +27,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final ConfigGuideBean configGuideBean = (ConfigGuideBean) JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
-<% final PwmRequest pwmRequest = PwmRequest.forRequest(request,response); %>
+<% final ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -45,10 +44,10 @@
             <div class="setting_body">
                 <table>
                     <tr>
-                        <td><b>Template</b>
+                        <td><b>LDAP Template</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getStoredConfiguration().getTemplate().getLabel(pwmRequest.getLocale()))%>
+                            <%=StringUtil.escapeHtml(PwmSetting.TEMPLATE_LDAP.getOptions().get(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP)))%>
                         </td>
                     </tr>
                     <tr>
@@ -116,15 +115,7 @@
                         <td><b>Response Storage Preference</b>
                         </td>
                         <td>
-                            <% if ("LDAP".equals(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF))) { %>
-                            LDAP
-                            <% } else if ("DB".equals(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF))) { %>
-                            Remote Database
-                            <% } else if ("LOCALDB".equals(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF))) { %>
-                            Local Embedded Database (Testing only)
-                            <% } else { %>
-                            Not Configured
-                            <% } %>
+                            <%=StringUtil.escapeHtml(PwmSetting.TEMPLATE_STORAGE.getOptions().get(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE)))%>
                         </td>
                     </tr>
                 </table>

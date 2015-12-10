@@ -364,7 +364,7 @@ public class LocaleHelper {
 
         final ConfigLocaleStats configLocaleStats = new ConfigLocaleStats();
         {
-            final StoredValue storedValue = PwmSetting.CHALLENGE_RANDOM_CHALLENGES.getDefaultValue(PwmSettingTemplate.DEFAULT);
+            final StoredValue storedValue = PwmSetting.CHALLENGE_RANDOM_CHALLENGES.getDefaultValue(PwmSettingTemplateSet.getDefault());
             Map<String, List<ChallengeItemConfiguration>> value = ((ChallengeValue) storedValue).toNativeObject();
 
             for (String localeStr : value.keySet()) {
@@ -511,7 +511,7 @@ public class LocaleHelper {
         private static List<Locale> knownLocales() {
             final List<Locale> knownLocales = new ArrayList<>();
             try {
-                final StringArrayValue stringArrayValue = (StringArrayValue) PwmSetting.KNOWN_LOCALES.getDefaultValue(PwmSettingTemplate.DEFAULT);
+                final StringArrayValue stringArrayValue = (StringArrayValue) PwmSetting.KNOWN_LOCALES.getDefaultValue(PwmSettingTemplateSet.getDefault());
                 final List<String> rawValues = stringArrayValue.toNativeObject();
                 final Map<String,String> localeFlagMap = StringUtil.convertStringListToNameValuePair(rawValues, "::");
                 for (final String rawValue : localeFlagMap.keySet()) {

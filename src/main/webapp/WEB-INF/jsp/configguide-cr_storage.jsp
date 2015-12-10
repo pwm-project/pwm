@@ -26,6 +26,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
+<% String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -35,23 +36,21 @@
     <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
         <form id="configForm">
-            <%--<input type="text" id="value_<%=ConfigGuideServlet.FormParameter.PARAM_CR_STORAGE_PREF%>" value="v1">q</input>--%>
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <pwm:display key="Display_ConfigGuideSelectCrStorage" bundle="Config"/>
             <br/>
-            <select id="<%=ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF%>" name="<%=ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF%>"
-                    style="width:300px">
-                <% final String current = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CR_STORAGE_PREF);%>
-                <option value="<%=ConfigGuideForm.Cr_Storage_Pref.LDAP%>"<% if (ConfigGuideForm.Cr_Storage_Pref.LDAP.toString().equals(current)) { %> selected="selected"<% } %>>
-                    LDAP
-                </option>
-                <option value="<%=ConfigGuideForm.Cr_Storage_Pref.DB%>"<% if (ConfigGuideForm.Cr_Storage_Pref.DB.toString().equals(current)) { %> selected="selected"<% } %>>
-                    Remote Database
-                </option>
-                <option value="<%=ConfigGuideForm.Cr_Storage_Pref.LOCALDB%>"<% if (ConfigGuideForm.Cr_Storage_Pref.LOCALDB.toString().equals(current)) { %> selected="selected"<% } %>>
-                    LocalDB (Testing only)
-                </option>
+            <select id="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE%>" name="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE%>">
+            <% if (selectedTemplate == null || selectedTemplate.isEmpty()) { %>
+            <option value="NOTSELECTED" selected disabled> -- Please select a template -- </option>
+            <% } %>
+            <% for (final String loopTemplate : PwmSetting.TEMPLATE_STORAGE.getOptions().keySet()) { %>
+            <% boolean selected = loopTemplate.equals(selectedTemplate); %>
+            <option value="<%=loopTemplate%>"<% if (selected) { %> selected="selected"<% } %>>
+                <%=PwmSetting.TEMPLATE_STORAGE.getOptions().get(loopTemplate)%>
+            </option>
+            <% } %>
             </select>
+
             <br/>
             <br/>
         </form>
@@ -74,18 +73,39 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('button_next','click',function(){ PWM_GUIDE.gotoStep('NEXT')});
-            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
+    <script type="text/javascript">
 
-            PWM_MAIN.addEventHandler('configForm','input,change',function(){
-                PWM_GUIDE.updateForm();
+    </script>
+    <script type="text/javascript">
+        function formHandler() {
+            PWM_GUIDE.updateForm();
+            updateNextButton();
+        }
+
+        function getSelectedValue() {
+            var selectedIndex = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE%>').selectedIndex;
+            var newTemplate = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE%>').options[selectedIndex];
+            return newTemplate.value;
+        }
+
+        function updateNextButton() {
+            var newTemplate = getSelectedValue();
+            var notSelected = newTemplate == 'NOTSELECTED';
+            PWM_MAIN.getObject('button_next').disabled = notSelected;
+        }
+
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                PWM_MAIN.addEventHandler('button_next','click',function(){ PWM_GUIDE.gotoStep('NEXT')});
+                PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
+
+                PWM_MAIN.addEventHandler('configForm','input,change',function(){
+                    formHandler();
+                });
             });
+            updateNextButton();
         });
-    });
-</script>
+    </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/configguide.js"/>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>

@@ -209,6 +209,22 @@
                         </pwm:script>
                     </pwm:if>
                 </td>
+                <td class="buttoncell">
+                    <a class="menubutton" id="MenuItem_LdapPermissions" href="#">
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-files-o"></span></pwm:if>
+                        LDAP Permissions
+                    </a>
+                    <pwm:script>
+                        <script type="application/javascript">
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                PWM_MAIN.addEventHandler('MenuItem_LdapPermissions','click',function(){
+                                    window.open('ConfigManager?processAction=permissions','_blank', 'width=650,toolbar=0,location=0,menubar=0');
+                                });
+                            });
+                        </script>
+                    </pwm:script>
+
+                </td>
             </tr>
         </table>
     </div>

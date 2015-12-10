@@ -82,7 +82,7 @@ public class FormUtility {
 
             if (formItem.isConfirmationRequired()) {
                 final String confirmValue = inputMap.get(keyName + Validator.PARAM_CONFIRM_SUFFIX);
-                if (!confirmValue.equals(value)) {
+                if (confirmValue == null || !confirmValue.equals(value)) {
                     final String errorMsg = "incorrect confirmation value for field '" + formItem.getName() + "'";
                     final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, errorMsg, new String[]{formItem.getLabel(locale)});
                     throw new PwmDataValidationException(error);
@@ -129,6 +129,11 @@ public class FormUtility {
         final Map<String,String> returnObj = new HashMap<>();
         for (final FormConfiguration formConfiguration : input.keySet()) {
             returnObj.put(formConfiguration.getName(), input.get(formConfiguration));
+            if (formConfiguration.isConfirmationRequired()) {
+                final String confirmFieldName = formConfiguration.getName() + Validator.PARAM_CONFIRM_SUFFIX;
+                returnObj.put(confirmFieldName, input.get(formConfiguration));
+            }
+            
         }
         return returnObj;
     }
