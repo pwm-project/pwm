@@ -29,7 +29,7 @@
   --%>
 
 <%
-    final LDAPPermissionCalculator outputData = (LDAPPermissionCalculator)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigurationSummaryOutput);
+    final LDAPPermissionCalculator outputData = (LDAPPermissionCalculator)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigurationSummaryOutput);
 %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>

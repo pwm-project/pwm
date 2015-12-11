@@ -37,11 +37,11 @@
 
             console.log('reached google recaptcha onload callback');
             PWM_MAIN.setStyle('captcha-loading','display','none');
-            grecaptcha.render('recaptcha-container',{callback:recaptchaCallback,sitekey:'<%=JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.CaptchaPublicKey)%>'});
+            grecaptcha.render('recaptcha-container',{callback:recaptchaCallback,sitekey:'<%=JspUtility.getAttribute(pageContext,PwmRequest.Attribute.CaptchaPublicKey)%>'});
         }
     </script>
 </pwm:script>
-<script nonce="<pwm:value name="cspNonce"/>" src="<%=(String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.CaptchaClientUrl)%>?onload=onloadCallback&render=explicit" defer async></script>
+<script nonce="<pwm:value name="cspNonce"/>" src="<%=(String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.CaptchaClientUrl)%>?onload=onloadCallback&render=explicit" defer async></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Captcha"/>

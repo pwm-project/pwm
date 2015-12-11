@@ -311,7 +311,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 
         try {
             activateUser(pwmRequest, activateUserBean.getUserIdentity());
-            pwmRequest.forwardToSuccessPage(Message.Success_ActivateUser);
+            pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_ActivateUser);
         } catch (PwmOperationalException e) {
             LOGGER.debug(pwmRequest, e.getErrorInformation());
             pwmApplication.getIntruderManager().convenience().markUserIdentity(activateUserBean.getUserIdentity(),pwmSession);
@@ -368,9 +368,6 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 
             // mark the event log
             pwmApplication.getAuditManager().submit(AuditEvent.ACTIVATE_USER, pwmSession.getUserInfoBean(), pwmSession);
-
-            // set the session success message
-            pwmSession.getSessionStateBean().setSessionSuccess(Message.Success_ActivateUser, null);
 
             // update the stats bean
             pwmApplication.getStatisticsManager().incrementValue(Statistic.ACTIVATED_USERS);

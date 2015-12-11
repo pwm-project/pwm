@@ -673,7 +673,6 @@ public enum PwmSetting {
             "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_PROFILE),
 
 
-    //
     // forgotten username
     FORGOTTEN_USERNAME_ENABLE(
             "forgottenUsername.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.FORGOTTEN_USERNAME),
@@ -681,8 +680,8 @@ public enum PwmSetting {
             "forgottenUsername.form", PwmSettingSyntax.FORM, PwmSettingCategory.FORGOTTEN_USERNAME),
     FORGOTTEN_USERNAME_SEARCH_FILTER(
             "forgottenUsername.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.FORGOTTEN_USERNAME),
-    FORGOTTEN_USERNAME_USERNAME_ATTRIBUTE(
-            "forgottenUsername.usernameAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.FORGOTTEN_USERNAME),
+    FORGOTTEN_USERNAME_MESSAGE(
+            "forgottenUsername.message", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.FORGOTTEN_USERNAME),
     FORGOTTEN_USERNAME_SEND_USERNAME_METHOD(
             "forgottenUsername.sendUsername.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.FORGOTTEN_USERNAME),
 

@@ -29,7 +29,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<% final ResponseInfoBean responseInfoBean = (ResponseInfoBean)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.SetupResponses_ResponseInfo); %>
+<% final ResponseInfoBean responseInfoBean = (ResponseInfoBean)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.SetupResponses_ResponseInfo); %>
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">

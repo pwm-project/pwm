@@ -25,9 +25,9 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final String maxValidDate = (String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.GuestMaximumExpirationDate); %>
-<% final String selectedDate = (String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.GuestCurrentExpirationDate); %>
-<% final String maxValidDays = (String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.GuestMaximumValidDays); %>
+<% final String maxValidDate = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.GuestMaximumExpirationDate); %>
+<% final String selectedDate = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.GuestCurrentExpirationDate); %>
+<% final String maxValidDays = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.GuestMaximumValidDays); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">

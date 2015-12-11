@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -37,7 +36,6 @@
         <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post"
               enctype="application/x-www-form-urlencoded" class="pwm-form">
             <p><pwm:SuccessMessage/></p>
-            <% try { JspUtility.getPwmSession(pageContext).getSessionStateBean().setSessionSuccess(null,null); } catch (Exception e) {} %>
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="continue"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

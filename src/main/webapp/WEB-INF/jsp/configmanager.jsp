@@ -61,7 +61,7 @@
                     Last Modified
                 </td>
                 <td>
-                    <% String lastModified = (String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigLastModified); %>
+                    <% String lastModified = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigLastModified); %>
                     <% if (lastModified == null) { %>
                     <pwm:display key="Value_NotApplicable"/>
                     <% } else { %>
@@ -74,7 +74,7 @@
                     Password Protected
                 </td>
                 <td>
-                    <%=JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigHasPassword)%>
+                    <%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigHasPassword)%>
                 </td>
             </tr>
             <tr>
@@ -83,7 +83,7 @@
                 </td>
                 <td>
                     <div style="max-width:398px; overflow-x: auto; white-space: nowrap">
-                        <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ApplicationPath))%>
+                        <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ApplicationPath))%>
                     </div>
                 </td>
             </tr>
@@ -93,7 +93,7 @@
                 </td>
                 <td>
                     <div style="max-width:398px; overflow-x: auto; white-space: nowrap">
-                        <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigFilename))%>
+                        <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigFilename))%>
                     </div>
                 </td>
             </tr>
@@ -200,7 +200,7 @@
                                             title:'Alert',
                                             width:500,
                                             text:PWM_CONFIG.showString('MenuDisplay_UnlockConfig',{
-                                                value1:'<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.ConfigFilename))%>'
+                                                value1:'<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.ConfigFilename))%>'
                                             })
                                         });
                                     });

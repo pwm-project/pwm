@@ -49,7 +49,6 @@ public enum Message implements PwmDisplayBundle {
     Success_UpdateProfile(null),
     Success_ResponsesMeetRules(null),
     Success_UnlockAccount(null),
-    Success_ForgottenUsername(null),
     Success_ConfigFileUpload(null),
     Success_PasswordReset(null),
     Success_PasswordSend(null),

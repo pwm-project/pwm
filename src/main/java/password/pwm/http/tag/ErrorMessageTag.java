@@ -24,7 +24,6 @@ package password.pwm.http.tag;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -62,7 +61,7 @@ public class ErrorMessageTag extends PwmAbstractTag {
                 pwmApplication = ContextManager.getPwmApplication(pageContext.getSession());
             } catch (PwmException e) { /* noop */ }
 
-            final ErrorInformation error = (ErrorInformation)pwmRequest.getAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo);
+            final ErrorInformation error = (ErrorInformation)pwmRequest.getAttribute(PwmRequest.Attribute.PwmErrorInfo);
 
             if (error != null) {
                 final boolean showErrorDetail = Helper.determineIfDetailErrorMsgShown(pwmApplication);

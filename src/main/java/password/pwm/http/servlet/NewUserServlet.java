@@ -284,7 +284,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                         newUserBean.getNewUserForm()
                 );
                 final String expandedText = macroMachine.expandMacros(newUserAgreementText);
-                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.AgreementText, expandedText);
+                pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText, expandedText);
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_AGREEMENT);
                 return;
             }
@@ -1011,7 +1011,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         }
 
         pwmRequest.getPwmSession().clearSessionBean(NewUserBean.class);
-        pwmRequest.forwardToSuccessPage(Message.Success_CreateUser);
+        pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_CreateUser);
     }
 
     private static MacroMachine createMacroMachineForNewUser(
@@ -1235,7 +1235,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         {
             final boolean showBack = !newUserBean.isUrlSpecifiedProfile()
                     && pwmRequest.getConfig().getNewUserProfiles().keySet().size() > 1;
-            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.NewUser_FormShowBackButton, showBack);
+            pwmRequest.setAttribute(PwmRequest.Attribute.NewUser_FormShowBackButton, showBack);
         }
 
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER);

@@ -44,14 +44,14 @@ public abstract class JspUtility {
             ServletRequest request
     )
     {
-        final PwmRequest pwmRequest = (PwmRequest)request.getAttribute(PwmConstants.REQUEST_ATTR.PwmRequest.toString());
+        final PwmRequest pwmRequest = (PwmRequest)request.getAttribute(PwmRequest.Attribute.PwmRequest.toString());
         if (pwmRequest == null) {
             LOGGER.warn("unable to load pwmRequest object during jsp execution");
         }
         return pwmRequest;
     }
 
-    public static Serializable getAttribute(final PageContext pageContext, final PwmConstants.REQUEST_ATTR requestAttr) {
+    public static Serializable getAttribute(final PageContext pageContext, final PwmRequest.Attribute requestAttr) {
         final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
         return pwmRequest.getAttribute(requestAttr);
     }

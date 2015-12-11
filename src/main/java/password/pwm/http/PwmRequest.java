@@ -40,7 +40,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.i18n.Message;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.ws.server.RestResultBean;
@@ -92,12 +91,12 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     )
             throws PwmUnrecoverableException
     {
-        PwmRequest pwmRequest = (PwmRequest) request.getAttribute(PwmConstants.REQUEST_ATTR.PwmRequest.toString());
+        PwmRequest pwmRequest = (PwmRequest) request.getAttribute(Attribute.PwmRequest.toString());
         if (pwmRequest == null) {
             final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             pwmRequest = new PwmRequest(request, response, pwmApplication, pwmSession);
-            request.setAttribute(PwmConstants.REQUEST_ATTR.PwmRequest.toString(), pwmRequest);
+            request.setAttribute(Attribute.PwmRequest.toString(), pwmRequest);
         }
         return pwmRequest;
     }
@@ -165,19 +164,6 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     {
         getPwmResponse().respondWithError(errorInformation, forceLogout);
     }
-
-    public void forwardToSuccessPage(Message message)
-            throws ServletException, PwmUnrecoverableException, IOException
-    {
-        forwardToSuccessPage(message, null);
-    }
-
-    public void forwardToSuccessPage(Message message, final String field)
-            throws ServletException, PwmUnrecoverableException, IOException
-    {
-        getPwmResponse().forwardToSuccessPage(message, field);
-    }
-
 
     public void sendRedirect(final String redirectURL)
             throws PwmUnrecoverableException, IOException
@@ -255,6 +241,53 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             LOGGER.error("error reading file upload: " + e.getMessage());
         }
         return Collections.unmodifiableMap(returnObj);
+    }
+
+    public enum Attribute {
+        PwmErrorInfo,
+        SuccessMessage,
+        PwmRequest,
+        OriginalUri,
+        AgreementText,
+        CompleteText,
+        AvailableAuthMethods,
+        ConfigurationSummaryOutput,
+        PageTitle,
+        ModuleBean,
+        ModuleBean_String,
+
+        FormConfiguration,
+        FormReadOnly,
+        FormShowPasswordFields,
+        FormData,
+
+        SetupResponses_ResponseInfo,
+
+        HelpdeskDetail,
+        HelpdeskObfuscatedDN,
+        HelpdeskUsername,
+
+        ConfigFilename,
+        ConfigLastModified,
+        ConfigHasPassword,
+        ConfigPasswordRememberTime,
+        ConfigLoginHistory,
+        ApplicationPath,
+
+        CaptchaClientUrl,
+        CaptchaIframeUrl,
+        CaptchaPublicKey,
+
+        ForgottenPasswordChallengeSet,
+        ForgottenPasswordOptionalPageView,
+        ForgottenPasswordPrompts,
+        ForgottenPasswordInstructions,
+
+        GuestCurrentExpirationDate,
+        GuestMaximumExpirationDate,
+        GuestMaximumValidDays,
+
+        NewUser_FormShowBackButton,
     }
 
     public static class FileUploadItem {
@@ -351,14 +384,14 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
 
     public void setResponseError(final ErrorInformation errorInformation) {
-        setAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo, errorInformation);
+        setAttribute(Attribute.PwmErrorInfo, errorInformation);
     }
 
-    public void setAttribute(final PwmConstants.REQUEST_ATTR name, final Serializable value) {
+    public void setAttribute(final Attribute name, final Serializable value) {
         this.getHttpServletRequest().setAttribute(name.toString(),value);
     }
 
-    public Serializable getAttribute(final PwmConstants.REQUEST_ATTR name) {
+    public Serializable getAttribute(final Attribute name) {
         return (Serializable)this.getHttpServletRequest().getAttribute(name.toString());
     }
 
@@ -535,10 +568,10 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
                 ? new LinkedHashMap<FormConfiguration,String>() 
                 : new LinkedHashMap<>(formDataMap);
         
-        this.setAttribute(PwmConstants.REQUEST_ATTR.FormConfiguration, new ArrayList<>(formConfiguration));
-        this.setAttribute(PwmConstants.REQUEST_ATTR.FormData, formDataMapValue);
-        this.setAttribute(PwmConstants.REQUEST_ATTR.FormReadOnly, readOnly);
-        this.setAttribute(PwmConstants.REQUEST_ATTR.FormShowPasswordFields, showPasswordFields);
+        this.setAttribute(Attribute.FormConfiguration, new ArrayList<>(formConfiguration));
+        this.setAttribute(Attribute.FormData, formDataMapValue);
+        this.setAttribute(Attribute.FormReadOnly, readOnly);
+        this.setAttribute(Attribute.FormShowPasswordFields, showPasswordFields);
     }
 
     public void invalidateSession() {

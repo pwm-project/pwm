@@ -292,15 +292,15 @@ public class CaptchaServlet extends AbstractPwmServlet {
         StatisticsManager.incrementStat(pwmRequest, Statistic.CAPTCHA_PRESENTATIONS);
 
         final String reCaptchaPublicKey = pwmRequest.getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC);
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.CaptchaPublicKey, reCaptchaPublicKey);
+        pwmRequest.setAttribute(PwmRequest.Attribute.CaptchaPublicKey, reCaptchaPublicKey);
         {
             final String urlValue = pwmRequest.getConfig().readAppProperty(AppProperty.RECAPTCHA_CLIENT_JS_URL);
-            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.CaptchaClientUrl, urlValue);
+            pwmRequest.setAttribute(PwmRequest.Attribute.CaptchaClientUrl, urlValue);
         }
         {
             final String configuredUrl =pwmRequest.getConfig().readAppProperty(AppProperty.RECAPTCHA_CLIENT_IFRAME_URL);
             final String url = configuredUrl + "?k=" + reCaptchaPublicKey + "&hl=" + pwmRequest.getLocale().toString();
-            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.CaptchaIframeUrl,url);
+            pwmRequest.setAttribute(PwmRequest.Attribute.CaptchaIframeUrl,url);
         }
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CAPTCHA);
     }

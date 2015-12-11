@@ -287,7 +287,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
         final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
         final String requestedChoiceStr = pwmRequest.readParameterAsString("choice");
         final LinkedHashSet<RecoveryVerificationMethods> remainingAvailableOptionalMethods = new LinkedHashSet<>(figureRemainingAvailableOptionalAuthMethods(forgottenPasswordBean));
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.AvailableAuthMethods, remainingAvailableOptionalMethods);
+        pwmRequest.setAttribute(PwmRequest.Attribute.AvailableAuthMethods, remainingAvailableOptionalMethods);
 
         RecoveryVerificationMethods requestedChoice = null;
         if (requestedChoiceStr != null && !requestedChoiceStr.isEmpty()) {
@@ -304,7 +304,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
 
         if (remainingAvailableOptionalMethods.contains(requestedChoice)) {
             forgottenPasswordBean.getProgress().setInProgressVerificationMethod(requestedChoice);
-            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordOptionalPageView,"true");
+            pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordOptionalPageView,"true");
             forwardUserBasedOnRecoveryMethod(pwmRequest, requestedChoice);
             return;
         } else if (requestedChoice != null) {
@@ -704,7 +704,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             if (progress.getSatisfiedMethods().contains(progress.getInProgressVerificationMethod())) {
                 progress.setInProgressVerificationMethod(null);
             } else {
-                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordOptionalPageView,"true");
+                pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordOptionalPageView,"true");
                 forwardUserBasedOnRecoveryMethod(pwmRequest, progress.getInProgressVerificationMethod());
                 return;
             }
@@ -788,7 +788,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             // mark the event log
             pwmApplication.getAuditManager().submit(AuditEvent.UNLOCK_PASSWORD, forgottenPasswordBean.getUserInfo(),pwmSession);
 
-            pwmRequest.forwardToSuccessPage(Message.Success_UnlockAccount);
+            pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_UnlockAccount);
         } catch (ChaiOperationException e) {
             final String errorMsg = "unable to unlock user " + userIdentity + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNLOCK_FAILURE,errorMsg);
@@ -926,7 +926,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                     messageSendMethod
             );
 
-            pwmRequest.forwardToSuccessPage(Message.Success_PasswordSend, toAddress);
+            pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_PasswordSend, toAddress);
         } catch (PwmException e) {
             LOGGER.warn(pwmSession,"unexpected error setting new password during recovery process for user: " + e.getMessage());
             pwmRequest.respondWithError(e.getErrorInformation());
@@ -1453,7 +1453,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             break;
 
             case CHALLENGE_RESPONSES: {
-                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordChallengeSet, forgottenPasswordBean.getPresentableChallengeSet());
+                pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordChallengeSet, forgottenPasswordBean.getPresentableChallengeSet());
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
             }
             break;
@@ -1505,8 +1505,8 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                 final List<RecoveryVerificationMethod.UserPrompt> prompts = remoteMethod.getCurrentPrompts();
                 final String displayInstructions = remoteMethod.getCurrentDisplayInstructions();
 
-                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordPrompts, new ArrayList<>(prompts));
-                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordInstructions, displayInstructions);
+                pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordPrompts, new ArrayList<>(prompts));
+                pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordInstructions, displayInstructions);
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_REMOTE);
             }
             break;
@@ -1530,8 +1530,8 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                 final List<RecoveryVerificationMethod.UserPrompt> prompts = naafMethod.getCurrentPrompts();
                 final String displayInstructions = naafMethod.getCurrentDisplayInstructions();
 
-                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordPrompts, new ArrayList<>(prompts));
-                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ForgottenPasswordInstructions, displayInstructions);
+                pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordPrompts, new ArrayList<>(prompts));
+                pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordInstructions, displayInstructions);
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_NAAF);
             }
             break;

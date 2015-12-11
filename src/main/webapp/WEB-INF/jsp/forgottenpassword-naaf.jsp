@@ -23,7 +23,6 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ page import="password.pwm.RecoveryVerificationMethod" %>
-<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="java.util.List" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
@@ -35,8 +34,8 @@
     </jsp:include>
     <div id="centerbody">
         <%
-            final List<RecoveryVerificationMethod.UserPrompt> prompts = (List<RecoveryVerificationMethod.UserPrompt>)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.ForgottenPasswordPrompts);
-            final String instructions = (String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.ForgottenPasswordInstructions);
+            final List<RecoveryVerificationMethod.UserPrompt> prompts = (List<RecoveryVerificationMethod.UserPrompt>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordPrompts);
+            final String instructions = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordInstructions);
         %>
         <p><%=instructions%></p>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
@@ -54,7 +53,7 @@
                     <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
-                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ForgottenPasswordOptionalPageView))) { %>
+                <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordOptionalPageView))) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >
                     <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>

@@ -32,7 +32,7 @@
   final Map<String,Object> outputData = new HashMap<String,Object>();
   try {
     final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
-    outputData.putAll((Map)pwmRequest.getAttribute(PwmConstants.REQUEST_ATTR.ConfigurationSummaryOutput));
+    outputData.putAll((Map)pwmRequest.getAttribute(PwmRequest.Attribute.ConfigurationSummaryOutput));
 
     settingData.addAll((List<Map<String,String>>)outputData.get("settings"));
   } catch (PwmException e) {

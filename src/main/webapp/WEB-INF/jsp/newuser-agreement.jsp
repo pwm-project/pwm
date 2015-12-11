@@ -34,7 +34,7 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
-        <% final String expandedText = (String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.AgreementText); %>
+        <% final String expandedText = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.AgreementText); %>
         <br/><br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div class="buttonbar">

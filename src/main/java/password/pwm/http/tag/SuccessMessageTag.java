@@ -22,10 +22,7 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.PwmApplication;
-import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
 import password.pwm.i18n.Message;
 import password.pwm.util.macro.MacroMachine;
 
@@ -46,18 +43,23 @@ public class SuccessMessageTag extends PwmAbstractTag {
             throws javax.servlet.jsp.JspTagException {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-            final PwmSession pwmSession = PwmRequest.forRequest((HttpServletRequest)pageContext.getRequest(),(HttpServletResponse)pageContext.getResponse()).getPwmSession();
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+            final PwmRequest pwmRequest = PwmRequest.forRequest(req, (HttpServletResponse) pageContext.getResponse());
 
-            final Message successMsg = pwmSession.getSessionStateBean().getSessionSuccess();
-            final String successField = pwmSession.getSessionStateBean().getSessionSuccessField();
+            final String successMsg = (String)pwmRequest.getAttribute(PwmRequest.Attribute.SuccessMessage);
 
-            final String errorMsg = successMsg.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig(), successField);
+            final String outputMsg;
+            if (successMsg == null || successMsg.isEmpty()) {
+                outputMsg = Message.getLocalizedMessage(pwmRequest.getLocale(), Message.Success_Unknown, pwmRequest.getConfig());
+            } else {
+                if (pwmRequest.isAuthenticated()) {
+                    final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
+                    outputMsg = macroMachine.expandMacros(successMsg);
+                } else {
+                    outputMsg = successMsg;
+                }
+            }
 
-            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
-            final String rewrittenMsg = macroMachine.expandMacros(errorMsg);
-
-            pageContext.getOut().write(rewrittenMsg);
+            pageContext.getOut().write(outputMsg);
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());
         }
