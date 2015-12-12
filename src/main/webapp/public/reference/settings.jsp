@@ -1,7 +1,6 @@
 <%@ page import="password.pwm.config.PwmSettingCategory" %>
 <%@ page import="password.pwm.config.PwmSettingFlag" %>
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
-<%@ page import="password.pwm.config.PwmSettingTemplate" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
@@ -151,7 +150,7 @@
                         Required
                     </td>
                     <td>
-                       <%= LocaleHelper.booleanString(setting.isRequired(),pwmRequest) %>
+                        <%= LocaleHelper.booleanString(setting.isRequired(),pwmRequest) %>
                     </td>
                 </tr>
                 <tr>
@@ -188,7 +187,7 @@
                     </td>
                 </tr>
                 <% } %>
-                <% final Map<PwmSettingTemplate,String> defaultValues = setting.getDefaultValueDebugStrings(userLocale, PwmSettingTemplate.Type.LDAP_VENDOR); %>
+                <% final Map<String,String> defaultValues = setting.getDefaultValueDebugStrings(userLocale); %>
                 <tr>
                     <td class="key" style="width: 100px">
                         Default
@@ -201,12 +200,17 @@
                             </thead>
                             <tbody>
                             <%
-                                for (final PwmSettingTemplate template : defaultValues.keySet()) {
-                                    final String defaultValue = defaultValues.get(template);
+                                for (final String template : defaultValues.keySet()) {
+                                    final String defaultValue = StringUtil.escapeHtml(defaultValues.get(template));
                             %>
-                            <tr><td><%=template.getLabel(userLocale)%></td><td>
-                                <%=defaultValue == null ? "" : StringUtil.escapeHtml(defaultValue)%>
-                            </td></tr>
+                            <tr>
+                                <td>
+                                    <%=(template == null || template.isEmpty()) ? "default" : template %>
+                                </td>
+                                <td>
+                                    <%=defaultValue == null ? "&nbsp;" : defaultValue%>
+                                </td>
+                            </tr>
                             <% } %>
                             </tbody>
                         </table>
@@ -214,7 +218,7 @@
                         } else if (defaultValues.size() == 1) {
                             final String defaultValue = defaultValues.values().iterator().next();
                         %>
-                        <pre><%=defaultValue == null ? "" : StringUtil.escapeHtml(defaultValue)%></pre>
+                        <pre><%=defaultValue == null ? "&nbsp;" : defaultValue%></pre>
                         <% } %>
                     </td>
                 </tr>
