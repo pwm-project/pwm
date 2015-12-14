@@ -1,6 +1,5 @@
-<%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.Permission" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
-<%@ page import="password.pwm.http.tag.PwmIfTag" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -35,11 +34,11 @@
     </jsp:include>
     <div id="centerbody">
         <table class="noborder">
-            <pwm:if test="permission" arg1="CHANGE_PASSWORD">
+            <pwm:if test="<%=PwmIfTag.TEST.permission%>" permission="<%=Permission.CHANGE_PASSWORD%>">
                 <tr>
                     <td class="menubutton_key">
                         <a id="button_ChangePassword" class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ChangePassword.servletUrl()%>'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
                             <pwm:display key="Title_ChangePassword"/>
                         </a>
                     </td>
@@ -48,12 +47,12 @@
                     </td>
                 </tr>
             </pwm:if>
-            <pwm:if test="setupChallengeEnabled">
-                <pwm:if test="permission" arg1="SETUP_RESPONSE">
+            <pwm:if test="<%=PwmIfTag.TEST.setupChallengeEnabled%>">
+                <pwm:if test="<%=PwmIfTag.TEST.permission%>" permission="<%=Permission.SETUP_RESPONSE%>">
                     <tr>
                         <td class="menubutton_key">
                             <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupResponses.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-list-ol"></span></pwm:if>
+                                <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-list-ol"></span></pwm:if>
                                 <pwm:display key="Title_SetupResponses"/>
                             </a>
                         </td>
@@ -63,12 +62,12 @@
                     </tr>
                 </pwm:if>
             </pwm:if>
-            <pwm:if test="otpEnabled">
-                <pwm:if test="permission" arg1="SETUP_OTP_SECRET">
+            <pwm:if test="<%=PwmIfTag.TEST.otpEnabled%>">
+                <pwm:if test="<%=PwmIfTag.TEST.permission%>" permission="<%=Permission.SETUP_OTP_SECRET%>">
                     <tr>
                         <td class="menubutton_key">
                             <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupOtp.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-qrcode"></span></pwm:if>
+                                <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-qrcode"></span></pwm:if>
                                 <pwm:display key="Title_SetupOtpSecret"/>
                             </a>
                         </td>
@@ -78,12 +77,12 @@
                     </tr>
                 </pwm:if>
             </pwm:if>
-            <pwm:if test="updateProfileEnabled">
-                <pwm:if test="permission" arg1="PROFILE_UPDATE">
+            <pwm:if test="<%=PwmIfTag.TEST.updateProfileEnabled%>">
+                <pwm:if test="<%=PwmIfTag.TEST.permission%>" permission="<%=Permission.PROFILE_UPDATE%>">
                     <tr>
                         <td class="menubutton_key">
                             <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.UpdateProfile.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-edit"></span></pwm:if>
+                                <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-edit"></span></pwm:if>
                                 <pwm:display key="Title_UpdateProfile"/>
                             </a>
                         </td>
@@ -93,11 +92,11 @@
                     </tr>
                 </pwm:if>
             </pwm:if>
-            <pwm:if test="shortcutsEnabled">
+            <pwm:if test="<%=PwmIfTag.TEST.shortcutsEnabled%>">
                 <tr>
                     <td class="menubutton_key">
                         <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Shortcuts.servletUrl()%>'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-external-link"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-external-link"></span></pwm:if>
                             <pwm:display key="Title_Shortcuts"/>
                         </a>
                     </td>
@@ -106,12 +105,12 @@
                     </td>
                 </tr>
             </pwm:if>
-            <pwm:if test="peopleSearchEnabled">
-                <pwm:if test="permission" arg1="PEOPLE_SEARCH">
+            <pwm:if test="<%=PwmIfTag.TEST.peopleSearchEnabled%>">
+                <pwm:if test="<%=PwmIfTag.TEST.permission%>" permission="<%=Permission.PEOPLE_SEARCH%>">
                     <tr>
                         <td class="menubutton_key">
                             <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
+                                <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
                                 <pwm:display key="Title_PeopleSearch"/>
                             </a>
                         </td>
@@ -121,11 +120,11 @@
                     </tr>
                 </pwm:if>
             </pwm:if>
-            <pwm:if test="<%=PwmIfTag.TESTS.accountInfoEnabled.toString()%>">
+            <pwm:if test="<%=PwmIfTag.TEST.accountInfoEnabled%>">
                 <tr>
                     <td class="menubutton_key">
                         <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.AccountInformation.servletUrl()%>'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-file-o"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-o"></span></pwm:if>
                             <pwm:display key="Title_UserInformation"/>
                         </a>
                     </td>
@@ -138,7 +137,7 @@
                 <tr>
                     <td class="menubutton_key">
                         <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Helpdesk.servletUrl()%>'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-user"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-user"></span></pwm:if>
                             <pwm:display key="Title_Helpdesk"/>
                         </a>
                     </td>
@@ -148,11 +147,11 @@
                 </tr>
             <% } %>
             <% if (JspUtility.getPwmRequest(pageContext).getConfig() != null && JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
-            <pwm:if test="permission" arg1="GUEST_REGISTRATION">
+            <pwm:if test="<%=PwmIfTag.TEST.permission%>" permission="<%=Permission.GUEST_REGISTRATION%>">
                 <tr>
                     <td class="menubutton_key">
                         <a class="menubutton" href="<pwm:url url='<%=PwmServletDefinition.GuestRegistration.servletUrl()%>' addContext="true"/>">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-group"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-group"></span></pwm:if>
                             <pwm:display key="Title_GuestRegistration"/>
                         </a>
                     </td>
@@ -162,11 +161,11 @@
                 </tr>
             </pwm:if>
             <% } %>
-            <pwm:if test="permission" arg1="PWMADMIN">
+            <pwm:if test="<%=PwmIfTag.TEST.permission%>" permission="<%=Permission.PWMADMIN%>">>
                 <tr>
                     <td class="menubutton_key">
                         <a class="menubutton" href="<pwm:url url='<%=PwmServletDefinition.Admin.servletUrl()%>' addContext="true"/> ">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-dashboard"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-dashboard"></span></pwm:if>
                             <pwm:display key="Title_Admin"/>
                         </a>
                     </td>

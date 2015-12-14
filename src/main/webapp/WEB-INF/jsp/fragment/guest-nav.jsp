@@ -34,7 +34,7 @@
     <% boolean selected = currentPage == GuestRegistrationServlet.Page.create; %>
     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" id="dashboard" name="dashboard">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
-            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-user-plus"></span></pwm:if>
+            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-user-plus"></span></pwm:if>
             <pwm:display key="Title_GuestRegistration"/>
         </button>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
@@ -44,7 +44,7 @@
     <% selected = currentPage == GuestRegistrationServlet.Page.search; %>
     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" id="activity" name="activity">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
-            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-calendar"></span></pwm:if>
+            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-calendar"></span></pwm:if>
             <pwm:display key="Title_GuestUpdate"/>
         </button>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

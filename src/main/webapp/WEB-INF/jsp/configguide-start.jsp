@@ -50,7 +50,7 @@
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
                     <a class="menubutton" id="button-startConfigGuide">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-rocket"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-rocket"></span></pwm:if>
                         <pwm:display key="MenuItem_StartConfigGuide" bundle="Config"/>
                     </a>
                 </td>
@@ -61,7 +61,7 @@
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
                     <a class="menubutton" id="button-manualConfig">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-cogs"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-cogs"></span></pwm:if>
                         <pwm:display key="MenuItem_ManualConfig" bundle="Config"/>
                     </a>
                 </td>
@@ -72,7 +72,7 @@
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
                     <a class="menubutton" id="button-uploadConfig">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
                         <pwm:display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
                 </td>

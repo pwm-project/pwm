@@ -69,7 +69,7 @@
             <form style="display: inline" action="<pwm:current-url/>" method="post" name="changeResponses"
                   enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <button type="submit" name="confirm_btn" class="btn" id="confirm_btn">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                     <pwm:display key="Button_ConfirmResponses"/>
                 </button>
                 <input type="hidden" name="processAction" value="confirmResponses"/>
@@ -78,7 +78,7 @@
             <form style="display: inline" action="<pwm:current-url/>" method="post" name="confirmResponses"
                   enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <button type="submit" name="change_btn" class="btn" id="change_btn">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <input type="hidden" name="processAction" value="changeResponses"/>

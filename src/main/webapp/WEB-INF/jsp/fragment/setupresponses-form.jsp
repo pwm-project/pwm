@@ -1,5 +1,6 @@
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
+<%@ page import="password.pwm.http.tag.PwmValueTag" %>
 <%@ page import="password.pwm.util.JsonUtil" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.ArrayList" %>
@@ -50,7 +51,7 @@
 <% } %>
 <p>
     <span class="pwm-icon pwm-icon-chevron-circle-right"></span>
-    <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_<%=indexKey%>" class="inputfield passwordfield" maxlength="255"
+    <input type="<pwm:value name="<%=PwmValueTag.VALUE.responseFieldType%>"/>" name="PwmResponse_R_<%=indexKey%>" class="inputfield passwordfield" maxlength="255"
            <pwm:autofocus/> id="PwmResponse_R_<%=indexKey%>" required="required"/>
 </p>
 <% } %>
@@ -82,7 +83,7 @@
 </h2>
 <p>
     <span class="pwm-icon pwm-icon-chevron-circle-right"></span>
-    <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_Random_<%=index%>" class="inputfield passwordfield" maxlength="255" type="text"
+    <input type="<pwm:value name="<%=PwmValueTag.VALUE.responseFieldType%>"/>" name="PwmResponse_R_Random_<%=index%>" class="inputfield passwordfield" maxlength="255" type="text"
             <pwm:autofocus/> id="PwmResponse_R_Random_<%=index%>" required="required"/>
 </p>
 <% } %>
@@ -113,7 +114,7 @@
 <% } %>
 <p>
     <span class="pwm-icon pwm-icon-chevron-circle-right"></span>
-    <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_<%=indexKey%>" class="inputfield passwordfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"/>
+    <input type="<pwm:value name="<%=PwmValueTag.VALUE.responseFieldType%>"/>" name="PwmResponse_R_<%=indexKey%>" class="inputfield passwordfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"/>
 </p>
 <% } %>
 <% } %>

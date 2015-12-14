@@ -23,8 +23,8 @@
 
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<pwm:if test="showCancel">
-<pwm:if test="forcedPageView" negate="true">
+<pwm:if test="<%=PwmIfTag.TEST.showIcons%>">
+<pwm:if test="<%=PwmIfTag.TEST.forcedPageView%>" negate="true">
   <form id="form-hidden-cancel" action="<pwm:url addContext="true" url='<%=PwmServletDefinition.Command.servletUrl()%>'/>" method="get">
     <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="continue"/>
   </form>

@@ -38,7 +38,7 @@
                 <td style="text-align: center">
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
                         <button class="btn" type="submit" name="submitBtn">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-file-text"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-text"></span></pwm:if>
                             <pwm:display key="Button_Email"/>
                         </button>
                         <input type="hidden" name="choice" value="email"/>
@@ -59,7 +59,7 @@
                 <td style="text-align: center">
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search">
                         <button class="btn" type="submit" name="submitBtn">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-phone"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-phone"></span></pwm:if>
                             <pwm:display key="Button_SMS"/>
                         </button>
                         <input type="hidden" name="choice" value="sms"/>

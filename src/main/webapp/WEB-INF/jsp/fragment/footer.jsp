@@ -91,9 +91,9 @@
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function() {
-            <pwm:value name="customJavascript"/>
+            <pwm:value name="<%=PwmValueTag.VALUE.customJavascript%>"/>
         });
     </script>
 </pwm:script>
-<script nonce="<pwm:value name="cspNonce"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
+<script nonce="<pwm:value name="<%=PwmValueTag.VALUE.cspNonce%>"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
 <pwm:script-ref url="/public/resources/js/main.js"/>

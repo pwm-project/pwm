@@ -1,5 +1,4 @@
 <%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.PwmLocaleBundle" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="java.text.NumberFormat" %>
@@ -73,7 +72,7 @@
 <% final NumberFormat numberFormat = NumberFormat.getNumberInstance(); %>
 <body class="nihilo">
 <div id="wrapper">
-    <style nonce="<pwm:value name="cspNonce"/>" >
+    <style nonce="<pwm:value name="<%=PwmValueTag.VALUE.cspNonce%>"/>" >
         .highlight {
             background-color: rgba(255, 255, 0, 0.22);
         }

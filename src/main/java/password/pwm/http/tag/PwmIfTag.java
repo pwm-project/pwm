@@ -26,10 +26,10 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
 import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 
@@ -43,23 +43,37 @@ import java.util.List;
 public class PwmIfTag extends BodyTagSupport {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmIfTag.class);
 
-    private String test;
-    private String arg1;
-    private boolean negate;
+    class Options {
+        private TEST test;
+        private String arg1;
+        private boolean negate;
+        private AppProperty appProperty;
+        private Permission permission;
+    }
 
-    public void setTest(String test)
+    private Options options = new Options();
+
+    public void setTest(TEST test)
     {
-        this.test = test;
+        options.test = test;
     }
 
     public void setArg1(String arg1)
     {
-        this.arg1 = arg1;
+        options.arg1 = arg1;
     }
 
     public void setNegate(boolean negate)
     {
-        this.negate = negate;
+        options.negate = negate;
+    }
+
+    public void setAppProperty(AppProperty appProperty) {
+        options.appProperty = appProperty;
+    }
+
+    public void setPermission(Permission permission) {
+        options.permission = permission;
     }
 
     @Override
@@ -67,35 +81,16 @@ public class PwmIfTag extends BodyTagSupport {
             throws JspException
     {
         boolean showBody = false;
-        if (test != null) {
+        if (options.test != null) {
             try {
-
-                final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest) pageContext.getRequest(),
-                        (HttpServletResponse) pageContext.getResponse());
-                final PwmSession pwmSession = pwmRequest.getPwmSession();
-
-                boolean validTestName = false;
-                for (TESTS testEnum : TESTS.values()) {
-                    validTestName = true;
-                    if (testEnum.toString().equals(test)) {
-                        try {
-                            showBody = testEnum.getTest().test(pwmRequest, this.readArgs());
-                        } catch (ChaiUnavailableException e) {
-                            LOGGER.error(
-                                    "error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage());
-                        }
-                    }
-                }
-                if (!validTestName) {
-                    final String errorMsg = "unknown test name '" + test + "' in pwm:If jsp tag!";
-                    LOGGER.warn(pwmSession, errorMsg);
-                }
-            } catch (PwmUnrecoverableException e) {
-                LOGGER.error("error executing PwmIfTag for test '" + test + "', error: " + e.getMessage());
+                final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest) pageContext.getRequest(), (HttpServletResponse) pageContext.getResponse());
+                showBody = options.test.getTest().test(pwmRequest, null, this.readArgs());
+            } catch (Exception e) {
+                LOGGER.error("error executing PwmIfTag for test '" + options.test + "', error: " + e.getMessage());
             }
         }
 
-        if (negate) {
+        if (options.negate) {
             showBody = !showBody;
         }
 
@@ -105,14 +100,14 @@ public class PwmIfTag extends BodyTagSupport {
     private String[] readArgs()
     {
         final List<String> argsList = new ArrayList<>();
-        if (arg1 != null) {
-            argsList.add(arg1);
+        if (options.arg1 != null) {
+            argsList.add(options.arg1);
         }
 
         return argsList.isEmpty() ? null : argsList.toArray(new String[argsList.size()]);
     }
 
-    public enum TESTS {
+    public enum TEST {
         authenticated(new AuthenticatedTest()),
         configurationOpen(new ConfigurationOpen()),
         showIcons(new BooleanAppPropertyTest(AppProperty.CLIENT_JSP_SHOW_ICONS)),
@@ -137,10 +132,13 @@ public class PwmIfTag extends BodyTagSupport {
         newUserRegistrationEnabled(new BooleanPwmSettingTest(PwmSetting.NEWUSER_ENABLE)),
 
         booleanSetting(new BooleanPwmSettingTest(null)),
+        booleanAppProperty(new BooleanAppPropertyTest(null)),
         stripInlineJavascript(new BooleanAppPropertyTest(AppProperty.SECURITY_STRIP_INLINE_JAVASCRIPT)),
         forcedPageView(new ForcedPageViewTest()),
         showErrorDetail(new ShowErrorDetailTest()),
         forwardUrlDefined(new ForwardUrlDefinedTest()),
+
+        headerShowMenu(new HeaderShowMenuTest()),
 
         ;
 
@@ -148,7 +146,7 @@ public class PwmIfTag extends BodyTagSupport {
 
         private Test test;
 
-        TESTS(Test test)
+        TEST(Test test)
         {
             this.test = test;
         }
@@ -162,6 +160,7 @@ public class PwmIfTag extends BodyTagSupport {
     interface Test {
         boolean test(
                 final PwmRequest pwmRequest,
+                final Options options,
                 final String... args
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException;
@@ -177,9 +176,10 @@ public class PwmIfTag extends BodyTagSupport {
 
         public boolean test(
                 PwmRequest pwmRequest,
-                String... args
+                Options options, String... args
         )
         {
+            final AppProperty appProperty = this.appProperty != null ? this.appProperty : options.appProperty;
             if (pwmRequest.getPwmApplication() != null && pwmRequest.getConfig() != null) {
                 final String strValue = pwmRequest.getConfig().readAppProperty(appProperty);
                 return Boolean.parseBoolean(strValue);
@@ -198,7 +198,7 @@ public class PwmIfTag extends BodyTagSupport {
 
         public boolean test(
                 PwmRequest pwmRequest,
-                String... args
+                Options options, String... args
         )
         {
             return pwmRequest != null && pwmRequest.getConfig() != null &&
@@ -209,20 +209,13 @@ public class PwmIfTag extends BodyTagSupport {
     private static class BooleanPermissionTest implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
-                String... args
+                Options options, String... args
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            if (args == null || args.length < 1) {
-                return false;
-            }
-
-            final String permissionName = args[0];
-            Permission permission = null;
-            for (Permission loopPerm : Permission.values()) {
-                if (loopPerm.toString().equals(permissionName)) {
-                    permission = loopPerm;
-                }
+            final Permission permission = options.permission;
+            if (permission == null) {
+                LOGGER.warn("unknown permission argument in jsp if-permission test: " + args[0]);
             }
 
             return permission != null && pwmRequest != null &&
@@ -234,7 +227,7 @@ public class PwmIfTag extends BodyTagSupport {
     private static class AuthenticatedTest implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
-                String... args
+                Options options, String... args
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -245,7 +238,7 @@ public class PwmIfTag extends BodyTagSupport {
     private static class ForcedPageViewTest implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
-                String... args
+                Options options, String... args
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -256,7 +249,7 @@ public class PwmIfTag extends BodyTagSupport {
     private static class ConfigurationOpen implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
-                String... args
+                Options options, String... args
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -267,7 +260,7 @@ public class PwmIfTag extends BodyTagSupport {
     private static class HasStoredOtpTimestamp implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
-                String... args
+                Options options, String... args
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -286,7 +279,7 @@ public class PwmIfTag extends BodyTagSupport {
     private static class ShowErrorDetailTest implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
-                String... args
+                Options options, String... args
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -297,11 +290,39 @@ public class PwmIfTag extends BodyTagSupport {
     private static class ForwardUrlDefinedTest implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
-                String... args
+                Options options, String... args
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
             return pwmRequest.hasForwardUrl();
+        }
+    }
+
+    private static class HeaderShowMenuTest implements Test {
+        public boolean test(
+                PwmRequest pwmRequest,
+                Options options, String... args
+        )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            boolean includeHeader = false;
+
+            final PwmApplication.MODE applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
+            final boolean configMode = applicationMode == PwmApplication.MODE.CONFIGURATION;
+            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN);
+            if (Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_WARNING_HEADER_SHOW))) {
+                if (!pwmRequest.getURL().isConfigManagerURL()) {
+                    if (configMode || PwmConstants.TRIAL_MODE) {
+                        includeHeader = true;
+                    } else if (pwmRequest.isAuthenticated()) {
+                        if (adminUser && !pwmRequest.isForcedPageView()) {
+                            includeHeader = true;
+                        }
+                    }
+                }
+            }
+
+            return includeHeader;
         }
     }
 }

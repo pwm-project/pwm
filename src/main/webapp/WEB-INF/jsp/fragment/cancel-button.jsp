@@ -22,10 +22,10 @@
 
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<pwm:if test="showCancel">
-<pwm:if test="forcedPageView" negate="true">
+<pwm:if test="<%=PwmIfTag.TEST.showIcons%>">
+<pwm:if test="<%=PwmIfTag.TEST.forcedPageView%>" negate="true">
 <button type="submit" name="button-cancel" class="btn" id="button-cancel" form="form-hidden-cancel">
-    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
+    <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
     <pwm:display key="Button_Cancel"/>
 </button>
 </pwm:if>

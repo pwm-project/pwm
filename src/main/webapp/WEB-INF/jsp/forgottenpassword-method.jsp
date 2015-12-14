@@ -52,7 +52,7 @@
                 <td>
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" id="form-<%=method.toString()%>">
                         <button class="btn" type="submit" name="submitBtn">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                             <%=method.getLabel(pwmRequest.getConfig(),pwmRequest.getLocale())%>
                         </button>
                         <input type="hidden" name="choice" value="<%=method.toString()%>"/>
