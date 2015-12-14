@@ -85,7 +85,7 @@
             <tr>
                 <td style="border:0; width: 600px; max-width:600px; vertical-align: top">
                     <div id="panel-helpdesk-detail" data-dojo-type="dijit.layout.TabContainer" style="max-width: 600px; height: 100%;" data-dojo-props="doLayout: false, persist: true" >
-                        <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Field_Profile"/>" class="tabContent">
+                        <div id="Field_Profile" data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Field_Profile"/>" class="tabContent">
                             <div style="max-height: 400px; overflow: auto;">
                                 <table class="nomargin">
                                     <% for (FormConfiguration formItem : helpdeskDetailInfoBean.getSearchDetails().keySet()) { %>
@@ -102,7 +102,7 @@
                                 </table>
                             </div>
                         </div>
-                        <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_Status"/>" class="tabContent">
+                        <div id="Title_Status" data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_Status"/>" class="tabContent">
                             <table class="nomargin">
                                 <% if (viewStatusFields.contains(ViewStatusFields.UserDN)) { %>
                                 <tr>
@@ -402,7 +402,7 @@
                             </table>
                         </div>
                         <% if (helpdeskDetailInfoBean.getUserHistory() != null && !helpdeskDetailInfoBean.getUserHistory().isEmpty()) { %>
-                        <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_UserEventHistory"/>" class="tabContent">
+                        <div id="Title_UserEventHistory" data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_UserEventHistory"/>" class="tabContent">
                             <div style="max-height: 400px; overflow: auto;">
                                 <table class="nomargin">
                                     <% for (final UserAuditRecord record : helpdeskDetailInfoBean.getUserHistory()) { %>
@@ -420,7 +420,7 @@
                             </div>
                         </div>
                         <% } %>
-                        <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_PasswordPolicy"/>" class="tabContent">
+                        <div id="Title_PasswordPolicy" data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_PasswordPolicy"/>" class="tabContent">
                             <div style="max-height: 400px; overflow: auto;">
                                 <table class="nomargin">
                                     <tr>
@@ -490,7 +490,7 @@
                             </div>
                         </div>
                         <% if (responseInfoBean != null && responseInfoBean.getHelpdeskCrMap() != null && !responseInfoBean.getHelpdeskCrMap().isEmpty()) { %>
-                        <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_SecurityResponses"/>" class="tabContent">
+                        <div id="Title_SecurityResponses" data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_SecurityResponses"/>" class="tabContent">
                             <table class="nomargin">
                                 <% for (final Challenge challenge : responseInfoBean.getHelpdeskCrMap().keySet()) { %>
                                 <tr>
