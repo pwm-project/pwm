@@ -20,6 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.logging.LocalDBLogger" %>
 <%@ page import="password.pwm.util.logging.PwmLogEvent" %>
@@ -62,7 +63,7 @@
     </select>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <button class="btn" id="button-refresh">
-        <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh"></span></pwm:if>
+        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-refresh"></span></pwm:if>
         <pwm:display key="Button_Refresh" bundle="Admin"/>
     </button>
 </div>

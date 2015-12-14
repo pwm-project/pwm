@@ -1,6 +1,6 @@
-<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.servlet.AdminServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -39,21 +39,21 @@
     <% boolean selected = currentPage == AdminServlet.Page.dashboard; %>
     <form action="<%=AdminServlet.Page.dashboard%>" method="get" id="dashboard" name="dashboard">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
-            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-dashboard"></span></pwm:if>
+            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-dashboard"></span></pwm:if>
             Dashboard
         </button>
     </form>
     <% selected = currentPage == AdminServlet.Page.activity; %>
     <form action="<%=AdminServlet.Page.activity%>" method="get" id="activity" name="activity">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
-            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-users"></span></pwm:if>
+            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-users"></span></pwm:if>
             User Activity
         </button>
     </form>
     <% selected = currentPage == AdminServlet.Page.analysis; %>
     <form action="<%=AdminServlet.Page.analysis%>" method="get" id="analysis" name="analysis">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
-            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-bar-chart-o"></span></pwm:if>
+            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-bar-chart-o"></span></pwm:if>
             Data Analysis
         </button>
     </form>

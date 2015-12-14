@@ -21,4 +21,4 @@
   ~
   --%>
 
-<pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-level-up"></span></pwm:if><a href=".">Reference Library</a>
+<pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-level-up"></span></pwm:if><a href=".">Reference Library</a>

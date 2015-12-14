@@ -40,7 +40,7 @@
                 <input type="hidden" name="processAction" value="continue"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
                 <button type="submit" name="button" class="btn" id="submitBtn" autofocus>
-                    <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
             </div>

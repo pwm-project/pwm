@@ -32,10 +32,10 @@
     </jsp:include>
     <div id="centerbody">
         <p>
-            <pwm:if test="<%=PwmIfTag.TEST.hasStoredOtpTimestamp%>">
+            <pwm:if test="hasStoredOtpTimestamp">
                 <pwm:display key="Display_WarnExistingOtpSecretTime" value1="@OtpSetupTime@"/>
             </pwm:if>
-            <pwm:if test="<%=PwmIfTag.TEST.hasStoredOtpTimestamp%>" negate="true">
+            <pwm:if test="hasStoredOtpTimestamp" negate="true">
                 <pwm:display key="Display_WarnExistingOtpSecret"/>
             </pwm:if>
         </p>
@@ -46,14 +46,14 @@
         --%>
         <div class="buttonbar">
             <button type="submit" name="button-verifyCodeDialog" class="btn" id="button-verifyCodeDialog">
-                <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
+                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                 <pwm:display key="Button_CheckCode"/>
             </button>
             <form action="<pwm:current-url/>" method="post" name="setupOtpSecretForm" style="display: inline"
                   enctype="application/x-www-form-urlencoded" id="setupOtpSecretForm">
                 <input type="hidden" name="processAction" value="clearOtp"/>
                 <button type="submit" name="Button_Continue" class="btn" id="continue_button">
-                    <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-recycle"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-recycle"></span></pwm:if>
                     <pwm:display key="Button_ClearOtpReEnroll"/>
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

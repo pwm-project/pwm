@@ -6,7 +6,6 @@
 <%@ page import="password.pwm.http.ContextManager" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.PwmRequest" %>
-<%@ page import="password.pwm.http.tag.PwmValueTag" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.List" %>
@@ -167,7 +166,7 @@
 <table style="border:0; margin: 0; padding: 0">
     <tr style="border:0; margin: 0; padding: 0">
         <td style="border:0; margin: 0; padding: 0; width:60%">
-            <input type="<pwm:value name="<%=PwmValueTag.VALUE.passwordFieldType%>"/>" name="password1" id="password1" class="changepasswordfield passwordfield" onkeypress="PWM_MAIN.getObject('password2').value=''" style="margin-left:5px"/>
+            <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" onkeypress="PWM_MAIN.getObject('password2').value=''" style="margin-left:5px"/>
         </td>
         <td style="border:0;">
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
@@ -196,7 +195,7 @@
     </tr>
     <tr style="border:0; margin: 0; padding: 0">
         <td style="border:0; margin: 0; padding: 0">
-            <input type="<pwm:value name="<%=PwmValueTag.VALUE.passwordFieldType%>"/>" name="password2" id="password2" class="changepasswordfield passwordfield" style="margin-left:5px"/>
+            <input type="<pwm:value name="passwordFieldType"/>" name="password2" id="password2" class="changepasswordfield passwordfield" style="margin-left:5px"/>
         </td>
         <td style="border:0">
             <%-- confirmation mark [not shown initially, enabled by javascript; see also changepassword.js:markConfirmationMark() --%>

@@ -50,7 +50,7 @@
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="update"/>
                 <button type="submit" name="Update" class="btn" id="submitBtn">
-                    <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check-square-o"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-check-square-o"></span></pwm:if>
                     <pwm:display key="Button_Update"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>

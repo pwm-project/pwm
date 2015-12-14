@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.error.PwmException" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.util.FileSystemUtility" %>
@@ -124,7 +125,7 @@
             <tr class="buttonrow">
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_ExportLocalDB">
-                        <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
                         <pwm:display key="MenuItem_ExportLocalDB" bundle="Config"/>
                     </a>
                     <pwm:script>
@@ -138,7 +139,7 @@
                 </td>
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_UploadLocalDB">
-                        <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
                         Import (Upload) LocalDB Archive File
                     </a>
                     <pwm:script>
@@ -146,10 +147,10 @@
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 makeTooltip('MenuItem_UploadConfig',PWM_CONFIG.showString('MenuDisplay_UploadConfig'));
                                 PWM_MAIN.addEventHandler('MenuItem_UploadLocalDB',"click",function(){
-                                    <pwm:if test="<%=PwmIfTag.TEST.configurationOpen%>">
+                                    <pwm:if test="configurationOpen">
                                     PWM_CONFIG.uploadLocalDB();
                                     </pwm:if>
-                                    <pwm:if test="<%=PwmIfTag.TEST.configurationOpen%>" negate="true">
+                                    <pwm:if test="configurationOpen" negate="true">
                                     PWM_CONFIG.configClosedWarning();
                                     </pwm:if>
                                 });

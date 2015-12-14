@@ -68,7 +68,7 @@
                 <div class="buttonbar">
                     <input type="hidden" name="processAction" value="complete"/>
                     <button type="submit" name="button" class="btn" id="submitBtn">
-                        <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                         <pwm:display key="Button_Continue"/>
                     </button>
                     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

@@ -44,14 +44,14 @@
             <h1>
                 <label for="currentPassword"><pwm:display key="Field_CurrentPassword"/></label>
             </h1>
-            <input id="currentPassword" type="<pwm:value name="<%=PwmValueTag.VALUE.passwordFieldType%>"/>" class="inputfield" name="currentPassword" <pwm:autofocus/>  />
+            <input id="currentPassword" type="<pwm:value name="passwordFieldType"/>" class="inputfield" name="currentPassword" <pwm:autofocus/>  />
             <br/>
             <% } %>
             <jsp:include page="fragment/form.jsp"/>
             <div class="buttonbar" style="width:100%">
                 <input type="hidden" name="processAction" value="form"/>
                 <button type="submit" name="change" class="btn" id="continue_button">
-                    <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
                 <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>

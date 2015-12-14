@@ -163,7 +163,7 @@
             <textarea name="token" id="token" style="width: 580px; height: 150px"></textarea>
             <div class="buttonbar">
                 <button type="submit" name="submitBtn" class="btn" type="submit">
-                    <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
                     Lookup Token
                 </button>
             </div>

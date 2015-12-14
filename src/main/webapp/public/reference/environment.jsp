@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.JspUtility" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -32,7 +33,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
-<style nonce="<pwm:value name="<%=PwmValueTag.VALUE.cspNonce%>"/>" type="text/css">
+<style nonce="<pwm:value name="cspNonce"/>" type="text/css">
     <!--
     .codeExample {
         background-color: #5d5d5d;

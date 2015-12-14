@@ -41,7 +41,7 @@
         }
     </script>
 </pwm:script>
-<script nonce="<pwm:value name="<%=PwmValueTag.VALUE.cspNonce%>"/>" src="<%=(String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.CaptchaClientUrl)%>?onload=onloadCallback&render=explicit" defer async></script>
+<script nonce="<pwm:value name="cspNonce"/>" src="<%=(String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.CaptchaClientUrl)%>?onload=onloadCallback&render=explicit" defer async></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Captcha"/>
@@ -65,7 +65,7 @@
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="doVerify"/>
                 <button type="submit" name="verify" class="btn" id="verify_button">
-                    <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                     <pwm:display key="Button_Verify"/>
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

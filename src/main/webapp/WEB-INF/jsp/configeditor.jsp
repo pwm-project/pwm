@@ -20,6 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.http.JspUtility" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -31,7 +32,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_MOBILE_CSS); %>
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<style nonce="<pwm:value name="<%=PwmValueTag.VALUE.cspNonce%>"/>" type="text/css">
+<style nonce="<pwm:value name="cspNonce"/>" type="text/css">
     html { overflow-y: scroll; } <%-- always add verticle scrollbar to page --%>
 </style>
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
@@ -124,11 +125,11 @@
     </div>
     <div class="header-warning-row header-warning-buttons">
         <a class="header-warning-button" id="header_configManagerButton">
-            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-gears"></span></pwm:if>
+            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-gears"></span></pwm:if>
             <pwm:display key="MenuItem_ConfigManager" bundle="Admin"/>
         </a>
         <a class="header-warning-button" id="header_configEditorButton">
-            <pwm:if test="<%=PwmIfTag.TEST.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-edit"></span></pwm:if>
+            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-edit"></span></pwm:if>
             <pwm:display key="MenuItem_ConfigEditor" bundle="Admin"/>
         </a>
     </div>
