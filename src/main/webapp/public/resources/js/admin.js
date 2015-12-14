@@ -32,12 +32,14 @@ PWM_ADMIN.initAdminNavMenu = function() {
                 var pMenu = new DropDownMenu({ style: "display: none;"});
                 pMenu.addChild(new MenuItem({
                     label: 'Event Log',
+                    id: 'eventLog_dropitem',
                     onClick: function() {
                         PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/logs');
                     }
                 }));
                 pMenu.addChild(new MenuItem({
                     label: 'Token Lookup',
+                    id: 'tokenLookup_dropitem',
                     onClick: function() {
                         PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/tokens');
                     }
@@ -45,6 +47,7 @@ PWM_ADMIN.initAdminNavMenu = function() {
 
                 pMenu.addChild(new MenuItem({
                     label: 'URL Reference',
+                    id: 'urlReference_dropitem',
                     onClick: function() {
                         PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/urls');
                     }
@@ -52,6 +55,7 @@ PWM_ADMIN.initAdminNavMenu = function() {
                 pMenu.addChild(new MenuSeparator());
                 pMenu.addChild(new MenuItem({
                     label: 'Full Page Health Status',
+                    id: 'fullPageHealthStatus_dropitem',
                     onClick: function() {
                         PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/public/health.jsp');
                     }
@@ -59,6 +63,7 @@ PWM_ADMIN.initAdminNavMenu = function() {
                 pMenu.addChild(new MenuSeparator());
                 pMenu.addChild(new MenuItem({
                     label: '<span class="pwm-icon pwm-icon-external-link"></span> Application Reference',
+                    id: 'applictionReference_dropitem',
                     onClick: function() {
                         PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference','referencedoc');
                     }
@@ -66,6 +71,7 @@ PWM_ADMIN.initAdminNavMenu = function() {
                 if (PWM_GLOBAL['setting-displayEula'] == true) {
                     pMenu.addChild(new MenuItem({
                         label: 'View EULA',
+                        id: 'viewEULA_dropitem',
                         onClick: function() {
                             PWM_MAIN.showEula(false,null);
                         }
@@ -74,12 +80,14 @@ PWM_ADMIN.initAdminNavMenu = function() {
                 pMenu.addChild(new MenuSeparator());
                 pMenu.addChild(new MenuItem({
                     label: 'Configuration Manager',
+                    id: 'configurationManager_dropitem',
                     onClick: function() {
                         PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/config/ConfigManager');
                     }
                 }));
                 pMenu.addChild(new MenuItem({
                     label: 'Configuration Editor',
+                    id: 'configurationEditor_dropitem',
                     onClick: function() {
                         PWM_CONFIG.startConfigurationEditor();
                     }

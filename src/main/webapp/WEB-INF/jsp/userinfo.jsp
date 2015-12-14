@@ -63,14 +63,14 @@
 </jsp:include>
 <div id="centerbody">
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_UserInformation"/>" class="tabContent">
+<div data-dojo-type="dijit.layout.ContentPane" id="UserInformation" title="<pwm:display key="Title_UserInformation"/>" class="tabContent">
     <table class="nomargin">
         <% if (viewStatusFields.contains(ViewStatusFields.Username)) { %>
         <tr>
             <td class="key">
                 <pwm:display key="Field_Username"/>
             </td>
-            <td>
+            <td id="Username">
                 <%= StringUtil.escapeHtml(uiBean.getUsername()) %>
             </td>
         </tr>
@@ -80,7 +80,7 @@
             <td class="key">
                 <pwm:display key="Field_UserDN"/>
             </td>
-            <td>
+            <td id="UserDN">
                 <%= StringUtil.escapeHtml(uiBean.getUserIdentity().getUserDN()) %>
             </td>
         </tr>
@@ -89,7 +89,7 @@
             <td class="key">
                 <pwm:display key="Field_LdapProfile"/>
             </td>
-            <td>
+            <td id="LdapProfile">
                 <%= StringUtil.escapeHtml(userinfo_pwmRequest.getConfig().getLdapProfiles().get(
                         uiBean.getUserIdentity().getLdapProfileID()).getDisplayName(
                         userinfo_pwmRequest.getLocale())) %>
@@ -102,7 +102,7 @@
             <td class="key">
                 <pwm:display key="Field_UserEmail"/>
             </td>
-            <td>
+            <td id="userEmail">
                 <% if (uiBean.getUserEmailAddress() == null) { %>
                 <pwm:display key="Value_NotApplicable"/>
                 <% } else { %>
@@ -116,7 +116,7 @@
             <td class="key">
                 <pwm:display key="Field_UserSMS"/>
             </td>
-            <td>
+            <td id="UserSMS">
                 <% if (uiBean.getUserSmsNumber() == null) { %>
                 <pwm:display key="Value_NotApplicable"/>
                 <% } else { %>
@@ -130,7 +130,7 @@
             <td class="key">
                 <pwm:display key="Field_UserGUID"/>
             </td>
-            <td>
+            <td id="UserGUID">
                 <%= StringUtil.escapeHtml(uiBean.getUserGuid()) %>
             </td>
         </tr>
@@ -141,11 +141,11 @@
                 <pwm:display key="Field_AccountExpirationTime"/>
             </td>
             <% if (uiBean.getAccountExpirationTime() == null) { %>
-            <td>
+            <td id="AccountExpirationTime">
                 <pwm:display key="Value_NotApplicable"/>
             </td>
             <% } else { %>
-            <td class="timestamp">
+            <td class="timestamp" id="AccountExpirationTime">
                 <%= dateFormatter.format(uiBean.getAccountExpirationTime()) %>
             </td>
             <% } %>
@@ -157,7 +157,7 @@
             <td class="key">
                 <pwm:display key="Field_PasswordExpired"/>
             </td>
-            <td>
+            <td id="PasswordExpired">
                 <%if (uiBean.getPasswordState().isExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
@@ -167,7 +167,7 @@
             <td class="key">
                 <pwm:display key="Field_PasswordPreExpired"/>
             </td>
-            <td>
+            <td id="PasswordPreExpired">
                 <%if (uiBean.getPasswordState().isPreExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
@@ -177,7 +177,7 @@
             <td class="key">
                 <pwm:display key="Field_PasswordWithinWarningPeriod"/>
             </td>
-            <td>
+            <td id="PasswordWithinWarningPeriod">
                 <%if (uiBean.getPasswordState().isWarnPeriod()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
@@ -187,7 +187,7 @@
             <td class="key">
                 <pwm:display key="Field_PasswordViolatesPolicy"/>
             </td>
-            <td>
+            <td id="PasswordViolatesPolicy">
                 <% if (uiBean.getPasswordState().isViolatesPolicy()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
@@ -198,11 +198,11 @@
                 <pwm:display key="Field_PasswordSetTime"/>
             </td>
             <% if (uiBean.getPasswordLastModifiedTime() == null) { %>
-            <td>
+            <td  id="PasswordSetTime">
                 <pwm:display key="Value_NotApplicable"/>
             </td>
             <% } else { %>
-            <td class="timestamp">
+            <td class="timestamp"  id="PasswordSetTime">
                 <%= dateFormatter.format(uiBean.getPasswordLastModifiedTime()) %>
             </td>
             <% } %>
@@ -213,7 +213,7 @@
             <td class="key">
                 <pwm:display key="Field_PasswordSetTimeDelta"/>
             </td>
-            <td>
+            <td id="PasswordSetTimeDelta">
                 <%= uiBean.getPasswordLastModifiedTime() != null 
                         ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString(ssBean.getLocale()) 
                         : LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, userinfo_pwmRequest)
@@ -225,11 +225,11 @@
                 <pwm:display key="Field_PasswordExpirationTime"/>
             </td>
             <% if (uiBean.getPasswordExpirationTime() == null) { %>
-            <td>
+            <td id="PasswordExpirationTime">
                 <pwm:display key="Value_NotApplicable"/>
             </td>
             <% } else { %>
-            <td class="timestamp">
+            <td class="timestamp" id="PasswordExpirationTime">
                 <%= dateFormatter.format(uiBean.getPasswordExpirationTime()) %>
             </td>
             <% } %>
@@ -241,7 +241,7 @@
             <td class="key">
                 <pwm:display key="Field_ResponsesStored"/>
             </td>
-            <td>
+            <td id="ResponsesStored">
                 <%if (!uiBean.isRequiresResponseConfig()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
@@ -252,11 +252,11 @@
                 <pwm:display key="Field_ResponsesTimestamp"/>
             </td>
             <% if (responseInfoBean == null || responseInfoBean.getTimestamp() == null ) { %>
-            <td>
+            <td id="ResponsesTimestamp">
                 <pwm:display key="Value_NotApplicable"/>
             </td>
             <% } else { %>
-            <td class="timestamp">
+            <td class="timestamp" id="ResponsesTimestamp">
                 <%= dateFormatter.format(responseInfoBean.getTimestamp()) %>
             </td>
             <% } %>
@@ -268,7 +268,7 @@
                 <td class="key">
                     <pwm:display key="Field_OTP_Stored"/>
                 </td>
-                <td>
+                <td id="OTP_Stored">
                     <%if (uiBean.getOtpUserRecord() != null) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
                 </td>
             </tr>
@@ -279,11 +279,11 @@
                     <pwm:display key="Field_OTP_Timestamp"/>
                 </td>
                 <% if (uiBean.getOtpUserRecord() == null || uiBean.getOtpUserRecord().getTimestamp() == null) { %>
-                <td>
+                <td id="OPT_Timestamp">
                     <pwm:display key="Value_NotApplicable"/>
                 </td>
                 <% } else { %>
-                <td class="timestamp">
+                <td class="timestamp" id="OPT_Timestamp">
                     <%= dateFormatter.format(uiBean.getOtpUserRecord().getTimestamp()) %>
                 </td>
                 <% } %>
@@ -295,7 +295,7 @@
             <td class="key">
                 <pwm:display key="Field_NetworkAddress"/>
             </td>
-            <td>
+            <td id="NetworkAddress">
                 <%= ssBean.getSrcAddress() %>
             </td>
         </tr>
@@ -305,7 +305,7 @@
             <td class="key">
                 <pwm:display key="Field_NetworkHost"/>
             </td>
-            <td>
+            <td id="NetworkHost">
                 <%= ssBean.getSrcHostname() %>
             </td>
         </tr>
@@ -315,7 +315,7 @@
             <td class="key">
                 <pwm:display key="Field_LogoutURL"/>
             </td>
-            <td>
+            <td id="LogoutURL">
                 <%= StringUtil.escapeHtml(userinfo_pwmRequest.getLogoutURL()) %>
             </td>
         </tr>
@@ -325,21 +325,21 @@
             <td class="key">
                 <pwm:display key="Field_ForwardURL"/>
             </td>
-            <td>
+            <td id="ForwardURL">
                 <%= StringUtil.escapeHtml(userinfo_pwmRequest.getForwardUrl()) %>
             </td>
         </tr>
         <% } %>
     </table>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_PasswordPolicy"/>" class="tabContent">
+<div data-dojo-type="dijit.layout.ContentPane" id="PasswordPolicy" title="<pwm:display key="Title_PasswordPolicy"/>" class="tabContent">
     <div style="max-height: 400px; overflow: auto;">
         <table class="nomargin">
             <tr>
                 <td class="key">
                     <pwm:display key="Title_PasswordPolicy"/>
                 </td>
-                <td>
+                <td id="PasswordRequirments">
                     <ul>
                         <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>"/>
                     </ul>
@@ -350,7 +350,7 @@
 </div>
 <% if (userinfo_pwmRequest != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACCOUNT_INFORMATION_HISTORY)) { %>
 <% if (auditRecords != null && !auditRecords.isEmpty()) { %>
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_UserEventHistory"/>" class="tabContent">
+<div data-dojo-type="dijit.layout.ContentPane" id="UserEventHistory" title="<pwm:display key="Title_UserEventHistory"/>" class="tabContent">
     <div style="max-height: 400px; overflow: auto;">
         <table class="nomargin">
             <% for (final UserAuditRecord record : auditRecords) { %>
