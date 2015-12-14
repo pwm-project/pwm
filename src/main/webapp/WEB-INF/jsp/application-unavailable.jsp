@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.error.PwmError" %>
+<%@ page import="password.pwm.http.PwmRequest" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -26,9 +27,9 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%
-    final ErrorInformation startupError = request.getAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo.toString()) == null
+    final ErrorInformation startupError = request.getAttribute(PwmRequest.Attribute.PwmErrorInfo.toString()) == null
             ? new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE)
-            : (ErrorInformation)request.getAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo.toString());
+            : (ErrorInformation)request.getAttribute(PwmRequest.Attribute.PwmErrorInfo.toString());
 %>
 <html>
 <head>

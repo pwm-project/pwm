@@ -42,12 +42,10 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
-import password.pwm.i18n.Config;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.LocaleHelper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -122,6 +120,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         public boolean hidden;
         public boolean required;
         public Map<String, String> options;
+        public Map<String, String> properties;
         public String pattern;
         public String placeholder;
         public int level;
@@ -795,14 +794,6 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             navigationData.add(categoryInfo);
         }
 
-        { // home menu item
-            final Map<String, Object> categoryInfo = new HashMap<>();
-            categoryInfo.put("id", "HOME");
-            categoryInfo.put("name", LocaleHelper.getLocalizedMessage(pwmRequest.getLocale(),Config.MenuItem_Home,pwmRequest.getConfig()));
-            categoryInfo.put("parent", "ROOT");
-            navigationData.add(categoryInfo);
-        }
-
         final StoredConfigurationImpl storedConfiguration = configManagerBean.getStoredConfiguration();
         for (final PwmSettingCategory loopCategory : PwmSettingCategory.sortedValues(pwmRequest.getLocale())) {
             if (NavTreeHelper.categoryMatcher(
@@ -891,6 +882,9 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             categoryInfo.put("parent", "ROOT");
             navigationData.add(categoryInfo);
         }
+
+        NavTreeHelper.moveNavItemToTop(PwmSettingCategory.NOTES.toString(), navigationData);
+        NavTreeHelper.moveNavItemToTop(PwmSettingCategory.TEMPLATES.toString(), navigationData);
 
         LOGGER.trace(pwmRequest,"completed navigation tree data request in " + TimeDuration.fromCurrent(startTime).asCompactString());
         pwmRequest.outputJsonResult(new RestResultBean(navigationData));
@@ -999,12 +993,27 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
 
             return false;
         }
+
+        private static void moveNavItemToTop(final String categoryID, final List<Map<String,Object>> navigationData) {
+            { // put templates on top
+                Map<String,Object> templateEntry = null;
+                for (Map<String,Object> entry : navigationData) {
+                    if (categoryID.equals(entry.get("id"))) {
+                        templateEntry = entry;
+                    }
+                }
+                if (templateEntry != null) {
+                    navigationData.remove(templateEntry);
+                    navigationData.add(0, templateEntry);
+                }
+            }
+        }
     }
 
     private void restConfigSettingData(final PwmRequest pwmRequest, final ConfigManagerBean configManagerBean)
             throws IOException
     {
-        final PwmSettingTemplate template = configManagerBean.getStoredConfiguration().getTemplate();
+        final PwmSettingTemplateSet template = configManagerBean.getStoredConfiguration().getTemplateSet();
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
         final Locale locale = pwmRequest.getLocale();
         {
@@ -1017,11 +1026,12 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 settingInfo.label = setting.getLabel(locale);
                 settingInfo.syntax = setting.getSyntax();
                 settingInfo.category = setting.getCategory();
+                settingInfo.properties = setting.getProperties();
                 settingInfo.required = setting.isRequired();
                 settingInfo.hidden = setting.isHidden();
                 settingInfo.options = setting.getOptions();
                 settingInfo.pattern = setting.getRegExPattern().toString();
-                settingInfo.placeholder = setting.getPlaceholder(template);
+                settingInfo.placeholder = setting.getExample(template);
                 settingInfo.flags = new ArrayList<>(setting.getFlags());
                 settingMap.put(setting.getKey(), settingInfo);
             }
@@ -1055,20 +1065,9 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             returnMap.put("locales", labelMap);
         }
         {
-            final LinkedHashMap<String, Object> templateMap = new LinkedHashMap<>();
-            for (final PwmSettingTemplate loopTemplate : PwmSettingTemplate.valuesOrderedByLabel(pwmRequest.getLocale(),Collections.singletonList(PwmSettingTemplate.Type.LDAP_VENDOR))) {
-                final TemplateInfo templateInfo = new TemplateInfo();
-                templateInfo.description = loopTemplate.getLabel(locale);
-                templateInfo.key = loopTemplate.toString();
-                templateInfo.hidden = loopTemplate.isHidden();
-                templateMap.put(loopTemplate.toString(), templateInfo);
-            }
-            returnMap.put("templates", templateMap);
-        }
-        {
             final LinkedHashMap<String, Object> varMap = new LinkedHashMap<>();
             varMap.put("ldapProfileIds", configManagerBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_PROFILE_LIST).toNativeObject());
-            varMap.put("currentTemplate",configManagerBean.getStoredConfiguration().getTemplate());
+            varMap.put("currentTemplate",configManagerBean.getStoredConfiguration().getTemplateSet());
             if (pwmRequest.getPwmApplication().getApplicationMode() == PwmApplication.MODE.CONFIGURATION && !PwmConstants.TRIAL_MODE) {
                 if (!configManagerBean.isConfigUnlockedWarningShown()) {
                     varMap.put("configUnlocked",true);

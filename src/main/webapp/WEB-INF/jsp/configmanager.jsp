@@ -61,7 +61,7 @@
                     Last Modified
                 </td>
                 <td>
-                    <% String lastModified = (String)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigLastModified); %>
+                    <% String lastModified = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigLastModified); %>
                     <% if (lastModified == null) { %>
                     <pwm:display key="Value_NotApplicable"/>
                     <% } else { %>
@@ -74,7 +74,7 @@
                     Password Protected
                 </td>
                 <td>
-                    <%=JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigHasPassword)%>
+                    <%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigHasPassword)%>
                 </td>
             </tr>
             <tr>
@@ -83,7 +83,7 @@
                 </td>
                 <td>
                     <div style="max-width:398px; overflow-x: auto; white-space: nowrap">
-                        <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ApplicationPath))%>
+                        <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ApplicationPath))%>
                     </div>
                 </td>
             </tr>
@@ -93,7 +93,7 @@
                 </td>
                 <td>
                     <div style="max-width:398px; overflow-x: auto; white-space: nowrap">
-                        <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigFilename))%>
+                        <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigFilename))%>
                     </div>
                 </td>
             </tr>
@@ -200,7 +200,7 @@
                                             title:'Alert',
                                             width:500,
                                             text:PWM_CONFIG.showString('MenuDisplay_UnlockConfig',{
-                                                value1:'<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.ConfigFilename))%>'
+                                                value1:'<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.ConfigFilename))%>'
                                             })
                                         });
                                     });
@@ -208,6 +208,22 @@
                             </script>
                         </pwm:script>
                     </pwm:if>
+                </td>
+                <td class="buttoncell">
+                    <a class="menubutton" id="MenuItem_LdapPermissions" href="#">
+                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-files-o"></span></pwm:if>
+                        LDAP Permissions
+                    </a>
+                    <pwm:script>
+                        <script type="application/javascript">
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                PWM_MAIN.addEventHandler('MenuItem_LdapPermissions','click',function(){
+                                    window.open('ConfigManager?processAction=permissions','_blank', 'width=650,toolbar=0,location=0,menubar=0');
+                                });
+                            });
+                        </script>
+                    </pwm:script>
+
                 </td>
             </tr>
         </table>

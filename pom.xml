@@ -126,6 +126,7 @@
                 <version>2.6</version>
                 <configuration>
                     <archiveClasses>true</archiveClasses>
+                    <packagingExcludes>WEB-INF/classes</packagingExcludes>
                 </configuration>
             </plugin>
             <plugin>

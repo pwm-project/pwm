@@ -201,7 +201,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
             if (!updateProfileBean.isAgreementPassed()) {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(updateProfileAgreementText);
-                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.AgreementText, expandedText);
+                pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText, expandedText);
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_AGREEMENT);
                 return;
             }
@@ -243,7 +243,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
             // write the form values
             final ChaiUser theUser = pwmSession.getSessionManager().getActor(pwmApplication);
             doProfileUpdate(pwmRequest, formValues, theUser);
-            pwmRequest.forwardToSuccessPage(Message.Success_UpdateProfile);
+            pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_UpdateProfile);
             return;
         } catch (PwmException e) {
             LOGGER.error(pwmSession, e.getMessage());
@@ -368,6 +368,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, userIdentity)
                         .setExpandPwmMacros(true)
+                        .setMacroMachine(pwmSession.getSessionManager().getMacroMachine(pwmApplication))
                         .createActionExecutor();
 
                 actionExecutor.executeActions(actions, pwmSession);

@@ -164,6 +164,10 @@ PWM_CFGEDIT.updateSettingDisplay = function(keyName, isDefault) {
             settingSyntax = PWM_SETTINGS['settings'][keyName]['syntax'];
         } catch (e) { /* noop */ }  //setting keys may not be loaded
 
+        if (PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'],'NoDefault')) {
+            isDefault = true;
+        }
+
         if (!isDefault) {
             resetImageButton.style.visibility = 'visible';
             modifiedIcon.style.display = 'inline';
@@ -764,8 +768,6 @@ PWM_CFGEDIT.loadMainPageBody = function() {
     var lastSelected = PWM_MAIN.Preferences.readSessionStorage('configEditor-lastSelected',null);
     if (lastSelected) {
         PWM_CFGEDIT.dispatchNavigationItem(lastSelected);
-    } else {
-        PWM_CFGEDIT.drawHomePage();
     }
 
     require(["dojo/io-query"],function(ioQuery){
@@ -803,9 +805,9 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
             + '<button class="btn" id="button-test-LDAP_PROFILE"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test LDAP Profile</button>'
             + '</div>';
-    } else if (category == 'DATABASE') {
+    } else if (category == 'DATABASE_SETTINGS') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
-            + '<button class="btn" id="button-test-DATABASE"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test Database Settings</button>'
+            + '<button class="btn" id="button-test-DATABASE_SETTINGS"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test Database Connection</button>'
             + '</div>';
     } else if (category == 'SMS_GATEWAY') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
@@ -839,8 +841,8 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
     }
     if (category == 'LDAP_PROFILE') {
         PWM_MAIN.addEventHandler('button-test-LDAP_PROFILE', 'click', function(){PWM_CFGEDIT.ldapHealthCheck();});
-    } else if (category == 'DATABASE') {
-        PWM_MAIN.addEventHandler('button-test-DATABASE', 'click', function(){PWM_CFGEDIT.databaseHealthCheck();});
+    } else if (category == 'DATABASE_SETTINGS') {
+        PWM_MAIN.addEventHandler('button-test-DATABASE_SETTINGS', 'click', function(){PWM_CFGEDIT.databaseHealthCheck();});
     } else if (category == 'SMS_GATEWAY') {
         PWM_MAIN.addEventHandler('button-test-SMS', 'click', function(){PWM_CFGEDIT.smsHealthCheck();});
     } else if (category == 'HTTPS_SERVER') {
@@ -1087,9 +1089,7 @@ PWM_CFGEDIT.readNavigationFilters = function() {
 PWM_CFGEDIT.dispatchNavigationItem = function(item) {
     var currentID = item['id'];
     var type = item['type'];
-    if (currentID == 'HOME') {
-        PWM_CFGEDIT.drawHomePage();
-    } else if (type == 'navigation') {
+    if  (type == 'navigation') {
         /* not used, nav tree set to auto-expand */
     } else if (type == 'category') {
         PWM_CFGEDIT.gotoSetting(currentID);
@@ -1162,62 +1162,6 @@ PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
         },100);
     };
     checkForFinishFunction();
-};
-
-PWM_CFGEDIT.drawHomePage = function() {
-    var htmlBody = '';
-
-    var settingsPanel = PWM_MAIN.getObject('settingsPanel');
-    settingsPanel.innerHTML = PWM_MAIN.showString('Display_PleaseWait');
-
-    var templateSettingBody = '';
-    templateSettingBody += '<div><select id="select-template">';
-    for (var template in PWM_SETTINGS['templates']) {
-        var templateInfo = PWM_SETTINGS['templates'][template];
-        var selected = PWM_SETTINGS['var']['currentTemplate'] == templateInfo['key'];
-        if (selected || !templateInfo['hidden']) {
-            templateSettingBody += '<option value="' + templateInfo['key'] + '"';
-            if (selected) {
-                templateSettingBody += ' selected="selected"';
-            }
-            templateSettingBody += '>' + templateInfo['description'] + '</option>';
-        }
-    }
-    templateSettingBody += '</select></div>';
-
-    var notesSettingBody = '';
-    var configNotes = 'configurationNotes' in PWM_SETTINGS['var'] ? PWM_SETTINGS['var']['configurationNotes'] : ''  ;
-    notesSettingBody += '<div><textarea id="configurationNotesTextarea">' + configNotes + '</textarea></div>';
-
-    var templateSelectSetting = {};
-    templateSelectSetting['key'] = 'templateSelect';
-    templateSelectSetting['label'] = 'Configuration Template';
-    templateSelectSetting['description'] = PWM_CONFIG.showString('Display_AboutTemplates');
-    htmlBody += PWM_CFGEDIT.drawHtmlOutlineForSetting(templateSelectSetting);
-
-    var notesSettings = {};
-    notesSettings['key'] = 'configurationNotes';
-    notesSettings['label'] = 'Configuration Notes';
-    htmlBody += PWM_CFGEDIT.drawHtmlOutlineForSetting(notesSettings);
-
-    settingsPanel.innerHTML = htmlBody;
-
-    PWM_MAIN.getObject('table_setting_templateSelect').innerHTML = templateSettingBody;
-    PWM_MAIN.getObject('table_setting_configurationNotes').innerHTML = notesSettingBody;
-
-
-    PWM_MAIN.addEventHandler('select-template','change',function(){
-        PWM_CFGEDIT.selectTemplate(PWM_MAIN.getObject('select-template').options[PWM_MAIN.getObject('select-template').selectedIndex].value)
-    });
-    PWM_MAIN.addEventHandler('configurationNotesTextarea','input',function(){
-        var value = PWM_MAIN.getObject('configurationNotesTextarea').value;
-        PWM_SETTINGS['var']['configurationNotes'] = value;
-        var url = "ConfigEditor?processAction=setOption&updateNotesText=true";
-        PWM_MAIN.ajaxRequest(url,function(){console.log('saved config notes')},{content:value});
-    });
-
-    PWM_MAIN.setStyle('outline_' + templateSelectSetting['key'],'display','inherit');
-    PWM_MAIN.setStyle('outline_' + notesSettings['key'],'display','inherit');
 };
 
 

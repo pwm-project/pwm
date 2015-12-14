@@ -231,9 +231,9 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ModuleBean, setupResponsesBean);
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ModuleBean_String, pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(setupResponsesBean));
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.SetupResponses_ResponseInfo, pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean());
+        pwmRequest.setAttribute(PwmRequest.Attribute.ModuleBean, setupResponsesBean);
+        pwmRequest.setAttribute(PwmRequest.Attribute.ModuleBean_String, pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(setupResponsesBean));
+        pwmRequest.setAttribute(PwmRequest.Attribute.SetupResponses_ResponseInfo, pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean());
 
         if (setupResponsesBean.isHasExistingResponses()) {
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_RESPONSES_EXISTING);
@@ -272,7 +272,7 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
             );
             saveResponses(pwmRequest, responses);
             pwmRequest.getPwmSession().clearSessionBean(SetupResponsesBean.class);
-            pwmRequest.forwardToSuccessPage(Message.Success_SetupResponse);
+            pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_SetupResponse);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmRequest.getSessionLabel(), e.getErrorInformation());
             pwmRequest.respondWithError(e.getErrorInformation());
@@ -369,7 +369,6 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
         userStatusReader.populateActorUserInfoBean(pwmSession, uiBean.getUserIdentity());
         pwmApplication.getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
         pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
-        pwmSession.getSessionStateBean().setSessionSuccess(Message.Success_SetupResponse, null);
         pwmApplication.getAuditManager().submit(AuditEvent.SET_RESPONSES, pwmSession.getUserInfoBean(), pwmSession);
     }
 

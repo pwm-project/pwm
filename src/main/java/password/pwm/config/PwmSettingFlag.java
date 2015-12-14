@@ -29,4 +29,7 @@ public enum PwmSettingFlag {
 
     /* Setting uses LDAP DN syntax */
     ldapDNsyntax,
+
+    /* No Default - Makes the setting UI act as if there is not a default to reset to */
+    NoDefault,
 }

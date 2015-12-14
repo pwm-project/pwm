@@ -32,6 +32,9 @@ import java.util.*;
 
 public enum PwmSettingCategory {
 
+    TEMPLATES                   (null),
+    NOTES                       (null),
+
     LDAP                        (null),
     SETTINGS                    (null),
     PROFILES                    (null),
@@ -83,6 +86,9 @@ public enum PwmSettingCategory {
     LOGGING                     (SETTINGS),
 
     DATABASE                    (SETTINGS),
+    DATABASE_SETTINGS           (DATABASE),
+    DATABASE_ADV                (DATABASE),
+
     REPORTING                   (SETTINGS),
     NAAF                        (SETTINGS),
     
@@ -108,7 +114,6 @@ public enum PwmSettingCategory {
     RECOVERY_SETTINGS           (RECOVERY),
     RECOVERY_PROFILE            (RECOVERY),
 
-    
     FORGOTTEN_USERNAME          (MODULES),
     
     NEWUSER                     (MODULES),

@@ -1,5 +1,4 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
-<%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -27,7 +26,6 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
-<% Map<ConfigGuideForm.FormParameter,String> PLACEHOLDER_FORM = ConfigGuideForm.placeholderForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -44,8 +42,9 @@
                 </div>
                 <div class="setting_body">
                     <pwm:display key="ldap_server_description" bundle="ConfigGuide"/>
-                    <br/>
-                    <br/>
+                    <br/><br/>
+                    Example: <code><%=ConfigGuideForm.figureLdapHostnameExample(configGuideBean)%></code>
+                    <br/><br/>
                     <table class="noborder" style="border-spacing: 0; padding: 0; margin: 0">
                         <tr>
                             <td colspan="2">
@@ -56,7 +55,7 @@
                         </tr>
                         <tr>
                             <td colspan="2">
-                                <input class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_HOST%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_HOST%>" value="<%=configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_HOST)%>" placeholder="<%=PLACEHOLDER_FORM.get(ConfigGuideForm.FormParameter.PARAM_LDAP_HOST)%>" <pwm:autofocus/> />
+                                <input class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_HOST%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_HOST%>" value="<%=configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_HOST)%>" <pwm:autofocus/> />
                             </td>
                         </tr>
                         <tr><td>&nbsp;</td></tr>

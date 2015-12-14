@@ -54,7 +54,7 @@
     final HelpdeskUIMode SETTING_PW_UI_MODE = HelpdeskUIMode.valueOf(helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_SET_PASSWORD_MODE));
 
     // user info
-    final HelpdeskDetailInfoBean helpdeskDetailInfoBean = (HelpdeskDetailInfoBean)pwmRequest.getAttribute(PwmConstants.REQUEST_ATTR.HelpdeskDetail);
+    final HelpdeskDetailInfoBean helpdeskDetailInfoBean = (HelpdeskDetailInfoBean)pwmRequest.getAttribute(PwmRequest.Attribute.HelpdeskDetail);
     final UserInfoBean searchedUserInfo = helpdeskDetailInfoBean.getUserInfoBean();
     final ResponseInfoBean responseInfoBean = searchedUserInfo.getResponseInfoBean();
     final String displayName = helpdeskDetailInfoBean.getUserDisplayName();
@@ -75,8 +75,8 @@
         <pwm:script>
             <script type="text/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
-                    PWM_VAR["helpdesk_obfuscatedDN"] = '<%=JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.HelpdeskObfuscatedDN)%>';
-                    PWM_VAR["helpdesk_username"] = '<%=JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.HelpdeskUsername)%>';
+                    PWM_VAR["helpdesk_obfuscatedDN"] = '<%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.HelpdeskObfuscatedDN)%>';
+                    PWM_VAR["helpdesk_username"] = '<%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.HelpdeskUsername)%>';
                 });
             </script>
         </pwm:script>

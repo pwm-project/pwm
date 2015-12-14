@@ -48,7 +48,7 @@
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 
-                <% if ((Boolean)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.NewUser_FormShowBackButton)) { %>
+                <% if ((Boolean)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.NewUser_FormShowBackButton)) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >
                     <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>

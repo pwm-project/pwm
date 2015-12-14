@@ -22,10 +22,7 @@
 
 package password.pwm.http.bean;
 
-import password.pwm.config.PwmSettingTemplate;
-import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.FileValue;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.configguide.ConfigGuideForm;
 import password.pwm.http.servlet.configguide.GuideStep;
 
@@ -36,21 +33,11 @@ import java.util.Map;
 public class ConfigGuideBean implements PwmSessionBean {
 
     private GuideStep step = GuideStep.START;
-    private StoredConfigurationImpl storedConfiguration;
-    private PwmSettingTemplate selectedTemplate = null;
-    private Map<ConfigGuideForm.FormParameter,String> formData = new HashMap<>();
+    private Map<ConfigGuideForm.FormParameter,String> formData = new HashMap<>(ConfigGuideForm.defaultForm());
     private X509Certificate[] ldapCertificates;
     private boolean certsTrustedbyKeystore = false;
     private boolean useConfiguredCerts = false;
     private FileValue databaseDriver = null;
-
-    public ConfigGuideBean() {
-        try {
-            storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
-        } catch (PwmUnrecoverableException e) {
-            throw new IllegalStateException(e);
-        }
-    }
 
     public GuideStep getStep() {
         return step;
@@ -58,14 +45,6 @@ public class ConfigGuideBean implements PwmSessionBean {
 
     public void setStep(GuideStep step) {
         this.step = step;
-    }
-
-    public StoredConfigurationImpl getStoredConfiguration() {
-        return storedConfiguration;
-    }
-
-    public void setStoredConfiguration(StoredConfigurationImpl storedConfiguration) {
-        this.storedConfiguration = storedConfiguration;
     }
 
     public Map<ConfigGuideForm.FormParameter, String> getFormData() {
@@ -98,16 +77,6 @@ public class ConfigGuideBean implements PwmSessionBean {
 
     public void setUseConfiguredCerts(boolean useConfiguredCerts) {
         this.useConfiguredCerts = useConfiguredCerts;
-    }
-
-    public PwmSettingTemplate getSelectedTemplate()
-    {
-        return selectedTemplate;
-    }
-
-    public void setSelectedTemplate(PwmSettingTemplate selectedTemplate)
-    {
-        this.selectedTemplate = selectedTemplate;
     }
 
     public FileValue getDatabaseDriver() {

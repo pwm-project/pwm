@@ -90,7 +90,6 @@ public enum Config implements PwmDisplayBundle {
     MenuItem_UploadConfig,
     MenuItem_UnlockConfig,
     MenuItem_ViewLog,
-    MenuItem_Home,
     Setting_Permission_Profile,
     Setting_Permission_Filter,
     Setting_Permission_Base,

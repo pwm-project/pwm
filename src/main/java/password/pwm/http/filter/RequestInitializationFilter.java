@@ -85,7 +85,7 @@ public class RequestInitializationFilter implements Filter {
                 } catch (Throwable e2) {
                     e2.getMessage();
                 }
-                servletRequest.setAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo.toString(),errorInformation);
+                servletRequest.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(),errorInformation);
                 final String url = PwmConstants.JSP_URL.APP_UNAVAILABLE.getPath();
                 servletRequest.getServletContext().getRequestDispatcher(url).forward(req, resp);
             }

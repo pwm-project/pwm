@@ -237,7 +237,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.UPDATED_GUESTS);
 
             //everything good so forward to confirmation page.
-            pwmRequest.forwardToSuccessPage(Message.Success_UpdateGuest);
+            pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_UpdateGuest);
             return;
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
@@ -448,7 +448,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
 
             pwmApplication.getStatisticsManager().incrementValue(Statistic.NEW_USERS);
 
-            pwmRequest.forwardToSuccessPage(Message.Success_CreateGuest);
+            pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_CreateGuest);
         } catch (ChaiOperationException e) {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE, "error creating user: " + e.getMessage());
             pwmRequest.setResponseError(info);
@@ -601,7 +601,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
         final long maxValidDays = pwmRequest.getConfig().readSettingAsLong(PwmSetting.GUEST_MAX_VALID_DAYS);
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.GuestMaximumValidDays, String.valueOf(maxValidDays));
+        pwmRequest.setAttribute(PwmRequest.Attribute.GuestMaximumValidDays, String.valueOf(maxValidDays));
 
 
         final String maxExpirationDate;
@@ -631,8 +631,8 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             }
         }
 
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.GuestCurrentExpirationDate, currentExpirationDate);
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.GuestMaximumExpirationDate, maxExpirationDate);
+        pwmRequest.setAttribute(PwmRequest.Attribute.GuestCurrentExpirationDate, currentExpirationDate);
+        pwmRequest.setAttribute(PwmRequest.Attribute.GuestMaximumExpirationDate, maxExpirationDate);
     }
 }
 

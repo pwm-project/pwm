@@ -392,7 +392,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         if (agreementMsg != null && agreementMsg.length() > 0 && !changePasswordBean.isAgreementPassed()) {
             final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
             final String expandedText = macroMachine.expandMacros(agreementMsg);
-            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.AgreementText,expandedText);
+            pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText,expandedText);
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_AGREEMENT);
             return;
         }
@@ -634,11 +634,11 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             if (completeMessage != null && !completeMessage.isEmpty()) {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(completeMessage);
-                pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.CompleteText, expandedText);
+                pwmRequest.setAttribute(PwmRequest.Attribute.CompleteText, expandedText);
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_COMPLETE);
             } else {
                 pwmRequest.getPwmSession().clearSessionBean(ChangePasswordBean.class);
-                pwmRequest.forwardToSuccessPage(Message.Success_PasswordChange);
+                pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_PasswordChange);
             }
         } else {
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);

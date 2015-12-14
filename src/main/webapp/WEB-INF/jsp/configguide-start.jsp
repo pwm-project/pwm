@@ -1,3 +1,5 @@
+<%@ page import="password.pwm.PwmEnvironment" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -32,13 +34,17 @@
 <div id="wrapper">
     <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
+        <%=PwmConstants.PWM_APP_NAME_VERSION%>
+        <br/>
         <pwm:display key="Display_ConfigManagerNew" bundle="Config" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <%--
+
         <p>
-            Application Configuration Path: <code><%=StringEscapeUtils.escapeHtml4(JspUtility.getPwmRequest(pageContext).getPwmApplication().getApplicationPath().getAbsolutePath())%></code>
+            <% if (!JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Appliance)) { %>
+            Application Configuration Path: <code><%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath())%></code>
+            <% } %>
         </p>
-        --%>
+
         <br/>
         <table style="border:0">
             <tr style="border:0">
