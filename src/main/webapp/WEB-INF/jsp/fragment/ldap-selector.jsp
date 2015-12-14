@@ -4,6 +4,8 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.Map" %>
 <%--

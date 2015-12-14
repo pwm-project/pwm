@@ -26,6 +26,7 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.http.PwmURL" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.PwmRequest" %>
 <%
     boolean includeHeader = false;
     boolean adminUser = false;

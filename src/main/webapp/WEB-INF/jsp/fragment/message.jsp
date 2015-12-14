@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.PwmRequest" %>
 
 <%--
   ~ Password Management Servlets (PWM)
