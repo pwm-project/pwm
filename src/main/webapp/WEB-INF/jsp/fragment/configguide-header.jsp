@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
