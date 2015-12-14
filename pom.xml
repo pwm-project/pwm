@@ -180,6 +180,17 @@
                         <version>2.0.0</version>
                     </dependency>
 				</dependencies>
+                <configuration>
+                    <includeInProject>false</includeInProject>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
