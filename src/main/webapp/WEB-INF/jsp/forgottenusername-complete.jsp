@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -18,6 +19,7 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  ~
   --%>
 
 <!DOCTYPE html>
@@ -28,28 +30,27 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_ActivateUser"/>
+        <jsp:param name="pwm.PageName" value="Title_ForgottenUsername"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:display key="Display_ActivateUser"/></p>
-        <form action="<pwm:current-url/>" method="post" name="activateUser" enctype="application/x-www-form-urlencoded" class="pwm-form">
-            <%@ include file="fragment/message.jsp" %>
-            <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
-            <jsp:include page="fragment/form.jsp"/>
-            <div class="buttonbar">
+        <%@ include file="fragment/message.jsp" %>
+        <% final String expandedText = (String) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.CompleteText); %>
+        <br/>
+        <div id="agreementText" class="agreementText"><%= expandedText %></div>
+        <div class="buttonbar">
+            <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
+                <input type="hidden" name="processAction" value="continue"/>
                 <button type="submit" name="button" class="btn" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
-                    <pwm:display key="Button_Activate"/>
+                    <pwm:display key="Button_Continue"/>
                 </button>
-                <input type="hidden" name="processAction" value="activate"/>
-                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            </div>
-        </form>
+                <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
+            <br/>
+        </div>
     </div>
     <div class="push"></div>
 </div>
-<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -1,5 +1,4 @@
 <%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.FormUtility" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
@@ -38,7 +37,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final PwmRequest formPwmRequest = PwmRequest.forRequest(request,response);
-    final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.FormConfiguration);
+    final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.FormConfiguration);
 %>
 <% if (formConfigurationList == null) { %>
 [ form definition is not available ]
@@ -46,9 +45,9 @@
 <!-- form contains no items ] -->
 <% } else { %>
 <%
-    final boolean forceReadOnly = (Boolean)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.FormReadOnly);
-    final boolean showPasswordFields = (Boolean)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.FormShowPasswordFields);
-    final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.FormData);
+    final boolean forceReadOnly = (Boolean)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.FormReadOnly);
+    final boolean showPasswordFields = (Boolean)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.FormShowPasswordFields);
+    final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.FormData);
 
     final PwmApplication pwmApplication = formPwmRequest.getPwmApplication();
     final Locale formLocale = formPwmRequest.getLocale();

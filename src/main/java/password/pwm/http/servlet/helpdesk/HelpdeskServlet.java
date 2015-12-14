@@ -408,12 +408,12 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         LOGGER.trace(pwmRequest, "helpdesk detail view request for user details of " + userIdentity.toString() + " by actor " + actorUserIdentity.toString());
 
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = makeHelpdeskDetailInfo(pwmRequest, helpdeskProfile, userIdentity);
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.HelpdeskDetail, helpdeskDetailInfoBean);
+        pwmRequest.setAttribute(PwmRequest.Attribute.HelpdeskDetail, helpdeskDetailInfoBean);
 
         if (helpdeskDetailInfoBean != null && helpdeskDetailInfoBean.getUserInfoBean() != null) {
             final String obfuscatedDN = helpdeskDetailInfoBean.getUserInfoBean().getUserIdentity().toObfuscatedKey(pwmRequest.getPwmApplication());
-            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.HelpdeskObfuscatedDN, obfuscatedDN);
-            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.HelpdeskUsername, helpdeskDetailInfoBean.getUserInfoBean().getUsername());
+            pwmRequest.setAttribute(PwmRequest.Attribute.HelpdeskObfuscatedDN, obfuscatedDN);
+            pwmRequest.setAttribute(PwmRequest.Attribute.HelpdeskUsername, helpdeskDetailInfoBean.getUserInfoBean().getUsername());
         }
 
         StatisticsManager.incrementStat(pwmRequest, Statistic.HELPDESK_USER_LOOKUP);

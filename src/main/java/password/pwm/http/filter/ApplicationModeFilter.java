@@ -48,7 +48,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
             throws IOException, ServletException
     {
         // add request url to request attribute
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.OriginalUri, pwmRequest.getHttpServletRequest().getRequestURI());
+        pwmRequest.setAttribute(PwmRequest.Attribute.OriginalUri, pwmRequest.getHttpServletRequest().getRequestURI());
 
         // ignore if resource request
         final PwmURL pwmURL = pwmRequest.getURL();

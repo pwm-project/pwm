@@ -59,7 +59,7 @@
     <div id="centerbody" class="wide">
         <%@ include file="fragment/admin-nav.jsp" %>
         <div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-            <div data-dojo-type="dijit/layout/ContentPane" id="ActiveWebSessions" title="<pwm:display key="Title_Sessions" bundle="Admin"/>" class="tabContent">
+            <div id="ActiveWebSessions" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Sessions" bundle="Admin"/>" class="tabContent">
                 <div id="activeSessionGrid" class="analysisGrid">
                 </div>
                 <div style="text-align: center">
@@ -84,12 +84,12 @@
             </div>
             <% for (RecordType recordType : RecordType.values()) { %>
             <% String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getConfig(), Admin.class); %>
-            <div data-dojo-type="dijit/layout/ContentPane" id="Intruders<%=titleName%>" title="Intruders<br/><%=titleName%>" class="tabContent">
+            <div id="Intruders<%=titleName%>" data-dojo-type="dijit/layout/ContentPane" title="Intruders<br/><%=titleName%>" class="tabContent">
                 <div id="<%=recordType%>_Grid" class="analysisGrid">
                 </div>
             </div>
             <% } %>
-            <div data-dojo-type="dijit/layout/ContentPane" id="AuditUser"     title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditUsers" bundle="Admin"/>" class="tabContent">
+            <div id="AuditUser" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditUsers" bundle="Admin"/>" class="tabContent">
                 <div id="auditUserGrid" class="analysisGrid">
                 </div>
                 <div style="text-align: center">
@@ -110,7 +110,7 @@
                     </form>
                 </div>
             </div>
-            <div data-dojo-type="dijit/layout/ContentPane" id="AutidHelpdesk" title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditHelpdesk" bundle="Admin"/>" class="tabContent">
+            <div id="AuditHelpdesk" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditHelpdesk" bundle="Admin"/>" class="tabContent">
                 <div id="auditHelpdeskGrid" class="analysisGrid">
                 </div>
                 <div style="text-align: center">
@@ -131,7 +131,7 @@
                     </form>
                 </div>
             </div>
-            <div data-dojo-type="dijit/layout/ContentPane" id="AuditSystem"   title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditSystem" bundle="Admin"/>" class="tabContent">
+            <div id="AuditSystem" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditSystem" bundle="Admin"/>" class="tabContent">
                 <div id="auditSystemGrid" class="analysisGrid">
                 </div>
                 <div style="text-align: center">
@@ -195,5 +195,3 @@
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>
-
-

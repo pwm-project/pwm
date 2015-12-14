@@ -771,5 +771,3 @@
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 </body>
 </html>
-
-

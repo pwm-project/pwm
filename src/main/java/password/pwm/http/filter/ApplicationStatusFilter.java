@@ -4,6 +4,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.util.logging.PwmLogger;
 
@@ -47,7 +48,7 @@ public class ApplicationStatusFilter implements Filter {
         }
 
         LOGGER.error("unable to satisfy incoming request, application is not available");
-        servletRequest.setAttribute(PwmConstants.REQUEST_ATTR.PwmErrorInfo.toString(), startupError);
+        servletRequest.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(), startupError);
         ((HttpServletResponse) servletResponse).setStatus(500);
         final String url = PwmConstants.JSP_URL.APP_UNAVAILABLE.getPath();
         servletRequest.getServletContext().getRequestDispatcher(url).forward(servletRequest, servletResponse);

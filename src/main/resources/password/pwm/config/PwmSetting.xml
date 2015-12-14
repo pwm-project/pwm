@@ -2161,14 +2161,31 @@
     <setting hidden="false" key="forgottenUsername.searchFilter" level="2">
         <default/>
     </setting>
-    <setting hidden="false" key="forgottenUsername.usernameAttribute" level="1" required="true">
-        <ldapPermission actor="proxy" access="read"/>
-        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+    <setting hidden="false" key="forgottenUsername.message" level="1">
+        <flag>MacroSupport</flag>
         <default>
-            <value><![CDATA[cn]]></value>
-        </default>
-        <default template="AD">
-            <value>sAMAccountName</value>
+            <value>Your username is @User:ID@.  Please record your username for future use.</value>
+            <value locale="zh">您的用户名是 @User:ID@。请记录你的用户名以供将来使用。</value>
+            <value locale="zh_TW">您的使用者名稱為 @User:ID@。請記錄您的使用者名稱以供日後使用。</value>
+            <value locale="cs">Vaše přihlašovací jméno je @User:ID@. Prosíme zapamatujte si své přihlašovací jméno.</value>
+            <value locale="nl">Uw gebruikersnaam is @User:ID@.  Onthoud uw gebruikersnaam voor later gebruik.</value>
+            <value locale="fi">Käyttäjätunnuksesi on @User:ID@. Tallenna se myöhempää käyttöä varten.</value>
+            <value locale="fr">Votre nom d'utilisateur est @User:ID@. Enregistrez-le pour pouvoir l'utiliser ultérieurement.</value>
+            <value locale="de">Ihr Benutzername ist @User:ID@. Notieren Sie sich den Benutzernamen für den späteren Gebrauch.</value>
+            <value locale="iw">שם המשתמש שלך הינו @User:ID@. אנא זכור מידע זה לשימוש עתידי.</value>
+            <value locale="hu">Az Ön felhasználóneve %field%. Kérem jegyezze föl, hogy a jövőben használni tudja.</value>
+            <value locale="it">Il tuo nome utente è @User:ID@.  Per favore annotati il tuo nome utente per uso futuro.</value>
+            <value locale="ja">ユーザ名は @User:ID@ です。将来の使用に備えてユーザ名を記録しておいてください。</value>
+            <value locale="no">Brukernavnet ditt er @User:ID@.  Vennligst ta vare pï¿½ ditt brukernavn for fremtidig bruk.</value>
+            <value locale="nn">Brukarnamnet ditt er %field%. Ver venleg ï¿½ ta vare pï¿½ brukarnamnet ditt for framtidig bruk.</value>
+            <value locale="pl">Twoja nazwa użytkownika to @User:ID@. Należy zapisać swoją nazwę użytkownika na przyszłość.</value>
+            <value locale="pt">Seu nome de utilizador é @User:ID@. Por favor, registe seu nome de utilizador para uso futuro.</value>
+            <value locale="pt_BR">Seu nome de usuário é @User:ID@. Registre seu nome de usuário para uso futuro.</value>
+            <value locale="sk">Vaše používateľské meno je @User:ID@. Uložte si toto meno pre ďalšie použitie.</value>
+            <value locale="es">Su nombre de usuario es @User:ID@. Guarde el nombre de usuario para tener una referencia en el futuro.</value>
+            <value locale="sv">Ditt användarnamn är @User:ID@. Anteckna ditt användarnamn för framtida bruk.</value>
+            <value locale="th">ชื้อผู้ใช้ของคุณคือ @User:ID@ กรุณาใส่ชื่อผู้ใช้ของคุณสำหรับการใช้งานในอนาคต</value>
+            <value locale="tr">Kullanıcı adınız @User:ID@ . Kullanıcı adınızı unutmayın.</value>
         </default>
     </setting>
     <setting hidden="false" key="forgottenUsername.sendUsername.sendMethod" level="1">

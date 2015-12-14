@@ -40,7 +40,7 @@
         <% } %>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <div id="agreementText" class="agreementText"><%= (String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.AgreementText) %></div>
+        <div id="agreementText" class="agreementText"><%= (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.AgreementText) %></div>
         <div class="buttonbar">
             <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" autocomplete="off">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>

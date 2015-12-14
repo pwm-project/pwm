@@ -153,17 +153,17 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
             throws PwmUnrecoverableException
     {
         final ConfigurationReader configurationReader = pwmRequest.getContextManager().getConfigReader();
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.PageTitle,LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, pwmRequest));
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ApplicationPath, pwmRequest.getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath());
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigFilename, configurationReader.getConfigFile().getAbsolutePath());
+        pwmRequest.setAttribute(PwmRequest.Attribute.PageTitle,LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, pwmRequest));
+        pwmRequest.setAttribute(PwmRequest.Attribute.ApplicationPath, pwmRequest.getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath());
+        pwmRequest.setAttribute(PwmRequest.Attribute.ConfigFilename, configurationReader.getConfigFile().getAbsolutePath());
         {
             final Date lastModifyTime = configurationReader.getStoredConfiguration().modifyTime();
             final String output = lastModifyTime == null
                     ? LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable,pwmRequest)
                     : PwmConstants.DEFAULT_DATETIME_FORMAT.format(lastModifyTime);
-            pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigLastModified, output);
+            pwmRequest.setAttribute(PwmRequest.Attribute.ConfigLastModified, output);
         }
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigHasPassword, LocaleHelper.booleanString(configurationReader.getStoredConfiguration().hasPassword(), pwmRequest.getLocale(), pwmRequest.getConfig()));
+        pwmRequest.setAttribute(PwmRequest.Attribute.ConfigHasPassword, LocaleHelper.booleanString(configurationReader.getStoredConfiguration().hasPassword(), pwmRequest.getLocale(), pwmRequest.getConfig()));
     }
 
     void restUploadWordlist(final PwmRequest pwmRequest)
@@ -357,7 +357,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
     {
         final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
         final LinkedHashMap<String,Object> outputMap = new LinkedHashMap<>(storedConfiguration.toOutputMap(pwmRequest.getLocale()));
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigurationSummaryOutput,outputMap);
+        pwmRequest.setAttribute(PwmRequest.Attribute.ConfigurationSummaryOutput,outputMap);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_SUMMARY);
     }
 
@@ -366,7 +366,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
     {
         final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
         LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(storedConfiguration);
-        pwmRequest.setAttribute(PwmConstants.REQUEST_ATTR.ConfigurationSummaryOutput,ldapPermissionCalculator);
+        pwmRequest.setAttribute(PwmRequest.Attribute.ConfigurationSummaryOutput,ldapPermissionCalculator);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_PERMISSIONS);
     }
 

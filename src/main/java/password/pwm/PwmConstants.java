@@ -130,52 +130,6 @@ public abstract class PwmConstants {
     public static final PwmBlockAlgorithm IN_MEMORY_PASSWORD_ENCRYPT_METHOD = PwmBlockAlgorithm.AES;
     public static final PwmHashAlgorithm SETTING_CHECKSUM_HASH_METHOD = PwmHashAlgorithm.SHA256;
 
-    public enum REQUEST_ATTR {
-        PwmErrorInfo,
-        PwmRequest,
-        OriginalUri,
-        AgreementText,
-        CompleteText,
-        AvailableAuthMethods,
-        ConfigurationSummaryOutput,
-        PageTitle,
-        ModuleBean,
-        ModuleBean_String,
-
-        FormConfiguration,
-        FormReadOnly,
-        FormShowPasswordFields,
-        FormData,
-
-        SetupResponses_ResponseInfo,
-
-        HelpdeskDetail,
-        HelpdeskObfuscatedDN,
-        HelpdeskUsername,
-
-        ConfigFilename,
-        ConfigLastModified,
-        ConfigHasPassword,
-        ConfigPasswordRememberTime,
-        ConfigLoginHistory,
-        ApplicationPath,
-
-        CaptchaClientUrl,
-        CaptchaIframeUrl,
-        CaptchaPublicKey,
-
-        ForgottenPasswordChallengeSet,
-        ForgottenPasswordOptionalPageView,
-        ForgottenPasswordPrompts,
-        ForgottenPasswordInstructions,
-
-        GuestCurrentExpirationDate,
-        GuestMaximumExpirationDate,
-        GuestMaximumValidDays,
-
-        NewUser_FormShowBackButton,
-    }
-
 
     public static final String DOWNLOAD_FILENAME_STATISTICS_CSV = "Statistics.csv";
     public static final String DOWNLOAD_FILENAME_USER_REPORT_SUMMARY_CSV = "UserReportSummary.csv";
@@ -239,6 +193,7 @@ public abstract class PwmConstants {
         SETUP_OTP_SECRET_TEST("setupotpsecret-test.jsp"),
         SETUP_OTP_SECRET_SUCCESS("setupotpsecret-success.jsp"),
         FORGOTTEN_USERNAME("forgottenusername-search.jsp"),
+        FORGOTTEN_USERNAME_COMPLETE("forgottenusername-complete.jsp"),
         UPDATE_ATTRIBUTES("updateprofile.jsp"),
         UPDATE_ATTRIBUTES_AGREEMENT("updateprofile-agreement.jsp"),
         UPDATE_ATTRIBUTES_CONFIRM("updateprofile-confirm.jsp"),

@@ -52,7 +52,7 @@
                 <% if (!pwmRequest.getConfig().isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) { %>
                 <label class="checkboxWrapper">
                     <input type="checkbox" id="remember" name="remember"/>
-                    <pwm:display key="Display_RememberLogin" bundle="Config" value1="<%=(String)JspUtility.getAttribute(pageContext,PwmConstants.REQUEST_ATTR.ConfigPasswordRememberTime)%>"/>
+                    <pwm:display key="Display_RememberLogin" bundle="Config" value1="<%=(String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.ConfigPasswordRememberTime)%>"/>
                 </label>
                 <br>
                 <% } %>
@@ -65,7 +65,7 @@
             </div>
         </form>
         <br/><br/>
-        <% final ConfigAccessFilter.ConfigLoginHistory configLoginHistory = (ConfigAccessFilter.ConfigLoginHistory)JspUtility.getAttribute(pageContext, PwmConstants.REQUEST_ATTR.ConfigLoginHistory); %>
+        <% final ConfigAccessFilter.ConfigLoginHistory configLoginHistory = (ConfigAccessFilter.ConfigLoginHistory)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigLoginHistory); %>
         <% if (configLoginHistory != null && !configLoginHistory.successEvents().isEmpty()) { %>
         <h2>Previous Authentications</h2>
         <table>

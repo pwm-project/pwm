@@ -24,7 +24,6 @@ package password.pwm.bean;
 
 import password.pwm.config.ShortcutItem;
 import password.pwm.http.bean.PwmSessionBean;
-import password.pwm.i18n.Message;
 import password.pwm.util.secure.PwmRandom;
 
 import java.util.Date;
@@ -49,8 +48,6 @@ public class SessionStateBean implements PwmSessionBean {
      */
     private boolean authenticated;
 
-    private Message sessionSuccess;
-    private String sessionSuccessField;
     private String preCaptchaRequestURL;
     private String srcAddress;
     private String srcHostname;
@@ -152,19 +149,6 @@ public class SessionStateBean implements PwmSessionBean {
 
     public void setSessionID(final String sessionID) {
         this.sessionID = sessionID;
-    }
-
-    public Message getSessionSuccess() {
-        return sessionSuccess;
-    }
-
-    public String getSessionSuccessField() {
-        return sessionSuccessField;
-    }
-
-    public void setSessionSuccess(final Message sessionSuccess, final String field) {
-        this.sessionSuccessField = field;
-        this.sessionSuccess = sessionSuccess;
     }
 
     public String getSrcAddress() {
