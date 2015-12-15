@@ -37,7 +37,7 @@
     <div id="centerbody" class="tile-centerbody">        
 		<pwm:if test="permission" arg1="CHANGE_PASSWORD">
             <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ChangePassword.servletUrl()%>'/>" style="font-weight: normal;">
-            <div id="tile01" class="tile">
+            <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image"><img src="../public/resources/password_50b.png" /></div>
                         <div class="tile-title"><pwm:display key="Title_ChangePassword"/></div>
@@ -50,7 +50,7 @@
 		<pwm:if test="peopleSearchEnabled">
             <pwm:if test="permission" arg1="PEOPLE_SEARCH">
             <a href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>" style="font-weight: normal;">
-            <div id="tile01" class="tile">
+            <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image"><img src="../public/resources/search_50b.png" /></div>
                         <div class="tile-title"><pwm:display key="Title_PeopleSearch"/></div>
@@ -64,7 +64,7 @@
         <pwm:if test="setupChallengeEnabled">
             <pwm:if test="permission" arg1="SETUP_RESPONSE">
             <a id="button_SetupResponses" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupResponses.servletUrl()%>'/>" style="font-weight: normal;">
-            <div id="tile01" class="tile">
+            <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image"><img src="../public/resources/security_50b.png" /></div>
                         <div class="tile-title"><pwm:display key="Title_SetupResponses"/></div>
@@ -78,7 +78,7 @@
         <pwm:if test="otpEnabled">
             <pwm:if test="permission" arg1="SETUP_OTP_SECRET">
             <a id="button_SetupOtpSecret" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupOtp.servletUrl()%>'/>" style="font-weight: normal;">
-            <div id="tile01" class="tile">
+            <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image"><img src="../public/resources/mobile_50b.png" /></div>
                         <div class="tile-title"><pwm:display key="Title_SetupOtpSecret"/></div>
@@ -92,7 +92,7 @@
         <pwm:if test="updateProfileEnabled">
             <pwm:if test="permission" arg1="PROFILE_UPDATE">
             <a id="button_UpdateProfile" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.UpdateProfile.servletUrl()%>'/>" style="font-weight: normal;">        
-            <div id="tile01" class="tile">
+            <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image"><img src="../public/resources/profile_50b.png" /></div>
                         <div class="tile-title"><pwm:display key="Title_UpdateProfile"/></div>
@@ -105,7 +105,7 @@
             
         <pwm:if test="shortcutsEnabled">
             <a id="button_Shortcuts" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Shortcuts.servletUrl()%>'/>" style="font-weight: normal;">
-            <div id="tile01" class="tile">
+            <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image"><img src="../public/resources/shortcut_50b.png" /></div>
                         <div class="tile-title"><pwm:display key="Title_Shortcuts"/></div>
@@ -117,7 +117,7 @@
                         
 		<pwm:if test="<%=PwmIfTag.TESTS.accountInfoEnabled.toString()%>">
             <a id="button_UserInformation" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.AccountInformation.servletUrl()%>'/>" style="font-weight: normal;">
-            <div id="tile01" class="tile">
+            <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image"><img src="../public/resources/user_50b.png" /></div>
                         <div class="tile-title"><pwm:display key="Title_UserInformation"/></div>
@@ -130,7 +130,7 @@
         <% if (JspUtility.getPwmRequest(pageContext).getPwmSession().getSessionManager().getHelpdeskProfile(JspUtility.getPwmRequest(pageContext).getPwmApplication()) != null) { %>
 
             <a id="button_helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Helpdesk.servletUrl()%>'/>" style="font-weight: normal;">
-            <div id="tile01" class="tile">
+            <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image"><img src="../public/resources/support_50b.png" /></div>
                         <div class="tile-title"><pwm:display key="Title_Helpdesk"/></div>
@@ -144,7 +144,7 @@
 
 			<pwm:if test="permission" arg1="GUEST_REGISTRATION">
 				<a id="button_GuestRegistration" href="<pwm:url url='<%=PwmServletDefinition.GuestRegistration.servletUrl()%>' addContext="true"/>" style="font-weight: normal;">
-				<div id="tile01" class="tile">
+				<div class="tile">
 						<div class="tile-content">
 							<div class="tile-image"><img src="../public/resources/guest_50b.png" /></div>
 							<div class="tile-title"><pwm:display key="Title_GuestRegistration"/></div>
@@ -158,7 +158,7 @@
 
         <pwm:if test="permission" arg1="PWMADMIN">
             <a id="button_Admin" href="<pwm:url url='<%=PwmServletDefinition.Admin.servletUrl()%>' addContext="true"/> " style="font-weight: normal;">
-            <div id="tile01" class="tile">
+            <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image"><img src="../public/resources/admin_50b.png" /></div>
                         <div class="tile-title"><pwm:display key="Title_Admin"/></div>
