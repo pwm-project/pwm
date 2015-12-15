@@ -163,7 +163,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     public void writeEncryptedCookie(final String cookieName, final Serializable cookieValue, final String path)
             throws PwmUnrecoverableException
     {
-        pwmRequest.getPwmResponse().writeEncryptedCookie(cookieName, cookieValue, -1, path);
+        writeEncryptedCookie(cookieName, cookieValue, -1, path);
     }
 
     public void writeEncryptedCookie(final String cookieName, final Serializable cookieValue, final int seconds, final String path)

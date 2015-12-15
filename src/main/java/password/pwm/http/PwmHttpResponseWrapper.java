@@ -151,9 +151,8 @@ public class PwmHttpResponseWrapper {
         }
         theCookie.setHttpOnly(httpOnly);
         theCookie.setSecure(secureFlag);
-        if (path != null) {
-            theCookie.setPath(path);
-        }
+
+        theCookie.setPath(path == null ? httpServletRequest.getRequestURI() : path);
         this.getHttpServletResponse().addCookie(theCookie);
     }
 

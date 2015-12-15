@@ -181,10 +181,10 @@ public class RestProfileServer extends AbstractRestServer {
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
         if (restRequestBean.getUserIdentity() != null) {
             final ChaiUser theUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
-            UpdateProfileServlet.doProfileUpdate(pwmRequest, profileFormData, theUser);
+            UpdateProfileServlet.doProfileUpdate(pwmRequest, FormUtility.asStringMap(profileFormData), theUser);
         } else {
             final ChaiUser theUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
-            UpdateProfileServlet.doProfileUpdate(pwmRequest, profileFormData, theUser);
+            UpdateProfileServlet.doProfileUpdate(pwmRequest, FormUtility.asStringMap(profileFormData), theUser);
         }
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setSuccessMessage(Message.getLocalizedMessage(
