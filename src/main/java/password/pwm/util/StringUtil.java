@@ -24,6 +24,7 @@ package password.pwm.util;
 
 import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import password.pwm.PwmConstants;
 import password.pwm.util.logging.PwmLogger;
 
@@ -134,6 +135,10 @@ public abstract class StringUtil {
         }
 
         return returnMap;
+    }
+
+    public static String join(Collection inputs, String separator) {
+        return StringUtils.join(inputs == null ? new String[]{} : inputs.toArray(), separator);
     }
 
     public enum Base64Options {

@@ -41,7 +41,7 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <% final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.FormData); %>
-        <table>
+        <table id="ConfirmProfileTable">
             <% for (final FormConfiguration formConfiguration : formDataMap.keySet()) { %>
             <tr>
                 <td class="key">
@@ -86,4 +86,3 @@
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
-

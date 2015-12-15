@@ -67,21 +67,21 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/admin-nav.jsp" %>
-        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-            <div data-dojo-type="dijit.layout.ContentPane" title="Status" class="tabContent">
+        <div id="DashboardTabContainer" data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+            <div id="StatusTab" data-dojo-type="dijit.layout.ContentPane" title="Status" class="tabContent">
                 <table class="nomargin">
                     <tr>
                         <td class="key">
                             <pwm:display key="Title_Sessions" bundle="Admin"/>
                         </td>
-                        <td>
+                        <td id="SessionCount">
                             <%= sessionTrackService.sessionCount() %>
                         </td>
                         <td class="key">
                             <pwm:display key="Title_LDAPConnections" bundle="Admin"/>
 
                         </td>
-                        <td>
+                        <td id="LDAPConnectionCount">
                             <%= sessionTrackService.ldapConnectionCount() %>
                         </td>
                     </tr>
@@ -163,7 +163,7 @@
                     <div class="noticebar">Events rates are per minute.  <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/></div>
                 </div>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="Health" class="tabContent">
+            <div id="HealthTab" data-dojo-type="dijit.layout.ContentPane" title="Health" class="tabContent">
                 <div id="healthBody">
                     <div class="WaitDialogBlank"></div>
                 </div>
@@ -173,7 +173,7 @@
                     <a href="<pwm:context/>/public/health.jsp"><pwm:context/>/public/health.jsp</a>
                 </div>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_About" bundle="Admin"/>" class="tabContent">
+            <div id="AboutTab" data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_About" bundle="Admin"/>" class="tabContent">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
                         <tr>
@@ -316,7 +316,7 @@
                     </table>
                 </div>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="Services" class="tabContent">
+            <div id="ServicesTab" data-dojo-type="dijit.layout.ContentPane" title="Services" class="tabContent">
                 <table class="nomargin">
                     <tr>
                         <th style="font-weight:bold;">
@@ -364,7 +364,7 @@
                     <% } %>
                 </table>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="LocalDB" class="tabContent">
+            <div id="LocalDBTab" data-dojo-type="dijit.layout.ContentPane" title="LocalDB" class="tabContent">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
                         <tr>
@@ -523,7 +523,7 @@
                     </table>
                 </div>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="LocalDB Sizes" class="tabContent">
+            <div id="LocalDBSizesTab" data-dojo-type="dijit.layout.ContentPane" title="LocalDB Sizes" class="tabContent">
                 <% if (dashboard_pwmApplication.getLocalDB() != null && dashboard_pwmRequest.readParameterAsBoolean("showLocalDBCounts")) { %>
                 <table class="nomargin">
                     <tr>
@@ -551,7 +551,7 @@
                 </div>
                 <% } %>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="Java" class="tabContent">
+            <div id="JavaTab" data-dojo-type="dijit.layout.ContentPane" title="Java" class="tabContent">
                 <table class="nomargin">
                     <tr>
                         <td class="key">
@@ -679,7 +679,7 @@
                     </tr>
                 </table>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="Threads" class="tabContent">
+            <div id="ThreadsTab" data-dojo-type="dijit.layout.ContentPane" title="Threads" class="tabContent">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
                         <tr>
@@ -771,5 +771,3 @@
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 </body>
 </html>
-
-

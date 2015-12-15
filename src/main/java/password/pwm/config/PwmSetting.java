@@ -32,6 +32,7 @@ import password.pwm.i18n.Config;
 import password.pwm.i18n.ConfigEditor;
 import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -1131,15 +1132,18 @@ public enum PwmSetting {
         return (StoredValue)associationForTempleSet(defaultValues, templateSet).getObject();
     }
 
-    public Map<PwmSettingTemplate, String> getDefaultValueDebugStrings(final Locale locale)
+    public Map<String,String> getDefaultValueDebugStrings(final Locale locale)
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final Map<PwmSettingTemplate, String> returnObj = new LinkedHashMap<>();
-        final String defaultDebugStr = this.getDefaultValue(PwmSettingTemplateSet.getDefault()).toDebugString(locale);
-        boolean hasNonDefaultValue = false;
-
-
-        return returnObj;
+        getDefaultValue(PwmSettingTemplateSet.getDefault()); // ensure value has been read into cache
+        final Map<String,String> returnObj = new LinkedHashMap<>();
+        for (final TemplateSetAssociation templateSetAssociation : defaultValues) {
+            returnObj.put(
+                    StringUtil.join(templateSetAssociation.getSettingTemplates(),","),
+                    ((StoredValue) templateSetAssociation.getObject()).toDebugString(locale)
+            );
+        }
+        return Collections.unmodifiableMap(returnObj);
     }
 
     public Map<String, String> getOptions() {
@@ -1368,7 +1372,7 @@ public enum PwmSetting {
         return returnObj;
     }
 
-    static class TemplateSetAssociation {
+    public static class TemplateSetAssociation {
         private final Object object;
         private final Set<PwmSettingTemplate> settingTemplates;
 
