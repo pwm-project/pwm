@@ -39,7 +39,7 @@
             <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ChangePassword.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
-                        <div class="tile-image"><img src="../public/resources/password_50b.png" /></div>
+                        <div class="tile-image password-image"></div>
                         <div class="tile-title"><pwm:display key="Title_ChangePassword"/></div>
                         <div class="tile-subtitle"><pwm:display key="Long_Title_ChangePassword"/></div>
                     </div>
@@ -52,7 +52,7 @@
             <a href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
-                        <div class="tile-image"><img src="../public/resources/search_50b.png" /></div>
+                        <div class="tile-image search-image"></div>
                         <div class="tile-title"><pwm:display key="Title_PeopleSearch"/></div>
                         <div class="tile-subtitle"><pwm:display key="Long_Title_PeopleSearch"/></div>
                     </div>
@@ -66,7 +66,7 @@
             <a id="button_SetupResponses" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupResponses.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
-                        <div class="tile-image"><img src="../public/resources/security_50b.png" /></div>
+                        <div class="tile-image security-image"></div>
                         <div class="tile-title"><pwm:display key="Title_SetupResponses"/></div>
                         <div class="tile-subtitle"><pwm:display key="Long_Title_SetupResponses"/></div>
                     </div>
@@ -80,7 +80,7 @@
             <a id="button_SetupOtpSecret" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupOtp.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
-                        <div class="tile-image"><img src="../public/resources/mobile_50b.png" /></div>
+                        <div class="tile-image mobile-image"></div>
                         <div class="tile-title"><pwm:display key="Title_SetupOtpSecret"/></div>
                         <div class="tile-subtitle"><pwm:display key="Long_Title_SetupOtpSecret"/></div>
                     </div>
@@ -94,7 +94,7 @@
             <a id="button_UpdateProfile" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.UpdateProfile.servletUrl()%>'/>" style="font-weight: normal;">        
             <div class="tile">
                     <div class="tile-content">
-                        <div class="tile-image"><img src="../public/resources/profile_50b.png" /></div>
+                        <div class="tile-image profile-image"></div>
                         <div class="tile-title"><pwm:display key="Title_UpdateProfile"/></div>
                         <div class="tile-subtitle"><pwm:display key="Long_Title_UpdateProfile"/></div>
                     </div>
@@ -107,7 +107,7 @@
             <a id="button_Shortcuts" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Shortcuts.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
-                        <div class="tile-image"><img src="../public/resources/shortcut_50b.png" /></div>
+                        <div class="tile-image shortcut-image"></div>
                         <div class="tile-title"><pwm:display key="Title_Shortcuts"/></div>
                         <div class="tile-subtitle"><pwm:display key="Long_Title_Shortcuts"/></div>
                     </div>
@@ -119,7 +119,7 @@
             <a id="button_UserInformation" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.AccountInformation.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
-                        <div class="tile-image"><img src="../public/resources/user_50b.png" /></div>
+                        <div class="tile-image user-image"></div>
                         <div class="tile-title"><pwm:display key="Title_UserInformation"/></div>
                         <div class="tile-subtitle"><pwm:display key="Long_Title_UserInformation"/></div>
                     </div>
@@ -132,7 +132,7 @@
             <a id="button_helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Helpdesk.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
-                        <div class="tile-image"><img src="../public/resources/support_50b.png" /></div>
+                        <div class="tile-image support-image"></div>
                         <div class="tile-title"><pwm:display key="Title_Helpdesk"/></div>
                         <div class="tile-subtitle"><pwm:display key="Long_Title_Helpdesk"/></div>
                     </div>
@@ -146,7 +146,7 @@
 				<a id="button_GuestRegistration" href="<pwm:url url='<%=PwmServletDefinition.GuestRegistration.servletUrl()%>' addContext="true"/>" style="font-weight: normal;">
 				<div class="tile">
 						<div class="tile-content">
-							<div class="tile-image"><img src="../public/resources/guest_50b.png" /></div>
+							<div class="tile-image guest-image"></div>
 							<div class="tile-title"><pwm:display key="Title_GuestRegistration"/></div>
 							<div class="tile-subtitle"><pwm:display key="Long_Title_GuestRegistration"/></div>
 						</div>
@@ -160,7 +160,7 @@
             <a id="button_Admin" href="<pwm:url url='<%=PwmServletDefinition.Admin.servletUrl()%>' addContext="true"/> " style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
-                        <div class="tile-image"><img src="../public/resources/admin_50b.png" /></div>
+                        <div class="tile-image admin-image"></div>
                         <div class="tile-title"><pwm:display key="Title_Admin"/></div>
                         <div class="tile-subtitle"><pwm:display key="Long_Title_Admin"/></div>
                     </div>

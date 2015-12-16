@@ -100,9 +100,7 @@
     </div>
     <div id="panel-header-healthData" class="header-warning-row header-warning-healthData"></div>
     <div class="header-warning-row header-warning-version"><%=PwmConstants.PWM_APP_NAME_VERSION%></div>
-    <div id="button-closeHeader" title="<pwm:display key="Button_Hide"/>">
-        <img src="../public/resources/close_40.png">
-    </div>
+    <div id="button-closeHeader" title="<pwm:display key="Button_Hide"/>"></div>
 </div>
 <div id="button-openHeader" title="<pwm:display key="Button_Show"/>">
     <span class="pwm-icon pwm-icon-chevron-circle-left"></span>

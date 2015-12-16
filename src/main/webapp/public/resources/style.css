@@ -258,55 +258,101 @@ input[type=password]::-ms-reveal{display: none;}
 
 /* tile styles */
 #centerbody.tile-centerbody {
-	position: relative;
-	background-color: transparent;
-	border: 0;
-	padding: 25px;
-	margin-top: 0;
-	min-width: 150px;
-	box-shadow: none;
-	}
+    position: relative;
+    background-color: transparent;
+    border: 0;
+    padding: 25px;
+    margin-top: 0;
+    min-width: 150px;
+    box-shadow: none;
+}
+
 .tile {
-	position: relative;
-	float: left;
-	background: #fff;
-	border: 1px solid #f6f9f8;
-	border-radius: 2px;
-	margin-right: 5px;
-	margin-bottom: 5px;
-	text-align: center;
-	padding: 10px;
-	width: 140px;
-	height: 170px;
-	overflow: hidden;
-	z-index: 600;
-	}
-	.tile:hover {
-		background: #fff;
-		border: 1px solid #808080;
-		cursor: pointer;
-		}
-	.tile-image {
-		height: 50px;
-		margin-bottom: 5px;
-		}
-	.tile-title {
-		color: #434c50;
-		font-size: 16px;
-		line-height: 18px;
-		max-height: 34px;
-		overflow: hidden;
-		margin-bottom: 2px;
-		text-overflow: ellipsis;
-		}
-	.tile-subtitle {
-		font-size: 12px;
-		font-weight: normal;
-		line-height: 14px;
-		color: #808080;
-		overflow: hidden;
-		height: 70px;
-		}
+    position: relative;
+    float: left;
+    background: #fff;
+    border: 1px solid #f6f9f8;
+    border-radius: 2px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    text-align: center;
+    padding: 10px;
+    width: 140px;
+    height: 170px;
+    overflow: hidden;
+    z-index: 600;
+}
+
+.tile:hover {
+    background: #fff;
+    border: 1px solid #808080;
+    cursor: pointer;
+}
+
+.tile-image {
+    background: transparent none no-repeat scroll center center;
+    height: 50px;
+    margin-bottom: 5px;
+}
+
+.tile-image.password-image {
+    background-image: url("password_50b.png");
+}
+
+.tile-image.search-image {
+    background-image: url("search_50b.png");
+}
+
+.tile-image.security-image {
+    background-image: url("security_50b.png");
+}
+
+.tile-image.mobile-image {
+    background-image: url("mobile_50b.png");
+}
+
+.tile-image.profile-image {
+    background-image: url("profile_50b.png");
+}
+
+.tile-image.shortcut-image {
+    background-image: url("shortcut_50b.png");
+}
+
+.tile-image.user-image {
+    background-image: url("user_50b.png");
+}
+
+.tile-image.support-image {
+    background-image: url("support_50b.png");
+}
+
+.tile-image.guest-image {
+    background-image: url("guest_50b.png");
+}
+
+.tile-image .admin-image {
+    background-image: url("admin_50b.png");
+}
+
+.tile-title {
+    color: #434c50;
+    font-size: 16px;
+    line-height: 18px;
+    max-height: 34px;
+    overflow: hidden;
+    margin-bottom: 2px;
+    text-overflow: ellipsis;
+}
+
+.tile-subtitle {
+    font-size: 12px;
+    font-weight: normal;
+    line-height: 14px;
+    color: #808080;
+    overflow: hidden;
+    height: 70px;
+}
 
 /* all forms use a buttonbar div containing the action buttons */
 .buttonbar {
@@ -664,14 +710,14 @@ select {
 	#button-openHeader span {font-size: 16px;}
 
 #button-closeHeader {
+    background: transparent url("close_40.png") no-repeat scroll 0 0 / cover ;
+    cursor: pointer;
+    height: 20px;
     position: absolute;
-    top: 5px;
     right: 5px;
-    cursor: pointer
+    top: 5px;
+    width: 20px;
 }
-	#button-closeHeader img {
-		width: 20px;
-	}
 
 .footnote {
     font-style: italic;
