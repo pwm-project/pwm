@@ -267,6 +267,10 @@ input[type=password]::-ms-reveal{display: none;}
     box-shadow: none;
 }
 
+#centerbody.tile-centerbody > a {
+    display: inline-block;
+}
+
 .tile {
     position: relative;
     float: left;
@@ -291,48 +295,49 @@ input[type=password]::-ms-reveal{display: none;}
 
 .tile-image {
     background: transparent none no-repeat scroll center center;
+    font: 40px FontAwesome;
     height: 50px;
     margin-bottom: 5px;
 }
 
-.tile-image.password-image {
-    background-image: url("password_50b.png");
+.tile-image.password-image:before {
+    content: "\f084";
 }
 
-.tile-image.search-image {
-    background-image: url("search_50b.png");
+.tile-image.search-image:before {
+    content: "\f002";
 }
 
-.tile-image.security-image {
-    background-image: url("security_50b.png");
+.tile-image.security-image:before {
+    content: "\f0cb";
 }
 
-.tile-image.mobile-image {
-    background-image: url("mobile_50b.png");
+.tile-image.mobile-image:before {
+    content: "\f029";
 }
 
-.tile-image.profile-image {
-    background-image: url("profile_50b.png");
+.tile-image.profile-image:before {
+    content: "\f044";
 }
 
-.tile-image.shortcut-image {
-    background-image: url("shortcut_50b.png");
+.tile-image.shortcut-image:before {
+    content: "\f08e";
 }
 
-.tile-image.user-image {
-    background-image: url("user_50b.png");
+.tile-image.user-image:before {
+    content: "\f016";
 }
 
-.tile-image.support-image {
-    background-image: url("support_50b.png");
+.tile-image.support-image:before {
+    content: "\f007";
 }
 
-.tile-image.guest-image {
-    background-image: url("guest_50b.png");
+.tile-image.guest-image:before {
+    content: "\f0c0";
 }
 
-.tile-image .admin-image {
-    background-image: url("admin_50b.png");
+.tile-image.admin-image:before {
+    content: "\f0e4";
 }
 
 .tile-title {
