@@ -352,7 +352,8 @@ public class SessionFilter extends AbstractPwmFilter {
     private static void handleLocaleParam(
             final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException {
+            throws PwmUnrecoverableException
+    {
         final Configuration config = pwmRequest.getConfig();
         final String localeParamName = config.readAppProperty(AppProperty.HTTP_PARAM_NAME_LOCALE);
         final String localeCookieName = config.readAppProperty(AppProperty.HTTP_COOKIE_LOCALE_NAME);
@@ -362,12 +363,11 @@ public class SessionFilter extends AbstractPwmFilter {
             LOGGER.debug(pwmRequest, "detected locale request parameter " + localeParamName + " with value " + requestedLocale);
             if (pwmRequest.getPwmSession().setLocale(pwmRequest.getPwmApplication(), requestedLocale)) {
                 if (cookieAgeSeconds > 0) {
-                    final String path = pwmRequest.getContextPath() + "/";
                     pwmRequest.getPwmResponse().writeCookie(
                             localeCookieName,
                             requestedLocale,
                             cookieAgeSeconds,
-                            path
+                            PwmHttpResponseWrapper.CookiePath.Application
                     );
                 }
             }
@@ -385,14 +385,13 @@ public class SessionFilter extends AbstractPwmFilter {
             pwmRequest.getPwmSession().getSessionStateBean().setTheme(themeReqParameter);
             final String themeCookieName = config.readAppProperty(AppProperty.HTTP_COOKIE_THEME_NAME);
             if (themeCookieName != null && themeCookieName.length() > 0) {
-                final String path = pwmRequest.getContextPath() + "/";
                 final String configuredTheme = config.readSettingAsString(PwmSetting.INTERFACE_THEME);
 
                 if (configuredTheme != null && configuredTheme.equalsIgnoreCase(themeReqParameter)) {
-                    pwmRequest.getPwmResponse().removeCookie(themeCookieName, path);
+                    pwmRequest.getPwmResponse().removeCookie(themeCookieName, PwmHttpResponseWrapper.CookiePath.Application);
                 } else {
                     int maxAge = Integer.parseInt(config.readAppProperty(AppProperty.HTTP_COOKIE_THEME_AGE));
-                    pwmRequest.getPwmResponse().writeCookie(themeCookieName, themeReqParameter, maxAge, path);
+                    pwmRequest.getPwmResponse().writeCookie(themeCookieName, themeReqParameter, maxAge,  PwmHttpResponseWrapper.CookiePath.Application);
 
                 }
             }

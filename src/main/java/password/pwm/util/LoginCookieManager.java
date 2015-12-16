@@ -2,12 +2,12 @@ package password.pwm.util;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -33,7 +33,7 @@ public class LoginCookieManager {
             return;
         }
 
-        pwmRequest.getPwmResponse().removeCookie(loginCookieName, makeCookiePath(pwmRequest));
+        pwmRequest.getPwmResponse().removeCookie(loginCookieName, PwmHttpResponseWrapper.CookiePath.Private);
     }
 
     public static void writeLoginCookieToResponse(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
@@ -53,13 +53,9 @@ public class LoginCookieManager {
                         pwmRequest.getPwmSession().getLoginInfoBean(),
                         pwmRequest.getUserInfoIfLoggedIn()
                 ),
-                makeCookiePath(pwmRequest)
+                PwmHttpResponseWrapper.CookiePath.Private
         );
 
-    }
-
-    private static String makeCookiePath(final PwmRequest pwmRequest) {
-        return pwmRequest.getContextPath()  + PwmConstants.URL_PREFIX_PRIVATE;
     }
 
     public static void readLoginInfoCookie(final PwmRequest pwmRequest) throws PwmUnrecoverableException {

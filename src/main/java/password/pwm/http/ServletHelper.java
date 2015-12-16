@@ -163,7 +163,7 @@ public class ServletHelper {
                         instanceCookieName,
                         pwmApplication.getInstanceNonce(),
                         Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_INSTANCE_GUID_AGE)),
-                        pwmRequest.getContextPath()
+                        PwmHttpResponseWrapper.CookiePath.Application
                 );
 
             }

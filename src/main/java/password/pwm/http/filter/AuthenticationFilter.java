@@ -31,6 +31,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
+import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
@@ -203,7 +204,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         final AuthRecord authRecord = new AuthRecord(authTime, userGuid);
 
         try {
-            pwmRequest.getPwmResponse().writeEncryptedCookie(cookieName, authRecord, cookieAgeSeconds, pwmRequest.getContextPath());
+            pwmRequest.getPwmResponse().writeEncryptedCookie(cookieName, authRecord, cookieAgeSeconds, PwmHttpResponseWrapper.CookiePath.Application);
             LOGGER.debug(pwmRequest,"wrote auth record cookie to user browser for use during forgotten password");
         } catch (PwmUnrecoverableException e) {
             LOGGER.error(pwmRequest, "error while setting authentication record cookie: " + e.getMessage());
