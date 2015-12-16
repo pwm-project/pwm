@@ -62,6 +62,7 @@
             <properties>
                 <maven.javadoc.skip>true</maven.javadoc.skip>
                 <source.skip>true</source.skip>
+				<jspc.skip>true</jspc.skip>
             </properties>
         </profile>
     </profiles>
