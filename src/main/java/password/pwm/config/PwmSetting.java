@@ -1168,18 +1168,22 @@ public enum PwmSetting {
         return options;
     }
 
-    public Map<String, String> getProperties() {
-        final Map<String, String> properties = new LinkedHashMap<>();
+    public Map<PwmSettingProperty, String> getProperties() {
+        final Map<PwmSettingProperty, String> properties = new LinkedHashMap<>();
         final Element settingElement = PwmSettingXml.readSettingXml(this);
         final Element propertiesElement = settingElement.getChild("properties");
         if (propertiesElement != null) {
             final List<Element> propertyElements = propertiesElement.getChildren("property");
             if (propertyElements != null) {
                 for (Element propertyElement : propertyElements) {
-                    if (propertyElement.getAttribute("key") == null) {
+                    if (propertyElement.getAttributeValue("key") == null) {
                         throw new IllegalStateException("property element is missing 'key' attribute for value " + this.getKey());
                     }
-                    properties.put(propertyElement.getAttribute("key").getValue(), propertyElement.getValue());
+                    final PwmSettingProperty property = Helper.readEnumFromString(PwmSettingProperty.class, null, propertyElement.getAttributeValue("key"));
+                    if (property == null) {
+                        throw new IllegalStateException("property element has unknown 'key' attribute for value " + this.getKey());
+                    }
+                    properties.put(property, propertyElement.getValue());
                 }
             }
         }

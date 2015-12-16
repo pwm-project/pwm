@@ -120,7 +120,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         public boolean hidden;
         public boolean required;
         public Map<String, String> options;
-        public Map<String, String> properties;
+        public Map<PwmSettingProperty, String> properties;
         public String pattern;
         public String placeholder;
         public int level;
@@ -141,12 +141,6 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         public String description;
         public String key;
         public boolean adminOnly;
-    }
-
-    public static class TemplateInfo implements Serializable {
-        public String description;
-        public String key;
-        public boolean hidden;
     }
 
     protected ConfigEditorAction readProcessAction(final PwmRequest request)

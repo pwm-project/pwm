@@ -238,8 +238,8 @@ StringArrayValueHandler.draw = function(settingKey) {
         })(i);
     }
 
-    var settingOptions = PWM_SETTINGS['settings'][settingKey]['options'];
-    if (settingOptions && 'max' in settingOptions && itemCount >= settingOptions['max']) {
+    var settingProperties = PWM_SETTINGS['settings'][settingKey]['properties'];
+    if (settingProperties && 'Maximum' in settingProperties && itemCount >= settingProperties['Maximum']) {
         // item count is already maxed out
     } else {
         var addItemButton = document.createElement("button");
@@ -647,6 +647,7 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         var itemCount = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
         var inputID = 'value_' + settingKey + '_' + iteration + "_";
         var options = PWM_SETTINGS['settings'][settingKey]['options'];
+        var properties = PWM_SETTINGS['settings'][settingKey]['properties'];
 
         var newTableRow = document.createElement("tr");
         newTableRow.setAttribute("style", "border-width: 0");
@@ -657,9 +658,9 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         htmlRow += '<td style="border:1px solid #D4D4D4; width:170px"><div style="" class="noWrapTextBox " id="' + inputID + 'label"><span>' + value['labels'][''] + '</span></div></td>';
 
         var userDNtypeAllowed = options['type-userDN'] == 'show';
-        var optionList = PWM_GLOBAL['formTypeOptions'];
-        if ('types' in options) {
-            optionList = JSON.parse(options['types']);
+        var optionList = [];
+        if ('Form_Types' in options) {
+            optionList = JSON.parse(properties['Form_Types']);
         }
         if (!PWM_MAIN.JSLibrary.isEmpty(optionList)) {
             htmlRow += '<td style="width:15px;">';
@@ -675,7 +676,7 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
             htmlRow += '</td>';
         }
 
-        var hideOptions = PWM_SETTINGS['settings'][settingKey]['options']['hideOptions'] == 'true';
+        var hideOptions = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'], 'Form_HideOptions');
         if (!hideOptions) {
             htmlRow += '<td style="min-width:90px; border:0"><button id="' + inputID + 'optionsButton"><span class="btn-icon pwm-icon pwm-icon-sliders"/> Options</button></td>';
         }
@@ -2346,13 +2347,13 @@ UserPermissionHandler.draw = function(keyName) {
     var buttonRowHtml = '<button class="btn" id="button-' + keyName + '-addFilterValue">'
         + '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Filter</button>';
 
-    var hideGroup = 'hideGroups' in options && options['hideGroups'] == "true";
+    var hideGroup = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'], 'Permission_HideGroups');
     if (!hideGroup) {
         buttonRowHtml += '<button class="btn" id="button-' + keyName + '-addGroupValue">'
             + '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Group</button>';
     }
 
-    var hideMatch = 'hideMatch' in options && options['hideMatch'] == "true";
+    var hideMatch = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'], 'Permission_HideMatch');
     if (!hideMatch) {
         buttonRowHtml += '<button id="button-' + keyName + '-viewMatches" class="btn">'
             + '<span class="btn-icon pwm-icon pwm-icon-user"></span>View Matches</button>';
@@ -2463,10 +2464,10 @@ NumericValueHandler.init = function(settingKey) {
 NumericValueHandler.impl = function(settingKey, type, defaultMin, defaultMax) {
     var parentDiv = 'table_setting_' + settingKey;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
-    var options = PWM_SETTINGS['settings'][settingKey]['options'];
+    var properties = PWM_SETTINGS['settings'][settingKey]['properties'];
     var pattern = PWM_SETTINGS['settings'][settingKey]['pattern'];
-    var min = 'min' in options ? parseInt(options['min']) : defaultMin;
-    var max = 'max' in options ? parseInt(options['max']) : defaultMax;
+    var min = 'Minimum' in properties ? parseInt(properties['Minimum']) : defaultMin;
+    var max = 'Maximum' in properties ? parseInt(properties['Maximum']) : defaultMax;
 
     var htmlBody = '<input type="number" id="value_' + settingKey + '" class="configNumericInput" min="'+min+'" max="'+max+'"/>';
     if (type == 'number') {
@@ -2635,9 +2636,9 @@ SelectValueHandler.init = function(settingKey) {
             PWM_CFGEDIT.writeSetting(settingKey,selectedValue);
             settingElement.setAttribute('previousValue',settingElement.selectedIndex);
         };
-        if ('modificationWarning' in PWM_SETTINGS['settings'][settingKey]['properties']) {
+        if ('ModificationWarning' in PWM_SETTINGS['settings'][settingKey]['properties']) {
             PWM_MAIN.showConfirmDialog({
-                text:PWM_SETTINGS['settings'][settingKey]['properties']['modificationWarning'],
+                text:PWM_SETTINGS['settings'][settingKey]['properties']['ModificationWarning'],
                 cancelAction: function(){
                     settingElement.selectedIndex = settingElement.getAttribute('previousValue');
                     PWM_MAIN.closeWaitDialog();
@@ -2727,7 +2728,7 @@ X509CertificateHandler.draw = function(keyName) {
             handleResetClick(keyName);
         });
     }
-    var importClassname = PWM_SETTINGS['settings'][keyName]['options']['ImportHandler'];
+    var importClassname = PWM_SETTINGS['settings'][keyName]['properties']['Cert_ImportHandler'];
     PWM_MAIN.addEventHandler(keyName + '_AutoImportButton','click',function(){
         PWM_CFGEDIT.executeSettingFunction(keyName,importClassname);
     });
