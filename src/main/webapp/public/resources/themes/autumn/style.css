@@ -18,6 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
+ * Autumn skin
  */
 
 html {
@@ -38,7 +40,7 @@ p {
     padding-top: 4px;
     padding-bottom: 4px;
     text-decoration: none;
-    opacity: 0.75;
+    opacity: 0.9;
 }
 
 #header-page {
@@ -73,7 +75,7 @@ p {
 #centerbody {
     background-color: white;
     color: black;
-    padding: 10px 10px 40px 10px;
+    padding: 5px 5px 40px 5px;
     border: 0;
     border-radius: 5px;
     filter:alpha(opacity=80);
@@ -111,15 +113,15 @@ a {
 
 table {
     border-collapse: collapse;
-    border: 2px solid #ffcccc;
+    border: 1px solid #ffcccc;
     width: 100%;
     margin-left: auto;
     margin-right: auto
 }
 
 table td {
-    border: 2px solid #ffcccc;
-    padding-left: 5px;
+    border: 1px solid #ffcccc;
+    padding: 5px;
 }
 
 table td.title {
@@ -136,3 +138,4 @@ table td.key {
     padding-right: 10px;
     width: 200px;
 }
+

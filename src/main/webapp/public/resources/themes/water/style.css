@@ -32,8 +32,8 @@ p {
 }
 
 #header-warning {
-    background-color: blue;
-    color: #f5f5f5;
+    background-color: #1d3c4b;
+    color: #5c8597;
     text-align: center;
     padding-top: 4px;
     padding-bottom: 4px;
@@ -184,3 +184,10 @@ table td.key {
 .checkboxWrapper {
     background-color: #444444;
 }
+.header-warning-button {
+	color: #5c8597;
+	}
+.header-warning-button:hover {
+	background-color: #071119;
+	color: #dae1e1;
+	}

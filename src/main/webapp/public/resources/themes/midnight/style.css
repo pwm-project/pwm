@@ -106,3 +106,6 @@ input, button {
     background-color: #444444;
     color: #eeeeee;
 }
+.header-warning-button:hover {
+	background-color: #3e374c;
+	}

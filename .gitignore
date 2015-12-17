@@ -19,3 +19,4 @@
 /src/main/webapp/WEB-INF/LocalDB
 /bin/
 /src/main/webapp/WEB-INF/applicationPath.lock
+/src/main/webapp/public/resources/themes/mdefault
