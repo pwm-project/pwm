@@ -47,27 +47,25 @@
               class="pwm-form">
             <br class="clear"/>
             <h1>Configuration Password</h1>
-            <input type="<pwm:value name="passwordFieldType"/>" class="inputfield passwordfield" name="password" id="password" <pwm:autofocus/>/>
+            <input type="<pwm:value name="passwordFieldType"/>" class="inputfield passwordfield" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" <pwm:autofocus/>/>
+			<% if (!pwmRequest.getConfig().isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) { %>
+            <div class="checkboxWrapper">
+                <input type="checkbox" id="remember" name="remember"/>
+                <pwm:display key="Display_RememberLogin" bundle="Config" value1="<%=(String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.ConfigPasswordRememberTime)%>"/>
+            </div>
+            <% } %>
             <div class="buttonbar">
-                <% if (!pwmRequest.getConfig().isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) { %>
-                <label class="checkboxWrapper">
-                    <input type="checkbox" id="remember" name="remember"/>
-                    <pwm:display key="Display_RememberLogin" bundle="Config" value1="<%=(String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.ConfigPasswordRememberTime)%>"/>
-                </label>
-                <br>
-                <% } %>
                 <button type="submit" class="btn" name="button" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-sign-in"></span></pwm:if>
                     <pwm:display key="Button_Login"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
-                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>" autofocus="autofocus"/>
+                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>" autofocus/>
             </div>
         </form>
-        <br/><br/>
         <% final ConfigAccessFilter.ConfigLoginHistory configLoginHistory = (ConfigAccessFilter.ConfigLoginHistory)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigLoginHistory); %>
         <% if (configLoginHistory != null && !configLoginHistory.successEvents().isEmpty()) { %>
-        <h2>Previous Authentications</h2>
+        <h2 style="margin-top: 15px;">Previous Authentications</h2>
         <table>
             <tr>
                 <td class="title">Identity</td>

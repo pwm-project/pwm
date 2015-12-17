@@ -33,149 +33,141 @@
     <jsp:include page="../WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_MainPage"/>
     </jsp:include>
-    <div id="centerbody">
-        <table class="noborder">
-            <pwm:if test="permission" arg1="CHANGE_PASSWORD">
-                <tr>
-                    <td class="menubutton_key">
-                        <a id="button_ChangePassword" class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ChangePassword.servletUrl()%>'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
-                            <pwm:display key="Title_ChangePassword"/>
-                        </a>
-                    </td>
-                    <td>
-                        <p><pwm:display key="Long_Title_ChangePassword"/></p>
-                    </td>
-                </tr>
+    
+    <div id="centerbody" class="tile-centerbody">        
+		<pwm:if test="permission" arg1="CHANGE_PASSWORD">
+            <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ChangePassword.servletUrl()%>'/>" style="font-weight: normal;">
+            <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-image password-image"></div>
+                        <div class="tile-title"><pwm:display key="Title_ChangePassword"/></div>
+                        <div class="tile-subtitle"><pwm:display key="Long_Title_ChangePassword"/></div>
+                    </div>
+            </div>
+            </a>
+        </pwm:if>
+
+		<pwm:if test="peopleSearchEnabled">
+            <pwm:if test="permission" arg1="PEOPLE_SEARCH">
+            <a href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>" style="font-weight: normal;">
+            <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-image search-image"></div>
+                        <div class="tile-title"><pwm:display key="Title_PeopleSearch"/></div>
+                        <div class="tile-subtitle"><pwm:display key="Long_Title_PeopleSearch"/></div>
+                    </div>
+            </div>
+            </a>
             </pwm:if>
-            <pwm:if test="setupChallengeEnabled">
-                <pwm:if test="permission" arg1="SETUP_RESPONSE">
-                    <tr>
-                        <td class="menubutton_key">
-                            <a id="button_SetupResponses" class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupResponses.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-list-ol"></span></pwm:if>
-                                <pwm:display key="Title_SetupResponses"/>
-                            </a>
-                        </td>
-                        <td>
-                            <p><pwm:display key="Long_Title_SetupResponses"/></p>
-                        </td>
-                    </tr>
-                </pwm:if>
+        </pwm:if>
+
+        <pwm:if test="setupChallengeEnabled">
+            <pwm:if test="permission" arg1="SETUP_RESPONSE">
+            <a id="button_SetupResponses" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupResponses.servletUrl()%>'/>" style="font-weight: normal;">
+            <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-image security-image"></div>
+                        <div class="tile-title"><pwm:display key="Title_SetupResponses"/></div>
+                        <div class="tile-subtitle"><pwm:display key="Long_Title_SetupResponses"/></div>
+                    </div>
+            </div>
+            </a>
             </pwm:if>
-            <pwm:if test="otpEnabled">
-                <pwm:if test="permission" arg1="SETUP_OTP_SECRET">
-                    <tr>
-                        <td class="menubutton_key">
-                            <a id="button_SetupOtpSecret" class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupOtp.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-qrcode"></span></pwm:if>
-                                <pwm:display key="Title_SetupOtpSecret"/>
-                            </a>
-                        </td>
-                        <td>
-                            <p><pwm:display key="Long_Title_SetupOtpSecret"/></p>
-                        </td>
-                    </tr>
-                </pwm:if>
+        </pwm:if>
+
+        <pwm:if test="otpEnabled">
+            <pwm:if test="permission" arg1="SETUP_OTP_SECRET">
+            <a id="button_SetupOtpSecret" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupOtp.servletUrl()%>'/>" style="font-weight: normal;">
+            <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-image mobile-image"></div>
+                        <div class="tile-title"><pwm:display key="Title_SetupOtpSecret"/></div>
+                        <div class="tile-subtitle"><pwm:display key="Long_Title_SetupOtpSecret"/></div>
+                    </div>
+            </div>
+            </a>
             </pwm:if>
-            <pwm:if test="updateProfileEnabled">
-                <pwm:if test="permission" arg1="PROFILE_UPDATE">
-                    <tr>
-                        <td class="menubutton_key">
-                            <a id="button_UpdateProfile" class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.UpdateProfile.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-edit"></span></pwm:if>
-                                <pwm:display key="Title_UpdateProfile"/>
-                            </a>
-                        </td>
-                        <td>
-                            <p><pwm:display key="Long_Title_UpdateProfile"/></p>
-                        </td>
-                    </tr>
-                </pwm:if>
+        </pwm:if>
+
+        <pwm:if test="updateProfileEnabled">
+            <pwm:if test="permission" arg1="PROFILE_UPDATE">
+            <a id="button_UpdateProfile" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.UpdateProfile.servletUrl()%>'/>" style="font-weight: normal;">        
+            <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-image profile-image"></div>
+                        <div class="tile-title"><pwm:display key="Title_UpdateProfile"/></div>
+                        <div class="tile-subtitle"><pwm:display key="Long_Title_UpdateProfile"/></div>
+                    </div>
+            </div>
+            </a>
             </pwm:if>
-            <pwm:if test="shortcutsEnabled">
-                <tr>
-                    <td class="menubutton_key">
-                        <a id="button_Shortcuts" class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Shortcuts.servletUrl()%>'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-external-link"></span></pwm:if>
-                            <pwm:display key="Title_Shortcuts"/>
-                        </a>
-                    </td>
-                    <td>
-                        <p><pwm:display key="Long_Title_Shortcuts"/></p>
-                    </td>
-                </tr>
-            </pwm:if>
-            <pwm:if test="peopleSearchEnabled">
-                <pwm:if test="permission" arg1="PEOPLE_SEARCH">
-                    <tr>
-                        <td class="menubutton_key">
-                            <a id="button_PeopleSearch" class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
-                                <pwm:display key="Title_PeopleSearch"/>
-                            </a>
-                        </td>
-                        <td>
-                            <p><pwm:display key="Long_Title_PeopleSearch"/></p>
-                        </td>
-                    </tr>
-                </pwm:if>
-            </pwm:if>
-            <pwm:if test="<%=PwmIfTag.TESTS.accountInfoEnabled.toString()%>">
-                <tr>
-                    <td class="menubutton_key">
-                        <a id="button_UserInformation" class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.AccountInformation.servletUrl()%>'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-file-o"></span></pwm:if>
-                            <pwm:display key="Title_UserInformation"/>
-                        </a>
-                    </td>
-                    <td>
-                        <p><pwm:display key="Long_Title_UserInformation"/></p>
-                    </td>
-                </tr>
-            </pwm:if>
-            <% if (JspUtility.getPwmRequest(pageContext).getPwmSession().getSessionManager().getHelpdeskProfile(JspUtility.getPwmRequest(pageContext).getPwmApplication()) != null) { %>
-                <tr>
-                    <td class="menubutton_key">
-                        <a id="button_helpdesk" class="menubutton" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Helpdesk.servletUrl()%>'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-user"></span></pwm:if>
-                            <pwm:display key="Title_Helpdesk"/>
-                        </a>
-                    </td>
-                    <td>
-                        <p><pwm:display key="Long_Title_Helpdesk"/></p>
-                    </td>
-                </tr>
-            <% } %>
-            <% if (JspUtility.getPwmRequest(pageContext).getConfig() != null && JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
-            <pwm:if test="permission" arg1="GUEST_REGISTRATION">
-                <tr>
-                    <td class="menubutton_key">
-                        <a id="button_GuestRegistration" class="menubutton" href="<pwm:url url='<%=PwmServletDefinition.GuestRegistration.servletUrl()%>' addContext="true"/>">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-group"></span></pwm:if>
-                            <pwm:display key="Title_GuestRegistration"/>
-                        </a>
-                    </td>
-                    <td>
-                        <p><pwm:display key="Long_Title_GuestRegistration"/></p>
-                    </td>
-                </tr>
-            </pwm:if>
-            <% } %>
-            <pwm:if test="permission" arg1="PWMADMIN">
-                <tr>
-                    <td class="menubutton_key">
-                        <a id="button_Admin" class="menubutton" href="<pwm:url url='<%=PwmServletDefinition.Admin.servletUrl()%>' addContext="true"/> ">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-dashboard"></span></pwm:if>
-                            <pwm:display key="Title_Admin"/>
-                        </a>
-                    </td>
-                    <td>
-                        <p><pwm:display key="Long_Title_Admin"/></p>
-                    </td>
-                </tr>
-            </pwm:if>
-        </table>
+        </pwm:if>
+            
+        <pwm:if test="shortcutsEnabled">
+            <a id="button_Shortcuts" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Shortcuts.servletUrl()%>'/>" style="font-weight: normal;">
+            <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-image shortcut-image"></div>
+                        <div class="tile-title"><pwm:display key="Title_Shortcuts"/></div>
+                        <div class="tile-subtitle"><pwm:display key="Long_Title_Shortcuts"/></div>
+                    </div>
+            </div>
+            </a>
+        </pwm:if>            
+                        
+		<pwm:if test="<%=PwmIfTag.TESTS.accountInfoEnabled.toString()%>">
+            <a id="button_UserInformation" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.AccountInformation.servletUrl()%>'/>" style="font-weight: normal;">
+            <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-image user-image"></div>
+                        <div class="tile-title"><pwm:display key="Title_UserInformation"/></div>
+                        <div class="tile-subtitle"><pwm:display key="Long_Title_UserInformation"/></div>
+                    </div>
+            </div>
+            </a>
+        </pwm:if>
+
+        <% if (JspUtility.getPwmRequest(pageContext).getPwmSession().getSessionManager().getHelpdeskProfile(JspUtility.getPwmRequest(pageContext).getPwmApplication()) != null) { %>
+
+            <a id="button_helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Helpdesk.servletUrl()%>'/>" style="font-weight: normal;">
+            <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-image support-image"></div>
+                        <div class="tile-title"><pwm:display key="Title_Helpdesk"/></div>
+                        <div class="tile-subtitle"><pwm:display key="Long_Title_Helpdesk"/></div>
+                    </div>
+            </div>
+            </a>
+
+		<% } %>
+		<% if (JspUtility.getPwmRequest(pageContext).getConfig() != null && JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
+
+			<pwm:if test="permission" arg1="GUEST_REGISTRATION">
+				<a id="button_GuestRegistration" href="<pwm:url url='<%=PwmServletDefinition.GuestRegistration.servletUrl()%>' addContext="true"/>" style="font-weight: normal;">
+				<div class="tile">
+						<div class="tile-content">
+							<div class="tile-image guest-image"></div>
+							<div class="tile-title"><pwm:display key="Title_GuestRegistration"/></div>
+							<div class="tile-subtitle"><pwm:display key="Long_Title_GuestRegistration"/></div>
+						</div>
+				</div>
+				</a>
+			</pwm:if>
+
+		<% } %>
+
+        <pwm:if test="permission" arg1="PWMADMIN">
+            <a id="button_Admin" href="<pwm:url url='<%=PwmServletDefinition.Admin.servletUrl()%>' addContext="true"/> " style="font-weight: normal;">
+            <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-image admin-image"></div>
+                        <div class="tile-title"><pwm:display key="Title_Admin"/></div>
+                        <div class="tile-subtitle"><pwm:display key="Long_Title_Admin"/></div>
+                    </div>
+            </div>
+            </a>
+        </pwm:if>    
+
     </div>
     <div class="push"></div>
 </div>

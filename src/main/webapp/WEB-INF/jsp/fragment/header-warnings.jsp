@@ -62,7 +62,6 @@
     </script>
 </pwm:script>
 <div id="header-warning" style="display: none">
-    <div class="header-warning-row header-warning-version"><%=PwmConstants.PWM_APP_NAME_VERSION%></div>
     <div id="header-warning-message" class="header-warning-row header-warning-message">
     <% if (PwmConstants.TRIAL_MODE) { %>
     <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
@@ -70,7 +69,7 @@
     <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
 
     <pwm:if test="showIcons"><span id="icon-configModeHelp" class="btn-icon pwm-icon pwm-icon-question-circle"></span></pwm:if>
-        <br/><br/>
+    
     <% } else if (adminUser) { %>
     <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
     <% } %>
@@ -100,9 +99,8 @@
         <% } %>
     </div>
     <div id="panel-header-healthData" class="header-warning-row header-warning-healthData"></div>
-    <div id="button-closeHeader" title="<pwm:display key="Button_Hide"/>">
-        <span class="pwm-icon pwm-icon-chevron-circle-right"></span>
-    </div>
+    <div class="header-warning-row header-warning-version"><%=PwmConstants.PWM_APP_NAME_VERSION%></div>
+    <div id="button-closeHeader" title="<pwm:display key="Button_Hide"/>"></div>
 </div>
 <div id="button-openHeader" title="<pwm:display key="Button_Show"/>">
     <span class="pwm-icon pwm-icon-chevron-circle-left"></span>

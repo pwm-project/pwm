@@ -34,7 +34,7 @@ html, body {
 #centerbody {
     width: auto;
     min-width: inherit;
-    padding: 0
+	padding: 15px;
 }
 
 #centerbody.wide {
