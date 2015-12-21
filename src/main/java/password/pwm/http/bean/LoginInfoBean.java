@@ -45,7 +45,7 @@ public class LoginInfoBean implements PwmSessionBean {
     private transient String oauthRefreshToken;
     
     private boolean authRecordCookieSet;
-    
+
     public Date getLocalAuthTime()
     {
         return localAuthTime;

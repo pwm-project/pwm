@@ -905,7 +905,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
                     PWM_VAR['clientSettingCache'][keyName][iteration]['minimumLength'] = this.value;
                     FormTableHandler.write(keyName)
                 },
-                constraints: {min: 0, max: 5000},
+                constraints: {min: 0, max: 65536},
                 style: "width: 70px"
             }, inputID + "minimumLength");
 
@@ -916,7 +916,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
                     PWM_VAR['clientSettingCache'][keyName][iteration]['maximumLength'] = this.value;
                     FormTableHandler.write(keyName)
                 },
-                constraints: {min: 0, max: 5000},
+                constraints: {min: 0, max: 65536},
                 style: "width: 70px"
             }, inputID + "maximumLength");
 

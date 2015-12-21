@@ -126,7 +126,6 @@ public class PwmIfTag extends BodyTagSupport {
         otpEnabled(new BooleanPwmSettingTest(PwmSetting.OTP_ENABLED)),
         hasStoredOtpTimestamp(new HasStoredOtpTimestamp()),
         setupChallengeEnabled(new BooleanPwmSettingTest(PwmSetting.CHALLENGE_ENABLE)),
-        updateProfileEnabled(new BooleanPwmSettingTest(PwmSetting.UPDATE_PROFILE_ENABLE)),
         shortcutsEnabled(new BooleanPwmSettingTest(PwmSetting.SHORTCUT_ENABLE)),
         peopleSearchEnabled(new BooleanPwmSettingTest(PwmSetting.PEOPLE_SEARCH_ENABLE)),
         accountInfoEnabled(new BooleanPwmSettingTest(PwmSetting.ACCOUNT_INFORMATION_ENABLED)),

@@ -760,21 +760,21 @@ public enum PwmSetting {
 
     // update profile
     UPDATE_PROFILE_ENABLE(
-            "updateAttributes.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE),
-    UPDATE_PROFILE_FORCE_SETUP(
-            "updateAttributes.forceSetup", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE),
-    UPDATE_PROFILE_AGREEMENT_MESSAGE(
-            "display.updateAttributes.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.UPDATE),
+            "updateAttributes.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_SETTINGS),
+    UPDATE_PROFILE__PROFILE_LIST(
+            "updateAttributes.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
     UPDATE_PROFILE_QUERY_MATCH(
-            "updateAttributes.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UPDATE),
+            "updateAttributes.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UPDATE_PROFILE),
     UPDATE_PROFILE_WRITE_ATTRIBUTES(
-            "updateAttributes.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.UPDATE),
+            "updateAttributes.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.UPDATE_PROFILE),
+    UPDATE_PROFILE_FORCE_SETUP(
+            "updateAttributes.forceSetup", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE),
+    UPDATE_PROFILE_AGREEMENT_MESSAGE(
+            "display.updateAttributes.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.UPDATE_PROFILE),
     UPDATE_PROFILE_FORM(
-            "updateAttributes.form", PwmSettingSyntax.FORM, PwmSettingCategory.UPDATE),
-    UPDATE_PROFILE_CHECK_QUERY_MATCH(
-            "updateAttributes.check.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UPDATE),
+            "updateAttributes.form", PwmSettingSyntax.FORM, PwmSettingCategory.UPDATE_PROFILE),
     UPDATE_PROFILE_SHOW_CONFIRMATION(
-            "updateAttributes.showConfirmation", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE),
+            "updateAttributes.showConfirmation", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE),
 
     // shortcut settings
     SHORTCUT_ENABLE(
@@ -1040,6 +1040,8 @@ public enum PwmSetting {
 
 
     // deprecated.
+    UPDATE_PROFILE_CHECK_QUERY_MATCH(
+            "updateAttributes.check.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UPDATE_PROFILE),
     WORDLIST_FILENAME(
             "pwm.wordlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.PASSWORD_GLOBAL),
     SEEDLIST_FILENAME(
