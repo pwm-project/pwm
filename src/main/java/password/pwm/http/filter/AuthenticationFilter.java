@@ -49,7 +49,6 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.CASAuthenticationHelper;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.LoginCookieManager;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -161,7 +160,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
         // output the login cookie
         try {
-            LoginCookieManager.writeLoginCookieToResponse(pwmRequest);
+            pwmApplication.getLoginCookieManager().writeLoginCookieToResponse(pwmRequest);
         } catch (PwmUnrecoverableException e) {
             final String errorMsg = "unexpected error writing login cookie to response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
@@ -578,7 +577,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         )
                 throws PwmUnrecoverableException, IOException
         {
-            LoginCookieManager.readLoginInfoCookie(pwmRequest);
+            pwmRequest.getPwmApplication().getLoginCookieManager().readLoginInfoCookie(pwmRequest);
         }
 
         @Override

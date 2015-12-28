@@ -20,6 +20,7 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistManager;
+import password.pwm.util.LoginCookieManager;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.logging.PwmLogger;
@@ -62,6 +63,7 @@ public class PwmServiceManager {
         CacheService(           CacheService.class,              true),
         ResourceServletService( ResourceServletService.class,    false),
         SessionTrackService(    SessionTrackService.class,       false),
+        LoginCookieService(     LoginCookieManager.class,        false),
 
         ;
 

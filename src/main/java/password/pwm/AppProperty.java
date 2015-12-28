@@ -80,8 +80,6 @@ public enum AppProperty {
     HTTP_COOKIE_MAX_READ_LENGTH                     ("http.cookie.maxReadLength"),
     HTTP_COOKIE_CAPTCHA_SKIP_NAME                   ("http.cookie.captchaSkip.name"),
     HTTP_COOKIE_CAPTCHA_SKIP_AGE                    ("http.cookie.captchaSkip.age"),
-    HTTP_COOKIE_INSTANCE_GUID_NAME                  ("http.cookie.instanceGUID.name"),
-    HTTP_COOKIE_INSTANCE_GUID_AGE                   ("http.cookie.instanceGUID.age"),
     HTTP_COOKIE_LOGIN_NAME                          ("http.cookie.login.name"),
     HTTP_BASIC_AUTH_CHARSET                         ("http.basicAuth.charset"),
     HTTP_BODY_MAXREAD_LENGTH                        ("http.body.maxReadLength"),

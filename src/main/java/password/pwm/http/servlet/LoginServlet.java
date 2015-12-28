@@ -34,7 +34,6 @@ import password.pwm.http.ServletHelper;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
-import password.pwm.util.LoginCookieManager;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -217,8 +216,7 @@ public class LoginServlet extends AbstractPwmServlet {
         // recycle the session to prevent session fixation attack.
         pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded(true);
 
-        LoginCookieManager.writeLoginCookieToResponse(pwmRequest);
-
+        pwmRequest.getPwmApplication().getLoginCookieManager().writeLoginCookieToResponse(pwmRequest);
     }
 
     private void forwardToJSP(

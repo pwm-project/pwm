@@ -157,17 +157,6 @@ public class ServletHelper {
                 }
             }
 
-            final String instanceCookieName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_INSTANCE_GUID_NAME);
-            if (instanceCookieName != null && instanceCookieName.length() > 0) {
-                resp.writeCookie(
-                        instanceCookieName,
-                        pwmApplication.getInstanceNonce(),
-                        Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_INSTANCE_GUID_AGE)),
-                        PwmHttpResponseWrapper.CookiePath.Application
-                );
-
-            }
-
             resp.setHeader(PwmConstants.HttpHeader.Server, null);
         }
     }

@@ -54,10 +54,7 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistManager;
-import password.pwm.util.FileSystemUtility;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
@@ -474,6 +471,10 @@ public class PwmApplication {
 
     public CacheService getCacheService() {
         return (CacheService)pwmServiceManager.getService(CacheService.class);
+    }
+
+    public LoginCookieManager getLoginCookieManager() {
+        return (LoginCookieManager)pwmServiceManager.getService(LoginCookieManager.class);
     }
 
     public SecureService getSecureService() {

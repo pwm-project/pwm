@@ -1370,6 +1370,11 @@
             <value>28800</value>
         </default>
     </setting>
+    <setting hidden="false" key="security.loginCookie.enable" level="2">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="security.preventFraming" level="2">
         <default>
             <value>true</value>

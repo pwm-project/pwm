@@ -433,9 +433,21 @@ public enum PwmSetting {
             "password.policy.charGroup.regExValues", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PASSWORD_POLICY),
 
 
-    // security settings
+    // app security settings
     PWM_SECURITY_KEY(
             "pwm.securityKey", PwmSettingSyntax.PASSWORD, PwmSettingCategory.APP_SECURITY),
+    REVERSE_DNS_ENABLE(
+            "network.reverseDNS.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
+    DISPLAY_SHOW_DETAILED_ERRORS(
+            "display.showDetailedErrors", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
+    SESSION_MAX_SECONDS(
+            "session.maxSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.APP_SECURITY),
+    SECURITY_ENABLE_LOGIN_COOKIE(
+            "security.loginCookie.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
+
+
+
+    // web security
     SECURITY_ENABLE_REQUEST_SEQUENCE(
             "security.page.enableRequestSequence", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     SECURITY_ENABLE_FORM_NONCE(
@@ -450,8 +462,6 @@ public enum PwmSetting {
             "forceBasicAuth", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     USE_X_FORWARDED_FOR_HEADER(
             "useXForwardedForHeader", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
-    REVERSE_DNS_ENABLE(
-            "network.reverseDNS.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
     MULTI_IP_SESSION_ALLOWED(
             "network.allowMultiIPSession", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     REQUIRED_HEADERS(
@@ -460,10 +470,6 @@ public enum PwmSetting {
             "network.ip.permittedRange", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY),
     SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT(
             "security.page.leaveNoticeTimeout", PwmSettingSyntax.NUMERIC, PwmSettingCategory.WEB_SECURITY),
-    DISPLAY_SHOW_DETAILED_ERRORS(
-            "display.showDetailedErrors", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
-    SESSION_MAX_SECONDS(
-            "session.maxSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.APP_SECURITY),
     SECURITY_PREVENT_FRAMING(
             "security.preventFraming", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     SECURITY_REDIRECT_WHITELIST(
