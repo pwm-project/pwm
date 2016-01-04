@@ -22,7 +22,7 @@
 
 package password.pwm;
 
-import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.FormNonce;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmError;
@@ -58,17 +58,15 @@ public class Validator {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final String pwmFormID = ssBean.getSessionVerificationKey();
 
         final String submittedPwmFormID = pwmRequest.readParameterAsString(PwmConstants.PARAM_FORM_ID);
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_ENABLE_FORM_NONCE)) {
-            if (submittedPwmFormID == null || submittedPwmFormID.length() < pwmFormID.length()) {
-                throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
-            }
-
-            if (!pwmFormID.equals(submittedPwmFormID.substring(0,pwmFormID.length()))) {
+            final FormNonce formNonce = pwmRequest.getPwmApplication().getSecureService().decryptObject(
+                    submittedPwmFormID,
+                    FormNonce.class
+            );
+            if (!pwmSession.getLoginInfoBean().getGuid().equals(formNonce.getSessionGUID())) {
                 throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
             }
         }
@@ -79,19 +77,22 @@ public class Validator {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final String sessionVerificationKey = ssBean.getSessionVerificationKey();
-        final String requestVerificationKey = ssBean.getRequestVerificationKey();
-
-        final String submittedPwmFormID = pwmRequest.readParameterAsString(PwmConstants.PARAM_FORM_ID);
-        if (submittedPwmFormID == null || submittedPwmFormID.isEmpty()) {
-            return;
-        }
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_ENABLE_REQUEST_SEQUENCE)) {
+            final String requestVerificationKey = String.valueOf(pwmSession.getLoginInfoBean().getPostReqCounter());
+
+            final String submittedPwmFormID = pwmRequest.readParameterAsString(PwmConstants.PARAM_FORM_ID);
+            if (submittedPwmFormID == null || submittedPwmFormID.isEmpty()) {
+                return;
+            }
+
             try {
-                final String submittedRequestVerificationKey = submittedPwmFormID.substring(sessionVerificationKey.length(),submittedPwmFormID.length());
-                if (requestVerificationKey != null && !requestVerificationKey.equals(submittedRequestVerificationKey)) {
+                final FormNonce formNonce = pwmRequest.getPwmApplication().getSecureService().decryptObject(
+                        submittedPwmFormID,
+                        FormNonce.class
+                );
+                final String submittedRequestVerificationKey = String.valueOf(formNonce.getRequestID());
+                if (!requestVerificationKey.equals(submittedRequestVerificationKey)) {
                     final String debugMsg = "expectedPageID=" + requestVerificationKey
                             + ", submittedPageID=" + submittedRequestVerificationKey
                             +  ", url=" + pwmRequest.getURL().toString();

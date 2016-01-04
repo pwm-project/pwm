@@ -150,6 +150,7 @@ public class PwmHttpResponseWrapper {
         }
         boolean secureFlag;
         {
+
             final String configValue = configuration.readAppProperty(AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG);
             if (configValue == null || "auto".equalsIgnoreCase(configValue)) {
                 secureFlag = this.httpServletRequest.isSecure();

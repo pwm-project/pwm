@@ -60,7 +60,6 @@ public class LocalSessionStateBean implements Serializable {
 
     private Map<String, ShortcutItem> visibleShortcutItems;
 
-    private String requestVerificationKey = "key";
     private String sessionVerificationKey = "key";
     private String restClientKey;
 
@@ -208,16 +207,6 @@ public class LocalSessionStateBean implements Serializable {
 
     public void setDebugInitialized(final boolean debugInitialized) {
         this.debugInitialized = debugInitialized;
-    }
-
-    public String getRequestVerificationKey()
-    {
-        return requestVerificationKey;
-    }
-
-    public void setRequestVerificationKey(String requestVerificationKey)
-    {
-        this.requestVerificationKey = requestVerificationKey;
     }
 
     public String getTheme() {

@@ -28,7 +28,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
-import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
@@ -43,11 +42,9 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
 import java.util.List;
@@ -209,10 +206,11 @@ public class SessionManager implements Serializable {
 
     public void incrementRequestCounterKey() {
         if (this.pwmSession != null) {
-            final LocalSessionStateBean ssBean = this.pwmSession.getSessionStateBean();
-            ssBean.setRequestVerificationKey(PwmRandom.getInstance().alphaNumericString(5));
-            final String pwmFormID = Helper.buildPwmFormID(ssBean);
-            LOGGER.trace(pwmSession.getLabel(), "incremented request counter to " + ssBean.getRequestVerificationKey() + ", current pwmFormID=" + pwmFormID);
+            this.pwmSession.getLoginInfoBean().setPostReqCounter(
+                    this.pwmSession.getLoginInfoBean().getPostReqCounter()+1)
+            ;
+
+            LOGGER.trace(pwmSession.getLabel(), "incremented request counter to " + this.pwmSession.getLoginInfoBean().getPostReqCounter());
         }
     }
 

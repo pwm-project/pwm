@@ -62,29 +62,29 @@ public class LoginCookieManager implements PwmService {
             return;
         }
 
-        pwmRequest.getPwmResponse().removeCookie(settings.getCookieName(), PwmHttpResponseWrapper.CookiePath.Private);
+        pwmRequest.getPwmResponse().removeCookie(settings.getCookieName(), PwmHttpResponseWrapper.CookiePath.Application);
     }
 
-    public void writeLoginCookieToResponse(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+    public void writeLoginCookieToResponse(final PwmRequest pwmRequest) {
         if (!settings.isEnabled()) {
             return;
         }
 
-
-        if (!pwmRequest.isAuthenticated() || !pwmRequest.getURL().isPrivateUrl()) {
-            return;
+        try {
+            pwmRequest.getPwmResponse().writeEncryptedCookie(
+                    settings.getCookieName(),
+                    LoginCookieManager.LoginCookieBean.fromSession(
+                            pwmRequest.getPwmApplication(),
+                            pwmRequest.getPwmSession().getLoginInfoBean(),
+                            pwmRequest.getUserInfoIfLoggedIn()
+                    ),
+                    PwmHttpResponseWrapper.CookiePath.Application
+            );
+        } catch (PwmUnrecoverableException e) {
+            final String errorMsg = "unexpected error writing login cookie to response: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
+            LOGGER.error(pwmRequest, errorInformation);
         }
-
-        pwmRequest.getPwmResponse().writeEncryptedCookie(
-                settings.getCookieName(),
-                LoginCookieManager.LoginCookieBean.fromSession(
-                        pwmRequest.getPwmApplication(),
-                        pwmRequest.getPwmSession().getLoginInfoBean(),
-                        pwmRequest.getUserInfoIfLoggedIn()
-                ),
-                PwmHttpResponseWrapper.CookiePath.Private
-        );
-
     }
 
     public void readLoginInfoCookie(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
@@ -155,6 +155,7 @@ public class LoginCookieManager implements PwmService {
         final LoginInfoBean loginInfoBean = pwmRequest.getPwmSession().getLoginInfoBean();
         loginInfoBean.setAuthTime(loginCookieBean.getLocalAuthTime());
         loginInfoBean.setGuid(loginCookieBean.getGuid());
+        loginInfoBean.setPostReqCounter(loginCookieBean.getpC());
     }
 
     private static void checkIfLoginCookieIsValid(
@@ -239,6 +240,8 @@ public class LoginCookieManager implements PwmService {
         private Date i;
         private String n;
 
+        private int pC;
+
         public String getGuid() {
             return g;
         }
@@ -271,6 +274,14 @@ public class LoginCookieManager implements PwmService {
             return n;
         }
 
+        public int getpC() {
+            return pC;
+        }
+
+        public void setpC(int pC) {
+            this.pC = pC;
+        }
+
         public static LoginCookieBean fromSession(
                 final PwmApplication pwmApplication,
                 final LoginInfoBean loginInfoBean,
@@ -289,6 +300,7 @@ public class LoginCookieManager implements PwmService {
             loginCookieBean.i = new Date();
             loginCookieBean.n = pwmApplication.getInstanceNonce();
             loginCookieBean.g = loginInfoBean.getGuid();
+            loginCookieBean.pC = loginInfoBean.getPostReqCounter();
             return loginCookieBean;
         }
     }

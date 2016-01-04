@@ -48,6 +48,7 @@ public class LoginInfoBean implements Serializable {
     private transient String oauthRefreshToken;
     
     private boolean authRecordCookieSet;
+    private int postReqCounter;
 
     public Date getAuthTime()
     {
@@ -135,5 +136,13 @@ public class LoginInfoBean implements Serializable {
 
     public void setGuid(String guid) {
         this.guid = guid;
+    }
+
+    public int getPostReqCounter() {
+        return postReqCounter;
+    }
+
+    public void setPostReqCounter(int postReqCounter) {
+        this.postReqCounter = postReqCounter;
     }
 }

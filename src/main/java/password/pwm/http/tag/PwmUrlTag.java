@@ -23,20 +23,16 @@
 package password.pwm.http.tag;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.ServletHelper;
-import password.pwm.util.Helper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.PageContext;
-import java.util.Collections;
 
 public class PwmUrlTag extends PwmAbstractTag {
 
@@ -106,18 +102,6 @@ public class PwmUrlTag extends PwmAbstractTag {
         return EVAL_PAGE;
     }
 
-    private static String injectFormID(final PwmSession pwmSession, final String outputURL) {
-        if (outputURL == null || outputURL.isEmpty()) {
-            return outputURL;
-        }
-
-        if (outputURL.contains(RESOURCE_URL)) {
-            return outputURL;
-        }
-
-        final String pwmFormID = Helper.buildPwmFormID(pwmSession.getSessionStateBean());
-        return ServletHelper.appendAndEncodeUrlParameters(outputURL, Collections.singletonMap(PwmConstants.PARAM_FORM_ID,pwmFormID));
-    }
 
     static String insertContext(final PageContext pageContext, final String urlString) {
         final String contextPath = pageContext.getServletContext().getContextPath();

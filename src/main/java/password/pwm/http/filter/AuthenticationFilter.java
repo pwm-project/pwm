@@ -160,13 +160,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         handleAuthenticationCookie(pwmRequest);
 
         // output the login cookie
-        try {
-            pwmApplication.getLoginCookieManager().writeLoginCookieToResponse(pwmRequest);
-        } catch (PwmUnrecoverableException e) {
-            final String errorMsg = "unexpected error writing login cookie to response: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
-            LOGGER.error(pwmRequest, errorInformation);
-        }
+        pwmApplication.getLoginCookieManager().writeLoginCookieToResponse(pwmRequest);
 
         if (forceRequiredRedirects(pwmRequest)) {
             return;

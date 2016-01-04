@@ -29,14 +29,15 @@ import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.FormNonce;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
 import password.pwm.util.db.DatabaseAccessor;
@@ -261,9 +262,17 @@ public class
     }
 
 
-    static public String buildPwmFormID(final LocalSessionStateBean ssBean) {
-        return ssBean.getSessionVerificationKey() + ssBean.getRequestVerificationKey();
+    static public String buildPwmFormID(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        final FormNonce formID = new FormNonce(
+                pwmRequest.getPwmSession().getLoginInfoBean().getGuid(),
+                new Date(),
+                pwmRequest.getPwmSession().getLoginInfoBean().getPostReqCounter()
+        );
+        return pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(formID);
     }
+
+
+
 
     public static void rotateBackups(final File inputFile, final int maxRotate) {
         if (maxRotate < 1) {

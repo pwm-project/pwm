@@ -22,10 +22,8 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.http.JspUtility;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
 import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 
@@ -42,9 +40,7 @@ public class PwmFormIDTag extends TagSupport {
     {
         try {
             final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
-            final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
-            final String pwmFormID = Helper.buildPwmFormID(ssBean);
+            final String pwmFormID = Helper.buildPwmFormID(pwmRequest);
 
             pageContext.getOut().write(pwmFormID);
         } catch (Exception e) {
@@ -57,5 +53,4 @@ public class PwmFormIDTag extends TagSupport {
         }
         return EVAL_PAGE;
     }
-
 }

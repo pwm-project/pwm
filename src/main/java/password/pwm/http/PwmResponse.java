@@ -104,8 +104,6 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             redirectURL.append(pwmRequest.getContextPath());
             redirectURL.append(PwmServletDefinition.Command.servletUrl());
             redirectURL.append("?processAction=continue");
-            redirectURL.append("&pwmFormID=");
-            redirectURL.append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
             sendRedirect(redirectURL.toString());
             return;
         }
@@ -193,6 +191,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
 
     private void preCommitActions() {
         if (!pwmRequest.getPwmResponse().isCommitted()) {
+            pwmRequest.getPwmApplication().getLoginCookieManager().writeLoginCookieToResponse(pwmRequest);
             CryptoRequestCookieService.writeCookiesToResponse(pwmRequest);
         }
     }
