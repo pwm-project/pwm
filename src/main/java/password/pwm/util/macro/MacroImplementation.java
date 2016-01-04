@@ -24,7 +24,7 @@ package password.pwm.util.macro;
 
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.http.bean.LoginInfoBean;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.ldap.UserDataReader;
 
 import java.util.regex.Pattern;

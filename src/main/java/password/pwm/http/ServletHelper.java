@@ -29,7 +29,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -317,7 +317,7 @@ public class ServletHelper {
     )
             throws PwmUnrecoverableException
     {
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         final PwmURL pwmURL = pwmRequest.getURL();
 
         // mark if first request
@@ -387,7 +387,7 @@ public class ServletHelper {
     )
             throws PwmUnrecoverableException
     {
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         // check the user's IP address
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.MULTI_IP_SESSION_ALLOWED)) {

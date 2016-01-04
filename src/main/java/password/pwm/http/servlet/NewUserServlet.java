@@ -46,7 +46,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
-import password.pwm.http.bean.LoginInfoBean;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.http.bean.NewUserBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserDataReader;

@@ -32,7 +32,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PasswordStatus;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -45,7 +45,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ChangePasswordBean;
-import password.pwm.http.bean.LoginInfoBean;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -123,7 +123,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ChangePasswordBean changePasswordBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, ChangePasswordBean.class);
 
         if (pwmSession.getLoginInfoBean().getAuthenticationType() == AuthenticationType.AUTH_WITHOUT_PASSWORD) {
@@ -277,7 +277,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         final UserInfoBean uiBean = pwmRequest.getPwmSession().getUserInfoBean();
         final LoginInfoBean loginBean = pwmRequest.getPwmSession().getLoginInfoBean();
 

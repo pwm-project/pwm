@@ -39,7 +39,7 @@ import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.ServletHelper;
-import password.pwm.http.bean.LoginInfoBean;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.ldap.UserSearchEngine;

@@ -177,7 +177,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Configuration config = pwmApplication.getConfig();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         pwmApplication.getSessionBeanService().clearBean(pwmRequest, ActivateUserBean.class);
         final List<FormConfiguration> configuredActivationForm = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM);

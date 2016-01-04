@@ -23,7 +23,7 @@
 package password.pwm.svc.sessiontrack;
 
 import password.pwm.PwmApplication;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.SessionStateInfoBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.PwmException;
@@ -150,7 +150,7 @@ public class SessionTrackService implements PwmService {
     }
 
     private static SessionStateInfoBean infoBeanFromPwmSession(final PwmSession loopSession) {
-        final SessionStateBean loopSsBean = loopSession.getSessionStateBean();
+        final LocalSessionStateBean loopSsBean = loopSession.getSessionStateBean();
 
         final SessionStateInfoBean sessionStateInfoBean = new SessionStateInfoBean();
 

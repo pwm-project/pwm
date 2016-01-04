@@ -29,7 +29,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
@@ -487,13 +487,13 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     }
 
     public boolean hasForwardUrl() {
-        final SessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
+        final LocalSessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
         final String redirectURL = ssBean.getForwardURL();
         return !((redirectURL == null || redirectURL.isEmpty()) && this.getConfig().isDefaultValue(PwmSetting.URL_FORWARD));
     }
 
     public String getForwardUrl() {
-        final SessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
+        final LocalSessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
         String redirectURL = ssBean.getForwardURL();
         if (redirectURL == null || redirectURL.length() < 1) {
             redirectURL = this.getConfig().readSettingAsString(PwmSetting.URL_FORWARD);
@@ -508,7 +508,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     public String getLogoutURL(
     ) {
-        final SessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
+        final LocalSessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
         return ssBean.getLogoutURL() == null ? pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL();
     }
 

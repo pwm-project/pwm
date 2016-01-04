@@ -112,7 +112,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         final String contextParam = pwmRequest.readParameterAsString(PwmConstants.PARAM_CONTEXT);
         final String ldapProfile = pwmRequest.readParameterAsString(PwmConstants.PARAM_LDAP_PROFILE);

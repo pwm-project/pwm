@@ -47,7 +47,7 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.*;
 import password.pwm.error.*;
 import password.pwm.http.PwmSession;
-import password.pwm.http.bean.LoginInfoBean;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.ldap.*;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.cache.CacheKey;

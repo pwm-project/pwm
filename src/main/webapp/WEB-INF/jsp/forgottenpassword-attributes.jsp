@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.bean.SessionStateBean" %>
+<%@ page import="password.pwm.bean.LocalSessionStateBean" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
 <%@ page import="password.pwm.http.JspUtility" %>
@@ -29,7 +29,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmRequest pwmRequest = PwmRequest.forRequest(request, response); %>
-<% final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean(); %>
+<% final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean(); %>
 <% final ForgottenPasswordBean recoverBean = JspUtility.getSessionBean(pageContext, ForgottenPasswordBean.class); %>
 <% final List<FormConfiguration> requiredAttrParams = recoverBean.getAttributeForm(); %>
 <html dir="<pwm:LocaleOrientation/>">

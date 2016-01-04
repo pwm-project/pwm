@@ -30,7 +30,7 @@ import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -261,7 +261,7 @@ public class
     }
 
 
-    static public String buildPwmFormID(final SessionStateBean ssBean) {
+    static public String buildPwmFormID(final LocalSessionStateBean ssBean) {
         return ssBean.getSessionVerificationKey() + ssBean.getRequestVerificationKey();
     }
 

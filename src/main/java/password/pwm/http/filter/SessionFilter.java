@@ -25,7 +25,7 @@ package password.pwm.http.filter;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SessionVerificationMode;
@@ -107,7 +107,7 @@ public class SessionFilter extends AbstractPwmFilter {
         final Configuration config = pwmRequest.getConfig();
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         final PwmResponse resp = pwmRequest.getPwmResponse();
 
         ServletHelper.handleRequestInitialization(pwmRequest, pwmApplication, pwmSession);
@@ -246,7 +246,7 @@ public class SessionFilter extends AbstractPwmFilter {
             final SessionVerificationMode mode
     )
             throws IOException, ServletException, PwmUnrecoverableException {
-        final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final PwmResponse pwmResponse = pwmRequest.getPwmResponse();
 

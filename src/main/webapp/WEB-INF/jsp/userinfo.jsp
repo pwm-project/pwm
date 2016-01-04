@@ -21,7 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
-<%@ page import="password.pwm.bean.SessionStateBean" %>
+<%@ page import="password.pwm.bean.LocalSessionStateBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.option.ViewStatusFields" %>
@@ -43,7 +43,7 @@
 <%
     final PwmRequest userinfo_pwmRequest = PwmRequest.forRequest(request, response);
     final UserInfoBean uiBean = userinfo_pwmRequest.getPwmSession().getUserInfoBean();
-    final SessionStateBean ssBean = userinfo_pwmRequest.getPwmSession().getSessionStateBean();
+    final LocalSessionStateBean ssBean = userinfo_pwmRequest.getPwmSession().getSessionStateBean();
     final DateFormat dateFormatter = PwmConstants.DEFAULT_DATETIME_FORMAT;
     final Set<ViewStatusFields> viewStatusFields = userinfo_pwmRequest.getConfig().readSettingAsOptionList(PwmSetting.ACCOUNT_INFORMATION_VIEW_STATUS_VALUES,ViewStatusFields.class);
     List<UserAuditRecord> auditRecords = Collections.emptyList();

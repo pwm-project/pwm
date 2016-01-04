@@ -22,7 +22,7 @@
 
 package password.pwm;
 
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmError;
@@ -58,7 +58,7 @@ public class Validator {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String pwmFormID = ssBean.getSessionVerificationKey();
 
         final String submittedPwmFormID = pwmRequest.readParameterAsString(PwmConstants.PARAM_FORM_ID);
@@ -79,7 +79,7 @@ public class Validator {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String sessionVerificationKey = ssBean.getSessionVerificationKey();
         final String requestVerificationKey = ssBean.getRequestVerificationKey();
 

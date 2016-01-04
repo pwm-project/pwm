@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.bean.SessionStateBean" %>
+<%@ page import="password.pwm.bean.LocalSessionStateBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.tag.PwmIfTest" %>
@@ -29,7 +29,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final UserInfoBean uiBean = JspUtility.getPwmSession(pageContext).getUserInfoBean(); %>
-<% final SessionStateBean ssBean = JspUtility.getPwmSession(pageContext).getSessionStateBean(); %>
+<% final LocalSessionStateBean ssBean = JspUtility.getPwmSession(pageContext).getSessionStateBean(); %>
 <% final DateFormat dateFormatter = java.text.DateFormat.getDateInstance(DateFormat.FULL, ssBean.getLocale()); %>
 <% final DateFormat timeFormatter = java.text.DateFormat.getTimeInstance(DateFormat.FULL, ssBean.getLocale()); %>
 <html dir="<pwm:LocaleOrientation/>">

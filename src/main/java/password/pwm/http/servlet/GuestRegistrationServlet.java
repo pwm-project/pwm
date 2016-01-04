@@ -31,7 +31,7 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
@@ -186,7 +186,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
     {
         //Fetch the session state bean.
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmApplication.getConfig();
 
@@ -359,7 +359,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = ssBean.getLocale();
 

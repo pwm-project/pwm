@@ -31,7 +31,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
@@ -266,7 +266,7 @@ public class SessionAuthenticator {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         // auth succeed
         ssBean.setAuthenticated(true);
@@ -295,7 +295,7 @@ public class SessionAuthenticator {
         }
 
         //mark the auth time
-        pwmSession.getLoginInfoBean().setLocalAuthTime(new Date());
+        pwmSession.getLoginInfoBean().setAuthTime(new Date());
 
         //update the resulting authType
         pwmSession.getLoginInfoBean().setAuthenticationType(authenticationResult.getAuthenticationType());

@@ -24,7 +24,7 @@ package password.pwm.http.tag;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.http.PwmRequest;
@@ -158,7 +158,7 @@ public class PwmUrlTag extends PwmAbstractTag {
             final PwmSession pwmSession
     )
     {
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         if (ssBean.getTheme() != null) {
             return ssBean.getTheme();
         }

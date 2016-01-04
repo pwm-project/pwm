@@ -10,7 +10,7 @@ import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.bean.LoginInfoBean;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
@@ -153,7 +153,7 @@ public class LoginCookieManager implements PwmService {
             final LoginCookieBean loginCookieBean
     ) {
         final LoginInfoBean loginInfoBean = pwmRequest.getPwmSession().getLoginInfoBean();
-        loginInfoBean.setLocalAuthTime(loginCookieBean.getLocalAuthTime());
+        loginInfoBean.setAuthTime(loginCookieBean.getLocalAuthTime());
         loginInfoBean.setGuid(loginCookieBean.getGuid());
     }
 
@@ -285,7 +285,7 @@ public class LoginCookieManager implements PwmService {
                     : loginInfoBean.getUserCurrentPassword().getStringValue();
             loginCookieBean.aT = loginInfoBean.getAuthenticationType();
             loginCookieBean.aF = loginInfoBean.getAuthenticationFlags();
-            loginCookieBean.t = loginInfoBean.getLocalAuthTime();
+            loginCookieBean.t = loginInfoBean.getAuthTime();
             loginCookieBean.i = new Date();
             loginCookieBean.n = pwmApplication.getInstanceNonce();
             loginCookieBean.g = loginInfoBean.getGuid();

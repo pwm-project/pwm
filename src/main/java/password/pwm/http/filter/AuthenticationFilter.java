@@ -26,7 +26,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
@@ -88,7 +88,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         try {
             final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+            final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
             if (pwmApplication.getApplicationMode() == PwmApplication.MODE.NEW) {
                 if (pwmRequest.getURL().isConfigGuideURL()) {
@@ -199,7 +199,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             return;
         }
 
-        final Date authTime = pwmRequest.getPwmSession().getLoginInfoBean().getLocalAuthTime();
+        final Date authTime = pwmRequest.getPwmSession().getLoginInfoBean().getAuthTime();
         final String userGuid = pwmRequest.getPwmSession().getUserInfoBean().getUserGuid();
         final AuthRecord authRecord = new AuthRecord(authTime, userGuid);
 

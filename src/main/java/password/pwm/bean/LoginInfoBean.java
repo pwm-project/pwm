@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.bean;
+package password.pwm.bean;
 
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
@@ -39,7 +39,7 @@ public class LoginInfoBean implements Serializable {
     private AuthenticationType authenticationType = AuthenticationType.UNAUTHENTICATED;
     private List<AuthenticationType> authenticationFlags = new ArrayList<>();
     private PwmAuthenticationSource authenticationSource;
-    private Date localAuthTime;
+    private Date authTime;
     private String guid = (Long.toString(new Date().getTime(),36) + PwmRandom.getInstance().alphaNumericString(64));
 
     private transient BasicAuthInfo originalBasicAuthInfo;
@@ -49,14 +49,14 @@ public class LoginInfoBean implements Serializable {
     
     private boolean authRecordCookieSet;
 
-    public Date getLocalAuthTime()
+    public Date getAuthTime()
     {
-        return localAuthTime;
+        return authTime;
     }
 
-    public void setLocalAuthTime(final Date localAuthTime)
+    public void setAuthTime(final Date authTime)
     {
-        this.localAuthTime = localAuthTime;
+        this.authTime = authTime;
     }
 
     public AuthenticationType getAuthenticationType()
