@@ -346,7 +346,6 @@ public class RestAppDataServer extends AbstractRestServer {
         settingMap.put("url-command", contextPath + PwmServletDefinition.Command.servletUrl());
         settingMap.put("url-resources", contextPath + "/public/resources" + pwmApplication.getResourceServletService().getResourceNonce());
         settingMap.put("url-restservice", contextPath + "/public/rest");
-        settingMap.put("url-setupresponses",contextPath + PwmServletDefinition.SetupResponses.servletUrl());
 
         {
             String passwordGuideText = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,pwmSession.getSessionStateBean().getLocale());

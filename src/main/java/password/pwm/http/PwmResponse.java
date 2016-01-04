@@ -29,6 +29,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.http.state.CryptoRequestCookieService;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
@@ -64,7 +65,9 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     public void forwardToJsp(
             final PwmConstants.JSP_URL jspURL
     )
-            throws ServletException, IOException, PwmUnrecoverableException {
+            throws ServletException, IOException, PwmUnrecoverableException
+    {
+        preCommitActions();
         final HttpServletRequest httpServletRequest = pwmRequest.getHttpServletRequest();
         final ServletContext servletContext = httpServletRequest.getSession().getServletContext();
         final String url = jspURL.getPath();
@@ -132,6 +135,10 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             getHttpServletResponse().sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorStatusText);
         }
 
+        if (forceLogout) {
+            pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
+        }
+
         if (pwmRequest.isJsonRequest()) {
             outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
         } else if (pwmRequest.isHtmlRequest()) {
@@ -142,9 +149,6 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             }
         }
 
-        if (forceLogout) {
-            pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
-        }
     }
 
 
@@ -152,6 +156,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             final RestResultBean restResultBean
     )
             throws IOException {
+        preCommitActions();
         final HttpServletResponse resp = this.getHttpServletResponse();
         final String outputString = restResultBean.toJson();
         resp.setContentType(PwmConstants.ContentTypeValue.json.getHeaderValue());
@@ -177,5 +182,18 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     public void markAsDownload(final PwmConstants.ContentTypeValue contentType, final String filename) {
         this.setHeader(PwmConstants.HttpHeader.ContentDisposition,"attachment; fileName=" + filename);
         this.setContentType(contentType);
+    }
+
+    public void sendRedirect(final String url)
+            throws IOException
+    {
+        preCommitActions();
+        super.sendRedirect(url);
+    }
+
+    private void preCommitActions() {
+        if (!pwmRequest.getPwmResponse().isCommitted()) {
+            CryptoRequestCookieService.writeCookiesToResponse(pwmRequest);
+        }
     }
 }

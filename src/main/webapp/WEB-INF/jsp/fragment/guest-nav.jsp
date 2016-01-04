@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.http.PwmRequest" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.bean.GuestRegistrationBean" %>
 <%@ page import="password.pwm.http.servlet.GuestRegistrationServlet" %>
 <%--
@@ -25,8 +25,7 @@
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
-    final GuestRegistrationBean guestBean = pwmRequest.getPwmSession().getSessionBean(GuestRegistrationBean.class);
+    final GuestRegistrationBean guestBean = JspUtility.getSessionBean(pageContext, GuestRegistrationBean.class);
     final GuestRegistrationServlet.Page currentPage = guestBean.getCurrentPage();
 %>
 <br/>

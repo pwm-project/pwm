@@ -429,8 +429,8 @@ PWM_CHANGEPW.setInputFocus=function() {
 
 PWM_CHANGEPW.refreshCreateStatus=function(refreshInterval) {
     require(["dojo","dijit/registry"],function(dojo,registry){
-        var displayStringsUrl = "ChangePassword?processAction=checkProgress";
-        var completedUrl = "ChangePassword?processAction=complete&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+        var displayStringsUrl = PWM_MAIN.addParamToUrl(window.location.href, "processAction", "checkProgress");
+        var completedUrl = PWM_MAIN.addPwmFormIDtoURL(PWM_MAIN.addParamToUrl(window.location.href,  "processAction", "complete"));
         var loadFunction = function(data) {
             var supportsProgress = (document.createElement('progress').max !== undefined);
             if (supportsProgress) {

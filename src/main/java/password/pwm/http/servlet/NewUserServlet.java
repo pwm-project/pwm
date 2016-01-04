@@ -94,11 +94,6 @@ public class NewUserServlet extends AbstractPwmServlet {
     private static final String FIELD_PASSWORD2 = "password2";
     private static final String TOKEN_PAYLOAD_ATTR = "_______profileID";
 
-    public enum Page {
-        ProfileSelect,
-        Form,
-    }
-
     public enum NewUserAction implements AbstractPwmServlet.ProcessAction {
         profileChoice(HttpMethod.POST),
         checkProgress(HttpMethod.GET),
@@ -149,7 +144,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             return;
         }
 
-        final NewUserBean newUserBean = pwmSession.getNewUserBean();
+        final NewUserBean newUserBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, NewUserBean.class);
 
         // convert a url command like /public/newuser/profile/xxx to set profile.
         if (readProfileFromUrl(pwmRequest, newUserBean)) {
@@ -197,7 +192,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                     break;
 
                 case reset:
-                    pwmSession.clearSessionBean(NewUserBean.class);
+                    pwmApplication.getSessionBeanService().clearBean(pwmRequest, NewUserBean.class);
                     pwmRequest.sendRedirectToContinue();
                     break;
 
@@ -365,7 +360,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             pwmRequest.outputJsonResult(restResultBean);
         } catch (PwmOperationalException e) {
             final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
-            LOGGER.error(pwmRequest, "error while validating new user form: " + e.getMessage());
+            LOGGER.debug(pwmRequest, "error while validating new user form: " + e.getMessage());
             pwmRequest.outputJsonResult(restResultBean);
         }
     }
@@ -379,17 +374,20 @@ public class NewUserServlet extends AbstractPwmServlet {
     {
         final Locale locale = pwmRequest.getLocale();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        FormUtility.validateFormValues(pwmApplication.getConfig(), newUserForm.getFormData(), locale);
+        final NewUserProfile newUserProfile = getNewUserProfile(pwmRequest);
+        final List<FormConfiguration> formDefinition = newUserProfile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
+        final Map<FormConfiguration,String> formValueData = FormUtility.readFormValuesFromMap(newUserForm.getFormData(), formDefinition, locale);
+
+        FormUtility.validateFormValues(pwmApplication.getConfig(), formValueData, locale);
         FormUtility.validateFormValueUniqueness(
                 pwmApplication,
-                newUserForm.getFormData(),
+                formValueData,
                 locale,
                 Collections.<UserIdentity>emptyList(),
                 allowResultCaching
         );
         final UserInfoBean uiBean = new UserInfoBean();
-        final NewUserProfile newUserProfile = getNewUserProfile(pwmRequest);
-        uiBean.setCachedPasswordRuleAttributes(FormUtility.asStringMap(newUserForm.getFormData()));
+        uiBean.setCachedPasswordRuleAttributes(FormUtility.asStringMap(formValueData));
         uiBean.setPasswordPolicy(newUserProfile.getNewUserPasswordPolicy(pwmApplication, locale));
         return PasswordUtility.checkEnteredPassword(
                 pwmApplication,
@@ -552,10 +550,10 @@ public class NewUserServlet extends AbstractPwmServlet {
 
         // set up the user creation attributes
         final Map<String, String> createAttributes = new LinkedHashMap<>();
-        for (final FormConfiguration formConfiguration : newUserForm.getFormData().keySet()) {
-            final String value = newUserForm.getFormData().get(formConfiguration);
+        for (final String formKey : newUserForm.getFormData().keySet()) {
+            final String value = newUserForm.getFormData().get(formKey);
             if (value != null && !value.isEmpty()) {
-                createAttributes.put(formConfiguration.getName(), value);
+                createAttributes.put(formKey, value);
             }
         }
 
@@ -739,9 +737,9 @@ public class NewUserServlet extends AbstractPwmServlet {
         if (configuredNames == null || configuredNames.isEmpty() || configuredNames.iterator().next().isEmpty()) {
             final String namingAttribute = pwmRequest.getConfig().getDefaultLdapProfile().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
             String namingValue = null;
-            for (final FormConfiguration formConfiguration : formValues.getFormData().keySet()) {
-                if (formConfiguration.getName().equals(namingAttribute)) {
-                    namingValue = formValues.getFormData().get(formConfiguration);
+            for (final String formKey : formValues.getFormData().keySet()) {
+                if (formKey.equals(namingAttribute)) {
+                    namingValue = formValues.getFormData().get(formKey);
                 }
             }
             if (namingValue == null || namingValue.isEmpty()) {
@@ -844,7 +842,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                     "cannot generate new user tokens when storage type is configured as STORE_LDAP."}));
         }
 
-        final NewUserBean newUserBean = pwmRequest.getPwmSession().getNewUserBean();
+        final NewUserBean newUserBean = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, NewUserBean.class);
         final Configuration config = pwmApplication.getConfig();
         final Map<String, String> tokenPayloadMap = NewUserFormUtils.toTokenPayload(pwmRequest, newUserBean.getNewUserForm());
         final MacroMachine macroMachine = createMacroMachineForNewUser(pwmApplication, pwmRequest.getSessionLabel(), newUserBean.getNewUserForm());
@@ -952,8 +950,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             final PwmRequest pwmRequest,
             final NewUserBean newUserBean
     )
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final Date startTime = newUserBean.getCreateStartTime();
         if (startTime == null) {
             pwmRequest.respondWithError(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE.toInfo(), true);
@@ -1010,7 +1007,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             return;
         }
 
-        pwmRequest.getPwmSession().clearSessionBean(NewUserBean.class);
+        pwmRequest.getPwmApplication().getSessionBeanService().clearBean(pwmRequest, NewUserBean.class);
         pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_CreateUser);
     }
 
@@ -1021,7 +1018,7 @@ public class NewUserServlet extends AbstractPwmServlet {
     )
             throws PwmUnrecoverableException
     {
-        final Map<String, String> formValues = FormUtility.asStringMap(newUserForm.getFormData());
+        final Map<String, String> formValues = newUserForm.getFormData();
         final UserInfoBean stubUserBean = new UserInfoBean();
 
         final String emailAddressAttribute = pwmApplication.getConfig().readSettingAsString(
@@ -1099,7 +1096,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         }
     }
 
-    static List<FormConfiguration> getFormDefinition(PwmRequest pwmRequest) {
+    static List<FormConfiguration> getFormDefinition(PwmRequest pwmRequest) throws PwmUnrecoverableException {
         final NewUserProfile profile = getNewUserProfile(pwmRequest);
         return profile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
     }
@@ -1126,7 +1123,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                     newUserForm, userLocale);
             final PasswordData passwordData1 = pwmRequest.readParameterAsPassword(FIELD_PASSWORD1);
             final PasswordData passwordData2 = pwmRequest.readParameterAsPassword(FIELD_PASSWORD2);
-            return new NewUserBean.NewUserForm(userFormValues, passwordData1, passwordData2);
+            return new NewUserBean.NewUserForm(FormUtility.asStringMap(userFormValues), passwordData1, passwordData2);
         }
 
         static NewUserBean.NewUserForm readFromJsonRequest(final PwmRequest pwmRequest)
@@ -1145,7 +1142,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                     FIELD_PASSWORD2).isEmpty()
                     ? new PasswordData(jsonBodyMap.get(FIELD_PASSWORD2))
                     : null;
-            return new NewUserBean.NewUserForm(userFormValues, passwordData1, passwordData2);
+            return new NewUserBean.NewUserForm(FormUtility.asStringMap(userFormValues), passwordData1, passwordData2);
         }
 
         static NewUserTokenData fromTokenPayload(
@@ -1197,7 +1194,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             } else {
                 passwordData = null;
             }
-            final NewUserBean.NewUserForm newUserForm = new NewUserBean.NewUserForm(userFormValues, passwordData, passwordData);
+            final NewUserBean.NewUserForm newUserForm = new NewUserBean.NewUserForm(FormUtility.asStringMap(userFormValues), passwordData, passwordData);
             return new NewUserTokenData(newUserProfile.getIdentifier(), newUserForm);
         }
 
@@ -1208,8 +1205,8 @@ public class NewUserServlet extends AbstractPwmServlet {
                 throws PwmUnrecoverableException
         {
             final Map<String, String> payloadMap = new LinkedHashMap<>();
-            payloadMap.put(TOKEN_PAYLOAD_ATTR, pwmRequest.getPwmSession().getNewUserBean().getProfileID());
-            payloadMap.putAll(FormUtility.asStringMap(newUserForm.getFormData()));
+            payloadMap.put(TOKEN_PAYLOAD_ATTR, pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, NewUserBean.class).getProfileID());
+            payloadMap.putAll(newUserForm.getFormData());
             final String encryptedPassword = pwmRequest.getPwmApplication().getSecureService().encryptToString(
                     newUserForm.getNewUserPassword().getStringValue()
             );
@@ -1218,8 +1215,8 @@ public class NewUserServlet extends AbstractPwmServlet {
         }
     }
 
-    public static NewUserProfile getNewUserProfile(final PwmRequest pwmRequest) {
-        final String profileID = pwmRequest.getPwmSession().getNewUserBean().getProfileID();
+    public static NewUserProfile getNewUserProfile(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        final String profileID = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, NewUserBean.class).getProfileID();
         if (profileID == null) {
             throw new IllegalStateException("can not read new user profile until profile is selected");
         }

@@ -36,7 +36,7 @@ import java.util.*;
 /**
  * @author Jason D. Rivard
  */
-public class ForgottenPasswordBean implements PwmSessionBean {
+public class ForgottenPasswordBean extends PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
     private UserInfoBean userInfo;
@@ -259,6 +259,14 @@ public class ForgottenPasswordBean implements PwmSessionBean {
 
     public void setForgottenPasswordProfileID(String forgottenPasswordProfileID) {
         this.forgottenPasswordProfileID = forgottenPasswordProfileID;
+    }
+
+    public Type getType() {
+        return Type.PUBLIC;
+    }
+
+    public Set<Flag> getFlags() {
+        return Collections.singleton(Flag.ProhibitCookieSession);
     }
 }
 

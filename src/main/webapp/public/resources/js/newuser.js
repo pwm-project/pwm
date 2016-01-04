@@ -30,7 +30,7 @@ var PWM_NEWUSER = PWM_NEWUSER || {};
 PWM_NEWUSER.validateNewUserForm=function() {
     var validationProps = new Array();
     validationProps['messageWorking'] = PWM_MAIN.showString('Display_CheckingData');
-    validationProps['serviceURL'] = 'NewUser' + "?processAction=validate";
+    validationProps['serviceURL'] = PWM_MAIN.addParamToUrl(window.location.href,"processAction","validate");
     validationProps['readDataFunction'] = function(){
         return PWM_NEWUSER.makeFormData();
     };
@@ -144,8 +144,8 @@ PWM_NEWUSER.markStrength=function(strength) { //strength meter
 
 PWM_NEWUSER.refreshCreateStatus=function(refreshInterval) {
     require(["dojo","dijit/registry"],function(dojo,registry){
-        var displayStringsUrl = "NewUser?processAction=checkProgress&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-        var completedUrl = "NewUser?processAction=complete&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+        var displayStringsUrl = PWM_MAIN.addPwmFormIDtoURL(window.location.href,"processAction","checkProgress");
+        var completedUrl = PWM_MAIN.addPwmFormIDtoURL(window.location.href,"processAction","complete");
         dojo.xhrGet({
             url: displayStringsUrl,
             preventCache: true,

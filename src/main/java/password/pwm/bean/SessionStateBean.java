@@ -23,9 +23,9 @@
 package password.pwm.bean;
 
 import password.pwm.config.ShortcutItem;
-import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.secure.PwmRandom;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -39,7 +39,7 @@ import java.util.Map;
  *
  * @author Jason D. Rivard
  */
-public class SessionStateBean implements PwmSessionBean {
+public class SessionStateBean implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     // ------------------------- PUBLIC CONSTANTS -------------------------

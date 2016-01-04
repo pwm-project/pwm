@@ -25,7 +25,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupOtpBean otpBean = JspUtility.getPwmSession(pageContext).getSetupOtpBean();%>
+<% final SetupOtpBean otpBean = JspUtility.getSessionBean(pageContext,SetupOtpBean.class); %>
 <% final int otpTokenLength = PwmRequest.forRequest(request,response).getPwmApplication().getOtpService().getSettings().getOtpTokenLength(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>

@@ -24,7 +24,10 @@ package password.pwm.http.bean;
 
 import password.pwm.config.stored.StoredConfigurationImpl;
 
-public class ConfigManagerBean implements PwmSessionBean {
+import java.util.Collections;
+import java.util.Set;
+
+public class ConfigManagerBean extends PwmSessionBean {
     private StoredConfigurationImpl storedConfiguration;
     private boolean passwordVerified;
     private boolean configUnlockedWarningShown;
@@ -33,6 +36,11 @@ public class ConfigManagerBean implements PwmSessionBean {
 
     public ConfigManagerBean() {
     }
+
+    public Type getType() {
+        return Type.AUTHENTICATED;
+    }
+
 
     public StoredConfigurationImpl getStoredConfiguration() {
         return storedConfiguration;
@@ -66,5 +74,9 @@ public class ConfigManagerBean implements PwmSessionBean {
 
     public void setConfigUnlockedWarningShown(boolean configUnlockedWarningShown) {
         this.configUnlockedWarningShown = configUnlockedWarningShown;
+    }
+
+    public Set<Flag> getFlags() {
+        return Collections.singleton(Flag.ProhibitCookieSession);
     }
 }

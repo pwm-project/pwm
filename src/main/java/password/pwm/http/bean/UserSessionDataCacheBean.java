@@ -3,12 +3,13 @@ package password.pwm.http.bean;
 import password.pwm.Permission;
 import password.pwm.util.PostChangePasswordAction;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class UserSessionDataCacheBean implements PwmSessionBean {
+public class UserSessionDataCacheBean implements Serializable {
     private Map<Permission, Permission.PERMISSION_STATUS> permissions = new HashMap<>();
     private Map<String, PostChangePasswordAction> postChangePasswordActions = new HashMap<>();
 

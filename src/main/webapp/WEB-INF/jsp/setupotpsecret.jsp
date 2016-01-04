@@ -33,7 +33,7 @@
     boolean forcedPageView = false;
     try {
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-        final SetupOtpBean setupOtpBean = pwmRequest.getPwmSession().getSetupOtpBean();
+        final SetupOtpBean setupOtpBean = JspUtility.getSessionBean(pageContext, SetupOtpBean.class);
         otpUserRecord = setupOtpBean.getOtpUserRecord();
         allowSkip = pwmRequest.getConfig().readSettingAsEnum(PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class) == ForceSetupPolicy.FORCE_ALLOW_SKIP;
         forcedPageView = pwmRequest.isForcedPageView();

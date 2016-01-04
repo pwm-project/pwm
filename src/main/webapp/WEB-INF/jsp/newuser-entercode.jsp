@@ -24,7 +24,7 @@
   --%>
 
 <%
-    final NewUserBean newUserBean = JspUtility.getPwmSession(pageContext).getNewUserBean();
+    final NewUserBean newUserBean = JspUtility.getSessionBean(pageContext,NewUserBean.class);
     String destination = newUserBean.getTokenDisplayText();
 %>
 <!DOCTYPE html>

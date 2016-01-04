@@ -444,7 +444,8 @@ public enum PwmSetting {
             "session.maxSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.APP_SECURITY),
     SECURITY_ENABLE_LOGIN_COOKIE(
             "security.loginCookie.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
-
+    SECURITY_SESSION_BEAN_MODE(
+            "security.sessionBean.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.APP_SECURITY),
 
 
     // web security

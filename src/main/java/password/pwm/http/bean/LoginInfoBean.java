@@ -26,18 +26,21 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
+import password.pwm.util.secure.PwmRandom;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class LoginInfoBean implements PwmSessionBean {
+public class LoginInfoBean implements Serializable {
     private transient PasswordData userCurrentPassword;
 
     private AuthenticationType authenticationType = AuthenticationType.UNAUTHENTICATED;
     private List<AuthenticationType> authenticationFlags = new ArrayList<>();
     private PwmAuthenticationSource authenticationSource;
     private Date localAuthTime;
+    private String guid = (Long.toString(new Date().getTime(),36) + PwmRandom.getInstance().alphaNumericString(64));
 
     private transient BasicAuthInfo originalBasicAuthInfo;
 
@@ -124,5 +127,13 @@ public class LoginInfoBean implements PwmSessionBean {
 
     public void setAuthenticationSource(PwmAuthenticationSource authenticationSource) {
         this.authenticationSource = authenticationSource;
+    }
+
+    public String getGuid() {
+        return guid;
+    }
+
+    public void setGuid(String guid) {
+        this.guid = guid;
     }
 }

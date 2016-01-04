@@ -18,7 +18,6 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -153,7 +152,9 @@ public class LoginCookieManager implements PwmService {
             final PwmRequest pwmRequest,
             final LoginCookieBean loginCookieBean
     ) {
-        pwmRequest.getPwmSession().getLoginInfoBean().setLocalAuthTime(loginCookieBean.getLocalAuthTime());
+        final LoginInfoBean loginInfoBean = pwmRequest.getPwmSession().getLoginInfoBean();
+        loginInfoBean.setLocalAuthTime(loginCookieBean.getLocalAuthTime());
+        loginInfoBean.setGuid(loginCookieBean.getGuid());
     }
 
     private static void checkIfLoginCookieIsValid(
@@ -287,7 +288,7 @@ public class LoginCookieManager implements PwmService {
             loginCookieBean.t = loginInfoBean.getLocalAuthTime();
             loginCookieBean.i = new Date();
             loginCookieBean.n = pwmApplication.getInstanceNonce();
-            loginCookieBean.g = (Long.toString(new Date().getTime(),36) + PwmRandom.getInstance().alphaNumericString(64));
+            loginCookieBean.g = loginInfoBean.getGuid();
             return loginCookieBean;
         }
     }

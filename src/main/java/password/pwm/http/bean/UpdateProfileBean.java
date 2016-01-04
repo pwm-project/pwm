@@ -22,16 +22,22 @@
 
 package password.pwm.http.bean;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
-public class UpdateProfileBean implements PwmSessionBean {
+public class UpdateProfileBean extends PwmSessionBean {
 
     private boolean agreementPassed;
     private boolean confirmationPassed;
     private boolean formSubmitted;
 
     private final Map<String,String> formData = new LinkedHashMap<>();
+
+    public Type getType() {
+        return Type.AUTHENTICATED;
+    }
 
     public boolean isAgreementPassed() {
         return agreementPassed;
@@ -59,5 +65,9 @@ public class UpdateProfileBean implements PwmSessionBean {
 
     public void setFormSubmitted(boolean formSubmitted) {
         this.formSubmitted = formSubmitted;
+    }
+
+    public Set<Flag> getFlags() {
+        return Collections.singleton(Flag.ProhibitCookieSession);
     }
 }

@@ -89,8 +89,8 @@
             </pwm:if>
         </pwm:if>
 
-        <pwm:if test="updateProfileEnabled">
-            <pwm:if test="permission" arg1="PROFILE_UPDATE">
+        <% if (JspUtility.getPwmRequest(pageContext).getPwmSession().getSessionManager().getUpdateAttributeProfile(JspUtility.getPwmRequest(pageContext).getPwmApplication()) != null) { %>
+
             <a id="button_UpdateProfile" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.UpdateProfile.servletUrl()%>'/>" style="font-weight: normal;">        
             <div class="tile">
                     <div class="tile-content">
@@ -100,8 +100,8 @@
                     </div>
             </div>
             </a>
-            </pwm:if>
-        </pwm:if>
+
+        <% } %>
             
         <pwm:if test="shortcutsEnabled">
             <a id="button_Shortcuts" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Shortcuts.servletUrl()%>'/>" style="font-weight: normal;">

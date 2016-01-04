@@ -25,9 +25,9 @@ package password.pwm.bean;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.otp.OTPUserRecord;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -42,7 +42,7 @@ import java.util.*;
  * @author Jason D. Rivard
  * @see password.pwm.ldap.UserStatusReader#populateUserInfoBean(Locale, UserIdentity)
  */
-public class UserInfoBean implements PwmSessionBean {
+public class UserInfoBean implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     private UserIdentity userIdentity;
@@ -76,9 +76,6 @@ public class UserInfoBean implements PwmSessionBean {
     private boolean requiresResponseConfig;
     private boolean requiresOtpConfig;
     private boolean requiresUpdateProfile;
-
-
-    // --------------------- GETTER / SETTER METHODS ---------------------
 
     public Map<String,String> getCachedPasswordRuleAttributes() {
         return this.cachedPasswordRuleAttributes;

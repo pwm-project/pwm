@@ -28,7 +28,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%
     final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-    ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);
+    ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);
     boolean existingSchemaGood = false;
     String schemaActivityLog = "";
     try {

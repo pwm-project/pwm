@@ -35,6 +35,7 @@ import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
+import password.pwm.http.bean.ChangePasswordBean;
 import password.pwm.http.servlet.LoginServlet;
 import password.pwm.http.servlet.OAuthConsumerServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
@@ -347,7 +348,8 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
         // if change password in progress and req is for ChangePassword servlet, then allow request as is
         if (pwmURL.isChangePasswordURL()) {
-            final PasswordChangeProgressChecker.ProgressTracker progressTracker = pwmSession.getChangePasswordBean().getChangeProgressTracker();
+            final ChangePasswordBean cpb = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, ChangePasswordBean.class);
+            final PasswordChangeProgressChecker.ProgressTracker progressTracker = cpb.getChangeProgressTracker();
             if (progressTracker != null && progressTracker.getBeginTime() != null) {
                 return false;
             }

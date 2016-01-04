@@ -27,7 +27,6 @@
 <%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
-<%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%

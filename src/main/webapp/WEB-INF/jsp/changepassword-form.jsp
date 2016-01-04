@@ -22,9 +22,12 @@
 
 <!DOCTYPE html>
 <%@ page import="password.pwm.bean.PasswordStatus" %>
+<%@ page import="password.pwm.http.bean.ChangePasswordBean" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PasswordStatus passwordStatus = JspUtility.getPwmSession(pageContext).getUserInfoBean().getPasswordState(); %>
+<% final ChangePasswordBean changePasswordBean = JspUtility.getSessionBean(pageContext, ChangePasswordBean.class); %>
+
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -40,7 +43,7 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" name="changePasswordForm" id="changePasswordForm" autocomplete="off">
-            <% if (JspUtility.getPwmSession(pageContext).getChangePasswordBean().isCurrentPasswordRequired()) { %>
+            <% if (changePasswordBean.isCurrentPasswordRequired()) { %>
             <h1>
                 <label for="currentPassword"><pwm:display key="Field_CurrentPassword"/></label>
             </h1>

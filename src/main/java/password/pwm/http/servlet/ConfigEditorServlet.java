@@ -158,7 +158,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
     protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
+        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, ConfigManagerBean.class);
 
         if (configManagerBean.getStoredConfiguration() == null) {
             final StoredConfigurationImpl loadedConfig = ConfigManagerServlet.readCurrentConfiguration(pwmRequest);

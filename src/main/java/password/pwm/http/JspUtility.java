@@ -25,6 +25,7 @@ package password.pwm.http;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
@@ -49,6 +50,16 @@ public abstract class JspUtility {
             LOGGER.warn("unable to load pwmRequest object during jsp execution");
         }
         return pwmRequest;
+    }
+
+    public static <E extends PwmSessionBean> E getSessionBean(final PageContext pageContext, final Class<E> theClass) {
+        final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
+        try {
+            return pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, theClass);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.warn("unable to load pwmRequest object during jsp execution: " + e.getMessage());
+        }
+        return null;
     }
 
     public static Serializable getAttribute(final PageContext pageContext, final PwmRequest.Attribute requestAttr) {
@@ -119,6 +130,5 @@ public abstract class JspUtility {
 
     public static PwmRequest getPwmRequest(final PageContext pageContext) {
         return forRequest(pageContext.getRequest());
-    }
-}
+    }}
 

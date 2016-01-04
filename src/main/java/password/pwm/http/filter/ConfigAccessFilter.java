@@ -47,7 +47,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
             return;
         }
 
-        final ConfigManagerBean configManagerBean = pwmRequest.getPwmSession().getConfigManagerBean();
+        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, ConfigManagerBean.class);
         if (!checkAuthentication(pwmRequest, configManagerBean)) {
             filterChain.doFilter();
         }

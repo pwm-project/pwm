@@ -33,10 +33,8 @@
         <jsp:param name="pwm.PageName" value="Title_ActivateUser"/>
     </jsp:include>
     <div id="centerbody">
-        <%
-            final ActivateUserBean aub = JspUtility.getPwmSession(pageContext).getActivateUserBean();
-            String destination = aub.getTokenDisplayText();
-        %>
+        <% final ActivateUserBean activateUserBean = JspUtility.getSessionBean(pageContext, ActivateUserBean.class); %>
+        <% String destination = activateUserBean.getTokenDisplayText(); %>
         <p><pwm:display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>

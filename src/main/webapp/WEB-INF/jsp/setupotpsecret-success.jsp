@@ -26,7 +26,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupOtpBean otpBean = JspUtility.getPwmSession(pageContext).getSetupOtpBean();%>
+<% final SetupOtpBean otpBean = JspUtility.getSessionBean(pageContext,SetupOtpBean.class); %>
 <%
     final OTPUserRecord otpUserRecord = otpBean.getOtpUserRecord();
     final String ident = otpUserRecord.getIdentifier();

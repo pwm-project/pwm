@@ -37,6 +37,7 @@ import password.pwm.svc.event.SystemAuditRecord;
 import password.pwm.util.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.*;
@@ -111,6 +112,7 @@ public class ConfigurationReader {
             return null;
         }
 
+        final Date startTime = new Date();
         final InputStream theFileData;
         try {
             final byte[] contents = FileUtils.readFileToByteArray(configFile);
@@ -147,6 +149,8 @@ public class ConfigurationReader {
         } else {
             this.configMode = PwmApplication.MODE.RUNNING;
         }
+
+        LOGGER.debug("configuration reading/parsing complete in " + TimeDuration.fromCurrent(startTime).asLongString());
 
         return storedConfiguration;
     }

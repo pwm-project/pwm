@@ -31,7 +31,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
+<% ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
 <% boolean enableNext = configGuideBean.isCertsTrustedbyKeystore() || configGuideBean.isUseConfiguredCerts() || configGuideBean.getLdapCertificates() == null; %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">

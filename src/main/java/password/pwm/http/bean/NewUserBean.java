@@ -22,16 +22,16 @@
 
 package password.pwm.http.bean;
 
-import password.pwm.config.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.servlet.NewUserServlet;
 import password.pwm.util.PasswordData;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 
-public class NewUserBean implements PwmSessionBean {
+public class NewUserBean extends PwmSessionBean {
     private String profileID;
     private NewUserForm newUserForm;
 
@@ -45,16 +45,15 @@ public class NewUserBean implements PwmSessionBean {
     private boolean formPassed;
     private NewUserVerificationPhase verificationPhase = NewUserVerificationPhase.NONE;
     private Date createStartTime;
-    private NewUserServlet.Page currentPage;
     private boolean urlSpecifiedProfile;
 
     public static class NewUserForm implements Serializable {
-        private Map<FormConfiguration,String> formData;
+        private Map<String,String> formData;
         private PasswordData newUserPassword;
         private PasswordData confirmPassword;
 
         public NewUserForm(
-                Map<FormConfiguration, String> formData,
+                Map<String, String> formData,
                 PasswordData newUserPassword,
                 PasswordData confirmPassword
         )
@@ -64,7 +63,7 @@ public class NewUserBean implements PwmSessionBean {
             this.confirmPassword = confirmPassword;
         }
 
-        public Map<FormConfiguration, String> getFormData()
+        public Map<String, String> getFormData()
         {
             return formData;
         }
@@ -92,9 +91,9 @@ public class NewUserBean implements PwmSessionBean {
                 return false;
             }
 
-            for (final FormConfiguration formConfiguration : formData.keySet()) {
-                final String value = formData.get(formConfiguration);
-                final String otherValue = otherForm.formData.get(formConfiguration);
+            for (final String formKey : formData.keySet()) {
+                final String value = formData.get(formKey);
+                final String otherValue = otherForm.formData.get(formKey);
                 if (value != null && !value.equals(otherValue)) {
                     return false;
                 }
@@ -205,19 +204,19 @@ public class NewUserBean implements PwmSessionBean {
         this.newUserForm = newUserForm;
     }
 
-    public NewUserServlet.Page getCurrentPage() {
-        return currentPage;
-    }
-
-    public void setCurrentPage(NewUserServlet.Page currentPage) {
-        this.currentPage = currentPage;
-    }
-
     public boolean isUrlSpecifiedProfile() {
         return urlSpecifiedProfile;
     }
 
     public void setUrlSpecifiedProfile(boolean urlSpecifiedProfile) {
         this.urlSpecifiedProfile = urlSpecifiedProfile;
+    }
+
+    public Type getType() {
+        return Type.PUBLIC;
+    }
+
+    public Set<Flag> getFlags() {
+        return Collections.emptySet();
     }
 }

@@ -24,7 +24,10 @@ package password.pwm.http.bean;
 
 import password.pwm.bean.UserIdentity;
 
-public class ActivateUserBean implements PwmSessionBean {
+import java.util.Collections;
+import java.util.Set;
+
+public class ActivateUserBean extends PwmSessionBean {
     private boolean tokenIssued;
     private boolean tokenPassed;
     private boolean agreementPassed;
@@ -90,5 +93,13 @@ public class ActivateUserBean implements PwmSessionBean {
     public void setAgreementText(String agreementText)
     {
         this.agreementText = agreementText;
+    }
+
+    public Type getType() {
+        return Type.PUBLIC;
+    }
+
+    public Set<Flag> getFlags() {
+        return Collections.emptySet();
     }
 }

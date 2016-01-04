@@ -24,7 +24,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final ActivateUserBean activateUserBean = JspUtility.getPwmSession(pageContext).getActivateUserBean(); %>
+<% final ActivateUserBean activateUserBean = JspUtility.getSessionBean(pageContext, ActivateUserBean.class); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">

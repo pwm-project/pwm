@@ -105,7 +105,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
+        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, ConfigManagerBean.class);
 
         final ConfigManagerAction processAction = readProcessAction(pwmRequest);
         if (processAction != null) {
@@ -243,7 +243,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
 
             storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE, "false");
             saveConfiguration(pwmRequest, storedConfiguration);
-            final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
+            final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, ConfigManagerBean.class);
             configManagerBean.setConfiguration(null);
         } catch (PwmException e) {
             final ErrorInformation errorInfo = e.getErrorInformation();

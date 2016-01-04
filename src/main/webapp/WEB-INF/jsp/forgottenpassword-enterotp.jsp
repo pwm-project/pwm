@@ -23,6 +23,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
+<%@ page import="password.pwm.http.JspUtility"%>
 <%@ page import="password.pwm.util.otp.OTPUserRecord" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
@@ -33,8 +34,8 @@
         <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
     </jsp:include>
     <div id="centerbody">
+        <% final ForgottenPasswordBean fpb = JspUtility.getSessionBean(pageContext, ForgottenPasswordBean.class); %>
         <%
-            final ForgottenPasswordBean fpb = JspUtility.getPwmSession(pageContext).getForgottenPasswordBean();
             OTPUserRecord otp = fpb.getUserInfo().getOtpUserRecord();
             String identifier = otp.getIdentifier();
 

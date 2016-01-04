@@ -23,13 +23,14 @@
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="java.util.List" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmRequest pwmRequest = PwmRequest.forRequest(request, response); %>
 <% final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean(); %>
-<% final ForgottenPasswordBean recoverBean = pwmRequest.getPwmSession().getForgottenPasswordBean(); %>
+<% final ForgottenPasswordBean recoverBean = JspUtility.getSessionBean(pageContext, ForgottenPasswordBean.class); %>
 <% final List<FormConfiguration> requiredAttrParams = recoverBean.getAttributeForm(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>

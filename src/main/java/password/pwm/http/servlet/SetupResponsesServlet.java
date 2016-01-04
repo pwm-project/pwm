@@ -140,12 +140,12 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
         }
 
         // check if the locale has changed since first seen.
-        if (pwmSession.getSessionStateBean().getLocale() != pwmSession.getSetupResponseBean().getUserLocale()) {
-            pwmSession.clearSessionBean(SetupResponsesBean.class);
-            pwmSession.getSetupResponseBean().setUserLocale(pwmSession.getSessionStateBean().getLocale());
+        if (pwmSession.getSessionStateBean().getLocale() != pwmApplication.getSessionBeanService().getBean(pwmRequest, SetupResponsesBean.class).getUserLocale()) {
+            pwmRequest.getPwmApplication().getSessionBeanService().clearBean(pwmRequest, SetupResponsesBean.class);
+            pwmApplication.getSessionBeanService().getBean(pwmRequest, SetupResponsesBean.class).setUserLocale(pwmSession.getSessionStateBean().getLocale());
         }
 
-        SetupResponsesBean setupResponsesBean = pwmSession.getSessionBean(SetupResponsesBean.class);
+        SetupResponsesBean setupResponsesBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, SetupResponsesBean.class);
         initializeBean(pwmRequest, setupResponsesBean);
 
         // check to see if the user has any challenges assigned
@@ -183,8 +183,8 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
                     return;
 
                 case changeResponses:
-                    pwmSession.clearSessionBean(SetupResponsesBean.class);
-                    setupResponsesBean = pwmSession.getSessionBean(SetupResponsesBean.class);
+                    pwmApplication.getSessionBeanService().clearBean(pwmRequest, SetupResponsesBean.class);
+                    setupResponsesBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, SetupResponsesBean.class);
                     this.initializeBean(pwmRequest, setupResponsesBean);
                     setupResponsesBean.setUserLocale(pwmSession.getSessionStateBean().getLocale());
 
@@ -208,7 +208,7 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
             pwmApplication.getCrService().clearResponses(pwmSession, theUser, userGUID);
             UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmRequest.getSessionLabel());
             userStatusReader.populateLocaleSpecificUserInfoBean(pwmSession.getUserInfoBean(),pwmRequest.getLocale());
-            pwmSession.clearSessionBean(SetupResponsesBean.class);
+            pwmRequest.getPwmApplication().getSessionBeanService().clearBean(pwmRequest, SetupResponsesBean.class);
 
             // mark the event log
             final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
@@ -271,7 +271,7 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
                     setupResponsesBean.getHelpdeskResponseData().getResponseMap()
             );
             saveResponses(pwmRequest, responses);
-            pwmRequest.getPwmSession().clearSessionBean(SetupResponsesBean.class);
+            pwmRequest.getPwmApplication().getSessionBeanService().clearBean(pwmRequest, SetupResponsesBean.class);
             pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_SetupResponse);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmRequest.getSessionLabel(), e.getErrorInformation());
@@ -473,7 +473,7 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
 
             responseSet.meetsChallengeSetRequirements(challengeSet);
 
-            final int minRandomRequiredSetup = pwmRequest.getPwmSession().getSetupResponseBean().getResponseData().getMinRandomSetup();
+            final int minRandomRequiredSetup = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, SetupResponsesBean.class).getResponseData().getMinRandomSetup();
             if (minRandomRequiredSetup == 0) { // if using recover style, then all readResponseSet must be supplied at this point.
                 if (responseSet.getChallengeSet().getRandomChallenges().size() < challengeSet.getRandomChallenges().size()) {
                     throw new ChaiValidationException("too few random responses", ChaiError.CR_TOO_FEW_RANDOM_RESPONSES);

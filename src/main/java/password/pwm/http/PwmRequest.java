@@ -286,6 +286,8 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         GuestMaximumValidDays,
 
         NewUser_FormShowBackButton,
+
+        CookieBeanStorage,
     }
 
     public static class FileUploadItem {

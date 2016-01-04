@@ -48,10 +48,12 @@
             <br class="clear"/>
             <h1>Configuration Password</h1>
             <input type="<pwm:value name="passwordFieldType"/>" class="inputfield passwordfield" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" <pwm:autofocus/>/>
-			<% if (!pwmRequest.getConfig().isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) { %>
+            <% if (!pwmRequest.getConfig().isDefaultValue(PwmSetting.PWM_SECURITY_KEY)) { %>
             <div class="checkboxWrapper">
-                <input type="checkbox" id="remember" name="remember"/>
-                <pwm:display key="Display_RememberLogin" bundle="Config" value1="<%=(String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.ConfigPasswordRememberTime)%>"/>
+                <label>
+                    <input type="checkbox" id="remember" name="remember"/>
+                    <pwm:display key="Display_RememberLogin" bundle="Config" value1="<%=(String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.ConfigPasswordRememberTime)%>"/>
+                </label>
             </div>
             <% } %>
             <div class="buttonbar">

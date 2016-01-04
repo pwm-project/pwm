@@ -28,10 +28,12 @@ import password.pwm.util.otp.OTPUserRecord;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
-public class SetupOtpBean implements PwmSessionBean {
+public class SetupOtpBean extends PwmSessionBean {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(SetupOtpBean.class);
 
@@ -122,5 +124,13 @@ public class SetupOtpBean implements PwmSessionBean {
     public void setWritten(boolean written)
     {
         this.written = written;
+    }
+
+    public Type getType() {
+        return Type.AUTHENTICATED;
+    }
+
+    public Set<Flag> getFlags() {
+        return Collections.emptySet();
     }
 }

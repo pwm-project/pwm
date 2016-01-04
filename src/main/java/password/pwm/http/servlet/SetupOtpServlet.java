@@ -143,7 +143,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
             throw new PwmUnrecoverableException(PwmError.ERROR_PASSWORD_REQUIRED);
         }
 
-        final SetupOtpBean otpBean = (SetupOtpBean) pwmSession.getSessionBean(SetupOtpBean.class);
+        final SetupOtpBean otpBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, SetupOtpBean.class);
 
         initializeBean(pwmRequest, otpBean);
 
@@ -278,7 +278,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         pwmSession.getSessionStateBean().setSkippedOtpSetup(true);
-        pwmSession.clearSessionBean(SetupOtpBean.class);
+        pwmRequest.getPwmApplication().getSessionBeanService().clearBean(pwmRequest, SetupOtpBean.class);
 
         pwmRequest.sendRedirectToContinue();
     }
