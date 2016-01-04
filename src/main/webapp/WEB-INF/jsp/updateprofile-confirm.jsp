@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.config.FormConfiguration" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.Map" %>
@@ -64,7 +65,7 @@
         <div class="buttonbar">
             <form style="display: inline" action="<pwm:current-url/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <button id="confirmBtn" type="submit" class="btn" name="button">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                     <pwm:display key="Button_Confirm"/>
                 </button>
                 <input type="hidden" name="processAction" value="confirm"/>
@@ -73,7 +74,7 @@
             <form style="display: inline" action="<pwm:current-url/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded"
                   class="pwm-form">
                 <button id="gobackBtn" type="submit" class="btn" name="button">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <input type="hidden" name="processAction" value="unConfirm"/>

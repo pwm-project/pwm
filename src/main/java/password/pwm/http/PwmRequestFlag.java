@@ -1,0 +1,14 @@
+package password.pwm.http;
+
+public enum PwmRequestFlag {
+    HIDE_LOCALE,
+    HIDE_IDLE,
+    HIDE_THEME,
+    HIDE_FOOTER_TEXT,
+    HIDE_HEADER_BUTTONS,
+    HIDE_HEADER_WARNINGS,
+    NO_REQ_COUNTER,
+    NO_IDLE_TIMEOUT,
+    NO_MOBILE_CSS,
+    ALWAYS_EXPAND_MESSAGE_TEXT,
+}

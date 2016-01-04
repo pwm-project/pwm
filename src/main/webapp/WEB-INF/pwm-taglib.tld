@@ -137,7 +137,8 @@
         <attribute>
             <name>name</name>
             <required>true</required>
-            <rtexprvalue>false</rtexprvalue>
+            <rtexprvalue>true</rtexprvalue>
+            <type>password.pwm.http.tag.PwmValue</type>
         </attribute>
     </tag>
     <tag>
@@ -200,16 +201,19 @@
             <name>test</name>
             <required>true</required>
             <rtexprvalue>true</rtexprvalue>
+            <type>password.pwm.http.tag.PwmIfTest</type>
         </attribute>
        <attribute>
-            <name>arg1</name>
+            <name>permission</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
+           <type>password.pwm.Permission</type>
         </attribute>
         <attribute>
             <name>negate</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
+            <type>boolean</type>
         </attribute>
     </tag>
     <tag>

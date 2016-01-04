@@ -67,11 +67,11 @@ public abstract class JspUtility {
         return pwmRequest.getAttribute(requestAttr);
     }
 
-    public static void setFlag(final PageContext pageContext, final PwmRequest.Flag flag) {
+    public static void setFlag(final PageContext pageContext, final PwmRequestFlag flag) {
         setFlag(pageContext, flag, true);
     }
 
-    public static void setFlag(final PageContext pageContext, final PwmRequest.Flag flag, final boolean value) {
+    public static void setFlag(final PageContext pageContext, final PwmRequestFlag flag, final boolean value) {
         final PwmRequest pwmRequest;
         try {
             pwmRequest = PwmRequest.forRequest(
@@ -87,7 +87,7 @@ public abstract class JspUtility {
         }
     }
 
-    public static boolean isFlag(final HttpServletRequest request, final PwmRequest.Flag flag) {
+    public static boolean isFlag(final HttpServletRequest request, final PwmRequestFlag flag) {
         final PwmRequest pwmRequest = forRequest(request);
         return pwmRequest != null && pwmRequest.isFlag(flag);
     }

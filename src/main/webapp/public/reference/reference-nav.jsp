@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -21,4 +22,4 @@
   ~
   --%>
 
-<pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-level-up"></span></pwm:if><a href=".">Reference Library</a>
+<pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-level-up"></span></pwm:if><a href=".">Reference Library</a>

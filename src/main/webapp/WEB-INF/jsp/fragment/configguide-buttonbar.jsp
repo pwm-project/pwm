@@ -1,4 +1,4 @@
-
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -23,12 +23,12 @@
 
 <div class="buttonbar">
     <button class="btn" id="button_previous">
-        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
+        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
         <pwm:display key="Button_Previous" bundle="Config"/>
     </button>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <button class="btn" id="button_next">
-        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
         <pwm:display key="Button_Next" bundle="Config"/>
     </button>
 </div>

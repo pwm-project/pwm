@@ -26,6 +26,7 @@
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.option.ViewStatusFields" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.svc.event.UserAuditRecord" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
@@ -262,7 +263,7 @@
             <% } %>
         </tr>
         <% } %>
-        <pwm:if test="otpEnabled">
+        <pwm:if test="<%=PwmIfTest.otpEnabled%>">
             <% if (viewStatusFields.contains(ViewStatusFields.OTPStored)) { %>
             <tr>
                 <td class="key">
@@ -376,7 +377,7 @@
         <input type="hidden" name="processAction" value="continue"/>
         <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
         <button type="submit" name="button" class="btn" id="button_continue">
-            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
             <pwm:display key="Button_Continue"/>
         </button>
     </form>

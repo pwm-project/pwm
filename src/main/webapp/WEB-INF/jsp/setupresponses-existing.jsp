@@ -54,7 +54,7 @@
             <form style="display: inline" action="<pwm:current-url/>" method="post" name="clearExistingForm" id="clearExistingForm"
                   enctype="application/x-www-form-urlencoded" onsubmit="confirmContinue();return false">
                 <button type="submit" name="confirm_btn" class="btn" id="confirm_btn" value="">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
                     <pwm:display key="Button_ClearResponses"/>
                 </button>
                 <input type="hidden" name="processAction" value="clearExisting"/>

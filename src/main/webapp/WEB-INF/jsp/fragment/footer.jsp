@@ -27,7 +27,9 @@
 <%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
+<%@ page import="password.pwm.http.tag.PwmValue" %>
 <%@ page import="java.util.Locale" %>
+<%@ page import="password.pwm.http.PwmRequestFlag" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     PwmSession pwmSessionFooter = null;
@@ -44,7 +46,7 @@
 <% final Locale userLocaleFooter = pwmSessionFooter == null ? PwmConstants.DEFAULT_LOCALE : pwmSessionFooter.getSessionStateBean().getLocale(); %>
 <% boolean segmentDisplayed = false; %>
 <%-- begin pwm footer --%>
-<% if (footer_pwmRequest != null && !footer_pwmRequest.isFlag(PwmRequest.Flag.HIDE_FOOTER_TEXT)) { %>
+<% if (footer_pwmRequest != null && !footer_pwmRequest.isFlag(PwmRequestFlag.HIDE_FOOTER_TEXT)) { %>
 <div id="footer">
     <div id="footer-content">
         <span class="infotext">
@@ -57,7 +59,7 @@
             <% } %>
             <% segmentDisplayed = true; } %>
             <% if (pwmApplicationFooter.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT)) { %>
-            <% if (!footer_pwmRequest.isFlag(PwmRequest.Flag.HIDE_IDLE)) { %>
+            <% if (!footer_pwmRequest.isFlag(PwmRequestFlag.HIDE_IDLE)) { %>
             <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
             <span id="idle_wrapper">
             <span id="idle_status">
@@ -66,7 +68,7 @@
             </span>
             <% segmentDisplayed = true; } %>
             <% } %>
-            <% if (!footer_pwmRequest.isFlag(PwmRequest.Flag.HIDE_LOCALE)) { %>
+            <% if (!footer_pwmRequest.isFlag(PwmRequestFlag.HIDE_LOCALE)) { %>
             <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
             <a id="localeSelectionMenu">
                 <% String flagFileName = pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter);%>
@@ -80,7 +82,7 @@
     </div>
 </div>
 <% } %>
-<% if (footer_pwmRequest != null && footer_pwmRequest.isFlag(PwmRequest.Flag.NO_IDLE_TIMEOUT)) { %>
+<% if (footer_pwmRequest != null && footer_pwmRequest.isFlag(PwmRequestFlag.NO_IDLE_TIMEOUT)) { %>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['idle_suspendTimeout'] = true;
@@ -90,9 +92,9 @@
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function() {
-            <pwm:value name="customJavascript"/>
+            <pwm:value name="<%=PwmValue.customJavascript%>"/>
         });
     </script>
 </pwm:script>
-<script nonce="<pwm:value name="cspNonce"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
+<script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
 <pwm:script-ref url="/public/resources/js/main.js"/>

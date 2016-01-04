@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -29,10 +30,10 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final ErrorInformation errorInformation = (ErrorInformation)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.PwmErrorInfo); %>
 <html dir="<pwm:LocaleOrientation/>">
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_REQ_COUNTER); %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_BUTTONS); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_WARNINGS); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_REQ_COUNTER); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo" data-jsp-page="error.jsp">
 <div id="wrapper">
@@ -47,13 +48,13 @@
         <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
         <br/>
         <br/>
-        <pwm:if test="showErrorDetail">
+        <pwm:if test="<%=PwmIfTest.showErrorDetail%>">
             <% if (errorInformation != null && !errorInformation.getError().isErrorIsPermanent()) { %>
             <div class="buttonbar">
                 <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
                     <input type="hidden" name="processAction" value="continue"/>
                     <button type="submit" name="button" class="btn" id="button_continue" autofocus="autofocus">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                         <pwm:display key="Button_Continue"/>
                     </button>
                     <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

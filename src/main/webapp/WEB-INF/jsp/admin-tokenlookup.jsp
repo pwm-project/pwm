@@ -1,7 +1,9 @@
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.error.PwmOperationalException" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%@ page import="password.pwm.svc.token.TokenPayload" %>
+<%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Iterator" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -101,9 +103,7 @@
                     Issue Date
                 </td>
                 <td>
-                    System: <%= PwmConstants.DEFAULT_DATETIME_FORMAT.format(tokenPayload.getDate()) %>
-                    <br/>
-                    Local: <%= SimpleDateFormat.getDateTimeInstance().format(tokenPayload.getDate()) %>
+                    <span class="timestamp"><%= PwmConstants.DEFAULT_DATETIME_FORMAT.format(tokenPayload.getDate()) %></span>
                 </td>
             </tr>
             <tr>
@@ -163,7 +163,7 @@
             <textarea name="token" id="token" style="width: 580px; height: 150px"></textarea>
             <div class="buttonbar">
                 <button type="submit" name="submitBtn" class="btn" type="submit">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
                     Lookup Token
                 </button>
             </div>

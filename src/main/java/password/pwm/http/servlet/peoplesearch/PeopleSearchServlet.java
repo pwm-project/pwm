@@ -38,6 +38,7 @@ import password.pwm.error.*;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.*;
@@ -160,8 +161,8 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
         }
 
         if (pwmRequest.getURL().isPublicUrl()) {
-            pwmRequest.setFlag(PwmRequest.Flag.HIDE_IDLE, true);
-            pwmRequest.setFlag(PwmRequest.Flag.NO_IDLE_TIMEOUT, true);
+            pwmRequest.setFlag(PwmRequestFlag.HIDE_IDLE, true);
+            pwmRequest.setFlag(PwmRequestFlag.NO_IDLE_TIMEOUT, true);
         }
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PEOPLE_SEARCH);
     }

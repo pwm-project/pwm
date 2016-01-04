@@ -69,20 +69,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     private transient PwmSession pwmSession;
     private final String cspNonce;
 
-    private final Set<Flag> flags = new HashSet<>();
-
-    public enum Flag {
-        HIDE_LOCALE,
-        HIDE_IDLE,
-        HIDE_THEME,
-        HIDE_FOOTER_TEXT,
-        HIDE_HEADER_BUTTONS,
-        HIDE_HEADER_WARNINGS,
-        NO_REQ_COUNTER,
-        NO_IDLE_TIMEOUT,
-        NO_MOBILE_CSS,
-        ALWAYS_EXPAND_MESSAGE_TEXT,
-    }
+    private final Set<PwmRequestFlag> flags = new HashSet<>();
 
     public static PwmRequest forRequest(
             HttpServletRequest request,
@@ -487,7 +474,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return false;
     }
 
-    public void setFlag(final Flag flag, final boolean status) {
+    public void setFlag(final PwmRequestFlag flag, final boolean status) {
         if (status) {
             flags.add(flag);
         } else {
@@ -495,7 +482,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         }
     }
 
-    public boolean isFlag(final Flag flag) {
+    public boolean isFlag(final PwmRequestFlag flag) {
         return flags.contains(flag);
     }
 

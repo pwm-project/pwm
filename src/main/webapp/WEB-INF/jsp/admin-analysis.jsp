@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.error.PwmException" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%@ page import="password.pwm.svc.stats.Statistic" %>
 <%@ page import="password.pwm.svc.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.svc.stats.StatisticsManager" %>
@@ -76,7 +77,7 @@
                     <div style="text-align: center">
                         <form action="<pwm:current-url/>" method="post">
                             <button type="submit" class="btn" id="button-downloadUserSummaryCsv">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-download">&nbsp;</span></pwm:if>
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                             </button>
                             <input type="hidden" name="processAction" value="downloadUserSummaryCsv"/>
@@ -92,12 +93,12 @@
                                data-dojo-props="constraints:{min:10,max:50000,pattern:'#'},smallDelta:100"/>
                         Rows
                         <button class="btn" type="button" id="button-refreshReportDataGrid">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
                             <pwm:display key="Button_Refresh" bundle="Admin"/>
                         </button>
                         <form action="<pwm:current-url/>" method="post">
                             <button type="submit" class="btn" id="button-downloadUserReportCsv">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-download">&nbsp;</span></pwm:if>
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                             </button>
                             <pwm:script>
@@ -130,17 +131,17 @@
                     <table style="width:450px;">
                         <tr><td style="text-align: center; cursor: pointer">
                             <button id="reportStartButton" class="btn">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-play">&nbsp;</span></pwm:if>
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-play">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_Report_Start" bundle="Admin"/>
                             </button>
                             &nbsp;&nbsp;
                             <button id="reportStopButton" class="btn">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-stop">&nbsp;</span></pwm:if>
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-stop">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_Report_Stop" bundle="Admin"/>
                             </button>
                             &nbsp;&nbsp;
                             <button id="reportClearButton" class="btn">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-trash-o">&nbsp;</span></pwm:if>
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-trash-o">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_Report_Clear" bundle="Admin"/>
                             </button>
                         </td></tr>
@@ -177,7 +178,7 @@
                                             <% } %>
                                         </select>
                                         <button class="btn" type="submit">
-                                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
+                                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
                                             <pwm:display key="Button_Refresh" bundle="Admin"/>
                                         </button>
                                     </form>
@@ -201,7 +202,7 @@
                     <div style="text-align: center">
                         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded">
                             <button type="submit" class="btn" id="button-downloadStatisticsLogCsv">
-                                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
                                 <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                             </button>
                             <input type="hidden" name="processAction" value="downloadStatisticsLogCsv"/>
@@ -271,7 +272,7 @@
         });
     </script>
 </pwm:script>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

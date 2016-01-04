@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.config.profile.NewUserProfile" %>
 <%@ page import="password.pwm.http.servlet.NewUserServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -53,7 +54,7 @@
                     <form action="<pwm:current-url/>" method="post" class="pwm-form"
                           enctype="application/x-www-form-urlencoded" name="search">
                         <button class="btn" type="submit" name="submitBtn">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                             <%=profile.getDisplayName(pwmRequest.getLocale())%>
                         </button>
                         <input type="hidden" name="profile" value="<%=profile.getIdentifier()%>"/>
@@ -70,7 +71,7 @@
             <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="get"
                   enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
                 <button class="btn" type="submit" name="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
                     <pwm:display key="Button_Cancel"/>
                 </button>
                 <input type="hidden" name="processAction" value="continue"/>

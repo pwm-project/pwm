@@ -1,6 +1,8 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.PwmIfTag" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
+<%@ page import="password.pwm.*" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -35,7 +37,7 @@
     </jsp:include>
     
     <div id="centerbody" class="tile-centerbody">        
-		<pwm:if test="permission" arg1="CHANGE_PASSWORD">
+		<pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.CHANGE_PASSWORD%>">
             <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ChangePassword.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
@@ -47,8 +49,8 @@
             </a>
         </pwm:if>
 
-		<pwm:if test="peopleSearchEnabled">
-            <pwm:if test="permission" arg1="PEOPLE_SEARCH">
+		<pwm:if test="<%=PwmIfTest.peopleSearchEnabled%>">
+            <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PEOPLE_SEARCH%>">
             <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
@@ -61,8 +63,8 @@
             </pwm:if>
         </pwm:if>
 
-        <pwm:if test="setupChallengeEnabled">
-            <pwm:if test="permission" arg1="SETUP_RESPONSE">
+        <pwm:if test="<%=PwmIfTest.setupChallengeEnabled%>">
+            <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.SETUP_RESPONSE%>">
             <a id="button_SetupResponses" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupResponses.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
@@ -75,8 +77,8 @@
             </pwm:if>
         </pwm:if>
 
-        <pwm:if test="otpEnabled">
-            <pwm:if test="permission" arg1="SETUP_OTP_SECRET">
+        <pwm:if test="<%=PwmIfTest.otpEnabled%>">
+            <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.SETUP_OTP_SECRET%>">
             <a id="button_SetupOtpSecret" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupOtp.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
@@ -103,7 +105,7 @@
 
         <% } %>
             
-        <pwm:if test="shortcutsEnabled">
+        <pwm:if test="<%=PwmIfTest.shortcutsEnabled%>">
             <a id="button_Shortcuts" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Shortcuts.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
@@ -115,7 +117,7 @@
             </a>
         </pwm:if>            
                         
-		<pwm:if test="<%=PwmIfTag.TESTS.accountInfoEnabled.toString()%>">
+		<pwm:if test="<%=PwmIfTest.accountInfoEnabled%>">
             <a id="button_UserInformation" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.AccountInformation.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
@@ -140,7 +142,7 @@
 		<% } %>
 
 		<% if (JspUtility.getPwmRequest(pageContext).getConfig() != null && JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
-			<pwm:if test="permission" arg1="GUEST_REGISTRATION">
+			<pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.GUEST_REGISTRATION%>">
 				<a id="button_GuestRegistration" href="<pwm:url url='<%=PwmServletDefinition.GuestRegistration.servletUrl()%>' addContext="true"/>" style="font-weight: normal;">
 				<div class="tile">
 						<div class="tile-content">
@@ -153,7 +155,7 @@
 			</pwm:if>
 		<% } %>
 
-        <pwm:if test="permission" arg1="PWMADMIN">
+        <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">
             <a id="button_Admin" href="<pwm:url url='<%=PwmServletDefinition.Admin.servletUrl()%>' addContext="true"/> " style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">

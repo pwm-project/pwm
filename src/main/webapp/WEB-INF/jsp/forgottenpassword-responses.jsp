@@ -50,18 +50,18 @@ this is handled this way so on browsers where hiding fields is not possible, the
             %>
             <h2><label for="PwmResponse_R_<%=counter%>"><%= loopChallenge.getChallengeText() %>
             </label></h2>
-            <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_<%= counter %>" class="inputfield passwordfield" maxlength="255"
+            <input type="<pwm:value name="<%=PwmValue.responseFieldType%>"/>" name="PwmResponse_R_<%= counter %>" class="inputfield passwordfield" maxlength="255"
                    <pwm:autofocus/> id="PwmResponse_R_<%=counter%>" required="required"/>
             <% } %>
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="checkResponses"/>
                 <button type="submit" name="checkResponses" class="btn" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                                                    <pwm:display key="Button_RecoverPassword"/>
                 </button>
                 <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordOptionalPageView))) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <% } %>
