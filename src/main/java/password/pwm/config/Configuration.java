@@ -749,6 +749,15 @@ public class Configuration implements Serializable, SettingReader {
         return returnMap;
     }
 
+    public Map<String,UpdateAttributesProfile> getUpdateAttributesProfile() {
+        final Map<String,UpdateAttributesProfile> returnMap = new LinkedHashMap<>();
+        final Map<String,Profile> profileMap = profileMap(ProfileType.UpdateAttributes);
+        for (final String profileID : profileMap.keySet()) {
+            returnMap.put(profileID, (UpdateAttributesProfile)profileMap.get(profileID));
+        }
+        return returnMap;
+    }
+
     public Map<String,ForgottenPasswordProfile> getForgottenPasswordProfiles() {
         final Map<String,ForgottenPasswordProfile> returnMap = new LinkedHashMap<>();
         final Map<String,Profile> profileMap = profileMap(ProfileType.ForgottenPassword);
@@ -782,6 +791,10 @@ public class Configuration implements Serializable, SettingReader {
             
             case NewUser:
                 newProfile = NewUserProfile.makeFromStoredConfiguration(storedConfiguration, profileID);
+                break;
+
+            case UpdateAttributes:
+                newProfile = UpdateAttributesProfile.makeFromStoredConfiguration(storedConfiguration, profileID);
                 break;
 
             default: throw new IllegalArgumentException("unknown profile type: " + profileType.toString());

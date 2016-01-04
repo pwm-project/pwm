@@ -99,6 +99,7 @@ public enum Statistic {
     REST_STATISTICS                     (Type.INCREMENTOR, "RestStatistics", null),
     REST_VERIFYCHALLENGES               (Type.INCREMENTOR, "RestVerifyChallenges", null),
     INTRUDER_ATTEMPTS                   (Type.INCREMENTOR, "IntruderAttempts", null),
+    FOREIGN_SESSIONS_ACCEPTED           (Type.INCREMENTOR, "ForeignSessionsAccepted", null),
 
     AVG_PASSWORD_SYNC_TIME              (Type.AVERAGE, "AvgPasswordSyncTime", null),
     AVG_AUTHENTICATION_TIME             (Type.AVERAGE, "AvgAuthenticationTime", null),

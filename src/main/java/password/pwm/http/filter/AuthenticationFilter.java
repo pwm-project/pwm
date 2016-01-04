@@ -31,6 +31,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
+import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
@@ -48,7 +49,6 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.CASAuthenticationHelper;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.LoginCookieManager;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -160,7 +160,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
         // output the login cookie
         try {
-            LoginCookieManager.writeLoginCookieToResponse(pwmRequest);
+            pwmApplication.getLoginCookieManager().writeLoginCookieToResponse(pwmRequest);
         } catch (PwmUnrecoverableException e) {
             final String errorMsg = "unexpected error writing login cookie to response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
@@ -203,7 +203,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         final AuthRecord authRecord = new AuthRecord(authTime, userGuid);
 
         try {
-            pwmRequest.getPwmResponse().writeEncryptedCookie(cookieName, authRecord, cookieAgeSeconds, pwmRequest.getContextPath());
+            pwmRequest.getPwmResponse().writeEncryptedCookie(cookieName, authRecord, cookieAgeSeconds, PwmHttpResponseWrapper.CookiePath.Application);
             LOGGER.debug(pwmRequest,"wrote auth record cookie to user browser for use during forgotten password");
         } catch (PwmUnrecoverableException e) {
             LOGGER.error(pwmRequest, "error while setting authentication record cookie: " + e.getMessage());
@@ -577,7 +577,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         )
                 throws PwmUnrecoverableException, IOException
         {
-            LoginCookieManager.readLoginInfoCookie(pwmRequest);
+            pwmRequest.getPwmApplication().getLoginCookieManager().readLoginInfoCookie(pwmRequest);
         }
 
         @Override

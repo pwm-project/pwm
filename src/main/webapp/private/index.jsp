@@ -49,7 +49,7 @@
 
 		<pwm:if test="peopleSearchEnabled">
             <pwm:if test="permission" arg1="PEOPLE_SEARCH">
-            <a href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>" style="font-weight: normal;">
+            <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image search-image"></div>
@@ -128,8 +128,7 @@
         </pwm:if>
 
         <% if (JspUtility.getPwmRequest(pageContext).getPwmSession().getSessionManager().getHelpdeskProfile(JspUtility.getPwmRequest(pageContext).getPwmApplication()) != null) { %>
-
-            <a id="button_helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Helpdesk.servletUrl()%>'/>" style="font-weight: normal;">
+            <a id="button_Helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Helpdesk.servletUrl()%>'/>" style="font-weight: normal;">
             <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image support-image"></div>
@@ -138,10 +137,9 @@
                     </div>
             </div>
             </a>
-
 		<% } %>
-		<% if (JspUtility.getPwmRequest(pageContext).getConfig() != null && JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
 
+		<% if (JspUtility.getPwmRequest(pageContext).getConfig() != null && JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
 			<pwm:if test="permission" arg1="GUEST_REGISTRATION">
 				<a id="button_GuestRegistration" href="<pwm:url url='<%=PwmServletDefinition.GuestRegistration.servletUrl()%>' addContext="true"/>" style="font-weight: normal;">
 				<div class="tile">
@@ -153,7 +151,6 @@
 				</div>
 				</a>
 			</pwm:if>
-
 		<% } %>
 
         <pwm:if test="permission" arg1="PWMADMIN">
@@ -166,8 +163,7 @@
                     </div>
             </div>
             </a>
-        </pwm:if>    
-
+        </pwm:if>
     </div>
     <div class="push"></div>
 </div>

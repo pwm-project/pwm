@@ -26,6 +26,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
 import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -35,6 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.URI;
 import java.util.Arrays;
 
 public class PwmHttpResponseWrapper {
@@ -43,6 +45,31 @@ public class PwmHttpResponseWrapper {
     private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
     private final Configuration configuration;
+
+    public enum CookiePath {
+        Application,
+        Private,
+        CurrentURL,
+
+        ;
+
+        String toStringPath(final HttpServletRequest httpServletRequest) {
+            switch (this) {
+                case Application:
+                    return httpServletRequest.getServletContext().getContextPath();
+
+                case Private:
+                    return httpServletRequest.getServletContext().getContextPath() + PwmConstants.URL_PREFIX_PRIVATE;
+
+                case CurrentURL:
+                    return httpServletRequest.getRequestURI();
+
+                default:
+                    throw new IllegalStateException("undefined CookiePath type: " + this);
+            }
+
+        }
+    }
 
     public enum Flag {
         NonHttpOnly,
@@ -115,14 +142,22 @@ public class PwmHttpResponseWrapper {
             final String cookieName,
             final String cookieValue,
             final int seconds,
-            final String path,
+            final CookiePath path,
             final Flag... flags
     ) {
-        final boolean secureFlag;
+        boolean secureFlag;
         {
             final String configValue = configuration.readAppProperty(AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG);
             if (configValue == null || "auto".equalsIgnoreCase(configValue)) {
                 secureFlag = this.httpServletRequest.isSecure();
+                if (!secureFlag) {
+                    final String siteURLstring = configuration.readSettingAsString(PwmSetting.PWM_SITE_URL);
+                    if (siteURLstring != null && !siteURLstring.isEmpty()) {
+                        if ("https".equals(URI.create(siteURLstring).getScheme())) {
+                            secureFlag = true;
+                        }
+                    }
+                }
             } else {
                 secureFlag = Boolean.parseBoolean(configValue);
             }
@@ -151,13 +186,12 @@ public class PwmHttpResponseWrapper {
         }
         theCookie.setHttpOnly(httpOnly);
         theCookie.setSecure(secureFlag);
-        if (path != null) {
-            theCookie.setPath(path);
-        }
+
+        theCookie.setPath(path == null ? CookiePath.CurrentURL.toStringPath(httpServletRequest) : path.toStringPath(httpServletRequest));
         this.getHttpServletResponse().addCookie(theCookie);
     }
 
-    public void removeCookie(final String cookieName, final String path) {
+    public void removeCookie(final String cookieName, final CookiePath path) {
         writeCookie(cookieName, null, 0, path);
     }
 }

@@ -119,10 +119,13 @@ public enum PwmSettingCategory {
     NEWUSER                     (MODULES),
     NEWUSER_SETTINGS            (NEWUSER),
     NEWUSER_PROFILE             (NEWUSER),
-    
+
+    UPDATE                      (MODULES),
+    UPDATE_SETTINGS             (UPDATE),
+    UPDATE_PROFILE              (UPDATE),
+
     GUEST                       (MODULES),
     ACTIVATION                  (MODULES),
-    UPDATE                      (MODULES),
     SHORTCUT                    (MODULES),
     PEOPLE_SEARCH               (MODULES),
     HELPDESK_PROFILE            (MODULES),

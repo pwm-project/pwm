@@ -39,7 +39,6 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.LoginCookieManager;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
@@ -219,7 +218,7 @@ public class PwmSession implements Serializable {
 
         if (pwmRequest != null) {
             try {
-                LoginCookieManager.clearLoginCookie(pwmRequest);
+                pwmRequest.getPwmApplication().getLoginCookieManager().clearLoginCookie(pwmRequest);
             } catch (PwmUnrecoverableException e) {
                 final String errorMsg = "unexpected error writing removing login cookie from response: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);

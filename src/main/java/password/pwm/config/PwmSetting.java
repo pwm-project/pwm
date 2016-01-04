@@ -433,9 +433,21 @@ public enum PwmSetting {
             "password.policy.charGroup.regExValues", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PASSWORD_POLICY),
 
 
-    // security settings
+    // app security settings
     PWM_SECURITY_KEY(
             "pwm.securityKey", PwmSettingSyntax.PASSWORD, PwmSettingCategory.APP_SECURITY),
+    REVERSE_DNS_ENABLE(
+            "network.reverseDNS.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
+    DISPLAY_SHOW_DETAILED_ERRORS(
+            "display.showDetailedErrors", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
+    SESSION_MAX_SECONDS(
+            "session.maxSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.APP_SECURITY),
+    SECURITY_ENABLE_LOGIN_COOKIE(
+            "security.loginCookie.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
+
+
+
+    // web security
     SECURITY_ENABLE_REQUEST_SEQUENCE(
             "security.page.enableRequestSequence", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     SECURITY_ENABLE_FORM_NONCE(
@@ -450,8 +462,6 @@ public enum PwmSetting {
             "forceBasicAuth", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     USE_X_FORWARDED_FOR_HEADER(
             "useXForwardedForHeader", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
-    REVERSE_DNS_ENABLE(
-            "network.reverseDNS.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
     MULTI_IP_SESSION_ALLOWED(
             "network.allowMultiIPSession", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     REQUIRED_HEADERS(
@@ -460,10 +470,6 @@ public enum PwmSetting {
             "network.ip.permittedRange", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY),
     SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT(
             "security.page.leaveNoticeTimeout", PwmSettingSyntax.NUMERIC, PwmSettingCategory.WEB_SECURITY),
-    DISPLAY_SHOW_DETAILED_ERRORS(
-            "display.showDetailedErrors", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
-    SESSION_MAX_SECONDS(
-            "session.maxSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.APP_SECURITY),
     SECURITY_PREVENT_FRAMING(
             "security.preventFraming", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     SECURITY_REDIRECT_WHITELIST(
@@ -760,21 +766,21 @@ public enum PwmSetting {
 
     // update profile
     UPDATE_PROFILE_ENABLE(
-            "updateAttributes.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE),
-    UPDATE_PROFILE_FORCE_SETUP(
-            "updateAttributes.forceSetup", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE),
-    UPDATE_PROFILE_AGREEMENT_MESSAGE(
-            "display.updateAttributes.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.UPDATE),
+            "updateAttributes.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_SETTINGS),
+    UPDATE_PROFILE__PROFILE_LIST(
+            "updateAttributes.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
     UPDATE_PROFILE_QUERY_MATCH(
-            "updateAttributes.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UPDATE),
+            "updateAttributes.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UPDATE_PROFILE),
     UPDATE_PROFILE_WRITE_ATTRIBUTES(
-            "updateAttributes.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.UPDATE),
+            "updateAttributes.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.UPDATE_PROFILE),
+    UPDATE_PROFILE_FORCE_SETUP(
+            "updateAttributes.forceSetup", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE),
+    UPDATE_PROFILE_AGREEMENT_MESSAGE(
+            "display.updateAttributes.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.UPDATE_PROFILE),
     UPDATE_PROFILE_FORM(
-            "updateAttributes.form", PwmSettingSyntax.FORM, PwmSettingCategory.UPDATE),
-    UPDATE_PROFILE_CHECK_QUERY_MATCH(
-            "updateAttributes.check.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UPDATE),
+            "updateAttributes.form", PwmSettingSyntax.FORM, PwmSettingCategory.UPDATE_PROFILE),
     UPDATE_PROFILE_SHOW_CONFIRMATION(
-            "updateAttributes.showConfirmation", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE),
+            "updateAttributes.showConfirmation", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE),
 
     // shortcut settings
     SHORTCUT_ENABLE(
@@ -1040,6 +1046,8 @@ public enum PwmSetting {
 
 
     // deprecated.
+    UPDATE_PROFILE_CHECK_QUERY_MATCH(
+            "updateAttributes.check.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UPDATE_PROFILE),
     WORDLIST_FILENAME(
             "pwm.wordlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.PASSWORD_GLOBAL),
     SEEDLIST_FILENAME(
@@ -1168,18 +1176,22 @@ public enum PwmSetting {
         return options;
     }
 
-    public Map<String, String> getProperties() {
-        final Map<String, String> properties = new LinkedHashMap<>();
+    public Map<PwmSettingProperty, String> getProperties() {
+        final Map<PwmSettingProperty, String> properties = new LinkedHashMap<>();
         final Element settingElement = PwmSettingXml.readSettingXml(this);
         final Element propertiesElement = settingElement.getChild("properties");
         if (propertiesElement != null) {
             final List<Element> propertyElements = propertiesElement.getChildren("property");
             if (propertyElements != null) {
                 for (Element propertyElement : propertyElements) {
-                    if (propertyElement.getAttribute("key") == null) {
+                    if (propertyElement.getAttributeValue("key") == null) {
                         throw new IllegalStateException("property element is missing 'key' attribute for value " + this.getKey());
                     }
-                    properties.put(propertyElement.getAttribute("key").getValue(), propertyElement.getValue());
+                    final PwmSettingProperty property = Helper.readEnumFromString(PwmSettingProperty.class, null, propertyElement.getAttributeValue("key"));
+                    if (property == null) {
+                        throw new IllegalStateException("property element has unknown 'key' attribute for value " + this.getKey());
+                    }
+                    properties.put(property, propertyElement.getValue());
                 }
             }
         }

@@ -475,19 +475,28 @@ public class UserStatusReader {
             return false;
         }
 
-        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_FORCE_SETUP)) {
+        UpdateAttributesProfile updateAttributesProfile = null;
+        if (uiBean.getProfileIDs().containsKey(ProfileType.UpdateAttributes)) {
+            updateAttributesProfile = configuration.getUpdateAttributesProfile().get(uiBean.getProfileIDs().get(ProfileType.UpdateAttributes));
+        }
+
+        if (updateAttributesProfile == null) {
+            return false;
+        }
+
+        if (!updateAttributesProfile.readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_FORCE_SETUP)) {
             LOGGER.debug(sessionLabel, "checkProfiles: " + userIdentity.toString() + " profile force setup is not enabled");
             return false;
         }
 
-        final List<UserPermission> updateProfilePermission = pwmApplication.getConfig().readSettingAsUserPermission(PwmSetting.UPDATE_PROFILE_QUERY_MATCH);
+        final List<UserPermission> updateProfilePermission = updateAttributesProfile.readSettingAsUserPermission(PwmSetting.UPDATE_PROFILE_QUERY_MATCH);
         if (!LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, uiBean.getUserIdentity(),updateProfilePermission)) {
             LOGGER.debug(sessionLabel,
                     "checkProfiles: " + userIdentity.toString() + " is not eligible for checkProfile due to query match");
             return false;
         }
 
-        final List<UserPermission> checkProfileQueryMatch = pwmApplication.getConfig().readSettingAsUserPermission(PwmSetting.UPDATE_PROFILE_CHECK_QUERY_MATCH);
+        final List<UserPermission> checkProfileQueryMatch = updateAttributesProfile.readSettingAsUserPermission(PwmSetting.UPDATE_PROFILE_CHECK_QUERY_MATCH);
         if (checkProfileQueryMatch != null && !checkProfileQueryMatch.isEmpty()) {
             if (LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, userIdentity, checkProfileQueryMatch)) {
                 LOGGER.info(sessionLabel, "checkProfiles: " + userIdentity.toString() + " matches 'checkProfiles query match', update profile will be required by user");
@@ -498,7 +507,7 @@ public class UserStatusReader {
             }
         } else {
             LOGGER.trace("no checkProfiles query match configured, will check to see if form attributes have values");
-            final List<FormConfiguration> updateFormFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+            final List<FormConfiguration> updateFormFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
 
             // populate the map with attribute values from the uiBean, which was populated through ldap.
             final Map<FormConfiguration,String> formValues = new HashMap<>();

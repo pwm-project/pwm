@@ -4,16 +4,21 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
+import password.pwm.health.HealthRecord;
+import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.svc.PwmService;
+import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -21,56 +26,77 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class LoginCookieManager {
+public class LoginCookieManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LoginCookieManager.class);
 
-    private LoginCookieManager() {
+    private Settings settings = new Settings(false,"SESSION");
+
+    @Override
+    public STATUS status() {
+        return settings != null && settings.isEnabled()
+                ? STATUS.OPEN
+                : STATUS.CLOSED;
     }
 
-    public static void clearLoginCookie(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        final String loginCookieName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_LOGIN_NAME);
-        if (loginCookieName == null || loginCookieName.isEmpty() ) {
+    @Override
+    public void init(PwmApplication pwmApplication) throws PwmException {
+        settings = Settings.fromConfiguration(pwmApplication.getConfig());
+    }
+
+    @Override
+    public void close() {
+
+    }
+
+    @Override
+    public List<HealthRecord> healthCheck() {
+        return null;
+    }
+
+    @Override
+    public ServiceInfo serviceInfo() {
+        return null;
+    }
+
+    public void clearLoginCookie(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        if (!settings.isEnabled()) {
             return;
         }
 
-        pwmRequest.getPwmResponse().removeCookie(loginCookieName, makeCookiePath(pwmRequest));
+        pwmRequest.getPwmResponse().removeCookie(settings.getCookieName(), PwmHttpResponseWrapper.CookiePath.Private);
     }
 
-    public static void writeLoginCookieToResponse(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        final String loginCookieName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_LOGIN_NAME);
-        if (loginCookieName == null || loginCookieName.isEmpty() ) {
+    public void writeLoginCookieToResponse(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        if (!settings.isEnabled()) {
             return;
         }
+
 
         if (!pwmRequest.isAuthenticated() || !pwmRequest.getURL().isPrivateUrl()) {
             return;
         }
 
         pwmRequest.getPwmResponse().writeEncryptedCookie(
-                loginCookieName,
+                settings.getCookieName(),
                 LoginCookieManager.LoginCookieBean.fromSession(
                         pwmRequest.getPwmApplication(),
                         pwmRequest.getPwmSession().getLoginInfoBean(),
                         pwmRequest.getUserInfoIfLoggedIn()
                 ),
-                makeCookiePath(pwmRequest)
+                PwmHttpResponseWrapper.CookiePath.Private
         );
 
     }
 
-    private static String makeCookiePath(final PwmRequest pwmRequest) {
-        return pwmRequest.getContextPath()  + PwmConstants.URL_PREFIX_PRIVATE;
-    }
-
-    public static void readLoginInfoCookie(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        final String loginCookieName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_LOGIN_NAME);
-        if (loginCookieName == null || loginCookieName.isEmpty() ) {
+    public void readLoginInfoCookie(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        if (!settings.isEnabled()) {
             return;
         }
 
+
         final LoginCookieBean loginCookieBean;
         try {
-            loginCookieBean = pwmRequest.readEncryptedCookie(loginCookieName, LoginCookieBean.class);
+            loginCookieBean = pwmRequest.readEncryptedCookie(settings.getCookieName(), LoginCookieBean.class);
         } catch (PwmUnrecoverableException e) {
             final String errorMsg = "unexpected error reading login cookie, will clear and ignore; error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
@@ -82,16 +108,21 @@ public class LoginCookieManager {
         if (loginCookieBean != null) {
             if (!pwmRequest.getPwmSession().getSessionStateBean().isAuthenticated()) {
                 try {
+                    try {
+                        checkIfLoginCookieIsValid(pwmRequest, loginCookieBean);
+                    } catch (PwmOperationalException e) {
+                        LOGGER.warn(pwmRequest, e.getErrorInformation().toDebugStr());
+                        clearLoginCookie(pwmRequest);
+                        return;
+                    }
+
+                    checkIfLoginCookieIsForeign(pwmRequest, loginCookieBean);
+
                     final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
                             pwmRequest.getPwmApplication(),
                             pwmRequest.getPwmSession(),
                             PwmAuthenticationSource.LOGIN_COOKIE
                     );
-
-                    if (!checkIfLoginCookieIsValid(pwmRequest, loginCookieBean)) {
-                        clearLoginCookie(pwmRequest);
-                        return;
-                    }
 
                     if (loginCookieBean.getPassword() == null) {
                         sessionAuthenticator.authUserWithUnknownPassword(
@@ -125,92 +156,118 @@ public class LoginCookieManager {
         pwmRequest.getPwmSession().getLoginInfoBean().setLocalAuthTime(loginCookieBean.getLocalAuthTime());
     }
 
-    private static boolean checkIfLoginCookieIsValid(
+    private static void checkIfLoginCookieIsValid(
             final PwmRequest pwmRequest,
             final LoginCookieBean loginCookieBean
-    ) {
+    )
+            throws PwmOperationalException
+    {
         if (loginCookieBean.getUserIdentity() == null) {
-            LOGGER.warn(pwmRequest, "decrypted login cookie does not specify a user");
-            return false;
+            final String errorMsg = "decrypted login cookie does not specify a user";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorMsg);
+            throw new PwmOperationalException(errorInformation);
         }
+
         if (loginCookieBean.getLocalAuthTime() == null) {
-            LOGGER.warn(pwmRequest, "decrypted login cookie does not specify a local auth time");
-            return false;
+            final String errorMsg = "decrypted login cookie does not specify a local auth time";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorMsg);
+            throw new PwmOperationalException(errorInformation);
         }
         {
             final long sessionMaxSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.SESSION_MAX_SECONDS);
             final TimeDuration sessionTotalAge = TimeDuration.fromCurrent(loginCookieBean.getLocalAuthTime());
             final TimeDuration sessionMaxAge = new TimeDuration(sessionMaxSeconds, TimeUnit.SECONDS);
             if (sessionTotalAge.isLongerThan(sessionMaxAge)) {
-                LOGGER.warn(pwmRequest, "decrypted login cookie age ("
+                final String errorMsg = "decrypted login cookie age ("
                         + sessionTotalAge.asCompactString()
                         + ") is older than max session seconds ("
                         + sessionMaxAge.asCompactString()
-                        + ")"
-                );
-                return false;
+                        + ")";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorMsg);
+                throw new PwmOperationalException(errorInformation);
             }
         }
         if (loginCookieBean.getIssueTimestamp() == null) {
-            LOGGER.warn(pwmRequest, "decrypted login cookie does not specify a issue time");
-            return false;
+            final String errorMsg = "decrypted login cookie does not specify a issue time";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorMsg);
+            throw new PwmOperationalException(errorInformation);
         }
         {
             final long sessionMaxIdleSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
             final TimeDuration loginCookieIssueAge = TimeDuration.fromCurrent(loginCookieBean.getIssueTimestamp());
             final TimeDuration maxIdleDuration = new TimeDuration(sessionMaxIdleSeconds, TimeUnit.SECONDS);
             if (loginCookieIssueAge.isLongerThan(maxIdleDuration)) {
-                LOGGER.warn(pwmRequest, "decrypted login cookie issue time ("
-                                + loginCookieIssueAge.asCompactString()
-                                + ") is older than max session seconds ("
-                                + maxIdleDuration.asCompactString()
-                                + ")"
-                );
-                return false;
+                final String errorMsg = "decrypted login cookie issue time ("
+                        + loginCookieIssueAge.asCompactString()
+                        + ") is older than max session seconds ("
+                        + maxIdleDuration.asCompactString()
+                        + ")";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorMsg);
+                throw new PwmOperationalException(errorInformation);
             }
         }
+    }
 
-        return true;
+    private static void checkIfLoginCookieIsForeign(final PwmRequest pwmRequest, final LoginCookieBean loginCookieBean)
+    {
+        final String cookieInstanceNonce = loginCookieBean.getInstanceNonce();
+        if (cookieInstanceNonce != null && !cookieInstanceNonce.equals(pwmRequest.getPwmApplication().getInstanceNonce())) {
+            final LoginCookieBean debugLoginCookieBean = JsonUtil.cloneUsingJson(loginCookieBean, LoginCookieBean.class);
+            debugLoginCookieBean.p = PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
+
+            final String logMsg = "login cookie session was generated by a foreign instance, seen login cookie value = "
+                    + JsonUtil.serialize(debugLoginCookieBean);
+            StatisticsManager.incrementStat(pwmRequest.getPwmApplication(), Statistic.FOREIGN_SESSIONS_ACCEPTED);
+            LOGGER.trace(pwmRequest, logMsg);
+        }
     }
 
 
+    /**
+     * Serialized cookie for cross-server authentication handling.  field names are short to help with cookie length
+     */
     public static class LoginCookieBean implements Serializable {
-        private UserIdentity userIdentity;
-        private String password;
+        private String g;
+        private UserIdentity u;
+        private String p;
 
-        private AuthenticationType authenticationType = AuthenticationType.UNAUTHENTICATED;
-        private List<AuthenticationType> authenticationFlags = new ArrayList<>();
+        private AuthenticationType aT = AuthenticationType.UNAUTHENTICATED;
+        private List<AuthenticationType> aF = new ArrayList<>();
 
-        private Date localAuthTime;
-        private Date issueTimestamp;
-        private String issueInstanceID;
+        private Date t;
+        private Date i;
+        private String n;
+
+        public String getGuid() {
+            return g;
+        }
 
         public UserIdentity getUserIdentity() {
-            return userIdentity;
+            return u;
         }
 
         public String getPassword() {
-            return password;
+            return p;
         }
 
         public AuthenticationType getAuthenticationType() {
-            return authenticationType;
+            return aT;
         }
 
         public List<AuthenticationType> getAuthenticationFlags() {
-            return authenticationFlags;
+            return aF;
         }
 
         public Date getLocalAuthTime() {
-            return localAuthTime;
+            return t;
         }
 
         public Date getIssueTimestamp() {
-            return issueTimestamp;
+            return i;
         }
 
-        public String getIssueInstanceID() {
-            return issueInstanceID;
+        public String getInstanceNonce() {
+            return n;
         }
 
         public static LoginCookieBean fromSession(
@@ -221,16 +278,44 @@ public class LoginCookieManager {
                 throws PwmUnrecoverableException
         {
             final LoginCookieBean loginCookieBean = new LoginCookieBean();
-            loginCookieBean.userIdentity = loginIdentity;
-            loginCookieBean.password = loginInfoBean.getUserCurrentPassword() == null
+            loginCookieBean.u = loginIdentity;
+            loginCookieBean.p = loginInfoBean.getUserCurrentPassword() == null
                     ? null
                     : loginInfoBean.getUserCurrentPassword().getStringValue();
-            loginCookieBean.authenticationType = loginInfoBean.getAuthenticationType();
-            loginCookieBean.authenticationFlags = loginInfoBean.getAuthenticationFlags();
-            loginCookieBean.localAuthTime = loginInfoBean.getLocalAuthTime();
-            loginCookieBean.issueTimestamp = new Date();
-            loginCookieBean.issueInstanceID = pwmApplication.getInstanceID();
+            loginCookieBean.aT = loginInfoBean.getAuthenticationType();
+            loginCookieBean.aF = loginInfoBean.getAuthenticationFlags();
+            loginCookieBean.t = loginInfoBean.getLocalAuthTime();
+            loginCookieBean.i = new Date();
+            loginCookieBean.n = pwmApplication.getInstanceNonce();
+            loginCookieBean.g = (Long.toString(new Date().getTime(),36) + PwmRandom.getInstance().alphaNumericString(64));
             return loginCookieBean;
+        }
+    }
+
+    private static class Settings implements Serializable {
+        final private boolean enabled;
+        final private String cookieName;
+
+        public Settings(boolean enabled, String cookieName) {
+            this.enabled = enabled;
+            this.cookieName = cookieName;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public String getCookieName() {
+            return cookieName;
+        }
+
+        static Settings fromConfiguration(final Configuration configuration) {
+            final String loginCookieName = configuration.readAppProperty(AppProperty.HTTP_COOKIE_LOGIN_NAME);
+            final boolean enabled = loginCookieName != null  && !loginCookieName.isEmpty() &&
+                    configuration.readSettingAsBoolean(PwmSetting.SECURITY_ENABLE_LOGIN_COOKIE);
+
+            return new Settings(enabled, loginCookieName);
+
         }
     }
 }

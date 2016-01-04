@@ -25,13 +25,13 @@ package password.pwm.http.servlet;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
+import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.error.*;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
@@ -69,6 +69,8 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(UpdateProfileServlet.class);
 
+    private static final String COOKIE_BEAN_NAME = "updateBean";
+
     public enum UpdateProfileAction implements AbstractPwmServlet.ProcessAction {
         updateProfile(HttpMethod.POST),
         agree(HttpMethod.POST),
@@ -104,17 +106,22 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
     protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final UpdateProfileBean updateProfileBean = pwmSession.getUpdateProfileBean();
+        final UpdateAttributesProfile updateAttributesProfile = pwmRequest.getPwmSession().getSessionManager().getUpdateAttributeProfile(pwmApplication);
+
+        final UpdateProfileBean updateProfileBean;
+        {
+            final UpdateProfileBean reqBean = pwmRequest.readEncryptedCookie(COOKIE_BEAN_NAME, UpdateProfileBean.class);
+            updateProfileBean = reqBean == null ? new UpdateProfileBean() : reqBean;
+        }
 
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
             pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
             return;
         }
 
-        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PROFILE_UPDATE)) {
-            pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
+        if (updateAttributesProfile == null) {
+            pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_NO_PROFILE_ASSIGNED));
             return;
         }
 
@@ -123,7 +130,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
             pwmRequest.validatePwmFormID();
             switch(action) {
                 case updateProfile:
-                    handleUpdateRequest(pwmRequest,updateProfileBean);
+                    handleUpdateRequest(pwmRequest, updateAttributesProfile, updateProfileBean);
                     break;
 
                 case agree:
@@ -139,27 +146,28 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
                     break;
 
                 case validate:
-                    restValidateForm(pwmRequest, updateProfileBean);
+                    restValidateForm(pwmRequest, updateAttributesProfile, updateProfileBean);
                     return;
             }
         }
 
-        advanceToNextStep(pwmRequest, updateProfileBean);
+        outputUpdateBean(pwmRequest, updateProfileBean);
+        advanceToNextStep(pwmRequest, updateAttributesProfile, updateProfileBean);
     }
 
     protected static void restValidateForm(
             final PwmRequest pwmRequest,
+            final UpdateAttributesProfile updateAttributesProfile,
             final UpdateProfileBean updateProfileBean
     )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
         boolean success = true;
         String userMessage = Message.getLocalizedMessage(pwmRequest.getLocale(), Message.Success_UpdateForm, pwmRequest.getConfig());
-        final Map<FormConfiguration, String> formValues = updateProfileBean.getFormData();
 
         try {
             // read in the responses from the request
-            readFromJsonRequest(pwmRequest, updateProfileBean);
+            final Map<FormConfiguration,String> formValues = readFromJsonRequest(pwmRequest, updateAttributesProfile, updateProfileBean);
 
             // verify form meets the form requirements
             verifyFormAttributes(pwmRequest, formValues, true);
@@ -185,6 +193,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
     private void advanceToNextStep(
             final PwmRequest pwmRequest,
+            final UpdateAttributesProfile updateAttributesProfile,
             final UpdateProfileBean updateProfileBean
     )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
@@ -192,7 +201,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        final String updateProfileAgreementText = pwmApplication.getConfig().readSettingAsLocalizedString(
+        final String updateProfileAgreementText = updateAttributesProfile.readSettingAsLocalizedString(
                 PwmSetting.UPDATE_PROFILE_AGREEMENT_MESSAGE,
                 pwmSession.getSessionStateBean().getLocale()
         );
@@ -207,42 +216,51 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
             }
         }
 
-        final Map<FormConfiguration, String> formValues = updateProfileBean.getFormData();
         if (!updateProfileBean.isFormSubmitted()) {
-            final Map<FormConfiguration,String> formMap = updateProfileBean.getFormData();
-            final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+            final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+            final Map<FormConfiguration, String> formMap = new HashMap<>();
             FormUtility.populateFormMapFromLdap(formFields, pwmRequest.getSessionLabel(), formMap, pwmSession.getSessionManager().getUserDataReader(pwmApplication));
-            forwardToForm(pwmRequest);
+            updateProfileBean.getFormData().putAll(FormUtility.asStringMap(formMap));
+            outputUpdateBean(pwmRequest, updateProfileBean);
+            forwardToForm(pwmRequest, updateAttributesProfile, updateProfileBean);
             return;
         }
 
         //make sure there is form data in the bean.
         if (updateProfileBean.getFormData() == null) {
-            forwardToForm(pwmRequest);
+            outputUpdateBean(pwmRequest, updateProfileBean);
+            forwardToForm(pwmRequest, updateAttributesProfile, updateProfileBean);
             return;
         }
 
         // validate the form data.
         try {
             // verify form meets the form requirements
+            final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+            final Map<FormConfiguration, String> formValues = new HashMap<>();
+            FormUtility.populateFormMapFromLdap(formFields, pwmRequest.getSessionLabel(), formValues, pwmSession.getSessionManager().getUserDataReader(pwmApplication));
             verifyFormAttributes(pwmRequest, formValues, true);
-        } catch (PwmOperationalException e) {
+        } catch (PwmException e) {
             LOGGER.error(pwmSession, e.getMessage());
             pwmRequest.setResponseError(e.getErrorInformation());
-            forwardToForm(pwmRequest);
+            outputUpdateBean(pwmRequest, updateProfileBean);
+            forwardToForm(pwmRequest, updateAttributesProfile, updateProfileBean);
             return;
         }
 
-        final boolean requireConfirmation = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_SHOW_CONFIRMATION);
+        final boolean requireConfirmation = updateAttributesProfile.readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_SHOW_CONFIRMATION);
         if (requireConfirmation && !updateProfileBean.isConfirmationPassed()) {
-            forwardToConfirmForm(pwmRequest);
+            outputUpdateBean(pwmRequest, updateProfileBean);
+            forwardToConfirmForm(pwmRequest, updateAttributesProfile, updateProfileBean);
             return;
         }
+
 
         try {
             // write the form values
             final ChaiUser theUser = pwmSession.getSessionManager().getActor(pwmApplication);
-            doProfileUpdate(pwmRequest, formValues, theUser);
+            doProfileUpdate(pwmRequest, updateProfileBean.getFormData(), theUser);
+            outputUpdateBean(pwmRequest, new UpdateProfileBean());
             pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_UpdateProfile);
             return;
         } catch (PwmException e) {
@@ -254,7 +272,8 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
             pwmRequest.setResponseError(errorInformation);
         }
 
-        forwardToForm(pwmRequest);
+        outputUpdateBean(pwmRequest, updateProfileBean);
+        forwardToForm(pwmRequest, updateAttributesProfile, updateProfileBean);
     }
 
     private void handleAgreeRequest(
@@ -278,47 +297,52 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
     }
 
 
-    private void readFormParametersFromRequest(
+    final Map<FormConfiguration,String> readFormParametersFromRequest(
             final PwmRequest pwmRequest,
+            final UpdateAttributesProfile updateAttributesProfile,
             final UpdateProfileBean updateProfileBean
     )
             throws PwmUnrecoverableException, PwmDataValidationException, ChaiUnavailableException
     {
-        final List<FormConfiguration> formFields = pwmRequest.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-
-        final Map<FormConfiguration,String> existingForm = updateProfileBean.getFormData();
+        final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
 
         //read the values from the request
-        existingForm.putAll(FormUtility.readFormValuesFromRequest(pwmRequest, formFields,
-                pwmRequest.getLocale()));
+        final Map<FormConfiguration,String> formValueMap = FormUtility.readFormValuesFromRequest(pwmRequest, formFields, pwmRequest.getLocale());
+
+        updateProfileBean.getFormData().clear();
+        updateProfileBean.getFormData().putAll(FormUtility.asStringMap(formValueMap));
+
+        return formValueMap;
     }
 
-    private static void readFromJsonRequest(
+    static Map<FormConfiguration,String> readFromJsonRequest(
             final PwmRequest pwmRequest,
+            final UpdateAttributesProfile updateAttributesProfile,
             final UpdateProfileBean updateProfileBean
     )
             throws PwmDataValidationException, PwmUnrecoverableException, IOException
     {
-        final List<FormConfiguration> formFields = pwmRequest.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-        final Map<FormConfiguration,String> existingForm = updateProfileBean.getFormData();
+        final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
 
-        final Map<String, String> clientValues = pwmRequest.readBodyAsJsonStringMap();
+        final Map<FormConfiguration,String> formValueMap = FormUtility.readFormValuesFromMap(pwmRequest.readBodyAsJsonStringMap(), formFields, pwmRequest.getLocale());
 
-        if (clientValues != null) {
-            existingForm.putAll(FormUtility.readFormValuesFromMap(clientValues, formFields, pwmRequest.getLocale()));
-        }
+        updateProfileBean.getFormData().clear();
+        updateProfileBean.getFormData().putAll(FormUtility.asStringMap(formValueMap));
+
+        return formValueMap;
     }
 
 
     private void handleUpdateRequest(
             final PwmRequest pwmRequest,
+            final UpdateAttributesProfile updateAttributesProfile,
             final UpdateProfileBean updateProfileBean
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
 
         try {
-            readFormParametersFromRequest(pwmRequest, updateProfileBean);
+            readFormParametersFromRequest(pwmRequest, updateAttributesProfile, updateProfileBean);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmRequest, e.getMessage());
             pwmRequest.setResponseError(e.getErrorInformation());
@@ -329,7 +353,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
     public static void doProfileUpdate(
             final PwmRequest pwmRequest,
-            final Map<FormConfiguration, String> formValues,
+            final Map<String,String> formValues,
             final ChaiUser theUser
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
@@ -337,16 +361,20 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final UserInfoBean uiBean = pwmRequest.getPwmSession().getUserInfoBean();
+        final UpdateAttributesProfile updateAttributesProfile = pwmRequest.getPwmSession().getSessionManager().getUpdateAttributeProfile(pwmApplication);
+
+        final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+        final Map<FormConfiguration, String> formMap = FormUtility.readFormValuesFromMap(formValues, formFields, pwmRequest.getLocale());
 
         // verify form meets the form requirements (may be redundant, but shouldn't hurt)
-        verifyFormAttributes(pwmRequest, formValues, false);
+        verifyFormAttributes(pwmRequest, formMap, false);
 
         // write values.
         LOGGER.info("updating profile for " + pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity());
 
         pwmRequest.getPwmSession().getSessionManager().getChaiProvider();
 
-        Helper.writeFormValuesToLdap(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), theUser, formValues, false);
+        Helper.writeFormValuesToLdap(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), theUser, formMap, false);
 
         final UserIdentity userIdentity = uiBean.getUserIdentity();
 
@@ -361,7 +389,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         pwmRequest.getPwmSession().getSessionManager().clearUserDataReader();
 
         {  // execute configured actions
-            final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(PwmSetting.UPDATE_PROFILE_WRITE_ATTRIBUTES);
+            final List<ActionConfiguration> actions = updateAttributesProfile.readSettingAsAction(PwmSetting.UPDATE_PROFILE_WRITE_ATTRIBUTES);
             if (actions != null && !actions.isEmpty()) {
                 LOGGER.debug(pwmRequest, "executing configured actions to user " + userIdentity);
 
@@ -433,22 +461,41 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         );
     }
 
-    protected void forwardToForm(final PwmRequest pwmRequest)
+    static void forwardToForm(final PwmRequest pwmRequest, final UpdateAttributesProfile updateAttributesProfile, final UpdateProfileBean updateProfileBean)
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        final List<FormConfiguration> form = pwmRequest.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-        final Map<FormConfiguration, String> formData = pwmRequest.getPwmSession().getUpdateProfileBean().getFormData();
-        pwmRequest.addFormInfoToRequestAttr(form, formData, false, false);
+        final List<FormConfiguration> form = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+        final Map<FormConfiguration,String> formValueMap = formMapFromBean(updateAttributesProfile, updateProfileBean);
+        pwmRequest.addFormInfoToRequestAttr(form, formValueMap, false, false);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
     }
 
-    protected void forwardToConfirmForm(final PwmRequest pwmRequest)
+    static void forwardToConfirmForm(final PwmRequest pwmRequest, final UpdateAttributesProfile updateAttributesProfile, final UpdateProfileBean updateProfileBean)
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        final List<FormConfiguration> form = pwmRequest.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-        final Map<FormConfiguration, String> formData = pwmRequest.getPwmSession().getUpdateProfileBean().getFormData();
-        pwmRequest.addFormInfoToRequestAttr(form, formData, true, false);
+        final List<FormConfiguration> form = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+        final Map<FormConfiguration,String> formValueMap = formMapFromBean(updateAttributesProfile, updateProfileBean);
+        pwmRequest.addFormInfoToRequestAttr(form, formValueMap, true, false);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_CONFIRM);
+    }
+
+    static Map<FormConfiguration, String> formMapFromBean(final UpdateAttributesProfile updateAttributesProfile, final UpdateProfileBean updateProfileBean) throws PwmUnrecoverableException {
+
+        final List<FormConfiguration> form = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+        final Map<FormConfiguration, String> formValueMap = new HashMap<>();
+        for (final FormConfiguration formConfiguration : form) {
+            formValueMap.put(
+                    formConfiguration,
+                    updateProfileBean.getFormData().keySet().contains(formConfiguration.getName())
+                            ? updateProfileBean.getFormData().get(formConfiguration.getName())
+                            : ""
+            );
+        }
+        return formValueMap;
+    }
+
+    static void outputUpdateBean(final PwmRequest pwmRequest, final UpdateProfileBean updateProfileBean) throws PwmUnrecoverableException {
+        pwmRequest.getPwmResponse().writeEncryptedCookie(COOKIE_BEAN_NAME, updateProfileBean, null);
     }
 }
 

@@ -40,7 +40,7 @@
             <option value="DEFAULT">Others</option>
         </options>
         <properties>
-            <property key="modificationWarning">Changing this setting will change default values throughout the configuration.  Are you sure you wish to modify this setting?</property>
+            <property key="ModificationWarning">Changing this setting will change default values throughout the configuration.  Are you sure you wish to modify this setting?</property>
         </properties>
     </setting>
     <setting hidden="false" key="template.storage" level="0">
@@ -54,7 +54,7 @@
             <option value="LOCALDB">LocalDB (Testing Only)</option>
         </options>
         <properties>
-            <property key="modificationWarning">Changing this setting will change default values throughout the configuration.  Are you sure you wish to modify this setting?</property>
+            <property key="ModificationWarning">Changing this setting will change default values throughout the configuration.  Are you sure you wish to modify this setting?</property>
         </properties>
     </setting>
     <setting hidden="false" key="notes.noteText" level="0">
@@ -322,13 +322,15 @@
         </default>
     </setting>
     <setting hidden="false" key="password.require.form" level="1">
+        <flag>Form_HideOptions</flag>
         <default>
             <value />
         </default>
+        <properties>
+            <property key="Form_Types">[]</property>
+        </properties>
         <options>
-            <option value="types">[]</option>
             <option value="required">hide</option>
-            <option value="hideOptions">true</option>
         </options>
     </setting>
     <setting hidden="false" key="password.change.requireCurrent" level="1" required="true">
@@ -410,9 +412,9 @@
     </setting>
     <setting hidden="false" key="ldap.serverCerts" level="0" required="true">
         <default/>
-        <options>
-            <option value="ImportHandler">password.pwm.config.function.LdapCertImportFunction</option>
-        </options>
+        <properties>
+            <property key="Cert_ImportHandler">password.pwm.config.function.LdapCertImportFunction</property>
+        </properties>
     </setting>
     <setting hidden="false" key="ldap.proxy.username" level="0" required="false">
         <flag>ldapDNsyntax</flag>
@@ -509,10 +511,10 @@
         <default>
             <value>30</value>
         </default>
-        <options>
-            <option value="max">500</option>
-            <option value="min">1</option>
-        </options>
+        <properties>
+            <property key="Maximum">500</property>
+            <property key="Minimum">1</property>
+        </properties>
     </setting>
     <setting hidden="false" key="ldap.guidAttribute" level="1" required="true">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
@@ -619,10 +621,10 @@
         <default>
             <value>25</value>
         </default>
-        <options>
-            <option value="min">1</option>
-            <option value="max">65535</option>
-        </options>
+        <properties>
+            <property key="Minimum">1</property>
+            <property key="Maximum">65535</property>
+        </properties>
     </setting>
     <setting hidden="false" key="email.default.fromAddress" level="1">
         <default>
@@ -816,10 +818,10 @@
         <default>
             <value>140</value>
         </default>
-        <options>
-            <option value="min">1</option>
-            <option value="max">10000</option>
-        </options>
+        <properties>
+            <property key="Minimum">1</property>
+            <property key="Maximum">10000</property>
+        </properties>
     </setting>
     <setting hidden="false" key="sms.responseOkRegex" level="2">
         <default>
@@ -1081,10 +1083,10 @@
         <default>
             <value>2</value>
         </default>
-        <options>
-            <option value="min">1</option>
-            <option value="max">5</option>
-        </options>
+        <properties>
+            <property key="Minimum">1</property>
+            <property key="Maximum">5</property>
+        </properties>
     </setting>
     <setting hidden="false" key="password.policy.regExMatch" level="2">
         <default/>
@@ -1368,6 +1370,11 @@
             <value>28800</value>
         </default>
     </setting>
+    <setting hidden="false" key="security.loginCookie.enable" level="2">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="security.preventFraming" level="2">
         <default>
             <value>true</value>
@@ -1468,9 +1475,9 @@
     </setting>
     <setting hidden="false" key="audit.syslog.certificates" level="1" required="false">
         <default/>
-        <options>
-            <option value="ImportHandler">password.pwm.config.function.SyslogCertImportFunction</option>
-        </options>
+        <properties>
+            <property key="Cert_ImportHandler">password.pwm.config.function.SyslogCertImportFunction</property>
+        </properties>
     </setting>
     <setting hidden="false" key="token.storageMethod" level="1" required="true">
         <default>
@@ -1634,10 +1641,10 @@
         <default>
             <value>1000000</value>
         </default>
-        <options>
-            <option value="min">1</option>
-            <option value="max">1000000000</option>
-        </options>
+        <properties>
+            <property key="Minimum">1</property>
+            <property key="Maximum">1000000000</property>
+        </properties>
     </setting>
     <setting hidden="false" key="events.pwmDB.maxAge" level="1" required="true">
         <default>
@@ -1739,10 +1746,10 @@
         <default>
             <value>20</value>
         </default>
-        <options>
-            <option value="min">0</option>
-            <option value="max">1000</option>
-        </options>
+        <properties>
+            <property key="Minimum">0</property>
+            <property key="Maximum">1000</property>
+        </properties>
     </setting>
     <setting hidden="false" key="ldap.wireTrace.enable" level="2" required="true">
         <default>
@@ -2268,6 +2275,10 @@
         <default>
             <value>10</value>
         </default>
+        <properties>
+            <property key="Minimum">0</property>
+            <property key="Maximum">120</property>
+        </properties>
     </setting>
     <setting hidden="false" key="newUser.profile.displayName" level="1">
         <default>
@@ -2425,6 +2436,12 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="true" key="updateAttributes.profile.list" level="1">
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
     <setting hidden="false" key="updateAttributes.forceSetup" level="1" required="true">
         <default>
             <value>false</value>
@@ -2457,7 +2474,7 @@
             <option value="unique">show</option>
         </options>
     </setting>
-    <setting hidden="false" key="updateAttributes.check.queryMatch" level="1">
+    <setting hidden="true" key="updateAttributes.check.queryMatch" level="3">
         <default>
             <value />
         </default>
@@ -2526,6 +2543,7 @@
         <default />
     </setting>
     <setting hidden="false" key="peopleSearch.result.form" level="1" required="true">
+        <flag>Form_HideOptions</flag>
         <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2534,13 +2552,15 @@
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
+        <properties>
+            <property key="Form_Types">[]</property>
+        </properties>
         <options>
-            <option value="types">[]</option>
             <option value="required">hide</option>
-            <option value="hideOptions">true</option>
         </options>
     </setting>
     <setting hidden="false" key="peopleSearch.detail.form" level="1" required="true">
+        <flag>Form_HideOptions</flag>
         <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2562,9 +2582,10 @@
             <value>{"name":"manager","minimumLength":1,"maximumLength":64,"type":"userDN","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Manager"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"directReports","minimumLength":1,"maximumLength":64,"type":"userDN","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Direct Reports"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
+        <properties>
+            <property key="Form_Types">[]</property>
+        </properties>
         <options>
-            <option value="types">["text","email","userDN"]</option>
-            <option value="hideOptions">true</option>
             <option value="required">hide</option>
             <option value="type-userDN">show</option>
             <option value="readonly">true</option>
@@ -2574,10 +2595,10 @@
         <default>
             <value>200</value>
         </default>
-        <options>
-            <option value="min">1</option>
-            <option value="max">10000</option>
-        </options>
+        <properties>
+            <property key="Minimum">1</property>
+            <property key="Maximum">10000</property>
+        </properties>
     </setting>
     <setting hidden="false" key="peopleSearch.useProxy" level="2" required="true">
         <default>
@@ -2585,17 +2606,19 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.displayName.cardLabels" level="1">
+        <flag>MacroSupport</flag>
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@</value>
             <value>@LDAP:title@</value>
             <value>@LDAP:mail@</value>
             <value>@LDAP:telephoneNumber@</value>
         </default>
-        <options>
-            <option value="max">4</option>
-        </options>
+        <properties>
+            <property key="Maximum">4</property>
+        </properties>
     </setting>
     <setting hidden="false" key="peopleSearch.displayName.user" level="1" required="true">
+        <flag>MacroSupport</flag>
         <default>
             <value>@LDAP:givenName@ @LDAP:sn@ - @LDAP:title@</value>
         </default>
@@ -2753,6 +2776,7 @@
         <default/>
     </setting>
     <setting hidden="false" key="helpdesk.result.form" level="1" required="true">
+        <flag>Form_HideOptions</flag>
         <ldapPermission actor="helpdesk" access="read"/>
         <default>
             <value>{"name":"CN","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2768,12 +2792,12 @@
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"userPrincipalName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"UPN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
-        <options>
-            <option value="types">[]</option>
-            <option value="hideOptions">true</option>
-        </options>
+        <properties>
+            <property key="Form_Types">[]</property>
+        </properties>
     </setting>
     <setting hidden="false" key="helpdesk.detail.form" level="1" required="true">
+        <flag>Form_HideOptions</flag>
         <ldapPermission actor="helpdesk" access="read"/>
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"CN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2797,9 +2821,10 @@
             <value>{"name":"employeeStatus","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Employee Status"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"WorkforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
+        <properties>
+            <property key="Form_Types">["text","email","userDN"]</property>
+        </properties>
         <options>
-            <option value="types">["text","email","userDN"]</option>
-            <option value="hideOptions">true</option>
             <option value="required">hide</option>
             <option value="type-userDN">show</option>
             <option value="readonly">true</option>
@@ -2813,10 +2838,10 @@
         <default>
             <value>500</value>
         </default>
-        <options>
-            <option value="min">1</option>
-            <option value="max">10000</option>
-        </options>
+        <properties>
+            <property key="Minimum">1</property>
+            <property key="Maximum">10000</property>
+        </properties>
     </setting>
     <setting hidden="false" key="helpdesk.setPassword.mode" level="1">
         <default>
@@ -2963,12 +2988,10 @@
         </default>
     </setting>
     <setting hidden="true" key="helpdesk.search.filters" level="1">
+        <flag>Permission_HideGroups</flag>
+        <flag>Permission_HideMatch</flag>
         <default syntaxVersion="2">
         </default>
-        <options>
-            <option value="hideGroups">true</option>
-            <option value="hideMatch">true</option>
-        </options>
     </setting>
     <setting hidden="true" key="recovery.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
@@ -3092,19 +3115,19 @@
         <default>
             <value>-1</value>
         </default>
-        <options>
-            <option value="min">-1</option>
-            <option value="max">10000</option>
-        </options>
+        <properties>
+            <property key="Minimum">-1</property>
+            <property key="Maximum">10000</property>
+        </properties>
     </setting>
     <setting hidden="false" key="reporting.ldap.maxQuerySize" level="2">
         <default>
             <value>100000</value>
         </default>
-        <options>
-            <option value="min">1</option>
-            <option value="max">100000000</option>
-        </options>
+        <properties>
+            <property key="Minimum">1</property>
+            <property key="Maximum">100000000</property>
+        </properties>
     </setting>
     <setting hidden="false" key="reporting.job.timeOffset" level="2">
         <default>
@@ -3212,9 +3235,9 @@
     </setting>
     <setting hidden="false" key="oauth.idserver.serverCerts" level="2">
         <default/>
-        <options>
-            <option value="ImportHandler">password.pwm.config.function.OAuthCertImportFunction</option>
-        </options>
+        <properties>
+            <property key="Cert_ImportHandler">password.pwm.config.function.OAuthCertImportFunction</property>
+        </properties>
     </setting>
     <setting hidden="false" key="oauth.idserver.clientName" level="2">
         <default/>
@@ -3232,9 +3255,9 @@
     </setting>
     <setting hidden="false" key="naaf.ws.serverCerts" level="2">
         <default/>
-        <options>
-            <option value="ImportHandler">password.pwm.config.function.NAAFCertImportFunction</option>
-        </options>
+        <properties>
+            <property key="Cert_ImportHandler">password.pwm.config.function.NAAFCertImportFunction</property>
+        </properties>
     </setting>
     <setting hidden="false" key="naaf.userIdentifier" level="2">
         <default>
@@ -3448,6 +3471,11 @@
     <category hidden="false" key="ACTIVATION">
     </category>
     <category hidden="false" key="UPDATE">
+    </category>
+    <category hidden="false" key="UPDATE_SETTINGS">
+    </category>
+    <category hidden="false" key="UPDATE_PROFILE">
+        <profile setting="updateAttributes.profile.list"/>
     </category>
     <category hidden="false" key="SHORTCUT">
     </category>

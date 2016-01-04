@@ -151,7 +151,6 @@ public class SessionTrackService implements PwmService {
 
     private static SessionStateInfoBean infoBeanFromPwmSession(final PwmSession loopSession) {
         final SessionStateBean loopSsBean = loopSession.getSessionStateBean();
-        final UserInfoBean loopUiBean =loopSession.getUserInfoBean();
 
         final SessionStateInfoBean sessionStateInfoBean = new SessionStateInfoBean();
 
@@ -160,13 +159,17 @@ public class SessionTrackService implements PwmService {
         sessionStateInfoBean.setLastTime(loopSession.getSessionStateBean().getSessionLastAccessedTime());
         sessionStateInfoBean.setIdle(loopSession.getIdleTime().asCompactString());
         sessionStateInfoBean.setLocale(loopSsBean.getLocale() == null ? null : loopSsBean.getLocale());
-        sessionStateInfoBean.setLdapProfile(loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().getLdapProfileID() : "");
-        sessionStateInfoBean.setUserDN(loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().getUserDN() : "");
-        sessionStateInfoBean.setUserID(loopSsBean.isAuthenticated() ? loopUiBean.getUsername() : "");
         sessionStateInfoBean.setSrcAddress(loopSsBean.getSrcAddress());
         sessionStateInfoBean.setSrcHost(loopSsBean.getSrcHostname());
         sessionStateInfoBean.setLastUrl(loopSsBean.getLastRequestURL());
         sessionStateInfoBean.setIntruderAttempts(loopSsBean.getIntruderAttempts());
+
+        if (loopSession.isAuthenticated()) {
+            final UserInfoBean loopUiBean = loopSession.getUserInfoBean();
+            sessionStateInfoBean.setLdapProfile(loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().getLdapProfileID() : "");
+            sessionStateInfoBean.setUserDN(loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().getUserDN() : "");
+            sessionStateInfoBean.setUserID(loopSsBean.isAuthenticated() ? loopUiBean.getUsername() : "");
+        }
 
         return sessionStateInfoBean;
     }

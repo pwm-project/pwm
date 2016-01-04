@@ -35,6 +35,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -263,6 +264,16 @@ public class SessionManager implements Serializable {
             final String profileID = pwmSession.getUserInfoBean().getProfileIDs().get(ProfileType.Helpdesk);
             if (profileID != null) {
                 return pwmApplication.getConfig().getHelpdeskProfiles().get(profileID);
+            }
+        }
+        return null;
+    }
+
+    public UpdateAttributesProfile getUpdateAttributeProfile(final PwmApplication pwmApplication) {
+        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+            final String profileID = pwmSession.getUserInfoBean().getProfileIDs().get(ProfileType.UpdateAttributes);
+            if (profileID != null) {
+                return pwmApplication.getConfig().getUpdateAttributesProfile().get(profileID);
             }
         }
         return null;
