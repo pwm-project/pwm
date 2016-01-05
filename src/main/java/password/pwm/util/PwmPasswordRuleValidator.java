@@ -27,10 +27,12 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.PublicUserInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -38,9 +40,11 @@ import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.*;
+import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.client.rest.RestClientHelper;
 
@@ -211,12 +215,15 @@ public class PwmPasswordRuleValidator {
 
         // check against disallowed values;
         if (!ruleHelper.getDisallowedValues().isEmpty()) {
+            MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, uiBean.getUserIdentity());
+
             final String lcasePwd = passwordString.toLowerCase();
             final Set<String> paramValues = new HashSet<>(ruleHelper.getDisallowedValues());
 
             for (final String loopValue : paramValues) {
                 if (loopValue != null && loopValue.length() > 0) {
-                    final String loweredLoop = loopValue.toLowerCase();
+                    final String expandedValue = macroMachine.expandMacros(loopValue);
+                    final String loweredLoop = expandedValue.toLowerCase();
                     if (lcasePwd.contains(loweredLoop)) {
                         errorList.add(new ErrorInformation(PwmError.PASSWORD_USING_DISALLOWED_VALUE));
                     }
@@ -542,7 +549,8 @@ public class PwmPasswordRuleValidator {
             sendData.put("policy",policyData);
         }
         if (uiBean != null) {
-            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(uiBean, pwmApplication.getConfig(), locale);
+            MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, uiBean.getUserIdentity());
+            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(uiBean, pwmApplication.getConfig(), locale, macroMachine);
             sendData.put("userInfo", publicUserInfoBean);
         }
 

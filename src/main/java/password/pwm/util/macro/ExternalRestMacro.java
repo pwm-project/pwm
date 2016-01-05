@@ -22,19 +22,21 @@
 
 package password.pwm.util.macro;
 
-import com.google.gson.reflect.TypeToken;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.PublicUserInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.PwmException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.client.rest.RestClientHelper;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * External macro @External1:<value>@ where 1 is incremental configuration item.
@@ -68,13 +70,15 @@ class ExternalRestMacro extends AbstractMacro {
 
         final String inputString = matchValue.substring(11,matchValue.length() -1);
         final Map<String,Object> sendData = new HashMap<>();
-        if (userInfoBean != null) {
-            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(userInfoBean, pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE);
-            sendData.put("userInfo", publicUserInfoBean);
-        }
-        sendData.put("input",inputString);
 
         try {
+            if (userInfoBean != null) {
+                MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity());
+                final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(userInfoBean, pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE, macroMachine);
+                sendData.put("userInfo", publicUserInfoBean);
+            }
+            sendData.put("input",inputString);
+
             final String requestBody = JsonUtil.serializeMap(sendData);
             final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication,
                     PwmConstants.DEFAULT_LOCALE, url,

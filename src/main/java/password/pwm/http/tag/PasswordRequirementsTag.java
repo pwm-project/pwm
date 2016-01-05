@@ -23,6 +23,8 @@
 package password.pwm.http.tag;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.NewUserProfile;
@@ -36,11 +38,13 @@ import password.pwm.i18n.Message;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -62,7 +66,8 @@ public class PasswordRequirementsTag extends TagSupport {
     public static List<String> getPasswordRequirementsStrings(
             final PwmPasswordPolicy pwordPolicy,
             final Configuration config,
-            final Locale locale
+            final Locale locale,
+            final MacroMachine macroMachine
     ) {
         final List<String> returnValues = new ArrayList<>();
         final ADPolicyComplexity ADPolicyLevel = pwordPolicy.getRuleHelper().getADComplexityLevel();
@@ -213,7 +218,9 @@ public class PasswordRequirementsTag extends TagSupport {
                 final StringBuilder fieldValue = new StringBuilder();
                 for (final String loopValue : setValue) {
                     fieldValue.append(" ");
-                    fieldValue.append(StringUtil.escapeHtml(loopValue));
+
+                    String expandedValue = macroMachine.expandMacros(loopValue);
+                    fieldValue.append(StringUtil.escapeHtml(expandedValue));
                 }
                 returnValues.add(
                         getLocalString(Message.Requirement_DisAllowedValues, fieldValue.toString(), locale, config));
@@ -334,12 +341,14 @@ public class PasswordRequirementsTag extends TagSupport {
             final PwmSession pwmSession = pwmRequest.getPwmSession();
             final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
             final Configuration config = pwmApplication.getConfig();
+            final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
+            pwmSession.getSessionManager().getMacroMachine(pwmApplication);
 
             final PwmPasswordPolicy passwordPolicy;
             if (getForm() != null && getForm().equalsIgnoreCase("newuser")) {
                 final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile(pwmRequest);
-                passwordPolicy = newUserProfile.getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());
+                passwordPolicy = newUserProfile.getNewUserPasswordPolicy(pwmApplication, locale);
             } else {
                 passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
             }
@@ -348,9 +357,11 @@ public class PasswordRequirementsTag extends TagSupport {
             if (configuredRuleText != null && configuredRuleText.length() > 0) {
                 pageContext.getOut().write(configuredRuleText);
             } else {
+                MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
+
                 final String pre = prepend != null && prepend.length() > 0 ? prepend : "";
                 final String sep = separator != null && separator.length() > 0 ? separator : "<br/>";
-                final List<String> requirementsList = getPasswordRequirementsStrings(passwordPolicy, config, pwmSession.getSessionStateBean().getLocale());
+                final List<String> requirementsList = getPasswordRequirementsStrings(passwordPolicy, config, locale, macroMachine);
 
                 final StringBuilder requirementsText = new StringBuilder();
                 for (final String requirementStatement : requirementsList) {

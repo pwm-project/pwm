@@ -22,7 +22,9 @@
 
 package password.pwm.ws.server.rest;
 
+import password.pwm.PwmConstants;
 import password.pwm.bean.PublicUserInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -35,6 +37,7 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -46,6 +49,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import java.net.URISyntaxException;
 import java.util.Date;
 
@@ -91,10 +95,12 @@ public class RestStatusServer extends AbstractRestServer {
                 userInfoBean = restRequestBean.getPwmSession().getUserInfoBean();
             }
             final RestResultBean restResultBean = new RestResultBean();
+            MacroMachine macroMachine = restRequestBean.getPwmSession().getSessionManager().getMacroMachine(restRequestBean.getPwmApplication());
             restResultBean.setData(PublicUserInfoBean.fromUserInfoBean(
                     userInfoBean,
                     restRequestBean.getPwmApplication().getConfig(),
-                    restRequestBean.getPwmSession().getSessionStateBean().getLocale()
+                    restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
+                    macroMachine
             ));
 
             final StatisticsManager statsMgr = restRequestBean.getPwmApplication().getStatisticsManager();

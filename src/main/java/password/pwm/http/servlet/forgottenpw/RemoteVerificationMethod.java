@@ -37,6 +37,7 @@ import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.http.client.PwmHttpClientResponse;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.PwmRandom;
 
 import java.util.*;
@@ -125,7 +126,8 @@ public class RemoteVerificationMethod implements RecoveryVerificationMethod {
 
         RemoteVerificationRequestBean remoteVerificationRequestBean = new RemoteVerificationRequestBean();
         remoteVerificationRequestBean.setResponseSessionID(this.remoteSessionID);
-        remoteVerificationRequestBean.setUserInfo(PublicUserInfoBean.fromUserInfoBean(userInfoBean, pwmApplication.getConfig(), locale));
+        MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity());
+        remoteVerificationRequestBean.setUserInfo(PublicUserInfoBean.fromUserInfoBean(userInfoBean, pwmApplication.getConfig(), locale, macroMachine));
         remoteVerificationRequestBean.setUserResponses(userResponses);
 
         PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(

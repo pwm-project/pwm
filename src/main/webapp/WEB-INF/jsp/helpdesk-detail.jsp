@@ -38,6 +38,7 @@
 <%@ page import="password.pwm.svc.event.UserAuditRecord" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
+<%@ page import="password.pwm.util.macro.MacroMachine" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.Date" %>
 <%@ page import="java.util.List" %>
@@ -456,7 +457,8 @@
                                         <td>
                                             <ul>
                                                 <%
-                                                    final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()); %>
+                                                    MacroMachine macroMachine = JspUtility.getPwmSession(pageContext).getSessionManager().getMacroMachine(ContextManager.getPwmApplication(session));
+                                                    final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale(), macroMachine); %>
                                                 <% for (final String requirementLine : requirementLines) { %>
                                                 <li><%=requirementLine%>
                                                 </li>
