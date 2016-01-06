@@ -22,6 +22,7 @@
 
 <!DOCTYPE html>
 <%@ page import="password.pwm.bean.PasswordStatus" %>
+<%@ page import="password.pwm.util.macro.MacroMachine" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmRequest changepassword_pwmRequest = PwmRequest.forRequest(request,response); %>
@@ -43,9 +44,12 @@
                 <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>"/>
             </ul>
         </div>
-        <% final String passwordPolicyChangeMessage = changepassword_pwmRequest.getPwmSession().getUserInfoBean().getPasswordPolicy().getRuleHelper().getChangeMessage(); %>
+        <%
+            final String passwordPolicyChangeMessage = changepassword_pwmRequest.getPwmSession().getUserInfoBean().getPasswordPolicy().getRuleHelper().getChangeMessage();
+            MacroMachine macroMachine = JspUtility.getPwmSession(pageContext).getSessionManager().getMacroMachine(ContextManager.getPwmApplication(session));
+        %>
         <% if (passwordPolicyChangeMessage.length() > 1) { %>
-        <p><%= passwordPolicyChangeMessage %></p>
+        <p><%= macroMachine.expandMacros(passwordPolicyChangeMessage) %></p>
         <% } %>
         <br/>
         <%@ include file="fragment/message.jsp" %>
