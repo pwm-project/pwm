@@ -47,7 +47,7 @@
             </tr>
             <tr>
                 <td class="key">AuthType</td>
-                <td><%=debug_pwmSession.getLoginInfoBean().getAuthenticationType()%></td>
+                <td><%=debug_pwmSession.getLoginInfoBean().getType()%></td>
             </tr>
             <tr>
                 <td class="key">Session Creation Time</td>

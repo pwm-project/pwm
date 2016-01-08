@@ -80,7 +80,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                 return true;
             }
 
-            if (pwmSession.getLoginInfoBean().getAuthenticationType() != AuthenticationType.AUTHENTICATED) {
+            if (pwmSession.getLoginInfoBean().getType() != AuthenticationType.AUTHENTICATED) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,
                         "Username/Password authentication is required to edit configuration.  This session has not been authenticated using a user password (SSO or other method used)."));
             }

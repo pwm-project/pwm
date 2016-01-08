@@ -215,7 +215,7 @@ public class PwmSession implements Serializable {
                 debugData.put("passwordStatus",getUserInfoBean().getPasswordState());
                 debugData.put("guid",getUserInfoBean().getUserGuid());
                 debugData.put("dn",getUserInfoBean().getUserIdentity());
-                debugData.put("authType",getLoginInfoBean().getAuthenticationType());
+                debugData.put("authType",getLoginInfoBean().getType());
                 debugData.put("needsNewPW",getUserInfoBean().isRequiresNewPassword());
                 debugData.put("needsNewCR",getUserInfoBean().isRequiresResponseConfig());
                 debugData.put("needsNewProfile",getUserInfoBean().isRequiresUpdateProfile());

@@ -102,7 +102,7 @@ public class LoginServlet extends AbstractPwmServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final boolean passwordOnly = pwmRequest.isAuthenticated() &&
-                pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationType() == AuthenticationType.AUTH_WITHOUT_PASSWORD;
+                pwmRequest.getPwmSession().getLoginInfoBean().getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD;
 
         final LoginServletAction action = readProcessAction(pwmRequest);
 

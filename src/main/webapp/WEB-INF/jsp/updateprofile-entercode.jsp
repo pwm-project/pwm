@@ -2,6 +2,8 @@
 <%@ page import="password.pwm.http.bean.NewUserBean" %>
 <%@ page import="password.pwm.http.servlet.newuser.NewUserServlet" %>
 <%@ page import="password.pwm.http.tag.PwmIfTest" %>
+<%@ page import="password.pwm.http.bean.UpdateProfileBean" %>
+<%@ page import="password.pwm.config.profile.UpdateAttributesProfile" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -26,8 +28,8 @@
   --%>
 
 <%
-    final NewUserBean newUserBean = JspUtility.getSessionBean(pageContext,NewUserBean.class);
-    final TokenVerificationProgress tokenVerificationProgress = newUserBean.getTokenVerificationProgress();
+    final UpdateProfileBean updateProfileBean = JspUtility.getSessionBean(pageContext,UpdateProfileBean.class);
+    final TokenVerificationProgress tokenVerificationProgress = updateProfileBean.getTokenVerificationProgress();
 %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -37,13 +39,13 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_NewUser"/>
+        <jsp:param name="pwm.PageName" value="Title_UpdateAttributes"/>
     </jsp:include>
     <div id="centerbody">
-        <% if (newUserBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.EMAIL) { %>
-        <p><pwm:display key="Display_RecoverEnterCode" value1="<%=tokenVerificationProgress.getTokenDisplayText()%>"/></p>
-        <% } else if (newUserBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.SMS) { %>
-        <p><pwm:display key="Display_RecoverEnterCodeSMS" value1="<%=tokenVerificationProgress.getTokenDisplayText()%>"/></p>
+        <% if (updateProfileBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.EMAIL) { %>
+        <p><pwm:display key="Display_UpdateProfileEnterCode" value1="<%=tokenVerificationProgress.getTokenDisplayText()%>"/></p>
+        <% } else if (updateProfileBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.SMS) { %>
+        <p><pwm:display key="Display_UpdateProfileEnterCodeSMS" value1="<%=tokenVerificationProgress.getTokenDisplayText()%>"/></p>
         <% } %>
         <form action="<pwm:current-url/>" method="post" autocomplete="off" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>

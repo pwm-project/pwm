@@ -200,7 +200,7 @@ public enum PwmIfTest {
         }
     }
 
-    private static class ShowErrorDetailTest implements Test {
+    private static class  ShowErrorDetailTest implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
                 Options options

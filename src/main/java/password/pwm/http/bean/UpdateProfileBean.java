@@ -22,8 +22,9 @@
 
 package password.pwm.http.bean;
 
+import password.pwm.bean.TokenVerificationProgress;
+
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,7 +34,8 @@ public class UpdateProfileBean extends PwmSessionBean {
     private boolean confirmationPassed;
     private boolean formSubmitted;
 
-    private final Map<String,String> formData = new LinkedHashMap<>();
+    private Map<String,String> formData;
+    private final TokenVerificationProgress tokenVerificationProgress = new TokenVerificationProgress();
 
     public Type getType() {
         return Type.AUTHENTICATED;
@@ -49,6 +51,10 @@ public class UpdateProfileBean extends PwmSessionBean {
 
     public Map<String, String> getFormData() {
         return formData;
+    }
+
+    public void setFormData(Map<String, String> formData) {
+        this.formData = formData;
     }
 
     public boolean isConfirmationPassed() {
@@ -68,6 +74,10 @@ public class UpdateProfileBean extends PwmSessionBean {
     }
 
     public Set<Flag> getFlags() {
-        return Collections.singleton(Flag.ProhibitCookieSession);
+        return Collections.emptySet();
+    }
+
+    public TokenVerificationProgress getTokenVerificationProgress() {
+        return tokenVerificationProgress;
     }
 }

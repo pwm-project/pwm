@@ -138,7 +138,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
             return;
         }
 
-        if (pwmSession.getLoginInfoBean().getAuthenticationType() == AuthenticationType.AUTH_WITHOUT_PASSWORD) {
+        if (pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD) {
             LOGGER.error(pwmSession, "OTP Secret requires a password login");
             throw new PwmUnrecoverableException(PwmError.ERROR_PASSWORD_REQUIRED);
         }

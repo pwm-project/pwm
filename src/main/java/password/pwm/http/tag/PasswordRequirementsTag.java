@@ -30,7 +30,7 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.servlet.NewUserServlet;
+import password.pwm.http.servlet.newuser.NewUserServlet;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
 import password.pwm.util.LocaleHelper;

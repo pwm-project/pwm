@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet;
+package password.pwm.http.servlet.newuser;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
@@ -33,10 +33,7 @@ import com.novell.ldapchai.provider.ChaiSetting;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.SessionLabel;
-import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.*;
 import password.pwm.config.*;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.LdapProfile;
@@ -46,8 +43,9 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
-import password.pwm.bean.LoginInfoBean;
 import password.pwm.http.bean.NewUserBean;
+import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
@@ -57,7 +55,6 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
-import password.pwm.svc.token.TokenType;
 import password.pwm.util.*;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -90,9 +87,9 @@ import java.util.*;
 public class NewUserServlet extends AbstractPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(NewUserServlet.class);
 
-    private static final String FIELD_PASSWORD1 = "password1";
-    private static final String FIELD_PASSWORD2 = "password2";
-    private static final String TOKEN_PAYLOAD_ATTR = "_______profileID";
+    static final String FIELD_PASSWORD1 = "password1";
+    static final String FIELD_PASSWORD2 = "password2";
+    static final String TOKEN_PAYLOAD_ATTR = "_______profileID";
 
     public enum NewUserAction implements AbstractPwmServlet.ProcessAction {
         profileChoice(HttpMethod.POST),
@@ -247,23 +244,24 @@ public class NewUserServlet extends AbstractPwmServlet {
             return;
         }
 
+        final TokenVerificationProgress tokenVerificationProgress = newUserBean.getTokenVerificationProgress();
         if (newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION)) {
-            if (!newUserBean.isEmailTokenIssued()) {
-                initializeToken(pwmRequest, NewUserBean.NewUserVerificationPhase.EMAIL);
+            if (!tokenVerificationProgress.getIssuedTokens().contains(TokenVerificationProgress.TokenChannel.EMAIL)) {
+                initializeToken(pwmRequest, TokenVerificationProgress.TokenChannel.EMAIL);
             }
 
-            if (!newUserBean.isEmailTokenPassed()) {
+            if (!tokenVerificationProgress.getPassedTokens().contains(TokenVerificationProgress.TokenChannel.EMAIL)) {
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_ENTER_CODE);
                 return;
             }
         }
 
         if (newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_SMS_VERIFICATION)) {
-            if (!newUserBean.isSmsTokenIssued()) {
-                initializeToken(pwmRequest, NewUserBean.NewUserVerificationPhase.SMS);
+            if (!newUserBean.getTokenVerificationProgress().getIssuedTokens().contains(TokenVerificationProgress.TokenChannel.SMS)) {
+                initializeToken(pwmRequest, TokenVerificationProgress.TokenChannel.SMS);
             }
 
-            if (!newUserBean.isSmsTokenPassed()) {
+            if (!newUserBean.getTokenVerificationProgress().getPassedTokens().contains(TokenVerificationProgress.TokenChannel.SMS)) {
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_ENTER_CODE);
                 return;
             }
@@ -437,7 +435,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                 final NewUserTokenData newUserTokenData = NewUserFormUtils.fromTokenPayload(pwmRequest, tokenPayload);
                 newUserBean.setProfileID(newUserTokenData.profileID);
                 final NewUserBean.NewUserForm newUserFormFromToken = newUserTokenData.formData;
-                if (TokenType.NEWUSER_EMAIL.matchesName(tokenPayload.getName())) {
+                if (password.pwm.svc.token.TokenType.NEWUSER_EMAIL.matchesName(tokenPayload.getName())) {
                     LOGGER.debug(pwmRequest, "email token passed");
 
                     try {
@@ -449,16 +447,16 @@ public class NewUserServlet extends AbstractPwmServlet {
 
                     newUserBean.setNewUserForm(newUserFormFromToken);
                     newUserBean.setFormPassed(true);
-                    newUserBean.setEmailTokenPassed(true);
-                    newUserBean.setEmailTokenIssued(true);
-                    newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
+                    newUserBean.getTokenVerificationProgress().getPassedTokens().add(TokenVerificationProgress.TokenChannel.EMAIL);
+                    newUserBean.getTokenVerificationProgress().getIssuedTokens().add(TokenVerificationProgress.TokenChannel.EMAIL);
+                    newUserBean.getTokenVerificationProgress().setPhase(null);
                     tokenPassed = true;
-                } else if (TokenType.NEWUSER_SMS.matchesName(tokenPayload.getName())) {
+                } else if (password.pwm.svc.token.TokenType.NEWUSER_SMS.matchesName(tokenPayload.getName())) {
                     if (newUserBean.getNewUserForm() != null && newUserBean.getNewUserForm().isConsistentWith(newUserFormFromToken)) {
                         LOGGER.debug(pwmRequest, "SMS token passed");
-                        newUserBean.setSmsTokenPassed(true);
-                        newUserBean.setSmsTokenIssued(true);
-                        newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
+                        newUserBean.getTokenVerificationProgress().getPassedTokens().add(TokenVerificationProgress.TokenChannel.SMS);
+                        newUserBean.getTokenVerificationProgress().getIssuedTokens().add(TokenVerificationProgress.TokenChannel.SMS);
+                        newUserBean.getTokenVerificationProgress().setPhase(null);
                         tokenPassed = true;
                     } else {
                         LOGGER.debug(pwmRequest, "SMS token value is valid, but form data does not match current session form data");
@@ -830,7 +828,7 @@ public class NewUserServlet extends AbstractPwmServlet {
 
     public void initializeToken(
             final PwmRequest pwmRequest,
-            final NewUserBean.NewUserVerificationPhase phase
+            final TokenVerificationProgress.TokenChannel tokenType
     )
             throws PwmUnrecoverableException
     {
@@ -847,7 +845,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         final Map<String, String> tokenPayloadMap = NewUserFormUtils.toTokenPayload(pwmRequest, newUserBean.getNewUserForm());
         final MacroMachine macroMachine = createMacroMachineForNewUser(pwmApplication, pwmRequest.getSessionLabel(), newUserBean.getNewUserForm());
 
-        switch (phase) {
+        switch (tokenType) {
             case SMS: {
                 final String toNum = tokenPayloadMap.get(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
 
@@ -863,14 +861,13 @@ public class NewUserServlet extends AbstractPwmServlet {
                 final String tokenKey;
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
-                            TokenType.NEWUSER_SMS,
+                            password.pwm.svc.token.TokenType.NEWUSER_SMS,
                             tokenPayloadMap,
                             null,
                             Collections.singleton(outputDestTokenData.getSms())
                     );
                     tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload,
                             pwmRequest.getSessionLabel());
-                    LOGGER.trace(pwmRequest, "generated new user sms token key code");
                 } catch (PwmOperationalException e) {
                     throw new PwmUnrecoverableException(e.getErrorInformation());
                 }
@@ -885,9 +882,9 @@ public class NewUserServlet extends AbstractPwmServlet {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN));
                 }
 
-                newUserBean.setSmsTokenIssued(true);
-                newUserBean.setTokenDisplayText(outputDestTokenData.getDisplayValue());
-                newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.SMS);
+                newUserBean.getTokenVerificationProgress().getIssuedTokens().add(TokenVerificationProgress.TokenChannel.SMS);
+                newUserBean.getTokenVerificationProgress().setTokenDisplayText(outputDestTokenData.getDisplayValue());
+                newUserBean.getTokenVerificationProgress().setPhase(TokenVerificationProgress.TokenChannel.SMS);
             }
             break;
 
@@ -908,21 +905,20 @@ public class NewUserServlet extends AbstractPwmServlet {
                 final String tokenKey;
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
-                            TokenType.NEWUSER_EMAIL,
+                            password.pwm.svc.token.TokenType.NEWUSER_EMAIL,
                             tokenPayloadMap,
                             null,
                             Collections.singleton(outputDestTokenData.getEmail())
                     );
                     tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload,
                             pwmRequest.getSessionLabel());
-                    LOGGER.trace(pwmRequest, "generated new user email token");
                 } catch (PwmOperationalException e) {
                     throw new PwmUnrecoverableException(e.getErrorInformation());
                 }
 
-                newUserBean.setEmailTokenIssued(true);
-                newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.EMAIL);
-                newUserBean.setTokenDisplayText(outputDestTokenData.getDisplayValue());
+                newUserBean.getTokenVerificationProgress().getIssuedTokens().add(TokenVerificationProgress.TokenChannel.EMAIL);
+                newUserBean.getTokenVerificationProgress().setPhase(TokenVerificationProgress.TokenChannel.EMAIL);
+                newUserBean.getTokenVerificationProgress().setTokenDisplayText(outputDestTokenData.getDisplayValue());
 
                 final EmailItemBean emailItemBean = new EmailItemBean(
                         outputDestTokenData.getEmail(),
@@ -941,8 +937,8 @@ public class NewUserServlet extends AbstractPwmServlet {
             break;
 
             default:
-                LOGGER.error("Unimplemented token purpose: " + phase);
-                newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
+                LOGGER.error("Unimplemented token purpose: " + tokenType);
+                newUserBean.getTokenVerificationProgress().setPhase(null);
         }
     }
 
@@ -1036,66 +1032,6 @@ public class NewUserServlet extends AbstractPwmServlet {
     }
 
 
-    private static class NewUserUserDataReader implements UserDataReader {
-        private final Map<String, String> attributeData;
-
-        private NewUserUserDataReader(final Map<String, String> attributeData)
-        {
-            this.attributeData = attributeData;
-        }
-
-        @Override
-        public String getUserDN()
-        {
-            return null;
-        }
-
-        @Override
-        public String readStringAttribute(String attribute)
-                throws ChaiUnavailableException, ChaiOperationException
-        {
-            return readStringAttribute(attribute, false);
-        }
-
-        @Override
-        public String readStringAttribute(
-                String attribute,
-                boolean ignoreCache
-        )
-                throws ChaiUnavailableException, ChaiOperationException
-        {
-            return attributeData.get(attribute);
-        }
-
-        @Override
-        public Date readDateAttribute(String attribute)
-                throws ChaiUnavailableException, ChaiOperationException
-        {
-            return null;
-        }
-
-        @Override
-        public Map<String, String> readStringAttributes(Collection<String> attributes)
-                throws ChaiUnavailableException, ChaiOperationException
-        {
-            return readStringAttributes(attributes, false);
-        }
-
-        @Override
-        public Map<String, String> readStringAttributes(
-                Collection<String> attributes,
-                boolean ignoreCache
-        )
-                throws ChaiUnavailableException, ChaiOperationException
-        {
-            final Map<String, String> returnObj = new LinkedHashMap<>();
-            for (final String key : attributes) {
-                returnObj.put(key, readStringAttribute(key));
-            }
-            return Collections.unmodifiableMap(returnObj);
-        }
-    }
-
     static List<FormConfiguration> getFormDefinition(PwmRequest pwmRequest) throws PwmUnrecoverableException {
         final NewUserProfile profile = getNewUserProfile(pwmRequest);
         return profile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
@@ -1108,110 +1044,6 @@ public class NewUserServlet extends AbstractPwmServlet {
         public NewUserTokenData(String profileID, NewUserBean.NewUserForm formData) {
             this.profileID = profileID;
             this.formData = formData;
-        }
-    }
-
-    private static class NewUserFormUtils {
-
-
-        static NewUserBean.NewUserForm readFromRequest(PwmRequest pwmRequest)
-                throws PwmDataValidationException, PwmUnrecoverableException
-        {
-            final Locale userLocale = pwmRequest.getLocale();
-            final List<FormConfiguration> newUserForm = getFormDefinition(pwmRequest);
-            final Map<FormConfiguration, String> userFormValues = FormUtility.readFormValuesFromRequest(pwmRequest,
-                    newUserForm, userLocale);
-            final PasswordData passwordData1 = pwmRequest.readParameterAsPassword(FIELD_PASSWORD1);
-            final PasswordData passwordData2 = pwmRequest.readParameterAsPassword(FIELD_PASSWORD2);
-            return new NewUserBean.NewUserForm(FormUtility.asStringMap(userFormValues), passwordData1, passwordData2);
-        }
-
-        static NewUserBean.NewUserForm readFromJsonRequest(final PwmRequest pwmRequest)
-                throws IOException, PwmUnrecoverableException, PwmDataValidationException
-        {
-            final Locale userLocale = pwmRequest.getLocale();
-            final List<FormConfiguration> newUserForm = getFormDefinition(pwmRequest);
-            final Map<String, String> jsonBodyMap = pwmRequest.readBodyAsJsonStringMap();
-            final Map<FormConfiguration, String> userFormValues = FormUtility.readFormValuesFromMap(jsonBodyMap,
-                    newUserForm, userLocale);
-            final PasswordData passwordData1 = jsonBodyMap.containsKey(FIELD_PASSWORD1) && !jsonBodyMap.get(
-                    FIELD_PASSWORD1).isEmpty()
-                    ? new PasswordData(jsonBodyMap.get(FIELD_PASSWORD1))
-                    : null;
-            final PasswordData passwordData2 = jsonBodyMap.containsKey(FIELD_PASSWORD2) && !jsonBodyMap.get(
-                    FIELD_PASSWORD2).isEmpty()
-                    ? new PasswordData(jsonBodyMap.get(FIELD_PASSWORD2))
-                    : null;
-            return new NewUserBean.NewUserForm(FormUtility.asStringMap(userFormValues), passwordData1, passwordData2);
-        }
-
-        static NewUserTokenData fromTokenPayload(
-                final PwmRequest pwmRequest,
-                final TokenPayload tokenPayload
-        )
-                throws PwmOperationalException, PwmUnrecoverableException
-        {
-            final Locale userLocale = pwmRequest.getLocale();
-
-            final Map<String, String> payloadMap = tokenPayload.getData();
-
-            final NewUserProfile newUserProfile;
-            {
-                final String profileID = payloadMap.get(TOKEN_PAYLOAD_ATTR);
-                payloadMap.remove(TOKEN_PAYLOAD_ATTR);
-                if (profileID == null || profileID.isEmpty()) {
-                    // typically missing because issued with code before newuser profile existed, so assume  only profile
-                    if (pwmRequest.getConfig().getNewUserProfiles().size() > 1) {
-                        throw new PwmOperationalException(PwmError.ERROR_TOKEN_INCORRECT, "token data missing reference to new user profileID");
-                    }
-                    newUserProfile = pwmRequest.getConfig().getNewUserProfiles().values().iterator().next();
-                } else {
-                    if (!pwmRequest.getConfig().getNewUserProfiles().keySet().contains(profileID)) {
-                        throw new PwmOperationalException(PwmError.ERROR_TOKEN_INCORRECT, "token data references an invalid new user profileID");
-                    }
-                    newUserProfile = pwmRequest.getConfig().getNewUserProfiles().get(profileID);
-                }
-            }
-
-            final List<FormConfiguration> newUserFormDefinition = newUserProfile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
-            final Map<FormConfiguration, String> userFormValues = FormUtility.readFormValuesFromMap(payloadMap,
-                    newUserFormDefinition, userLocale);
-            final PasswordData passwordData;
-            if (payloadMap.containsKey(FIELD_PASSWORD1)) {
-                final String passwordInToken = payloadMap.get(FIELD_PASSWORD1);
-                String decryptedPassword = passwordInToken;
-                try {
-                    decryptedPassword = pwmRequest.getPwmApplication().getSecureService().decryptStringValue(passwordInToken);
-                } catch (PwmUnrecoverableException e) {
-                    final boolean allowUnencryptedPassword = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.NEWUSER_TOKEN_ALLOW_PLAIN_PW));
-                    if (allowUnencryptedPassword && e.getError() == PwmError.ERROR_CRYPT_ERROR) {
-                        LOGGER.warn(pwmRequest, "error decrypting password in tokenPayload, will use raw password value: " + e.getMessage());
-                    } else {
-                        throw e;
-                    }
-                }
-                passwordData = new PasswordData(decryptedPassword);
-            } else {
-                passwordData = null;
-            }
-            final NewUserBean.NewUserForm newUserForm = new NewUserBean.NewUserForm(FormUtility.asStringMap(userFormValues), passwordData, passwordData);
-            return new NewUserTokenData(newUserProfile.getIdentifier(), newUserForm);
-        }
-
-        static Map<String, String> toTokenPayload(
-                final PwmRequest pwmRequest,
-                NewUserBean.NewUserForm newUserForm
-        )
-                throws PwmUnrecoverableException
-        {
-            final Map<String, String> payloadMap = new LinkedHashMap<>();
-            payloadMap.put(TOKEN_PAYLOAD_ATTR, pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, NewUserBean.class).getProfileID());
-            payloadMap.putAll(newUserForm.getFormData());
-            final String encryptedPassword = pwmRequest.getPwmApplication().getSecureService().encryptToString(
-                    newUserForm.getNewUserPassword().getStringValue()
-            );
-            payloadMap.put(FIELD_PASSWORD1, encryptedPassword);
-            return payloadMap;
         }
     }
 

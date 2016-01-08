@@ -1,5 +1,5 @@
 <%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="password.pwm.http.servlet.NewUserServlet" %>
+<%@ page import="password.pwm.http.servlet.newuser.NewUserServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/

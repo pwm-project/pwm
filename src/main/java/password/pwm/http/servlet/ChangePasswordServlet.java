@@ -126,7 +126,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ChangePasswordBean changePasswordBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, ChangePasswordBean.class);
 
-        if (pwmSession.getLoginInfoBean().getAuthenticationType() == AuthenticationType.AUTH_WITHOUT_PASSWORD) {
+        if (pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD) {
             throw new PwmUnrecoverableException(PwmError.ERROR_PASSWORD_REQUIRED);
         }
 
@@ -424,7 +424,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             return false;
         }
 
-        if (pwmSession.getLoginInfoBean().getAuthenticationType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
+        if (pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
             LOGGER.debug(pwmSession, "skipping user current password requirement, authentication type is " + AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
             return false;
         }
@@ -662,11 +662,11 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             return false;
         }
 
-        if (pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationFlags().contains(AuthenticationType.AUTH_FROM_PUBLIC_MODULE)) {
+        if (pwmRequest.getPwmSession().getLoginInfoBean().getFlags().contains(AuthenticationType.AUTH_FROM_PUBLIC_MODULE)) {
             return false;
         }
 
-        if (pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
+        if (pwmRequest.getPwmSession().getLoginInfoBean().getType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
             return false;
         }
 

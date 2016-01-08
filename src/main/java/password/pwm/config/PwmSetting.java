@@ -248,6 +248,8 @@ public enum PwmSetting {
             "email.changePassword.helpdesk", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_UPDATEPROFILE(
             "email.updateProfile", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
+    EMAIL_UPDATEPROFILE_VERIFICATION(
+            "email.updateProfile.token", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_NEWUSER(
             "email.newUser", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_NEWUSER_VERIFICATION(
@@ -310,6 +312,15 @@ public enum PwmSetting {
             "sms.requestId.characters", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
     SMS_REQUESTID_LENGTH(
             "sms.requestId.length", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SMS_GATEWAY),
+    SMS_USE_URL_SHORTENER(
+            "sms.useUrlShortener", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SMS_GATEWAY),
+    SMS_SUCCESS_RESULT_CODE(
+            "sms.successResultCodes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
+    URL_SHORTENER_CLASS(
+            "urlshortener.classname", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
+    URL_SHORTENER_PARAMETERS(
+            "urlshortener.parameters", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
+
     SMS_CHALLENGE_TOKEN_TEXT(
             "sms.challenge.token.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS_MESSAGES),
     SMS_CHALLENGE_NEW_PASSWORD_TEXT(
@@ -324,14 +335,8 @@ public enum PwmSetting {
             "sms.activation.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS_MESSAGES),
     SMS_FORGOTTEN_USERNAME_TEXT(
             "sms.forgottenUsername.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS_MESSAGES),
-    SMS_USE_URL_SHORTENER(
-            "sms.useUrlShortener", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SMS_GATEWAY),
-    SMS_SUCCESS_RESULT_CODE(
-            "sms.successResultCodes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
-    URL_SHORTENER_CLASS(
-            "urlshortener.classname", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
-    URL_SHORTENER_PARAMETERS(
-            "urlshortener.parameters", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
+    SMS_UPDATE_PROFILE_TOKEN_TEXT(
+            "sms.updateProfile.token.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS_MESSAGES),
 
 
     //global password policy settings
@@ -782,6 +787,11 @@ public enum PwmSetting {
             "updateAttributes.form", PwmSettingSyntax.FORM, PwmSettingCategory.UPDATE_PROFILE),
     UPDATE_PROFILE_SHOW_CONFIRMATION(
             "updateAttributes.showConfirmation", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE),
+    UPDATE_PROFILE_EMAIL_VERIFICATION(
+            "updateAttributes.email.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE),
+    UPDATE_PROFILE_SMS_VERIFICATION(
+            "updateAttributes.sms.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE),
+
 
     // shortcut settings
     SHORTCUT_ENABLE(

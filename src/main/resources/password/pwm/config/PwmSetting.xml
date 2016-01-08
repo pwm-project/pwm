@@ -668,6 +668,12 @@
             <value>{"to":"@User:Email@","from":"Profile Update \u003c@DefaultEmailFromAddress@\u003e","subject":"Profile Update","bodyPlain":"Thank you for updating your profile information, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for updating your profile information, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
+    <setting hidden="false" key="email.updateProfile.token" level="1">
+        <flag>MacroSupport</flag>
+        <default>
+            <value>{"to":"@User:Email@","from":"Profile Update \u003c@DefaultEmailFromAddress@\u003e","subject":"Profile Update","bodyPlain":"Thank you for updating your profile information. To continue with the update, please copy and paste the following code on the registration form:\n\n%TOKEN%\n\nIf you did not request to change your profile, you do not need to take any action.","bodyHtml":"Thank you for updating your profile.  To complete the update, please \u003ca href\u003d\"@SiteURL@/public/newuser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link does not work, you can copy and paste the following code on the registration form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to change your profile, you do not need to take any action."}</value>
+        </default>
+    </setting>
     <setting hidden="false" key="email.newUser" level="1">
         <flag>MacroSupport</flag>
         <default>
@@ -861,27 +867,32 @@
     </setting>
     <setting hidden="false" key="sms.challenge.token.message" level="1" required="true">
         <default>
-            <value><![CDATA[Your security code is %TOKEN%.]]></value>
+            <value><![CDATA[Your security code is %TOKEN%]]></value>
         </default>
     </setting>
     <setting hidden="false" key="sms.challenge.newpassword.message" level="1" required="true">
         <default>
-            <value><![CDATA[Your new password is %TOKEN%.]]></value>
+            <value><![CDATA[Your new password is %TOKEN%]]></value>
         </default>
     </setting>
     <setting hidden="false" key="sms.newUser.token.message" level="1" required="true">
         <default>
-            <value><![CDATA[Your account verification token is %TOKEN%.]]></value>
+            <value><![CDATA[Your account verification code is %TOKEN%]]></value>
         </default>
     </setting>
     <setting hidden="false" key="sms.helpdesk.token.message" level="1" required="true">
         <default>
-            <value><![CDATA[Your security code is %TOKEN%.]]></value>
+            <value><![CDATA[Your security code is %TOKEN%]]></value>
         </default>
     </setting>
     <setting hidden="false" key="sms.forgottenUsername.message" level="1" required="true">
         <default>
             <value><![CDATA[Your username is @User:ID@]]></value>
+        </default>
+    </setting>
+    <setting hidden="false" key="sms.updateProfile.token.message" level="1" required="true">
+        <default>
+            <value><![CDATA[Your verification code is %TOKEN%]]></value>
         </default>
     </setting>
     <setting hidden="false" key="sms.activation.token.message" level="1" required="true">
@@ -2493,6 +2504,17 @@
             <value>true</value>
         </default>
     </setting>
+    <setting hidden="false" key="updateAttributes.email.verification" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="updateAttributes.sms.verification" level="1">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+
     <setting hidden="false" key="shortcut.enable" level="1">
         <default>
             <value>false</value>

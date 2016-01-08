@@ -29,6 +29,7 @@ import password.pwm.http.servlet.configguide.ConfigGuideServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerLocalDBServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerWordlistServlet;
+import password.pwm.http.servlet.newuser.NewUserServlet;
 
 import javax.servlet.annotation.WebServlet;
 import java.lang.annotation.Annotation;
@@ -58,7 +59,7 @@ public enum PwmServletDefinition {
     ConfigManager_Wordlists(ConfigManagerWordlistServlet.class),
     ConfigManager_LocalDB(ConfigManagerLocalDBServlet.class),
 
-    NewUser(password.pwm.http.servlet.NewUserServlet.class),
+    NewUser(NewUserServlet.class),
     ActivateUser(password.pwm.http.servlet.ActivateUserServlet.class),
     ForgottenPassword(password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet.class),
     ForgottenUsername(password.pwm.http.servlet.ForgottenUsernameServlet.class),

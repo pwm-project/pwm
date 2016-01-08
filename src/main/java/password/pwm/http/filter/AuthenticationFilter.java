@@ -130,7 +130,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         // read the basic auth info out of the header (if it exists);
         final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(pwmApplication, pwmRequest);
 
-        final BasicAuthInfo originalBasicAuthInfo = pwmSession.getLoginInfoBean().getOriginalBasicAuthInfo();
+        final BasicAuthInfo originalBasicAuthInfo = pwmSession.getLoginInfoBean().getBasicAuth();
 
         //check to make sure basic auth info is same as currently known user in session.
         if (basicAuthInfo != null && originalBasicAuthInfo != null && !(originalBasicAuthInfo.equals(basicAuthInfo))) {
@@ -171,7 +171,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
     }
 
     private static void handleAuthenticationCookie(final PwmRequest pwmRequest) {
-        if (!pwmRequest.isAuthenticated() || pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationType() != AuthenticationType.AUTHENTICATED) {
+        if (!pwmRequest.isAuthenticated() || pwmRequest.getPwmSession().getLoginInfoBean().getType() != AuthenticationType.AUTHENTICATED) {
             return;
         }
 
@@ -326,7 +326,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
 
         // high priority pw change
-        if (pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
+        if (pwmRequest.getPwmSession().getLoginInfoBean().getType() == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
             if (!pwmURL.isChangePasswordURL()) {
                 LOGGER.debug(pwmRequest, "user is authenticated via forgotten password mechanism, redirecting to change password servlet");
                 pwmRequest.sendRedirect(
@@ -445,7 +445,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
                         final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
                         final UserIdentity userIdentity = userSearchEngine.resolveUsername(basicAuthInfo.getUsername(), null, null);
                         sessionAuthenticator.authenticateUser(userIdentity, basicAuthInfo.getPassword());
-                        pwmSession.getLoginInfoBean().setOriginalBasicAuthInfo(basicAuthInfo);
+                        pwmSession.getLoginInfoBean().setBasicAuth(basicAuthInfo);
 
                     } catch (ChaiUnavailableException e) {
                         StatisticsManager.incrementStat(pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT);

@@ -298,9 +298,9 @@ public class SessionAuthenticator {
         pwmSession.getLoginInfoBean().setAuthTime(new Date());
 
         //update the resulting authType
-        pwmSession.getLoginInfoBean().setAuthenticationType(authenticationResult.getAuthenticationType());
+        pwmSession.getLoginInfoBean().setType(authenticationResult.getAuthenticationType());
 
-        pwmSession.getLoginInfoBean().setAuthenticationSource(authenticationSource);
+        pwmSession.getLoginInfoBean().setAuthSource(authenticationSource);
 
         // save the password in the login bean
         final PasswordData userPassword = authenticationResult.getUserPassword();

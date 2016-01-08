@@ -360,8 +360,8 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             sessionAuthenticator.authUserWithUnknownPassword(userIdentity,AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
 
             //ensure a change password is triggered
-            pwmSession.getLoginInfoBean().setAuthenticationType(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
-            pwmSession.getLoginInfoBean().getAuthenticationFlags().add(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
+            pwmSession.getLoginInfoBean().setType(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
+            pwmSession.getLoginInfoBean().getFlags().add(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
             pwmSession.getUserInfoBean().setRequiresNewPassword(true);
 
 
@@ -620,7 +620,6 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         try {
             tokenPayload = pwmApplication.getTokenService().createTokenPayload(TokenType.ACTIVATION, tokenMapData, userIdentity, destinationValues);
             tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmRequest.getSessionLabel());
-            LOGGER.debug(pwmSession.getLabel(), "generated activate user tokenKey code for session");
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }

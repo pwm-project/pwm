@@ -281,7 +281,7 @@ public class PasswordUtility {
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
             final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserIdentity().getUserDN(), provider);
             final boolean boundAsSelf = theUser.getEntryDN().equals(provider.getChaiConfiguration().getSetting(ChaiSetting.BIND_DN));
-            LOGGER.trace(pwmSession, "preparing to setActorPassword for '" + theUser.getEntryDN() + "', bindAsSelf=" + boundAsSelf + ", authType=" + pwmSession.getLoginInfoBean().getAuthenticationType());
+            LOGGER.trace(pwmSession, "preparing to setActorPassword for '" + theUser.getEntryDN() + "', bindAsSelf=" + boundAsSelf + ", authType=" + pwmSession.getLoginInfoBean().getType());
             if (setPasswordWithoutOld) {
                 theUser.setPassword(newPassword.getStringValue(), true);
             } else {
@@ -315,7 +315,7 @@ public class PasswordUtility {
         uiBean.setRequiresNewPassword(false);
 
         // mark the auth type as authenticatePd now that we have the user's natural password.
-        pwmSession.getLoginInfoBean().setAuthenticationType(AuthenticationType.AUTHENTICATED);
+        pwmSession.getLoginInfoBean().setType(AuthenticationType.AUTHENTICATED);
 
         // update the uibean's "password expired flag".
         final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmSession.getLabel());

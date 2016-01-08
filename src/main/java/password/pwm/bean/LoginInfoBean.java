@@ -34,15 +34,16 @@ import java.util.Date;
 import java.util.List;
 
 public class LoginInfoBean implements Serializable {
-    private transient PasswordData userCurrentPassword;
+    private transient PasswordData pw;
 
-    private AuthenticationType authenticationType = AuthenticationType.UNAUTHENTICATED;
-    private List<AuthenticationType> authenticationFlags = new ArrayList<>();
-    private PwmAuthenticationSource authenticationSource;
+    private AuthenticationType type = AuthenticationType.UNAUTHENTICATED;
+    private List<AuthenticationType> flags = new ArrayList<>();
+    private PwmAuthenticationSource authSource;
     private Date authTime;
+
     private String guid = (Long.toString(new Date().getTime(),36) + PwmRandom.getInstance().alphaNumericString(64));
 
-    private transient BasicAuthInfo originalBasicAuthInfo;
+    private transient BasicAuthInfo basicAuth;
 
     private Date oauthExpiration;
     private transient String oauthRefreshToken;
@@ -60,34 +61,34 @@ public class LoginInfoBean implements Serializable {
         this.authTime = authTime;
     }
 
-    public AuthenticationType getAuthenticationType()
+    public AuthenticationType getType()
     {
-        return authenticationType;
+        return type;
     }
 
-    public void setAuthenticationType(AuthenticationType authenticationType)
+    public void setType(AuthenticationType type)
     {
-        this.authenticationType = authenticationType;
+        this.type = type;
     }
 
     public PasswordData getUserCurrentPassword()
     {
-        return userCurrentPassword;
+        return pw;
     }
 
     public void setUserCurrentPassword(PasswordData userCurrentPassword)
     {
-        this.userCurrentPassword = userCurrentPassword;
+        this.pw = userCurrentPassword;
     }
 
-    public BasicAuthInfo getOriginalBasicAuthInfo()
+    public BasicAuthInfo getBasicAuth()
     {
-        return originalBasicAuthInfo;
+        return basicAuth;
     }
 
-    public void setOriginalBasicAuthInfo(final BasicAuthInfo originalBasicAuthInfo)
+    public void setBasicAuth(final BasicAuthInfo basicAuth)
     {
-        this.originalBasicAuthInfo = originalBasicAuthInfo;
+        this.basicAuth = basicAuth;
     }
 
     public Date getOauthExpiration()
@@ -118,16 +119,16 @@ public class LoginInfoBean implements Serializable {
         this.authRecordCookieSet = authRecordCookieSet;
     }
 
-    public List<AuthenticationType> getAuthenticationFlags() {
-        return authenticationFlags;
+    public List<AuthenticationType> getFlags() {
+        return flags;
     }
 
-    public PwmAuthenticationSource getAuthenticationSource() {
-        return authenticationSource;
+    public PwmAuthenticationSource getAuthSource() {
+        return authSource;
     }
 
-    public void setAuthenticationSource(PwmAuthenticationSource authenticationSource) {
-        this.authenticationSource = authenticationSource;
+    public void setAuthSource(PwmAuthenticationSource authSource) {
+        this.authSource = authSource;
     }
 
     public String getGuid() {

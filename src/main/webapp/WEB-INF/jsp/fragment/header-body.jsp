@@ -40,7 +40,7 @@
             <div id="header-title"><pwm:display key="Title_Application"/></div>
         </div>
         <div id="header-center-right">
-            <% if (JspUtility.isFlag(request, PwmRequestFlag.HIDE_HEADER_BUTTONS)) { %>
+            <% if (!JspUtility.isFlag(request, PwmRequestFlag.HIDE_HEADER_BUTTONS)) { %>
             <pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">
                 <pwm:if test="<%=PwmIfTest.showHome%>">
                     <a class="header-button" href="<pwm:value name="<%=PwmValue.homeURL%>"/>" id="HomeButton">

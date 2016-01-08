@@ -144,40 +144,28 @@ PWM_NEWUSER.markStrength=function(strength) { //strength meter
 
 PWM_NEWUSER.refreshCreateStatus=function(refreshInterval) {
     require(["dojo","dijit/registry"],function(dojo,registry){
-        var displayStringsUrl = PWM_MAIN.addPwmFormIDtoURL(window.location.href,"processAction","checkProgress");
-        var completedUrl = PWM_MAIN.addPwmFormIDtoURL(window.location.href,"processAction","complete");
-        dojo.xhrGet({
-            url: displayStringsUrl,
-            preventCache: true,
-            handleAs: 'json',
-            timeout: PWM_GLOBAL['client.ajaxTypingTimeout'],
-            headers: { "Accept": "application/json" },
-            load: function(data) {
-                var supportsProgress = (document.createElement('progress').max !== undefined);
-                if (supportsProgress) {
-                    console.log('beginning html5 progress refresh');
-                    var html5passwordProgressBar = PWM_MAIN.getObject('html5ProgressBar');
-                    dojo.setAttr(html5passwordProgressBar, "value", data['data']['percentComplete']);
-                } else {
-                    console.log('beginning dojo progress refresh');
-                    var progressBar = registry.byId('passwordProgressBar');
-                    progressBar.set("value",data['data']['percentComplete']);
-                }
+        var checkStatusUrl = PWM_MAIN.addParamToUrl(window.location.href,"processAction","checkProgress");
+        var completedUrl = PWM_MAIN.addParamToUrl(window.location.href,"processAction","complete");
+        var loadFunction = function(data) {
+            var supportsProgress = (document.createElement('progress').max !== undefined);
+            if (supportsProgress) {
+                console.log('beginning html5 progress refresh');
+                var html5passwordProgressBar = PWM_MAIN.getObject('html5ProgressBar');
+                dojo.setAttr(html5passwordProgressBar, "value", data['data']['percentComplete']);
+            } else {
+                console.log('beginning dojo progress refresh');
+                var progressBar = registry.byId('passwordProgressBar');
+                progressBar.set("value",data['data']['percentComplete']);
+            }
 
-                if (data['data']['complete'] == true) {
-                    PWM_MAIN.goto(completedUrl,{delay:1000})
-                } else {
-                    setTimeout(function(){
-                        PWM_NEWUSER.refreshCreateStatus(refreshInterval);
-                    },refreshInterval);
-                }
-            },
-            error: function(error) {
-                console.log('unable to read password change status: ' + error);
+            if (data['data']['complete'] == true) {
+                PWM_MAIN.goto(completedUrl,{delay:1000})
+            } else {
                 setTimeout(function(){
                     PWM_NEWUSER.refreshCreateStatus(refreshInterval);
                 },refreshInterval);
             }
-        });
+        };
+        PWM_MAIN.ajaxRequest(checkStatusUrl, loadFunction, {method:'GET'});
     });
 }

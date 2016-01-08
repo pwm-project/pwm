@@ -11,6 +11,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.http.PwmResponse;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
@@ -27,6 +28,8 @@ import java.util.concurrent.TimeUnit;
 
 public class LoginCookieManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LoginCookieManager.class);
+
+    private static final PwmResponse.CookiePath COOKIE_PATH = PwmHttpResponseWrapper.CookiePath.Private;
 
     private Settings settings = new Settings(false,"SESSION");
 
@@ -62,7 +65,7 @@ public class LoginCookieManager implements PwmService {
             return;
         }
 
-        pwmRequest.getPwmResponse().removeCookie(settings.getCookieName(), PwmHttpResponseWrapper.CookiePath.Application);
+        pwmRequest.getPwmResponse().removeCookie(settings.getCookieName(), COOKIE_PATH);
     }
 
     public void writeLoginCookieToResponse(final PwmRequest pwmRequest) {
@@ -71,14 +74,15 @@ public class LoginCookieManager implements PwmService {
         }
 
         try {
+            final LoginCookieBean loginCookieBean = LoginCookieManager.LoginCookieBean.fromSession(
+                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getPwmSession().getLoginInfoBean(),
+                    pwmRequest.getUserInfoIfLoggedIn()
+            );
             pwmRequest.getPwmResponse().writeEncryptedCookie(
                     settings.getCookieName(),
-                    LoginCookieManager.LoginCookieBean.fromSession(
-                            pwmRequest.getPwmApplication(),
-                            pwmRequest.getPwmSession().getLoginInfoBean(),
-                            pwmRequest.getUserInfoIfLoggedIn()
-                    ),
-                    PwmHttpResponseWrapper.CookiePath.Application
+                    loginCookieBean,
+                    COOKIE_PATH
             );
         } catch (PwmUnrecoverableException e) {
             final String errorMsg = "unexpected error writing login cookie to response: " + e.getMessage();
@@ -91,7 +95,6 @@ public class LoginCookieManager implements PwmService {
         if (!settings.isEnabled()) {
             return;
         }
-
 
         final LoginCookieBean loginCookieBean;
         try {
@@ -294,8 +297,8 @@ public class LoginCookieManager implements PwmService {
             loginCookieBean.p = loginInfoBean.getUserCurrentPassword() == null
                     ? null
                     : loginInfoBean.getUserCurrentPassword().getStringValue();
-            loginCookieBean.aT = loginInfoBean.getAuthenticationType();
-            loginCookieBean.aF = loginInfoBean.getAuthenticationFlags();
+            loginCookieBean.aT = loginInfoBean.getType();
+            loginCookieBean.aF = loginInfoBean.getFlags();
             loginCookieBean.t = loginInfoBean.getAuthTime();
             loginCookieBean.i = new Date();
             loginCookieBean.n = pwmApplication.getInstanceNonce();

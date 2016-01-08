@@ -197,6 +197,7 @@ public abstract class PwmConstants {
         FORGOTTEN_USERNAME_COMPLETE("forgottenusername-complete.jsp"),
         UPDATE_ATTRIBUTES("updateprofile.jsp"),
         UPDATE_ATTRIBUTES_AGREEMENT("updateprofile-agreement.jsp"),
+        UPDATE_ATTRIBUTES_ENTER_CODE("updateprofile-entercode.jsp"),
         UPDATE_ATTRIBUTES_CONFIRM("updateprofile-confirm.jsp"),
         NEW_USER("newuser.jsp"),
         NEW_USER_ENTER_CODE("newuser-entercode.jsp"),
