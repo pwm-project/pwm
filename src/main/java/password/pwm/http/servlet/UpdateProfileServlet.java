@@ -150,7 +150,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
                     return;
 
                 case enterCode:
-                    handleEnterCodeRequest(pwmRequest, updateProfileBean, updateAttributesProfile);
+                    handleEnterCodeRequest(pwmRequest, updateProfileBean);
                     break;
             }
         }
@@ -598,9 +598,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
                         pwmSession.getSessionStateBean().getLocale());
 
                 try {
-                    TokenService.TokenSender.sendSmsToken(pwmApplication, null, macroMachine,
-                            toNum, message, tokenKey);
-                    System.out.println(tokenKey);
+                    TokenService.TokenSender.sendSmsToken(pwmApplication, null, macroMachine, toNum, message, tokenKey);
                 } catch (Exception e) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN));
                 }
@@ -613,7 +611,9 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
             case EMAIL: {
                 final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(
-                        PwmSetting.EMAIL_NEWUSER_VERIFICATION, pwmSession.getSessionStateBean().getLocale());
+                        PwmSetting.EMAIL_UPDATEPROFILE_VERIFICATION,
+                        pwmRequest.getLocale()
+                );
                 final String emailAddressAttribute = pwmRequest.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
                 final String toAddress = updateProfileBean.getFormData().get(emailAddressAttribute);
 
@@ -659,8 +659,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
     private void handleEnterCodeRequest(
             final PwmRequest pwmRequest,
-            final UpdateProfileBean updateProfileBean,
-            final UpdateAttributesProfile updateAttributesProfile
+            final UpdateProfileBean updateProfileBean
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {

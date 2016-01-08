@@ -89,6 +89,8 @@ public class LoginCookieManager implements PwmService {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
             LOGGER.error(pwmRequest, errorInformation);
         }
+
+        System.out.println(JsonUtil.serialize(pwmRequest.getPwmSession().getLoginInfoBean()));
     }
 
     public void readLoginInfoCookie(final PwmRequest pwmRequest) throws PwmUnrecoverableException {

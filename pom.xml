@@ -368,6 +368,13 @@
             <artifactId>jcl-core</artifactId>
             <version>2.7</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-bundle-jaxrs</artifactId>
+            <version>2.7.7</version>
+        </dependency>
+
     </dependencies>
 
     <repositories>
