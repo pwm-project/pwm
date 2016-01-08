@@ -117,7 +117,7 @@ class NewUserFormUtils {
             throws PwmUnrecoverableException
     {
         final Map<String, String> payloadMap = new LinkedHashMap<>();
-        payloadMap.put(NewUserServlet.TOKEN_PAYLOAD_ATTR, pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, NewUserBean.class).getProfileID());
+        payloadMap.put(NewUserServlet.TOKEN_PAYLOAD_ATTR, pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, NewUserBean.class).getProfileID());
         payloadMap.putAll(newUserForm.getFormData());
         final String encryptedPassword = pwmRequest.getPwmApplication().getSecureService().encryptToString(
                 newUserForm.getNewUserPassword().getStringValue()

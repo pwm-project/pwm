@@ -105,7 +105,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, ConfigManagerBean.class);
+        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ConfigManagerBean.class);
 
         final ConfigManagerAction processAction = readProcessAction(pwmRequest);
         if (processAction != null) {
@@ -215,7 +215,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
             return;
         }
 
-        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+        if (!pwmSession.isAuthenticated()) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,"You must be authenticated before restricting the configuration");
             final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
             LOGGER.debug(pwmSession, errorInfo);
@@ -243,7 +243,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
 
             storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE, "false");
             saveConfiguration(pwmRequest, storedConfiguration);
-            final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, ConfigManagerBean.class);
+            final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ConfigManagerBean.class);
             configManagerBean.setConfiguration(null);
         } catch (PwmException e) {
             final ErrorInformation errorInfo = e.getErrorInformation();

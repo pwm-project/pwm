@@ -383,7 +383,7 @@ public class PasswordUtility {
     {
         final SessionLabel sessionLabel = pwmSession.getLabel();
 
-        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+        if (!pwmSession.isAuthenticated()) {
             final String errorMsg = "attempt to helpdeskSetUserPassword, but user is not authenticated";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg);
             throw new PwmOperationalException(errorInformation);

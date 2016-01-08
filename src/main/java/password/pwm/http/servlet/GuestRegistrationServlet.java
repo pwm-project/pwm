@@ -120,7 +120,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         //Fetch the session state bean.
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final GuestRegistrationBean guestRegistrationBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, GuestRegistrationBean.class);
+        final GuestRegistrationBean guestRegistrationBean = pwmApplication.getSessionStateService().getBean(pwmRequest, GuestRegistrationBean.class);
 
         final Configuration config = pwmApplication.getConfig();
 
@@ -284,7 +284,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         final Boolean origAdminOnly = config.readSettingAsBoolean(PwmSetting.GUEST_EDIT_ORIG_ADMIN_ONLY);
 
         final String usernameParam = pwmRequest.readParameterAsString("username");
-        final GuestRegistrationBean guBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, GuestRegistrationBean.class);
+        final GuestRegistrationBean guBean = pwmApplication.getSessionStateService().getBean(pwmRequest, GuestRegistrationBean.class);
 
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
         searchConfiguration.setChaiProvider(chaiProvider);

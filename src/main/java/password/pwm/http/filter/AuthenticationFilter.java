@@ -26,7 +26,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
@@ -88,7 +87,6 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         try {
             final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
             if (pwmApplication.getApplicationMode() == PwmApplication.MODE.NEW) {
                 if (pwmRequest.getURL().isConfigGuideURL()) {
@@ -105,7 +103,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             }
 
             //user is already authenticated
-            if (ssBean.isAuthenticated()) {
+            if (pwmSession.isAuthenticated()) {
                 this.processAuthenticatedSession(pwmRequest, chain);
             } else {
                 this.processUnAuthenticatedSession(pwmRequest, chain);
@@ -158,9 +156,6 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             }
         }
         handleAuthenticationCookie(pwmRequest);
-
-        // output the login cookie
-        pwmApplication.getLoginCookieManager().writeLoginCookieToResponse(pwmRequest);
 
         if (forceRequiredRedirects(pwmRequest)) {
             return;
@@ -285,7 +280,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
 
         // handle if authenticated during filter process.
-        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+        if (pwmSession.isAuthenticated()) {
             pwmSession.getSessionStateBean().setSessionIdRecycleNeeded(true);
             LOGGER.debug(pwmSession,"session authenticated during request, issuing redirect to originally requested url: " + originalRequestedUrl);
             pwmRequest.sendRedirect(originalRequestedUrl);
@@ -342,7 +337,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
         // if change password in progress and req is for ChangePassword servlet, then allow request as is
         if (pwmURL.isChangePasswordURL()) {
-            final ChangePasswordBean cpb = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, ChangePasswordBean.class);
+            final ChangePasswordBean cpb = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ChangePasswordBean.class);
             final PasswordChangeProgressChecker.ProgressTracker progressTracker = cpb.getChangeProgressTracker();
             if (progressTracker != null && progressTracker.getBeginTime() != null) {
                 return false;
@@ -401,7 +396,6 @@ public class AuthenticationFilter extends AbstractPwmFilter {
     }
 
     enum AuthenticationMethod {
-        LOGIN_COOKIE(LoginCookieFilterAuthenticationProvider.class),
         BASIC_AUTH(BasicFilterAuthenticationProvider.class),
         SSO_AUTH_HEADER(SSOHeaderFilterAuthenticationProvider.class),
         CAS(CASFilterAuthenticationProvider.class),
@@ -563,22 +557,6 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         @Override
         public boolean hasRedirectedResponse() {
             return redirected;
-        }
-    }
-
-    static class LoginCookieFilterAuthenticationProvider implements FilterAuthenticationProvider {
-
-        public void attemptAuthentication(
-                final PwmRequest pwmRequest
-        )
-                throws PwmUnrecoverableException, IOException
-        {
-            pwmRequest.getPwmApplication().getLoginCookieManager().readLoginInfoCookie(pwmRequest);
-        }
-
-        @Override
-        public boolean hasRedirectedResponse() {
-            return false;
         }
     }
 }

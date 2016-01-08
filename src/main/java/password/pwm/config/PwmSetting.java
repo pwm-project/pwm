@@ -447,10 +447,10 @@ public enum PwmSetting {
             "display.showDetailedErrors", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
     SESSION_MAX_SECONDS(
             "session.maxSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.APP_SECURITY),
-    SECURITY_ENABLE_LOGIN_COOKIE(
-            "security.loginCookie.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
-    SECURITY_SESSION_BEAN_MODE(
-            "security.sessionBean.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.APP_SECURITY),
+    SECURITY_LOGIN_SESSION_MODE(
+            "security.loginSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.APP_SECURITY),
+    SECURITY_MODULE_SESSION_MODE(
+            "security.moduleSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.APP_SECURITY),
 
 
     // web security

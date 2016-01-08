@@ -133,7 +133,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        if (!ssBean.isAuthenticated()) {
+        if (!pwmRequest.isAuthenticated()) {
             pwmRequest.respondWithError(PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo());
             return;
         }

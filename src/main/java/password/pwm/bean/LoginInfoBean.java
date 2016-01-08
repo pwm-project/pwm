@@ -22,11 +22,13 @@
 
 package password.pwm.bean;
 
+import password.pwm.PwmConstants;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.util.BasicAuthInfo;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -34,16 +36,20 @@ import java.util.Date;
 import java.util.List;
 
 public class LoginInfoBean implements Serializable {
-    private transient PasswordData pw;
+
+    private UserIdentity userIdentity;
+    private boolean authenticated;
+    private PasswordData pw;
 
     private AuthenticationType type = AuthenticationType.UNAUTHENTICATED;
     private List<AuthenticationType> flags = new ArrayList<>();
     private PwmAuthenticationSource authSource;
     private Date authTime;
+    private Date reqTime;
 
-    private String guid = (Long.toString(new Date().getTime(),36) + PwmRandom.getInstance().alphaNumericString(64));
+    private String guid;
 
-    private transient BasicAuthInfo basicAuth;
+    private BasicAuthInfo basicAuth;
 
     private Date oauthExpiration;
     private transient String oauthRefreshToken;
@@ -145,5 +151,43 @@ public class LoginInfoBean implements Serializable {
 
     public void setPostReqCounter(int postReqCounter) {
         this.postReqCounter = postReqCounter;
+    }
+
+    public UserIdentity getUserIdentity() {
+        return userIdentity;
+    }
+
+    public void setUserIdentity(UserIdentity userIdentity) {
+        this.userIdentity = userIdentity;
+    }
+
+    public boolean isAuthenticated() {
+        return authenticated;
+    }
+
+    public void setAuthenticated(boolean authenticated) {
+        this.authenticated = authenticated;
+    }
+
+    public PasswordData getPw() {
+        return pw;
+    }
+
+    public void setPw(PasswordData pw) {
+        this.pw = pw;
+    }
+
+    public Date getReqTime() {
+        return reqTime;
+    }
+
+    public void setReqTime(Date reqTime) {
+        this.reqTime = reqTime;
+    }
+
+    public String toDebugString() throws PwmUnrecoverableException {
+        final LoginInfoBean debugLoginCookieBean = JsonUtil.cloneUsingJson(this, LoginInfoBean.class);
+        debugLoginCookieBean.setUserCurrentPassword(new PasswordData(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT));
+        return JsonUtil.serialize(debugLoginCookieBean);
     }
 }

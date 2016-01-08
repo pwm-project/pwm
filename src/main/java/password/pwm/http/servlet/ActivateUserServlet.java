@@ -123,7 +123,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 
         final Configuration config = pwmApplication.getConfig();
 
-        final ActivateUserBean activateUserBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, ActivateUserBean.class);
+        final ActivateUserBean activateUserBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ActivateUserBean.class);
 
         if (!config.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"activate user is not enabled");
@@ -131,7 +131,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             return;
         }
 
-        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+        if (pwmSession.isAuthenticated()) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_USERAUTHENTICATED);
             pwmRequest.respondWithError(errorInformation);
             return;
@@ -155,7 +155,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                     break;
 
                 case reset:
-                    pwmApplication.getSessionBeanService().clearBean(pwmRequest, ActivateUserBean.class);
+                    pwmApplication.getSessionStateService().clearBean(pwmRequest, ActivateUserBean.class);
                     advanceToNextStage(pwmRequest);
                     break;
 
@@ -179,7 +179,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final Configuration config = pwmApplication.getConfig();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        pwmApplication.getSessionBeanService().clearBean(pwmRequest, ActivateUserBean.class);
+        pwmApplication.getSessionStateService().clearBean(pwmRequest, ActivateUserBean.class);
         final List<FormConfiguration> configuredActivationForm = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM);
 
         Map<FormConfiguration,String> formValues = new HashMap();
@@ -225,7 +225,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                 throw new PwmUnrecoverableException(errorInformation);
             }
 
-            final ActivateUserBean activateUserBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, ActivateUserBean.class);
+            final ActivateUserBean activateUserBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ActivateUserBean.class);
             activateUserBean.setUserIdentity(userIdentity);
             activateUserBean.setFormValidated(true);
             pwmApplication.getIntruderManager().convenience().clearAttributes(formValues);
@@ -268,7 +268,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Configuration config = pwmApplication.getConfig();
-        final ActivateUserBean activateUserBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, ActivateUserBean.class);
+        final ActivateUserBean activateUserBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ActivateUserBean.class);
 
         if (!activateUserBean.isFormValidated() || activateUserBean.getUserIdentity() == null) {
             forwardToActivateUserForm(pwmRequest);
@@ -560,7 +560,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final ActivateUserBean activateUserBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, ActivateUserBean.class);
+        final ActivateUserBean activateUserBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ActivateUserBean.class);
         final Configuration config = pwmApplication.getConfig();
 
         final RestTokenDataClient.TokenDestinationData inputTokenDestData;
@@ -636,7 +636,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final ActivateUserBean activateUserBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, ActivateUserBean.class);
+        final ActivateUserBean activateUserBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ActivateUserBean.class);
         final String userEnteredCode = pwmRequest.readParameterAsString(PwmConstants.PARAM_TOKEN);
 
         ErrorInformation errorInformation = null;

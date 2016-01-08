@@ -124,13 +124,13 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final ChangePasswordBean changePasswordBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, ChangePasswordBean.class);
+        final ChangePasswordBean changePasswordBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ChangePasswordBean.class);
 
         if (pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD) {
             throw new PwmUnrecoverableException(PwmError.ERROR_PASSWORD_REQUIRED);
         }
 
-        if (!ssBean.isAuthenticated()) {
+        if (!pwmRequest.isAuthenticated()) {
             pwmRequest.respondWithError(PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo());
             return;
         }
@@ -343,7 +343,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         // password accepted, setup change password
-        final ChangePasswordBean cpb = pwmApplication.getSessionBeanService().getBean(pwmRequest, ChangePasswordBean.class);
+        final ChangePasswordBean cpb = pwmApplication.getSessionStateService().getBean(pwmRequest, ChangePasswordBean.class);
 
         // change password
         PasswordUtility.setActorPassword(pwmSession, pwmApplication, newPassword);
@@ -633,7 +633,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             final Locale locale = pwmRequest.getLocale();
             final String completeMessage = pwmRequest.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_COMPLETE_MESSAGE,locale);
 
-            pwmRequest.getPwmApplication().getSessionBeanService().clearBean(pwmRequest, ChangePasswordBean.class);
+            pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, ChangePasswordBean.class);
             if (completeMessage != null && !completeMessage.isEmpty()) {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(completeMessage);

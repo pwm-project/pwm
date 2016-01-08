@@ -27,7 +27,6 @@ import password.pwm.PwmApplication;
 import password.pwm.Validator;
 import password.pwm.error.*;
 import password.pwm.http.*;
-import password.pwm.http.state.CryptoRequestCookieService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -107,10 +106,6 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             }
 
             this.processAction(pwmRequest);
-
-            if (!pwmRequest.getPwmResponse().isCommitted()) {
-                CryptoRequestCookieService.writeCookiesToResponse(pwmRequest);
-            }
         } catch (Exception e) {
             final PwmRequest pwmRequest;
             try {

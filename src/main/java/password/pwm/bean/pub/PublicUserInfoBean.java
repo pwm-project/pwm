@@ -20,8 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
+package password.pwm.bean.pub;
 
+import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.http.tag.PasswordRequirementsTag;

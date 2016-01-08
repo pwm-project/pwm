@@ -215,8 +215,6 @@ public class LoginServlet extends AbstractPwmServlet {
 
         // recycle the session to prevent session fixation attack.
         pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded(true);
-
-        pwmRequest.getPwmApplication().getLoginCookieManager().writeLoginCookieToResponse(pwmRequest);
     }
 
     private void forwardToJSP(

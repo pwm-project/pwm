@@ -9,4 +9,5 @@ interface SessionBeanProvider {
 
     void clearSessionBean(PwmRequest pwmRequest, final Class<? extends PwmSessionBean> userBeanClass) throws PwmUnrecoverableException;
 
+    void saveSessionBeans(final PwmRequest pwmRequest);
 }

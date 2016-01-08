@@ -141,7 +141,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             return;
         }
 
-        final NewUserBean newUserBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, NewUserBean.class);
+        final NewUserBean newUserBean = pwmApplication.getSessionStateService().getBean(pwmRequest, NewUserBean.class);
 
         // convert a url command like /public/newuser/profile/xxx to set profile.
         if (readProfileFromUrl(pwmRequest, newUserBean)) {
@@ -166,7 +166,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                     return;
             }
 
-            if (pwmSession.getSessionStateBean().isAuthenticated()) {
+            if (pwmSession.isAuthenticated()) {
                 pwmRequest.respondWithError(PwmError.ERROR_USERAUTHENTICATED.toInfo());
                 return;
             }
@@ -189,7 +189,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                     break;
 
                 case reset:
-                    pwmApplication.getSessionBeanService().clearBean(pwmRequest, NewUserBean.class);
+                    pwmApplication.getSessionStateService().clearBean(pwmRequest, NewUserBean.class);
                     pwmRequest.sendRedirectToContinue();
                     break;
 
@@ -840,7 +840,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                     "cannot generate new user tokens when storage type is configured as STORE_LDAP."}));
         }
 
-        final NewUserBean newUserBean = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, NewUserBean.class);
+        final NewUserBean newUserBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, NewUserBean.class);
         final Configuration config = pwmApplication.getConfig();
         final Map<String, String> tokenPayloadMap = NewUserFormUtils.toTokenPayload(pwmRequest, newUserBean.getNewUserForm());
         final MacroMachine macroMachine = createMacroMachineForNewUser(pwmApplication, pwmRequest.getSessionLabel(), newUserBean.getNewUserForm());
@@ -1003,7 +1003,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             return;
         }
 
-        pwmRequest.getPwmApplication().getSessionBeanService().clearBean(pwmRequest, NewUserBean.class);
+        pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, NewUserBean.class);
         pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_CreateUser);
     }
 
@@ -1048,7 +1048,7 @@ public class NewUserServlet extends AbstractPwmServlet {
     }
 
     public static NewUserProfile getNewUserProfile(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        final String profileID = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, NewUserBean.class).getProfileID();
+        final String profileID = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, NewUserBean.class).getProfileID();
         if (profileID == null) {
             throw new IllegalStateException("can not read new user profile until profile is selected");
         }

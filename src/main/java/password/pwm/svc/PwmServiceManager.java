@@ -8,7 +8,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.http.servlet.resource.ResourceServletService;
-import password.pwm.http.state.SessionBeanService;
+import password.pwm.http.state.SessionStateService;
 import password.pwm.ldap.LdapConnectionService;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.event.AuditService;
@@ -21,7 +21,6 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistManager;
-import password.pwm.util.LoginCookieManager;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.logging.PwmLogger;
@@ -64,8 +63,7 @@ public class PwmServiceManager {
         CacheService(           CacheService.class,              true),
         ResourceServletService( ResourceServletService.class,    false),
         SessionTrackService(    SessionTrackService.class,       false),
-        LoginCookieService(     LoginCookieManager.class,        false),
-        SessionStateService(    SessionBeanService.class,      false),
+        SessionStateSvc(        SessionStateService.class,       false),
 
         ;
 

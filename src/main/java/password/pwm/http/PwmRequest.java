@@ -310,7 +310,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     }
 
     public UserIdentity getUserInfoIfLoggedIn() {
-        return this.getPwmSession().getSessionStateBean().isAuthenticated()
+        return this.getPwmSession().isAuthenticated()
                 ? this.getPwmSession().getUserInfoBean().getUserIdentity()
                 : null;
     }

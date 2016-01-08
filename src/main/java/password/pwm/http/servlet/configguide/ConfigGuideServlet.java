@@ -125,12 +125,12 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
-        if (pwmApplication.getSessionBeanService().getBean(pwmRequest, ConfigGuideBean.class).getStep() == GuideStep.START) {
-            pwmApplication.getSessionBeanService().clearBean(pwmRequest, ConfigGuideBean.class);
+        if (pwmApplication.getSessionStateService().getBean(pwmRequest, ConfigGuideBean.class).getStep() == GuideStep.START) {
+            pwmApplication.getSessionStateService().clearBean(pwmRequest, ConfigGuideBean.class);
             pwmSession.getSessionStateBean().setTheme(null);
         }
 
-        final ConfigGuideBean configGuideBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, ConfigGuideBean.class);
+        final ConfigGuideBean configGuideBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ConfigGuideBean.class);
 
         if (pwmApplication.getApplicationMode() != PwmApplication.MODE.NEW) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"ConfigGuide unavailable unless in NEW mode");
@@ -547,7 +547,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     {
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final ServletContext servletContext = req.getSession().getServletContext();
-        final ConfigGuideBean configGuideBean = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest,ConfigGuideBean.class);
+        final ConfigGuideBean configGuideBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest,ConfigGuideBean.class);
         String destURL = '/' + PwmConstants.URL_JSP_CONFIG_GUIDE;
         destURL = destURL.replace("%1%", configGuideBean.getStep().toString().toLowerCase());
         servletContext.getRequestDispatcher(destURL).forward(req, pwmRequest.getPwmResponse().getHttpServletResponse());

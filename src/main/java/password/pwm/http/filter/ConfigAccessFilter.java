@@ -47,7 +47,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
             return;
         }
 
-        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, ConfigManagerBean.class);
+        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ConfigManagerBean.class);
         if (!checkAuthentication(pwmRequest, configManagerBean)) {
             filterChain.doFilter();
         }
@@ -70,7 +70,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         }
 
         if (PwmApplication.MODE.RUNNING == pwmRequest.getPwmApplication().getApplicationMode()) {
-            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+            if (!pwmRequest.isAuthenticated()) {
                 throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
             }
 

@@ -42,12 +42,6 @@ import java.util.Map;
 public class LocalSessionStateBean implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    // ------------------------- PUBLIC CONSTANTS -------------------------
-    /**
-     * if the current session is believed to be authenticated
-     */
-    private boolean authenticated;
-
     private String preCaptchaRequestURL;
     private String srcAddress;
     private String srcHostname;
@@ -163,14 +157,6 @@ public class LocalSessionStateBean implements Serializable {
 
     public void setSrcHostname(final String srcHostname) {
         this.srcHostname = srcHostname;
-    }
-
-    public boolean isAuthenticated() {
-        return authenticated;
-    }
-
-    public void setAuthenticated(final boolean authenticated) {
-        this.authenticated = authenticated;
     }
 
     public boolean isPassedCaptcha() {

@@ -123,7 +123,7 @@ public class PwmSession implements Serializable {
     }
 
     public UserInfoBean getUserInfoBean() {
-        if (!getSessionStateBean().isAuthenticated()) {
+        if (!isAuthenticated()) {
             throw new IllegalStateException("attempt to read user info bean, but session not authenticated");
         }
         if (userInfoBean == null) {
@@ -136,8 +136,15 @@ public class PwmSession implements Serializable {
         if (loginInfoBean == null) {
             loginInfoBean = new LoginInfoBean();
         }
+        if (loginInfoBean.getGuid() == null) {
+            loginInfoBean.setGuid((Long.toString(new Date().getTime(),36) + PwmRandom.getInstance().alphaNumericString(64)));
+        }
 
         return loginInfoBean;
+    }
+
+    public void setLoginInfoBean(final LoginInfoBean loginInfoBean) {
+        this.loginInfoBean = loginInfoBean;
     }
 
     public UserSessionDataCacheBean getUserSessionDataCacheBean() {
@@ -149,8 +156,8 @@ public class PwmSession implements Serializable {
 
     public SessionLabel getLabel() {
         final LocalSessionStateBean ssBean = this.getSessionStateBean();
-        final String userID = ssBean.isAuthenticated() ? this.getUserInfoBean().getUsername() : null;
-        final UserIdentity userIdentity = ssBean.isAuthenticated() ? this.getUserInfoBean().getUserIdentity() : null;
+        final String userID = isAuthenticated() ? this.getUserInfoBean().getUsername() : null;
+        final UserIdentity userIdentity = isAuthenticated() ? this.getUserInfoBean().getUserIdentity() : null;
         return new SessionLabel(ssBean.getSessionID(),userIdentity,userID,ssBean.getSrcAddress(),ssBean.getSrcAddress());
     }
 
@@ -160,7 +167,7 @@ public class PwmSession implements Serializable {
     public void unauthenticateUser(final PwmRequest pwmRequest) {
         final LocalSessionStateBean ssBean = getSessionStateBean();
 
-        if (ssBean.isAuthenticated()) { // try to tear out a session normally.
+        if (getLoginInfoBean().isAuthenticated()) { // try to tear out a session normally.
             getUserSessionDataCacheBean().clearPermissions();
 
             final StringBuilder sb = new StringBuilder();
@@ -171,7 +178,7 @@ public class PwmSession implements Serializable {
             }
 
             // mark the session state bean as no longer being authenticated
-            ssBean.setAuthenticated(false);
+            this.getLoginInfoBean().setAuthenticated(false);
 
             // close out any outstanding connections
             getSessionManager().closeConnections();
@@ -181,7 +188,7 @@ public class PwmSession implements Serializable {
 
         if (pwmRequest != null) {
             try {
-                pwmRequest.getPwmApplication().getLoginCookieManager().clearLoginCookie(pwmRequest);
+                pwmRequest.getPwmApplication().getSessionStateService().clearLoginSession(pwmRequest);
             } catch (PwmUnrecoverableException e) {
                 final String errorMsg = "unexpected error writing removing login cookie from response: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
@@ -210,8 +217,8 @@ public class PwmSession implements Serializable {
         final Map<String,Object> debugData = new LinkedHashMap<>();
         try {
             debugData.put("sessionID",getSessionStateBean().getSessionID());
-            debugData.put("auth",getSessionStateBean().isAuthenticated());
-            if (getSessionStateBean().isAuthenticated()) {
+            debugData.put("auth",this.isAuthenticated());
+            if (this.isAuthenticated()) {
                 debugData.put("passwordStatus",getUserInfoBean().getPasswordState());
                 debugData.put("guid",getUserInfoBean().getUserGuid());
                 debugData.put("dn",getUserInfoBean().getUserIdentity());
@@ -243,7 +250,7 @@ public class PwmSession implements Serializable {
             LOGGER.debug(this, "setting session locale to '" + localeString + "'");
             final LocalSessionStateBean ssBean = this.getSessionStateBean();
             ssBean.setLocale(localeString.equalsIgnoreCase("default") ? PwmConstants.DEFAULT_LOCALE : requestedLocale);
-            if (ssBean.isAuthenticated()) {
+            if (this.isAuthenticated()) {
                 try {
                     final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, this.getLabel());
                     userStatusReader.populateLocaleSpecificUserInfoBean(this.getUserInfoBean(), ssBean.getLocale());
@@ -259,7 +266,7 @@ public class PwmSession implements Serializable {
     }
 
     public String getRestClientKey() {
-        if (!this.getSessionStateBean().isAuthenticated()) {
+        if (!this.isAuthenticated()) {
             return "";
         }
 
@@ -282,7 +289,7 @@ public class PwmSession implements Serializable {
     }
 
     public boolean isAuthenticated() {
-        return getSessionStateBean().isAuthenticated();
+        return getLoginInfoBean().isAuthenticated();
     }
 
     private static class Settings implements Serializable {

@@ -14,9 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class CryptoRequestCookieService implements SessionBeanProvider {
+class CryptoRequestBeanImpl implements SessionBeanProvider {
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(CryptoRequestCookieService.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(CryptoRequestBeanImpl.class);
 
     private static final PwmHttpResponseWrapper.CookiePath COOKIE_PATH = PwmHttpResponseWrapper.CookiePath.CurrentURL;
 
@@ -41,7 +41,7 @@ public class CryptoRequestCookieService implements SessionBeanProvider {
             LOGGER.error(pwmRequest, "error reading existing " + cookieName + " cookie bean: " + e.getMessage());
         }
 
-        final E newBean = SessionBeanService.newBean(sessionGuid, theClass);
+        final E newBean = SessionStateService.newBean(sessionGuid, theClass);
         sessionBeans.put(theClass, newBean);
         return newBean;
     }
@@ -82,7 +82,7 @@ public class CryptoRequestCookieService implements SessionBeanProvider {
     }
 
 
-    public static void writeCookiesToResponse(final PwmRequest pwmRequest) {
+    public void saveSessionBeans(final PwmRequest pwmRequest) {
         if (pwmRequest == null || pwmRequest.getPwmResponse().isCommitted()) {
             return;
         }
@@ -110,7 +110,7 @@ public class CryptoRequestCookieService implements SessionBeanProvider {
     public void clearSessionBean(PwmRequest pwmRequest, Class<? extends PwmSessionBean> userBeanClass) throws PwmUnrecoverableException {
         final Map<Class<? extends PwmSessionBean>,PwmSessionBean> sessionBeans = getRequestBeanMap(pwmRequest);
         sessionBeans.put(userBeanClass, null);
-        writeCookiesToResponse(pwmRequest);
+        saveSessionBeans(pwmRequest);
     }
 
     private static Map<Class<? extends PwmSessionBean>,PwmSessionBean> getRequestBeanMap(final PwmRequest pwmRequest) {

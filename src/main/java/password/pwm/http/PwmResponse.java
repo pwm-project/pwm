@@ -29,7 +29,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.http.state.CryptoRequestCookieService;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
@@ -191,8 +190,8 @@ public class PwmResponse extends PwmHttpResponseWrapper {
 
     private void preCommitActions() {
         if (!pwmRequest.getPwmResponse().isCommitted()) {
-            pwmRequest.getPwmApplication().getLoginCookieManager().writeLoginCookieToResponse(pwmRequest);
-            CryptoRequestCookieService.writeCookiesToResponse(pwmRequest);
+            pwmRequest.getPwmApplication().getSessionStateService().saveLoginSessionState(pwmRequest);
+            pwmRequest.getPwmApplication().getSessionStateService().saveSessionBeans(pwmRequest);
         }
     }
 }

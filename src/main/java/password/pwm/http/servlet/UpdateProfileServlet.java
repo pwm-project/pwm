@@ -113,7 +113,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final UpdateAttributesProfile updateAttributesProfile = pwmRequest.getPwmSession().getSessionManager().getUpdateAttributeProfile(pwmApplication);
-        final UpdateProfileBean updateProfileBean = pwmApplication.getSessionBeanService().getBean(pwmRequest, UpdateProfileBean.class);
+        final UpdateProfileBean updateProfileBean = pwmApplication.getSessionStateService().getBean(pwmRequest, UpdateProfileBean.class);
 
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
             pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
@@ -424,7 +424,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         uiBean.setRequiresUpdateProfile(false);
 
         // clear out the updateProfileBean
-        pwmApplication.getSessionBeanService().clearBean(pwmRequest, UpdateProfileBean.class);
+        pwmApplication.getSessionStateService().clearBean(pwmRequest, UpdateProfileBean.class);
 
         // success, so forward to success page
         pwmApplication.getStatisticsManager().incrementValue(Statistic.UPDATE_ATTRIBUTES);

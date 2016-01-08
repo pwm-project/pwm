@@ -27,7 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionStateInfoBean;
+import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -442,7 +442,7 @@ public class RestAppDataServer extends AbstractRestServer {
         }
 
         inputString.append(pwmSession.getSessionStateBean().getSessionID());
-        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+        if (pwmSession.isAuthenticated()) {
             inputString.append(pwmSession.getUserInfoBean().getUserGuid());
             inputString.append(pwmSession.getLoginInfoBean().getAuthTime());
         }

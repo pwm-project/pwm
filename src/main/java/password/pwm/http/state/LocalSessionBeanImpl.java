@@ -9,9 +9,9 @@ import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
 
-class HttpSessionService implements SessionBeanProvider {
+class LocalSessionBeanImpl implements SessionBeanProvider {
 
-    private final static PwmLogger LOGGER = PwmLogger.forClass(HttpSessionService.class);
+    private final static PwmLogger LOGGER = PwmLogger.forClass(LocalSessionBeanImpl.class);
 
     @Override
     public <E extends PwmSessionBean> E getSessionBean(final PwmRequest pwmRequest, final Class<E> theClass) {
@@ -19,7 +19,7 @@ class HttpSessionService implements SessionBeanProvider {
 
         if (!sessionBeans.containsKey(theClass)) {
             try {
-                final Object newBean = SessionBeanService.newBean(null, theClass);
+                final Object newBean = SessionStateService.newBean(null, theClass);
                 sessionBeans.put(theClass,(PwmSessionBean)newBean);
             } catch (Exception e) {
                 LOGGER.error("unexpected error trying to instantiate bean class " + theClass.getName() + ": " + e.getMessage(),e);
@@ -44,5 +44,10 @@ class HttpSessionService implements SessionBeanProvider {
             httpSession.setAttribute(attributeName, sessionBeans);
         }
         return sessionBeans;
+    }
+
+    @Override
+    public void saveSessionBeans(PwmRequest pwmRequest) {
+
     }
 }

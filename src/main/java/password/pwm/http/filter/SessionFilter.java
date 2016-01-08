@@ -123,14 +123,6 @@ public class SessionFilter extends AbstractPwmFilter {
             return false;
         }
 
-        // mark last url
-        if (!new PwmURL(pwmRequest.getHttpServletRequest()).isCommandServletURL()) {
-            ssBean.setLastRequestURL(pwmRequest.getHttpServletRequest().getRequestURI());
-        }
-
-        // mark last request time.
-        ssBean.setSessionLastAccessedTime(new Date());
-
         // debug the http session headers
         if (!pwmSession.getSessionStateBean().isDebugInitialized()) {
             LOGGER.trace(pwmSession, ServletHelper.debugHttpHeaders(pwmRequest.getHttpServletRequest()));
@@ -139,6 +131,21 @@ public class SessionFilter extends AbstractPwmFilter {
 
         // output request information to debug log
         pwmRequest.debugHttpRequestToLog();
+
+        try {
+            pwmApplication.getSessionStateService().readLoginSessionState(pwmRequest);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.warn(pwmRequest, "error while reading login session state: " + e.getMessage());
+        }
+
+        // mark last url
+        if (!new PwmURL(pwmRequest.getHttpServletRequest()).isCommandServletURL()) {
+            ssBean.setLastRequestURL(pwmRequest.getHttpServletRequest().getRequestURI());
+        }
+
+        // mark last request time.
+        ssBean.setSessionLastAccessedTime(new Date());
+
 
         // check the page leave notice
         if (checkPageLeaveNotice(pwmSession, config)) {

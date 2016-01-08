@@ -72,7 +72,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction {
             throw new PwmOperationalException(errorInformation);
         }
 
-        final UserIdentity userIdentity = pwmSession.getSessionStateBean().isAuthenticated() ? pwmSession.getUserInfoBean().getUserIdentity() : null;
+        final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfoBean().getUserIdentity() : null;
         storedConfiguration.writeSetting(setting, new X509CertificateValue(resultCertificates), userIdentity);
 
         final StringBuffer returnStr = new StringBuffer();

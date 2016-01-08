@@ -20,13 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
+package password.pwm.bean.pub;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.Locale;
 
-public class SessionStateInfoBean implements Serializable {
+public class SessionStateInfoBean implements PublishedBean {
     private String label;
     private Date createTime;
     private Date lastTime;

@@ -1381,17 +1381,21 @@
             <value>28800</value>
         </default>
     </setting>
-    <setting hidden="false" key="security.loginCookie.enable" level="2">
+    <setting hidden="false" key="security.loginSession.mode" level="2">
         <default>
-            <value>true</value>
-        </default>
-    </setting>
-    <setting hidden="false" key="security.sessionBean.mode" level="2">
-        <default>
-            <value>SESSION</value>
+            <value>Local</value>
         </default>
         <options>
-            <option value="SESSION">HttpSession</option>
+            <option value="LOCAL">HttpSession</option>
+            <option value="CRYPTCOOKIE">Encrypted Cookie</option>
+        </options>
+    </setting>
+    <setting hidden="false" key="security.moduleSession.mode" level="2">
+        <default>
+            <value>LOCAL</value>
+        </default>
+        <options>
+            <option value="LOCAL">Local</option>
             <option value="CRYPTCOOKIE">Encrypted Cookie</option>
         </options>
     </setting>

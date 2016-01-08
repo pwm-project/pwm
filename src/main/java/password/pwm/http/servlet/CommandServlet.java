@@ -137,11 +137,10 @@ public class CommandServlet extends AbstractPwmServlet {
             throws IOException, PwmUnrecoverableException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmApplication.getConfig();
 
-        if (ssBean.isAuthenticated()) {
+        if (pwmRequest.isAuthenticated()) {
             if (AuthenticationFilter.forceRequiredRedirects(pwmRequest)) {
                 return;
             }
@@ -220,7 +219,7 @@ public class CommandServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        if (!ssBean.isAuthenticated()) {
+        if (!pwmRequest.isAuthenticated()) {
             final String action = pwmRequest.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST);
             LOGGER.info(pwmSession, "authentication required for " + action);
             pwmRequest.respondWithError(PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo());

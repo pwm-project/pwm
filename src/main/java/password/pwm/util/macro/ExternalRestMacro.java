@@ -25,7 +25,7 @@ package password.pwm.util.macro;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.PublicUserInfoBean;
+import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.PwmException;
 import password.pwm.util.JsonUtil;

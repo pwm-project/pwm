@@ -22,7 +22,7 @@
 
 package password.pwm.ws.server.rest;
 
-import password.pwm.bean.PublicUserInfoBean;
+import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;

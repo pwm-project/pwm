@@ -160,7 +160,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             return;
         }
 
-        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+        if (pwmSession.isAuthenticated()) {
             pwmRequest.respondWithError(PwmError.ERROR_USERAUTHENTICATED.toInfo());
             return;
         }
@@ -229,7 +229,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
 
             }
         } else {
-            pwmApplication.getSessionBeanService().clearBean(pwmRequest, ForgottenPasswordBean.class);
+            pwmApplication.getSessionStateService().clearBean(pwmRequest, ForgottenPasswordBean.class);
         }
 
         if (!pwmRequest.getPwmResponse().isCommitted()) {
@@ -238,11 +238,11 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
     }
 
     private ForgottenPasswordBean forgottenPasswordBean(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        return pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, ForgottenPasswordBean.class);
+        return pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ForgottenPasswordBean.class);
     }
 
     private void clearForgottenPasswordBean(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        pwmRequest.getPwmApplication().getSessionBeanService().clearBean(pwmRequest, ForgottenPasswordBean.class);
+        pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, ForgottenPasswordBean.class);
     }
 
     private void processActionChoice(final PwmRequest pwmRequest)

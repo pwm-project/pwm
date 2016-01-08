@@ -39,7 +39,7 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_UpdateAttributes"/>
+        <jsp:param name="pwm.PageName" value="Title_UpdateProfile"/>
     </jsp:include>
     <div id="centerbody">
         <% if (updateProfileBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.EMAIL) { %>

@@ -55,7 +55,7 @@ public abstract class JspUtility {
     public static <E extends PwmSessionBean> E getSessionBean(final PageContext pageContext, final Class<E> theClass) {
         final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
         try {
-            return pwmRequest.getPwmApplication().getSessionBeanService().getBean(pwmRequest, theClass);
+            return pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, theClass);
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("unable to load pwmRequest object during jsp execution: " + e.getMessage());
         }

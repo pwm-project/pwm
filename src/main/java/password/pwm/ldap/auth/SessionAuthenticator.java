@@ -30,10 +30,7 @@ import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionLabel;
-import password.pwm.bean.LocalSessionStateBean;
-import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.*;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -267,9 +264,11 @@ public class SessionAuthenticator {
     {
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LoginInfoBean loginInfoBean = pwmSession.getLoginInfoBean();
 
         // auth succeed
-        ssBean.setAuthenticated(true);
+        loginInfoBean.setAuthenticated(true);
+        loginInfoBean.setUserIdentity(userIdentity);
 
         //update the session connection
         pwmSession.getSessionManager().setChaiProvider(authenticationResult.getUserProvider());
