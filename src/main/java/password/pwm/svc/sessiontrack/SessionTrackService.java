@@ -23,8 +23,9 @@
 package password.pwm.svc.sessiontrack;
 
 import password.pwm.PwmApplication;
-import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.SessionStateInfoBean;
+import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
@@ -150,7 +151,8 @@ public class SessionTrackService implements PwmService {
     }
 
     private static SessionStateInfoBean infoBeanFromPwmSession(final PwmSession loopSession) {
-        final SessionStateBean loopSsBean = loopSession.getSessionStateBean();
+        final LocalSessionStateBean loopSsBean = loopSession.getSessionStateBean();
+        final LoginInfoBean loginInfoBean = loopSession.getLoginInfoBean();
 
         final SessionStateInfoBean sessionStateInfoBean = new SessionStateInfoBean();
 
@@ -166,9 +168,9 @@ public class SessionTrackService implements PwmService {
 
         if (loopSession.isAuthenticated()) {
             final UserInfoBean loopUiBean = loopSession.getUserInfoBean();
-            sessionStateInfoBean.setLdapProfile(loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().getLdapProfileID() : "");
-            sessionStateInfoBean.setUserDN(loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().getUserDN() : "");
-            sessionStateInfoBean.setUserID(loopSsBean.isAuthenticated() ? loopUiBean.getUsername() : "");
+            sessionStateInfoBean.setLdapProfile(loginInfoBean.isAuthenticated() ? loopUiBean.getUserIdentity().getLdapProfileID() : "");
+            sessionStateInfoBean.setUserDN(loginInfoBean.isAuthenticated() ? loopUiBean.getUserIdentity().getUserDN() : "");
+            sessionStateInfoBean.setUserID(loginInfoBean.isAuthenticated() ? loopUiBean.getUsername() : "");
         }
 
         return sessionStateInfoBean;

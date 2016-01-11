@@ -31,7 +31,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.PublicUserInfoBean;
+import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;

@@ -28,7 +28,7 @@ PWM_OTP.checkExistingCode = function() {
     PWM_MAIN.getObject('checkIcon').style.display = 'none';
     PWM_MAIN.getObject('workingIcon').style.display = 'inherit';
     PWM_MAIN.pwmFormValidator({
-        serviceURL:"SetupOtp?processAction=restValidateCode",
+        serviceURL: PWM_MAIN.addParamToUrl(window.location.href,"processAction","restValidateCode"),
         readDataFunction:function(){
             var paramData = { };
             paramData['code'] = PWM_MAIN.getObject('verifyCodeInput').value;

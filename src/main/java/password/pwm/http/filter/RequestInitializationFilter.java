@@ -130,7 +130,7 @@ public class RequestInitializationFilter implements Filter {
         }
         
         final boolean recycleEnabled = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_SESSION_RECYCLE_AT_AUTH));
-        
+
         if (!recycleEnabled) {
             return;
         }

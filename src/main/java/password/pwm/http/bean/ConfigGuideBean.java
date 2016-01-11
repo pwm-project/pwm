@@ -27,10 +27,12 @@ import password.pwm.http.servlet.configguide.ConfigGuideForm;
 import password.pwm.http.servlet.configguide.GuideStep;
 
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-public class ConfigGuideBean implements PwmSessionBean {
+public class ConfigGuideBean extends PwmSessionBean {
 
     private GuideStep step = GuideStep.START;
     private Map<ConfigGuideForm.FormParameter,String> formData = new HashMap<>(ConfigGuideForm.defaultForm());
@@ -85,5 +87,13 @@ public class ConfigGuideBean implements PwmSessionBean {
 
     public void setDatabaseDriver(FileValue databaseDriver) {
         this.databaseDriver = databaseDriver;
+    }
+
+    public Type getType() {
+        return Type.PUBLIC;
+    }
+
+    public Set<Flag> getFlags() {
+        return Collections.singleton(Flag.ProhibitCookieSession);
     }
 }

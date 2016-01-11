@@ -21,6 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -46,7 +47,7 @@
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="setHelpdeskResponses"/>
                 <button type="submit" name="setResponses" class="btn" id="button-setResponses">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_SetResponses"/>
                 </button>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

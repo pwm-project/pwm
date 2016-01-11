@@ -34,6 +34,7 @@
 <%@ page import="password.pwm.config.profile.PwmPasswordRule" %>
 <%@ page import="password.pwm.http.servlet.helpdesk.HelpdeskDetailInfoBean" %>
 <%@ page import="password.pwm.http.tag.PasswordRequirementsTag" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.svc.event.UserAuditRecord" %>
 <%@ page import="password.pwm.util.StringUtil" %>
@@ -362,7 +363,7 @@
                                     <% } %>
                                 </tr>
                                 <% } %>
-                                <pwm:if test="otpEnabled">
+                                <pwm:if test="<%=PwmIfTest.otpEnabled%>">
                                     <% if (viewStatusFields.contains(ViewStatusFields.OTPStored)) { %>
                                     <tr>
                                         <td class="key">
@@ -514,29 +515,29 @@
                 <td style="border:0; width: 200px; max-width:200px; text-align: left; vertical-align: top">
                     <div style="border:0; margin-top: 25px; margin-left: 5px">
                         <button name="button_continue" class="helpdesk-detail-btn btn" id="button_continue" autofocus>
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                             <pwm:display key="Button_GoBack"/>
                         </button>
                         <button name="button_refresh" class="helpdesk-detail-btn btn" id="button_refresh">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-refresh"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh"></span></pwm:if>
                             <pwm:display key="Display_CaptchaRefresh"/>
                         </button>
                         <br/><br/>
                         <% if (SETTING_PW_UI_MODE != HelpdeskUIMode.none) { %>
                         <button class="helpdesk-detail-btn btn" id="helpdesk_ChangePasswordButton">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
                             <pwm:display key="Button_ChangePassword"/>
                         </button>
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
                         <% if (helpdeskDetailInfoBean.isIntruderLocked()) { %>
                         <button id="helpdesk_unlockBtn" class="helpdesk-detail-btn btn">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
                             <pwm:display key="Button_Unlock"/>
                         </button>
                         <% } else { %>
                         <button id="helpdesk_unlockBtn" class="helpdesk-detail-btn btn" disabled="disabled">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
                             <pwm:display key="Button_Unlock"/>
                         </button>
                         <% } %>
@@ -544,12 +545,12 @@
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) { %>
                         <% if (responseInfoBean != null) { %>
                         <button id="helpdesk_clearResponsesBtn" class="helpdesk-detail-btn btn">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-eraser"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-eraser"></span></pwm:if>
                             <pwm:display key="Button_ClearResponses"/>
                         </button>
                         <% } else { %>
                         <button id="helpdesk_clearResponsesBtn" class="helpdesk-detail-btn btn" disabled="disabled">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-eraser"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-eraser"></span></pwm:if>
                             <pwm:display key="Button_ClearResponses"/>
                         </button>
                         <pwm:script>
@@ -567,38 +568,38 @@
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_OTP_BUTTON) && pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) { %>
                         <% if (hasOtp) { %>
                         <button id="helpdesk_clearOtpSecretBtn" class="helpdesk-detail-btn btn">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-eraser"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-eraser"></span></pwm:if>
                             <pwm:display key="Button_HelpdeskClearOtpSecret"/>
                         </button>
                         <% } else { %>
                         <button id="helpdesk_clearOtpSecretBtn" class="helpdesk-detail-btn btn" disabled="disabled">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-eraser"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-eraser"></span></pwm:if>
                             <pwm:display key="Button_HelpdeskClearOtpSecret"/>
                         </button>
                         <% } %>
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_OTP_VERIFY)) { %>
                         <button id="helpdesk_verifyOtpButton" <%=hasOtp?"":" disabled=\"true\""%>class="helpdesk-detail-btn btn">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-mobile-phone"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-mobile-phone"></span></pwm:if>
                             Verify OTP
                         </button>
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class) != MessageSendMethod.NONE) { %>
                         <button id="sendTokenButton" class="helpdesk-detail-btn btn">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-mobile-phone"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-mobile-phone"></span></pwm:if>
                             Send Verification
                         </button>
                         <% } %>
                         <% if (helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_DELETE_USER_BUTTON)) { %>
                         <button class="helpdesk-detail-btn btn" id="helpdesk_deleteUserButton">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-user-times"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-user-times"></span></pwm:if>
                             <pwm:display key="Button_Delete"/>
                         </button>
                         <% } %>
                         <% final List<ActionConfiguration> actions = helpdeskProfile.readSettingAsAction(PwmSetting.HELPDESK_ACTIONS); %>
                         <% for (final ActionConfiguration loopAction : actions) { %>
                         <button class="helpdesk-detail-btn btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-location-arrow"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-location-arrow"></span></pwm:if>
                             <%=StringUtil.escapeHtml(loopAction.getName())%>
                         </button>
                         <pwm:script>

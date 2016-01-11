@@ -27,8 +27,8 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ page isErrorPage="true" %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_REQ_COUNTER); %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_REQ_COUNTER); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <html>
 <%@ include file="fragment/header.jsp" %>
 <% response.setHeader("Content-Encoding",""); //remove gzip encoding header %>

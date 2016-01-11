@@ -39,7 +39,7 @@ import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.ServletHelper;
-import password.pwm.http.bean.LoginInfoBean;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.ldap.UserSearchEngine;
@@ -99,7 +99,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Settings settings = Settings.fromConfiguration(pwmApplication.getConfig());
 
-        final boolean userIsAuthenticated = pwmSession.getSessionStateBean().isAuthenticated();
+        final boolean userIsAuthenticated = pwmSession.isAuthenticated();
         final OAuthRequestState oAuthRequestState = readOAuthRequestState(pwmRequest);
 
         if (!userIsAuthenticated && !pwmSession.getSessionStateBean().isOauthInProgress()) {

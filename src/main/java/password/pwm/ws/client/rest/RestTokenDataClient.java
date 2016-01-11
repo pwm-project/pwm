@@ -29,7 +29,7 @@ import java.util.Map;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.PublicUserInfoBean;
+import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;

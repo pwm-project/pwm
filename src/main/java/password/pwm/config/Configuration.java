@@ -44,6 +44,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
@@ -487,12 +488,18 @@ public class Configuration implements Serializable, SettingReader {
         return storedConfiguration.readConfigProperty(ConfigurationProperty.NOTES);
     }
 
+    private PwmSecurityKey tempInstanceKey = null;
     public PwmSecurityKey getSecurityKey() throws PwmUnrecoverableException {
         final PasswordData configValue = readSettingAsPassword(PwmSetting.PWM_SECURITY_KEY);
-        if (configValue == null) {
-            final String errorMsg = "Security Key value is not configured";
+
+        if (configValue == null || configValue.getStringValue().isEmpty()) {
+            final String errorMsg = "Security Key value is not configured,will generate temp value for use by runtime instance";
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
-            throw new PwmUnrecoverableException(errorInfo);
+            LOGGER.warn(errorInfo.toDebugStr());
+            if (tempInstanceKey == null) {
+                tempInstanceKey = new PwmSecurityKey(PwmRandom.getInstance().alphaNumericString(256));
+            }
+            return tempInstanceKey;
         }
 
         final int minSecurityKeyLength = Integer.parseInt(readAppProperty(AppProperty.SECURITY_CONFIG_MIN_SECURITY_KEY_LENGTH));

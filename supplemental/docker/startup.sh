@@ -1,20 +1,32 @@
 #!/usr/bin/env bash
 #PWM Docker Container startup script
 
+PWM_HOME=/usr/local/tomcat/webapps/pwm
+TOMCAT_HOME=/usr/local/tomcat
+
+#Explode war
+rm -rf $PWM_HOME
+mkdir $PWM_HOME
+unzip /appliance/pwm.war -d $PWM_HOME
+
 #fix script executable flag
-chmod a+x /home/pwm/pwm/WEB-INF/command.sh
-cd /home/pwm/pwm/WEB-INF
+cd $PWM_HOME/WEB-INF
+chmod a+x command.sh
 
 # update the https certificate file used by tomcat
 rm /appliance/https-cert
-/home/pwm/pwm/WEB-INF/command.sh ExportHttpsKeyStore /appliance/https-cert password
+./command.sh ExportHttpsKeyStore /appliance/https-cert password
 
 # update the https configuration used by tomcat
-rm /home/pwm/tomcat/conf/server.xml
-/home/pwm/pwm/WEB-INF/command.sh ExportHttpsTomcatConfig /home/pwm/tomcat/conf/server.xml.source /home/pwm/tomcat/conf/server.xml
+rm $TOMCAT_HOME/conf/server.xml
+./command.sh ExportHttpsTomcatConfig /appliance/server.xml.source $TOMCAT_HOME/conf/server.xml
 
 # start tomcat
-cd /home/pwm/tomcat/bin
-./catalina.sh run
+rm -rf $TOMCAT_HOME/work/*
+useradd pwm
+chown -R pwm. $TOMCAT_HOME
+chown -R pwm. /config
+cd $TOMCAT_HOME/bin
+su pwm -c './catalina.sh run'
 
 

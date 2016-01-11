@@ -138,12 +138,12 @@ public class SetupOtpServlet extends AbstractPwmServlet {
             return;
         }
 
-        if (pwmSession.getLoginInfoBean().getAuthenticationType() == AuthenticationType.AUTH_WITHOUT_PASSWORD) {
+        if (pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD) {
             LOGGER.error(pwmSession, "OTP Secret requires a password login");
             throw new PwmUnrecoverableException(PwmError.ERROR_PASSWORD_REQUIRED);
         }
 
-        final SetupOtpBean otpBean = (SetupOtpBean) pwmSession.getSessionBean(SetupOtpBean.class);
+        final SetupOtpBean otpBean = pwmApplication.getSessionStateService().getBean(pwmRequest, SetupOtpBean.class);
 
         initializeBean(pwmRequest, otpBean);
 
@@ -278,7 +278,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         pwmSession.getSessionStateBean().setSkippedOtpSetup(true);
-        pwmSession.clearSessionBean(SetupOtpBean.class);
+        pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, SetupOtpBean.class);
 
         pwmRequest.sendRedirectToContinue();
     }

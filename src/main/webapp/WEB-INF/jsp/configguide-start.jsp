@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.PwmEnvironment" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -22,9 +23,9 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_IDLE_TIMEOUT); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_THEME); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_IDLE_TIMEOUT); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -50,7 +51,7 @@
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
                     <a class="menubutton" id="button-startConfigGuide">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-rocket"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-rocket"></span></pwm:if>
                         <pwm:display key="MenuItem_StartConfigGuide" bundle="Config"/>
                     </a>
                 </td>
@@ -61,7 +62,7 @@
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
                     <a class="menubutton" id="button-manualConfig">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-cogs"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-cogs"></span></pwm:if>
                         <pwm:display key="MenuItem_ManualConfig" bundle="Config"/>
                     </a>
                 </td>
@@ -72,7 +73,7 @@
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
                     <a class="menubutton" id="button-uploadConfig">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
                         <pwm:display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
                 </td>

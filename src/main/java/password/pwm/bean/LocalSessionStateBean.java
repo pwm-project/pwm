@@ -23,9 +23,9 @@
 package password.pwm.bean;
 
 import password.pwm.config.ShortcutItem;
-import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.secure.PwmRandom;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -34,19 +34,13 @@ import java.util.Map;
  * Only information that is particular to the http session is stored in the
  * session bean.  Information more topical to the user is stored in {@link UserInfoBean}.
  * <p/>
- * For any given HTTP session using PWM, one and only one {@link SessionStateBean} will be
+ * For any given HTTP session using PWM, one and only one {@link LocalSessionStateBean} will be
  * created.
  *
  * @author Jason D. Rivard
  */
-public class SessionStateBean implements PwmSessionBean {
+public class LocalSessionStateBean implements Serializable {
 // ------------------------------ FIELDS ------------------------------
-
-    // ------------------------- PUBLIC CONSTANTS -------------------------
-    /**
-     * if the current session is believed to be authenticated
-     */
-    private boolean authenticated;
 
     private String preCaptchaRequestURL;
     private String srcAddress;
@@ -60,9 +54,7 @@ public class SessionStateBean implements PwmSessionBean {
 
     private Map<String, ShortcutItem> visibleShortcutItems;
 
-    private String requestVerificationKey = "key";
     private String sessionVerificationKey = "key";
-    private String paramPrefixKey = "key";
     private String restClientKey;
 
     private boolean passedCaptcha;
@@ -91,7 +83,7 @@ public class SessionStateBean implements PwmSessionBean {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public SessionStateBean(final int sessionVerificationKeyLength) {
+    public LocalSessionStateBean(final int sessionVerificationKeyLength) {
         this.sessionVerificationKeyLength = sessionVerificationKeyLength;
     }
 
@@ -167,14 +159,6 @@ public class SessionStateBean implements PwmSessionBean {
         this.srcHostname = srcHostname;
     }
 
-    public boolean isAuthenticated() {
-        return authenticated;
-    }
-
-    public void setAuthenticated(final boolean authenticated) {
-        this.authenticated = authenticated;
-    }
-
     public boolean isPassedCaptcha() {
         return passedCaptcha;
     }
@@ -185,11 +169,6 @@ public class SessionStateBean implements PwmSessionBean {
 
     public String getSessionVerificationKey() {
         return sessionVerificationKey;
-    }
-
-
-    public String getParamPrefixKey() {
-        return paramPrefixKey;
     }
 
     public boolean isSessionVerified() {
@@ -214,16 +193,6 @@ public class SessionStateBean implements PwmSessionBean {
 
     public void setDebugInitialized(final boolean debugInitialized) {
         this.debugInitialized = debugInitialized;
-    }
-
-    public String getRequestVerificationKey()
-    {
-        return requestVerificationKey;
-    }
-
-    public void setRequestVerificationKey(String requestVerificationKey)
-    {
-        this.requestVerificationKey = requestVerificationKey;
     }
 
     public String getTheme() {
@@ -298,7 +267,6 @@ public class SessionStateBean implements PwmSessionBean {
 
     public void regenerateSessionVerificationKey() {
         sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(sessionVerificationKeyLength) + Long.toHexString(System.currentTimeMillis());
-        paramPrefixKey = PwmRandom.getInstance().alphaNumericString(10);
     }
 
     public boolean isSkippedOtpSetup()

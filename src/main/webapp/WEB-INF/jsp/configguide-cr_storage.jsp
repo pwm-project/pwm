@@ -21,11 +21,11 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_THEME); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<% ConfigGuideBean configGuideBean = JspUtility.getPwmSession(pageContext).getSessionBean(ConfigGuideBean.class);%>
+<% ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
 <% String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">

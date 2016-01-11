@@ -25,24 +25,24 @@ package password.pwm.bean;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.otp.OTPUserRecord;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * A bean that is stored in the user's session.   Only information that is particular to logged in user is stored in the
- * user info bean.  Information more topical to the session is stored in {@link SessionStateBean}.
+ * user info bean.  Information more topical to the session is stored in {@link LocalSessionStateBean}.
  * <p/>
  * For any given HTTP session using PWM, several {@link UserInfoBean}s may be created during
  * the life of the session, however at any given time, no more than one will be stored in
- * the HTTP session.  If the user is not authenticated (determined by {@link SessionStateBean#isAuthenticated()})
+ * the HTTP session.  If the user is not authenticated (determined by {@link LocalSessionStateBean#isAuthenticated()})
  * then there should not be a {@link UserInfoBean} in the HTTP session.
  *
  * @author Jason D. Rivard
  * @see password.pwm.ldap.UserStatusReader#populateUserInfoBean(Locale, UserIdentity)
  */
-public class UserInfoBean implements PwmSessionBean {
+public class UserInfoBean implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     private UserIdentity userIdentity;
@@ -76,9 +76,6 @@ public class UserInfoBean implements PwmSessionBean {
     private boolean requiresResponseConfig;
     private boolean requiresOtpConfig;
     private boolean requiresUpdateProfile;
-
-
-    // --------------------- GETTER / SETTER METHODS ---------------------
 
     public Map<String,String> getCachedPasswordRuleAttributes() {
         return this.cachedPasswordRuleAttributes;

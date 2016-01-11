@@ -22,17 +22,14 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspPage;
 import javax.servlet.jsp.JspTagException;
+import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.tagext.TagSupport;
 
 /**
@@ -41,14 +38,14 @@ import javax.servlet.jsp.tagext.TagSupport;
 public class PwmValueTag extends TagSupport {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmValueTag.class);
 
-    private String name;
+    private PwmValue name;
 
-    public String getName()
+    public PwmValue getName()
     {
         return name;
     }
 
-    public void setName(final String name)
+    public void setName(final PwmValue name)
     {
         this.name = name;
     }
@@ -60,8 +57,9 @@ public class PwmValueTag extends TagSupport {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmRequest pwmRequest = PwmRequest.forRequest(req, (HttpServletResponse) pageContext.getResponse());
             try {
-                final VALUE value = VALUE.valueOf(getName());
-                final String output = calcValue(pwmRequest,value);
+                // final VALUE value = Helper.readEnumFromString(VALUE.class, null, getName());
+                final PwmValue value = getName();
+                final String output = calcValue(pwmRequest,pageContext,value);
                 pageContext.getOut().write(output);
 
             } catch (IllegalArgumentException e) {
@@ -77,86 +75,18 @@ public class PwmValueTag extends TagSupport {
 
     public String calcValue(
             final PwmRequest pwmRequest,
-            final VALUE value
+            final PageContext pageContext,
+            final PwmValue value
     ) {
-        if (value == null) {
-            return "";
-        }
 
-        switch (value) {
-            case cspNonce:
-                return pwmRequest.getCspNonce();
-
-            case homeURL: {
-                String outputURL = pwmRequest.getConfig().readSettingAsString(PwmSetting.URL_HOME);
-                if (outputURL == null || outputURL.isEmpty()) {
-                    outputURL = pwmRequest.getHttpServletRequest().getContextPath();
-                } else {
-                    try {
-                        MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(
-                                pwmRequest.getPwmApplication());
-                        outputURL = macroMachine.expandMacros(outputURL);
-                    } catch ( PwmUnrecoverableException e) {
-                        LOGGER.error(pwmRequest, "error expanding macros in homeURL: " + e.getMessage());
-                    }
-                }
-                return StringUtil.escapeHtml(outputURL);
-            }
-
-            case passwordFieldType: {
-                final boolean maskPasswordFields = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_MASK_PASSWORD_FIELDS);
-                return maskPasswordFields ? "password" : "text";
-            }
-
-            case responseFieldType: {
-                final boolean maskResponseFields = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_MASK_RESPONSE_FIELDS);
-                return maskResponseFields ? "password" : "text";
-            }
-
-            case customJavascript: {
-                final String customScript = pwmRequest.getConfig().readSettingAsString(
-                        PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT);
-                if (customScript != null && !customScript.isEmpty()) {
-                    try {
-                        final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(
-                                pwmRequest.getPwmApplication());
-                        final String expandedScript = macroMachine.expandMacros(customScript);
-                        return expandedScript;
-                    } catch (Exception e) {
-                        LOGGER.error(pwmRequest, "error while expanding customJavascript macros: " + e.getMessage());
-                        return customScript;
-                    }
-                }
-                return "";
-            }
-
-            case currentJspFilename: {
-                final JspPage jspPage = (JspPage)pageContext.getPage();
-                if (jspPage != null) {
-                    String name = jspPage.getClass().getSimpleName();
-                    name = name.replaceAll("_002d", "-");
-                    name = name.replaceAll("_", ".");
-                    return name;
-                }
-                return "";
-            }
-
-            case instanceID: {
-                return pwmRequest.getPwmApplication().getInstanceID();
+        if (value != null) {
+            try {
+                return value.getValueOutput().valueOutput(pwmRequest, pageContext);
+            } catch (Exception e) {
+                LOGGER.error("error executing value tag option '" + value.toString() + "', error: " + e.getMessage());
             }
         }
 
         return "";
     }
-
-    enum VALUE {
-        cspNonce,
-        homeURL,
-        passwordFieldType,
-        responseFieldType,
-        customJavascript,
-        currentJspFilename,
-        instanceID,
-    }
 }
-

@@ -20,15 +20,16 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.bean.SessionStateBean" %>
+<%@ page import="password.pwm.bean.LocalSessionStateBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%@ page import="java.text.DateFormat" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final UserInfoBean uiBean = JspUtility.getPwmSession(pageContext).getUserInfoBean(); %>
-<% final SessionStateBean ssBean = JspUtility.getPwmSession(pageContext).getSessionStateBean(); %>
+<% final LocalSessionStateBean ssBean = JspUtility.getPwmSession(pageContext).getSessionStateBean(); %>
 <% final DateFormat dateFormatter = java.text.DateFormat.getDateInstance(DateFormat.FULL, ssBean.getLocale()); %>
 <% final DateFormat timeFormatter = java.text.DateFormat.getTimeInstance(DateFormat.FULL, ssBean.getLocale()); %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -56,7 +57,7 @@
                 <input type="hidden" name="warnResponse" value="change"/>
 
                 <button type="submit" name="changePassword" class="btn" id="changePassword">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
                     <pwm:display key="Button_ChangePassword"/>
                 </button>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
@@ -66,7 +67,7 @@
                 <input type="hidden" name="processAction" value="warnResponse"/>
                 <input type="hidden" name="warnResponse" value="skip"/>
                 <button type="submit" name="skipbutton" class="btn" id="skipbutton">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-fighter-jet"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-fighter-jet"></span></pwm:if>
                     <pwm:display key="Button_Skip"/>
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

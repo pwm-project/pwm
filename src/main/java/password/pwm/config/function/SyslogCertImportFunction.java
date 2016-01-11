@@ -75,7 +75,7 @@ public class SyslogCertImportFunction implements SettingUIFunction {
             }
         }
 
-        final UserIdentity userIdentity = pwmSession.getSessionStateBean().isAuthenticated() ? pwmSession.getUserInfoBean().getUserIdentity() : null;
+        final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfoBean().getUserIdentity() : null;
         storedConfiguration.writeSetting(setting, new X509CertificateValue(resultCertificates), userIdentity);
         return Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig());
     }

@@ -30,10 +30,7 @@ import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionLabel;
-import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.*;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -266,10 +263,12 @@ public class SessionAuthenticator {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LoginInfoBean loginInfoBean = pwmSession.getLoginInfoBean();
 
         // auth succeed
-        ssBean.setAuthenticated(true);
+        loginInfoBean.setAuthenticated(true);
+        loginInfoBean.setUserIdentity(userIdentity);
 
         //update the session connection
         pwmSession.getSessionManager().setChaiProvider(authenticationResult.getUserProvider());
@@ -295,12 +294,12 @@ public class SessionAuthenticator {
         }
 
         //mark the auth time
-        pwmSession.getLoginInfoBean().setLocalAuthTime(new Date());
+        pwmSession.getLoginInfoBean().setAuthTime(new Date());
 
         //update the resulting authType
-        pwmSession.getLoginInfoBean().setAuthenticationType(authenticationResult.getAuthenticationType());
+        pwmSession.getLoginInfoBean().setType(authenticationResult.getAuthenticationType());
 
-        pwmSession.getLoginInfoBean().setAuthenticationSource(authenticationSource);
+        pwmSession.getLoginInfoBean().setAuthSource(authenticationSource);
 
         // save the password in the login bean
         final PasswordData userPassword = authenticationResult.getUserPassword();

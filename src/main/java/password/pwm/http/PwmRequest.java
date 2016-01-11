@@ -29,7 +29,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
@@ -69,20 +69,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     private transient PwmSession pwmSession;
     private final String cspNonce;
 
-    private final Set<Flag> flags = new HashSet<>();
-
-    public enum Flag {
-        HIDE_LOCALE,
-        HIDE_IDLE,
-        HIDE_THEME,
-        HIDE_FOOTER_TEXT,
-        HIDE_HEADER_BUTTONS,
-        HIDE_HEADER_WARNINGS,
-        NO_REQ_COUNTER,
-        NO_IDLE_TIMEOUT,
-        NO_MOBILE_CSS,
-        ALWAYS_EXPAND_MESSAGE_TEXT,
-    }
+    private final Set<PwmRequestFlag> flags = new HashSet<>();
 
     public static PwmRequest forRequest(
             HttpServletRequest request,
@@ -286,6 +273,8 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         GuestMaximumValidDays,
 
         NewUser_FormShowBackButton,
+
+        CookieBeanStorage,
     }
 
     public static class FileUploadItem {
@@ -321,7 +310,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     }
 
     public UserIdentity getUserInfoIfLoggedIn() {
-        return this.getPwmSession().getSessionStateBean().isAuthenticated()
+        return this.getPwmSession().isAuthenticated()
                 ? this.getPwmSession().getUserInfoBean().getUserIdentity()
                 : null;
     }
@@ -485,7 +474,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return false;
     }
 
-    public void setFlag(final Flag flag, final boolean status) {
+    public void setFlag(final PwmRequestFlag flag, final boolean status) {
         if (status) {
             flags.add(flag);
         } else {
@@ -493,18 +482,18 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         }
     }
 
-    public boolean isFlag(final Flag flag) {
+    public boolean isFlag(final PwmRequestFlag flag) {
         return flags.contains(flag);
     }
 
     public boolean hasForwardUrl() {
-        final SessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
+        final LocalSessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
         final String redirectURL = ssBean.getForwardURL();
         return !((redirectURL == null || redirectURL.isEmpty()) && this.getConfig().isDefaultValue(PwmSetting.URL_FORWARD));
     }
 
     public String getForwardUrl() {
-        final SessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
+        final LocalSessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
         String redirectURL = ssBean.getForwardURL();
         if (redirectURL == null || redirectURL.length() < 1) {
             redirectURL = this.getConfig().readSettingAsString(PwmSetting.URL_FORWARD);
@@ -519,7 +508,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     public String getLogoutURL(
     ) {
-        final SessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
+        final LocalSessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
         return ssBean.getLogoutURL() == null ? pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL();
     }
 

@@ -21,8 +21,8 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_THEME); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -46,12 +46,12 @@
                     <div class="setting_item">
                         <b><pwm:display key="password_title" bundle="ConfigGuide"/></b>
                         <br/>
-                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD%>" class="configStringInput passwordfield" style="width:200px" <pwm:autofocus/>/>
+                        <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" id="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD%>" class="configStringInput passwordfield" style="width:200px" <pwm:autofocus/>/>
                     </div>
                     <div class="setting_item">
                         <b><pwm:display key="password_title_verify" bundle="ConfigGuide"/></b>
                         <br/>
-                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD_VERIFY%>" name="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD_VERIFY%>" class="configStringInput passwordfield" style="width:200px"/>
+                        <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" id="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD_VERIFY%>" name="<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD_VERIFY%>" class="configStringInput passwordfield" style="width:200px"/>
                         <div style="display: inline; padding-top:45px;">
                             <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"
                                  src="<pwm:context/><pwm:url url='/public/resources/greenCheck.png'/>">

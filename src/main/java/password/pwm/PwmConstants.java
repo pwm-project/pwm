@@ -125,6 +125,7 @@ public abstract class PwmConstants {
     public static final String CONTEXT_ATTR_RESOURCE_DATA = "ResourceFileServlet-Data";
 
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
+    public static final String SESSION_ATTR_BEANS = "SessionBeans";
     public static final String SESSION_ATTR_CONTEXT_GUID = "ContextInstanceGUID";
 
     public static final PwmBlockAlgorithm IN_MEMORY_PASSWORD_ENCRYPT_METHOD = PwmBlockAlgorithm.AES;
@@ -196,6 +197,7 @@ public abstract class PwmConstants {
         FORGOTTEN_USERNAME_COMPLETE("forgottenusername-complete.jsp"),
         UPDATE_ATTRIBUTES("updateprofile.jsp"),
         UPDATE_ATTRIBUTES_AGREEMENT("updateprofile-agreement.jsp"),
+        UPDATE_ATTRIBUTES_ENTER_CODE("updateprofile-entercode.jsp"),
         UPDATE_ATTRIBUTES_CONFIRM("updateprofile-confirm.jsp"),
         NEW_USER("newuser.jsp"),
         NEW_USER_ENTER_CODE("newuser-entercode.jsp"),

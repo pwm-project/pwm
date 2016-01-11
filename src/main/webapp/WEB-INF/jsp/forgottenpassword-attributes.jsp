@@ -20,16 +20,17 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.bean.SessionStateBean" %>
+<%@ page import="password.pwm.bean.LocalSessionStateBean" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="java.util.List" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmRequest pwmRequest = PwmRequest.forRequest(request, response); %>
-<% final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean(); %>
-<% final ForgottenPasswordBean recoverBean = pwmRequest.getPwmSession().getForgottenPasswordBean(); %>
+<% final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean(); %>
+<% final ForgottenPasswordBean recoverBean = JspUtility.getSessionBean(pageContext, ForgottenPasswordBean.class); %>
 <% final List<FormConfiguration> requiredAttrParams = recoverBean.getAttributeForm(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -53,19 +54,19 @@ this is handled this way so on browsers where hiding fields is not possible, the
             %>
             <h2><label for="attribute-<%= paramConfig.getName()%>"><%= paramConfig.getLabel(ssBean.getLocale()) %>
             </label></h2>
-            <input type="<pwm:value name="responseFieldType"/>" name="<%= paramConfig.getName()%>" class="inputfield passwordfield" maxlength="255"
+            <input type="<pwm:value name="<%=PwmValue.responseFieldType%>"/>" name="<%= paramConfig.getName()%>" class="inputfield passwordfield" maxlength="255"
                     <pwm:autofocus/> id="attribute-<%= paramConfig.getName()%>" required="required" />
             <% } %>
 
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="checkAttributes"/>
                 <button type="submit" name="checkAttributes" class="btn" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                     <pwm:display key="Button_RecoverPassword"/>
                 </button>
                 <% if ("true".equals(JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordOptionalPageView))) { %>
                 <button type="button" id="button-goBack" name="button-goBack" class="btn" >
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <% } %>

@@ -21,6 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.logging.LocalDBLogger" %>
 <%@ page import="password.pwm.util.logging.PwmLogEvent" %>
@@ -29,9 +30,9 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_REQ_COUNTER); %>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_IDLE_TIMEOUT); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_FOOTER_TEXT); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_REQ_COUNTER); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_IDLE_TIMEOUT); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% final PwmRequest pwmRequest = PwmRequest.forRequest(request,response); %>
@@ -63,7 +64,7 @@
     </select>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <button class="btn" id="button-refresh">
-        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-refresh"></span></pwm:if>
+        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh"></span></pwm:if>
         <pwm:display key="Button_Refresh" bundle="Admin"/>
     </button>
 </div>

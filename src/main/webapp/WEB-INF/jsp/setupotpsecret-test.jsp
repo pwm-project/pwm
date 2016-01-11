@@ -21,11 +21,12 @@
   --%>
 
 <%@ page import="password.pwm.http.bean.SetupOtpBean" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupOtpBean otpBean = JspUtility.getPwmSession(pageContext).getSetupOtpBean();%>
+<% final SetupOtpBean otpBean = JspUtility.getSessionBean(pageContext,SetupOtpBean.class); %>
 <% final int otpTokenLength = PwmRequest.forRequest(request,response).getPwmApplication().getOtpService().getSettings().getOtpTokenLength(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -47,11 +48,11 @@
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="testOtpSecret"/>
                 <button type="submit" name="testOtpSecret" class="btn" id="setotpsecret_button">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-check"></span>&nbsp</pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span>&nbsp</pwm:if>
                     <pwm:display key="Button_CheckCode"/>
                 </button>
                 <button type="submit" name="testOtpSecret" class="btn" id="button-goback">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-backward"></span>&nbsp</pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span>&nbsp</pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

@@ -145,8 +145,12 @@ public class PwmHttpResponseWrapper {
             final CookiePath path,
             final Flag... flags
     ) {
+        if (this.getHttpServletResponse().isCommitted()) {
+            LOGGER.warn("attempting to write cookie '" + cookieName + "' after response is committed");
+        }
         boolean secureFlag;
         {
+
             final String configValue = configuration.readAppProperty(AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG);
             if (configValue == null || "auto".equalsIgnoreCase(configValue)) {
                 secureFlag = this.httpServletRequest.isSecure();
@@ -181,13 +185,14 @@ public class PwmHttpResponseWrapper {
         }
 
         final Cookie theCookie = new Cookie(cookieName, value);
-        if (seconds > 0) {
-            theCookie.setMaxAge(seconds);
-        }
+        theCookie.setMaxAge(seconds >= -1 ? seconds : -1);
         theCookie.setHttpOnly(httpOnly);
         theCookie.setSecure(secureFlag);
 
         theCookie.setPath(path == null ? CookiePath.CurrentURL.toStringPath(httpServletRequest) : path.toStringPath(httpServletRequest));
+        if (value != null && value.length() > 2000) {
+            LOGGER.warn("writing large cookie to response: cookieName=" + cookieName + ", length=" + value.length());
+        }
         this.getHttpServletResponse().addCookie(theCookie);
     }
 

@@ -23,6 +23,39 @@
 package password.pwm.http.bean;
 
 import java.io.Serializable;
+import java.util.Date;
+import java.util.Set;
 
-public interface PwmSessionBean extends Serializable {
+public abstract class PwmSessionBean implements Serializable {
+    public enum Type {
+        PUBLIC,
+        AUTHENTICATED,
+    }
+
+    public enum Flag {
+        ProhibitCookieSession,
+    }
+
+    private String guid;
+    private Date timestamp;
+
+    public String getGuid() {
+        return guid;
+    }
+
+    public void setGuid(String guid) {
+        this.guid = guid;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public abstract Type getType();
+
+    public abstract Set<Flag> getFlags();
 }

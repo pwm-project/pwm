@@ -71,7 +71,7 @@
         });
     </script>
 </pwm:script>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

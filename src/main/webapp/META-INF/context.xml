@@ -22,7 +22,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   -->
 
-<Context tldValidation="false" unloadDelay="30000" useHttpOnly="true">
+<Context tldValidation="false" unloadDelay="30000" useHttpOnly="true" mapperContextRootRedirectEnabled="true">
   <Manager sessionIdLength="64" pathname=""/>
   <!--pathname param prevents session persistence across restarts -->
 </Context>

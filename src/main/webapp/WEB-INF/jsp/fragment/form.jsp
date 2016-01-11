@@ -11,6 +11,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.http.tag.PwmValue" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -195,7 +196,7 @@
     </tr>
     <tr style="border:0; margin: 0; padding: 0">
         <td style="border:0; margin: 0; padding: 0">
-            <input type="<pwm:value name="passwordFieldType"/>" name="password2" id="password2" class="changepasswordfield passwordfield" style="margin-left:5px"/>
+            <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password2" id="password2" class="changepasswordfield passwordfield" style="margin-left:5px"/>
         </td>
         <td style="border:0">
             <%-- confirmation mark [not shown initially, enabled by javascript; see also changepassword.js:markConfirmationMark() --%>

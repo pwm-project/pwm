@@ -30,7 +30,7 @@ var PWM_UPDATE = PWM_UPDATE || {};
 
 PWM_UPDATE.validateForm = function() {
     var validationProps = new Array();
-    validationProps['serviceURL'] = PWM_MAIN.addPwmFormIDtoURL("UpdateProfile" + "?processAction=validate");
+    validationProps['serviceURL'] = PWM_MAIN.addParamToUrl(window.location.href,"processAction","validate");
     validationProps['readDataFunction'] = function(){
         var paramData = { };
         for (var j = 0; j < document.forms.length; j++) {

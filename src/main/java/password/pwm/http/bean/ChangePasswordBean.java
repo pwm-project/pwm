@@ -24,12 +24,14 @@ package password.pwm.http.bean;
 
 import password.pwm.ldap.PasswordChangeProgressChecker;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.Set;
 
 /**
  * @author Jason D. Rivard
  */
-public class ChangePasswordBean implements PwmSessionBean {
+public class ChangePasswordBean extends PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
     // ------------------------- PUBLIC CONSTANTS -------------------------
@@ -125,6 +127,14 @@ public class ChangePasswordBean implements PwmSessionBean {
     public void setWarnPassed(boolean warnPassed)
     {
         this.warnPassed = warnPassed;
+    }
+
+    public Type getType() {
+        return Type.AUTHENTICATED;
+    }
+
+    public Set<Flag> getFlags() {
+        return Collections.emptySet();
     }
 }
 

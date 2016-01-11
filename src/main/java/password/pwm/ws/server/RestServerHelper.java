@@ -93,7 +93,7 @@ public abstract class RestServerHelper {
         }
 
         final RestRequestBean restRequestBean = new RestRequestBean();
-        restRequestBean.setAuthenticated(pwmSession.getSessionStateBean().isAuthenticated());
+        restRequestBean.setAuthenticated(pwmSession.isAuthenticated());
         restRequestBean.setExternal(determineIfRestClientIsExternal(pwmSession,request));
         restRequestBean.setUserIdentity(
                 lookupUsername(pwmApplication, pwmSession, restRequestBean.isExternal(), servicePermissions, requestedUsername));
@@ -108,7 +108,7 @@ public abstract class RestServerHelper {
         }
 
         // check permissions
-        final boolean authenticated = pwmSession.getSessionStateBean().isAuthenticated();
+        final boolean authenticated = pwmSession.isAuthenticated();
         if (servicePermissions.isAuthRequired()) {
             if (!authenticated) {
                 throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
@@ -171,7 +171,7 @@ public abstract class RestServerHelper {
             return null;
         }
 
-        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+        if (!pwmSession.isAuthenticated()) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED));
         }
 
@@ -217,7 +217,7 @@ public abstract class RestServerHelper {
             final PwmSession pwmSession
     )
             throws PwmUnrecoverableException, ChaiUnavailableException {
-        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+        if (pwmSession.isAuthenticated()) {
             return;
         }
 

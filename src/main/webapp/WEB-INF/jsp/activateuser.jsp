@@ -38,7 +38,7 @@
             <jsp:include page="fragment/form.jsp"/>
             <div class="buttonbar">
                 <button type="submit" name="button" class="btn" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Activate"/>
                 </button>
                 <input type="hidden" name="processAction" value="activate"/>

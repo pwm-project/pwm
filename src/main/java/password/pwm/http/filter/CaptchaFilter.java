@@ -22,7 +22,7 @@
 
 package password.pwm.http.filter;
 
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ApplicationPage;
@@ -117,7 +117,7 @@ public class CaptchaFilter extends AbstractPwmFilter {
     )
             throws IOException, PwmUnrecoverableException
     {
-        final SessionStateBean sessionStateBean = pwmRequest.getPwmSession().getSessionStateBean();
+        final LocalSessionStateBean sessionStateBean = pwmRequest.getPwmSession().getSessionStateBean();
 
         // store the original requested url
         if (sessionStateBean.getPreCaptchaRequestURL() == null) {

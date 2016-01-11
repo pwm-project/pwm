@@ -1,5 +1,7 @@
+<%@ page import="password.pwm.bean.TokenVerificationProgress" %>
 <%@ page import="password.pwm.http.bean.NewUserBean" %>
-<%@ page import="password.pwm.http.servlet.NewUserServlet" %>
+<%@ page import="password.pwm.http.servlet.newuser.NewUserServlet" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -24,8 +26,8 @@
   --%>
 
 <%
-    final NewUserBean newUserBean = JspUtility.getPwmSession(pageContext).getNewUserBean();
-    String destination = newUserBean.getTokenDisplayText();
+    final NewUserBean newUserBean = JspUtility.getSessionBean(pageContext,NewUserBean.class);
+    final TokenVerificationProgress tokenVerificationProgress = newUserBean.getTokenVerificationProgress();
 %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -38,10 +40,10 @@
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
-        <% if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.EMAIL) { %>
-        <p><pwm:display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
-        <% } else if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) { %>
-        <p><pwm:display key="Display_RecoverEnterCodeSMS" value1="<%=destination%>"/></p>
+        <% if (newUserBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.EMAIL) { %>
+        <p><pwm:display key="Display_RecoverEnterCode" value1="<%=tokenVerificationProgress.getTokenDisplayText()%>"/></p>
+        <% } else if (newUserBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.SMS) { %>
+        <p><pwm:display key="Display_RecoverEnterCodeSMS" value1="<%=tokenVerificationProgress.getTokenDisplayText()%>"/></p>
         <% } %>
         <form action="<pwm:current-url/>" method="post" autocomplete="off" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
@@ -49,13 +51,13 @@
             <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" <pwm:autofocus/> class="tokenInput"></textarea>
             <div class="buttonbar">
                 <button type="submit" class="btn" name="search" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
                     <pwm:display key="Button_CheckCode"/>
                 </button>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
                 <button type="button" name="button-cancel" class="btn" id="button-cancel">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
                     <pwm:display key="Button_Cancel"/>
                 </button>
             </div>

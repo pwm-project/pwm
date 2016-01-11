@@ -216,7 +216,7 @@ public class RestRandomPasswordServer extends AbstractRestServer {
             randomConfig.setSeedlistPhrases(charValues);
         }
 
-        if (!jsonInput.noUser && restRequestBean.getPwmSession().getSessionStateBean().isAuthenticated()) {
+        if (!jsonInput.noUser && restRequestBean.getPwmSession().isAuthenticated()) {
             final UserIdentity userIdentity = UserIdentity.fromKey(jsonInput.username,restRequestBean.getPwmApplication());
             if (userIdentity != null) {
                 final HelpdeskProfile helpdeskProfile = restRequestBean.getPwmSession().getSessionManager().getHelpdeskProfile(restRequestBean.getPwmApplication());

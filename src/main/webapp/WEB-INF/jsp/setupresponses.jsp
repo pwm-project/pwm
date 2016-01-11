@@ -43,7 +43,7 @@
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="setResponses"/>
                 <button type="submit" name="setResponses" class="btn" id="button-setResponses">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_SetResponses"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>

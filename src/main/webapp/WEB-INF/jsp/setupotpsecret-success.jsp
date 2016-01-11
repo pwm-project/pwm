@@ -21,12 +21,13 @@
   --%>
 
 <%@page import="password.pwm.http.bean.SetupOtpBean"%>
-<%@page import="password.pwm.util.otp.OTPUserRecord"%>
+<%@page import="password.pwm.http.tag.PwmIfTest"%>
+<%@ page import="password.pwm.util.otp.OTPUserRecord" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupOtpBean otpBean = JspUtility.getPwmSession(pageContext).getSetupOtpBean();%>
+<% final SetupOtpBean otpBean = JspUtility.getSessionBean(pageContext,SetupOtpBean.class); %>
 <%
     final OTPUserRecord otpUserRecord = otpBean.getOtpUserRecord();
     final String ident = otpUserRecord.getIdentifier();
@@ -67,7 +68,7 @@
                 <div class="buttonbar">
                     <input type="hidden" name="processAction" value="complete"/>
                     <button type="submit" name="button" class="btn" id="submitBtn">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                         <pwm:display key="Button_Continue"/>
                     </button>
                     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

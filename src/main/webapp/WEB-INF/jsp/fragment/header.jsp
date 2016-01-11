@@ -27,6 +27,8 @@
 <%@ page import="password.pwm.http.ContextManager" %>
 <%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.PwmSession" %>
+<%@ page import="password.pwm.http.tag.PwmValue" %>
+<%@ page import="password.pwm.http.PwmRequestFlag" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
 
@@ -38,13 +40,13 @@
     try {
         final PwmRequest pwmRequestHeader = PwmRequest.forRequest(request,response);
 
-        showTheme = !pwmRequestHeader.isFlag(PwmRequest.Flag.HIDE_THEME);
-        showMobile = !pwmRequestHeader.isFlag(PwmRequest.Flag.NO_MOBILE_CSS);
+        showTheme = !pwmRequestHeader.isFlag(PwmRequestFlag.HIDE_THEME);
+        showMobile = !pwmRequestHeader.isFlag(PwmRequestFlag.NO_MOBILE_CSS);
         includeXVersion = Boolean.parseBoolean(pwmRequestHeader.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
         restClientKey = pwmRequestHeader.getPwmSession().getRestClientKey();
         clientEtag = password.pwm.ws.server.rest.RestAppDataServer.makeClientEtag(pwmRequestHeader);
 
-        if (!pwmRequestHeader.isFlag(PwmRequest.Flag.NO_REQ_COUNTER)) {
+        if (!pwmRequestHeader.isFlag(PwmRequestFlag.NO_REQ_COUNTER)) {
             pwmRequestHeader.getPwmSession().getSessionManager().incrementRequestCounterKey();
         }
     } catch (PwmUnrecoverableException e) {
@@ -55,8 +57,8 @@
 %><head>
     <title><pwm:display key="Title_TitleBar"/></title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
-    <meta id="application-info" name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service" <%if (includeXVersion){%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.BUILD_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>" <%}%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<pwm:value name="instanceID"/>
-" data-jsp-name="<pwm:value name="currentJspFilename"/>"
+    <meta id="application-info" name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service" <%if (includeXVersion){%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.BUILD_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>" <%}%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<pwm:value name="<%=PwmValue.instanceID%>"/>
+" data-jsp-name="<pwm:value name="<%=PwmValue.currentJspFilename%>"/>"
           data-url-context="<pwm:context/>" data-pwmFormID="<pwm:FormID/>" data-clientEtag="<%=clientEtag%>" data-restClientKey="<%=restClientKey%>"/>
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
     <meta http-equiv="X-UA-Compatible" content="IE=10; IE=9; IE=8; IE=7" />

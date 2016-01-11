@@ -63,15 +63,15 @@
                             </h2>
                             &nbsp;&nbsp;
                             <div class="pwm-icon pwm-icon-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden"></div>
-                            <pwm:if test="showRandomPasswordGenerator">
+                            <pwm:if test="<%=PwmIfTest.showRandomPasswordGenerator%>">
                             &nbsp;&nbsp;
                             <div class="pwm-icon pwm-icon-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" ></div>
                             </pwm:if>
                         </div>
-                        <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" <pwm:autofocus/>/>
+                        <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password1" id="password1" class="changepasswordfield passwordfield" <pwm:autofocus/>/>
                     </td>
                     <td style="border:0; width:15%">
-                        <pwm:if test="showStrengthMeter">
+                        <pwm:if test="<%=PwmIfTest.showStrengthMeter%>">
                         <div id="strengthBox" style="visibility:hidden;">
                             <div id="strengthLabel" style="padding-top:40px;">
                                 <pwm:display key="Display_StrengthMeter"/>
@@ -87,7 +87,7 @@
                 <tr>
                     <td style="border:0; width:75%">
                         <h2 style="display: inline"><label for="password2"><pwm:display key="Field_ConfirmPassword"/></label></h2>
-                        <input type="<pwm:value name="passwordFieldType"/>" name="password2" id="password2" class="changepasswordfield passwordfield"/>
+                        <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password2" id="password2" class="changepasswordfield passwordfield"/>
                     </td>
                     <td style="border:0; width:15%">
                         <%-- confirmation mark [not shown initially, enabled by javascript; see also changepassword.js:markConfirmationMark() --%>
@@ -104,7 +104,7 @@
             <div class="buttonbar" style="width:100%">
                 <input type="hidden" name="processAction" value="change"/>
                 <button type="submit" name="change" class="btn" id="password_button">
-                    <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_ChangePassword"/>
                 </button>
                 <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>

@@ -28,9 +28,11 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
+import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.error.*;
 import password.pwm.http.HttpMethod;
@@ -38,10 +40,14 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.token.TokenPayload;
+import password.pwm.svc.token.TokenService;
+import password.pwm.svc.token.TokenType;
 import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -69,14 +75,13 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(UpdateProfileServlet.class);
 
-    private static final String COOKIE_BEAN_NAME = "updateBean";
-
     public enum UpdateProfileAction implements AbstractPwmServlet.ProcessAction {
         updateProfile(HttpMethod.POST),
         agree(HttpMethod.POST),
         confirm(HttpMethod.POST),
         unConfirm(HttpMethod.POST),
         validate(HttpMethod.POST),
+        enterCode(HttpMethod.POST),
 
         ;
 
@@ -108,12 +113,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final UpdateAttributesProfile updateAttributesProfile = pwmRequest.getPwmSession().getSessionManager().getUpdateAttributeProfile(pwmApplication);
-
-        final UpdateProfileBean updateProfileBean;
-        {
-            final UpdateProfileBean reqBean = pwmRequest.readEncryptedCookie(COOKIE_BEAN_NAME, UpdateProfileBean.class);
-            updateProfileBean = reqBean == null ? new UpdateProfileBean() : reqBean;
-        }
+        final UpdateProfileBean updateProfileBean = pwmApplication.getSessionStateService().getBean(pwmRequest, UpdateProfileBean.class);
 
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
             pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
@@ -148,10 +148,13 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
                 case validate:
                     restValidateForm(pwmRequest, updateAttributesProfile, updateProfileBean);
                     return;
+
+                case enterCode:
+                    handleEnterCodeRequest(pwmRequest, updateProfileBean);
+                    break;
             }
         }
 
-        outputUpdateBean(pwmRequest, updateProfileBean);
         advanceToNextStep(pwmRequest, updateAttributesProfile, updateProfileBean);
     }
 
@@ -171,6 +174,8 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
             // verify form meets the form requirements
             verifyFormAttributes(pwmRequest, formValues, true);
+
+            updateProfileBean.getFormData().putAll(FormUtility.asStringMap(formValues));
         } catch (PwmOperationalException e) {
             success = false;
             userMessage = e.getErrorInformation().toUserStr(pwmRequest.getPwmSession(), pwmRequest.getPwmApplication());
@@ -216,51 +221,59 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
             }
         }
 
-        if (!updateProfileBean.isFormSubmitted()) {
-            final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-            final Map<FormConfiguration, String> formMap = new HashMap<>();
-            FormUtility.populateFormMapFromLdap(formFields, pwmRequest.getSessionLabel(), formMap, pwmSession.getSessionManager().getUserDataReader(pwmApplication));
-            updateProfileBean.getFormData().putAll(FormUtility.asStringMap(formMap));
-            outputUpdateBean(pwmRequest, updateProfileBean);
+        //make sure there is form data in the bean.
+        if (updateProfileBean.getFormData() == null) {
+            updateProfileBean.setFormData(formDataFromLdap(pwmRequest, updateAttributesProfile));
             forwardToForm(pwmRequest, updateAttributesProfile, updateProfileBean);
             return;
         }
 
-        //make sure there is form data in the bean.
-        if (updateProfileBean.getFormData() == null) {
-            outputUpdateBean(pwmRequest, updateProfileBean);
+        if (!updateProfileBean.isFormSubmitted()) {
             forwardToForm(pwmRequest, updateAttributesProfile, updateProfileBean);
             return;
         }
+
 
         // validate the form data.
         try {
             // verify form meets the form requirements
             final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-            final Map<FormConfiguration, String> formValues = new HashMap<>();
-            FormUtility.populateFormMapFromLdap(formFields, pwmRequest.getSessionLabel(), formValues, pwmSession.getSessionManager().getUserDataReader(pwmApplication));
+            final Map<FormConfiguration, String> formValues = FormUtility.readFormValuesFromMap(updateProfileBean.getFormData(), formFields, pwmRequest.getLocale());
             verifyFormAttributes(pwmRequest, formValues, true);
         } catch (PwmException e) {
             LOGGER.error(pwmSession, e.getMessage());
             pwmRequest.setResponseError(e.getErrorInformation());
-            outputUpdateBean(pwmRequest, updateProfileBean);
             forwardToForm(pwmRequest, updateAttributesProfile, updateProfileBean);
             return;
         }
 
         final boolean requireConfirmation = updateAttributesProfile.readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_SHOW_CONFIRMATION);
         if (requireConfirmation && !updateProfileBean.isConfirmationPassed()) {
-            outputUpdateBean(pwmRequest, updateProfileBean);
             forwardToConfirmForm(pwmRequest, updateAttributesProfile, updateProfileBean);
             return;
         }
 
+        final Set<TokenVerificationProgress.TokenChannel> requiredVerifications = determineTokenPhaseRequired(pwmRequest, updateProfileBean, updateAttributesProfile);
+        if (requiredVerifications != null) {
+            for (final TokenVerificationProgress.TokenChannel tokenChannel : requiredVerifications) {
+                if (requiredVerifications.contains(tokenChannel)) {
+                    if (!updateProfileBean.getTokenVerificationProgress().getIssuedTokens().contains(tokenChannel)) {
+                        initializeToken(pwmRequest, updateProfileBean, tokenChannel);
+                    }
+
+                    if (!updateProfileBean.getTokenVerificationProgress().getPassedTokens().contains(tokenChannel)) {
+                        updateProfileBean.getTokenVerificationProgress().setPhase(tokenChannel);
+                        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_ENTER_CODE);
+                        return;
+                    }
+                }
+            }
+        }
 
         try {
             // write the form values
             final ChaiUser theUser = pwmSession.getSessionManager().getActor(pwmApplication);
             doProfileUpdate(pwmRequest, updateProfileBean.getFormData(), theUser);
-            outputUpdateBean(pwmRequest, new UpdateProfileBean());
             pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_UpdateProfile);
             return;
         } catch (PwmException e) {
@@ -272,7 +285,6 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
             pwmRequest.setResponseError(errorInformation);
         }
 
-        outputUpdateBean(pwmRequest, updateProfileBean);
         forwardToForm(pwmRequest, updateAttributesProfile, updateProfileBean);
     }
 
@@ -412,7 +424,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         uiBean.setRequiresUpdateProfile(false);
 
         // clear out the updateProfileBean
-        pwmSession.clearUpdateProfileBean();
+        pwmApplication.getSessionStateService().clearBean(pwmRequest, UpdateProfileBean.class);
 
         // success, so forward to success page
         pwmApplication.getStatisticsManager().incrementValue(Statistic.UPDATE_ATTRIBUTES);
@@ -494,8 +506,209 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         return formValueMap;
     }
 
-    static void outputUpdateBean(final PwmRequest pwmRequest, final UpdateProfileBean updateProfileBean) throws PwmUnrecoverableException {
-        pwmRequest.getPwmResponse().writeEncryptedCookie(COOKIE_BEAN_NAME, updateProfileBean, null);
+    static Map<String,String> formDataFromLdap(final PwmRequest pwmRequest, UpdateAttributesProfile updateAttributesProfile)
+            throws PwmUnrecoverableException
+    {
+        final UserDataReader userDataReader = pwmRequest.getPwmSession().getSessionManager().getUserDataReader(pwmRequest.getPwmApplication());
+        final List<FormConfiguration> formFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+        final Map<FormConfiguration, String> formMap = new HashMap<>();
+        FormUtility.populateFormMapFromLdap(formFields, pwmRequest.getSessionLabel(), formMap, userDataReader);
+        return FormUtility.asStringMap(formMap);
     }
+
+    static Set<TokenVerificationProgress.TokenChannel> determineTokenPhaseRequired(
+            final PwmRequest pwmRequest,
+            final UpdateProfileBean updateProfileBean,
+            final UpdateAttributesProfile updateAttributesProfile
+
+    )
+            throws PwmUnrecoverableException
+    {
+        final Set<TokenVerificationProgress.TokenChannel> returnObj = new HashSet<>();
+
+        final Map<String,String> userFormData = updateProfileBean.getFormData();
+        Map<String,String> ldapData = null;
+
+        if (updateAttributesProfile.readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_EMAIL_VERIFICATION)) {
+            final String emailAddressAttribute = pwmRequest.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
+            if (userFormData.containsKey(emailAddressAttribute)) {
+                ldapData = formDataFromLdap(pwmRequest, updateAttributesProfile);
+                if (userFormData.get(emailAddressAttribute) != null && !userFormData.get(emailAddressAttribute).equalsIgnoreCase(ldapData.get(emailAddressAttribute))) {
+                    returnObj.add(TokenVerificationProgress.TokenChannel.EMAIL);
+                }
+            } else {
+                LOGGER.warn(pwmRequest, "email verification enabled, but email attribute '" + emailAddressAttribute + "' is not in update form");
+            }
+        }
+
+        if (updateAttributesProfile.readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_SMS_VERIFICATION)) {
+            final String phoneNumberAttribute = pwmRequest.getConfig().readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
+            if (userFormData.containsKey(phoneNumberAttribute)) {
+                if (ldapData == null) {
+                    ldapData = formDataFromLdap(pwmRequest, updateAttributesProfile);
+                }
+                if (userFormData.get(phoneNumberAttribute) != null && !userFormData.get(phoneNumberAttribute).equalsIgnoreCase(ldapData.get(phoneNumberAttribute))) {
+                    returnObj.add(TokenVerificationProgress.TokenChannel.SMS);
+                }
+            } else {
+                LOGGER.warn(pwmRequest, "sms verification enabled, but phone attribute '" + phoneNumberAttribute + "' is not in update form");
+            }
+        }
+
+        return returnObj;
+    }
+
+    public void initializeToken(
+            final PwmRequest pwmRequest,
+            final UpdateProfileBean updateProfileBean,
+            final TokenVerificationProgress.TokenChannel tokenType
+    )
+            throws PwmUnrecoverableException
+    {
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+
+        if (pwmApplication.getConfig().getTokenStorageMethod() == TokenStorageMethod.STORE_LDAP) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{
+                    "cannot generate new user tokens when storage type is configured as STORE_LDAP."}));
+        }
+
+        final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmApplication);
+        final Configuration config = pwmApplication.getConfig();
+
+        switch (tokenType) {
+            case SMS: {
+                final String telephoneNumberAttribute = pwmRequest.getConfig().readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
+                final String toNum = updateProfileBean.getFormData().get(telephoneNumberAttribute);
+                final String tokenKey;
+                try {
+                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
+                            TokenType.UPDATE_SMS,
+                            Collections.<String,String>emptyMap(),
+                            pwmRequest.getUserInfoIfLoggedIn(),
+                            Collections.singleton(toNum)
+                    );
+                    tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload,
+                            pwmRequest.getSessionLabel());
+                } catch (PwmOperationalException e) {
+                    throw new PwmUnrecoverableException(e.getErrorInformation());
+                }
+
+                final String message = config.readSettingAsLocalizedString(PwmSetting.SMS_UPDATE_PROFILE_TOKEN_TEXT,
+                        pwmSession.getSessionStateBean().getLocale());
+
+                try {
+                    TokenService.TokenSender.sendSmsToken(pwmApplication, null, macroMachine, toNum, message, tokenKey);
+                } catch (Exception e) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN));
+                }
+
+                updateProfileBean.getTokenVerificationProgress().getIssuedTokens().add(TokenVerificationProgress.TokenChannel.SMS);
+                updateProfileBean.getTokenVerificationProgress().setTokenDisplayText(toNum);
+                updateProfileBean.getTokenVerificationProgress().setPhase(TokenVerificationProgress.TokenChannel.SMS);
+            }
+            break;
+
+            case EMAIL: {
+                final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(
+                        PwmSetting.EMAIL_UPDATEPROFILE_VERIFICATION,
+                        pwmRequest.getLocale()
+                );
+                final String emailAddressAttribute = pwmRequest.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
+                final String toAddress = updateProfileBean.getFormData().get(emailAddressAttribute);
+
+                final String tokenKey;
+                try {
+                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
+                            TokenType.UPDATE_EMAIL,
+                            Collections.<String,String>emptyMap(),
+                            pwmRequest.getUserInfoIfLoggedIn(),
+                            Collections.singleton(toAddress)
+                    );
+                    tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload,
+                            pwmRequest.getSessionLabel());
+                } catch (PwmOperationalException e) {
+                    throw new PwmUnrecoverableException(e.getErrorInformation());
+                }
+
+                updateProfileBean.getTokenVerificationProgress().getIssuedTokens().add(TokenVerificationProgress.TokenChannel.EMAIL);
+                updateProfileBean.getTokenVerificationProgress().setPhase(TokenVerificationProgress.TokenChannel.EMAIL);
+                updateProfileBean.getTokenVerificationProgress().setTokenDisplayText(toAddress);
+
+                final EmailItemBean emailItemBean = new EmailItemBean(
+                        toAddress,
+                        configuredEmailSetting.getFrom(),
+                        configuredEmailSetting.getSubject(),
+                        configuredEmailSetting.getBodyPlain().replace("%TOKEN%", tokenKey),
+                        configuredEmailSetting.getBodyHtml().replace("%TOKEN%", tokenKey));
+
+                try {
+                    TokenService.TokenSender.sendEmailToken(pwmApplication, null, macroMachine, emailItemBean,
+                            toAddress, tokenKey);
+                } catch (Exception e) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN));
+                }
+            }
+            break;
+
+            default:
+                LOGGER.error("Unimplemented token purpose: " + tokenType);
+                updateProfileBean.getTokenVerificationProgress().setPhase(null);
+        }
+    }
+
+    private void handleEnterCodeRequest(
+            final PwmRequest pwmRequest,
+            final UpdateProfileBean updateProfileBean
+    )
+            throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final String userEnteredCode = pwmRequest.readParameterAsString(PwmConstants.PARAM_TOKEN);
+
+        boolean tokenPassed = false;
+        ErrorInformation errorInformation = null;
+        try {
+            final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
+                    pwmSession,
+                    pwmRequest.getUserInfoIfLoggedIn(),
+                    null,
+                    userEnteredCode
+            );
+            if (tokenPayload != null) {
+                if (TokenType.UPDATE_EMAIL.matchesName(tokenPayload.getName())) {
+                    LOGGER.debug(pwmRequest, "email token passed");
+
+                    updateProfileBean.getTokenVerificationProgress().getPassedTokens().add(TokenVerificationProgress.TokenChannel.EMAIL);
+                    updateProfileBean.getTokenVerificationProgress().getIssuedTokens().add(TokenVerificationProgress.TokenChannel.EMAIL);
+                    updateProfileBean.getTokenVerificationProgress().setPhase(null);
+                    tokenPassed = true;
+                } else if (TokenType.UPDATE_SMS.matchesName(tokenPayload.getName())) {
+                    LOGGER.debug(pwmRequest, "SMS token passed");
+                    updateProfileBean.getTokenVerificationProgress().getPassedTokens().add(TokenVerificationProgress.TokenChannel.SMS);
+                    updateProfileBean.getTokenVerificationProgress().getIssuedTokens().add(TokenVerificationProgress.TokenChannel.SMS);
+                    updateProfileBean.getTokenVerificationProgress().setPhase(null);
+                    tokenPassed = true;
+                } else {
+                    final String errorMsg = "token name/type is not recognized: " + tokenPayload.getName();
+                    errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
+                }
+            }
+        } catch (PwmOperationalException e) {
+            final String errorMsg = "token incorrect: " + e.getMessage();
+            errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT, errorMsg);
+        }
+
+
+        if (!tokenPassed) {
+            if (errorInformation == null) {
+                errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT);
+            }
+            LOGGER.debug(pwmSession, errorInformation.toDebugStr());
+            pwmRequest.setResponseError(errorInformation);
+        }
+    }
+
 }
 

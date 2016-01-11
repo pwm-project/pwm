@@ -47,7 +47,7 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.*;
 import password.pwm.error.*;
 import password.pwm.http.PwmSession;
-import password.pwm.http.bean.LoginInfoBean;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.ldap.*;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.cache.CacheKey;
@@ -281,7 +281,7 @@ public class PasswordUtility {
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
             final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserIdentity().getUserDN(), provider);
             final boolean boundAsSelf = theUser.getEntryDN().equals(provider.getChaiConfiguration().getSetting(ChaiSetting.BIND_DN));
-            LOGGER.trace(pwmSession, "preparing to setActorPassword for '" + theUser.getEntryDN() + "', bindAsSelf=" + boundAsSelf + ", authType=" + pwmSession.getLoginInfoBean().getAuthenticationType());
+            LOGGER.trace(pwmSession, "preparing to setActorPassword for '" + theUser.getEntryDN() + "', bindAsSelf=" + boundAsSelf + ", authType=" + pwmSession.getLoginInfoBean().getType());
             if (setPasswordWithoutOld) {
                 theUser.setPassword(newPassword.getStringValue(), true);
             } else {
@@ -315,7 +315,7 @@ public class PasswordUtility {
         uiBean.setRequiresNewPassword(false);
 
         // mark the auth type as authenticatePd now that we have the user's natural password.
-        pwmSession.getLoginInfoBean().setAuthenticationType(AuthenticationType.AUTHENTICATED);
+        pwmSession.getLoginInfoBean().setType(AuthenticationType.AUTHENTICATED);
 
         // update the uibean's "password expired flag".
         final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmSession.getLabel());
@@ -383,7 +383,7 @@ public class PasswordUtility {
     {
         final SessionLabel sessionLabel = pwmSession.getLabel();
 
-        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+        if (!pwmSession.isAuthenticated()) {
             final String errorMsg = "attempt to helpdeskSetUserPassword, but user is not authenticated";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg);
             throw new PwmOperationalException(errorInformation);

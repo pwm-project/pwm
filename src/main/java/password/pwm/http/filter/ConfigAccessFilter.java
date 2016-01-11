@@ -47,7 +47,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
             return;
         }
 
-        final ConfigManagerBean configManagerBean = pwmRequest.getPwmSession().getConfigManagerBean();
+        final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ConfigManagerBean.class);
         if (!checkAuthentication(pwmRequest, configManagerBean)) {
             filterChain.doFilter();
         }
@@ -70,7 +70,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         }
 
         if (PwmApplication.MODE.RUNNING == pwmRequest.getPwmApplication().getApplicationMode()) {
-            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+            if (!pwmRequest.isAuthenticated()) {
                 throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
             }
 
@@ -80,7 +80,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                 return true;
             }
 
-            if (pwmSession.getLoginInfoBean().getAuthenticationType() != AuthenticationType.AUTHENTICATED) {
+            if (pwmSession.getLoginInfoBean().getType() != AuthenticationType.AUTHENTICATED) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,
                         "Username/Password authentication is required to edit configuration.  This session has not been authenticated using a user password (SSO or other method used)."));
             }

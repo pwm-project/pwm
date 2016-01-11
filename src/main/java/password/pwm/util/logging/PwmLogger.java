@@ -30,7 +30,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.bean.LoginInfoBean;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.SystemAuditRecord;
 import password.pwm.util.JsonUtil;

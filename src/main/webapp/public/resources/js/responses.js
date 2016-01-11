@@ -33,7 +33,7 @@ PWM_VAR['simpleRandomOptions'] = [];
 // and then parses (and displays) the response from the servlet.
 PWM_RESPONSES.validateResponses=function() {
     require(["dojo/dom-form"], function(domForm){
-        var serviceUrl = PWM_GLOBAL['url-setupresponses'] + "?processAction=validateResponses";
+        var serviceUrl = PWM_MAIN.addParamToUrl(window.location.href,"processAction","validateResponses");
         if (PWM_GLOBAL['responseMode']) {
             serviceUrl += "&responseMode=" + PWM_GLOBAL['responseMode'];
         }

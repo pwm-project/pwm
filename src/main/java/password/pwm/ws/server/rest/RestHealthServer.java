@@ -149,7 +149,7 @@ public class RestHealthServer extends AbstractRestServer {
             if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
                 doRefresh = true;
             } else {
-                if (pwmSession.getSessionStateBean().isAuthenticated()) {
+                if (pwmSession.isAuthenticated()) {
                     try {
                         doRefresh = pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
                     } catch (Exception e) {

@@ -24,6 +24,7 @@ package password.pwm.util;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
@@ -199,10 +200,34 @@ public class JsonUtil {
         }
     }
 
+    private static class PasswordDataTypeAdapter implements JsonSerializer<PasswordData>, JsonDeserializer<PasswordData> {
+        public PasswordData deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            try {
+                return new PasswordData(json.getAsString());
+            } catch (PwmUnrecoverableException e) {
+                final String errorMsg = "error while deserializing password data: " + e.getMessage();
+                LOGGER.error(errorMsg);
+                throw new JsonParseException(errorMsg, e);
+            }
+        }
+
+        public JsonElement serialize(PasswordData src, Type typeOfSrc, JsonSerializationContext context) {
+            try {
+                return new JsonPrimitive(src.getStringValue());
+            } catch (PwmUnrecoverableException e) {
+                final String errorMsg = "error while serializing password data: " + e.getMessage();
+                LOGGER.error(errorMsg);
+                throw new JsonParseException(errorMsg, e);
+            }
+        }
+
+    }
+
     private static GsonBuilder registerTypeAdapters(final GsonBuilder gsonBuilder) {
         gsonBuilder.registerTypeAdapter(Date.class, new DateTypeAdapter());
         gsonBuilder.registerTypeAdapter(X509Certificate.class, new X509CertificateAdapter());
         gsonBuilder.registerTypeAdapter(byte[].class, new ByteArrayToBase64TypeAdapter());
+        gsonBuilder.registerTypeAdapter(PasswordData.class, new PasswordDataTypeAdapter());
         return gsonBuilder;
     }
 

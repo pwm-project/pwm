@@ -28,7 +28,6 @@ import org.jasig.cas.client.util.CommonUtils;
 import org.jasig.cas.client.util.XmlUtils;
 import org.jasig.cas.client.validation.Assertion;
 import password.pwm.PwmApplication;
-import password.pwm.bean.SessionStateBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -55,11 +54,10 @@ public class CASAuthenticationHelper {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final HttpSession session = pwmRequest.getHttpServletRequest().getSession();
 
         //make sure user session isn't already authenticated
-        if (ssBean.isAuthenticated()) {
+        if (pwmSession.isAuthenticated()) {
             return false;
         }
 

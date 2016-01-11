@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -25,19 +26,19 @@
 <div style="text-align: center">
   <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager.servletUrl()%>" method="get">
     <button type="submit" class="navbutton">
-      <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-dashboard"></span></pwm:if>
+      <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-dashboard"></span></pwm:if>
       Overview
     </button>
   </form>
   <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager_Wordlists.servletUrl()%>" method="get">
     <button type="submit" class="navbutton">
-      <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-book"></span></pwm:if>
+      <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-book"></span></pwm:if>
       Wordlists
     </button>
   </form>
   <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager_LocalDB.servletUrl()%>" method="get">
     <button type="submit" class="navbutton">
-      <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-database"></span></pwm:if>
+      <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-database"></span></pwm:if>
       LocalDB
     </button>
   </form>

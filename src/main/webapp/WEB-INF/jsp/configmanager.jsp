@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.PwmEnvironment" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
@@ -42,7 +43,7 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/configmanager-nav.jsp" %>
-        <style nonce="<pwm:value name="cspNonce"/>">
+        <style nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
         </style>
         <table style="width:550px">
             <col class="key" style="width:150px">
@@ -52,8 +53,8 @@
                     Configuration Status
                 </td>
                 <td>
-                    <pwm:if test="configurationOpen">Open</pwm:if>
-                    <pwm:if test="configurationOpen" negate="true">Restricted</pwm:if>
+                    <pwm:if test="<%=PwmIfTest.configurationOpen%>">Open</pwm:if>
+                    <pwm:if test="<%=PwmIfTest.configurationOpen%>" negate="true">Restricted</pwm:if>
                 </td>
             </tr>
             <tr>
@@ -77,6 +78,7 @@
                     <%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigHasPassword)%>
                 </td>
             </tr>
+            <% if (!JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Appliance)) { %>
             <tr>
                 <td>
                     Application Data Path
@@ -97,6 +99,7 @@
                     </div>
                 </td>
             </tr>
+            <% } %>
         </table>
         <br/>
         <div id="healthBody" style="margin-top:5px; margin-left: 20px; margin-right: 20px; padding:0; max-height: 300px; overflow-y: auto">
@@ -107,7 +110,7 @@
             <tr class="buttonrow">
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_DownloadBundle" title="<pwm:display key="MenuDisplay_DownloadBundle" bundle="Config"/>">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-suitcase"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-suitcase"></span></pwm:if>
                         <pwm:display key="MenuItem_DownloadBundle" bundle="Config"/>
                     </a>
                     <pwm:script>
@@ -120,7 +123,7 @@
                 </td>
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_DownloadConfig" title="<pwm:display key="MenuDisplay_DownloadConfig" bundle="Config"/>">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
                         <pwm:display key="MenuItem_DownloadConfig" bundle="Config"/>
                     </a>
                     <pwm:script>
@@ -135,7 +138,7 @@
             <tr class="buttonrow">
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_ConfigurationSummary" href="#">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-files-o"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-files-o"></span></pwm:if>
                         Configuration Summary
                     </a>
                     <pwm:script>
@@ -151,17 +154,17 @@
                 </td>
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_UploadConfig"  title="<pwm:display key="MenuDisplay_UploadConfig" bundle="Config"/>">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
                         <pwm:display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
                     <pwm:script>
                         <script type="application/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 PWM_MAIN.addEventHandler('MenuItem_UploadConfig',"click",function(){
-                                    <pwm:if test="configurationOpen">
+                                    <pwm:if test="<%=PwmIfTest.configurationOpen%>">
                                     PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('MenuDisplay_UploadConfig'),okAction:function(){PWM_CONFIG.uploadConfigDialog()}})
                                     </pwm:if>
-                                    <pwm:if test="configurationOpen" negate="true">
+                                    <pwm:if test="<%=PwmIfTest.configurationOpen%>" negate="true">
                                     PWM_CONFIG.configClosedWarning();
                                     </pwm:if>
                                 });
@@ -172,9 +175,9 @@
             </tr>
             <tr class="buttonrow">
                 <td class="buttoncell">
-                    <pwm:if test="configurationOpen">
+                    <pwm:if test="<%=PwmIfTest.configurationOpen%>">
                         <a class="menubutton" id="MenuItem_LockConfig" title="<pwm:display key="MenuDisplay_LockConfig" bundle="Config"/>">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-lock"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-lock"></span></pwm:if>
                             <pwm:display key="MenuItem_LockConfig" bundle="Config"/>
                         </a>
                         <pwm:script>
@@ -187,9 +190,9 @@
                             </script>
                         </pwm:script>
                     </pwm:if>
-                    <pwm:if test="configurationOpen" negate="true">
+                    <pwm:if test="<%=PwmIfTest.configurationOpen%>" negate="true">
                         <a class="menubutton" id="MenuItem_UnlockConfig">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
                             <pwm:display key="MenuItem_UnlockConfig" bundle="Config"/>
                         </a>
                         <pwm:script>
@@ -211,7 +214,7 @@
                 </td>
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_LdapPermissions" href="#">
-                        <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-files-o"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-files-o"></span></pwm:if>
                         LDAP Permissions
                     </a>
                     <pwm:script>

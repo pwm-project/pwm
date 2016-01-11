@@ -20,6 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%@ page import="password.pwm.util.JsonUtil" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.logging.LocalDBLogger" %>
@@ -146,7 +147,7 @@
                     </td>
                     <td class="key" style="border: 0; vertical-align: middle">
                         <button type="submit" name="submit_button" id="submit_button" class="btn">
-                            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
                             Search
                         </button>
                     </td>
@@ -251,7 +252,7 @@
                 };
             </script>
         </pwm:script>
-        <style nonce="<pwm:value name="cspNonce"/>" scoped="scoped">
+        <style nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" scoped="scoped">
             .dgrid { height: auto; }
             .dgrid .dgrid-scroller { position: relative;  overflow: visible; }
             .dgrid-column-timestamp {width: 80px;}

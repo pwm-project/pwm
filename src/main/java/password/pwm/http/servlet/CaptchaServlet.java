@@ -29,7 +29,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -226,7 +226,7 @@ public class CaptchaServlet extends AbstractPwmServlet {
             throws IOException, ServletException {
         try {
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+            final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
             String destURL = ssBean.getPreCaptchaRequestURL();
             ssBean.setPreCaptchaRequestURL(null);

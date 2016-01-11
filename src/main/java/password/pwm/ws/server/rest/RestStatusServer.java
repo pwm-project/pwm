@@ -22,10 +22,18 @@
 
 package password.pwm.ws.server.rest;
 
-import password.pwm.PwmConstants;
-import password.pwm.bean.PublicUserInfoBean;
-import password.pwm.bean.SessionLabel;
+import java.net.URISyntaxException;
+import java.util.Date;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -42,16 +50,6 @@ import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import java.net.URISyntaxException;
-import java.util.Date;
 
 @Path("/status")
 public class RestStatusServer extends AbstractRestServer {

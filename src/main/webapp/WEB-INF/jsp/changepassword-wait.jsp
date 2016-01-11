@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="java.util.Date" %>
+<%@ page import="password.pwm.http.bean.ChangePasswordBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -23,9 +24,9 @@
   --%>
 
 <!DOCTYPE html>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS);%>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_IDLE_TIMEOUT);%>
-<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT);%>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_BUTTONS);%>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_IDLE_TIMEOUT);%>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_FOOTER_TEXT);%>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -36,7 +37,8 @@
     long checkIntervalSeconds = 3;
     try {
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-        final Date maxCompleteTime = pwmRequest.getPwmSession().getChangePasswordBean().getChangePasswordMaxCompletion();
+        final ChangePasswordBean changePasswordBean = JspUtility.getSessionBean(pageContext, ChangePasswordBean.class);
+        final Date maxCompleteTime = changePasswordBean.getChangePasswordMaxCompletion();
         maxWaitSeconds = maxCompleteTime == null ? 30 : TimeDuration.fromCurrent(maxCompleteTime).getTotalSeconds();
         checkIntervalSeconds = Long.parseLong(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS));
     } catch (PwmException e) {

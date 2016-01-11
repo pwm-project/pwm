@@ -19,36 +19,13 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
-
-<%--
-  ~ This file is imported by most JSPs, it shows the main 'header' in the html
-  - which by default is a blue-gray gradieted and rounded block.
-  --%>
-<%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.error.PwmUnrecoverableException" %>
-<%@ page import="password.pwm.http.PwmRequest" %>
+<%--  This file is imported by most JSPs, it shows the main 'header' in the html --%>
+<%@ page import="password.pwm.http.tag.PwmValue" %>
+<%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.PwmRequestFlag" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    boolean showWarnings = false;
-    boolean showLogout = false;
-    boolean showHome = false;
-    try {
-        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-        showWarnings = !pwmRequest.isFlag(PwmRequest.Flag.HIDE_HEADER_WARNINGS);
-        final boolean showButtons = !pwmRequest.isFlag(PwmRequest.Flag.HIDE_HEADER_BUTTONS) && !pwmRequest.isForcedPageView();
-        final boolean loggedIn = pwmRequest.isAuthenticated();
-        if (showButtons && loggedIn) {
-            showHome = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_HOME_BUTTON);
-        }
-        if (loggedIn) {
-            showLogout = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON);
-        }
-    } catch (PwmUnrecoverableException e) {
-        /* application must be unavailable */
-    }
 
-%>
-<% if (showWarnings) { %><%@ include file="header-warnings.jsp" %><% } %>
+<% if (!JspUtility.isFlag(request, PwmRequestFlag.HIDE_HEADER_WARNINGS)) { %><%@ include file="header-warnings.jsp" %><% } %>
 <div id="header">
     <div id="header-company-logo">
     </div>
@@ -63,19 +40,21 @@
             <div id="header-title"><pwm:display key="Title_Application"/></div>
         </div>
         <div id="header-center-right">
-            <%-- this section handles the home button link (if user is logged in) --%>
-            <% if (showHome) { %>
-            <a class="header-button" href="<pwm:value name="homeURL"/>" id="HomeButton">
-                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-home"></span></pwm:if>
-                <pwm:display key="Button_Home"/>
-            </a>
-            <% } %>
-            <%-- this section handles the logout link (if user is logged in) --%>
-            <% if (showLogout) { %>
-            <a class="header-button" href="<pwm:url url='<%=PwmServletDefinition.Logout.servletUrl()%>' addContext="true"/>" id="LogoutButton">
-                <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-sign-out"></span></pwm:if>
-                <pwm:display key="Button_Logout"/>
-            </a>
+            <% if (!JspUtility.isFlag(request, PwmRequestFlag.HIDE_HEADER_BUTTONS)) { %>
+            <pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">
+                <pwm:if test="<%=PwmIfTest.showHome%>">
+                    <a class="header-button" href="<pwm:value name="<%=PwmValue.homeURL%>"/>" id="HomeButton">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-home"></span></pwm:if>
+                        <pwm:display key="Button_Home"/>
+                    </a>
+                </pwm:if>
+                <pwm:if test="<%=PwmIfTest.authenticated%>"><pwm:if test="<%=PwmIfTest.showLogout%>">
+                    <a class="header-button" href="<pwm:url url='<%=PwmServletDefinition.Logout.servletUrl()%>' addContext="true"/>" id="LogoutButton">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-sign-out"></span></pwm:if>
+                        <pwm:display key="Button_Logout"/>
+                    </a>
+                </pwm:if></pwm:if>
+            </pwm:if>
             <% } %>
         </div>
     </div>

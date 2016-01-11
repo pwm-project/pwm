@@ -26,7 +26,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -137,11 +137,10 @@ public class CommandServlet extends AbstractPwmServlet {
             throws IOException, PwmUnrecoverableException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmApplication.getConfig();
 
-        if (ssBean.isAuthenticated()) {
+        if (pwmRequest.isAuthenticated()) {
             if (AuthenticationFilter.forceRequiredRedirects(pwmRequest)) {
                 return;
             }
@@ -199,7 +198,7 @@ public class CommandServlet extends AbstractPwmServlet {
     private static void redirectToForwardURL(final PwmRequest pwmRequest)
             throws IOException, PwmUnrecoverableException
     {
-        final SessionStateBean sessionStateBean = pwmRequest.getPwmSession().getSessionStateBean();
+        final LocalSessionStateBean sessionStateBean = pwmRequest.getPwmSession().getSessionStateBean();
 
         final String redirectURL = pwmRequest.getForwardUrl();
         LOGGER.trace(pwmRequest, "redirecting user to forward url: " + redirectURL);
@@ -218,9 +217,9 @@ public class CommandServlet extends AbstractPwmServlet {
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        if (!ssBean.isAuthenticated()) {
+        if (!pwmRequest.isAuthenticated()) {
             final String action = pwmRequest.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST);
             LOGGER.info(pwmSession, "authentication required for " + action);
             pwmRequest.respondWithError(PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo());

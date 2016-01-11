@@ -36,6 +36,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.http.servlet.resource.ResourceServletService;
+import password.pwm.http.state.SessionStateService;
 import password.pwm.ldap.LdapConnectionService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceManager;
@@ -469,12 +470,13 @@ public class PwmApplication {
         return (CrService)pwmServiceManager.getService(CrService.class);
     }
 
-    public CacheService getCacheService() {
-        return (CacheService)pwmServiceManager.getService(CacheService.class);
+    public SessionStateService getSessionStateService() {
+        return (SessionStateService)pwmServiceManager.getService(SessionStateService.class);
     }
 
-    public LoginCookieManager getLoginCookieManager() {
-        return (LoginCookieManager)pwmServiceManager.getService(LoginCookieManager.class);
+
+    public CacheService getCacheService() {
+        return (CacheService)pwmServiceManager.getService(CacheService.class);
     }
 
     public SecureService getSecureService() {

@@ -207,6 +207,8 @@ public class TokenService implements PwmService {
             throw new PwmOperationalException(errorInformation);
         }
 
+        LOGGER.trace(sessionLabel, "generated token type=" + tokenPayload.getName());
+
         pwmApplication.getAuditManager().submit(pwmApplication.getAuditManager().createUserAuditRecord(
                 AuditEvent.TOKEN_ISSUED,
                 tokenPayload.getUserIdentity(),

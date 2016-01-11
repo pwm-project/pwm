@@ -172,6 +172,8 @@ public enum Display implements PwmDisplayBundle {
     Display_StrengthMeter,
     Display_UpdateProfile,
     Display_UpdateProfileConfirm,
+    Display_UpdateProfileEnterCode,
+    Display_UpdateProfileEnterCodeSMS,
     Display_UserEventHistory,
     Display_TypingWait,
     Field_AccountEnabled,

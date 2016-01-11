@@ -20,17 +20,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
-
-import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
-import password.pwm.config.profile.PwmPasswordRule;
-import password.pwm.http.JspUtility;
-import password.pwm.http.tag.PasswordRequirementsTag;
-import password.pwm.util.macro.MacroMachine;
+package password.pwm.bean.pub;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
+import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.http.tag.PasswordRequirementsTag;
+import password.pwm.util.macro.MacroMachine;
 
 public class PublicUserInfoBean implements Serializable {
     public String userDN;

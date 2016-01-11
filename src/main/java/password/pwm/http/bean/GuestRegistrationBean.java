@@ -26,12 +26,14 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.http.servlet.GuestRegistrationServlet;
 import password.pwm.util.FormMap;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.Set;
 
 /**
  * @author Jason D. Rivard, Menno Pieters
  */
-public class GuestRegistrationBean implements PwmSessionBean {
+public class GuestRegistrationBean extends PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
     private UserIdentity updateUserIdentity;
@@ -73,6 +75,14 @@ public class GuestRegistrationBean implements PwmSessionBean {
     public void setFormValues(FormMap formValues)
     {
         this.formValues = formValues;
+    }
+
+    public Type getType() {
+        return Type.AUTHENTICATED;
+    }
+
+    public Set<Flag> getFlags() {
+        return Collections.emptySet();
     }
 }
 

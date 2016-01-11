@@ -27,7 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionStateInfoBean;
+import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -346,7 +346,6 @@ public class RestAppDataServer extends AbstractRestServer {
         settingMap.put("url-command", contextPath + PwmServletDefinition.Command.servletUrl());
         settingMap.put("url-resources", contextPath + "/public/resources" + pwmApplication.getResourceServletService().getResourceNonce());
         settingMap.put("url-restservice", contextPath + "/public/rest");
-        settingMap.put("url-setupresponses",contextPath + PwmServletDefinition.SetupResponses.servletUrl());
 
         {
             String passwordGuideText = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,pwmSession.getSessionStateBean().getLocale());
@@ -443,9 +442,9 @@ public class RestAppDataServer extends AbstractRestServer {
         }
 
         inputString.append(pwmSession.getSessionStateBean().getSessionID());
-        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+        if (pwmSession.isAuthenticated()) {
             inputString.append(pwmSession.getUserInfoBean().getUserGuid());
-            inputString.append(pwmSession.getLoginInfoBean().getLocalAuthTime());
+            inputString.append(pwmSession.getLoginInfoBean().getAuthTime());
         }
 
         return SecureEngine.hash(inputString.toString(), PwmHashAlgorithm.SHA1).toLowerCase();

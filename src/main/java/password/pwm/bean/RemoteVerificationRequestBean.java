@@ -22,6 +22,8 @@
 
 package password.pwm.bean;
 
+import password.pwm.bean.pub.PublicUserInfoBean;
+
 import java.io.Serializable;
 import java.util.Map;
 

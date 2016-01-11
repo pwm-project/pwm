@@ -21,11 +21,12 @@
   --%>
 
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
-<%@ page import="password.pwm.bean.SessionStateBean" %>
+<%@ page import="password.pwm.bean.LocalSessionStateBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.option.ViewStatusFields" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.svc.event.UserAuditRecord" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
@@ -42,7 +43,7 @@
 <%
     final PwmRequest userinfo_pwmRequest = PwmRequest.forRequest(request, response);
     final UserInfoBean uiBean = userinfo_pwmRequest.getPwmSession().getUserInfoBean();
-    final SessionStateBean ssBean = userinfo_pwmRequest.getPwmSession().getSessionStateBean();
+    final LocalSessionStateBean ssBean = userinfo_pwmRequest.getPwmSession().getSessionStateBean();
     final DateFormat dateFormatter = PwmConstants.DEFAULT_DATETIME_FORMAT;
     final Set<ViewStatusFields> viewStatusFields = userinfo_pwmRequest.getConfig().readSettingAsOptionList(PwmSetting.ACCOUNT_INFORMATION_VIEW_STATUS_VALUES,ViewStatusFields.class);
     List<UserAuditRecord> auditRecords = Collections.emptyList();
@@ -262,7 +263,7 @@
             <% } %>
         </tr>
         <% } %>
-        <pwm:if test="otpEnabled">
+        <pwm:if test="<%=PwmIfTest.otpEnabled%>">
             <% if (viewStatusFields.contains(ViewStatusFields.OTPStored)) { %>
             <tr>
                 <td class="key">
@@ -376,7 +377,7 @@
         <input type="hidden" name="processAction" value="continue"/>
         <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
         <button type="submit" name="button" class="btn" id="button_continue">
-            <pwm:if test="showIcons"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
             <pwm:display key="Button_Continue"/>
         </button>
     </form>
