@@ -2222,7 +2222,7 @@ UserPermissionHandler.draw = function(keyName) {
             var inputID = "value-" + keyName + "-" + rowKey;
 
             if (htmlBody.length > 0) {
-                htmlBody += '<br/><br/><div style="clear:both; text-align:center"><span class="pwm-icon pwm-icon-plus"></span></div>'
+                htmlBody += '<br/><br/><div style="clear:both; text-align:center">OR</span></div>'
             }
 
             htmlBody += '<div class="setting_item_value_wrapper" style="float:left; width: 570px;"><div style="width:100%; text-align:center">';

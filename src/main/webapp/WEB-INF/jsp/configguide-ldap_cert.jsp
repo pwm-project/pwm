@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.PwmEnvironment" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.X509Utils" %>
@@ -100,6 +101,7 @@
             <div id="outline_ldapcert-options" class="setting_outline">
                 <div class="setting_title">Certificate Settings</div>
                 <div class="setting_body">
+                    <% if (!JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Appliance)) { %>
                     <div style="padding-left: 5px; padding-top: 5px">
                         At least one of the following options must be selected to continue.
                     </div>
@@ -113,8 +115,9 @@
                         (Import/remove certificate manually into Java keystore to change)
                     </div>
                     <br/>
+                    <% } %>
                     <div id="titlePane_useConfig" style="padding-left: 5px; padding-top: 5px">
-                        Use application to manage certificate(s) and automatically import certificates into configuration file
+                        Use application to manage certificate(s) and import certificates into configuration file
                         <br/>
                         <label class="checkboxWrapper">
                             <input type="checkbox" id="useConfig" name="useConfig" <%=configGuideBean.isUseConfiguredCerts() ? "checked" : ""%>/> Enabled
@@ -147,7 +150,7 @@
 
         function checkIfNextEnabled() {
             var useConfigChecked = PWM_MAIN.getObject('useConfig').checked;
-            var defaultTrustStoreChecked = PWM_MAIN.getObject('defaultTrustStore').checked;
+            var defaultTrustStoreChecked = PWM_MAIN.getObject('defaultTrustStore') && PWM_MAIN.getObject('defaultTrustStore').checked;
 
             if (useConfigChecked || defaultTrustStoreChecked) {
                 PWM_MAIN.getObject('button_next').disabled = false;

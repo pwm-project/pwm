@@ -1383,10 +1383,10 @@
     </setting>
     <setting hidden="false" key="security.loginSession.mode" level="2">
         <default>
-            <value>Local</value>
+            <value>LOCAL</value>
         </default>
         <options>
-            <option value="LOCAL">HttpSession</option>
+            <option value="LOCAL">Local</option>
             <option value="CRYPTCOOKIE">Encrypted Cookie</option>
         </options>
     </setting>

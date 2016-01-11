@@ -1,5 +1,5 @@
+<%@ page import="password.pwm.PwmEnvironment" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.tag.PwmIfTest" %>
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
@@ -78,6 +78,7 @@
                     <%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigHasPassword)%>
                 </td>
             </tr>
+            <% if (!JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Appliance)) { %>
             <tr>
                 <td>
                     Application Data Path
@@ -98,6 +99,7 @@
                     </div>
                 </td>
             </tr>
+            <% } %>
         </table>
         <br/>
         <div id="healthBody" style="margin-top:5px; margin-left: 20px; margin-right: 20px; padding:0; max-height: 300px; overflow-y: auto">

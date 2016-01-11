@@ -51,7 +51,6 @@
     <div id="footer-content">
         <span class="infotext">
             <pwm:display key="Display_FooterInfoText"/>&nbsp;
-            GUID = <%=footer_pwmRequest.getPwmSession().getLoginInfoBean().getGuid()%>
         </span>
         <div>
             <% if (footer_pwmRequest.isAuthenticated()) { %>
