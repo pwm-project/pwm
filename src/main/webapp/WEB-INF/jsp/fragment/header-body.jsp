@@ -55,6 +55,7 @@
                     </a>
                 </pwm:if></pwm:if>
             </pwm:if>
+            <div id="header-username"><pwm:value name="<%=PwmValue.menuUsernameField%>"/></div>
             <% } %>
         </div>
     </div>
