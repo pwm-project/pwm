@@ -107,6 +107,7 @@ public enum Display implements PwmDisplayBundle {
     Display_Login,
     Display_LoginPasswordOnly,
     Display_Logout,
+    Display_Menu,
     Display_Minute,
     Display_Minutes,
     Display_NewUser,
