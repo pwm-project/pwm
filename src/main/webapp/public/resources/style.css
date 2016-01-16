@@ -473,7 +473,7 @@ div.progress-container > div {
     position: relative;
 }
 
-#header-username {
+#header-menu-wrapper { /*temp assignment */
     display:none;
 }
 

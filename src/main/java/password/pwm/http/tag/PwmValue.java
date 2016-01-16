@@ -9,7 +9,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Admin;
-import password.pwm.i18n.Display;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -29,7 +28,7 @@ public enum PwmValue {
     currentJspFilename(new CurrentJspFilenameOutput()),
     instanceID(new InstanceIDOutput()),
     headerMenuNotice(new HeaderMenuNoticeOutput()),
-    menuUsernameField(new HeaderUsernameField())
+    username(new UsernameOutput())
 
     ;
 
@@ -159,7 +158,7 @@ public enum PwmValue {
         }
     }
 
-    static class HeaderUsernameField implements ValueOutput {
+    static class UsernameOutput implements ValueOutput {
         @Override
         public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             if (pwmRequest.isAuthenticated()) {
@@ -169,7 +168,7 @@ public enum PwmValue {
                 }
             }
 
-            return LocaleHelper.getLocalizedMessage(Display.Display_Menu, pwmRequest);
+            return "";
         }
     }
 
