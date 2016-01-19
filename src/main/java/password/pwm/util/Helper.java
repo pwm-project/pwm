@@ -614,6 +614,12 @@ public class
         return sw.toString();
     }
 
+    /**
+     * Converts an exception to a string message.  Handles cases where the message in the exception is null
+     * and/or there are multiple nested cause exceptions.
+     * @param e The exception to convert to a string
+     * @return A string containing any meaningful extractable cause information, suitable for debugging.
+     */
     public static String readHostileExceptionMessage(Throwable e) {
         String errorMsg = e.getClass().getName();
         if (e.getMessage() != null) {
@@ -632,5 +638,9 @@ public class
         }
 
         return errorMsg;
+    }
+
+    public static <E extends Enum<E>> boolean enumArrayContainsValue(final E[] enumArray, final E enumValue) {
+        return !(enumArray == null || enumArray.length == 0) && Arrays.asList(enumArray).contains(enumValue);
     }
 }

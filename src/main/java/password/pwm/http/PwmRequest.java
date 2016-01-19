@@ -147,7 +147,11 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     )
             throws IOException, ServletException
     {
-        getPwmResponse().respondWithError(errorInformation, forceLogout);
+        if (forceLogout) {
+            getPwmResponse().respondWithError(errorInformation, PwmResponse.Flag.ForceLogout);
+        } else {
+            getPwmResponse().respondWithError(errorInformation);
+        }
     }
 
     public void sendRedirect(final String redirectURL)

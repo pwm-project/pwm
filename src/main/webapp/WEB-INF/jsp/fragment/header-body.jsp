@@ -39,23 +39,46 @@
             <div id="header-page"><pwm:display key="${param['pwm.PageName']}" displayIfMissing="true"/></div>
             <div id="header-title"><pwm:display key="Title_Application"/></div>
         </div>
+
         <div id="header-center-right">
+            <div id="header-menu-wrapper">
+                <pwm:if test="<%=PwmIfTest.headerMenuIsVisible%>">
+                    <pwm:if test="<%=PwmIfTest.healthWarningsPresent%>">
+                        <div id="header-menu-alert"></div>
+                    </pwm:if>
+                    <pwm:if test="<%=PwmIfTest.usernameHasValue%>">
+                        <div id="header-username"><pwm:value name="<%=PwmValue.username%>"/></div>
+                        <div id="header-username-caret"></div>
+                    </pwm:if>
+                    <pwm:if test="<%=PwmIfTest.usernameHasValue%>" negate="true">
+                        <div id="header-menu-icon"></div>
+                    </pwm:if>
+                </pwm:if>
+
+                <pwm:if test="<%=PwmIfTest.headerMenuIsVisible%>" negate="true">
+                    <pwm:if test="<%=PwmIfTest.usernameHasValue%>">
+                        <div id="header-username"><pwm:value name="<%=PwmValue.username%>"/></div>
+                    </pwm:if>
+                </pwm:if>
+            </div>
+
             <% if (!JspUtility.isFlag(request, PwmRequestFlag.HIDE_HEADER_BUTTONS)) { %>
             <pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">
-                <pwm:if test="<%=PwmIfTest.showHome%>">
-                    <a class="header-button" href="<pwm:value name="<%=PwmValue.homeURL%>"/>" id="HomeButton">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-home"></span></pwm:if>
-                        <pwm:display key="Button_Home"/>
-                    </a>
+                <pwm:if test="<%=PwmIfTest.authenticated%>">
+                    <pwm:if test="<%=PwmIfTest.showHome%>">
+                        <a class="header-button" href="<pwm:value name="<%=PwmValue.homeURL%>"/>" id="HomeButton">
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-home"></span></pwm:if>
+                            <pwm:display key="Button_Home"/>
+                        </a>
+                    </pwm:if>
+                    <pwm:if test="<%=PwmIfTest.showLogout%>">
+                        <a class="header-button" href="<pwm:url url='<%=PwmServletDefinition.Logout.servletUrl()%>' addContext="true"/>" id="LogoutButton">
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-sign-out"></span></pwm:if>
+                            <pwm:display key="Button_Logout"/>
+                        </a>
+                    </pwm:if>
                 </pwm:if>
-                <pwm:if test="<%=PwmIfTest.authenticated%>"><pwm:if test="<%=PwmIfTest.showLogout%>">
-                    <a class="header-button" href="<pwm:url url='<%=PwmServletDefinition.Logout.servletUrl()%>' addContext="true"/>" id="LogoutButton">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-sign-out"></span></pwm:if>
-                        <pwm:display key="Button_Logout"/>
-                    </a>
-                </pwm:if></pwm:if>
             </pwm:if>
-            <div id="header-username"><pwm:value name="<%=PwmValue.menuUsernameField%>"/></div>
             <% } %>
         </div>
     </div>

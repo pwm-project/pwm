@@ -7,7 +7,10 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMonitor;
+import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
 
 public enum PwmIfTest {
@@ -42,6 +45,11 @@ public enum PwmIfTest {
 
     trialMode(new TrialModeTest()),
     configMode(new ConfigModeTest()),
+
+    healthWarningsPresent(new HealthWarningsPresentTest()),
+    usernameHasValue(new UsernameHasValueTest()),
+
+    headerMenuIsVisible(new HeaderMenuIsVisibleTest()),
 
     ;
 
@@ -236,6 +244,50 @@ public enum PwmIfTest {
             return applicationMode == PwmApplication.MODE.CONFIGURATION;
         }
     }
+
+    private static class HealthWarningsPresentTest implements Test {
+        @Override
+        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+            final HealthMonitor healthMonitor = pwmRequest.getPwmApplication().getHealthMonitor();
+            if (healthMonitor != null && healthMonitor.status() == PwmService.STATUS.OPEN) {
+                if (healthMonitor.getMostSevereHealthStatus() == HealthStatus.WARN) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    private static class UsernameHasValueTest implements Test {
+        @Override
+        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+            final String usernameValue = PwmValue.username.getValueOutput().valueOutput(pwmRequest, null);
+            return usernameValue != null && !usernameValue.isEmpty();
+        }
+    }
+
+
+    private static class HeaderMenuIsVisibleTest implements Test {
+        @Override
+        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+            if (PwmConstants.TRIAL_MODE) {
+                return true;
+            }
+
+            if (pwmRequest.getPwmApplication().getApplicationMode() != PwmApplication.MODE.RUNNING) {
+                return true;
+            }
+
+            if (pwmRequest.isAuthenticated()) {
+                if (pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
 
     static class Options {
         private boolean negate;

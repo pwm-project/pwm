@@ -117,7 +117,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
     protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
-        //Fetch the session state bean.
+            //Fetch the session state bean.
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
@@ -182,7 +182,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         pwmApplication.getSessionStateService().clearBean(pwmRequest, ActivateUserBean.class);
         final List<FormConfiguration> configuredActivationForm = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM);
 
-        Map<FormConfiguration,String> formValues = new HashMap();
+        Map<FormConfiguration,String> formValues = new HashMap<>();
         try {
             //read the values from the request
             formValues = FormUtility.readFormValuesFromRequest(pwmRequest, configuredActivationForm,
