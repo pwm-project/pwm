@@ -49,7 +49,8 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     final private PwmRequest pwmRequest;
 
     public enum Flag {
-        AlwaysShowMessage
+        AlwaysShowMessage,
+        ForceLogout,
     }
 
     public PwmResponse(
@@ -99,11 +100,10 @@ public class PwmResponse extends PwmHttpResponseWrapper {
 
         if (showMessage) {
             LOGGER.trace(pwmSession, "skipping success page due to configuration setting.");
-            final StringBuilder redirectURL = new StringBuilder();
-            redirectURL.append(pwmRequest.getContextPath());
-            redirectURL.append(PwmServletDefinition.Command.servletUrl());
-            redirectURL.append("?processAction=continue");
-            sendRedirect(redirectURL.toString());
+            final String redirectUrl = pwmRequest.getContextPath()
+                    +  PwmServletDefinition.Command.servletUrl()
+                    + "?processAction=continue";
+            sendRedirect(redirectUrl);
             return;
         }
 
@@ -116,7 +116,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
 
     public void respondWithError(
             final ErrorInformation errorInformation,
-            final boolean forceLogout
+            final Flag... flags
     )
             throws IOException, ServletException
     {
@@ -124,15 +124,8 @@ public class PwmResponse extends PwmHttpResponseWrapper {
 
         pwmRequest.setResponseError(errorInformation);
 
-        {
-            boolean showDetail = Helper.determineIfDetailErrorMsgShown(pwmRequest.getPwmApplication());
-            final String errorStatusText = showDetail
-                    ? errorInformation.toDebugStr()
-                    : errorInformation.toUserStr(pwmRequest.getPwmSession(),pwmRequest.getPwmApplication());
-            getHttpServletResponse().sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorStatusText);
-        }
-
-        if (forceLogout) {
+        if (Helper.enumArrayContainsValue(flags, Flag.ForceLogout)) {
+            LOGGER.debug(pwmRequest, "forcing logout due to error " + errorInformation.toDebugStr());
             pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
         }
 
@@ -144,8 +137,13 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             } catch (PwmUnrecoverableException e) {
                 LOGGER.error("unexpected error sending user to error page: " + e.toString());
             }
+        } else {
+            boolean showDetail = Helper.determineIfDetailErrorMsgShown(pwmRequest.getPwmApplication());
+            final String errorStatusText = showDetail
+                    ? errorInformation.toDebugStr()
+                    : errorInformation.toUserStr(pwmRequest.getPwmSession(),pwmRequest.getPwmApplication());
+            getHttpServletResponse().sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorStatusText);
         }
-
     }
 
 
