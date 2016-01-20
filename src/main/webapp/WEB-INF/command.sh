@@ -12,14 +12,7 @@ exit 1
 fi
 
 JAVA_OPTS=-Xmx1024m
-for i in lib/*.jar ; do
- if [ "$CLASSPATH" == "" ]; then
-   CLASSPATH=$i
- else
-   CLASSPATH=$CLASSPATH:$i
- fi
-done
-CLASSPATH=$CLASSPATH:classes
+CLASSPATH=lib/*:classes
 
 $JAVA_HOME/bin/java $JAVA_OPTS -cp $CLASSPATH password.pwm.util.cli.MainClass $1 $2 $3 $4 $5 $6 $7 $8 $9
 
