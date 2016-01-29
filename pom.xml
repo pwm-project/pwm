@@ -62,7 +62,7 @@
             <properties>
                 <maven.javadoc.skip>true</maven.javadoc.skip>
                 <source.skip>true</source.skip>
-				<jspc.skip>true</jspc.skip>
+                <jspc.skip>true</jspc.skip>
             </properties>
         </profile>
     </profiles>
@@ -210,6 +210,19 @@
             <version>1.10.19</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <!-- use 3.3.0 for Java 8 projects -->
+            <version>2.3.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>1.58</version>
+            <scope>test</scope>
+        </dependency>
 
         <!-- container dependencies -->
         <dependency>
@@ -282,7 +295,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.2.2</version>
+            <version>4.5.1</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
