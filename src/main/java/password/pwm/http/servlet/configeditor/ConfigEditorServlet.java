@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet;
+package password.pwm.http.servlet.configeditor;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
@@ -41,6 +41,7 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
+import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
@@ -774,7 +775,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             throws IOException, PwmUnrecoverableException
     {
         final Date startTime = new Date();
-        final ArrayList<Map<String, Object>> navigationData = new ArrayList<>();
+        final ArrayList<NavTreeHelper.NavTreeItem> navigationData = new ArrayList<>();
 
         final Map<String,Object> inputParameters = pwmRequest.readBodyAsJsonMap(false);
         final boolean modifiedSettingsOnly = (boolean)inputParameters.get("modifiedSettingsOnly");
@@ -782,9 +783,9 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final String filterText = (String)inputParameters.get("text");
 
         { // root node
-            final Map<String, Object> categoryInfo = new HashMap<>();
-            categoryInfo.put("id", "ROOT");
-            categoryInfo.put("name", "ROOT");
+            final NavTreeHelper.NavTreeItem categoryInfo = new NavTreeHelper.NavTreeItem();
+            categoryInfo.setId("ROOT");
+            categoryInfo.setName("ROOT");
             navigationData.add(categoryInfo);
         }
 
@@ -798,24 +799,24 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                     (int)level,
                     filterText
             )) {
-                final Map<String, Object> categoryInfo = new LinkedHashMap<>();
-                categoryInfo.put("id", loopCategory.getKey());
-                categoryInfo.put("name", loopCategory.getLabel(pwmRequest.getLocale()));
+                final NavTreeHelper.NavTreeItem categoryInfo = new NavTreeHelper.NavTreeItem();
+                categoryInfo.setId(loopCategory.getKey());
+                categoryInfo.setName(loopCategory.getLabel(pwmRequest.getLocale()));
 
                 if (loopCategory.getParent() != null) {
-                    categoryInfo.put("parent", loopCategory.getParent().getKey());
+                    categoryInfo.setParent(loopCategory.getParent().getKey());
                 } else {
-                    categoryInfo.put("parent", "ROOT");
+                    categoryInfo.setParent("ROOT");
                 }
 
                 if (loopCategory.hasProfiles()) {
                     {
-                        final Map<String, Object> profileEditorInfo = new HashMap<>();
-                        profileEditorInfo.put("id", loopCategory.getKey() + "-EDITOR");
-                        profileEditorInfo.put("name", "[Edit List]");
-                        profileEditorInfo.put("type", "profile-definition");
-                        profileEditorInfo.put("profile-setting", loopCategory.getProfileSetting().getKey());
-                        profileEditorInfo.put("parent", loopCategory.getKey());
+                        final NavTreeHelper.NavTreeItem profileEditorInfo = new NavTreeHelper.NavTreeItem();
+                        profileEditorInfo.setId(loopCategory.getKey() + "-EDITOR");
+                        profileEditorInfo.setName("[Edit List]");
+                        profileEditorInfo.setType(NavTreeHelper.NavItemType.profileDefinition);
+                        profileEditorInfo.setProfileSetting(loopCategory.getProfileSetting().getKey());
+                        profileEditorInfo.setParent(loopCategory.getKey());
                         navigationData.add(profileEditorInfo);
                     }
 
@@ -823,23 +824,23 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                     if (!childSettings.isEmpty()) {
                         final PwmSetting childSetting = childSettings.iterator().next();
 
-                        List<String> profiles = configManagerBean.getStoredConfiguration().profilesForSetting(childSetting);
+                        final List<String> profiles = configManagerBean.getStoredConfiguration().profilesForSetting(childSetting);
                         for (final String profile : profiles) {
-                            final Map<String, Object> profileInfo = new HashMap<>();
-                            profileInfo.put("id", profile);
-                            profileInfo.put("name", profile.isEmpty() ? "Default" : profile);
-                            profileInfo.put("parent", loopCategory.getKey());
-                            profileInfo.put("category", loopCategory.getKey());
-                            profileInfo.put("type", "profile");
-                            profileInfo.put("menuLocation", loopCategory.toMenuLocationDebug(profile, pwmRequest.getLocale()));
+                            final NavTreeHelper.NavTreeItem profileInfo = new NavTreeHelper.NavTreeItem();
+                            profileInfo.setId(profile);
+                            profileInfo.setName(profile.isEmpty() ? "Default" : profile);
+                            profileInfo.setParent(loopCategory.getKey());
+                            profileInfo.setCategory(loopCategory.getKey());
+                            profileInfo.setType(NavTreeHelper.NavItemType.profile);
+                            profileInfo.setMenuLocation(loopCategory.toMenuLocationDebug(profile, pwmRequest.getLocale()));
                             navigationData.add(profileInfo);
                         }
                     }
                 } else {
                     if (loopCategory.getChildCategories().isEmpty()) {
-                        categoryInfo.put("type", "category");
+                        categoryInfo.setType(NavTreeHelper.NavItemType.category);
                     } else {
-                        categoryInfo.put("type", "navigation");
+                        categoryInfo.setType(NavTreeHelper.NavItemType.navigation);
                     }
                 }
 
@@ -856,12 +857,12 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                         modifiedKeys.addAll(NavTreeHelper.determineModifiedKeysSettings(localeBundle, pwmRequest.getConfig(), configManagerBean.getStoredConfiguration()));
                     }
                     if (!modifiedSettingsOnly || !modifiedKeys.isEmpty()) {
-                        final Map<String, Object> categoryInfo = new HashMap<>();
-                        categoryInfo.put("id", localeBundle.toString());
-                        categoryInfo.put("name", localeBundle.getTheClass().getSimpleName());
-                        categoryInfo.put("parent", "DISPLAY_TEXT");
-                        categoryInfo.put("type", "displayText");
-                        categoryInfo.put("keys", modifiedSettingsOnly ? modifiedKeys : localeBundle.getKeys());
+                        final NavTreeHelper.NavTreeItem categoryInfo = new NavTreeHelper.NavTreeItem();
+                        categoryInfo.setId(localeBundle.toString());
+                        categoryInfo.setName(localeBundle.getTheClass().getSimpleName());
+                        categoryInfo.setParent("DISPLAY_TEXT");
+                        categoryInfo.setType(NavTreeHelper.NavItemType.displayText);
+                        categoryInfo.setKeys(new TreeSet<>(modifiedSettingsOnly ? modifiedKeys : localeBundle.getKeys()));
                         navigationData.add(categoryInfo);
                         includeDisplayText = true;
                     }
@@ -870,138 +871,18 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         }
 
         if (includeDisplayText) {
-            final Map<String, Object> categoryInfo = new HashMap<>();
-            categoryInfo.put("id", "DISPLAY_TEXT");
-            categoryInfo.put("name", "Display Text");
-            categoryInfo.put("parent", "ROOT");
+            final NavTreeHelper.NavTreeItem categoryInfo = new NavTreeHelper.NavTreeItem();
+            categoryInfo.setId("DISPLAY_TEXT");
+            categoryInfo.setName("Display Text");
+            categoryInfo.setParent("ROOT");
             navigationData.add(categoryInfo);
         }
 
-        NavTreeHelper.moveNavItemToTop(PwmSettingCategory.NOTES.toString(), navigationData);
-        NavTreeHelper.moveNavItemToTop(PwmSettingCategory.TEMPLATES.toString(), navigationData);
+        NavTreeHelper.moveNavItemToTopOfList(PwmSettingCategory.NOTES.toString(), navigationData);
+        NavTreeHelper.moveNavItemToTopOfList(PwmSettingCategory.TEMPLATES.toString(), navigationData);
 
         LOGGER.trace(pwmRequest,"completed navigation tree data request in " + TimeDuration.fromCurrent(startTime).asCompactString());
         pwmRequest.outputJsonResult(new RestResultBean(navigationData));
-    }
-
-    private static class NavTreeHelper {
-        private static Set<String> determineModifiedKeysSettings(
-                final PwmLocaleBundle bundle,
-                final Configuration config,
-                final StoredConfigurationImpl storedConfiguration
-        ) {
-            final Set<String> modifiedKeys = new TreeSet<>();
-            for (final String key : bundle.getKeys()) {
-                final Map<String,String> storedBundle = storedConfiguration.readLocaleBundleMap(bundle.getTheClass().getName(),key);
-                if (!storedBundle.isEmpty()) {
-                    for (final Locale locale : config.getKnownLocales()) {
-                        final ResourceBundle defaultBundle = ResourceBundle.getBundle(bundle.getTheClass().getName(), locale);
-                        final String localeKeyString = PwmConstants.DEFAULT_LOCALE.toString().equals(locale.toString()) ? "" : locale.toString();
-                        if (storedBundle.containsKey(localeKeyString)) {
-                            final String value = storedBundle.get(localeKeyString);
-                            if (value != null && !value.equals(defaultBundle.getString(key))) {
-                                modifiedKeys.add(key);
-                            }
-                        }
-                    }
-                }
-            }
-            return modifiedKeys;
-        }
-
-        private static boolean categoryMatcher(
-                PwmApplication pwmApplication,
-                PwmSettingCategory category,
-                StoredConfigurationImpl storedConfiguration,
-                final boolean modifiedOnly,
-                final int minLevel,
-                final String text
-        ) {
-            if (category.isHidden()) {
-                return false;
-            }
-
-            if (category == PwmSettingCategory.HTTPS_SERVER) {
-                if (!pwmApplication.getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.ManageHttps)) {
-                    return false;
-                }
-            }
-
-            for (PwmSettingCategory childCategory : category.getChildCategories()) {
-                if (categoryMatcher(pwmApplication, childCategory, storedConfiguration, modifiedOnly, minLevel, text)) {
-                    return true;
-                }
-            }
-
-            if (category.hasProfiles()) {
-                for (String profileID : storedConfiguration.profilesForSetting(category.getProfileSetting())) {
-                    for (final PwmSetting setting : category.getSettings()) {
-                        if (settingMatches(storedConfiguration,setting,profileID,modifiedOnly,minLevel,text)) {
-                            return true;
-                        }
-                    }
-                }
-            } else {
-                for (final PwmSetting setting : category.getSettings()) {
-                    if (settingMatches(storedConfiguration,setting,null,modifiedOnly,minLevel,text)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        private static boolean settingMatches(
-                final StoredConfigurationImpl storedConfiguration,
-                final PwmSetting setting,
-                final String profileID,
-                final boolean modifiedOnly,
-                final int level,
-                final String text
-        ) {
-            if (setting.isHidden()) {
-                return false;
-            }
-
-            if (modifiedOnly) {
-                if (storedConfiguration.isDefaultValue(setting,profileID)) {
-                    return false;
-                }
-            }
-
-            if (level > 0 && setting.getLevel() > level) {
-                return false;
-            }
-
-
-            if (text == null || text.isEmpty()) {
-                return true;
-            } else {
-                final StoredValue storedValue = storedConfiguration.readSetting(setting,profileID);
-                for (final String term : StringUtil.whitespaceSplit(text)) {
-                    if (storedConfiguration.matchSetting(setting, storedValue, term, PwmConstants.DEFAULT_LOCALE)) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private static void moveNavItemToTop(final String categoryID, final List<Map<String,Object>> navigationData) {
-            { // put templates on top
-                Map<String,Object> templateEntry = null;
-                for (Map<String,Object> entry : navigationData) {
-                    if (categoryID.equals(entry.get("id"))) {
-                        templateEntry = entry;
-                    }
-                }
-                if (templateEntry != null) {
-                    navigationData.remove(templateEntry);
-                    navigationData.add(0, templateEntry);
-                }
-            }
-        }
     }
 
     private void restConfigSettingData(final PwmRequest pwmRequest, final ConfigManagerBean configManagerBean)

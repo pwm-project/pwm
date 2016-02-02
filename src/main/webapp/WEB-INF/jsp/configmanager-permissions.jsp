@@ -28,9 +28,6 @@
   ~
   --%>
 
-<%
-    final LDAPPermissionCalculator outputData = (LDAPPermissionCalculator)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigurationSummaryOutput);
-%>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -47,54 +44,7 @@
         <jsp:param name="pwm.PageName" value="LDAP Permission Suggestions"/>
     </jsp:include>
     <div id="centerbody">
-        <div>
-            <p>
-                These permission suggestions are based on the current configuration.  These suggestions should be
-                applied with caution and with an understanding of the security model of your specific LDAP directory
-                environment.  The suggested permissions may not be appropriate in your particular environment.
-            </p>
-            <h1>Attribute Permissions</h1>
-            <% for (final LDAPPermissionInfo.Actor actor : LDAPPermissionInfo.Actor.values()) { %>
-            <% Map<String,Map<LDAPPermissionInfo.Access,List<LDAPPermissionCalculator.PermissionRecord>>> baseMap = outputData.getPermissionsByActor(actor); %>
-            <% if (!baseMap.isEmpty()) { %>
-            <h2>
-                <%=actor.getLabel(JspUtility.locale(request),JspUtility.getPwmRequest(pageContext).getConfig())%>
-            </h2>
-            <table style="">
-                <tr>
-                    <td class="title">Attribute Name</td>
-                    <td class="title">Access</td>
-                    <td class="title">Associated Setting</td>
-                </tr>
-                <% for (final String attribute : baseMap.keySet()) { %>
-                <% for (final LDAPPermissionInfo.Access access : baseMap.get(attribute).keySet()) { %>
-                <tr>
-                    <td style="text-align: left">
-                        <%= attribute %>
-                    </td>
-                    <td style="text-align: left">
-                        <%= access %>
-                    </td>
-                    <td style="text-align: left">
-                        <%
-                            final Set<String> menuLocations = new TreeSet<String>();
-                            for (final LDAPPermissionCalculator.PermissionRecord record : baseMap.get(attribute).get(access)) {
-                                menuLocations.add(record.getPwmSetting().toMenuLocationDebug(record.getProfile(), JspUtility.locale(request)));
-                            }
-                        %>
-                        <% for (String menuLocation : menuLocations) { %>
-                        <%= menuLocation %>
-                        <br/>
-                        <% } %>
-                    </td>
-                </tr>
-                <% } %>
-                <% } %>
-            </table>
-            <br/>
-            <% } %>
-            <% } %>
-        </div>
+        <jsp:include page="fragment/ldap-permissions.jsp"/>
     </div>
     <div class="push"></div>
 </div>

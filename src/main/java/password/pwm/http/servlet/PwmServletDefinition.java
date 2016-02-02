@@ -25,6 +25,7 @@ package password.pwm.http.servlet;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.http.servlet.configguide.ConfigGuideServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerLocalDBServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
@@ -54,7 +55,7 @@ public enum PwmServletDefinition {
 
     Admin(password.pwm.http.servlet.AdminServlet.class),
     ConfigGuide(ConfigGuideServlet.class),
-    ConfigEditor(password.pwm.http.servlet.ConfigEditorServlet.class),
+    ConfigEditor(ConfigEditorServlet.class),
     ConfigManager(ConfigManagerServlet.class),
     ConfigManager_Wordlists(ConfigManagerWordlistServlet.class),
     ConfigManager_LocalDB(ConfigManagerLocalDBServlet.class),

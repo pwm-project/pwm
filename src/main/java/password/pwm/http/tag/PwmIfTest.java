@@ -36,6 +36,7 @@ public enum PwmIfTest {
     forgottenUsernameEnabled(new BooleanPwmSettingTest(PwmSetting.FORGOTTEN_USERNAME_ENABLE)),
     activateUserEnabled(new BooleanPwmSettingTest(PwmSetting.ACTIVATE_USER_ENABLE)),
     newUserRegistrationEnabled(new BooleanPwmSettingTest(PwmSetting.NEWUSER_ENABLE)),
+    updateProfileEnabbled(new BooleanPwmSettingTest(PwmSetting.UPDATE_PROFILE_ENABLE)),
 
     booleanSetting(new BooleanPwmSettingTest(null)),
     stripInlineJavascript(new BooleanAppPropertyTest(AppProperty.SECURITY_STRIP_INLINE_JAVASCRIPT)),

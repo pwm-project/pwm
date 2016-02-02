@@ -295,7 +295,7 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
     var deleteButtonID = 'button-' + settingKey + '-' + iteration + '-delete';
     rowHtml += '<td style="border:0; padding:0; width:10px" title="Delete">';
 
-    if (itemCount > 1 || (!settingInfo['required'] && (syntax != 'PROFILE'))) {
+    if (itemCount > 1 || (!settingInfo['required'])) {
         rowHtml += '<span id="' + deleteButtonID + '" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
     }
     rowHtml += '</td>';

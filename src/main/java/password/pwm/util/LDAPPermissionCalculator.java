@@ -31,6 +31,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.queue.SmsQueueManager;
 
 import java.io.Serializable;
 import java.util.*;
@@ -165,6 +166,16 @@ public class LDAPPermissionCalculator implements Serializable {
             }
             break;
 
+            case UPDATE:
+            case UPDATE_PROFILE:
+            case UPDATE_SETTINGS:
+            {
+                if (!(Boolean)storedConfiguration.readSetting(PwmSetting.UPDATE_PROFILE_ENABLE).toNativeObject()) {
+                    return Collections.emptyList();
+                }
+            }
+            break;
+
             case FORGOTTEN_USERNAME:
             {
                 if (!(Boolean)storedConfiguration.readSetting(PwmSetting.FORGOTTEN_USERNAME_ENABLE).toNativeObject()) {
@@ -209,7 +220,7 @@ public class LDAPPermissionCalculator implements Serializable {
         switch (pwmSetting) {
             case CHALLENGE_USER_ATTRIBUTE:
             {
-                Configuration config = new Configuration(storedConfiguration);
+                final Configuration config = new Configuration(storedConfiguration);
                 final Set<DataStorageMethod> storageMethods = new HashSet<>();
                 storageMethods.addAll(config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE));
                 storageMethods.addAll(config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE));
@@ -217,6 +228,23 @@ public class LDAPPermissionCalculator implements Serializable {
                     return Collections.emptyList();
                 }
 
+            }
+            break;
+
+            case OTP_SECRET_LDAP_ATTRIBUTE:
+            {
+                final Configuration config = new Configuration(storedConfiguration);
+                if (!config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)) {
+                    return Collections.emptyList();
+                }
+            }
+
+            case SMS_USER_PHONE_ATTRIBUTE:
+            {
+                final Configuration config = new Configuration(storedConfiguration);
+                if (!SmsQueueManager.smsIsConfigured(config)) {
+                    return Collections.emptyList();
+                }
             }
             break;
         }

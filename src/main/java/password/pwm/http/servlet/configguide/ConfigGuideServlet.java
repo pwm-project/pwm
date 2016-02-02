@@ -46,7 +46,7 @@ import password.pwm.health.*;
 import password.pwm.http.*;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
-import password.pwm.http.servlet.ConfigEditorServlet;
+import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
@@ -548,9 +548,15 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        final ConfigGuideBean configGuideBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest,ConfigGuideBean.class);
+
+        if (configGuideBean.getStep() == GuideStep.LDAP_PERMISSIONS) {
+            LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(ConfigGuideForm.generateStoredConfig(configGuideBean));
+            pwmRequest.setAttribute(PwmRequest.Attribute.LdapPermissionItems,ldapPermissionCalculator);
+        }
+
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final ServletContext servletContext = req.getSession().getServletContext();
-        final ConfigGuideBean configGuideBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest,ConfigGuideBean.class);
         String destURL = '/' + PwmConstants.URL_JSP_CONFIG_GUIDE;
         destURL = destURL.replace("%1%", configGuideBean.getStep().toString().toLowerCase());
         servletContext.getRequestDispatcher(destURL).forward(req, pwmRequest.getPwmResponse().getHttpServletResponse());

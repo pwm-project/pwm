@@ -366,7 +366,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
     {
         final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
         LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(storedConfiguration);
-        pwmRequest.setAttribute(PwmRequest.Attribute.ConfigurationSummaryOutput,ldapPermissionCalculator);
+        pwmRequest.setAttribute(PwmRequest.Attribute.LdapPermissionItems,ldapPermissionCalculator);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_PERMISSIONS);
     }
 
