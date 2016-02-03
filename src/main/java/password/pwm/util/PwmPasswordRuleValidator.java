@@ -38,6 +38,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.profile.PwmPasswordPolicy.RuleHelper;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.*;
 import password.pwm.http.PwmSession;
@@ -50,6 +51,9 @@ import password.pwm.ws.client.rest.RestClientHelper;
 
 import java.util.*;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 public class PwmPasswordRuleValidator {
 
@@ -237,23 +241,19 @@ public class PwmPasswordRuleValidator {
 
         // check disallowed attributes.
         if (!policy.getRuleHelper().getDisallowedAttributes().isEmpty()) {
-            final List paramConfigs = policy.getRuleHelper().getDisallowedAttributes();
+            final List<String> paramConfigs = policy.getRuleHelper().getDisallowedAttributes(RuleHelper.Flag.KeepThresholds);
             if (uiBean != null) {
                 final Map<String,String> userValues = uiBean.getCachedPasswordRuleAttributes();
-                final String lcasePwd = passwordString.toLowerCase();
-                for (final Object paramConfig : paramConfigs) {
-                    final String attr = (String) paramConfig;
-                    final String userValue = userValues.get(attr) == null ? "" : userValues.get(attr).toLowerCase();
 
-                    // if the password is greater then 1 char and the value is contained within it then disallow
-                    if (userValue.length() > 1 && lcasePwd.contains(userValue)) {
-                        LOGGER.trace("password rejected, same as user attr " + attr);
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASATTR));
-                    }
+                for (final String paramConfig : paramConfigs) {
+                    final String[] parts = paramConfig.split(":");
 
-                    // if the password is 1 char and the value is the same then disallow
-                    if (lcasePwd.equalsIgnoreCase(userValue)) {
-                        LOGGER.trace("password rejected, same as user attr " + attr);
+                    final String attrName = parts[0];
+                    final String disallowedValue = StringUtils.defaultString(userValues.get(attrName));
+                    final int threshold = parts.length > 1 ? NumberUtils.toInt(parts[1]) : 0;
+
+                    if (containsDisallowedValue(passwordString, disallowedValue, threshold)) {
+                        LOGGER.trace("password rejected, same as user attr " + attrName);
                         errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASATTR));
                     }
                 }
@@ -371,7 +371,25 @@ public class PwmPasswordRuleValidator {
         return errorList;
     }
 
+    static boolean containsDisallowedValue(final String password, final String disallowedValue, final int threshold) {
+        if (StringUtils.isNotBlank(disallowedValue)) {
+            if (threshold > 0) {
+                if (disallowedValue.length() >= threshold) {
+                    final String[] disallowedValueChunks = StringUtil.createStringChunks(disallowedValue, threshold);
+                    for (final String chunk : disallowedValueChunks) {
+                        if (StringUtils.containsIgnoreCase(password, chunk)) {
+                            return true;
+                        }
+                    }
+                }
+            } else {
+                // No threshold?  Then the password can't contain the whole disallowed value
+                return StringUtils.containsIgnoreCase(password, disallowedValue);
+            }
+        }
 
+        return false;
+    }
 
     /**
      * Check a supplied password for it's validity according to AD complexity rules.
