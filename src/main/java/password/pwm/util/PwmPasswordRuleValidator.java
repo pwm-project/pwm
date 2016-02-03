@@ -52,7 +52,7 @@ import password.pwm.ws.client.rest.RestClientHelper;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 public class PwmPasswordRuleValidator {
