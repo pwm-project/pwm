@@ -102,10 +102,9 @@
             <% } %>
         </table>
         <br/>
-        <div id="healthBody" style="margin-top:5px; margin-left: 20px; margin-right: 20px; padding:0; max-height: 300px; overflow-y: auto">
+        <div id="healthBody" class="health-body">
             <div class="WaitDialogBlank"></div>
         </div>
-        <br/>
         <table class="noborder">
             <tr class="buttonrow">
                 <td class="buttoncell">

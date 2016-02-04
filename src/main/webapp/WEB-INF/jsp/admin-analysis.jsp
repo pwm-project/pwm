@@ -163,7 +163,7 @@
                                     <form action="<pwm:current-url/>" method="GET" enctype="application/x-www-form-urlencoded"
                                           name="statsUpdateForm" id="statsUpdateForm">
                                         <select name="statsPeriodSelect"
-                                                style="width: 500px;" data-dojo-props="maxHeight: -1">
+                                                style="width: 350px;" data-dojo-props="maxHeight: -1">
                                             <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
                                                 since installation - <%= dateFormat.format(analysis_pwmRequest.getPwmApplication().getInstallTime()) %>
                                             </option>

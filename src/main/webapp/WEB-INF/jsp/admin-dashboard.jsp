@@ -119,12 +119,11 @@
                     <% } %>
                     <% } %>
                 </table>
-                <br/>
-                <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+                <div data-dojo-type="dijit.layout.TabContainer" style="margin-top: 15px; width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
                     <div data-dojo-type="dijit.layout.ContentPane" title="Last Minute" class="tabContent">
-                        <table class="nomargin">
+                        <table class="nomargin" style="border: 0px;">
                             <tr>
-                                <td colspan="10" style="margin:0; padding:0">
+                                <td colspan="10" style="margin:0; padding:0; border: 0px;">
                                     <div style="max-width: 600px; text-align: center">
                                         <div id="EPS-GAUGE-AUTHENTICATION_MINUTE" style="float: left; width: 33%">Authentications</div>
                                         <div id="EPS-GAUGE-PASSWORD_CHANGES_MINUTE" style="float: left; width: 33%">Password Changes</div>
@@ -135,9 +134,9 @@
                         </table>
                     </div>
                     <div data-dojo-type="dijit.layout.ContentPane" title="Last Hour" class="tabContent">
-                        <table class="nomargin">
+                        <table class="nomargin" style="border: 0px;">
                             <tr>
-                                <td colspan="10" style="margin:0; padding:0">
+                                <td colspan="10" style="margin:0; padding:0; border: 0px;">
                                     <div style="max-width: 600px; text-align: center">
                                         <div id="EPS-GAUGE-AUTHENTICATION_HOUR" style="float: left; width: 33%">Authentications</div>
                                         <div id="EPS-GAUGE-PASSWORD_CHANGES_HOUR" style="float: left; width: 33%">Password Changes</div>
@@ -148,9 +147,9 @@
                         </table>
                     </div>
                     <div data-dojo-type="dijit.layout.ContentPane" title="Last Day" class="tabContent">
-                        <table class="nomargin">
+                        <table class="nomargin" style="border: 0px;">
                             <tr>
-                                <td colspan="10" style="margin:0; padding:0">
+                                <td colspan="10" style="margin:0; padding:0; border: 0px;">
                                     <div style="max-width: 600px; text-align: center">
                                         <div id="EPS-GAUGE-AUTHENTICATION_DAY" style="float: left; width: 33%">Authentications</div>
                                         <div id="EPS-GAUGE-PASSWORD_CHANGES_DAY" style="float: left; width: 33%">Password Changes</div>
