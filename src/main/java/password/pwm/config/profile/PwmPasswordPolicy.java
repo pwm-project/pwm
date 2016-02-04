@@ -39,6 +39,7 @@ import password.pwm.config.UserPermission;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -289,6 +290,8 @@ public class PwmPasswordPolicy implements Profile,Serializable {
 // -------------------------- INNER CLASSES --------------------------
 
     public static class RuleHelper {
+        public enum Flag { KeepThresholds }
+
         private final PwmPasswordPolicy passwordPolicy;
         private final PasswordRuleHelper chaiRuleHelper;
 
@@ -301,8 +304,30 @@ public class PwmPasswordPolicy implements Profile,Serializable {
             return chaiRuleHelper.getDisallowedValues();
         }
 
-        public List<String> getDisallowedAttributes() {
-            return chaiRuleHelper.getDisallowedAttributes();
+        public List<String> getDisallowedAttributes(Flag ... flags) {
+            final List<String> disallowedAttributes = chaiRuleHelper.getDisallowedAttributes();
+
+            if (Helper.enumArrayContainsValue(flags, Flag.KeepThresholds)) {
+                return disallowedAttributes;
+            } else {
+                // Strip off any thresholds from attribute (specified as: "attributeName:N", where N is a numeric value).
+                final List<String> strippedDisallowedAttributes = new ArrayList<String>();
+
+                if (disallowedAttributes != null) {
+                    for (final String disallowedAttribute : disallowedAttributes) {
+                        if (disallowedAttribute != null) {
+                            final int indexOfColon = disallowedAttribute.indexOf(':');
+                            if (indexOfColon > 0) {
+                                strippedDisallowedAttributes.add(disallowedAttribute.substring(0, indexOfColon));
+                            } else {
+                                strippedDisallowedAttributes.add(disallowedAttribute);
+                            }
+                        }
+                    }
+                }
+
+                return strippedDisallowedAttributes;
+            }
         }
 
         public List<Pattern> getRegExMatch() {

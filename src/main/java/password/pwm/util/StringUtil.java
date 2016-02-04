@@ -25,6 +25,7 @@ package password.pwm.util;
 import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+
 import password.pwm.PwmConstants;
 import password.pwm.util.logging.PwmLogger;
 
@@ -265,5 +266,20 @@ public abstract class StringUtil {
 
         final String[] splitValues = input.trim().split("\\s+");
         return Arrays.asList(splitValues);
+    }
+
+    public static String[] createStringChunks(String str, int size) {
+        if (size <= 0 || str == null || str.length() <= size) {
+            return new String[] { str };
+        }
+
+        int numOfChunks = str.length() - size + 1;
+        Set<String> chunks = new HashSet<>(numOfChunks);
+
+        for (int i=0; i<numOfChunks; i++) {
+            chunks.add(StringUtils.substring(str, i, i+size));
+        }
+
+        return chunks.toArray(new String[numOfChunks]);
     }
 }
