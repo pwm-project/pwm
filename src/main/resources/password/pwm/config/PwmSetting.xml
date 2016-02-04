@@ -1113,7 +1113,7 @@
     </setting>
     <setting hidden="false" key="password.policy.disallowedAttributes" level="2">
         <ldapPermission actor="proxy" access="read"/>
-        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*(:[0-9]+)*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
             <value><![CDATA[givenName]]></value>

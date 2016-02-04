@@ -22,24 +22,49 @@
 
 package password.pwm.http.client;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.*;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.SingleClientConnManager;
-import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.ProxyAuthenticationStrategy;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
+
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -52,19 +77,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.X509Utils;
 import password.pwm.util.logging.PwmLogger;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class PwmHttpClient {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmHttpClient.class);
@@ -94,39 +106,54 @@ public class PwmHttpClient {
     }
 
     public static HttpClient getHttpClient(final Configuration configuration, final PwmHttpClientConfiguration pwmHttpClientConfiguration)
-            throws PwmUnrecoverableException
+    throws PwmUnrecoverableException
     {
-        final DefaultHttpClient httpClient;
+        HttpClientBuilder clientBuilder = HttpClientBuilder.create();
+        clientBuilder.setUserAgent(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION);
+
         try {
             if (Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE))) {
-                httpClient = new DefaultHttpClient(makeConnectionManager(new X509Utils.PromiscuousTrustManager()));
+                clientBuilder.setSSLContext(promiscuousSSLContext());
+                clientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE);
             } else if (pwmHttpClientConfiguration != null && pwmHttpClientConfiguration.getCertificates() != null) {
-                final TrustManager trustManager = new X509Utils.CertMatchingTrustManager(configuration,pwmHttpClientConfiguration.getCertificates());
-                httpClient = new DefaultHttpClient(makeConnectionManager(trustManager));
-            } else {
-                httpClient = new DefaultHttpClient();
+                SSLContext sslContext = SSLContext.getInstance("SSL");
+                TrustManager trustManager = new X509Utils.CertMatchingTrustManager(configuration, pwmHttpClientConfiguration.getCertificates());
+                sslContext.init(null, new TrustManager[]{ trustManager }, new SecureRandom());
+
+                SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+                Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create().register("https", sslConnectionFactory).build();
+                HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
+
+                clientBuilder.setSSLSocketFactory(sslConnectionFactory);
+                clientBuilder.setConnectionManager(ccm);
             }
         } catch (Exception e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error creating promiscuous https client: " + e.getMessage()));
         }
-        final String strValue = configuration.readSettingAsString(PwmSetting.HTTP_PROXY_URL);
-        if (strValue != null && strValue.length() > 0) {
-            final URI proxyURI = URI.create(strValue);
 
-            final String host = proxyURI.getHost();
-            final int port = proxyURI.getPort();
-            final HttpHost proxy = new HttpHost(host, port);
-            httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        final String proxyUrl = configuration.readSettingAsString(PwmSetting.HTTP_PROXY_URL);
+        if (proxyUrl != null && proxyUrl.length() > 0) {
+            URI proxyURI = URI.create(proxyUrl);
+            String host = proxyURI.getHost();
+            int port = proxyURI.getPort();
 
-            final String username = proxyURI.getUserInfo();
-            if (username != null && username.length() > 0) {
-                final String password = (username.contains(":")) ? username.split(":")[1] : "";
-                final UsernamePasswordCredentials passwordCredentials = new UsernamePasswordCredentials(username, password);
-                httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port), passwordCredentials);
+            clientBuilder.setProxy(new HttpHost(host, port));
+
+            final String userInfo = proxyURI.getUserInfo();
+            if (userInfo != null && userInfo.length() > 0) {
+                String[] parts = userInfo.split(":");
+
+                String username = parts[0];
+                String password = (parts.length > 1) ? parts[1] : "";
+
+                CredentialsProvider credsProvider = new BasicCredentialsProvider();
+                credsProvider.setCredentials(new AuthScope(host, port), new UsernamePasswordCredentials(username, password));
+                clientBuilder.setDefaultCredentialsProvider(credsProvider);
+                clientBuilder.setProxyAuthenticationStrategy(new ProxyAuthenticationStrategy());
             }
         }
-        final String userAgent = PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION;
-        httpClient.getParams().setParameter(HttpProtocolParams.USER_AGENT, userAgent);
+
+        HttpClient httpClient = clientBuilder.build();
         return httpClient;
     }
 
@@ -225,22 +252,12 @@ public class PwmHttpClient {
         return httpClientResponse;
     }
 
-    private static ClientConnectionManager makeConnectionManager(TrustManager trustManager)
-            throws NoSuchAlgorithmException, KeyManagementException
-    {
-        final SSLContext sslContext = SSLContext.getInstance("SSL");
-
-        sslContext.init(null, new TrustManager[]{trustManager}, new SecureRandom());
-
-        final SSLSocketFactory sf = new SSLSocketFactory(sslContext);
-        final HostnameVerifier hostnameVerifier = org.apache.http.conn.ssl.SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
-
-        sf.setHostnameVerifier((X509HostnameVerifier) hostnameVerifier);
-        final Scheme httpsScheme = new Scheme("https", 443, sf);
-        final SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(httpsScheme);
-
-        return new SingleClientConnManager(schemeRegistry);
+    protected static SSLContext promiscuousSSLContext() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
+        return new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
+            public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                return true;
+            }
+        }).build();
     }
 }
 
