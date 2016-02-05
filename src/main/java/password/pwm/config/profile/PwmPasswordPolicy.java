@@ -330,16 +330,16 @@ public class PwmPasswordPolicy implements Profile,Serializable {
             }
         }
 
-        public List<Pattern> getRegExMatch(MacroMachine macroMachine) {
-            return readRegExSetting(PwmPasswordRule.RegExMatch, macroMachine);
+        public List<Pattern> getRegExMatch() {
+            return readRegExSetting(PwmPasswordRule.RegExMatch);
         }
 
-        public List<Pattern> getRegExNoMatch(MacroMachine macroMachine) {
-            return readRegExSetting(PwmPasswordRule.RegExNoMatch, macroMachine);
+        public List<Pattern> getRegExNoMatch() {
+            return readRegExSetting(PwmPasswordRule.RegExNoMatch);
         }
 
         public List<Pattern> getCharGroupValues() {
-            return readRegExSetting(PwmPasswordRule.CharGroupsValues, null);
+            return readRegExSetting(PwmPasswordRule.CharGroupsValues);
         }
 
 
@@ -366,30 +366,22 @@ public class PwmPasswordPolicy implements Profile,Serializable {
             return StringHelper.convertStrToBoolean(value);
         }
 
-        private List<Pattern> readRegExSetting(final PwmPasswordRule rule, MacroMachine macroMachine) {
+        private List<Pattern> readRegExSetting(final PwmPasswordRule rule) {
             final String input = passwordPolicy.policyMap.get(rule.getKey());
-
-            return readRegExSetting(rule, macroMachine, input);
-        }
-
-        static List<Pattern> readRegExSetting(final PwmPasswordRule rule, final MacroMachine macroMachine, final String input) {
             if (input == null) {
                 return Collections.emptyList();
             }
-
             final String separator = (rule == PwmPasswordRule.RegExMatch || rule == PwmPasswordRule.RegExNoMatch) ? ";;;" : "\n";
             final List<String> values = new ArrayList<>(StringHelper.tokenizeString(input, separator));
             final List<Pattern> patterns = new ArrayList<>();
 
             for (final String value : values) {
                 if (value != null && value.length() > 0) {
-                    final String valueToCompile = (macroMachine == null) ? value : macroMachine.expandMacros(value);
-
                     try {
-                        final Pattern loopPattern = Pattern.compile(valueToCompile);
+                        final Pattern loopPattern = Pattern.compile(value);
                         patterns.add(loopPattern);
                     } catch (PatternSyntaxException e) {
-                        LOGGER.warn("reading password rule value '" + valueToCompile + "' for rule " + rule.getKey() + " is not a valid regular expression " + e.getMessage());
+                        LOGGER.warn("reading password rule value '" + value + "' for rule " + rule.getKey() + " is not a valid regular expression " + e.getMessage());
                     }
                 }
             }

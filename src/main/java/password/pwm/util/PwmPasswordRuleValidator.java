@@ -176,7 +176,6 @@ public class PwmPasswordRuleValidator {
 
         final List<ErrorInformation> errorList = new ArrayList<>();
         final PwmPasswordPolicy.RuleHelper ruleHelper = policy.getRuleHelper();
-        final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, uiBean.getUserIdentity());
 
         //check against old password
         if (oldPasswordString != null && oldPasswordString.length() > 0 && ruleHelper.readBooleanValue(PwmPasswordRule.DisallowCurrent)) {
@@ -220,6 +219,8 @@ public class PwmPasswordRuleValidator {
 
         // check against disallowed values;
         if (!ruleHelper.getDisallowedValues().isEmpty()) {
+            MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, uiBean.getUserIdentity());
+
             final String lcasePwd = passwordString.toLowerCase();
             final Set<String> paramValues = new HashSet<>(ruleHelper.getDisallowedValues());
 
@@ -281,7 +282,7 @@ public class PwmPasswordRuleValidator {
         }
 
         // check regex matches.
-        for (final Pattern pattern : ruleHelper.getRegExMatch(macroMachine)) {
+        for (final Pattern pattern : ruleHelper.getRegExMatch()) {
             if (!pattern.matcher(passwordString).matches()) {
                 errorList.add(new ErrorInformation(PwmError.PASSWORD_INVALID_CHAR));
                 //LOGGER.trace(pwmSession, "password rejected, does not match configured regex pattern: " + pattern.toString());
@@ -293,7 +294,7 @@ public class PwmPasswordRuleValidator {
         }
 
         // check no-regex matches.
-        for (final Pattern pattern : ruleHelper.getRegExNoMatch(macroMachine)) {
+        for (final Pattern pattern : ruleHelper.getRegExNoMatch()) {
             if (pattern.matcher(passwordString).matches()) {
                 errorList.add(new ErrorInformation(PwmError.PASSWORD_INVALID_CHAR));
                 //LOGGER.trace(pwmSession, "password rejected, matches configured no-regex pattern: " + pattern.toString());
