@@ -35,10 +35,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import password.pwm.PwmApplication;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.health.HealthMessage;
