@@ -939,6 +939,9 @@ public enum PwmSetting {
             "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
     HELPDESK_PASSWORD_MASKVALUE(
             "helpdesk.setPassword.maskValue", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_VERIFICATION_METHODS(
+            "helpdesk.verificationMethods", PwmSettingSyntax.VERIFICATION_METHOD, PwmSettingCategory.HELPDESK_PROFILE),
+
 
 
     // Database

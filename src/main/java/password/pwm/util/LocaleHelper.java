@@ -99,13 +99,13 @@ public class LocaleHelper {
                 LOGGER.warn(errorMsg);
                 return errorMsg;
             }
-            final String rawValue = bundle.getString(key);
-            if (rawValue == null) {
+            try {
+                returnValue = bundle.getString(key);
+            } catch (MissingResourceException e) {
                 final String errorMsg = "missing key '" + key + "' for " + bundleClass.getName();
                 LOGGER.warn(errorMsg);
-                return errorMsg;
+                returnValue = key;
             }
-            returnValue = rawValue;
         }
 
         if (values != null) {

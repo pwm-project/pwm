@@ -312,6 +312,7 @@
         </default>
     </setting>
     <setting hidden="false" key="password.allowChange.queryMatch" level="2" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
@@ -447,6 +448,7 @@
         </default>
     </setting>
     <setting hidden="false" key="pwmAdmin.queryMatch" level="0" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <example>cn=@PwmAppName@-Admins,ou=Groups,o=example</example>
         <example template="AD">CN=@PwmAppName@-Administrators,CN=Builtin,DC=site,DC=example,DC=net</example>
         <example template="ORACLE_DS">cn=@PwmAppName@-Admins,OU=Groups,DC=ad,DC=site,DC=example,DC=net</example>
@@ -926,6 +928,7 @@
         </default>
     </setting>
     <setting hidden="false" key="password.policy.queryMatch" level="1">
+        <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
@@ -1631,6 +1634,7 @@
         </default>
     </setting>
     <setting hidden="false" key="otp.secret.allowSetup.queryMatch" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
@@ -1991,11 +1995,13 @@
         </default>
     </setting>
     <setting hidden="false" key="challenge.allowSetup.queryMatch" level="2" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting hidden="false" key="command.checkResponses.queryMatch" level="2" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
@@ -2015,6 +2021,7 @@
         </default>
     </setting>
     <setting hidden="false" key="challenge.policy.queryMatch" level="1">
+        <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
@@ -2432,6 +2439,7 @@
         <default/>
     </setting>
     <setting hidden="false" key="activateUser.queryMatch" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(&(objectclass=person)(!(loginDisabled=TRUE))(!(loginTime=*)))"}]]></value>
         </default>
@@ -2490,6 +2498,7 @@
         </default>
     </setting>
     <setting hidden="false" key="updateAttributes.queryMatch" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=person)"}]]></value>
         </default>
@@ -2511,6 +2520,7 @@
         </options>
     </setting>
     <setting hidden="true" key="updateAttributes.check.queryMatch" level="3">
+        <ldapPermission actor="proxy" access="read"/>
         <default>
             <value />
         </default>
@@ -2569,6 +2579,7 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.queryMatch" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
@@ -2826,11 +2837,11 @@
         <flag>Form_HideOptions</flag>
         <ldapPermission actor="helpdesk" access="read"/>
         <default>
-            <value>{"name":"CN","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"WorkforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"workforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
         <default template="AD">
             <value>{"name":"sAMAccountName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2866,7 +2877,7 @@
             <value>{"name":"l","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Location"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"employeeType","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Employee Type"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"employeeStatus","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Employee Status"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"WorkforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"workforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
         <properties>
             <property key="Form_Types">["text","email","userDN"]</property>
@@ -3029,6 +3040,7 @@
         </default>
     </setting>
     <setting hidden="false" key="helpdesk.queryMatch" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
             <value/>
         </default>
@@ -3049,6 +3061,7 @@
         </default>
     </setting>
     <setting hidden="false" key="recovery.queryMatch" level="1" required="true">
+        <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
             <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
@@ -3082,6 +3095,16 @@
         <default>
             <value>false</value>
         </default>
+    </setting>
+    <setting hidden="false" key="helpdesk.verificationMethods" level="1">
+        <default>
+            <value>{"methodSettings":{"CHALLENGE_RESPONSES":{"enabledState":"required"}},"minOptionalRequired":0}</value>
+        </default>
+        <options>
+            <option value="ATTRIBUTES">LDAP Attributes</option>
+            <option value="TOKEN">SMS/Email Token Verification</option>
+            <option value="OTP">OTP (Mobile Device) Verification</option>
+        </options>
     </setting>
     <setting hidden="false" key="pwmDb.location" level="2" required="true">
         <default>
@@ -3242,6 +3265,7 @@
         </default>
     </setting>
     <setting hidden="false" key="webservices.queryMatch" level="2">
+        <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
             <value/>
         </default>
@@ -3250,6 +3274,7 @@
         </default>
     </setting>
     <setting hidden="false" key="webservices.thirdParty.queryMatch" level="2">
+        <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
             <value/>
         </default>

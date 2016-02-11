@@ -813,7 +813,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                     {
                         final NavTreeHelper.NavTreeItem profileEditorInfo = new NavTreeHelper.NavTreeItem();
                         profileEditorInfo.setId(loopCategory.getKey() + "-EDITOR");
-                        profileEditorInfo.setName("[Edit List]");
+                        profileEditorInfo.setName("[ Edit List ]");
                         profileEditorInfo.setType(NavTreeHelper.NavItemType.profileDefinition);
                         profileEditorInfo.setProfileSetting(loopCategory.getProfileSetting().getKey());
                         profileEditorInfo.setParent(loopCategory.getKey());

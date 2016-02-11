@@ -36,7 +36,7 @@
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="LDAP Permission Recommendations"/>
     </jsp:include>
-    <div id="centerbody">
+    <div id="centerbody" class="wide">
         <jsp:include page="fragment/ldap-permissions.jsp"/>
     </div>
     <div class="push"></div>

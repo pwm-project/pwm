@@ -262,9 +262,9 @@ public class SessionManager implements Serializable {
         if (profileType.isAuthenticated() && !pwmSession.isAuthenticated()) {
             return null;
         }
-        final String profileID = pwmSession.getUserInfoBean().getProfileIDs().get(ProfileType.Helpdesk);
+        final String profileID = pwmSession.getUserInfoBean().getProfileIDs().get(profileType);
         if (profileID != null) {
-            return pwmApplication.getConfig().getHelpdeskProfiles().get(profileID);
+            return pwmApplication.getConfig().profileMap(profileType).get(profileID);
         }
         return null;
     }
