@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -25,13 +26,21 @@ public class RuleHelperTest {
     };
 
     private MacroMachine macroMachine = mock(MacroMachine.class);
+    private RuleHelper ruleHelper = mock(RuleHelper.class);
+
+    @Before
+    public void setUp() throws Exception {
+        // Mock out things that don't need to be real
+        when(macroMachine.expandMacros(anyString())).thenAnswer(replaceAllMacrosInMap(MACRO_MAP));
+        when(ruleHelper.readBooleanValue(PwmPasswordRule.AllowMacroInRegExSetting)).thenReturn(Boolean.TRUE);
+        when(ruleHelper.readRegExSetting(any(PwmPasswordRule.class), any(MacroMachine.class), anyString())).thenCallRealMethod();
+    }
 
     @Test
     public void testReadRegExSetting_noRegex() throws Exception {
-        when(macroMachine.expandMacros(anyString())).thenAnswer(replaceAllMacrosInMap(MACRO_MAP));
-
         final String input = "@User:ID@, First Name: @LDAP:givenName@, Last Name: @LDAP:sn@, Email: @User:Email@";
-        final List<Pattern> patterns = RuleHelper.readRegExSetting(RegExMatch, macroMachine, input);
+
+        final List<Pattern> patterns = ruleHelper.readRegExSetting(RegExMatch, macroMachine, input);
 
         assertThat(patterns.size()).isEqualTo(1);
         assertThat(patterns.get(0).pattern()).isEqualTo("fflintstone, First Name: Fred, Last Name: Flintstone, Email: fred@flintstones.tv");
@@ -39,10 +48,9 @@ public class RuleHelperTest {
 
     @Test
     public void testReadRegExSetting() throws Exception {
-        when(macroMachine.expandMacros(anyString())).thenAnswer(replaceAllMacrosInMap(MACRO_MAP));
-
         final String input = "^@User:ID@[0-9]+$;;;^password$";
-        final List<Pattern> patterns = RuleHelper.readRegExSetting(RegExMatch, macroMachine, input);
+
+        final List<Pattern> patterns = ruleHelper.readRegExSetting(RegExMatch, macroMachine, input);
 
         assertThat(patterns.size()).isEqualTo(2);
         assertThat(patterns.get(0).pattern()).isEqualTo("^fflintstone[0-9]+$");

@@ -231,6 +231,7 @@ public enum AppProperty {
     URL_SHORTNER_URL_REGEX                          ("urlshortener.url.regex"),
     WORDLIST_BUILTIN_PATH                           ("wordlist.builtin.path"),
     WS_REST_CLIENT_PWRULE_HALTONERROR               ("ws.restClient.pwRule.haltOnError"),
+    ALLOW_MACRO_IN_REGEX_SETTING                    ("password.policy.allowMacroInRegexSetting"),
 
     ;
 

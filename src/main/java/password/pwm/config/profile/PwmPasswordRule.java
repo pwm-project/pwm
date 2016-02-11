@@ -22,17 +22,19 @@
 
 package password.pwm.config.profile;
 
-import com.novell.ldapchai.ChaiPasswordRule;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.Set;
+
+import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Message;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.Set;
+import com.novell.ldapchai.ChaiPasswordRule;
 
 /**
  * Password rules
@@ -93,6 +95,7 @@ public enum PwmPasswordRule {
     CharGroupsMinMatch          (null                                      ,PwmSetting.PASSWORD_POLICY_CHAR_GROUPS_MIN_MATCH        ,ChaiPasswordRule.RuleType.MIN, "0",false),
     CharGroupsValues            (null                                      ,PwmSetting.PASSWORD_POLICY_CHAR_GROUPS                  ,ChaiPasswordRule.RuleType.OTHER, "",false),
 
+    AllowMacroInRegExSetting    (                                           AppProperty.ALLOW_MACRO_IN_REGEX_SETTING                ,ChaiPasswordRule.RuleType.BOOLEAN, "true", false), 
     ;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmPasswordRule.class);
@@ -109,6 +112,7 @@ public enum PwmPasswordRule {
 
     private final ChaiPasswordRule chaiPasswordRule;
     private final PwmSetting pwmSetting;
+    private final AppProperty appProperty;
     private final ChaiPasswordRule.RuleType ruleType;
     private final String defaultValue;
     private final boolean positiveBooleanMerge;
@@ -116,17 +120,35 @@ public enum PwmPasswordRule {
     PwmPasswordRule(final ChaiPasswordRule chaiPasswordRule, final PwmSetting pwmSetting, final ChaiPasswordRule.RuleType ruleType, final String defaultValue, final boolean positiveBooleanMerge) {
         this.pwmSetting = pwmSetting;
         this.chaiPasswordRule = chaiPasswordRule;
+        this.appProperty = null;
+        this.ruleType = ruleType;
+        this.defaultValue = defaultValue;
+        this.positiveBooleanMerge = positiveBooleanMerge;
+    }
+
+    PwmPasswordRule(final AppProperty appProperty, final ChaiPasswordRule.RuleType ruleType, final String defaultValue, final boolean positiveBooleanMerge) {
+        this.pwmSetting = null;
+        this.chaiPasswordRule = null;
+        this.appProperty = appProperty;
         this.ruleType = ruleType;
         this.defaultValue = defaultValue;
         this.positiveBooleanMerge = positiveBooleanMerge;
     }
 
     public String getKey() {
-        return null != chaiPasswordRule ? chaiPasswordRule.getKey() : pwmSetting.getKey();
+        if (chaiPasswordRule != null) return chaiPasswordRule.getKey();
+        if (pwmSetting       != null) return pwmSetting.getKey();
+        if (appProperty      != null) return appProperty.getKey();
+
+        return this.name();
     }
 
     public PwmSetting getPwmSetting() {
         return pwmSetting;
+    }
+
+    public AppProperty getAppProperty() {
+        return appProperty;
     }
 
     public ChaiPasswordRule.RuleType getRuleType() {
