@@ -409,9 +409,8 @@ public abstract class StandardMacros {
             }
         }
 
-        @Override
-        public boolean isSensitive() {
-            return true;
+        public MacroDefinitionFlag[] flags() {
+            return new MacroDefinitionFlag[] { MacroDefinitionFlag.SensitiveValue };
         }
     }
 

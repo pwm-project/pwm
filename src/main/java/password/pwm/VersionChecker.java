@@ -149,7 +149,12 @@ public class VersionChecker implements PwmService {
             final VersionCheckInfoCache versionCheckInfo = getVersionCheckInfo();
             final String currentBuild = versionCheckInfo.getCurrentBuild();
             final int currentBuildNumber = Integer.parseInt(currentBuild);
-            final int localBuildNumber = Integer.parseInt(PwmConstants.BUILD_NUMBER);
+            int localBuildNumber;
+            try {
+                localBuildNumber = Integer.parseInt(PwmConstants.BUILD_NUMBER);
+            } catch (NumberFormatException e) {
+                localBuildNumber = 0;
+            }
             if (localBuildNumber < currentBuildNumber) {
                 LOGGER.trace("current build " + currentBuildNumber + " is newer than local build (" + localBuildNumber + ")");
                 return false;

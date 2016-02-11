@@ -918,6 +918,9 @@
     </setting>
     <setting hidden="true" key="password.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <properties>
+            <property key="Minimum">1</property>
+        </properties>
         <default>
             <value>default</value>
         </default>
@@ -1383,7 +1386,7 @@
     </setting>
     <setting hidden="false" key="security.loginSession.mode" level="2">
         <default>
-            <value>LOCAL</value>
+            <value>CRYPTCOOKIE</value>
         </default>
         <options>
             <option value="LOCAL">Local</option>
@@ -2004,6 +2007,9 @@
     </setting>
     <setting hidden="true" key="challenge.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <properties>
+            <property key="Minimum">1</property>
+        </properties>
         <default>
             <value>default</value>
         </default>
@@ -2239,6 +2245,9 @@
     </setting>
     <setting hidden="true" key="newUser.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <properties>
+            <property key="Minimum">1</property>
+        </properties>
         <default>
             <value>default</value>
         </default>
@@ -2462,6 +2471,9 @@
     </setting>
     <setting hidden="true" key="updateAttributes.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <properties>
+            <property key="Minimum">1</property>
+        </properties>
         <default>
             <value>default</value>
         </default>
@@ -3005,20 +3017,20 @@
             <value>@LDAP:givenName@ @LDAP:sn@ - @User:ID@ - @User:Email@</value>
         </default>
     </setting>
+    <setting hidden="false" key="helpdesk.enable" level="1" required="true">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting hidden="true" key="helpdesk.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default>
+            <value>default</value>
         </default>
     </setting>
     <setting hidden="false" key="helpdesk.queryMatch" level="1" required="true">
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=Helpdesk,ou=Groups,o=example"}]]></value>
-        </default>
-        <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=Helpdesk,cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net"}]]></value>
-        </default>
-        <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=Helpdesk,cn=Users,DC=site,DC=example,DC=net"}]]></value>
+            <value/>
         </default>
     </setting>
     <setting hidden="true" key="helpdesk.search.filters" level="1">
@@ -3029,6 +3041,9 @@
     </setting>
     <setting hidden="true" key="recovery.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <properties>
+            <property key="Minimum">1</property>
+        </properties>
         <default>
             <value>default</value>
         </default>
@@ -3515,8 +3530,12 @@
     </category>
     <category hidden="false" key="PEOPLE_SEARCH">
     </category>
+    <category hidden="false" key="HELPDESK">
+    </category>
     <category hidden="false" key="HELPDESK_PROFILE">
         <profile setting="helpdesk.profile.list"/>
+    </category>
+    <category hidden="false" key="HELPDESK_SETTINGS">
     </category>
     <category hidden="true" key="NAAF">
     </category>

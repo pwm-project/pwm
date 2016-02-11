@@ -34,6 +34,7 @@ import password.pwm.bean.LoginInfoBean;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserStatusReader;
+import password.pwm.util.Helper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -201,8 +202,12 @@ public class MacroMachine {
         }
 
         if (replaceStr != null && replaceStr.length() > 0) {
-            LOGGER.trace(sessionLabel, "replaced macro " + matchedStr + " with value: "
-                    + (macroImplementation.isSensitive() ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT : replaceStr));
+            final boolean sensitive = Helper.enumArrayContainsValue(macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.SensitiveValue);
+            final boolean debugOnlyLogging = Helper.enumArrayContainsValue(macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.OnlyDebugLogging);
+            if (!debugOnlyLogging || (pwmApplication != null && pwmApplication.getConfig().isDevDebugMode())) {
+                LOGGER.trace(sessionLabel, "replaced macro " + matchedStr + " with value: "
+                        + (sensitive ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT : replaceStr));
+            }
         }
         return new StringBuilder(input).replace(startPos, endPos, replaceStr).toString();
     }
@@ -211,8 +216,8 @@ public class MacroMachine {
         return new MacroMachine(null,null,null,null,null);
     }
 
-    public static interface StringReplacer {
-        public String replace(final String matchedMacro, final String newValue);
+    public interface StringReplacer {
+        String replace(final String matchedMacro, final String newValue);
     }
 
     public static class URLEncoderReplacer implements StringReplacer {

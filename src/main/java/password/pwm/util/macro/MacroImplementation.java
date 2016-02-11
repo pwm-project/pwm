@@ -30,17 +30,22 @@ import password.pwm.ldap.UserDataReader;
 import java.util.regex.Pattern;
 
 public interface MacroImplementation {
-    public Pattern getRegExPattern();
+    Pattern getRegExPattern();
     
-    public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo) 
+    String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
             throws MacroParseException;
 
-    public interface MacroRequestInfo {
+    interface MacroRequestInfo {
         PwmApplication getPwmApplication();
         UserInfoBean getUserInfoBean();
         LoginInfoBean getLoginInfoBean();
         UserDataReader getUserDataReader();
     }
 
-    boolean isSensitive();
+    MacroDefinitionFlag[] flags();
+
+    enum MacroDefinitionFlag {
+        SensitiveValue,
+        OnlyDebugLogging,
+    }
 }

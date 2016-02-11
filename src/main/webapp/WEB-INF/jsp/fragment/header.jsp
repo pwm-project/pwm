@@ -46,9 +46,7 @@
         restClientKey = pwmRequestHeader.getPwmSession().getRestClientKey();
         clientEtag = password.pwm.ws.server.rest.RestAppDataServer.makeClientEtag(pwmRequestHeader);
 
-        if (!pwmRequestHeader.isFlag(PwmRequestFlag.NO_REQ_COUNTER)) {
-            pwmRequestHeader.getPwmSession().getSessionManager().incrementRequestCounterKey();
-        }
+
     } catch (PwmUnrecoverableException e) {
         /* application must be unavailable */
     }

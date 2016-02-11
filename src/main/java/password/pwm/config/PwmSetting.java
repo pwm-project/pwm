@@ -885,6 +885,8 @@ public enum PwmSetting {
 
 
     // helpdesk profile
+    HELPDESK_ENABLE(
+            "helpdesk.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_SETTINGS),
     HELPDESK_PROFILE_LIST(
             "helpdesk.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
     HELPDESK_PROFILE_QUERY_MATCH(

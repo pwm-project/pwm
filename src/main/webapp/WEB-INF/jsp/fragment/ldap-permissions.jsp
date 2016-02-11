@@ -20,6 +20,9 @@
 <h2>
   <%=actor.getLabel(JspUtility.locale(request),JspUtility.getPwmRequest(pageContext).getConfig())%>
 </h2>
+<p>
+  <%=actor.getDescription(JspUtility.locale(request),JspUtility.getPwmRequest(pageContext).getConfig())%>
+</p>
 <table style="">
   <tr>
     <td class="title">Attribute Name</td>
@@ -37,7 +40,7 @@
     </td>
     <td style="text-align: left">
       <%
-        final Set<String> menuLocations = new TreeSet<String>();
+        final Set<String> menuLocations = new TreeSet<>();
         for (final LDAPPermissionCalculator.PermissionRecord record : baseMap.get(attribute).get(access)) {
           menuLocations.add(record.getPwmSetting().toMenuLocationDebug(record.getProfile(), JspUtility.locale(request)));
         }

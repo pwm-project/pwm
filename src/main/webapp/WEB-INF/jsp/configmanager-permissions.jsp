@@ -1,10 +1,4 @@
-<%@ page import="password.pwm.config.LDAPPermissionInfo" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.util.LDAPPermissionCalculator" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="java.util.Set" %>
-<%@ page import="java.util.TreeSet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -32,7 +26,6 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_WARNINGS); %>
-<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_THEME); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_REQ_COUNTER); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_BUTTONS); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_FOOTER_TEXT); %>
@@ -41,7 +34,7 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="LDAP Permission Suggestions"/>
+        <jsp:param name="pwm.PageName" value="LDAP Permission Recommendations"/>
     </jsp:include>
     <div id="centerbody">
         <jsp:include page="fragment/ldap-permissions.jsp"/>

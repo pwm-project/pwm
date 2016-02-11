@@ -91,8 +91,7 @@
             </pwm:if>
         </pwm:if>
 
-        <pwm:if test="<%=PwmIfTest.updateProfileEnabbled%>">
-            <% if (JspUtility.getPwmRequest(pageContext).getPwmSession().getSessionManager().getUpdateAttributeProfile(JspUtility.getPwmRequest(pageContext).getPwmApplication()) != null) { %>
+        <pwm:if test="<%=PwmIfTest.updateProfileAvailable%>">
             <a id="button_UpdateProfile" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.UpdateProfile.servletUrl()%>'/>" style="font-weight: normal;">
                 <div class="tile">
                     <div class="tile-content">
@@ -102,7 +101,6 @@
                     </div>
                 </div>
             </a>
-            <% } %>
         </pwm:if>
 
         <pwm:if test="<%=PwmIfTest.shortcutsEnabled%>">
@@ -129,20 +127,19 @@
             </a>
         </pwm:if>
 
-        <% if (JspUtility.getPwmRequest(pageContext).getPwmSession().getSessionManager().getHelpdeskProfile(JspUtility.getPwmRequest(pageContext).getPwmApplication()) != null) { %>
-        <a id="button_Helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Helpdesk.servletUrl()%>'/>" style="font-weight: normal;">
-            <div class="tile">
-                <div class="tile-content">
-                    <div class="tile-image support-image"></div>
-                    <div class="tile-title"><pwm:display key="Title_Helpdesk"/></div>
-                    <div class="tile-subtitle"><pwm:display key="Long_Title_Helpdesk"/></div>
+        <pwm:if test="<%=PwmIfTest.helpdeskAvailable%>">
+            <a id="button_Helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Helpdesk.servletUrl()%>'/>" style="font-weight: normal;">
+                <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-image support-image"></div>
+                        <div class="tile-title"><pwm:display key="Title_Helpdesk"/></div>
+                        <div class="tile-subtitle"><pwm:display key="Long_Title_Helpdesk"/></div>
+                    </div>
                 </div>
-            </div>
-        </a>
-        <% } %>
+            </a>
+        </pwm:if>
 
-        <% if (JspUtility.getPwmRequest(pageContext).getConfig() != null && JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
-        <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.GUEST_REGISTRATION%>">
+        <pwm:if test="<%=PwmIfTest.guestRegistrationAvailable%>">
             <a id="button_GuestRegistration" href="<pwm:url url='<%=PwmServletDefinition.GuestRegistration.servletUrl()%>' addContext="true"/>" style="font-weight: normal;">
                 <div class="tile">
                     <div class="tile-content">
@@ -153,7 +150,6 @@
                 </div>
             </a>
         </pwm:if>
-        <% } %>
 
         <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">
             <a id="button_Admin" href="<pwm:url url='<%=PwmServletDefinition.Admin.servletUrl()%>' addContext="true"/> " style="font-weight: normal;">

@@ -138,6 +138,11 @@ public class HelpdeskServlet extends AbstractPwmServlet {
             return;
         }
 
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) {
+            pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "Setting " + PwmSetting.HELPDESK_ENABLE.toMenuLocationDebug(null,null) + " is not enabled."));
+            return;
+        }
+
         final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile(pwmApplication);
         if (helpdeskProfile == null) {
             pwmRequest.respondWithError(PwmError.ERROR_UNAUTHORIZED.toInfo());

@@ -60,7 +60,11 @@ public class LDAPPermissionInfo implements Serializable {
         ;
 
         public String getLabel(final Locale locale, final Configuration config) {
-            return LocaleHelper.getLocalizedMessage(locale, "Actor_" + this.toString(), config, Config.class);
+            return LocaleHelper.getLocalizedMessage(locale, "Actor_Label_" + this.toString(), config, Config.class);
+        }
+
+        public String getDescription(final Locale locale, final Configuration config) {
+            return LocaleHelper.getLocalizedMessage(locale, "Actor_Description_" + this.toString(), config, Config.class);
         }
     }
 }
