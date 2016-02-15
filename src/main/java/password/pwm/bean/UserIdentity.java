@@ -137,7 +137,8 @@ public class UserIdentity implements Serializable, Comparable {
 
     public static UserIdentity fromKey(final String key, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
         if (key == null || key.length() < 1) {
-            return null;
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"userKey parameter is missing");
+            throw new PwmUnrecoverableException(errorInformation);
         }
 
         if (key.startsWith(CRYPO_HEADER)) {

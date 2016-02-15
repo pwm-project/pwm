@@ -34,10 +34,6 @@ public abstract class AbstractMacro implements MacroImplementation {
     public AbstractMacro() {
     }
 
-    @Override
-    public boolean isSensitive() {
-        return false;
-    }
     static String stripMacroDelimiters(final String input) {
         return input.replaceAll("^@|@$",""); // strip leading / trailing @
     }
@@ -63,4 +59,8 @@ public abstract class AbstractMacro implements MacroImplementation {
         return returnObj;
     }
 
+    @Override
+    public MacroDefinitionFlag[] flags() {
+        return null;
+    }
 }

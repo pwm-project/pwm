@@ -6,6 +6,7 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.ProfileType;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthStatus;
@@ -37,6 +38,10 @@ public enum PwmIfTest {
     activateUserEnabled(new BooleanPwmSettingTest(PwmSetting.ACTIVATE_USER_ENABLE)),
     newUserRegistrationEnabled(new BooleanPwmSettingTest(PwmSetting.NEWUSER_ENABLE)),
 
+    updateProfileAvailable(new BooleanPwmSettingTest(PwmSetting.UPDATE_PROFILE_ENABLE), new ActorHasProfileTest(ProfileType.UpdateAttributes)),
+    helpdeskAvailable(new BooleanPwmSettingTest(PwmSetting.HELPDESK_ENABLE), new ActorHasProfileTest(ProfileType.Helpdesk)),
+    guestRegistrationAvailable(new BooleanPwmSettingTest(PwmSetting.GUEST_ENABLE), new BooleanPermissionTest(Permission.GUEST_REGISTRATION)),
+
     booleanSetting(new BooleanPwmSettingTest(null)),
     stripInlineJavascript(new BooleanAppPropertyTest(AppProperty.SECURITY_STRIP_INLINE_JAVASCRIPT)),
     forcedPageView(new ForcedPageViewTest()),
@@ -55,16 +60,27 @@ public enum PwmIfTest {
 
 
 
-    private Test test;
+    private Test[] tests;
 
-    PwmIfTest(Test test)
+    PwmIfTest(final Test... test)
     {
-        this.test = test;
+        this.tests = test;
     }
 
-    public Test getTest()
+    public Test[] getTests()
     {
-        return test;
+        return tests;
+    }
+
+    public boolean passed(final PwmRequest pwmRequest, final Options options)
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        for (final PwmIfTest.Test loopTest : getTests()) {
+            if (!loopTest.test(pwmRequest, options)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
@@ -78,7 +94,7 @@ public enum PwmIfTest {
     }
 
     private static class BooleanAppPropertyTest implements Test {
-        private AppProperty appProperty;
+        private final AppProperty appProperty;
 
         private BooleanAppPropertyTest(AppProperty appProperty)
         {
@@ -99,7 +115,7 @@ public enum PwmIfTest {
     }
 
     private static class BooleanPwmSettingTest implements Test {
-        private PwmSetting pwmSetting;
+        private final PwmSetting pwmSetting;
 
         private BooleanPwmSettingTest(PwmSetting pwmSetting)
         {
@@ -138,13 +154,24 @@ public enum PwmIfTest {
     }
 
     private static class BooleanPermissionTest implements Test {
+
+        private final Permission constructorPermission;
+
+        public BooleanPermissionTest(Permission constructorPermission) {
+            this.constructorPermission = constructorPermission;
+        }
+
+        public BooleanPermissionTest() {
+            this.constructorPermission = null;
+        }
+
         public boolean test(
                 PwmRequest pwmRequest,
                 Options options
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final Permission permission = options.getPermission();
+            final Permission permission = constructorPermission != null ? constructorPermission : options.getPermission();
 
             if (permission == null) {
                 return false;
@@ -208,7 +235,7 @@ public enum PwmIfTest {
         }
     }
 
-    private static class  ShowErrorDetailTest implements Test {
+    private static class ShowErrorDetailTest implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
                 Options options
@@ -288,6 +315,19 @@ public enum PwmIfTest {
         }
     }
 
+    private static class ActorHasProfileTest implements Test {
+
+        private final ProfileType profileType;
+
+        public ActorHasProfileTest(ProfileType profileType) {
+            this.profileType = profileType;
+        }
+
+        @Override
+        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+            return pwmRequest.getPwmSession().getSessionManager().getProfile(pwmRequest.getPwmApplication(), profileType) != null;
+        }
+    }
 
     static class Options {
         private boolean negate;

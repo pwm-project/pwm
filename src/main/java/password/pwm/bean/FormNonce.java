@@ -5,12 +5,12 @@ import java.util.Date;
 
 public class FormNonce implements Serializable {
     String sessionGUID;
-    Date timestap;
+    Date timestamp;
     int reqCounter;
 
-    public FormNonce(String sessionGUID, Date timestap,  int reqCounter) {
+    public FormNonce(String sessionGUID, Date timestamp,  int reqCounter) {
         this.sessionGUID = sessionGUID;
-        this.timestap = timestap;
+        this.timestamp = timestamp;
         this.reqCounter = reqCounter;
     }
 
@@ -18,8 +18,8 @@ public class FormNonce implements Serializable {
         return sessionGUID;
     }
 
-    public Date getTimestap() {
-        return timestap;
+    public Date getTimestamp() {
+        return timestamp;
     }
 
     public int getRequestID() {

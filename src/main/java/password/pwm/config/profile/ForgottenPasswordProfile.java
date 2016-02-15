@@ -74,18 +74,7 @@ public class ForgottenPasswordProfile extends AbstractProfile {
     }
     
     private Set<RecoveryVerificationMethods> readRecoveryAuthMethods(final VerificationMethodValue.EnabledState enabledState) {
-        final Set<RecoveryVerificationMethods> result = new LinkedHashSet<>();
-        final StoredValue configValue = storedValueMap.get(PwmSetting.RECOVERY_VERIFICATION_METHODS);
-        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = (VerificationMethodValue.VerificationMethodSettings)configValue.toNativeObject();
-
-        for (final RecoveryVerificationMethods recoveryVerificationMethods : RecoveryVerificationMethods.availableValues()) {
-            if (verificationMethodSettings.getMethodSettings().containsKey(recoveryVerificationMethods)) {
-                if (verificationMethodSettings.getMethodSettings().get(recoveryVerificationMethods).getEnabledState() == enabledState) {
-                    result.add(recoveryVerificationMethods);
-                }
-            }
-        }
-        return result;
+        return this.readVerificationMethods(PwmSetting.RECOVERY_VERIFICATION_METHODS, enabledState);
     }
 
     public int getMinOptionalRequired() {

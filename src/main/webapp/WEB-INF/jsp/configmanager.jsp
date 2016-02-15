@@ -221,7 +221,7 @@
                         <script type="application/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 PWM_MAIN.addEventHandler('MenuItem_LdapPermissions','click',function(){
-                                    window.open('ConfigManager?processAction=permissions','_blank', 'width=650,toolbar=0,location=0,menubar=0');
+                                    window.open('ConfigManager?processAction=permissions','_blank', 'width=650,toolbar=0,location=0,menubar=0,scrollbars=1');
                                 });
                             });
                         </script>

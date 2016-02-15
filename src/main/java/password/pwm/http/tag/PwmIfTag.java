@@ -72,10 +72,9 @@ public class PwmIfTag extends BodyTagSupport {
                 if (testEnum != null) {
                     try {
                         final PwmIfTest.Options options = new PwmIfTest.Options(negate, permission);
-                        showBody = testEnum.getTest().test(pwmRequest, options);
+                        showBody = testEnum.passed(pwmRequest, options);
                     } catch (ChaiUnavailableException e) {
-                        LOGGER.error(
-                                "error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage());
+                        LOGGER.error("error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage());
                     }
                 } else {
                     final String errorMsg = "unknown test name '" + test + "' in pwm:If jsp tag!";

@@ -116,7 +116,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         final UpdateProfileBean updateProfileBean = pwmApplication.getSessionStateService().getBean(pwmRequest, UpdateProfileBean.class);
 
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
-            pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
+            pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "Setting " + PwmSetting.UPDATE_PROFILE_ENABLE.toMenuLocationDebug(null,null) + " is not enabled."));
             return;
         }
 

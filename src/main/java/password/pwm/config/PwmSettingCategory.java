@@ -128,7 +128,10 @@ public enum PwmSettingCategory {
     ACTIVATION                  (MODULES),
     SHORTCUT                    (MODULES),
     PEOPLE_SEARCH               (MODULES),
-    HELPDESK_PROFILE            (MODULES),
+
+    HELPDESK                    (MODULES),
+    HELPDESK_PROFILE            (HELPDESK),
+    HELPDESK_SETTINGS           (HELPDESK),
 
     HTTPS_SERVER                (SETTINGS),
 

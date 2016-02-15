@@ -175,7 +175,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         }
 
         if (resolveResults == null || resolveResults.getAccessToken() == null || resolveResults.getAccessToken().isEmpty()) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,"OAuth server did not respond with an access token");
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,"browser redirect from oauth server did not include an access token");
             LOGGER.error(pwmRequest, errorInformation);
             pwmRequest.respondWithError(errorInformation);
             return;
@@ -183,7 +183,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
 
         if (resolveResults.getExpiresSeconds() > 0) {
             if (resolveResults.getRefreshToken() == null || resolveResults.getRefreshToken().isEmpty()) {
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,"OAuth server gave expiration for access token, but did not provide a refresh token");
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,"oauth server gave expiration for access token, but did not provide a refresh token");
                 LOGGER.error(pwmRequest, errorInformation);
                 pwmRequest.respondWithError(errorInformation);
                 return;
@@ -270,13 +270,13 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         requestParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI), redirect_uri);
         requestParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID), clientID);
 
-        final RestResults restResults = makeHttpRequest(pwmRequest, "OAuth code resolver", settings, requestUrl, requestParams);
+        final RestResults restResults = makeHttpRequest(pwmRequest, "oauth code resolver", settings, requestUrl, requestParams);
         final HttpResponse httpResponse = restResults.getHttpResponse();
 
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new PwmUnrecoverableException(new ErrorInformation(
                     PwmError.ERROR_OAUTH_ERROR,
-                    "unexpected HTTP status code (" + httpResponse.getStatusLine().getStatusCode() + ")"
+                    "unexpected HTTP status code (" + httpResponse.getStatusLine().getStatusCode() + ") during oauth code resolver request to " + requestUrl
             ));
         }
 
@@ -291,7 +291,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         try {
             oAuthResolveResults.setExpiresSeconds(Integer.parseInt(resolveResultValues.get(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_EXPIRES))));
         } catch (Exception e) {
-            LOGGER.warn(pwmRequest, "error parsing oauth expires value in resolve request: " + e.getMessage());
+            LOGGER.warn(pwmRequest, "error parsing oauth expires value in code resolver response from server at " + requestUrl + ", error: " + e.getMessage());
         }
 
         return oAuthResolveResults;
@@ -329,7 +329,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
                 }
             }
         } catch (PwmUnrecoverableException | IOException e) {
-            LOGGER.error(pwmRequest, "error while processing oauth token refresh:" + e.getMessage());
+            LOGGER.error(pwmRequest, "error while processing oauth token refresh: " + e.getMessage());
         }
         LOGGER.error(pwmRequest, "unable to refresh oauth token for user, unauthenticated session");
         pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
@@ -397,7 +397,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new PwmUnrecoverableException(new ErrorInformation(
                     PwmError.ERROR_OAUTH_ERROR,
-                    "unexpected HTTP status code (" + httpResponse.getStatusLine().getStatusCode() + ")"
+                    "unexpected HTTP status code (" + httpResponse.getStatusLine().getStatusCode() + ") returned from OAuth during getattribute request"
             ));
         }
 
