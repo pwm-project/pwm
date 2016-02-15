@@ -229,6 +229,9 @@ public class LDAPPermissionCalculator implements Serializable {
 
             case HELPDESK_PROFILE:
             {
+                if (!(Boolean)storedConfiguration.readSetting(PwmSetting.HELPDESK_ENABLE).toNativeObject()) {
+                    return Collections.emptyList();
+                }
                 if ((Boolean)storedConfiguration.readSetting(PwmSetting.HELPDESK_USE_PROXY, profile).toNativeObject()) {
                     final Collection<LDAPPermissionInfo> configuredRecords = pwmSetting.getLDAPPermissionInfo();
                     final Collection<LDAPPermissionInfo> returnRecords = new ArrayList<>();
