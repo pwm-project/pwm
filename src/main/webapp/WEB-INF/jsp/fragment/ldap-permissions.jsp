@@ -42,7 +42,7 @@
         </td>
         <td style="text-align: left">
             <%
-                final Set<String> menuLocations = new TreeSet<>();
+                final Set<String> menuLocations = new TreeSet<String>();
                 for (final LDAPPermissionCalculator.PermissionRecord record : baseMap.get(attribute).get(access)) {
                     if (record.getPwmSetting() != null) {
                         menuLocations.add(record.getPwmSetting().toMenuLocationDebug(record.getProfile(), JspUtility.locale(request)));
