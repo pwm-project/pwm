@@ -63,7 +63,8 @@ public enum AuditEvent {
     HELPDESK_ACTION(Message.EventLog_HelpdeskAction, Type.HELPDESK),
     HELPDESK_DELETE_USER(Message.EventLog_HelpdeskDeleteUser, Type.HELPDESK),
     HELPDESK_VIEW_DETAIL(Message.EventLog_HelpdeskViewDetail, Type.HELPDESK),
-    HELPDESK_VERIFY_OTP(Message.EventLog_HelpdeskViewDetail, Type.HELPDESK),
+    HELPDESK_VERIFY_OTP(Message.EventLog_HelpdeskVerifyOtp, Type.HELPDESK),
+    HELPDESK_VERIFY_TOKEN(Message.EventLog_HelpdeskVerifyToken, Type.HELPDESK),
 
 
     ;

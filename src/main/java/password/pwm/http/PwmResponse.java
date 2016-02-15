@@ -67,11 +67,11 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     )
             throws ServletException, IOException, PwmUnrecoverableException
     {
-        preCommitActions();
-
         if (!pwmRequest.isFlag(PwmRequestFlag.NO_REQ_COUNTER)) {
             pwmRequest.getPwmSession().getSessionManager().incrementRequestCounterKey();
         }
+
+        preCommitActions();
 
         final HttpServletRequest httpServletRequest = pwmRequest.getHttpServletRequest();
         final ServletContext servletContext = httpServletRequest.getSession().getServletContext();
@@ -192,7 +192,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     }
 
     private void preCommitActions() {
-        if (!pwmRequest.getPwmResponse().isCommitted()) {
+        if (pwmRequest.getPwmResponse().isCommitted()) {
             return;
         }
 

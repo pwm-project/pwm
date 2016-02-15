@@ -327,12 +327,6 @@
         <default>
             <value />
         </default>
-        <properties>
-            <property key="Form_Types">[]</property>
-        </properties>
-        <options>
-            <option value="required">hide</option>
-        </options>
     </setting>
     <setting hidden="false" key="password.change.requireCurrent" level="1" required="true">
         <default>
@@ -1471,6 +1465,7 @@
             <value>HELPDESK_VIEW_DETAIL</value>
             <value>HELPDESK_ACTION</value>
             <value>HELPDESK_VERIFY_OTP</value>
+            <value>HELPDESK_VERIFY_TOKEN</value>
         </default>
         <options>
             <option value="AUTHENTICATE">Authenticate</option>
@@ -1495,6 +1490,7 @@
             <option value="HELPDESK_VIEW_DETAIL">Helpdesk View Detail</option>
             <option value="HELPDESK_ACTION">Helpdesk Action</option>
             <option value="HELPDESK_VERIFY_OTP">Helpdesk Verify OTP</option>
+            <option value="HELPDESK_VERIFY_TOKEN">Helpdesk Verify Token</option>
         </options>
     </setting>
     <setting hidden="false" key="audit.syslog.servers" level="1" required="false">
@@ -2046,6 +2042,7 @@
     </setting>
     <setting hidden="false" key="recovery.form" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
+        <flag>Form_ShowRequiredOption</flag>
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
@@ -2197,6 +2194,7 @@
     </setting>
     <setting hidden="false" key="forgottenUsername.form" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
+        <flag>Form_ShowRequiredOption</flag>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2273,13 +2271,28 @@
     </setting>
     <setting hidden="false" key="newUser.form" level="1">
         <ldapPermission actor="proxy" access="write"/>
+        <flag>Form_ShowUniqueOption</flag>
+        <flag>Form_ShowRequiredOption</flag>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"placeholder":"username@example.com","selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
         </default>
         <options>
-            <option value="unique">show</option>
+            <option value="text">text</option>
+            <option value="email">email</option>
+            <option value="number">number</option>
+            <option value="password">password</option>
+            <option value="random">random</option>
+            <option value="tel">tel</option>
+            <option value="hidden">hidden</option>
+            <option value="date">date</option>
+            <option value="datetime">datetime</option>
+            <option value="week">week</option>
+            <option value="month">month</option>
+            <option value="url">url</option>
+            <option value="select">select</option>
+            <option value="checkbox">checkbox</option>
         </options>
     </setting>
     <setting hidden="false" key="newUser.writeAttributes" level="1">
@@ -2343,6 +2356,8 @@
     </setting>
     <setting hidden="false" key="guest.form" level="1" required="true">
         <ldapPermission actor="guestManager" access="write"/>
+        <flag>Form_ShowUniqueOption</flag>
+        <flag>Form_ShowRequiredOption</flag>
         <default>
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2351,11 +2366,26 @@
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
         <options>
-            <option value="unique">show</option>
+            <option value="text">text</option>
+            <option value="email">email</option>
+            <option value="number">number</option>
+            <option value="password">password</option>
+            <option value="random">random</option>
+            <option value="tel">tel</option>
+            <option value="hidden">hidden</option>
+            <option value="date">date</option>
+            <option value="datetime">datetime</option>
+            <option value="week">week</option>
+            <option value="month">month</option>
+            <option value="url">url</option>
+            <option value="select">select</option>
+            <option value="checkbox">checkbox</option>
         </options>
     </setting>
     <setting hidden="false" key="guest.update.form" level="1" required="true">
         <ldapPermission actor="guestManager" access="write"/>
+        <flag>Form_ShowUniqueOption</flag>
+        <flag>Form_ShowRequiredOption</flag>
         <default>
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2364,7 +2394,20 @@
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
         <options>
-            <option value="unique">show</option>
+            <option value="text">text</option>
+            <option value="email">email</option>
+            <option value="number">number</option>
+            <option value="password">password</option>
+            <option value="random">random</option>
+            <option value="tel">tel</option>
+            <option value="hidden">hidden</option>
+            <option value="date">date</option>
+            <option value="datetime">datetime</option>
+            <option value="week">week</option>
+            <option value="month">month</option>
+            <option value="url">url</option>
+            <option value="select">select</option>
+            <option value="checkbox">checkbox</option>
         </options>
     </setting>
     <setting hidden="false" key="guest.creationUniqueAttributes" level="1">
@@ -2425,6 +2468,7 @@
     </setting>
     <setting hidden="false" key="activateUser.form" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
+        <flag>Form_ShowRequiredOption</flag>
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
@@ -2434,6 +2478,22 @@
         <default template="ORACLE_DS">
             <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
+        <options>
+            <option value="text">text</option>
+            <option value="email">email</option>
+            <option value="number">number</option>
+            <option value="password">password</option>
+            <option value="random">random</option>
+            <option value="tel">tel</option>
+            <option value="hidden">hidden</option>
+            <option value="date">date</option>
+            <option value="datetime">datetime</option>
+            <option value="week">week</option>
+            <option value="month">month</option>
+            <option value="url">url</option>
+            <option value="select">select</option>
+            <option value="checkbox">checkbox</option>
+        </options>
     </setting>
     <setting hidden="false" key="activateUser.searchFilter" level="2" required="false">
         <default/>
@@ -2509,14 +2569,28 @@
     </setting>
     <setting hidden="false" key="updateAttributes.form" level="1" required="true">
         <ldapPermission actor="self" access="write"/>
+        <flag>Form_ShowUniqueOption</flag>
+        <flag>Form_ShowReadOnlyOption</flag>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":false,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
         <options>
-            <option value="readonly">show</option>
-            <option value="unique">show</option>
+            <option value="text">text</option>
+            <option value="email">email</option>
+            <option value="number">number</option>
+            <option value="password">password</option>
+            <option value="random">random</option>
+            <option value="tel">tel</option>
+            <option value="hidden">hidden</option>
+            <option value="date">date</option>
+            <option value="datetime">datetime</option>
+            <option value="week">week</option>
+            <option value="month">month</option>
+            <option value="url">url</option>
+            <option value="select">select</option>
+            <option value="checkbox">checkbox</option>
         </options>
     </setting>
     <setting hidden="true" key="updateAttributes.check.queryMatch" level="3">
@@ -2610,12 +2684,6 @@
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
-        <properties>
-            <property key="Form_Types">[]</property>
-        </properties>
-        <options>
-            <option value="required">hide</option>
-        </options>
     </setting>
     <setting hidden="false" key="peopleSearch.detail.form" level="1" required="true">
         <flag>Form_HideOptions</flag>
@@ -2640,13 +2708,10 @@
             <value>{"name":"manager","minimumLength":1,"maximumLength":64,"type":"userDN","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Manager"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"directReports","minimumLength":1,"maximumLength":64,"type":"userDN","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Direct Reports"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
-        <properties>
-            <property key="Form_Types">[]</property>
-        </properties>
         <options>
-            <option value="required">hide</option>
-            <option value="type-userDN">show</option>
-            <option value="readonly">true</option>
+            <option value="text">text</option>
+            <option value="email">email</option>
+            <option value="userDN">userDN</option>
         </options>
     </setting>
     <setting hidden="false" key="peopleSearch.result.limit" level="1" required="true">
@@ -2850,9 +2915,6 @@
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"userPrincipalName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"UPN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
-        <properties>
-            <property key="Form_Types">[]</property>
-        </properties>
     </setting>
     <setting hidden="false" key="helpdesk.detail.form" level="1" required="true">
         <flag>Form_HideOptions</flag>
@@ -2879,13 +2941,10 @@
             <value>{"name":"employeeStatus","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Employee Status"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"workforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
-        <properties>
-            <property key="Form_Types">["text","email","userDN"]</property>
-        </properties>
         <options>
-            <option value="required">hide</option>
-            <option value="type-userDN">show</option>
-            <option value="readonly">true</option>
+            <option value="text">text</option>
+            <option value="email">email</option>
+            <option value="userDN">userDN</option>
         </options>
     </setting>
     <setting hidden="false" key="helpdesk.searchBase" level="1">
@@ -3096,12 +3155,12 @@
             <value>false</value>
         </default>
     </setting>
-    <setting hidden="false" key="helpdesk.verificationMethods" level="1">
+    <setting hidden="true" key="helpdesk.verificationMethods" level="1">
         <default>
             <value>{"methodSettings":{"CHALLENGE_RESPONSES":{"enabledState":"required"}},"minOptionalRequired":0}</value>
         </default>
         <options>
-            <option value="ATTRIBUTES">LDAP Attributes</option>
+            <!--<option value="ATTRIBUTES">LDAP Attributes</option>-->
             <option value="TOKEN">SMS/Email Token Verification</option>
             <option value="OTP">OTP (Mobile Device) Verification</option>
         </options>

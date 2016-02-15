@@ -97,7 +97,7 @@ public class LDAPPermissionCalculator implements Serializable {
                 case STRING:
                 {
                     final String attrName = (String)storedConfiguration.readSetting(pwmSetting, profile).toNativeObject();
-                    if (attrName != null) {
+                    if (attrName != null && !attrName.trim().isEmpty()) {
                         permissionRecords.add(new PermissionRecord(attrName, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor()));
                     }
                 }
@@ -109,7 +109,7 @@ public class LDAPPermissionCalculator implements Serializable {
                     if (formItems != null) {
                         for (final FormConfiguration formConfiguration : formItems) {
                             final String attrName = formConfiguration.getName();
-                            if (attrName != null) {
+                            if (attrName != null && !attrName.trim().isEmpty()) {
                                 permissionRecords.add(new PermissionRecord(attrName, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor()));
                             }
                         }
@@ -124,7 +124,7 @@ public class LDAPPermissionCalculator implements Serializable {
                         for (final ActionConfiguration actionConfiguration : actionItems) {
                             if (actionConfiguration.getType() == ActionConfiguration.Type.ldap) {
                                 final String attrName = actionConfiguration.getAttributeName();
-                                if (attrName != null) {
+                                if (attrName != null && !attrName.trim().isEmpty()) {
                                     permissionRecords.add(new PermissionRecord(attrName, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor()));
                                 }
                             }
@@ -136,8 +136,10 @@ public class LDAPPermissionCalculator implements Serializable {
                 case STRING_ARRAY:
                 {
                     final List<String> strings = (List<String>) storedConfiguration.readSetting(pwmSetting, profile).toNativeObject();
-                    for (final String string : strings) {
-                        permissionRecords.add(new PermissionRecord(string, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor()));
+                    for (final String attrName : strings) {
+                        if (attrName != null && !attrName.trim().isEmpty()) {
+                            permissionRecords.add(new PermissionRecord(attrName, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor()));
+                        }
                     }
                 }
                 break;
@@ -149,9 +151,11 @@ public class LDAPPermissionCalculator implements Serializable {
                     if (configuration.getLdapProfiles() != null && !configuration.getLdapProfiles().isEmpty()) {
                         for (LdapProfile ldapProfile : configuration.getLdapProfiles().values()) {
                             final String groupAttribute = ldapProfile.readSettingAsString(PwmSetting.LDAP_USER_GROUP_ATTRIBUTE);
-                            for (final UserPermission userPermission : userPermissions) {
-                                if (userPermission.getType() == UserPermission.Type.ldapGroup) {
-                                    permissionRecords.add(new PermissionRecord(groupAttribute, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor()));
+                            if (groupAttribute != null && !groupAttribute.trim().isEmpty()) {
+                                for (final UserPermission userPermission : userPermissions) {
+                                    if (userPermission.getType() == UserPermission.Type.ldapGroup) {
+                                        permissionRecords.add(new PermissionRecord(groupAttribute, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor()));
+                                    }
                                 }
                             }
                         }

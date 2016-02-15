@@ -64,6 +64,7 @@ import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.otp.OTPUserRecord;
+import password.pwm.util.secure.SecureService;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -99,6 +100,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         deleteUser(HttpMethod.POST),
         validateOtpCode(HttpMethod.POST),
         sendVerificationToken(HttpMethod.POST),
+        verifyVerificationToken(HttpMethod.POST),
         clientData(HttpMethod.GET),
 
         ;
@@ -191,6 +193,10 @@ public class HelpdeskServlet extends AbstractPwmServlet {
                     restSendVerificationTokenRequest(pwmRequest, helpdeskProfile);
                     return;
 
+                case verifyVerificationToken:
+                    restVerifyVerificationTokenRequest(pwmRequest);
+                    return;
+
                 case clientData:
                     restClientData(pwmRequest, helpdeskProfile);
                     return;
@@ -219,12 +225,12 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         }
         { //actions
             final List<ActionConfiguration> actionConfigurations = helpdeskProfile.readSettingAsAction(PwmSetting.HELPDESK_ACTIONS);
-            final Map<String,Map<String,String>> actions = new LinkedHashMap<>();
+            final Map<String,HelpdeskClientDataBean.ActionInformation> actions = new LinkedHashMap<>();
             for (final ActionConfiguration actionConfiguration : actionConfigurations) {
-                final Map<String,String> actionInfoMap = new LinkedHashMap<>();
-                actionInfoMap.put("name", actionConfiguration.getName());
-                actionInfoMap.put("description", actionConfiguration.getDescription());
-                actions.put(actionConfiguration.getName(), actionInfoMap);
+                final HelpdeskClientDataBean.ActionInformation actionInformation = new HelpdeskClientDataBean.ActionInformation();
+                actionInformation.setName(actionConfiguration.getName());
+                actionInformation.setDescription(actionConfiguration.getDescription());
+                actions.put(actionConfiguration.getName(), actionInformation);
             }
 
             returnValues.setActions(actions);
@@ -710,6 +716,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
     )
             throws IOException, PwmUnrecoverableException, ServletException, ChaiUnavailableException
     {
+        final Date startTime = new Date();
         final Configuration config = pwmRequest.getConfig();
         final Map<String,String> bodyParams = pwmRequest.readBodyAsJsonStringMap();
         MessageSendMethod tokenSendMethod = helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class);
@@ -733,14 +740,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
             }
         }
 
-        final String userKey = bodyParams.get("userKey");
-        if (userKey == null || userKey.length() < 1) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"userKey parameter is missing");
-            pwmRequest.respondWithError(errorInformation, false);
-            return;
-        }
-        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication());
-
+        final UserIdentity userIdentity = UserIdentity.fromKey(bodyParams.get("userKey"), pwmRequest.getPwmApplication());
 
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = makeHelpdeskDetailInfo(pwmRequest, helpdeskProfile, userIdentity);
         final UserInfoBean userInfoBean = helpdeskDetailInfoBean.getUserInfoBean();
@@ -789,11 +789,75 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         }
 
         StatisticsManager.incrementStat(pwmRequest,Statistic.HELPDESK_TOKENS_SENT);
-        final HashMap<String,String> output = new HashMap<>();
-        output.put("destination", destDisplayString.toString());
-        output.put("token", tokenKey);
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(output);
+        final HelpdeskTokenValidationBean helpdeskTokenValidationBean = new HelpdeskTokenValidationBean();
+        helpdeskTokenValidationBean.setDestination(destDisplayString.toString());
+        helpdeskTokenValidationBean.setUserKey(bodyParams.get("userKey"));
+
+        final HelpdeskTokenValidationBean.TokenData tokenData = new HelpdeskTokenValidationBean.TokenData();
+        tokenData.setToken(tokenKey);
+        tokenData.setIssueDate(new Date());
+
+        final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
+        helpdeskTokenValidationBean.setTokenData(secureService.encryptObjectToString(tokenData));
+
+        final RestResultBean restResultBean = new RestResultBean(helpdeskTokenValidationBean);
+        pwmRequest.outputJsonResult(restResultBean);
+        LOGGER.debug(pwmRequest, "helpdesk operator "
+                + pwmRequest.getUserInfoIfLoggedIn().toDisplayString()
+                + " issued token for verification against user "
+                + userIdentity.toDisplayString()
+                + " sent to destination(s) "
+                + destDisplayString
+                + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
+    }
+
+    private void restVerifyVerificationTokenRequest(
+            final PwmRequest pwmRequest
+    )
+            throws IOException, PwmUnrecoverableException, ServletException
+    {
+        final HelpdeskTokenValidationBean helpdeskTokenValidationBean =JsonUtil.deserialize(
+                pwmRequest.readRequestBodyAsString(),
+                HelpdeskTokenValidationBean.class
+        );
+        final String token = helpdeskTokenValidationBean.getCode();
+
+        final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
+        final HelpdeskTokenValidationBean.TokenData tokenData = secureService.decryptObject(
+                helpdeskTokenValidationBean.getTokenData(),
+                HelpdeskTokenValidationBean.TokenData.class
+        );
+
+        final UserIdentity userIdentity = UserIdentity.fromKey(helpdeskTokenValidationBean.getUserKey(), pwmRequest.getPwmApplication());
+
+        if (tokenData == null || tokenData.getIssueDate() == null || tokenData.getToken() == null || tokenData.getToken().isEmpty()) {
+            final String errorMsg = "token data is corrupted";
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT, errorMsg));
+        }
+
+        final TimeDuration maxTokenAge = new TimeDuration(Long.parseLong(pwmRequest.getConfig().readAppProperty(AppProperty.HELPDESK_TOKEN_MAX_AGE)) * 1000);
+        final Date maxTokenAgeTimestamp = new Date(System.currentTimeMillis() - maxTokenAge.getTotalMilliseconds());
+        if (tokenData.getIssueDate().before(maxTokenAgeTimestamp)) {
+            final String errorMsg = "token is older than maximum issue time (" + maxTokenAge.asCompactString() + ")";
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED, errorMsg));
+        }
+
+        final boolean passed = tokenData.getToken().equals(token);
+        final RestResultBean restResultBean = new RestResultBean(passed);
+
+        if (passed) {
+            final PwmSession pwmSession = pwmRequest.getPwmSession();
+            final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
+                    AuditEvent.HELPDESK_VERIFY_TOKEN,
+                    pwmSession.getUserInfoBean().getUserIdentity(),
+                    null,
+                    userIdentity,
+                    pwmSession.getSessionStateBean().getSrcAddress(),
+                    pwmSession.getSessionStateBean().getSrcHostname()
+            );
+            pwmRequest.getPwmApplication().getAuditManager().submit(auditRecord);
+        }
+
         pwmRequest.outputJsonResult(restResultBean);
     }
 

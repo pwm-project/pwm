@@ -23,7 +23,9 @@
 package password.pwm.config.profile;
 
 import password.pwm.config.*;
+import password.pwm.config.option.RecoveryVerificationMethods;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.value.VerificationMethodValue;
 import password.pwm.util.PasswordData;
 
 import java.security.cert.X509Certificate;
@@ -125,4 +127,20 @@ public abstract class AbstractProfile implements Profile, SettingReader {
         }
         return valueMap;
     }
+
+    public Set<RecoveryVerificationMethods> readVerificationMethods(final PwmSetting pwmSetting, VerificationMethodValue.EnabledState enabledState) {
+        final Set<RecoveryVerificationMethods> result = new LinkedHashSet<>();
+        final StoredValue configValue = storedValueMap.get(pwmSetting);
+        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = (VerificationMethodValue.VerificationMethodSettings)configValue.toNativeObject();
+
+        for (final RecoveryVerificationMethods recoveryVerificationMethods : RecoveryVerificationMethods.availableValues()) {
+            if (verificationMethodSettings.getMethodSettings().containsKey(recoveryVerificationMethods)) {
+                if (verificationMethodSettings.getMethodSettings().get(recoveryVerificationMethods).getEnabledState() == enabledState) {
+                    result.add(recoveryVerificationMethods);
+                }
+            }
+        }
+        return result;
+    }
+
 }

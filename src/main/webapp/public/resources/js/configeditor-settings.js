@@ -658,19 +658,20 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         htmlRow += '<td style="border:1px solid #D4D4D4; width:170px"><div style="" class="noWrapTextBox " id="' + inputID + 'label"><span>' + value['labels'][''] + '</span></div></td>';
 
         var userDNtypeAllowed = options['type-userDN'] == 'show';
-        var optionList = [];
-        if ('Form_Types' in options) {
-            optionList = JSON.parse(properties['Form_Types']);
-        }
-        if (!PWM_MAIN.JSLibrary.isEmpty(optionList)) {
+        //var optionList = [];
+        //if ('Form_Types' in properties) {
+        //    optionList = JSON.parse(properties['Form_Types']);
+        //}
+        //debugger;
+        if (!PWM_MAIN.JSLibrary.isEmpty(options)) {
             htmlRow += '<td style="width:15px;">';
             htmlRow += '<select id="' + inputID + 'type">';
-            for (var optionItem in optionList) {
-                if (optionList[optionItem] != 'userDN' || userDNtypeAllowed) {
-                    var optionName = optionList[optionItem];
+            for (var optionItem in options) {
+                //if (optionList[optionItem] != 'userDN' || userDNtypeAllowed) {
+                    var optionName = options[optionItem];
                     var selected = (optionName == PWM_VAR['clientSettingCache'][settingKey][iteration]['type']);
                     htmlRow += '<option value="' + optionName + '"' + (selected ? " selected" : "") + '>' + optionName + '</option>';
-                }
+                //}
             }
             htmlRow += '</select>';
             htmlRow += '</td>';
@@ -790,11 +791,14 @@ FormTableHandler.addRow = function(keyName) {
 
 FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     var type = PWM_VAR['clientSettingCache'][keyName][iteration]['type'];
+    var settings = PWM_SETTINGS['settings'][keyName];
     var options = 'options' in PWM_SETTINGS['settings'][keyName] ? PWM_SETTINGS['settings'][keyName]['options'] : {};
-    var showRequired = options['required'] != 'hide' && type != 'checkbox';
     var showConfirmation = type != 'checkbox' && type != 'select';
-    var showUnique = options['unique'] == 'show';
-    var showReadOnly = options['readonly'] == 'show';
+
+    var showRequired = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowRequiredOption') && (type != 'checkbox');
+    var showUnique = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowUniqueOption');
+    var showReadOnly = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowReadOnlyOption');
+
     require(["dijit/Dialog","dijit/form/Textarea","dijit/form/CheckBox","dijit/form/NumberSpinner"],function(){
         var inputID = 'value_' + keyName + '_' + iteration + "_";
         var bodyText = '<div style="max-height: 500px; overflow-y: auto"><table class="noborder">';
@@ -876,7 +880,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
                 }
             }, inputID + "confirmationRequired");
 
-            if (PWM_SETTINGS['settings'][keyName]['options']['readonly'] == 'show') {
+            if (showReadOnly) {
                 PWM_MAIN.clearDijitWidget(inputID + "readonly");
                 new dijit.form.CheckBox({
                     checked: PWM_VAR['clientSettingCache'][keyName][iteration]['readonly'],
