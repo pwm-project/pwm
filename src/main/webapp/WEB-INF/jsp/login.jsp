@@ -76,7 +76,7 @@
                 <pwm:if test="<%=PwmIfTest.forgottenUsernameEnabled%>">
                     <tr style="border:0">
                         <td style="border:0" class="menubutton_key">
-                            <a class="menubutton" id="Title_ForgottenUsername" tabindex="0" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenUsername.servletUrl()%>'/>">
+                            <a class="menubutton" id="forgotten-username" tabindex="0" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenUsername.servletUrl()%>'/>">
                                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
                                 <pwm:display key="Title_ForgottenUsername"/>
                             </a>
@@ -89,7 +89,7 @@
                 <pwm:if test="<%=PwmIfTest.activateUserEnabled%>">
                     <tr style="border:0">
                         <td style="border:0" class="menubutton_key">
-                            <a class="menubutton" id="Title_ActivateUser" tabindex="0" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ActivateUser.servletUrl()%>'/>">
+                            <a class="menubutton" id="activate-user" tabindex="0" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ActivateUser.servletUrl()%>'/>">
                                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-graduation-cap"></span></pwm:if>
                                 <pwm:display key="Title_ActivateUser"/>
                             </a>
@@ -102,7 +102,7 @@
                 <pwm:if test="<%=PwmIfTest.newUserRegistrationEnabled%>">
                     <tr style="border:0">
                         <td style="border:0" class="menubutton_key">
-                            <a class="menubutton" id="Title_NewUser" tabindex="0" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.NewUser.servletUrl()%>'/>">
+                            <a class="menubutton" id="new-user" tabindex="0" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.NewUser.servletUrl()%>'/>">
                                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-text-o"></span></pwm:if>
                                 <pwm:display key="Title_NewUser"/>
                             </a>
