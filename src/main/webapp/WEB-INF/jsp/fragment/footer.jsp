@@ -55,7 +55,7 @@
         <div>
             <% if (footer_pwmRequest.isAuthenticated()) { %>
             <% if (footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername() != null) {%>
-            <div id="session_username">
+            <div id="session-username">
                 <%= footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername()  %>
             </div>
             <% } %>
