@@ -76,22 +76,20 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
 
             if (!method.isIdempotent()) {
                 Validator.validatePwmFormID(pwmRequest);
-            }
 
-            // check for duplicate form submit.
-            try {
-                Validator.validatePwmRequestCounter(pwmRequest);
-            } catch (PwmOperationalException e) {
-                if (e.getError() == PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE) {
-                    final ErrorInformation errorInformation = e.getErrorInformation();
-                    final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(req);
-                    LOGGER.error(pwmSession, errorInformation.toDebugStr());
-                    pwmRequest.respondWithError(errorInformation,false);
-                    return;
+                try {
+                    Validator.validatePwmRequestCounter(pwmRequest);
+                } catch (PwmOperationalException e) {
+                    if (e.getError() == PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE) {
+                        final ErrorInformation errorInformation = e.getErrorInformation();
+                        final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(req);
+                        LOGGER.error(pwmSession, errorInformation.toDebugStr());
+                        pwmRequest.respondWithError(errorInformation,false);
+                        return;
+                    }
+                    throw e;
                 }
-                throw e;
             }
-
 
             // check for incorrect method type.
             final ProcessAction processAction = readProcessAction(pwmRequest);

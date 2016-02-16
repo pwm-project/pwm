@@ -23,11 +23,12 @@
 package password.pwm.config.profile;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.StoredValue;
+import password.pwm.config.option.RecoveryVerificationMethods;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.value.VerificationMethodValue;
 
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class HelpdeskProfile extends AbstractProfile implements Profile {
 
@@ -40,7 +41,6 @@ public class HelpdeskProfile extends AbstractProfile implements Profile {
     public static HelpdeskProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
         final Map<PwmSetting,StoredValue> valueMap = makeValueMap(storedConfiguration, identifier, PROFILE_TYPE.getCategory());
         return new HelpdeskProfile(identifier, valueMap);
-
     }
 
     @Override
@@ -53,4 +53,16 @@ public class HelpdeskProfile extends AbstractProfile implements Profile {
     public ProfileType profileType() {
         return PROFILE_TYPE;
     }
+
+    public  Collection<RecoveryVerificationMethods> readOptionalVerificationMethods() {
+        final Set<RecoveryVerificationMethods> result = new LinkedHashSet<>();
+        result.addAll(readVerificationMethods(PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.optional));
+        result.addAll(readVerificationMethods(PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.optional));
+        return Collections.unmodifiableSet(result);
+    }
+
+    public  Collection<RecoveryVerificationMethods> readRequiredVerificationMethods() {
+        return readVerificationMethods(PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.required);
+    }
+
 }

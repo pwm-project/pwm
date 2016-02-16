@@ -25,6 +25,7 @@ package password.pwm.config;
 
 import password.pwm.i18n.Config;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.macro.MacroMachine;
 
 import java.io.Serializable;
 import java.util.Locale;
@@ -60,7 +61,12 @@ public class LDAPPermissionInfo implements Serializable {
         ;
 
         public String getLabel(final Locale locale, final Configuration config) {
-            return LocaleHelper.getLocalizedMessage(locale, "Actor_" + this.toString(), config, Config.class);
+            return LocaleHelper.getLocalizedMessage(locale, "Actor_Label_" + this.toString(), config, Config.class);
+        }
+
+        public String getDescription(final Locale locale, final Configuration config) {
+            final MacroMachine macroMachine = MacroMachine.forStatic();
+            return macroMachine.expandMacros(LocaleHelper.getLocalizedMessage(locale, "Actor_Description_" + this.toString(), config, Config.class));
         }
     }
 }

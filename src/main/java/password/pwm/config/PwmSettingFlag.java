@@ -37,5 +37,8 @@ public enum PwmSettingFlag {
     Permission_HideMatch,
 
     Form_HideOptions,
+    Form_ShowUniqueOption,
+    Form_ShowReadOnlyOption,
+    Form_ShowRequiredOption,
 
 }

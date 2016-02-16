@@ -36,7 +36,7 @@ public interface AuditVault {
 
     void add(AuditRecord record);
 
-    static class Settings {
+    class Settings {
         private int maxRecordCount;
         private TimeDuration maxRecordAge;
 
