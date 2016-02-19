@@ -20,12 +20,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.tag;
+package password.pwm.http.tag.conditional;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.PwmSession;
 import password.pwm.util.logging.PwmLogger;
 
@@ -40,6 +41,7 @@ public class PwmIfTag extends BodyTagSupport {
     private PwmIfTest test;
     private Permission permission;
     private boolean negate;
+    private PwmRequestFlag requestFlag;
 
     public void setTest(PwmIfTest test)
     {
@@ -54,6 +56,10 @@ public class PwmIfTag extends BodyTagSupport {
     public void setNegate(boolean negate)
     {
         this.negate = negate;
+    }
+
+    public void setRequestFlag(PwmRequestFlag requestFlag) {
+        this.requestFlag = requestFlag;
     }
 
     @Override
@@ -71,7 +77,7 @@ public class PwmIfTag extends BodyTagSupport {
                 PwmIfTest testEnum = test;
                 if (testEnum != null) {
                     try {
-                        final PwmIfTest.Options options = new PwmIfTest.Options(negate, permission);
+                        final PwmIfTest.Options options = new PwmIfTest.Options(negate, permission, requestFlag);
                         showBody = testEnum.passed(pwmRequest, options);
                     } catch (ChaiUnavailableException e) {
                         LOGGER.error("error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage());

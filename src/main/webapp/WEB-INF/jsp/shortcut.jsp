@@ -22,7 +22,7 @@
 
 <%@ page import="password.pwm.config.ShortcutItem" %>
 <%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="password.pwm.http.tag.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.Map" %>
 <!DOCTYPE html>

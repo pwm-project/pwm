@@ -11,7 +11,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="password.pwm.http.tag.PwmValue" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 
 <%--
   ~ Password Management Servlets (PWM)

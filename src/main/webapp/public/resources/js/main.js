@@ -711,13 +711,14 @@ PWM_MAIN.showErrorDialog = function(error, options) {
     console.log('displaying error message: ' + logMsg);
     options['title'] = titleMsg;
     options['text'] = body;
-    options['okAction'] = 'okAction' in options
-        ? options['okAction']
-        : function() {
+    var previousOkAction = 'okAction' in options ? options['okAction'] : function() {};
+    options['okAction'] =  function() {
         if (forceReload) { // incorrect page sequence;
             var newURL = window.location.pathname;
             PWM_MAIN.goto(newURL);
             PWM_MAIN.showWaitDialog();
+        } else {
+            previousOkAction();
         }
     };
     PWM_MAIN.showDialog(options);

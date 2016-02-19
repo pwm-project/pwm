@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet;
+package password.pwm.http.servlet.oauth;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.http.Header;
@@ -42,13 +42,14 @@ import password.pwm.http.ServletHelper;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientConfiguration;
+import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PasswordData;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -56,7 +57,6 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
@@ -73,15 +73,7 @@ import java.util.Map;
 )
 public class OAuthConsumerServlet extends AbstractPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(OAuthConsumerServlet.class);
-    private static int oauthStateIdCounter = 0;
 
-
-    private static class OAuthState implements Serializable {
-        private final int stateID = oauthStateIdCounter++;
-        private final Date issueTime = new Date();
-        private String sessionID;
-        private String nextUrl;
-    }
 
     @Override
     protected ProcessAction readProcessAction(PwmRequest request)
@@ -97,14 +89,14 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmRequest.getConfig();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final Settings settings = Settings.fromConfiguration(pwmApplication.getConfig());
+        final OAuthSettings settings = OAuthSettings.fromConfiguration(pwmApplication.getConfig());
 
         final boolean userIsAuthenticated = pwmSession.isAuthenticated();
         final OAuthRequestState oAuthRequestState = readOAuthRequestState(pwmRequest);
 
         if (!userIsAuthenticated && !pwmSession.getSessionStateBean().isOauthInProgress()) {
             if (oAuthRequestState != null) {
-                final String nextUrl = oAuthRequestState.oAuthState.nextUrl;
+                final String nextUrl = oAuthRequestState.getoAuthState().getNextUrl();
                 LOGGER.debug(pwmSession, "received unrecognized oauth response, ignoring authcode and redirecting to embedded next url: " + nextUrl);
                 pwmRequest.sendRedirect(nextUrl);
                 return;
@@ -140,11 +132,11 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
             return;
         }
 
-        if (!oAuthRequestState.sessionMatch) {
+        if (!oAuthRequestState.isSessionMatch()) {
             LOGGER.debug(pwmSession, "oauth consumer reached but response is not for a request issued during the current session, will redirect back to oauth server for verification update");
 
             try{
-                final String nextURL = oAuthRequestState.oAuthState.nextUrl;
+                final String nextURL = oAuthRequestState.getoAuthState().getNextUrl();
                 redirectUserToOAuthServer(pwmRequest, nextURL);
                 return;
             } catch (PwmUnrecoverableException e) {
@@ -238,7 +230,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
             pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded(true);
 
             // forward to nextUrl
-            final String nextUrl = oAuthRequestState.oAuthState.nextUrl;
+            final String nextUrl = oAuthRequestState.getoAuthState().getNextUrl();
             LOGGER.debug(pwmSession, "oauth authentication completed, redirecting to originally requested URL: " + nextUrl);
             pwmRequest.sendRedirect(nextUrl);
         } catch (PwmException e) {
@@ -253,7 +245,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
 
     private static OAuthResolveResults makeOAuthResolveRequest(
             final PwmRequest pwmRequest,
-            final Settings settings,
+            final OAuthSettings settings,
             final String requestCode
     )
             throws IOException, PwmUnrecoverableException
@@ -315,7 +307,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
 
         LOGGER.trace(pwmRequest, "oauth access token has expired, attempting to refresh");
 
-        final Settings settings = Settings.fromConfiguration(pwmRequest.getConfig());
+        final OAuthSettings settings = OAuthSettings.fromConfiguration(pwmRequest.getConfig());
         try {
             OAuthResolveResults resolveResults = makeOAuthRefreshRequest(pwmRequest, settings,
                     loginInfoBean.getOauthRefreshToken());
@@ -338,7 +330,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
 
     private static OAuthResolveResults makeOAuthRefreshRequest(
             final PwmRequest pwmRequest,
-            final Settings settings,
+            final OAuthSettings settings,
             final String refreshCode
     )
             throws IOException, PwmUnrecoverableException
@@ -381,7 +373,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
     private static String makeOAuthGetAttributeRequest(
             final PwmRequest pwmRequest,
             final String accessToken,
-            final Settings settings
+            final OAuthSettings settings
     )
             throws IOException, PwmUnrecoverableException
     {
@@ -407,7 +399,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
     private static RestResults makeHttpRequest(
             final PwmRequest pwmRequest,
             final String debugText,
-            final Settings settings,
+            final OAuthSettings settings,
             final String requestUrl,
             final Map<String,String> requestParams
     )
@@ -460,65 +452,6 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         return redirect_uri;
     }
 
-    public static class Settings implements Serializable {
-        private String loginURL;
-        private String codeResolveUrl;
-        private String attributesUrl;
-        private String clientID;
-        private PasswordData secret;
-        private String dnAttributeName;
-
-        public String getLoginURL()
-        {
-            return loginURL;
-        }
-
-        public String getCodeResolveUrl()
-        {
-            return codeResolveUrl;
-        }
-
-        public String getAttributesUrl()
-        {
-            return attributesUrl;
-        }
-
-        public String getClientID()
-        {
-            return clientID;
-        }
-
-        public PasswordData getSecret()
-        {
-            return secret;
-        }
-
-        public String getDnAttributeName()
-        {
-            return dnAttributeName;
-        }
-
-        public boolean oAuthIsConfigured() {
-            return (loginURL != null && !loginURL.isEmpty())
-                    && (codeResolveUrl != null && !codeResolveUrl.isEmpty())
-                    && (attributesUrl != null && !attributesUrl.isEmpty())
-                    && (clientID != null && !clientID.isEmpty())
-                    && (secret != null)
-                    && (dnAttributeName != null && !dnAttributeName.isEmpty());
-        }
-
-        public static Settings fromConfiguration(final Configuration config) {
-            final Settings settings = new Settings();
-            settings.loginURL = config.readSettingAsString(PwmSetting.OAUTH_ID_LOGIN_URL);
-            settings.codeResolveUrl = config.readSettingAsString(PwmSetting.OAUTH_ID_CODERESOLVE_URL);
-            settings.attributesUrl = config.readSettingAsString(PwmSetting.OAUTH_ID_ATTRIBUTES_URL);
-            settings.clientID = config.readSettingAsString(PwmSetting.OAUTH_ID_CLIENTNAME);
-            settings.secret = config.readSettingAsPassword(PwmSetting.OAUTH_ID_SECRET);
-            settings.dnAttributeName = config.readSettingAsString(PwmSetting.OAUTH_ID_DN_ATTRIBUTE_NAME);
-            return settings;
-        }
-    }
-
     static class RestResults {
         final HttpResponse httpResponse;
         final String responseBody;
@@ -543,70 +476,24 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         }
     }
 
-    static class OAuthResolveResults implements Serializable {
-        private String accessToken;
-        private int expiresSeconds;
-        private String refreshToken;
-
-
-        public String getAccessToken()
-        {
-            return accessToken;
-        }
-
-        public void setAccessToken(String accessToken)
-        {
-            this.accessToken = accessToken;
-        }
-
-        public int getExpiresSeconds()
-        {
-            return expiresSeconds;
-        }
-
-        public void setExpiresSeconds(int expiresSeconds)
-        {
-            this.expiresSeconds = expiresSeconds;
-        }
-
-        public String getRefreshToken()
-        {
-            return refreshToken;
-        }
-
-        public void setRefreshToken(String refreshToken)
-        {
-            this.refreshToken = refreshToken;
-        }
-    }
-
     public static String makeStateStringForRequest(
             final PwmRequest pwmRequest,
             final String nextUrl
     )
             throws PwmUnrecoverableException
     {
-        OAuthState oAuthState = new OAuthState();
-        oAuthState.sessionID = pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey();
-        oAuthState.nextUrl = nextUrl;
+        OAuthState oAuthState = new OAuthState(
+                pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey(),
+                nextUrl
+        );
 
         LOGGER.trace(pwmRequest, "issuing oauth state id="
-                + oAuthState.stateID + " with the next destination URL set to " + oAuthState.nextUrl);
+                + oAuthState.getStateID() + " with the next destination URL set to " + oAuthState.getStateID());
 
 
 
         final String jsonValue = JsonUtil.serialize(oAuthState);
         return pwmRequest.getPwmApplication().getSecureService().encryptToString(jsonValue);
-    }
-
-    public static class OAuthRequestState {
-        private OAuthState oAuthState;
-        private boolean sessionMatch;
-
-        public OAuthRequestState(OAuthState oAuthState, boolean sessionMatch) {
-            this.oAuthState = oAuthState;
-            this.sessionMatch = sessionMatch;
-        }
     }
 
     public static void redirectUserToOAuthServer(
@@ -620,7 +507,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress(true);
 
         final Configuration config = pwmRequest.getConfig();
-        final OAuthConsumerServlet.Settings settings = OAuthConsumerServlet.Settings.fromConfiguration(config);
+        final OAuthSettings settings = OAuthSettings.fromConfiguration(config);
         final String state = OAuthConsumerServlet.makeStateStringForRequest(pwmRequest, nextUrl);
         final String redirectUri = OAuthConsumerServlet.figureOauthSelfEndPointUrl(pwmRequest);
         final String code = config.readAppProperty(AppProperty.OAUTH_ID_REQUEST_TYPE);
@@ -656,12 +543,8 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
             final String stateJson = pwmRequest.getPwmApplication().getSecureService().decryptStringValue(requestStateStr);
             final OAuthState oAuthState = JsonUtil.deserialize(stateJson, OAuthState.class);
             if (oAuthState != null) {
-                final boolean sessionMatch = oAuthState.sessionID.equals(pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey());
-                LOGGER.trace(pwmRequest, "read state while parsing oauth consumer request id="
-                        + oAuthState.stateID + ", issueTime="
-                        + PwmConstants.DEFAULT_DATETIME_FORMAT.format(oAuthState.issueTime) + ", nextUrl="
-                        + oAuthState.nextUrl + ", sessionIDmatch=" + sessionMatch);
-
+                final boolean sessionMatch = oAuthState.getSessionID().equals(pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey());
+                LOGGER.trace(pwmRequest, "read state while parsing oauth consumer request with match=" + sessionMatch + ", " + JsonUtil.serialize(oAuthState));
                 return new OAuthRequestState(oAuthState, sessionMatch);
             }
         }

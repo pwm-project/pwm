@@ -28,6 +28,8 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.servlet.resource.ResourceFileServlet;
+import password.pwm.util.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -177,11 +179,13 @@ public class PwmUrlTag extends PwmAbstractTag {
         }
 
         if (themeURL == null || themeURL.length() < 1) {
+            themeURL = ResourceFileServlet.RESOURCE_PATH;
             if (mobile) {
-                themeURL = "/public/resources/themes/" + themeName + "/mobileStyle.css";
+                themeURL += ResourceFileServlet.THEME_CSS_MOBILE_PATH;
             } else {
-                themeURL = "/public/resources/themes/" + themeName + "/style.css";
+                themeURL += ResourceFileServlet.THEME_CSS_PATH;
             }
+            themeURL = themeURL.replace(ResourceFileServlet.TOKEN_THEME, StringUtil.escapeHtml(themeName));
         }
 
         return themeURL;

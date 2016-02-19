@@ -31,6 +31,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.LdapDebugDataGenerator;
@@ -76,18 +77,6 @@ public class DebugItemGenerator {
             throws IOException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-
-        { // kick off health check so that it might be faster later..
-            Thread healthThread = new Thread() {
-                public void run() {
-                    pwmApplication.getHealthMonitor().getHealthRecords();
-                }
-            };
-            healthThread.setName(Helper.makeThreadName(pwmApplication, ConfigManagerServlet.class) + "-HealthCheck");
-            healthThread.setDaemon(true);
-            healthThread.start();
-        }
-
 
         for (final Class<? extends DebugItemGenerator.Generator> serviceClass : DEBUG_ZIP_ITEM_GENERATORS) {
             try {
@@ -296,7 +285,7 @@ public class DebugItemGenerator {
 
         @Override
         public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception {
-            final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
+            final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords(HealthMonitor.CheckTimeliness.CurrentButNotAncient);
             final String recordJson = JsonUtil.serializeCollection(records, JsonUtil.Flag.PrettyPrint);
             outputStream.write(recordJson.getBytes(PwmConstants.DEFAULT_CHARSET));
         }

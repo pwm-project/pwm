@@ -1,7 +1,7 @@
 <%@ page import="password.pwm.config.profile.NewUserProfile" %>
 <%@ page import="password.pwm.http.servlet.newuser.NewUserServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
-<%@ page import="password.pwm.http.tag.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)

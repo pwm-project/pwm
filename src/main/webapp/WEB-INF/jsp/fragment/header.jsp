@@ -26,53 +26,34 @@
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%@ page import="password.pwm.http.ContextManager" %>
 <%@ page import="password.pwm.http.PwmRequest" %>
-<%@ page import="password.pwm.http.PwmSession" %>
-<%@ page import="password.pwm.http.tag.PwmValue" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.PwmRequestFlag" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-
-    boolean showTheme = false;
-    boolean showMobile = false;
-    boolean includeXVersion = false;
-    String restClientKey = "";
-    String clientEtag = "";
-    try {
-        final PwmRequest pwmRequestHeader = PwmRequest.forRequest(request,response);
-
-        showTheme = !pwmRequestHeader.isFlag(PwmRequestFlag.HIDE_THEME);
-        showMobile = !pwmRequestHeader.isFlag(PwmRequestFlag.NO_MOBILE_CSS);
-        includeXVersion = Boolean.parseBoolean(pwmRequestHeader.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
-        restClientKey = pwmRequestHeader.getPwmSession().getRestClientKey();
-        clientEtag = password.pwm.ws.server.rest.RestAppDataServer.makeClientEtag(pwmRequestHeader);
-
-
-    } catch (PwmUnrecoverableException e) {
-        /* application must be unavailable */
-    }
-
-    // read parameters from calling jsp;
-%><head>
+<head>
     <title><pwm:display key="Title_TitleBar"/></title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
     <meta name="robots" content="noindex,nofollow"/>
-    <meta id="application-info" name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service" <%if (includeXVersion){%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.BUILD_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>" <%}%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<pwm:value name="<%=PwmValue.instanceID%>"/>
-" data-jsp-name="<pwm:value name="<%=PwmValue.currentJspFilename%>"/>"
-          data-url-context="<pwm:context/>" data-pwmFormID="<pwm:FormID/>" data-clientEtag="<%=clientEtag%>" data-restClientKey="<%=restClientKey%>"/>
+    <meta id="application-info" name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service"
+          <pwm:if test="<%=PwmIfTest.showVersionHeader%>">data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.BUILD_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>"</pwm:if>
+          data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<pwm:value name="<%=PwmValue.instanceID%>"/>"
+          data-jsp-name="<pwm:value name="<%=PwmValue.currentJspFilename%>"/>"
+          data-url-context="<pwm:context/>"
+          data-pwmFormID="<pwm:FormID/>"
+          data-clientEtag="<pwm:value name="<%=PwmValue.clientETag%>"/>"
+          data-restClientKey="<pwm:value name="<%=PwmValue.restClientKey%>"/>">
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
     <meta http-equiv="X-UA-Compatible" content="IE=10; IE=9; IE=8; IE=7" />
     <link rel="icon" type="image/x-icon" href="<pwm:url url='/public/resources/favicon.ico' addContext="true"/>"/>
     <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/pwm-icons.css' addContext="true"/>"/>
     <link href="<pwm:url url='/public/resources/style.css' addContext="true"/>" rel="stylesheet" type="text/css" media="screen"/>
-    <% if (showTheme) { %>
-    <link href="<pwm:url url="%THEME_URL%"/>" rel="stylesheet" type="text/css" media="screen"/>
-    <% } %>
-    <% if (showMobile) { %>
-    <link media="only screen and (max-width: 600px)" href="<pwm:url url='/public/resources/mobileStyle.css' addContext="true"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
-    <% } %>
-    <% if (showTheme && showMobile) { %>
-    <link media="only screen and (max-width: 600px)" href="<pwm:url url="%MOBILE_THEME_URL%"/>" type="text/css" rel="stylesheet"/><%-- mobile css --%>
-    <% } %>
+    <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.HIDE_THEME%>" negate="true">
+        <link href="<pwm:url url="%THEME_URL%"/>" rel="stylesheet" type="text/css" media="screen"/>
+        <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.NO_MOBILE_CSS%>" negate="true">
+            <link media="only screen and (max-width: 600px)" href="<pwm:url url='/public/resources/mobileStyle.css' addContext="true"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
+            <link media="only screen and (max-width: 600px)" href="<pwm:url url="%MOBILE_THEME_URL%"/>" type="text/css" rel="stylesheet"/><%-- mobile css --%>
+        </pwm:if>
+    </pwm:if>
     <link href="<pwm:url url='/public/resources/dojo/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
     <pwm:script>
         <script type="text/javascript">

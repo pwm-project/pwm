@@ -23,7 +23,7 @@
 <%@ page import="password.pwm.Permission" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
-<%@ page import="password.pwm.http.tag.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <pwm:if test="<%=PwmIfTest.showHeaderMenu%>">
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>

@@ -1,4 +1,4 @@
-package password.pwm.http.tag;
+package password.pwm.http.tag.conditional;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
@@ -11,6 +11,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestFlag;
+import password.pwm.http.tag.value.PwmValue;
 import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
 
@@ -25,6 +27,7 @@ public enum PwmIfTest {
     showStrengthMeter(new BooleanPwmSettingTest(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)),
     showRandomPasswordGenerator(new BooleanPwmSettingTest(PwmSetting.PASSWORD_SHOW_AUTOGEN)),
     showHeaderMenu(new ShowHeaderMenuTest()),
+    showVersionHeader(new BooleanAppPropertyTest(AppProperty.HTTP_HEADER_SEND_XVERSION)),
     permission(new BooleanPermissionTest()),
     otpEnabled(new BooleanPwmSettingTest(PwmSetting.OTP_ENABLED)),
     hasStoredOtpTimestamp(new HasStoredOtpTimestamp()),
@@ -55,6 +58,8 @@ public enum PwmIfTest {
     usernameHasValue(new UsernameHasValueTest()),
 
     headerMenuIsVisible(new HeaderMenuIsVisibleTest()),
+
+    requestFlag(new RequestFlagTest()),
 
     ;
 
@@ -139,13 +144,11 @@ public enum PwmIfTest {
             boolean configMode = applicationMode == PwmApplication.MODE.CONFIGURATION;
             boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN);
             if (Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_WARNING_HEADER_SHOW))) {
-                if (!pwmRequest.getURL().isConfigManagerURL()) {
-                    if (configMode || PwmConstants.TRIAL_MODE) {
+                if (configMode || PwmConstants.TRIAL_MODE) {
+                    return true;
+                } else if (pwmRequest.isAuthenticated()) {
+                    if (adminUser && !pwmRequest.isForcedPageView()) {
                         return true;
-                    } else if (pwmRequest.isAuthenticated()) {
-                        if (adminUser && !pwmRequest.isForcedPageView()) {
-                            return true;
-                        }
                     }
                 }
             }
@@ -277,7 +280,7 @@ public enum PwmIfTest {
         public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
             final HealthMonitor healthMonitor = pwmRequest.getPwmApplication().getHealthMonitor();
             if (healthMonitor != null && healthMonitor.status() == PwmService.STATUS.OPEN) {
-                if (healthMonitor.getMostSevereHealthStatus() == HealthStatus.WARN) {
+                if (healthMonitor.getMostSevereHealthStatus(HealthMonitor.CheckTimeliness.NeverBlock) == HealthStatus.WARN) {
                     return true;
                 }
             }
@@ -329,13 +332,26 @@ public enum PwmIfTest {
         }
     }
 
+    private static class RequestFlagTest implements Test {
+
+        @Override
+        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+            if (options.getRequestFlag() == null) {
+                return false;
+            }
+            return pwmRequest.isFlag(options.getRequestFlag());
+        }
+    }
+
     static class Options {
         private boolean negate;
         private Permission permission;
+        private PwmRequestFlag requestFlag;
 
-        public Options(boolean negate, Permission permission) {
+        public Options(final boolean negate, final Permission permission, final PwmRequestFlag pwmRequestFlag) {
             this.negate = negate;
             this.permission = permission;
+            this.requestFlag = pwmRequestFlag;
         }
 
         public boolean isNegate() {
@@ -344,6 +360,10 @@ public enum PwmIfTest {
 
         public Permission getPermission() {
             return permission;
+        }
+
+        public PwmRequestFlag getRequestFlag() {
+            return requestFlag;
         }
     }
 }

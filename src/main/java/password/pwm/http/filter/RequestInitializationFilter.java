@@ -41,7 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RequestInitializationFilter implements Filter {
-    
+
     private static final PwmLogger LOGGER = PwmLogger.forClass(RequestInitializationFilter.class);
 
     @Override
@@ -67,12 +67,9 @@ public class RequestInitializationFilter implements Filter {
         final HttpServletResponse resp = (HttpServletResponse)servletResponse;
 
         try {
-            final PwmURL pwmURL = new PwmURL(req);
-            if (!pwmURL.isResourceURL()) {
-                checkAndInitSessionState(req);
-                final PwmRequest pwmRequest = PwmRequest.forRequest(req,resp);
-                checkIfSessionRecycleNeeded(pwmRequest);
-            }
+            checkAndInitSessionState(req);
+            final PwmRequest pwmRequest = PwmRequest.forRequest(req,resp);
+            checkIfSessionRecycleNeeded(pwmRequest);
         } catch (Throwable e) {
             LOGGER.error("can't load application: " + e.getMessage(),e);
             if (!(new PwmURL(req).isResourceURL())) {
@@ -95,8 +92,8 @@ public class RequestInitializationFilter implements Filter {
         filterChain.doFilter(servletRequest, servletResponse);
     }
 
-    private void checkAndInitSessionState(final HttpServletRequest request) 
-            throws PwmUnrecoverableException 
+    private void checkAndInitSessionState(final HttpServletRequest request)
+            throws PwmUnrecoverableException
     {
         final ContextManager contextManager = ContextManager.getContextManager(request.getSession());
 
@@ -128,7 +125,7 @@ public class RequestInitializationFilter implements Filter {
         if (!pwmRequest.getPwmSession().getSessionStateBean().isSessionIdRecycleNeeded()) {
             return;
         }
-        
+
         final boolean recycleEnabled = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_SESSION_RECYCLE_AT_AUTH));
 
         if (!recycleEnabled) {
@@ -162,9 +159,9 @@ public class RequestInitializationFilter implements Filter {
         for (final String attrName : sessionAttributes.keySet()) {
             newSession.setAttribute(attrName, sessionAttributes.get(attrName));
         }
-        
+
         newSession.setMaxInactiveInterval(oldMaxInactiveInterval);
-        
+
         pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded(false);
     }
 

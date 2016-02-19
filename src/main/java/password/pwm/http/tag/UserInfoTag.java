@@ -26,6 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmSessionWrapper;
+import password.pwm.util.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -59,7 +60,7 @@ public class UserInfoTag extends TagSupport {
             final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(req);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
             final String ldapValue = pwmSession.getSessionManager().getUserDataReader(pwmApplication).readStringAttribute(attribute);
-            pageContext.getOut().write(ldapValue == null ? "" : ldapValue);
+            pageContext.getOut().write(StringUtil.escapeHtml(ldapValue == null ? "" : ldapValue));
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());
         }

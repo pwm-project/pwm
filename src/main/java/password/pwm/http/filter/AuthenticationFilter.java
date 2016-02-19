@@ -36,8 +36,9 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ChangePasswordBean;
 import password.pwm.http.servlet.LoginServlet;
-import password.pwm.http.servlet.OAuthConsumerServlet;
+import password.pwm.http.servlet.oauth.OAuthConsumerServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 import password.pwm.ldap.UserSearchEngine;
@@ -544,7 +545,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         )
                 throws PwmUnrecoverableException, IOException
         {
-            final OAuthConsumerServlet.Settings settings = OAuthConsumerServlet.Settings.fromConfiguration(pwmRequest.getConfig());
+            final OAuthSettings settings = OAuthSettings.fromConfiguration(pwmRequest.getConfig());
             if (!settings.oAuthIsConfigured()) {
                 return;
             }

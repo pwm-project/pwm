@@ -23,6 +23,8 @@
 <!DOCTYPE html>
 <%@ page import="password.pwm.bean.PasswordStatus" %>
 <%@ page import="password.pwm.http.bean.ChangePasswordBean" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PasswordStatus passwordStatus = JspUtility.getPwmSession(pageContext).getUserInfoBean().getPasswordState(); %>

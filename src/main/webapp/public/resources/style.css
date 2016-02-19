@@ -122,6 +122,18 @@ table td.key {
     width: 36%;
 }
 
+.healthTable-wrapper {
+    margin-top:5px; margin-left: 20px; margin-right: 20px; padding:0;
+    max-height: 300px; overflow-y: auto
+}
+
+.healthTable-footer {
+    text-align: center;
+}
+
+.healthTable {
+}
+
 .health-GOOD {
     white-space:nowrap;
     background-color: #8ced3f;

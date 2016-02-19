@@ -175,7 +175,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
             }
             return sb.toString();
         } else {
-            return null;
+            return "";
         }
     }
 }

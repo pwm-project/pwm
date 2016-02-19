@@ -31,6 +31,7 @@ import password.pwm.http.servlet.configmanager.ConfigManagerLocalDBServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerWordlistServlet;
 import password.pwm.http.servlet.newuser.NewUserServlet;
+import password.pwm.http.servlet.oauth.OAuthConsumerServlet;
 
 import javax.servlet.annotation.WebServlet;
 import java.lang.annotation.Annotation;
@@ -39,7 +40,7 @@ public enum PwmServletDefinition {
     Login(password.pwm.http.servlet.LoginServlet.class),
     Logout(password.pwm.http.servlet.LogoutServlet.class),
     Captcha(password.pwm.http.servlet.CaptchaServlet.class),
-    OAuthConsumer(password.pwm.http.servlet.OAuthConsumerServlet.class),
+    OAuthConsumer(OAuthConsumerServlet.class),
     Command(password.pwm.http.servlet.CommandServlet.class),
     //Resource(password.pwm.http.servlet.ResourceFileServlet.class),
 

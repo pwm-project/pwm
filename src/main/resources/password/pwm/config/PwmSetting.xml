@@ -1790,7 +1790,7 @@
     </setting>
     <setting hidden="false" key="events.audit.maxAge" level="2" required="true">
         <default>
-            <value>2592000</value>
+            <value>15552000</value>
         </default>
     </setting>
     <setting hidden="false" key="challenge.enable" level="1">

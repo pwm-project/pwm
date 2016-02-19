@@ -23,7 +23,10 @@
 package password.pwm.http.servlet.configeditor;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.Validator;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
@@ -43,10 +46,12 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
+import password.pwm.i18n.Config;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -813,7 +818,8 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                     {
                         final NavTreeHelper.NavTreeItem profileEditorInfo = new NavTreeHelper.NavTreeItem();
                         profileEditorInfo.setId(loopCategory.getKey() + "-EDITOR");
-                        profileEditorInfo.setName("[ Edit List ]");
+                        final String editItemName = LocaleHelper.getLocalizedMessage(Config.Label_ProfileListEditMenuItem,pwmRequest);
+                        profileEditorInfo.setName(editItemName);
                         profileEditorInfo.setType(NavTreeHelper.NavItemType.profileDefinition);
                         profileEditorInfo.setProfileSetting(loopCategory.getProfileSetting().getKey());
                         profileEditorInfo.setParent(loopCategory.getKey());
