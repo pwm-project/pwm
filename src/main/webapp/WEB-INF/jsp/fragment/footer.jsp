@@ -55,7 +55,9 @@
         <div>
             <% if (footer_pwmRequest.isAuthenticated()) { %>
             <% if (footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername() != null) {%>
-            <%= footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername()  %>
+            <div id="session-username">
+                <%= footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername()  %>
+            </div>
             <% } %>
             <% segmentDisplayed = true; } %>
             <% if (pwmApplicationFooter.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT)) { %>
