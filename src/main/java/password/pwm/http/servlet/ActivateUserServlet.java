@@ -219,7 +219,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             final List<UserPermission> userPermissions = config.readSettingAsUserPermission(PwmSetting.ACTIVATE_USER_QUERY_MATCH);
             if (!LdapPermissionTester.testUserPermissions(pwmApplication, pwmSession.getLabel(), userIdentity, userPermissions)) {
                 final String errorMsg = "user " + userIdentity + " attempted activation, but does not match query string";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATE_USER_NO_QUERY_MATCH, errorMsg);
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATE_NO_PERMISSION, errorMsg);
                 pwmApplication.getIntruderManager().convenience().markUserIdentity(userIdentity, pwmSession);
                 pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                 throw new PwmUnrecoverableException(errorInformation);
@@ -442,14 +442,14 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                 try {
                     if (!chaiUser.compareStringAttribute(attrName, value)) {
                         final String errorMsg = "incorrect value for '" + attrName + "'";
-                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, errorMsg, new String[]{attrName});
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATIONFAIL, errorMsg, new String[]{attrName});
                         LOGGER.debug(pwmSession.getLabel(), errorInfo.toDebugStr());
                         throw new PwmDataValidationException(errorInfo);
                     }
                     LOGGER.trace(pwmSession.getLabel(), "successful validation of ldap value for '" + attrName + "'");
                 } catch (ChaiOperationException e) {
                     LOGGER.error(pwmSession.getLabel(), "error during param validation of '" + attrName + "', error: " + e.getMessage());
-                    throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, "ldap error testing value for '" + attrName + "'", new String[]{attrName}));
+                    throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATIONFAIL, "ldap error testing value for '" + attrName + "'", new String[]{attrName}));
                 }
             }
         }

@@ -45,8 +45,6 @@ public class ErrorInformation implements Serializable {
     private final String[] fieldValues;
     private final Date date = new Date();
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
     // private constructor used for gson de-serialization
     private ErrorInformation() {
         error = PwmError.ERROR_UNKNOWN;
