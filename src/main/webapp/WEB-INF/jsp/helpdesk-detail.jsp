@@ -59,6 +59,7 @@
     final HelpdeskDetailInfoBean helpdeskDetailInfoBean = (HelpdeskDetailInfoBean)pwmRequest.getAttribute(PwmRequest.Attribute.HelpdeskDetail);
     final UserInfoBean searchedUserInfo = helpdeskDetailInfoBean.getUserInfoBean();
     final ResponseInfoBean responseInfoBean = searchedUserInfo.getResponseInfoBean();
+
     final String displayName = helpdeskDetailInfoBean.getUserDisplayName();
     final Set<ViewStatusFields> viewStatusFields = helpdeskProfile.readSettingAsOptionList(PwmSetting.HELPDESK_VIEW_STATUS_VALUES,ViewStatusFields.class);
     final boolean hasOtp = searchedUserInfo.getOtpUserRecord() != null;

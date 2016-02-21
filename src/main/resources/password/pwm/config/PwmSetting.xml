@@ -1624,6 +1624,7 @@
     </setting>
     <setting hidden="false" key="otp.secret.ldap.attribute" level="2" required="false">
         <ldapPermission actor="proxy" access="read"/>
+        <ldapPermission actor="proxy" access="write"/>
         <ldapPermission actor="self" access="write"/>
         <default>
             <value>pwmOtpSecret</value>

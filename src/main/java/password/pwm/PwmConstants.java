@@ -243,7 +243,6 @@ public abstract class PwmConstants {
 
     public static final String PARAM_ACTION_REQUEST = "processAction";
     public static final String PARAM_ACTION_STATE = "actionState";
-    public static final String PARAM_VERIFICATION_KEY = "session_verification_key";
     public static final String PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
     public static final String PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
     public static final String PARAM_FORM_ID = "pwmFormID";
