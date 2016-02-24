@@ -87,6 +87,7 @@ public enum AppProperty {
     HTTP_ENABLE_GZIP                                ("http.gzip.enable"),
     HTTP_ERRORS_ALLOW_HTML                          ("http.errors.allowHtml"),
     HTTP_HEADER_SERVER                              ("http.header.server"),
+    HTTP_HEADER_SEND_CONTENT_LANGUAGE               ("http.header.sendContentLanguage"),
     HTTP_HEADER_SEND_XAMB                           ("http.header.sendXAmb"),
     HTTP_HEADER_SEND_XINSTANCE                      ("http.header.sendXInstance"),
     HTTP_HEADER_SEND_XNOISE                         ("http.header.sendXNoise"),

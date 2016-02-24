@@ -341,6 +341,7 @@ public abstract class PwmConstants {
         WWW_Authenticate("WWW-Authenticate"),
         ContentDisposition("content-disposition"),
         ContentTransferEncoding("Content-Transfer-Encoding"),
+        Content_Language("Content-Language"),
         Accept_Encoding("Accept-Encoding"),
         Accept_Language("Accept-Language"),
         Authorization("Authorization"),

@@ -98,5 +98,5 @@
         });
     </script>
 </pwm:script>
-<script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
+<script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<pwm:url addContext="true" url='//public/resources/dojo/dojo/dojo.js'/>"></script>
 <pwm:script-ref url="/public/resources/js/main.js"/>

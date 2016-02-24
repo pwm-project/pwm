@@ -105,9 +105,9 @@ public class RequestInitializationFilter implements Filter {
 
             checkIfSessionRecycleNeeded(pwmRequest);
 
-            addPwmResponseHeaders(pwmRequest);
-
             handleRequestInitialization(pwmRequest);
+
+            addPwmResponseHeaders(pwmRequest);
 
             try {
                 handleRequestSecurityChecks(pwmRequest);
@@ -224,21 +224,21 @@ public class RequestInitializationFilter implements Filter {
         }
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final Configuration config = pwmApplication.getConfig();
         final PwmResponse resp = pwmRequest.getPwmResponse();
 
         if (resp.isCommitted()) {
             return;
         }
 
-        final String serverHeader = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SERVER);
+        final String serverHeader = config.readAppProperty(AppProperty.HTTP_HEADER_SERVER);
+        final boolean includeXInstance = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XINSTANCE));
+        final boolean includeXSessionID = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XSESSIONID));
+        final boolean includeXVersion = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
+        final boolean includeXContentTypeOptions = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XCONTENTTYPEOPTIONS));
+        final boolean includeXXSSProtection = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XXSSPROTECTION));
 
-        final boolean includeXInstance = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XINSTANCE));
-        final boolean includeXSessionID = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XSESSIONID));
-        final boolean includeXVersion = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
-        final boolean includeXContentTypeOptions = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XCONTENTTYPEOPTIONS));
-        final boolean includeXXSSProtection = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XXSSPROTECTION));
-
-        final boolean sendNoise = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XNOISE));
+        final boolean sendNoise = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XNOISE));
 
         if (sendNoise) {
             resp.setHeader(
@@ -272,12 +272,16 @@ public class RequestInitializationFilter implements Filter {
             resp.setHeader(PwmConstants.HttpHeader.Server, value);
         }
 
+
         if (pwmRequest.getURL().isResourceURL()) {
             return;
         }
 
-        final boolean includeXFrameDeny = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_PREVENT_FRAMING);
-        final boolean includeXAmb = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XAMB));
+        // ----- non-resource urls only for the following operations -----
+
+        final boolean includeXFrameDeny = config.readSettingAsBoolean(PwmSetting.SECURITY_PREVENT_FRAMING);
+        final boolean includeXAmb = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XAMB));
+        final boolean includeContentLanguage = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_CONTENT_LANGUAGE));
 
         if (includeXFrameDeny) {
             resp.setHeader(PwmConstants.HttpHeader.XFrameOptions, "DENY");
@@ -287,10 +291,14 @@ public class RequestInitializationFilter implements Filter {
             resp.setHeader(PwmConstants.HttpHeader.XAmb, PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
         }
 
+        if (includeContentLanguage) {
+            resp.setHeader(PwmConstants.HttpHeader.Content_Language, pwmRequest.getLocale().toLanguageTag());
+        }
+
         resp.setHeader(PwmConstants.HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate, proxy-revalidate");
 
         if (pwmSession != null) {
-            final String contentPolicy = pwmApplication.getConfig().readSettingAsString(PwmSetting.SECURITY_CSP_HEADER);
+            final String contentPolicy = config.readSettingAsString(PwmSetting.SECURITY_CSP_HEADER);
             if (contentPolicy != null && !contentPolicy.isEmpty()) {
                 final String nonce = pwmRequest.getCspNonce();
                 final String expandedPolicy = contentPolicy.replace("%NONCE%", nonce);

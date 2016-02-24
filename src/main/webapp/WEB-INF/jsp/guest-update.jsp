@@ -27,7 +27,7 @@
 <% final String maxValidDate = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.GuestMaximumExpirationDate); %>
 <% final String selectedDate = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.GuestCurrentExpirationDate); %>
 <% final String maxValidDays = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.GuestMaximumValidDays); %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">

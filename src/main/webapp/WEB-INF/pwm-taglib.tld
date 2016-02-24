@@ -187,12 +187,6 @@
         <description>Displays the context url path</description>
     </tag>
     <tag>
-        <name>LocaleOrientation</name>
-        <tag-class>password.pwm.http.tag.LocaleOrientationTag</tag-class>
-        <body-content>empty</body-content>
-        <description>Output text "rtl" or "ltr" depending on session locale</description>
-    </tag>
-    <tag>
         <name>if</name>
         <tag-class>password.pwm.http.tag.conditional.PwmIfTag</tag-class>
         <body-content>JSP</body-content>

@@ -34,7 +34,7 @@
 <% final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean(); %>
 <% final ForgottenPasswordBean recoverBean = JspUtility.getSessionBean(pageContext, ForgottenPasswordBean.class); %>
 <% final List<FormConfiguration> requiredAttrParams = recoverBean.getAttributeForm(); %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <%--
 in the body onload below, the true parameter toggles the hide button an extra time to default the page to hiding the responses.

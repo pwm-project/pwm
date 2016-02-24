@@ -68,7 +68,7 @@
         JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
     }
 %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% final NumberFormat numberFormat = NumberFormat.getNumberInstance(); %>
 <body class="nihilo">

@@ -24,7 +24,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <jsp:include page="/WEB-INF/jsp/fragment/header.jsp"/>
 <body>
 <meta http-equiv="refresh" content="0;url=<pwm:context/><pwm:url url="/private/config/ConfigManager"/>"/>
