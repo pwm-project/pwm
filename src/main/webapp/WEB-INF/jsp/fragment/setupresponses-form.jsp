@@ -1,6 +1,6 @@
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
-<%@ page import="password.pwm.http.tag.PwmValue" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.util.JsonUtil" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.ArrayList" %>

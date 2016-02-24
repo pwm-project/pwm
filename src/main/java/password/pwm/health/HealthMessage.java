@@ -28,6 +28,8 @@ import password.pwm.util.LocaleHelper;
 import java.util.Locale;
 
 public enum HealthMessage {
+
+    NoData                                  (HealthStatus.CAUTION,  HealthTopic.Application),
     LDAP_No_Connection                      (HealthStatus.WARN,     HealthTopic.LDAP),
     LDAP_Ad_History_Asn_Missing             (HealthStatus.WARN,     HealthTopic.LDAP),
     LDAP_AD_Unsecure                        (HealthStatus.WARN,     HealthTopic.LDAP),

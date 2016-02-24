@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/

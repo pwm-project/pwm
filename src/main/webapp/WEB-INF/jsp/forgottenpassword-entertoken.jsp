@@ -24,7 +24,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
 <%@ page import="password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet"%>
-<%@ page import="password.pwm.http.tag.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html dir="<pwm:LocaleOrientation/>">

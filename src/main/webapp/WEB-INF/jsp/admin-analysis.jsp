@@ -1,6 +1,6 @@
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="password.pwm.http.tag.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.svc.stats.Statistic" %>
 <%@ page import="password.pwm.svc.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.svc.stats.StatisticsManager" %>

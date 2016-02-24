@@ -3,6 +3,8 @@
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -102,7 +104,11 @@
             <% } %>
         </table>
         <br/>
+<<<<<<< HEAD
         <div id="healthBody" class="health-body">
+=======
+        <div id="healthBody">
+>>>>>>> pwm-project/master
             <div class="WaitDialogBlank"></div>
         </div>
         <table class="noborder">
@@ -220,7 +226,7 @@
                         <script type="application/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 PWM_MAIN.addEventHandler('MenuItem_LdapPermissions','click',function(){
-                                    window.open('ConfigManager?processAction=permissions','_blank', 'width=650,toolbar=0,location=0,menubar=0');
+                                    window.open('ConfigManager?processAction=permissions','_blank', 'width=650,toolbar=0,location=0,menubar=0,scrollbars=1');
                                 });
                             });
                         </script>
@@ -248,6 +254,7 @@
     </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
+<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>

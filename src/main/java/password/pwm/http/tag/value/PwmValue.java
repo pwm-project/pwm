@@ -1,4 +1,4 @@
-package password.pwm.http.tag;
+package password.pwm.http.tag.value;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
@@ -10,15 +10,14 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Admin;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
+import password.pwm.ws.server.rest.RestAppDataServer;
 
 import javax.servlet.jsp.JspPage;
 import javax.servlet.jsp.PageContext;
 
 public enum PwmValue {
-
 
     cspNonce(new CspNonceOutput()),
     homeURL(new HomeUrlOutput()),
@@ -28,7 +27,9 @@ public enum PwmValue {
     currentJspFilename(new CurrentJspFilenameOutput()),
     instanceID(new InstanceIDOutput()),
     headerMenuNotice(new HeaderMenuNoticeOutput()),
-    username(new UsernameOutput())
+    username(new UsernameOutput()),
+    clientETag(new ClientETag()),
+    restClientKey(new RestClientKey()),
 
     ;
 
@@ -45,13 +46,6 @@ public enum PwmValue {
         return valueOutput;
     }
 
-
-    interface ValueOutput {
-        String valueOutput(
-                final PwmRequest pwmRequest,
-                final PageContext pageContext)
-                throws ChaiUnavailableException, PwmUnrecoverableException;
-    }
 
     static class CspNonceOutput implements ValueOutput {
         @Override
@@ -75,7 +69,7 @@ public enum PwmValue {
                     LOGGER.error(pwmRequest, "error expanding macros in homeURL: " + e.getMessage());
                 }
             }
-            return StringUtil.escapeHtml(outputURL);
+            return outputURL;
         }
     }
 
@@ -169,6 +163,20 @@ public enum PwmValue {
             }
 
             return "";
+        }
+    }
+
+    static class ClientETag implements ValueOutput {
+        @Override
+        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+            return RestAppDataServer.makeClientEtag(pwmRequest);
+        }
+    }
+
+    static class RestClientKey implements ValueOutput {
+        @Override
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+            return pwmRequest.getPwmSession().getRestClientKey();
         }
     }
 

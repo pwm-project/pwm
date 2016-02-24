@@ -1099,8 +1099,8 @@ PWM_CFGEDIT.dispatchNavigationItem = function(item) {
     } else if (type == 'profile') {
         var category = item['category'];
         PWM_CFGEDIT.gotoSetting(category,null,currentID);
-    } else if (type == 'profile-definition') {
-        var profileSettingKey = item['profile-setting'];
+    } else if (type == 'profileDefinition') {
+        var profileSettingKey = item['profileSetting'];
         PWM_CFGEDIT.drawProfileEditorPage(profileSettingKey);
     }
 

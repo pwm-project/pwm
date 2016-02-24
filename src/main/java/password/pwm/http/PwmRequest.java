@@ -28,8 +28,8 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
-import password.pwm.bean.SessionLabel;
 import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
@@ -241,6 +241,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         CompleteText,
         AvailableAuthMethods,
         ConfigurationSummaryOutput,
+        LdapPermissionItems,
         PageTitle,
         ModuleBean,
         ModuleBean_String,

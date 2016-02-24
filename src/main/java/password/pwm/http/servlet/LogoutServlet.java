@@ -140,7 +140,7 @@ public class LogoutServlet extends AbstractPwmServlet {
                 pwmRequest.getContextPath() + PwmServletDefinition.Logout.servletUrl(),
                 Collections.singletonMap(PwmConstants.PARAM_ACTION_REQUEST, LogoutAction.showLogout.toString())
         );
-        pwmRequest.sendRedirect(logoutURL);
         pwmRequest.invalidateSession();
+        pwmRequest.sendRedirect(logoutURL);
     }
 }

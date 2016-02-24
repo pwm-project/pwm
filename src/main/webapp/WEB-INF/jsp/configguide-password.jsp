@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/

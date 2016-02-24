@@ -95,7 +95,6 @@ public class UrlShortenerService implements PwmService {
 
     public void close() {
         status = PwmService.STATUS.CLOSED;
-        LOGGER.debug("closed");
     }
 
     public List<HealthRecord> healthCheck() {

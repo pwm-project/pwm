@@ -20,9 +20,10 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 <%--  This file is imported by most JSPs, it shows the main 'header' in the html --%>
-<%@ page import="password.pwm.http.tag.PwmValue" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.PwmRequestFlag" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 
 <% if (!JspUtility.isFlag(request, PwmRequestFlag.HIDE_HEADER_WARNINGS)) { %><%@ include file="header-warnings.jsp" %><% } %>

@@ -27,7 +27,7 @@
 <%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
-<%@ page import="password.pwm.http.tag.PwmValue" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="password.pwm.http.PwmRequestFlag" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -55,7 +55,9 @@
         <div>
             <% if (footer_pwmRequest.isAuthenticated()) { %>
             <% if (footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername() != null) {%>
-            <%= footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername()  %>
+            <div id="session-username">
+                <%= footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername()  %>
+            </div>
             <% } %>
             <% segmentDisplayed = true; } %>
             <% if (pwmApplicationFooter.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT)) { %>

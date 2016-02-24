@@ -343,7 +343,7 @@ public class ServletHelper {
 
         // initialize the session's locale
         if (ssBean.getLocale() == null) {
-            initializeLocaleAndTheme(pwmRequest.getHttpServletRequest(), pwmApplication, pwmSession);
+            initializeLocaleAndTheme(pwmRequest, pwmApplication, pwmSession);
         }
 
         // set idle timeout (may get overridden by module-specific values elsewhere
@@ -354,29 +354,31 @@ public class ServletHelper {
     }
 
     private static void initializeLocaleAndTheme(
-            final HttpServletRequest req,
+            final PwmRequest pwmRequest,
             final PwmApplication pwmApplication,
             final PwmSession pwmSession
     )
             throws PwmUnrecoverableException
     {
         final String localeCookieName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_LOCALE_NAME);
-        final String localeCookie = ServletHelper.readCookie(req,localeCookieName);
+        final String localeCookie = ServletHelper.readCookie(pwmRequest.getHttpServletRequest(), localeCookieName);
         if (localeCookieName.length() > 0 && localeCookie != null) {
             LOGGER.debug(pwmSession, "detected locale cookie in request, setting locale to " + localeCookie);
             pwmSession.setLocale(pwmApplication, localeCookie);
         } else {
             final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
-            final Locale userLocale = LocaleHelper.localeResolver(req.getLocale(), knownLocales);
+            final Locale userLocale = LocaleHelper.localeResolver(pwmRequest.getLocale(), knownLocales);
             pwmSession.getSessionStateBean().setLocale(userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale);
             LOGGER.trace(pwmSession, "user locale set to '" + pwmSession.getSessionStateBean().getLocale() + "'");
         }
 
         final String themeCookieName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_THEME_NAME);
-        final String themeCookie = ServletHelper.readCookie(req,themeCookieName);
+        final String themeCookie = ServletHelper.readCookie(pwmRequest.getHttpServletRequest(), themeCookieName);
         if (localeCookieName.length() > 0 && themeCookie != null && themeCookie.length() > 0) {
-            LOGGER.debug(pwmSession, "detected theme cookie in request, setting theme to " + themeCookie);
-            pwmSession.getSessionStateBean().setTheme(themeCookie);
+            if (pwmApplication.getResourceServletService().checkIfThemeExists(pwmRequest, themeCookie)) {
+                LOGGER.debug(pwmSession, "detected theme cookie in request, setting theme to " + themeCookie);
+                pwmSession.getSessionStateBean().setTheme(themeCookie);
+            }
         }
     }
 

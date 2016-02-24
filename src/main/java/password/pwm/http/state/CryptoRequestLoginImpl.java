@@ -8,7 +8,7 @@ import password.pwm.error.*;
 import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
-import password.pwm.ldap.auth.PwmAuthenticationSource;
+import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -53,8 +53,6 @@ class CryptoRequestLoginImpl implements SessionLoginProvider {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
             LOGGER.error(pwmRequest, errorInformation);
         }
-
-        System.out.println(JsonUtil.serialize(pwmRequest.getPwmSession().getLoginInfoBean()));
     }
 
     @Override
@@ -71,10 +69,6 @@ class CryptoRequestLoginImpl implements SessionLoginProvider {
         }
 
         if (remoteLoginCookie != null) {
-
-
-
-
             try {
                 try {
                     checkIfRemoteLoginCookieIsValid(pwmRequest, remoteLoginCookie);
@@ -88,7 +82,7 @@ class CryptoRequestLoginImpl implements SessionLoginProvider {
 
                 importRemoteCookie(pwmRequest, remoteLoginCookie);
             } catch (Exception e) {
-                final String errorMsg = "unexpected error authenticating using login cookie: " + e.getMessage();
+                final String errorMsg = "unexpected error authenticating using crypto session cookie: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
                 LOGGER.error(pwmRequest, errorInformation);
                 throw new PwmUnrecoverableException(errorInformation);
@@ -109,10 +103,11 @@ class CryptoRequestLoginImpl implements SessionLoginProvider {
         final LoginInfoBean localLoginCookie = pwmRequest.getPwmSession().getLoginInfoBean();
 
         if (remoteLoginCookie.isAuthenticated() && !localLoginCookie.isAuthenticated()) {
+            LOGGER.debug(pwmRequest, "triggering authentication because request contains an authenticated session but local session is unauthenticated");
             final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
                     pwmRequest.getPwmApplication(),
                     pwmRequest.getPwmSession(),
-                    PwmAuthenticationSource.LOGIN_COOKIE
+                    remoteLoginCookie.getAuthSource()
             );
             try {
                 if (remoteLoginCookie.getUserIdentity() == null) {
@@ -127,8 +122,10 @@ class CryptoRequestLoginImpl implements SessionLoginProvider {
                             remoteLoginCookie.getUserCurrentPassword()
                     );
                 }
+                remoteLoginCookie.getFlags().add(AuthenticationType.AUTH_FROM_REQ_COOKIE);
+                LOGGER.debug(pwmRequest, "logged in using encrypted request cookie = " + JsonUtil.serialize(remoteLoginCookie));
             } catch (Exception e) {
-                final String errorMsg = "unexpected error authenticating using login cookie: " + e.getMessage();
+                final String errorMsg = "unexpected error reading session cookie: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
                 LOGGER.error(pwmRequest, errorInformation);
                 throw new PwmUnrecoverableException(errorInformation);
@@ -136,7 +133,9 @@ class CryptoRequestLoginImpl implements SessionLoginProvider {
 
         }
 
-        LOGGER.trace(pwmRequest, "imported LoginInfoBean=" + remoteLoginCookie.toDebugString());
+        if (pwmRequest.getConfig().isDevDebugMode()) {
+            LOGGER.trace(pwmRequest, "imported LoginInfoBean=" + remoteLoginCookie.toDebugString());
+        }
         pwmRequest.getPwmSession().setLoginInfoBean(remoteLoginCookie);
     }
 
@@ -146,12 +145,13 @@ class CryptoRequestLoginImpl implements SessionLoginProvider {
     )
             throws PwmOperationalException
     {
-        if (loginInfoBean.getAuthTime() == null) {
+        if (loginInfoBean.isAuthenticated() && loginInfoBean.getAuthTime() == null) {
             final String errorMsg = "decrypted login cookie does not specify a local auth time";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION, errorMsg);
             throw new PwmOperationalException(errorInformation);
         }
-        {
+
+        if (loginInfoBean.getAuthTime() != null) {
             final long sessionMaxSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.SESSION_MAX_SECONDS);
             final TimeDuration sessionTotalAge = TimeDuration.fromCurrent(loginInfoBean.getAuthTime());
             final TimeDuration sessionMaxAge = new TimeDuration(sessionMaxSeconds, TimeUnit.SECONDS);
@@ -161,13 +161,13 @@ class CryptoRequestLoginImpl implements SessionLoginProvider {
                         + ") is older than max session seconds ("
                         + sessionMaxAge.asCompactString()
                         + ")";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorMsg);
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION, errorMsg);
                 throw new PwmOperationalException(errorInformation);
             }
         }
         if (loginInfoBean.getReqTime() == null) {
             final String errorMsg = "decrypted login cookie does not specify a issue time";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION, errorMsg);
             throw new PwmOperationalException(errorInformation);
         }
         {
@@ -180,7 +180,7 @@ class CryptoRequestLoginImpl implements SessionLoginProvider {
                         + ") is older than max idle seconds ("
                         + maxIdleDuration.asCompactString()
                         + ")";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorMsg);
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION, errorMsg);
                 throw new PwmOperationalException(errorInformation);
             }
         }

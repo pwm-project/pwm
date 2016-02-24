@@ -47,7 +47,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -63,6 +62,13 @@ import java.util.zip.ZipFile;
 )
 public class ResourceFileServlet extends HttpServlet implements PwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ResourceFileServlet.class);
+
+    public static final String RESOURCE_PATH = "/public/resources";
+    public static final String THEME_CSS_PATH = "/themes/%THEME%/style.css";
+    public static final String THEME_CSS_MOBILE_PATH = "/themes/%THEME%/mobileStyle.css";
+
+    public static final String TOKEN_THEME = "%THEME%";
+    public static final String EMBED_THEME = "EMBED";
 
 
     @Override
@@ -97,10 +103,8 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
 
         final FileResource file = resolveRequestedFile(
                 req.getServletContext(),
-                req.getRequestURI(),
-                req,
-                Collections.<String, ZipFile>emptyMap(),
-                Collections.<String, FileResource>emptyMap()
+                figureRequestPathMinusContext(req),
+                new ResourceServletConfiguration()
         );
 
         if (file == null || !file.exists()) {
@@ -125,10 +129,10 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         final ResourceServletConfiguration resourceConfiguration = resourceService.getResourceServletConfiguration();
 
 
-        final String requestURI = stripNonceFromURI(resourceConfiguration, pwmRequest.getHttpServletRequest().getRequestURI());
+        final String requestURI = stripNonceFromURI(resourceConfiguration, figureRequestPathMinusContext(pwmRequest.getHttpServletRequest()));
 
         try {
-            if ( handleSpecialURIs(pwmApplication, requestURI, pwmRequest.getHttpServletRequest(), pwmRequest.getPwmResponse().getHttpServletResponse(), resourceConfiguration)) {
+            if ( handleSpecialURIs(pwmApplication, requestURI, pwmRequest.getPwmResponse().getHttpServletResponse(), resourceConfiguration)) {
                 return;
             }
         } catch (Exception e) {
@@ -137,7 +141,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
 
         final FileResource file;
         try {
-            file = resolveRequestedFile(this.getServletContext(), requestURI, pwmRequest.getHttpServletRequest(), resourceConfiguration.getZipResources(), resourceConfiguration.getCustomFileBundle());
+            file = resolveRequestedFile(this.getServletContext(), requestURI, resourceConfiguration);
         } catch (PwmUnrecoverableException e) {
             pwmRequest.getPwmResponse().getHttpServletResponse().sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
             try {
@@ -369,41 +373,50 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         }
     }
 
-    private static FileResource resolveRequestedFile(
+    static FileResource resolveRequestedFile(
             final ServletContext servletContext,
-            final String requestURI,
-            final HttpServletRequest request,
-            final Map<String, ZipFile> zipResources,
-            final Map<String, FileResource> customResources
+            final String resourcePathUri,
+            final ResourceServletConfiguration resourceServletConfiguration
     )
-            throws UnsupportedEncodingException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
-        // Get requested file by path info.
-        final String requestFileURI = requestURI.substring(request.getContextPath().length(), requestURI.length());
-
         // URL-decode the file name (might contain spaces and on) and prepare file object.
-        String filename = StringUtil.urlDecode(requestFileURI);
+        String filename = StringUtil.urlDecode(resourcePathUri);
 
         // parse out the session key...
         if (filename.contains(";")) {
             filename = filename.substring(0, filename.indexOf(";"));
         }
 
-        for (final String customFileName : customResources.keySet()) {
-            final String testName = request.getContextPath() + "/public/resources/" + customFileName;
-            if (testName.equals(requestURI)) {
-                return customResources.get(customFileName);
+        if (!filename.startsWith(RESOURCE_PATH)) {
+            LOGGER.warn("illegal url request to " + filename);
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal url request"));
+        }
+
+        { // check custom (configuration defined) zip file bundles
+            final Map<String,FileResource> customResources = resourceServletConfiguration.getCustomFileBundle();
+            for (final String customFileName : customResources.keySet()) {
+                final String testName = RESOURCE_PATH + "/" + customFileName;
+                if (testName.equals(resourcePathUri)) {
+                    return customResources.get(customFileName);
+                }
             }
         }
 
-        // check zip files.
-        for (final String path : zipResources.keySet()) {
-            if (filename.startsWith(path)) {
-                final String zipSubPath = filename.substring(path.length() + 1, filename.length());
-                final ZipFile zipFile = zipResources.get(path);
-                final ZipEntry zipEntry = zipFile.getEntry(zipSubPath);
-                if (zipEntry != null) {
-                    return new ZipFileResource(zipFile, zipEntry);
+        {// check files system zip files.
+            final Map<String,ZipFile> zipResources = resourceServletConfiguration.getZipResources();
+            for (final String path : zipResources.keySet()) {
+                if (filename.startsWith(path)) {
+                    final String zipSubPath = filename.substring(path.length() + 1, filename.length());
+                    final ZipFile zipFile = zipResources.get(path);
+                    final ZipEntry zipEntry = zipFile.getEntry(zipSubPath);
+                    if (zipEntry != null) {
+                        return new ZipFileResource(zipFile, zipEntry);
+                    }
+                }
+                if (filename.startsWith(zipResources.get(path).getName())) {
+                    LOGGER.warn("illegal url request to " + filename + " zip resource");
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal url request"));
                 }
             }
         }
@@ -413,7 +426,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         final File file = new File(filePath);
 
         // figure top-most path allowed by request
-        final String parentDirectoryPath = servletContext.getRealPath(request.getServletPath());
+        final String parentDirectoryPath = servletContext.getRealPath(RESOURCE_PATH);
         final File parentDirectory = new File(parentDirectoryPath);
 
         { //verify the requested page is a child of the servlet resource path.
@@ -435,17 +448,16 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
     private boolean handleSpecialURIs(
             final PwmApplication pwmApplication,
             final String requestURI,
-            final HttpServletRequest request,
             final HttpServletResponse response,
             final ResourceServletConfiguration resourceServletConfiguration
     )
             throws PwmUnrecoverableException, IOException, ServletException
     {
         if (requestURI != null) {
-            if (requestURI.startsWith(request.getContextPath() + "/public/resources/themes/embed/style.css")) {
+            if (requestURI.startsWith(THEME_CSS_PATH.replace(TOKEN_THEME,EMBED_THEME))) {
                 writeConfigSettingToBody(pwmApplication, PwmSetting.DISPLAY_CSS_EMBED, response, resourceServletConfiguration);
                 return true;
-            } else if (requestURI.startsWith(request.getContextPath() + "/public/resources/themes/embed/mobileStyle.css")) {
+            } else if (requestURI.startsWith(THEME_CSS_MOBILE_PATH.replace(TOKEN_THEME,EMBED_THEME))) {
                 writeConfigSettingToBody(pwmApplication, PwmSetting.DISPLAY_CSS_MOBILE_EMBED, response, resourceServletConfiguration);
                 return true;
             }
@@ -493,5 +505,10 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         }
 
         return uriString;
+    }
+
+    private String figureRequestPathMinusContext(final HttpServletRequest httpServletRequest) {
+        final String requestURI = httpServletRequest.getRequestURI();
+        return requestURI.substring(httpServletRequest.getContextPath().length(), requestURI.length());
     }
 }

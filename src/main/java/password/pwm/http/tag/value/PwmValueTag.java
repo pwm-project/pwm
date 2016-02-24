@@ -20,10 +20,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.tag;
+package password.pwm.http.tag.value;
 
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -60,7 +61,7 @@ public class PwmValueTag extends TagSupport {
                 // final VALUE value = Helper.readEnumFromString(VALUE.class, null, getName());
                 final PwmValue value = getName();
                 final String output = calcValue(pwmRequest,pageContext,value);
-                pageContext.getOut().write(output);
+                pageContext.getOut().write(StringUtil.escapeHtml(output));
 
             } catch (IllegalArgumentException e) {
                 LOGGER.error("can't output requested value name '" + getName() + "'");

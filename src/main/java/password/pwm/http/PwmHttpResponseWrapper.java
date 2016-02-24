@@ -40,7 +40,7 @@ import java.net.URI;
 import java.util.Arrays;
 
 public class PwmHttpResponseWrapper {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmHttpRequestWrapper.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmHttpResponseWrapper.class);
 
     private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
@@ -146,7 +146,7 @@ public class PwmHttpResponseWrapper {
             final Flag... flags
     ) {
         if (this.getHttpServletResponse().isCommitted()) {
-            LOGGER.warn("attempting to write cookie '" + cookieName + "' after response is committed");
+            LOGGER.warn("attempt to write cookie '" + cookieName + "' after response is committed");
         }
         boolean secureFlag;
         {

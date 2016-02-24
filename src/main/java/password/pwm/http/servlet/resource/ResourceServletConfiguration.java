@@ -45,11 +45,11 @@ class ResourceServletConfiguration {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ResourceServletConfiguration.class);
 
     // settings with default values, values are set by app properties.
-    private int maxCacheItems;
-    private long cacheExpireSeconds;
+    private int maxCacheItems = 100;
+    private long cacheExpireSeconds = 60;
     private boolean enableGzip = false;
     private boolean enablePathNonce = false;
-    private long maxCacheBytes;
+    private long maxCacheBytes = 1024;
 
     private final Map<String, ZipFile> zipResources = new HashMap<>();
     private final Map<String, FileResource> customFileBundle = new HashMap<>();
@@ -92,6 +92,9 @@ class ResourceServletConfiguration {
         return maxCacheItems;
     }
 
+    ResourceServletConfiguration() {
+    }
+
     ResourceServletConfiguration(final PwmApplication pwmApplication) {
         LOGGER.trace("initializing");
         maxCacheItems = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_MAX_CACHE_ITEMS));
@@ -108,19 +111,23 @@ class ResourceServletConfiguration {
         if (zipFileResourceParam != null && !zipFileResourceParam.isEmpty()) {
             final List<ConfiguredZipFileResource> configuredZipFileResources = JsonUtil.deserialize(zipFileResourceParam, new TypeToken<ArrayList<ConfiguredZipFileResource>>() {
             });
-            for (final ConfiguredZipFileResource loopInitParam : configuredZipFileResources) {
+            for (final ConfiguredZipFileResource configuredZipFileResource : configuredZipFileResources) {
                 final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
                 if (webInfPath != null) {
                     try {
-                        final File zipFileFile = new File(webInfPath.getParentFile() + loopInitParam.getZipFile());
+                        final File zipFileFile = new File(
+                                webInfPath.getParentFile() + "/"
+                                        + ResourceFileServlet.RESOURCE_PATH
+                                        + configuredZipFileResource.getZipFile()
+                        );
                         final ZipFile zipFile = new ZipFile(zipFileFile);
-                        zipResources.put(loopInitParam.getUrl(), zipFile);
-                        LOGGER.debug("registered resource-zip file " + loopInitParam.getZipFile() + " at path " + zipFileFile.getAbsolutePath());
+                        zipResources.put(ResourceFileServlet.RESOURCE_PATH + configuredZipFileResource.getUrl(), zipFile);
+                        LOGGER.debug("registered resource-zip file " + configuredZipFileResource.getZipFile() + " at path " + zipFileFile.getAbsolutePath());
                     } catch (IOException e) {
-                        LOGGER.warn("unable to resource-zip file " + loopInitParam + ", error: " + e.getMessage());
+                        LOGGER.warn("unable to resource-zip file " + configuredZipFileResource + ", error: " + e.getMessage());
                     }
                 } else {
-                    LOGGER.error("can't register resource-zip file " + loopInitParam.getZipFile() + " because WEB-INF path is unknown");
+                    LOGGER.error("can't register resource-zip file " + configuredZipFileResource.getZipFile() + " because WEB-INF path is unknown");
                 }
             }
         }

@@ -1,7 +1,7 @@
 <%@ page import="password.pwm.bean.TokenVerificationProgress" %>
 <%@ page import="password.pwm.http.bean.NewUserBean" %>
 <%@ page import="password.pwm.http.servlet.newuser.NewUserServlet" %>
-<%@ page import="password.pwm.http.tag.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.bean.UpdateProfileBean" %>
 <%@ page import="password.pwm.config.profile.UpdateAttributesProfile" %>
 

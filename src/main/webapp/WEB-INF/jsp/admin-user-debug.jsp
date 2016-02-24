@@ -22,6 +22,7 @@
 
 <%@ page import="password.pwm.Permission" %>
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <% final PwmRequest debug_pwmRequest = JspUtility.getPwmRequest(pageContext); %>
 <% final PwmSession debug_pwmSession = debug_pwmRequest.getPwmSession(); %>

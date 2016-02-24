@@ -21,7 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
-<%@ page import="password.pwm.http.tag.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"

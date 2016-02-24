@@ -1,4 +1,4 @@
-package password.pwm.http.tag;
+package password.pwm.http.tag.conditional;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
@@ -6,10 +6,13 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.ProfileType;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestFlag;
+import password.pwm.http.tag.value.PwmValue;
 import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
 
@@ -24,6 +27,7 @@ public enum PwmIfTest {
     showStrengthMeter(new BooleanPwmSettingTest(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)),
     showRandomPasswordGenerator(new BooleanPwmSettingTest(PwmSetting.PASSWORD_SHOW_AUTOGEN)),
     showHeaderMenu(new ShowHeaderMenuTest()),
+    showVersionHeader(new BooleanAppPropertyTest(AppProperty.HTTP_HEADER_SEND_XVERSION)),
     permission(new BooleanPermissionTest()),
     otpEnabled(new BooleanPwmSettingTest(PwmSetting.OTP_ENABLED)),
     hasStoredOtpTimestamp(new HasStoredOtpTimestamp()),
@@ -36,6 +40,10 @@ public enum PwmIfTest {
     forgottenUsernameEnabled(new BooleanPwmSettingTest(PwmSetting.FORGOTTEN_USERNAME_ENABLE)),
     activateUserEnabled(new BooleanPwmSettingTest(PwmSetting.ACTIVATE_USER_ENABLE)),
     newUserRegistrationEnabled(new BooleanPwmSettingTest(PwmSetting.NEWUSER_ENABLE)),
+
+    updateProfileAvailable(new BooleanPwmSettingTest(PwmSetting.UPDATE_PROFILE_ENABLE), new ActorHasProfileTest(ProfileType.UpdateAttributes)),
+    helpdeskAvailable(new BooleanPwmSettingTest(PwmSetting.HELPDESK_ENABLE), new ActorHasProfileTest(ProfileType.Helpdesk)),
+    guestRegistrationAvailable(new BooleanPwmSettingTest(PwmSetting.GUEST_ENABLE), new BooleanPermissionTest(Permission.GUEST_REGISTRATION)),
 
     booleanSetting(new BooleanPwmSettingTest(null)),
     stripInlineJavascript(new BooleanAppPropertyTest(AppProperty.SECURITY_STRIP_INLINE_JAVASCRIPT)),
@@ -51,20 +59,33 @@ public enum PwmIfTest {
 
     headerMenuIsVisible(new HeaderMenuIsVisibleTest()),
 
+    requestFlag(new RequestFlagTest()),
+
     ;
 
 
 
-    private Test test;
+    private Test[] tests;
 
-    PwmIfTest(Test test)
+    PwmIfTest(final Test... test)
     {
-        this.test = test;
+        this.tests = test;
     }
 
-    public Test getTest()
+    public Test[] getTests()
     {
-        return test;
+        return tests;
+    }
+
+    public boolean passed(final PwmRequest pwmRequest, final Options options)
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        for (final PwmIfTest.Test loopTest : getTests()) {
+            if (!loopTest.test(pwmRequest, options)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
@@ -78,7 +99,7 @@ public enum PwmIfTest {
     }
 
     private static class BooleanAppPropertyTest implements Test {
-        private AppProperty appProperty;
+        private final AppProperty appProperty;
 
         private BooleanAppPropertyTest(AppProperty appProperty)
         {
@@ -99,7 +120,7 @@ public enum PwmIfTest {
     }
 
     private static class BooleanPwmSettingTest implements Test {
-        private PwmSetting pwmSetting;
+        private final PwmSetting pwmSetting;
 
         private BooleanPwmSettingTest(PwmSetting pwmSetting)
         {
@@ -123,13 +144,11 @@ public enum PwmIfTest {
             boolean configMode = applicationMode == PwmApplication.MODE.CONFIGURATION;
             boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN);
             if (Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_WARNING_HEADER_SHOW))) {
-                if (!pwmRequest.getURL().isConfigManagerURL()) {
-                    if (configMode || PwmConstants.TRIAL_MODE) {
+                if (configMode || PwmConstants.TRIAL_MODE) {
+                    return true;
+                } else if (pwmRequest.isAuthenticated()) {
+                    if (adminUser && !pwmRequest.isForcedPageView()) {
                         return true;
-                    } else if (pwmRequest.isAuthenticated()) {
-                        if (adminUser && !pwmRequest.isForcedPageView()) {
-                            return true;
-                        }
                     }
                 }
             }
@@ -138,13 +157,24 @@ public enum PwmIfTest {
     }
 
     private static class BooleanPermissionTest implements Test {
+
+        private final Permission constructorPermission;
+
+        public BooleanPermissionTest(Permission constructorPermission) {
+            this.constructorPermission = constructorPermission;
+        }
+
+        public BooleanPermissionTest() {
+            this.constructorPermission = null;
+        }
+
         public boolean test(
                 PwmRequest pwmRequest,
                 Options options
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final Permission permission = options.getPermission();
+            final Permission permission = constructorPermission != null ? constructorPermission : options.getPermission();
 
             if (permission == null) {
                 return false;
@@ -208,7 +238,7 @@ public enum PwmIfTest {
         }
     }
 
-    private static class  ShowErrorDetailTest implements Test {
+    private static class ShowErrorDetailTest implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
                 Options options
@@ -250,7 +280,7 @@ public enum PwmIfTest {
         public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
             final HealthMonitor healthMonitor = pwmRequest.getPwmApplication().getHealthMonitor();
             if (healthMonitor != null && healthMonitor.status() == PwmService.STATUS.OPEN) {
-                if (healthMonitor.getMostSevereHealthStatus() == HealthStatus.WARN) {
+                if (healthMonitor.getMostSevereHealthStatus(HealthMonitor.CheckTimeliness.NeverBlock) == HealthStatus.WARN) {
                     return true;
                 }
             }
@@ -288,14 +318,40 @@ public enum PwmIfTest {
         }
     }
 
+    private static class ActorHasProfileTest implements Test {
+
+        private final ProfileType profileType;
+
+        public ActorHasProfileTest(ProfileType profileType) {
+            this.profileType = profileType;
+        }
+
+        @Override
+        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+            return pwmRequest.getPwmSession().getSessionManager().getProfile(pwmRequest.getPwmApplication(), profileType) != null;
+        }
+    }
+
+    private static class RequestFlagTest implements Test {
+
+        @Override
+        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+            if (options.getRequestFlag() == null) {
+                return false;
+            }
+            return pwmRequest.isFlag(options.getRequestFlag());
+        }
+    }
 
     static class Options {
         private boolean negate;
         private Permission permission;
+        private PwmRequestFlag requestFlag;
 
-        public Options(boolean negate, Permission permission) {
+        public Options(final boolean negate, final Permission permission, final PwmRequestFlag pwmRequestFlag) {
             this.negate = negate;
             this.permission = permission;
+            this.requestFlag = pwmRequestFlag;
         }
 
         public boolean isNegate() {
@@ -304,6 +360,10 @@ public enum PwmIfTest {
 
         public Permission getPermission() {
             return permission;
+        }
+
+        public PwmRequestFlag getRequestFlag() {
+            return requestFlag;
         }
     }
 }

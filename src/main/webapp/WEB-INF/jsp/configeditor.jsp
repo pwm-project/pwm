@@ -21,6 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>

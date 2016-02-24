@@ -325,6 +325,7 @@ public class AuditService implements PwmService {
                 break;
 
             case USER:
+            case HELPDESK:
                 for (final String toAddress : settings.getUserEmailAddresses()) {
                     sendAsEmail(pwmApplication, null, record, toAddress, settings.getAlertFromAddress());
                 }

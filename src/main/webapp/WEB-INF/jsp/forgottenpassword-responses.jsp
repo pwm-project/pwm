@@ -22,6 +22,8 @@
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="com.novell.ldapchai.cr.ChallengeSet" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
