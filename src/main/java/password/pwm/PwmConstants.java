@@ -254,6 +254,7 @@ public abstract class PwmConstants {
     public static final String PARAM_LDAP_PROFILE = "ldapProfile";
     public static final String PARAM_SKIP_CAPTCHA = "skipCaptcha";
     public static final String PARAM_POST_LOGIN_URL = "posturl";
+    public static final String PARAM_FILE_UPLOAD = "fileUpload";
 
     public static final String COOKIE_PERSISTENT_CONFIG_LOGIN = "persistentConfigLogin";
 

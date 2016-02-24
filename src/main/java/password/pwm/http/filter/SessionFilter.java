@@ -110,22 +110,10 @@ public class SessionFilter extends AbstractPwmFilter {
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         final PwmResponse resp = pwmRequest.getPwmResponse();
 
-        ServletHelper.handleRequestInitialization(pwmRequest, pwmApplication, pwmSession);
-
-        try {
-            ServletHelper.handleRequestSecurityChecks(pwmRequest.getHttpServletRequest(), pwmApplication, pwmSession);
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error(pwmRequest, e.getErrorInformation());
-            pwmRequest.respondWithError(e.getErrorInformation());
-            if (PwmError.ERROR_INTRUDER_SESSION != e.getError()) {
-                pwmRequest.invalidateSession();
-            }
-            return false;
-        }
 
         // debug the http session headers
         if (!pwmSession.getSessionStateBean().isDebugInitialized()) {
-            LOGGER.trace(pwmSession, ServletHelper.debugHttpHeaders(pwmRequest.getHttpServletRequest()));
+            LOGGER.trace(pwmSession, pwmRequest.debugHttpHeaders());
             pwmSession.getSessionStateBean().setDebugInitialized(true);
         }
 
@@ -226,10 +214,6 @@ public class SessionFilter extends AbstractPwmFilter {
         if ("true".equalsIgnoreCase(pwmRequest.readParameterAsString(
                 pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_PASSWORD_EXPIRED)))) {
             pwmSession.getUserInfoBean().getPasswordState().setExpired(true);
-        }
-
-        if (!resp.isCommitted()) {
-            ServletHelper.addPwmResponseHeaders(pwmRequest, true);
         }
 
         // update last request time.

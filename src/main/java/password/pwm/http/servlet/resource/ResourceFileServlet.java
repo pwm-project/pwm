@@ -31,7 +31,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.ServletHelper;
 import password.pwm.http.servlet.PwmServlet;
 import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.svc.stats.Statistic;
@@ -187,7 +186,6 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
             if (ifNoneMatchValue != null && ifNoneMatchValue.equals(eTagValue)) {
                 response.reset();
                 response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-                ServletHelper.addPwmResponseHeaders(pwmRequest, false);
                 try {
                     pwmRequest.debugHttpRequestToLog("returning HTTP 304 status");
                 } catch (PwmUnrecoverableException e2) { /* noop */ }
@@ -200,9 +198,6 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         response.setDateHeader("Expires", System.currentTimeMillis() + (resourceConfiguration.getCacheExpireSeconds() * 1000));
         response.setHeader("ETag", resourceConfiguration.getNonceValue());
         response.setContentType(contentType);
-
-        // set pwm headers
-        ServletHelper.addPwmResponseHeaders(pwmRequest, false);
 
         try {
             boolean fromCache = false;

@@ -38,7 +38,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.ServletHelper;
+import password.pwm.http.PwmURL;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientConfiguration;
@@ -406,7 +406,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
             throws IOException, PwmUnrecoverableException
     {
         final Date startTime = new Date();
-        final String requestBody = ServletHelper.appendAndEncodeUrlParameters("", requestParams);
+        final String requestBody = PwmURL.appendAndEncodeUrlParameters("", requestParams);
         LOGGER.trace(pwmRequest, "beginning " + debugText + " request to " + requestUrl + ", body: \n" + requestBody);
         final HttpPost httpPost = new HttpPost(requestUrl);
         httpPost.setHeader(PwmConstants.HttpHeader.Authorization.getHttpName(),
@@ -518,7 +518,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_STATE),state);
         urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI), redirectUri);
 
-        final String redirectUrl = ServletHelper.appendAndEncodeUrlParameters(settings.getLoginURL(), urlParams);
+        final String redirectUrl = PwmURL.appendAndEncodeUrlParameters(settings.getLoginURL(), urlParams);
 
         try{
             pwmRequest.sendRedirect(redirectUrl);

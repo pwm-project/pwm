@@ -290,7 +290,7 @@ public class PwmApplication {
         }
 
         try {
-            Map<PwmAboutProperty,String> infoMap = Helper.makeInfoBean(this);
+            Map<PwmAboutProperty,String> infoMap = PwmAboutProperty.makeInfoBean(this);
             LOGGER.trace("application info: " + JsonUtil.serializeMap(infoMap));
         } catch (Exception e) {
             LOGGER.error("error generating about application bean: " + e.getMessage());

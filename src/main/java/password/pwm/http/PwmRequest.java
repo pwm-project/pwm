@@ -25,6 +25,7 @@ package password.pwm.http;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.IOUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
@@ -170,7 +171,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             throws PwmUnrecoverableException, IOException
     {
         String redirectURL = this.getContextPath() + PwmServletDefinition.Command.servletUrl();
-        redirectURL = ServletHelper.appendAndEncodeUrlParameters(redirectURL,Collections.singletonMap(PwmConstants.PARAM_ACTION_REQUEST,"continue"));
+        redirectURL = PwmURL.appendAndEncodeUrlParameters(redirectURL, Collections.singletonMap(PwmConstants.PARAM_ACTION_REQUEST, "continue"));
         sendRedirect(redirectURL);
     }
 
@@ -187,6 +188,30 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return ContextManager.getContextManager(this);
     }
 
+    public InputStream readFileUploadStream(final String filePartName)
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        try {
+            if (ServletFileUpload.isMultipartContent(this.getHttpServletRequest())) {
+
+                // Create a new file upload handler
+                final ServletFileUpload upload = new ServletFileUpload();
+
+                // Parse the request
+                for (final FileItemIterator iter = upload.getItemIterator(this.getHttpServletRequest()); iter.hasNext();) {
+                    final FileItemStream item = iter.next();
+
+                    if (filePartName.equals(item.getFieldName())) {
+                        return item.openStream();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("error reading file upload: " + e.getMessage());
+        }
+        return null;
+    }
+
     public Map<String,FileUploadItem> readFileUploads(
             final int maxFileSize,
             final int maxItems
@@ -196,26 +221,18 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         final Map<String,FileUploadItem> returnObj = new LinkedHashMap<>();
         try {
             if (ServletFileUpload.isMultipartContent(this.getHttpServletRequest())) {
-                final byte[] buffer = new byte[1024 * 4];
-
                 final ServletFileUpload upload = new ServletFileUpload();
                 final FileItemIterator iter = upload.getItemIterator(this.getHttpServletRequest());
                 while (iter.hasNext() && returnObj.size() < maxItems) {
                     final FileItemStream item = iter.next();
                     final InputStream inputStream = item.openStream();
                     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    int length;
-                    while ((length = inputStream.read(buffer)) > 0) {
-                        baos.write(buffer, 0, length);
-                        if (baos.size() > maxFileSize) {
-                            while ((inputStream.read(buffer)) > 0) {
-                                // read & ignore file.
-                            }
-                            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"upload file size limit exceeded");
-                            LOGGER.error(this, errorInformation);
-                            respondWithError(errorInformation);
-                            return Collections.emptyMap();
-                        }
+                    final long length = IOUtils.copyLarge(inputStream, baos, 0, maxFileSize + 1);
+                    if (length > maxFileSize) {
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"upload file size limit exceeded");
+                        LOGGER.error(this, errorInformation);
+                        respondWithError(errorInformation);
+                        return Collections.emptyMap();
                     }
                     final byte[] outputFile = baos.toByteArray();
                     final FileUploadItem fileUploadItem = new FileUploadItem(
@@ -573,11 +590,41 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     public String getURLwithQueryString() throws PwmUnrecoverableException {
         final HttpServletRequest req = this.getHttpServletRequest();
-        return ServletHelper.appendAndEncodeUrlParameters(req.getRequestURI(), readParametersAsMap());
+        return PwmURL.appendAndEncodeUrlParameters(req.getRequestURI(), readParametersAsMap());
     }
 
     public String getURLwithoutQueryString() throws PwmUnrecoverableException {
         final HttpServletRequest req = this.getHttpServletRequest();
         return req.getRequestURI();
+    }
+
+    public String debugHttpHeaders() {
+        final String LINE_SEPERATOR = "\n";
+        final StringBuilder sb = new StringBuilder();
+
+
+        sb.append("http").append(getHttpServletRequest().isSecure() ? "s " : " non-").append("secure request headers: ");
+        sb.append(LINE_SEPERATOR);
+
+        final Map<String,List<String>> headerMap = readHeaderValuesMap();
+        for (final String headerName : headerMap.keySet()) {
+            for (final String value : headerMap.get(headerName)) {
+                sb.append("  ");
+                sb.append(headerName);
+                sb.append("=");
+                if (headerName.contains("Authorization")) {
+                    sb.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
+                } else {
+                    sb.append(value);
+                }
+                sb.append(LINE_SEPERATOR);
+            }
+        }
+
+        if (LINE_SEPERATOR.equals(sb.substring(sb.length() - LINE_SEPERATOR.length(), sb.length()))) {
+            sb.delete(sb.length() - LINE_SEPERATOR.length(), sb.length());
+        }
+
+        return sb.toString();
     }
 }
