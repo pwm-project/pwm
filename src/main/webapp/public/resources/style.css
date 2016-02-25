@@ -122,7 +122,6 @@ table td.key {
     width: 36%;
 }
 
-<<<<<<< HEAD
 .health-body {
 	margin: 20px; 
 	padding:0; 
@@ -130,7 +129,8 @@ table td.key {
 	overflow-y: auto;
 	border-top: 1px solid #dae1e1;
 	border-bottom: 1px solid #dae1e1;
-=======
+}
+
 .healthTable-wrapper {
     margin-top:5px; margin-left: 20px; margin-right: 20px; padding:0;
     max-height: 300px; overflow-y: auto
@@ -141,7 +141,7 @@ table td.key {
 }
 
 .healthTable {
->>>>>>> pwm-project/master
+
 }
 
 .health-GOOD {
