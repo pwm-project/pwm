@@ -168,6 +168,7 @@ public enum AppProperty {
     NMAS_THREADS_MIN_SECONDS                        ("nmas.threads.minSeconds"),
     NMAS_THREADS_MAX_SECONDS                        ("nmas.threads.maxSeconds"),
     NMAS_THREADS_WATCHDOG_FREQUENCY                 ("nmas.threads.watchdogFrequencyMs"),
+    NMAS_IGNORE_NMASCR_DURING_FORCECHECK            ("nmas.ignoreNmasCrDuringForceSetupCheck"),
     OAUTH_ID_REQUEST_TYPE                           ("oauth.id.requestType"),
     OAUTH_ID_ACCESS_GRANT_TYPE                      ("oauth.id.accessGrantType"),
     OAUTH_ID_REFRESH_GRANT_TYPE                     ("oauth.id.refreshGrantType"),
