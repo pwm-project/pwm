@@ -122,7 +122,6 @@ table td.key {
     width: 36%;
 }
 
-<<<<<<< HEAD
 .health-body {
 	margin: 20px; 
 	padding:0; 
@@ -130,7 +129,8 @@ table td.key {
 	overflow-y: auto;
 	border-top: 1px solid #dae1e1;
 	border-bottom: 1px solid #dae1e1;
-=======
+}
+
 .healthTable-wrapper {
     margin-top:5px; margin-left: 20px; margin-right: 20px; padding:0;
     max-height: 300px; overflow-y: auto
@@ -141,7 +141,7 @@ table td.key {
 }
 
 .healthTable {
->>>>>>> pwm-project/master
+
 }
 
 .health-GOOD {
@@ -506,8 +506,8 @@ div.progress-container > div {
     width: 200px;
     border: 2px solid #aaaaaa;
     background-color: #DDDDDD;
-    z-index: 10;
-    padding: 10px;
+    padding: 15px;
+    z-index: 1000;
 }
 	#header-warning span {
 		padding-left: 3px;
@@ -731,13 +731,13 @@ select {
 
 #button-openHeader {
     position: absolute;
-    top: 25px;
-    right: 15px;
+    top: 30px;
+    right: 10px;
     z-index: 100;
     cursor: pointer;
     color: #f39c12;
-}
-	#button-openHeader span {font-size: 16px; color: #0088ce;}
+	}
+	#button-openHeader span {font-size: 18px;}
 
 #button-closeHeader {
     background: transparent url("close_40.png") no-repeat scroll 0 0 / cover ;

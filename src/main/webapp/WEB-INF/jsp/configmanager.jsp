@@ -104,11 +104,7 @@
             <% } %>
         </table>
         <br/>
-<<<<<<< HEAD
         <div id="healthBody" class="health-body">
-=======
-        <div id="healthBody">
->>>>>>> pwm-project/master
             <div class="WaitDialogBlank"></div>
         </div>
         <table class="noborder">
