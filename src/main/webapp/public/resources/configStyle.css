@@ -401,10 +401,11 @@ input:invalid{
 }
 
 #homeSettingSearch {
-	font-size: 18px !important;
+	font-size: 16px !important;
 	border-radius: 2px;
 	border: 1px solid #dae1e1 !important;
     width: 280px;
+	height: 30px;
     margin-left:0;
     margin-right: auto;
 	padding: 5px;
