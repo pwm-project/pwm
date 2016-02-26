@@ -325,6 +325,10 @@ input:invalid{
     color:red;
 }
 
+.invalid-value {
+    color: red;
+    font-weight: bold;
+}
 .pane-help {
     border-bottom: 1px #d3d3d3 solid;
     padding: 5px;
