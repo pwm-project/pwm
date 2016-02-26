@@ -104,6 +104,9 @@ h3 {
      background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #B2B1B9), color-stop(1, #E8E1F6) );
      background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
  }
+#header-menu-wrapper {
+	color: white;
+	}
 
 #header-warning {
     box-shadow: 4px 4px 2px #888888;
@@ -113,11 +116,35 @@ h3 {
     -moz-animation: slideInRight 0.3s; /* Firefox */
     -webkit-animation: slideInRight 0.3s; /* Safari and Chrome */
 }
+.header-button {
+	margin: 0px;
+	margin-top: 6px;
+	margin-left: 6px;
+	}
+#header-username-group, #header-username {
+	text-align: right;
+	}
+#HomeButton span.btn-icon, #LogoutButton span.btn-icon, #header-username-caret span.m-icon {
+	font: 20px FontAwesome;
+	margin-right: 0px;
+}
+#HomeButton span.btn-icon:before {
+	content: "\f015";
+	}
+#LogoutButton span.btn-icon:before {
+	content: "\f08b";
+	}
+#header-username-caret span.m-icon {
+	content: "\f08b";
+	}
+.tile {
+	width: 165px;
+	height: 165px;
+	}	
 
 .btn-icon {
     opacity:0.75;
 }
-
 
 @keyframes slideInRight { 0% { transform: translate3d(100%, 0, 0); visibility: visible; } 100% { transform: translate3d(0, 0, 0); } }
 @-webkit-keyframes slideInRight { 0% { transform: translate3d(100%, 0, 0); visibility: visible; } 100% { transform: translate3d(0, 0, 0); } }

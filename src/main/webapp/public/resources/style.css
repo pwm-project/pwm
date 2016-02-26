@@ -506,8 +506,8 @@ div.progress-container > div {
     width: 200px;
     border: 2px solid #aaaaaa;
     background-color: #DDDDDD;
-    z-index: 10;
-    padding: 10px;
+    padding: 15px;
+    z-index: 1000;
 }
 	#header-warning span {
 		padding-left: 3px;
@@ -612,7 +612,7 @@ div.progress-container > div {
     position: absolute;
     width: 100%;
     bottom: 0;
-    padding-bottom: 5px;
+    padding-bottom: 10px;
 }
 
 
@@ -731,13 +731,13 @@ select {
 
 #button-openHeader {
     position: absolute;
-    top: 25px;
-    right: 15px;
+    top: 30px;
+    right: 10px;
     z-index: 100;
     cursor: pointer;
     color: #f39c12;
-}
-	#button-openHeader span {font-size: 16px; color: #0088ce;}
+	}
+	#button-openHeader span {font-size: 18px;}
 
 #button-closeHeader {
     background: transparent url("close_40.png") no-repeat scroll 0 0 / cover ;
