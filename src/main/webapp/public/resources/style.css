@@ -612,7 +612,7 @@ div.progress-container > div {
     position: absolute;
     width: 100%;
     bottom: 0;
-    padding-bottom: 5px;
+    padding-bottom: 10px;
 }
 
 
