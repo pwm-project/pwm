@@ -2,10 +2,7 @@
 <%@ page import="password.pwm.i18n.PwmLocaleBundle" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
-<%@ page import="java.util.Collections" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="java.util.ResourceBundle" %>
-<%@ page import="java.util.TreeSet" %>
+<%@ page import="java.util.*" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/

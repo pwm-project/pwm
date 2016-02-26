@@ -2,6 +2,7 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.svc.event.AuditEvent" %>
 <%@ page import="password.pwm.svc.stats.Statistic" %>
+<%@ page import="java.util.Locale" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/

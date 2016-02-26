@@ -6,6 +6,7 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Arrays" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Locale" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
