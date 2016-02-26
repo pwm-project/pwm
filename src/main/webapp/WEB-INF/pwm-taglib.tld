@@ -197,11 +197,17 @@
             <rtexprvalue>true</rtexprvalue>
             <type>password.pwm.http.tag.conditional.PwmIfTest</type>
         </attribute>
-       <attribute>
+        <attribute>
             <name>permission</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
-           <type>password.pwm.Permission</type>
+            <type>password.pwm.Permission</type>
+        </attribute>
+        <attribute>
+            <name>setting</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>password.pwm.config.PwmSetting</type>
         </attribute>
         <attribute>
             <name>negate</name>

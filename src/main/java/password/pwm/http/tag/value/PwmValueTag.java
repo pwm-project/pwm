@@ -60,7 +60,7 @@ public class PwmValueTag extends TagSupport {
             try {
                 // final VALUE value = Helper.readEnumFromString(VALUE.class, null, getName());
                 final PwmValue value = getName();
-                final String output = calcValue(pwmRequest,pageContext,value);
+                final String output = calcValue(pwmRequest, pageContext, value);
                 pageContext.getOut().write(StringUtil.escapeHtml(output));
 
             } catch (IllegalArgumentException e) {
