@@ -120,7 +120,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
         final List<FormConfiguration> forgottenUsernameForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.FORGOTTEN_USERNAME_FORM);
 
         //read the values from the request
-        Map<FormConfiguration, String> formValues = new HashMap();
+        Map<FormConfiguration, String> formValues = new HashMap<>();
         try {
             formValues = FormUtility.readFormValuesFromRequest(pwmRequest,
                     forgottenUsernameForm, ssBean.getLocale());

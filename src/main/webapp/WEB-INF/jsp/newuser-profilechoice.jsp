@@ -32,7 +32,7 @@
     final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
     final Map<String,NewUserProfile> newUserProfiles = pwmRequest.getConfig().getNewUserProfiles();
 %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">

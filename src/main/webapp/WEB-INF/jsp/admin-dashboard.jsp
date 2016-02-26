@@ -24,6 +24,7 @@
 <%@ page import="password.pwm.config.profile.LdapProfile" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.health.HealthRecord" %>
+<%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.svc.PwmService" %>
 <%@ page import="password.pwm.svc.sessiontrack.SessionTrackService" %>
@@ -31,6 +32,7 @@
 <%@ page import="password.pwm.util.FileSystemUtility" %>
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="password.pwm.util.localdb.LocalDB" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
@@ -58,7 +60,7 @@
         JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
     }
 %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">

@@ -10,12 +10,15 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Admin;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.ws.server.rest.RestAppDataServer;
 
 import javax.servlet.jsp.JspPage;
 import javax.servlet.jsp.PageContext;
+import java.awt.*;
+import java.util.Locale;
 
 public enum PwmValue {
 
@@ -30,6 +33,11 @@ public enum PwmValue {
     username(new UsernameOutput()),
     clientETag(new ClientETag()),
     restClientKey(new RestClientKey()),
+    localeCode(new LocaleCodeOutput()),
+    localeDir(new LocaleDirOutput()),
+    localeFlagFile(new LocaleFlagFileOutput()),
+    localeName(new LocaleNameOutput()),
+    inactiveTimeRemaining(new InactiveTimeRemainingOutput()),
 
     ;
 
@@ -180,4 +188,42 @@ public enum PwmValue {
         }
     }
 
+    static class LocaleCodeOutput implements ValueOutput {
+        @Override
+        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+            return pwmRequest.getLocale().toLanguageTag();
+        }
+    }
+
+    static class LocaleDirOutput implements ValueOutput {
+        @Override
+        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+            final Locale locale = pwmRequest.getLocale();
+            final ComponentOrientation orient = ComponentOrientation.getOrientation(locale);
+            return orient != null && !orient.isLeftToRight() ? "rtl" : "ltr";
+        }
+    }
+
+    static class LocaleNameOutput implements ValueOutput {
+        @Override
+        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+            final Locale locale = pwmRequest.getLocale();
+            return locale.getDisplayName(locale);
+        }
+    }
+
+    static class LocaleFlagFileOutput implements ValueOutput {
+        @Override
+        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+            final String flagFileName = pwmRequest.getConfig().getKnownLocaleFlagMap().get(pwmRequest.getLocale());
+            return flagFileName == null ? "" : flagFileName;
+        }
+    }
+
+    static class InactiveTimeRemainingOutput implements ValueOutput {
+        @Override
+        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+            return new TimeDuration(pwmRequest.getHttpServletRequest().getSession().getMaxInactiveInterval() * 1000).asLongString(pwmRequest.getLocale());
+        }
+    }
 }

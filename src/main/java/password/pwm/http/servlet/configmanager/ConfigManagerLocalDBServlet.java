@@ -152,7 +152,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
             return;
         }
 
-        final InputStream inputStream = ServletHelper.readFileUpload(pwmRequest.getHttpServletRequest(), "uploadFile");
+        final InputStream inputStream = pwmRequest.readFileUploadStream(PwmConstants.PARAM_FILE_UPLOAD);
 
         final ContextManager contextManager = ContextManager.getContextManager(pwmRequest);
         LocalDB localDB = null;
@@ -187,7 +187,5 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
 
         pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
     }
-
-
 }
 

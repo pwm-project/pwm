@@ -177,7 +177,7 @@ public class DebugItemGenerator {
                 }
             };
 
-            final Map<PwmAboutProperty,String> infoBean = Helper.makeInfoBean(pwmApplication);
+            final Map<PwmAboutProperty,String> infoBean = PwmAboutProperty.makeInfoBean(pwmApplication);
             for (final PwmAboutProperty aboutProperty : infoBean.keySet()) {
                 outputProps.put(aboutProperty.toString().replace("_","."), infoBean.get(aboutProperty));
             }

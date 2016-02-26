@@ -949,7 +949,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             throws IOException, ServletException, PwmUnrecoverableException {
         final Date startTime = newUserBean.getCreateStartTime();
         if (startTime == null) {
-            pwmRequest.respondWithError(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE.toInfo(), true);
+            pwmRequest.respondWithError(PwmError.ERROR_INCORRECT_REQ_SEQUENCE.toInfo(), true);
             return;
         }
 
@@ -989,7 +989,7 @@ public class NewUserServlet extends AbstractPwmServlet {
     {
         final Date startTime = newUserBean.getCreateStartTime();
         if (startTime == null) {
-            pwmRequest.respondWithError(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE.toInfo(), true);
+            pwmRequest.respondWithError(PwmError.ERROR_INCORRECT_REQ_SEQUENCE.toInfo(), true);
             return;
         }
 

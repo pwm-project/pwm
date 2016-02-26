@@ -31,7 +31,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.ServletHelper;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.i18n.Message;
 import password.pwm.svc.wordlist.StoredWordlistDataBean;
@@ -138,7 +137,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
             return;
         }
 
-        final InputStream inputStream = ServletHelper.readFileUpload(pwmRequest.getHttpServletRequest(),"uploadFile");
+        final InputStream inputStream = pwmRequest.readFileUploadStream(PwmConstants.PARAM_FILE_UPLOAD);
 
         try {
             wordlistType.forType(pwmApplication).populate(inputStream);

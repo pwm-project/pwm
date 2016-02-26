@@ -235,7 +235,7 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
         pwmRequest.setAttribute(PwmRequest.Attribute.ModuleBean_String, pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(setupResponsesBean));
         pwmRequest.setAttribute(PwmRequest.Attribute.SetupResponses_ResponseInfo, pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean());
 
-        if (setupResponsesBean.isHasExistingResponses()) {
+        if (setupResponsesBean.isHasExistingResponses() && !pwmRequest.getPwmSession().getUserInfoBean().isRequiresResponseConfig()) {
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_RESPONSES_EXISTING);
             return;
         }

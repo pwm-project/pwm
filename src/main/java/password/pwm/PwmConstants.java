@@ -243,7 +243,6 @@ public abstract class PwmConstants {
 
     public static final String PARAM_ACTION_REQUEST = "processAction";
     public static final String PARAM_ACTION_STATE = "actionState";
-    public static final String PARAM_VERIFICATION_KEY = "session_verification_key";
     public static final String PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
     public static final String PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
     public static final String PARAM_FORM_ID = "pwmFormID";
@@ -255,6 +254,7 @@ public abstract class PwmConstants {
     public static final String PARAM_LDAP_PROFILE = "ldapProfile";
     public static final String PARAM_SKIP_CAPTCHA = "skipCaptcha";
     public static final String PARAM_POST_LOGIN_URL = "posturl";
+    public static final String PARAM_FILE_UPLOAD = "fileUpload";
 
     public static final String COOKIE_PERSISTENT_CONFIG_LOGIN = "persistentConfigLogin";
 
@@ -341,6 +341,7 @@ public abstract class PwmConstants {
         WWW_Authenticate("WWW-Authenticate"),
         ContentDisposition("content-disposition"),
         ContentTransferEncoding("Content-Transfer-Encoding"),
+        Content_Language("Content-Language"),
         Accept_Encoding("Accept-Encoding"),
         Accept_Language("Accept-Language"),
         Authorization("Authorization"),

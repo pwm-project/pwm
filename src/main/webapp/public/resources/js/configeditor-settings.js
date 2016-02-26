@@ -1169,19 +1169,30 @@ ChangePasswordHandler.popup = function(settingKey,settingName,writeFunction) {
     ChangePasswordHandler.changePasswordPopup(settingKey);
 };
 
-ChangePasswordHandler.validatePasswordPopupFields = function() {
+ChangePasswordHandler.validatePasswordPopupFields = function(settingKey) {
     var password1 = PWM_MAIN.getObject('password1').value;
     var password2 = PWM_MAIN.getObject('password2').value;
 
     var matchStatus = "";
 
+    var properties = settingKey === undefined || PWM_SETTINGS['settings'][settingKey] === undefined ? {} : PWM_SETTINGS['settings'][settingKey]['properties'];
+    var minLength = properties && 'Minimum' in properties ? properties['Minimum'] : 1;
+
+    PWM_MAIN.getObject('field-password-length').innerHTML = password1.length;
     PWM_MAIN.getObject('button-storePassword').disabled = true;
-    if (password2.length > 0) {
-        if (password1 == password2) {
-            matchStatus = "MATCH";
-            PWM_MAIN.getObject('button-storePassword').disabled = false;
-        } else {
-            matchStatus = "NO_MATCH";
+
+    if (minLength > 1 && password1.length < minLength) {
+        PWM_MAIN.addCssClass('field-password-length','invalid-value');
+    } else {
+        PWM_MAIN.removeCssClass('field-password-length','invalid-value');
+        if (password2.length > 0) {
+
+            if (password1 == password2) {
+                matchStatus = "MATCH";
+                PWM_MAIN.getObject('button-storePassword').disabled = false;
+            } else {
+                matchStatus = "NO_MATCH";
+            }
         }
     }
 
@@ -1260,10 +1271,17 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
     var showFields = PWM_VAR['clientSettingCache'][settingKey]['settings']['showFields'];
     var p1 = PWM_VAR['clientSettingCache'][settingKey]['settings']['p1'];
     var p2 = PWM_VAR['clientSettingCache'][settingKey]['settings']['p2'];
-    var length = 'passwordDialog-randomLength' in PWM_VAR ? PWM_VAR['passwordDialog-randomLength'] : 25;
+    var properties = settingKey === undefined || PWM_SETTINGS['settings'][settingKey] === undefined ? {} : PWM_SETTINGS['settings'][settingKey]['properties'];
+    var minLength = properties && 'Minimum' in properties ? properties['Minimum'] : 1;
+    var randomLength = 'passwordDialog-randomLength' in PWM_VAR ? PWM_VAR['passwordDialog-randomLength'] : 25;
+    randomLength = randomLength < minLength ? minLength : randomLength;
     var special = 'passwordDialog-special' in PWM_VAR ? PWM_VAR['passwordDialog-special'] : false;
 
-    var bodyText = '<table class="noborder">'
+    var bodyText = '';
+    if (minLength > 1) {
+        bodyText += 'Minimum Length: ' + minLength + '</span><br/><br/>'
+    }
+    bodyText += '<table class="noborder">'
         + '<tr><td><span class="formFieldLabel">' + PWM_MAIN.showString('Field_NewPassword') + '</span></td></tr>'
         + '<tr><td>';
 
@@ -1288,10 +1306,13 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
         + '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/greenCheck.png">'
         + '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png">'
         + '</div></td>'
-        + '</tr></table>'
-        + '<br/><br/><div class="dialogSection" style="width: 400px"><span class="formFieldLabel">Generate Random Password </span><br/>'
+        + '</tr></table>';
+
+    bodyText += '<br/>Length: <span id="field-password-length">-</span>';
+
+    bodyText += '<br/><br/><div class="dialogSection" style="width: 400px"><span class="formFieldLabel">Generate Random Password </span><br/>'
         + '<label class="checkboxWrapper"><input id="input-special" type="checkbox"' + (special ? ' checked' : '') + '>Specials</input></label>'
-        + '&nbsp;&nbsp;&nbsp;&nbsp;<input id="input-randomLength" type="number" min="10" max="1000" value="' + length + '" style="width:45px">Length'
+        + '&nbsp;&nbsp;&nbsp;&nbsp;<input id="input-randomLength" type="number" min="10" max="1000" value="' + randomLength + '" style="width:45px">Length'
         + '&nbsp;&nbsp;&nbsp;&nbsp;<button id="button-generateRandom" name="button-generateRandom"><span class="pwm-icon pwm-icon-random btn-icon"></span>Generate Random</button>'
         + '</div><br/><br/>'
         + '<button name="button-storePassword" class="btn" id="button-storePassword" disabled="true"/>'
@@ -1317,19 +1338,19 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
             });
             PWM_MAIN.addEventHandler('password1','input',function(){
                 PWM_VAR['clientSettingCache'][settingKey]['settings']['p1'] = PWM_MAIN.getObject('password1').value;
-                ChangePasswordHandler.validatePasswordPopupFields();
+                ChangePasswordHandler.validatePasswordPopupFields(settingKey);
                 PWM_MAIN.getObject('password2').value = '';
             });
             PWM_MAIN.addEventHandler('password2','input',function(){
                 PWM_VAR['clientSettingCache'][settingKey]['settings']['p2'] = PWM_MAIN.getObject('password2').value;
-                ChangePasswordHandler.validatePasswordPopupFields();
+                ChangePasswordHandler.validatePasswordPopupFields(settingKey);
             });
             PWM_MAIN.addEventHandler('show','change',function(){
                 PWM_VAR['clientSettingCache'][settingKey]['settings']['showFields'] = PWM_MAIN.getObject('show').checked;
                 ChangePasswordHandler.changePasswordPopup(settingKey);
             });
             PWM_MAIN.getObject('password1').focus();
-            ChangePasswordHandler.validatePasswordPopupFields();
+            ChangePasswordHandler.validatePasswordPopupFields(settingKey);
         }
     });
 };

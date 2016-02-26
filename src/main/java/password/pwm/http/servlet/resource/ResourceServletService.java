@@ -146,7 +146,18 @@ public class ResourceServletService implements PwmService {
         }
     }
 
-    public boolean checkIfThemeExists(final PwmRequest pwmRequest, final String themeName) throws PwmUnrecoverableException {
+    public boolean checkIfThemeExists(final PwmRequest pwmRequest, final String themeName)
+            throws PwmUnrecoverableException
+    {
+        if (themeName == null) {
+            return false;
+        }
+
+        if (!themeName.matches(pwmRequest.getConfig().readAppProperty(AppProperty.SECURITY_INPUT_THEME_MATCH_REGEX))) {
+            LOGGER.warn(pwmRequest, "discarding suspicous theme name in request: " + themeName);
+            return false;
+        }
+
         final ServletContext servletContext = pwmRequest.getHttpServletRequest().getServletContext();
 
         final String[] testUrls = new String[]{ ResourceFileServlet.THEME_CSS_PATH,  ResourceFileServlet.THEME_CSS_MOBILE_PATH };

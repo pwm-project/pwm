@@ -24,6 +24,7 @@ package password.pwm.http.tag.conditional;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
@@ -42,6 +43,7 @@ public class PwmIfTag extends BodyTagSupport {
     private Permission permission;
     private boolean negate;
     private PwmRequestFlag requestFlag;
+    private PwmSetting setting;
 
     public void setTest(PwmIfTest test)
     {
@@ -62,6 +64,10 @@ public class PwmIfTag extends BodyTagSupport {
         this.requestFlag = requestFlag;
     }
 
+    public void setSetting(final PwmSetting setting) {
+        this.setting = setting;
+    }
+
     @Override
     public int doStartTag()
             throws JspException
@@ -77,7 +83,7 @@ public class PwmIfTag extends BodyTagSupport {
                 PwmIfTest testEnum = test;
                 if (testEnum != null) {
                     try {
-                        final PwmIfTest.Options options = new PwmIfTest.Options(negate, permission, requestFlag);
+                        final PwmIfOptions options = new PwmIfOptions(negate, setting, permission, requestFlag);
                         showBody = testEnum.passed(pwmRequest, options);
                     } catch (ChaiUnavailableException e) {
                         LOGGER.error("error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage());

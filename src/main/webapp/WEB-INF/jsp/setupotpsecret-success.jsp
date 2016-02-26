@@ -32,7 +32,7 @@
     final OTPUserRecord otpUserRecord = otpBean.getOtpUserRecord();
     final String ident = otpUserRecord.getIdentifier();
 %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <pwm:script-ref url="/public/resources/js/responses.js"/>

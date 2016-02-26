@@ -207,10 +207,6 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             }
         }
 
-        if (wlStatus != STATUS.CLOSED) {
-            LOGGER.debug("closed");
-        }
-
         wlStatus = STATUS.CLOSED;
         localDB = null;
     }

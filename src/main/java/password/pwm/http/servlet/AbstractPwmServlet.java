@@ -80,7 +80,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 try {
                     Validator.validatePwmRequestCounter(pwmRequest);
                 } catch (PwmOperationalException e) {
-                    if (e.getError() == PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE) {
+                    if (e.getError() == PwmError.ERROR_INCORRECT_REQ_SEQUENCE) {
                         final ErrorInformation errorInformation = e.getErrorInformation();
                         final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(req);
                         LOGGER.error(pwmSession, errorInformation.toDebugStr());

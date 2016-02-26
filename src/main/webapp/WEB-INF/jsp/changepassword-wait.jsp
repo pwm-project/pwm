@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="java.util.Date" %>
 <%@ page import="password.pwm.http.bean.ChangePasswordBean" %>
+<%@ page import="password.pwm.util.TimeDuration" %>
+<%@ page import="java.util.Date" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -29,7 +30,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_FOOTER_TEXT);%>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <%
