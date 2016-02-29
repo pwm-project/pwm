@@ -55,6 +55,7 @@
         </pwm:if>
     </pwm:if>
     <link href="<pwm:url url='/public/resources/dojo/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
+    <link href="<pwm:url url='/public/resources/dojo/dgrid/css/dgrid.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
     <pwm:script>
         <script type="text/javascript">
             var PWM_GLOBAL = PWM_GLOBAL || {}; PWM_GLOBAL['startupFunctions'] = [];

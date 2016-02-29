@@ -26,6 +26,9 @@
  */
 /* FONT PATH
  * -------------------------- */
+
+
+/*
 @font-face {
   font-family: 'FontAwesome';
   src: url('font/fontawesome-webfont.eot?v=4.3.0');
@@ -33,6 +36,9 @@
   font-weight: normal;
   font-style: normal;
 }
+*/
+
+@import url("font/font-awesome/css/font-awesome.css");
 
 .pwm-icon {
   display: inline-block;

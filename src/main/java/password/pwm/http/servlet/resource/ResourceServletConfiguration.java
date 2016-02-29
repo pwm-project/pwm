@@ -26,16 +26,14 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -53,8 +51,86 @@ class ResourceServletConfiguration {
 
     private final Map<String, ZipFile> zipResources = new HashMap<>();
     private final Map<String, FileResource> customFileBundle = new HashMap<>();
+    private final Map<String, String> webJarUriMappings;
     private Pattern noncePattern;
     private String nonceValue;
+
+    private ResourceServletConfiguration() {
+        webJarUriMappings = Parsers.parseWebJarMappings(AppProperty.HTTP_RESOURCES_WEBJAR_MAPPINGS.getDefaultValue());
+    }
+
+    private ResourceServletConfiguration(final PwmApplication pwmApplication) {
+        LOGGER.trace("initializing");
+        final Configuration configuration = pwmApplication.getConfig();
+        maxCacheItems = Integer.parseInt(configuration.readAppProperty(AppProperty.HTTP_RESOURCES_MAX_CACHE_ITEMS));
+        cacheExpireSeconds = Long.parseLong(configuration.readAppProperty(AppProperty.HTTP_RESOURCES_EXPIRATION_SECONDS));
+        enableGzip = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.HTTP_RESOURCES_ENABLE_GZIP));
+        enablePathNonce = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE));
+        maxCacheBytes = Long.parseLong(configuration.readAppProperty(AppProperty.HTTP_RESOURCES_MAX_CACHE_BYTES));
+
+        final String noncePrefix = configuration.readAppProperty(AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX);
+        noncePattern = Pattern.compile(noncePrefix + "[^/]*?/");
+        nonceValue = pwmApplication.getInstanceNonce();
+        webJarUriMappings = Parsers.parseWebJarMappings(configuration.readAppProperty(AppProperty.HTTP_RESOURCES_WEBJAR_MAPPINGS));
+
+        final String zipFileResourceParam = configuration.readAppProperty(AppProperty.HTTP_RESOURCES_ZIP_FILES);
+        if (zipFileResourceParam != null && !zipFileResourceParam.isEmpty()) {
+            final List<ConfiguredZipFileResource> configuredZipFileResources = JsonUtil.deserialize(zipFileResourceParam, new TypeToken<ArrayList<ConfiguredZipFileResource>>() {
+            });
+            for (final ConfiguredZipFileResource configuredZipFileResource : configuredZipFileResources) {
+                final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                if (webInfPath != null) {
+                    try {
+                        final File zipFileFile = new File(
+                                webInfPath.getParentFile() + "/"
+                                        + ResourceFileServlet.RESOURCE_PATH
+                                        + configuredZipFileResource.getZipFile()
+                        );
+                        final ZipFile zipFile = new ZipFile(zipFileFile);
+                        zipResources.put(ResourceFileServlet.RESOURCE_PATH + configuredZipFileResource.getUrl(), zipFile);
+                        LOGGER.debug("registered resource-zip file " + configuredZipFileResource.getZipFile() + " at path " + zipFileFile.getAbsolutePath());
+                    } catch (IOException e) {
+                        LOGGER.warn("unable to resource-zip file " + configuredZipFileResource + ", error: " + e.getMessage());
+                    }
+                } else {
+                    LOGGER.error("can't register resource-zip file " + configuredZipFileResource.getZipFile() + " because WEB-INF path is unknown");
+                }
+            }
+        }
+
+        final Map<FileValue.FileInformation, FileValue.FileContent> files = configuration.readSettingAsFile(PwmSetting.DISPLAY_CUSTOM_RESOURCE_BUNDLE);
+        if (files != null && !files.isEmpty()) {
+            final FileValue.FileInformation fileInformation = files.keySet().iterator().next();
+            final FileValue.FileContent fileContent = files.get(fileInformation);
+            LOGGER.debug("examining configured zip file resource for items name=" + fileInformation.getFilename() + ", size=" + fileContent.size());
+
+            try {
+                final Map<String, FileResource> customFiles = makeMemoryFileMapFromZipInput(fileContent.getContents());
+                customFileBundle.clear();
+                customFileBundle.putAll(customFiles);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+    }
+
+    private static class Parsers {
+        static Map<String,String> parseWebJarMappings(String input)
+        {
+            final Map<String,String> webJarMappings = JsonUtil.deserializeStringMap(input);
+            return Collections.unmodifiableMap(webJarMappings);
+        }
+    }
+
+    static ResourceServletConfiguration createResourceServletConfiguration(final PwmApplication pwmApplication) {
+        return new ResourceServletConfiguration(pwmApplication);
+    }
+
+    static ResourceServletConfiguration defaultConfiguration() {
+        return new ResourceServletConfiguration();
+    }
 
     public long getCacheExpireSeconds() {
         return cacheExpireSeconds;
@@ -92,61 +168,10 @@ class ResourceServletConfiguration {
         return maxCacheItems;
     }
 
-    ResourceServletConfiguration() {
+    public Map<String, String> getWebJarUriMappings() {
+        return webJarUriMappings;
     }
 
-    ResourceServletConfiguration(final PwmApplication pwmApplication) {
-        LOGGER.trace("initializing");
-        maxCacheItems = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_MAX_CACHE_ITEMS));
-        cacheExpireSeconds = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_EXPIRATION_SECONDS));
-        enableGzip = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_ENABLE_GZIP));
-        enablePathNonce = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE));
-        maxCacheBytes = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_MAX_CACHE_BYTES));
-
-        final String noncePrefix = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX);
-        noncePattern = Pattern.compile(noncePrefix + "[^/]*?/");
-        nonceValue = pwmApplication.getInstanceNonce();
-
-        final String zipFileResourceParam = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_ZIP_FILES);
-        if (zipFileResourceParam != null && !zipFileResourceParam.isEmpty()) {
-            final List<ConfiguredZipFileResource> configuredZipFileResources = JsonUtil.deserialize(zipFileResourceParam, new TypeToken<ArrayList<ConfiguredZipFileResource>>() {
-            });
-            for (final ConfiguredZipFileResource configuredZipFileResource : configuredZipFileResources) {
-                final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
-                if (webInfPath != null) {
-                    try {
-                        final File zipFileFile = new File(
-                                webInfPath.getParentFile() + "/"
-                                        + ResourceFileServlet.RESOURCE_PATH
-                                        + configuredZipFileResource.getZipFile()
-                        );
-                        final ZipFile zipFile = new ZipFile(zipFileFile);
-                        zipResources.put(ResourceFileServlet.RESOURCE_PATH + configuredZipFileResource.getUrl(), zipFile);
-                        LOGGER.debug("registered resource-zip file " + configuredZipFileResource.getZipFile() + " at path " + zipFileFile.getAbsolutePath());
-                    } catch (IOException e) {
-                        LOGGER.warn("unable to resource-zip file " + configuredZipFileResource + ", error: " + e.getMessage());
-                    }
-                } else {
-                    LOGGER.error("can't register resource-zip file " + configuredZipFileResource.getZipFile() + " because WEB-INF path is unknown");
-                }
-            }
-        }
-
-        final Map<FileValue.FileInformation, FileValue.FileContent> files = pwmApplication.getConfig().readSettingAsFile(PwmSetting.DISPLAY_CUSTOM_RESOURCE_BUNDLE);
-        if (files != null && !files.isEmpty()) {
-            final FileValue.FileInformation fileInformation = files.keySet().iterator().next();
-            final FileValue.FileContent fileContent = files.get(fileInformation);
-            LOGGER.debug("examining configured zip file resource for items name=" + fileInformation.getFilename() + ", size=" + fileContent.size());
-
-            try {
-                final Map<String, FileResource> customFiles = makeMemoryFileMapFromZipInput(fileContent.getContents());
-                customFileBundle.clear();
-                customFileBundle.putAll(customFiles);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     private static Map<String, FileResource> makeMemoryFileMapFromZipInput(byte[] content)
             throws IOException

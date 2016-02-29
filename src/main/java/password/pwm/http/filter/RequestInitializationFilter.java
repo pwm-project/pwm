@@ -31,6 +31,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.*;
 import password.pwm.svc.stats.Statistic;
@@ -78,7 +79,10 @@ public class RequestInitializationFilter implements Filter {
         final PwmApplicationMode mode = PwmApplicationMode.determineMode(req);
         final PwmURL pwmURL = new PwmURL(req);
 
-        if (pwmURL.isResourceURL()) {
+        PwmApplication testPwmApplicationLoad = null;
+        try { testPwmApplicationLoad = ContextManager.getPwmApplication(req); } catch (PwmException e) {}
+
+        if (testPwmApplicationLoad == null && pwmURL.isResourceURL()) {
             filterChain.doFilter(req, resp);
         } else {
             if (mode == PwmApplicationMode.ERROR) {
@@ -254,7 +258,9 @@ public class RequestInitializationFilter implements Filter {
 
     public static void addPwmResponseHeaders(
             final PwmRequest pwmRequest
-    ) throws PwmUnrecoverableException {
+    )
+            throws PwmUnrecoverableException
+    {
 
         if (pwmRequest == null) {
             return;

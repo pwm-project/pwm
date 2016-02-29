@@ -71,6 +71,7 @@ public enum AppProperty {
     HTTP_RESOURCES_ENABLE_GZIP                      ("http.resources.gzip.enable"),
     HTTP_RESOURCES_ENABLE_PATH_NONCE                ("http.resources.pathNonceEnable"),
     HTTP_RESOURCES_NONCE_PATH_PREFIX                ("http.resources.pathNoncePrefix"),
+    HTTP_RESOURCES_WEBJAR_MAPPINGS                  ("http.resources.webjarMappings"),
     HTTP_RESOURCES_ZIP_FILES                        ("http.resources.zipFiles"),
     HTTP_COOKIE_DEFAULT_SECURE_FLAG                 ("http.cookie.default.secureFlag"),
     HTTP_COOKIE_THEME_NAME                          ("http.cookie.theme.name"),

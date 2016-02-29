@@ -101,7 +101,7 @@ public class ResourceServletService implements PwmService {
         this.pwmApplication = pwmApplication;
         status = STATUS.OPENING;
         try {
-            this.resourceServletConfiguration = new ResourceServletConfiguration(pwmApplication);
+            this.resourceServletConfiguration = ResourceServletConfiguration.createResourceServletConfiguration(pwmApplication);
 
             cacheMap = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
                     .maximumWeightedCapacity(resourceServletConfiguration.getMaxCacheItems())
