@@ -1,10 +1,7 @@
 package password.pwm.http.tag.value;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.AppProperty;
-import password.pwm.Permission;
-import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
+import password.pwm.*;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
@@ -144,7 +141,7 @@ public enum PwmValue {
         public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             if (PwmConstants.TRIAL_MODE) {
                 return LocaleHelper.getLocalizedMessage(pwmRequest.getLocale(), "Header_TrialMode", pwmRequest.getConfig(), Admin.class, new String[]{PwmConstants.PWM_APP_NAME});
-            } else if (pwmRequest.getPwmApplication().getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
+            } else if (pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION) {
                 String output = "";
                 if (Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_JSP_SHOW_ICONS))) {
                     output += "<span id=\"icon-configModeHelp\" class=\"btn-icon pwm-icon pwm-icon-question-circle\"></span>";

@@ -22,6 +22,7 @@
 
 package password.pwm.http.filter;
 
+import password.pwm.PwmApplicationMode;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -41,7 +42,13 @@ public class CaptchaFilter extends AbstractPwmFilter {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(CaptchaFilter.class);
 
+    @Override
+    boolean isInterested(PwmApplicationMode mode, PwmURL pwmURL) {
+        return true;
+    }
+
     public void processFilter(
+            final PwmApplicationMode mode,
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
     )

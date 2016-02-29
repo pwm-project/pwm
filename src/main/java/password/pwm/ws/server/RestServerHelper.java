@@ -25,6 +25,7 @@ package password.pwm.ws.server;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -95,7 +96,7 @@ public abstract class RestServerHelper {
 
 
         if (servicePermissions.isPublicDuringConfig()) {
-            if (pwmApplication.getApplicationMode() == PwmApplication.MODE.NEW || pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
+            if (pwmApplication.getApplicationMode() == PwmApplicationMode.NEW || pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION) {
                 return restRequestBean;
             }
         }

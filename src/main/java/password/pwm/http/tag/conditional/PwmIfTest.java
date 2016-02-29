@@ -1,10 +1,7 @@
 package password.pwm.http.tag.conditional;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.AppProperty;
-import password.pwm.Permission;
-import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
+import password.pwm.*;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.error.PwmUnrecoverableException;
@@ -147,8 +144,8 @@ public enum PwmIfTest {
     private static class ShowHeaderMenuTest implements Test {
         @Override
         public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
-            final PwmApplication.MODE applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
-            boolean configMode = applicationMode == PwmApplication.MODE.CONFIGURATION;
+            final PwmApplicationMode applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
+            boolean configMode = applicationMode == PwmApplicationMode.CONFIGURATION;
             boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN);
             if (Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_WARNING_HEADER_SHOW))) {
                 if (configMode || PwmConstants.TRIAL_MODE) {
@@ -222,7 +219,7 @@ public enum PwmIfTest {
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmApplication().getApplicationMode() == PwmApplication.MODE.CONFIGURATION;
+            return pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION;
         }
     }
 
@@ -277,8 +274,8 @@ public enum PwmIfTest {
     private static class ConfigModeTest implements Test {
         @Override
         public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
-            final PwmApplication.MODE applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
-            return applicationMode == PwmApplication.MODE.CONFIGURATION;
+            final PwmApplicationMode applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
+            return applicationMode == PwmApplicationMode.CONFIGURATION;
         }
     }
 
@@ -311,7 +308,7 @@ public enum PwmIfTest {
                 return true;
             }
 
-            if (pwmRequest.getPwmApplication().getApplicationMode() != PwmApplication.MODE.RUNNING) {
+            if (pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING) {
                 return true;
             }
 

@@ -24,6 +24,7 @@ package password.pwm.http.filter;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.Configuration;
@@ -59,7 +60,13 @@ public class SessionFilter extends AbstractPwmFilter {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(SessionFilter.class);
 
+    @Override
+    boolean isInterested(PwmApplicationMode mode, PwmURL pwmURL) {
+        return true;
+    }
+
     public void processFilter(
+            final PwmApplicationMode mode,
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
     )

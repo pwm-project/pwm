@@ -138,10 +138,6 @@
     </filter-mapping>
     -->
     <filter>
-        <filter-name>ApplicationStatusFilter</filter-name>
-        <filter-class>password.pwm.http.filter.ApplicationStatusFilter</filter-class>
-    </filter>
-    <filter>
         <filter-name>GZIPFilter</filter-name>
         <filter-class>password.pwm.http.filter.GZIPFilter</filter-class>
     </filter>
@@ -174,28 +170,24 @@
         <filter-class>password.pwm.http.filter.ConfigAccessFilter</filter-class>
     </filter>
     <filter-mapping>
-        <filter-name>ApplicationStatusFilter</filter-name>
-        <url-pattern>*</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
         <filter-name>GZIPFilter</filter-name>
-        <url-pattern>*</url-pattern>
+        <url-pattern>/*</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>RequestInitializationFilter</filter-name>
-        <url-pattern>*</url-pattern>
+        <url-pattern>/*</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>ApplicationModeFilter</filter-name>
-        <url-pattern>*</url-pattern>
+        <url-pattern>/*</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>SessionFilter</filter-name>
-        <url-pattern>*</url-pattern>
+        <url-pattern>/*</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>CaptchaFilter</filter-name>
-        <url-pattern>*</url-pattern>
+        <url-pattern>/*</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>

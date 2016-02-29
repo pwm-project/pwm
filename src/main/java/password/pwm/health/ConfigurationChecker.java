@@ -24,6 +24,7 @@ package password.pwm.health;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -60,7 +61,7 @@ public class ConfigurationChecker implements HealthChecker {
 
         final List<HealthRecord> records = new ArrayList<>();
 
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
+        if (pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION) {
             records.add(HealthRecord.forMessage(HealthMessage.Config_ConfigMode));
         }
 

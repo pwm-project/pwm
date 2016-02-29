@@ -22,10 +22,7 @@
 
 package password.pwm.http;
 
-import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
-import password.pwm.PwmEnvironment;
+import password.pwm.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
@@ -143,7 +140,7 @@ public class ContextManager implements Serializable {
         }
 
         Configuration configuration = null;
-        PwmApplication.MODE mode = PwmApplication.MODE.ERROR;
+        PwmApplicationMode mode = PwmApplicationMode.ERROR;
 
 
         final File applicationPath;
@@ -166,16 +163,16 @@ public class ContextManager implements Serializable {
             configuration = configReader.getConfiguration();
 
             if (configReader == null) {
-                mode = startupErrorInformation == null ? PwmApplication.MODE.ERROR : PwmApplication.MODE.ERROR;
+                mode = startupErrorInformation == null ? PwmApplicationMode.ERROR : PwmApplicationMode.ERROR;
             } else {
-                mode = startupErrorInformation == null ? configReader.getConfigMode() : PwmApplication.MODE.ERROR;
+                mode = startupErrorInformation == null ? configReader.getConfigMode() : PwmApplicationMode.ERROR;
             }
 
             if (startupErrorInformation == null) {
                 startupErrorInformation = configReader.getConfigFileError();
             }
 
-            if (PwmApplication.MODE.ERROR == mode) {
+            if (PwmApplicationMode.ERROR == mode) {
                 outputError("Startup Error: " + (startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr()));
             }
         } catch (Throwable e) {

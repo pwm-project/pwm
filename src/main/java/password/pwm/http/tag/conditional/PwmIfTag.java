@@ -24,6 +24,7 @@ package password.pwm.http.tag.conditional;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
+import password.pwm.PwmApplicationMode;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
@@ -72,28 +73,31 @@ public class PwmIfTag extends BodyTagSupport {
     public int doStartTag()
             throws JspException
     {
+
         boolean showBody = false;
-        if (test != null) {
-            try {
+        if (PwmApplicationMode.determineMode((HttpServletRequest) pageContext.getRequest()) != PwmApplicationMode.ERROR) {
+            if (test != null) {
+                try {
 
-                final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest) pageContext.getRequest(),
-                        (HttpServletResponse) pageContext.getResponse());
-                final PwmSession pwmSession = pwmRequest.getPwmSession();
+                    final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest) pageContext.getRequest(),
+                            (HttpServletResponse) pageContext.getResponse());
+                    final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-                PwmIfTest testEnum = test;
-                if (testEnum != null) {
-                    try {
-                        final PwmIfOptions options = new PwmIfOptions(negate, setting, permission, requestFlag);
-                        showBody = testEnum.passed(pwmRequest, options);
-                    } catch (ChaiUnavailableException e) {
-                        LOGGER.error("error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage());
+                    PwmIfTest testEnum = test;
+                    if (testEnum != null) {
+                        try {
+                            final PwmIfOptions options = new PwmIfOptions(negate, setting, permission, requestFlag);
+                            showBody = testEnum.passed(pwmRequest, options);
+                        } catch (ChaiUnavailableException e) {
+                            LOGGER.error("error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage());
+                        }
+                    } else {
+                        final String errorMsg = "unknown test name '" + test + "' in pwm:If jsp tag!";
+                        LOGGER.warn(pwmSession, errorMsg);
                     }
-                } else {
-                    final String errorMsg = "unknown test name '" + test + "' in pwm:If jsp tag!";
-                    LOGGER.warn(pwmSession, errorMsg);
+                } catch (PwmUnrecoverableException e) {
+                    LOGGER.error("error executing PwmIfTag for test '" + test + "', error: " + e.getMessage());
                 }
-            } catch (PwmUnrecoverableException e) {
-                LOGGER.error("error executing PwmIfTag for test '" + test + "', error: " + e.getMessage());
             }
         }
 

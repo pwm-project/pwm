@@ -28,6 +28,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
@@ -99,7 +100,7 @@ public class ReportService implements PwmService {
         status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
+        if (pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY) {
             LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"application mode is read-only, will remain closed");
             status = STATUS.CLOSED;
             return;

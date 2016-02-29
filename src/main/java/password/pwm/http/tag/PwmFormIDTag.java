@@ -22,11 +22,13 @@
 
 package password.pwm.http.tag;
 
+import password.pwm.PwmApplicationMode;
 import password.pwm.http.JspUtility;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.tagext.TagSupport;
 import java.io.IOException;
 
@@ -38,6 +40,10 @@ public class PwmFormIDTag extends TagSupport {
     public int doEndTag()
             throws javax.servlet.jsp.JspTagException
     {
+        if (PwmApplicationMode.determineMode((HttpServletRequest) pageContext.getRequest()) == PwmApplicationMode.ERROR) {
+            return EVAL_PAGE;
+        }
+
         try {
             final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
             final String pwmFormID = Helper.buildPwmFormID(pwmRequest);

@@ -24,6 +24,7 @@ package password.pwm.http.filter;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.Configuration;
@@ -67,17 +68,53 @@ public class RequestInitializationFilter implements Filter {
     {
     }
 
-    @Override
     public void doFilter(
             final ServletRequest servletRequest,
             final ServletResponse servletResponse,
+            final FilterChain filterChain) throws IOException, ServletException {
+
+        final HttpServletRequest req = (HttpServletRequest)servletRequest;
+        final HttpServletResponse resp = (HttpServletResponse)servletResponse;
+        final PwmApplicationMode mode = PwmApplicationMode.determineMode(req);
+        final PwmURL pwmURL = new PwmURL(req);
+
+        if (pwmURL.isResourceURL()) {
+            filterChain.doFilter(req, resp);
+        } else {
+            if (mode == PwmApplicationMode.ERROR) {
+                try {
+                    final ContextManager contextManager = ContextManager.getContextManager(req.getServletContext());
+                    if (contextManager != null) {
+                        final ErrorInformation startupError = contextManager.getStartupErrorInformation();
+                        servletRequest.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(), startupError);
+                    }
+                } catch (Exception e) {
+                    if (pwmURL.isResourceURL()) {
+                        filterChain.doFilter(servletRequest, servletResponse);
+                        return;
+                    }
+
+                    LOGGER.error("error while trying to detect application status: " + e.getMessage());
+                }
+
+                LOGGER.error("unable to satisfy incoming request, application is not available");
+                resp.setStatus(500);
+                final String url = PwmConstants.JSP_URL.APP_UNAVAILABLE.getPath();
+                servletRequest.getServletContext().getRequestDispatcher(url).forward(servletRequest, servletResponse);
+            } else {
+                initializeServletRequest(req, resp, filterChain);
+            }
+        }
+    }
+
+
+    private void initializeServletRequest(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
             final FilterChain filterChain
     )
             throws IOException, ServletException
     {
-        final HttpServletRequest req = (HttpServletRequest)servletRequest;
-        final HttpServletResponse resp = (HttpServletResponse)servletResponse;
-
         try {
             checkAndInitSessionState(req);
             PwmRequest.forRequest(req,resp);
@@ -86,16 +123,16 @@ public class RequestInitializationFilter implements Filter {
             if (!(new PwmURL(req).isResourceURL())) {
                 ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE);
                 try {
-                    ContextManager contextManager = ContextManager.getContextManager(servletRequest.getServletContext());
+                    ContextManager contextManager = ContextManager.getContextManager(req.getServletContext());
                     if (contextManager != null) {
                         errorInformation = contextManager.getStartupErrorInformation();
                     }
                 } catch (Throwable e2) {
                     e2.getMessage();
                 }
-                servletRequest.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(),errorInformation);
+                req.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(),errorInformation);
                 final String url = PwmConstants.JSP_URL.APP_UNAVAILABLE.getPath();
-                servletRequest.getServletContext().getRequestDispatcher(url).forward(req, resp);
+                req.getServletContext().getRequestDispatcher(url).forward(req, resp);
             }
             return;
         }
@@ -125,21 +162,21 @@ public class RequestInitializationFilter implements Filter {
             if (!(new PwmURL(req).isResourceURL())) {
                 ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE);
                 try {
-                    ContextManager contextManager = ContextManager.getContextManager(servletRequest.getServletContext());
+                    ContextManager contextManager = ContextManager.getContextManager(req.getServletContext());
                     if (contextManager != null) {
                         errorInformation = contextManager.getStartupErrorInformation();
                     }
                 } catch (Throwable e2) {
                     e2.getMessage();
                 }
-                servletRequest.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(),errorInformation);
+                req.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(),errorInformation);
                 final String url = PwmConstants.JSP_URL.APP_UNAVAILABLE.getPath();
-                servletRequest.getServletContext().getRequestDispatcher(url).forward(req, resp);
+                req.getServletContext().getRequestDispatcher(url).forward(req, resp);
             }
             return;
         }
 
-        filterChain.doFilter(servletRequest, servletResponse);
+        filterChain.doFilter(req, resp);
     }
 
     private void checkAndInitSessionState(final HttpServletRequest request)

@@ -24,6 +24,7 @@ package password.pwm.svc.cache;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -70,7 +71,7 @@ public class CacheService implements PwmService {
             return;
         }
 
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
+        if (pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY) {
             LOGGER.debug("skipping cache service init due to read-only application mode");
             status = STATUS.CLOSED;
             return;

@@ -24,6 +24,7 @@ package password.pwm.util.queue;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthMessage;
@@ -192,7 +193,7 @@ public abstract class AbstractQueueManager implements PwmService {
             return;
         }
 
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
+        if (pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY) {
             status = STATUS.CLOSED;
             return;
         }
@@ -264,7 +265,7 @@ public abstract class AbstractQueueManager implements PwmService {
             return Collections.singletonList(HealthRecord.forMessage(HealthMessage.ServiceClosed_LocalDBUnavail, serviceName));
         }
 
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
+        if (pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY) {
             return Collections.singletonList(HealthRecord.forMessage(HealthMessage.ServiceClosed_AppReadOnly,serviceName));
         }
 

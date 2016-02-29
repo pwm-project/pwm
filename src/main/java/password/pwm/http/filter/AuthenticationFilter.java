@@ -25,6 +25,7 @@ package password.pwm.http.filter;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
@@ -73,6 +74,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(AuthenticationFilter.class.getName());
 
     public void processFilter(
+            final PwmApplicationMode mode,
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
     )
@@ -89,14 +91,14 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
             final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-            if (pwmApplication.getApplicationMode() == PwmApplication.MODE.NEW) {
+            if (pwmApplication.getApplicationMode() == PwmApplicationMode.NEW) {
                 if (pwmRequest.getURL().isConfigGuideURL()) {
                     chain.doFilter();
                     return;
                 }
             }
 
-            if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
+            if (pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION) {
                 if (pwmRequest.getURL().isConfigManagerURL()) {
                     chain.doFilter();
                     return;
@@ -115,7 +117,10 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    @Override
+    boolean isInterested(PwmApplicationMode mode, PwmURL pwmURL) {
+        return !pwmURL.isResourceURL();
+    }
 
     private void processAuthenticatedSession(
             final PwmRequest pwmRequest,

@@ -27,6 +27,7 @@ import org.apache.log4j.*;
 import org.apache.log4j.xml.DOMConfigurator;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -174,7 +175,7 @@ public class PwmLogManager {
     public static LocalDBLogger initializeLocalDBLogger(final PwmApplication pwmApplication) {
         final LocalDB localDB = pwmApplication.getLocalDB();
 
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
+        if (pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY) {
             LOGGER.trace("skipping initialization of LocalDBLogger due to read-only mode");
             return null;
         }

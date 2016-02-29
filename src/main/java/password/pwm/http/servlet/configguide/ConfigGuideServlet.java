@@ -31,6 +31,7 @@ import com.novell.ldapchai.provider.ChaiSetting;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -134,7 +135,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
         final ConfigGuideBean configGuideBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ConfigGuideBean.class);
 
-        if (pwmApplication.getApplicationMode() != PwmApplication.MODE.NEW) {
+        if (pwmApplication.getApplicationMode() != PwmApplicationMode.NEW) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"ConfigGuide unavailable unless in NEW mode");
             LOGGER.error(pwmSession, errorInformation.toDebugStr());
             pwmRequest.respondWithError(errorInformation);
@@ -222,7 +223,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
+        if (pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING) {
             final String errorMsg = "config upload is not permitted when in running mode";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE,errorMsg,new String[]{errorMsg});
             pwmRequest.respondWithError(errorInformation, true);

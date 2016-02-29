@@ -45,7 +45,7 @@ public class PwmEnvironment implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmEnvironment.class);
 
     // data elements
-    private final PwmApplication.MODE applicationMode;
+    private final PwmApplicationMode applicationMode;
     private final Configuration config;
     private final File applicationPath;
     private final boolean internalRuntimeInstance;
@@ -116,7 +116,7 @@ public class PwmEnvironment implements Serializable {
     }
 
     private PwmEnvironment(
-            final PwmApplication.MODE applicationMode,
+            final PwmApplicationMode applicationMode,
             final Configuration config,
             final File applicationPath,
             final boolean internalRuntimeInstance,
@@ -124,7 +124,7 @@ public class PwmEnvironment implements Serializable {
             final ContextManager contextManager,
             final Collection<ApplicationFlag> flags
     ) {
-        this.applicationMode = applicationMode == null ? PwmApplication.MODE.ERROR : applicationMode;
+        this.applicationMode = applicationMode == null ? PwmApplicationMode.ERROR : applicationMode;
         this.config = config;
         this.applicationPath = applicationPath;
         this.internalRuntimeInstance = internalRuntimeInstance;
@@ -137,7 +137,7 @@ public class PwmEnvironment implements Serializable {
         verify();
     }
 
-    public PwmApplication.MODE getApplicationMode() {
+    public PwmApplicationMode getApplicationMode() {
         return applicationMode;
     }
 
@@ -224,7 +224,7 @@ public class PwmEnvironment implements Serializable {
             throws PwmUnrecoverableException
     {
         return new Builder(this)
-                .setApplicationMode(PwmApplication.MODE.NEW)
+                .setApplicationMode(PwmApplicationMode.NEW)
                 .setInternalRuntimeInstance(true)
                 .setConfigurationFile(null)
                 .setConfig(configuration)
@@ -330,7 +330,7 @@ public class PwmEnvironment implements Serializable {
 
 
     public static class Builder {
-        private PwmApplication.MODE applicationMode;
+        private PwmApplicationMode applicationMode;
         private Configuration config;
         private File applicationPath;
         private boolean internalRuntimeInstance;
@@ -353,7 +353,7 @@ public class PwmEnvironment implements Serializable {
             this.applicationPath = applicationPath;
         }
 
-        public Builder setApplicationMode(PwmApplication.MODE applicationMode) {
+        public Builder setApplicationMode(PwmApplicationMode applicationMode) {
             this.applicationMode = applicationMode;
             return this;
         }

@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.varia.NullAppender;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
@@ -386,7 +387,7 @@ public class MainClass {
     static ConfigurationReader loadConfiguration(final File configurationFile) throws Exception {
         final ConfigurationReader reader = new ConfigurationReader(configurationFile);
 
-        if (reader.getConfigMode() == PwmApplication.MODE.ERROR) {
+        if (reader.getConfigMode() == PwmApplicationMode.ERROR) {
             final String errorMsg = reader.getConfigFileError() == null ? "error" : reader.getConfigFileError().toDebugStr();
             out("unable to load configuration: " + errorMsg);
             System.exit(-1);
@@ -404,7 +405,7 @@ public class MainClass {
     )
             throws LocalDBException, PwmUnrecoverableException
     {
-        final PwmApplication.MODE mode = readonly ? PwmApplication.MODE.READ_ONLY : PwmApplication.MODE.RUNNING;
+        final PwmApplicationMode mode = readonly ? PwmApplicationMode.READ_ONLY : PwmApplicationMode.RUNNING;
         final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = flags == null
                 ? PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(null)
                 : flags;
@@ -415,7 +416,7 @@ public class MainClass {
                 .setFlags(applicationFlags)
                 .createPwmEnvironment();
         final PwmApplication pwmApplication = new PwmApplication(pwmEnvironment);
-        final PwmApplication.MODE runningMode = pwmApplication.getApplicationMode();
+        final PwmApplicationMode runningMode = pwmApplication.getApplicationMode();
 
         if (runningMode != mode) {
             out("unable to start application in required state '" + mode + "', current state: " + runningMode);

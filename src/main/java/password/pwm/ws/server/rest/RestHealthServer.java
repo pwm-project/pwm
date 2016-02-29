@@ -25,6 +25,7 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -132,7 +133,7 @@ public class RestHealthServer extends AbstractRestServer {
     )
             throws PwmUnrecoverableException
     {
-        boolean allowImmediate = pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION
+        boolean allowImmediate = pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION
                 && pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
 
         return refreshImmediate && allowImmediate

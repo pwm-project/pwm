@@ -26,6 +26,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
@@ -138,7 +139,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
+        if (pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING) {
             final String errorMsg = "database upload is not permitted when in running mode";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE,errorMsg,new String[]{errorMsg});
             pwmRequest.respondWithError(errorInformation, true);

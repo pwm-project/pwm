@@ -84,7 +84,7 @@ public class VersionChecker implements PwmService {
             }
         }
 
-        if (pwmApplication.getApplicationMode() != PwmApplication.MODE.RUNNING && pwmApplication.getApplicationMode() != PwmApplication.MODE.CONFIGURATION ) {
+        if (pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING && pwmApplication.getApplicationMode() != PwmApplicationMode.CONFIGURATION ) {
             LOGGER.trace("skipping init due to application mode");
             return;
         }

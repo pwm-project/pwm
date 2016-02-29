@@ -23,10 +23,7 @@
 package password.pwm.http.servlet.configeditor;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
-import password.pwm.Validator;
+import password.pwm.*;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
@@ -949,7 +946,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             final LinkedHashMap<String, Object> varMap = new LinkedHashMap<>();
             varMap.put("ldapProfileIds", configManagerBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_PROFILE_LIST).toNativeObject());
             varMap.put("currentTemplate",configManagerBean.getStoredConfiguration().getTemplateSet());
-            if (pwmRequest.getPwmApplication().getApplicationMode() == PwmApplication.MODE.CONFIGURATION && !PwmConstants.TRIAL_MODE) {
+            if (pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION && !PwmConstants.TRIAL_MODE) {
                 if (!configManagerBean.isConfigUnlockedWarningShown()) {
                     varMap.put("configUnlocked",true);
                     configManagerBean.setConfigUnlockedWarningShown(true);

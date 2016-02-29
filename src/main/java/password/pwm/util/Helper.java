@@ -27,6 +27,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.FormNonce;
 import password.pwm.bean.SessionLabel;
@@ -411,11 +412,11 @@ public class
         if (pwmApplication == null) {
             return false;
         }
-        PwmApplication.MODE mode = pwmApplication.getApplicationMode();
-        if (mode == PwmApplication.MODE.CONFIGURATION || mode == PwmApplication.MODE.NEW) {
+        PwmApplicationMode mode = pwmApplication.getApplicationMode();
+        if (mode == PwmApplicationMode.CONFIGURATION || mode == PwmApplicationMode.NEW) {
             return true;
         }
-        if (mode == PwmApplication.MODE.RUNNING) {
+        if (mode == PwmApplicationMode.RUNNING) {
             if (pwmApplication.getConfig() != null) {
                 if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
                     return true;
