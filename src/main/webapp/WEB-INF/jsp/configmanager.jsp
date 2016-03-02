@@ -3,12 +3,14 @@
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%--
   ~ Password Management Servlets (PWM)
-  ~ http://code.google.com/p/pwm/
+  ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2015 The PWM Project
+  ~ Copyright (c) 2009-2016 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -33,7 +35,7 @@
 <%
     final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
 %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configmanagerStyle.css'/>" rel="stylesheet" type="text/css"/>
@@ -102,7 +104,7 @@
             <% } %>
         </table>
         <br/>
-        <div id="healthBody" style="margin-top:5px; margin-left: 20px; margin-right: 20px; padding:0; max-height: 300px; overflow-y: auto">
+        <div id="healthBody">
             <div class="WaitDialogBlank"></div>
         </div>
         <br/>
@@ -221,7 +223,7 @@
                         <script type="application/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 PWM_MAIN.addEventHandler('MenuItem_LdapPermissions','click',function(){
-                                    window.open('ConfigManager?processAction=permissions','_blank', 'width=650,toolbar=0,location=0,menubar=0');
+                                    window.open('ConfigManager?processAction=permissions','_blank', 'width=650,toolbar=0,location=0,menubar=0,scrollbars=1');
                                 });
                             });
                         </script>
@@ -249,6 +251,7 @@
     </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
+<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>

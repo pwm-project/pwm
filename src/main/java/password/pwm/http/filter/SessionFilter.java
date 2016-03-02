@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ package password.pwm.http.filter;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.Configuration;
@@ -59,7 +60,13 @@ public class SessionFilter extends AbstractPwmFilter {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(SessionFilter.class);
 
+    @Override
+    boolean isInterested(PwmApplicationMode mode, PwmURL pwmURL) {
+        return true;
+    }
+
     public void processFilter(
+            final PwmApplicationMode mode,
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
     )
@@ -110,22 +117,10 @@ public class SessionFilter extends AbstractPwmFilter {
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         final PwmResponse resp = pwmRequest.getPwmResponse();
 
-        ServletHelper.handleRequestInitialization(pwmRequest, pwmApplication, pwmSession);
-
-        try {
-            ServletHelper.handleRequestSecurityChecks(pwmRequest.getHttpServletRequest(), pwmApplication, pwmSession);
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error(pwmRequest, e.getErrorInformation());
-            pwmRequest.respondWithError(e.getErrorInformation());
-            if (PwmError.ERROR_INTRUDER_SESSION != e.getError()) {
-                pwmRequest.invalidateSession();
-            }
-            return false;
-        }
 
         // debug the http session headers
         if (!pwmSession.getSessionStateBean().isDebugInitialized()) {
-            LOGGER.trace(pwmSession, ServletHelper.debugHttpHeaders(pwmRequest.getHttpServletRequest()));
+            LOGGER.trace(pwmSession, pwmRequest.debugHttpHeaders());
             pwmSession.getSessionStateBean().setDebugInitialized(true);
         }
 
@@ -228,10 +223,6 @@ public class SessionFilter extends AbstractPwmFilter {
             pwmSession.getUserInfoBean().getPasswordState().setExpired(true);
         }
 
-        if (!resp.isCommitted()) {
-            ServletHelper.addPwmResponseHeaders(pwmRequest, true);
-        }
-
         // update last request time.
         ssBean.setSessionLastAccessedTime(new Date());
 
@@ -266,12 +257,13 @@ public class SessionFilter extends AbstractPwmFilter {
             return false;
         }
 
-        final String keyFromRequest = pwmRequest.readParameterAsString(PwmConstants.PARAM_VERIFICATION_KEY, PwmHttpRequestWrapper.Flag.BypassValidation);
+        final String verificationParamName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_SESSION_VERIFICATION);
+        final String keyFromRequest = pwmRequest.readParameterAsString(verificationParamName, PwmHttpRequestWrapper.Flag.BypassValidation);
 
         // request doesn't have key, so make a new one, store it in the session, and redirect back here with the new key.
         if (keyFromRequest == null || keyFromRequest.length() < 1) {
 
-            final String returnURL = figureValidationURL(req, ssBean.getSessionVerificationKey());
+            final String returnURL = figureValidationURL(pwmRequest, ssBean.getSessionVerificationKey());
 
             LOGGER.trace(pwmRequest, "session has not been validated, redirecting with verification key to " + returnURL);
 
@@ -287,7 +279,7 @@ public class SessionFilter extends AbstractPwmFilter {
 
         // else, request has a key, so investigate.
         if (keyFromRequest.equals(ssBean.getSessionVerificationKey())) {
-            final String returnURL = figureValidationURL(req, null);
+            final String returnURL = figureValidationURL(pwmRequest, null);
 
             // session looks, good, mark it as such and return;
             LOGGER.trace(pwmRequest, "session validated, redirecting to original request url: " + returnURL);
@@ -304,16 +296,20 @@ public class SessionFilter extends AbstractPwmFilter {
         return true;
     }
 
-    private static String figureValidationURL(final HttpServletRequest req, final String validationKey) {
+    private static String figureValidationURL(final PwmRequest pwmRequest, final String validationKey) {
+        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
+
         final StringBuilder sb = new StringBuilder();
         sb.append(req.getRequestURL());
+
+        final String verificationParamName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_SESSION_VERIFICATION);
 
         for (final Enumeration paramEnum = req.getParameterNames(); paramEnum.hasMoreElements(); ) {
             final String paramName = (String) paramEnum.nextElement();
 
             // check to make sure param is in query string
             if (req.getQueryString() != null && req.getQueryString().contains(StringUtil.urlDecode(paramName))) {
-                if (!PwmConstants.PARAM_VERIFICATION_KEY.equals(paramName)) {
+                if (!verificationParamName.equals(paramName)) {
                     final List<String> paramValues = Arrays.asList(req.getParameterValues(paramName));
 
                     for (final Iterator<String> valueIter = paramValues.iterator(); valueIter.hasNext(); ) {
@@ -330,7 +326,7 @@ public class SessionFilter extends AbstractPwmFilter {
 
         if (validationKey != null) {
             sb.append(sb.toString().contains("?") ? "&" : "?");
-            sb.append(PwmConstants.PARAM_VERIFICATION_KEY).append("=").append(validationKey);
+            sb.append(verificationParamName).append("=").append(validationKey);
         }
 
         return sb.toString();
@@ -388,18 +384,20 @@ public class SessionFilter extends AbstractPwmFilter {
         final Configuration config = pwmRequest.getConfig();
         final String themeParameterName = config.readAppProperty(AppProperty.HTTP_PARAM_NAME_THEME);
         final String themeReqParameter = pwmRequest.readParameterAsString(themeParameterName);
+
         if (themeReqParameter != null && !themeReqParameter.isEmpty()) {
-            pwmRequest.getPwmSession().getSessionStateBean().setTheme(themeReqParameter);
-            final String themeCookieName = config.readAppProperty(AppProperty.HTTP_COOKIE_THEME_NAME);
-            if (themeCookieName != null && themeCookieName.length() > 0) {
-                final String configuredTheme = config.readSettingAsString(PwmSetting.INTERFACE_THEME);
+            if (pwmRequest.getPwmApplication().getResourceServletService().checkIfThemeExists(pwmRequest, themeReqParameter)) {
+                pwmRequest.getPwmSession().getSessionStateBean().setTheme(themeReqParameter);
+                final String themeCookieName = config.readAppProperty(AppProperty.HTTP_COOKIE_THEME_NAME);
+                if (themeCookieName != null && themeCookieName.length() > 0) {
+                    final String configuredTheme = config.readSettingAsString(PwmSetting.INTERFACE_THEME);
 
-                if (configuredTheme != null && configuredTheme.equalsIgnoreCase(themeReqParameter)) {
-                    pwmRequest.getPwmResponse().removeCookie(themeCookieName, PwmHttpResponseWrapper.CookiePath.Application);
-                } else {
-                    int maxAge = Integer.parseInt(config.readAppProperty(AppProperty.HTTP_COOKIE_THEME_AGE));
-                    pwmRequest.getPwmResponse().writeCookie(themeCookieName, themeReqParameter, maxAge,  PwmHttpResponseWrapper.CookiePath.Application);
-
+                    if (configuredTheme != null && configuredTheme.equalsIgnoreCase(themeReqParameter)) {
+                        pwmRequest.getPwmResponse().removeCookie(themeCookieName, PwmHttpResponseWrapper.CookiePath.Application);
+                    } else {
+                        int maxAge = Integer.parseInt(config.readAppProperty(AppProperty.HTTP_COOKIE_THEME_AGE));
+                        pwmRequest.getPwmResponse().writeCookie(themeCookieName, themeReqParameter, maxAge, PwmHttpResponseWrapper.CookiePath.Application);
+                    }
                 }
             }
         }

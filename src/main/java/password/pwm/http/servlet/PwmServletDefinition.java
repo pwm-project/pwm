@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,13 @@ package password.pwm.http.servlet;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.http.servlet.configguide.ConfigGuideServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerLocalDBServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerWordlistServlet;
 import password.pwm.http.servlet.newuser.NewUserServlet;
+import password.pwm.http.servlet.oauth.OAuthConsumerServlet;
 
 import javax.servlet.annotation.WebServlet;
 import java.lang.annotation.Annotation;
@@ -38,7 +40,7 @@ public enum PwmServletDefinition {
     Login(password.pwm.http.servlet.LoginServlet.class),
     Logout(password.pwm.http.servlet.LogoutServlet.class),
     Captcha(password.pwm.http.servlet.CaptchaServlet.class),
-    OAuthConsumer(password.pwm.http.servlet.OAuthConsumerServlet.class),
+    OAuthConsumer(OAuthConsumerServlet.class),
     Command(password.pwm.http.servlet.CommandServlet.class),
     //Resource(password.pwm.http.servlet.ResourceFileServlet.class),
 
@@ -54,7 +56,7 @@ public enum PwmServletDefinition {
 
     Admin(password.pwm.http.servlet.AdminServlet.class),
     ConfigGuide(ConfigGuideServlet.class),
-    ConfigEditor(password.pwm.http.servlet.ConfigEditorServlet.class),
+    ConfigEditor(ConfigEditorServlet.class),
     ConfigManager(ConfigManagerServlet.class),
     ConfigManager_Wordlists(ConfigManagerWordlistServlet.class),
     ConfigManager_LocalDB(ConfigManagerLocalDBServlet.class),

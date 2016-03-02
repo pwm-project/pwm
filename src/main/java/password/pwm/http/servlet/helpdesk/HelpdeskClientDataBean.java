@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ public class HelpdeskClientDataBean implements Serializable {
     private HelpdeskClearResponseMode helpdesk_setting_clearResponses;
     private HelpdeskUIMode helpdesk_setting_PwUiMode;
     private MessageSendMethod helpdesk_setting_tokenSendMethod;
-    private Map<String,Map<String,String>> actions = new HashMap<>();
+    private Map<String, ActionInformation> actions = new HashMap<>();
 
     public Map<String, String> getHelpdesk_search_columns() {
         return helpdesk_search_columns;
@@ -78,11 +78,32 @@ public class HelpdeskClientDataBean implements Serializable {
         this.helpdesk_setting_tokenSendMethod = helpdesk_setting_tokenSendMethod;
     }
 
-    public Map<String, Map<String, String>> getActions() {
+    public Map<String, ActionInformation> getActions() {
         return actions;
     }
 
-    public void setActions(Map<String, Map<String, String>> actions) {
+    public void setActions(Map<String, ActionInformation> actions) {
         this.actions = actions;
+    }
+
+    public static class ActionInformation implements Serializable {
+        private String name;
+        private String description;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
     }
 }

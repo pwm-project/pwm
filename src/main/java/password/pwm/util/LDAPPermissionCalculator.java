@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,19 +18,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  */
 
 package password.pwm.util;
 
 import password.pwm.config.*;
 import password.pwm.config.option.DataStorageMethod;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.Config;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.queue.SmsQueueManager;
 
 import java.io.Serializable;
 import java.util.*;
@@ -78,6 +80,8 @@ public class LDAPPermissionCalculator implements Serializable {
             }
         }
 
+        permissionRecords.addAll(permissionsForUserPassword(storedConfiguration));
+
         return permissionRecords;
     }
 
@@ -92,7 +96,7 @@ public class LDAPPermissionCalculator implements Serializable {
                 case STRING:
                 {
                     final String attrName = (String)storedConfiguration.readSetting(pwmSetting, profile).toNativeObject();
-                    if (attrName != null) {
+                    if (attrName != null && !attrName.trim().isEmpty()) {
                         permissionRecords.add(new PermissionRecord(attrName, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor()));
                     }
                 }
@@ -104,7 +108,7 @@ public class LDAPPermissionCalculator implements Serializable {
                     if (formItems != null) {
                         for (final FormConfiguration formConfiguration : formItems) {
                             final String attrName = formConfiguration.getName();
-                            if (attrName != null) {
+                            if (attrName != null && !attrName.trim().isEmpty()) {
                                 permissionRecords.add(new PermissionRecord(attrName, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor()));
                             }
                         }
@@ -119,7 +123,7 @@ public class LDAPPermissionCalculator implements Serializable {
                         for (final ActionConfiguration actionConfiguration : actionItems) {
                             if (actionConfiguration.getType() == ActionConfiguration.Type.ldap) {
                                 final String attrName = actionConfiguration.getAttributeName();
-                                if (attrName != null) {
+                                if (attrName != null && !attrName.trim().isEmpty()) {
                                     permissionRecords.add(new PermissionRecord(attrName, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor()));
                                 }
                             }
@@ -131,8 +135,29 @@ public class LDAPPermissionCalculator implements Serializable {
                 case STRING_ARRAY:
                 {
                     final List<String> strings = (List<String>) storedConfiguration.readSetting(pwmSetting, profile).toNativeObject();
-                    for (final String string : strings) {
-                        permissionRecords.add(new PermissionRecord(string, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor()));
+                    for (final String attrName : strings) {
+                        if (attrName != null && !attrName.trim().isEmpty()) {
+                            permissionRecords.add(new PermissionRecord(attrName, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor()));
+                        }
+                    }
+                }
+                break;
+
+                case USER_PERMISSION:
+                {
+                    final List<UserPermission> userPermissions = (List<UserPermission>) storedConfiguration.readSetting(pwmSetting, profile).toNativeObject();
+                    final Configuration configuration = new Configuration(storedConfiguration);
+                    if (configuration.getLdapProfiles() != null && !configuration.getLdapProfiles().isEmpty()) {
+                        for (LdapProfile ldapProfile : configuration.getLdapProfiles().values()) {
+                            final String groupAttribute = ldapProfile.readSettingAsString(PwmSetting.LDAP_USER_GROUP_ATTRIBUTE);
+                            if (groupAttribute != null && !groupAttribute.trim().isEmpty()) {
+                                for (final UserPermission userPermission : userPermissions) {
+                                    if (userPermission.getType() == UserPermission.Type.ldapGroup) {
+                                        permissionRecords.add(new PermissionRecord(groupAttribute, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor()));
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 break;
@@ -160,6 +185,16 @@ public class LDAPPermissionCalculator implements Serializable {
             case GUEST:
             {
                 if (!(Boolean)storedConfiguration.readSetting(PwmSetting.GUEST_ENABLE).toNativeObject()) {
+                    return Collections.emptyList();
+                }
+            }
+            break;
+
+            case UPDATE:
+            case UPDATE_PROFILE:
+            case UPDATE_SETTINGS:
+            {
+                if (!(Boolean)storedConfiguration.readSetting(PwmSetting.UPDATE_PROFILE_ENABLE).toNativeObject()) {
                     return Collections.emptyList();
                 }
             }
@@ -193,6 +228,9 @@ public class LDAPPermissionCalculator implements Serializable {
 
             case HELPDESK_PROFILE:
             {
+                if (!(Boolean)storedConfiguration.readSetting(PwmSetting.HELPDESK_ENABLE).toNativeObject()) {
+                    return Collections.emptyList();
+                }
                 if ((Boolean)storedConfiguration.readSetting(PwmSetting.HELPDESK_USE_PROXY, profile).toNativeObject()) {
                     final Collection<LDAPPermissionInfo> configuredRecords = pwmSetting.getLDAPPermissionInfo();
                     final Collection<LDAPPermissionInfo> returnRecords = new ArrayList<>();
@@ -209,7 +247,7 @@ public class LDAPPermissionCalculator implements Serializable {
         switch (pwmSetting) {
             case CHALLENGE_USER_ATTRIBUTE:
             {
-                Configuration config = new Configuration(storedConfiguration);
+                final Configuration config = new Configuration(storedConfiguration);
                 final Set<DataStorageMethod> storageMethods = new HashSet<>();
                 storageMethods.addAll(config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE));
                 storageMethods.addAll(config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE));
@@ -219,9 +257,60 @@ public class LDAPPermissionCalculator implements Serializable {
 
             }
             break;
+
+            case OTP_SECRET_LDAP_ATTRIBUTE:
+            {
+                final Configuration config = new Configuration(storedConfiguration);
+                if (!config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)) {
+                    return Collections.emptyList();
+                }
+            }
+
+            case SMS_USER_PHONE_ATTRIBUTE:
+            {
+                final Configuration config = new Configuration(storedConfiguration);
+                if (!SmsQueueManager.smsIsConfigured(config)) {
+                    return Collections.emptyList();
+                }
+            }
+            break;
         }
 
         return pwmSetting.getLDAPPermissionInfo();
+    }
+
+    public static Collection<PermissionRecord> permissionsForUserPassword(final StoredConfigurationImpl storedConfiguration) {
+        final String userPasswordAttributeName = LocaleHelper.getLocalizedMessage("Label_UserPasswordAttribute",null,Config.class);
+        final Configuration configuration = new Configuration(storedConfiguration);
+        final Collection<PermissionRecord> records = new ArrayList<>();
+
+        // user set password
+        records.add(new PermissionRecord(userPasswordAttributeName, null, null, LDAPPermissionInfo.Access.write, LDAPPermissionInfo.Actor.self));
+
+        // proxy user set password
+        if (configuration.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
+            final Collection<PwmSettingTemplate> templates = configuration.getTemplate().getTemplates();
+            if (templates.contains(PwmSettingTemplate.NOVL) || templates.contains(PwmSettingTemplate.NOVL_IDM)) {
+                records.add(new PermissionRecord(userPasswordAttributeName, PwmSetting.FORGOTTEN_PASSWORD_ENABLE, null, LDAPPermissionInfo.Access.read, LDAPPermissionInfo.Actor.proxy));
+            } else {
+                records.add(new PermissionRecord(userPasswordAttributeName, PwmSetting.FORGOTTEN_PASSWORD_ENABLE, null, LDAPPermissionInfo.Access.write, LDAPPermissionInfo.Actor.proxy));
+            }
+        }
+
+        if (configuration.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) {
+            records.add(new PermissionRecord(userPasswordAttributeName, PwmSetting.HELPDESK_ENABLE, null, LDAPPermissionInfo.Access.write, LDAPPermissionInfo.Actor.helpdesk));
+        }
+
+        if (configuration.readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) {
+            records.add(new PermissionRecord(userPasswordAttributeName, PwmSetting.GUEST_ENABLE, null, LDAPPermissionInfo.Access.write, LDAPPermissionInfo.Actor.guestManager));
+        }
+
+        if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
+            records.add(new PermissionRecord(userPasswordAttributeName, PwmSetting.NEWUSER_ENABLE, null, LDAPPermissionInfo.Access.write, LDAPPermissionInfo.Actor.proxy));
+        }
+
+
+        return records;
     }
 
     public static class PermissionRecord implements Serializable {

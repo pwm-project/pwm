@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,47 +22,71 @@
 
 package password.pwm.health;
 
-import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
+import password.pwm.util.Helper;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.*;
 
 public class HealthMonitor implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(HealthMonitor.class);
-    private static final int MIN_INTERVAL_SECONDS = 30;
-    private static final int MAX_INTERVAL_SECONDS = 60 * 60 * 24;
 
     private PwmApplication pwmApplication;
-    private Set<HealthRecord> healthRecords = Collections.emptySet();
-    private final List<HealthChecker> healthCheckers = new ArrayList<>();
 
-    private Date lastHealthCheckDate = null;
-    private int intervalSeconds = 0;
+    private final Set<HealthRecord> healthRecords = new TreeSet<>();
 
-    private Map<HealthProperty, Serializable> healthProperties = new HashMap<>();
+    private static final List<HealthChecker> HEALTH_CHECKERS;
+    static {
+        final List<HealthChecker> records = new ArrayList<>();
+        records.add(new LDAPStatusChecker());
+        records.add(new JavaChecker());
+        records.add(new ConfigurationChecker());
+        records.add(new LocalDBHealthChecker());
+        records.add(new CertificateChecker());
+        HEALTH_CHECKERS = records;
+    }
+
+    private ScheduledExecutorService executorService;
+    private HealthMonitorSettings settings;
+
+    private volatile Date lastHealthCheckTime = new Date(0);
+    private volatile Date lastRequestedUpdateTime = new Date(0);
+
+    private Map<HealthMonitorFlag, Serializable> healthProperties = new HashMap<>();
 
     private STATUS status = STATUS.NEW;
 
-    public enum HealthProperty {
+    enum HealthMonitorFlag {
         LdapVendorSameCheck,
         AdPasswordPolicyApiCheck,
     }
 
+    public enum CheckTimeliness {
+        /* Execute update immediately and wait for results */
+        Immediate,
+
+        /* Take current data unless its ancient */
+        CurrentButNotAncient,
+
+        /* Take current data even if its ancient and never block */
+        NeverBlock,
+    }
 
     public HealthMonitor() {
     }
 
-    public Date getLastHealthCheckDate() {
-        return lastHealthCheckDate;
+    public Date getLastHealthCheckTime() {
+        return lastHealthCheckTime;
     }
 
-    public HealthStatus getMostSevereHealthStatus() {
-        return getMostSevereHealthStatus(getHealthRecords());
+    public HealthStatus getMostSevereHealthStatus(CheckTimeliness timeliness) {
+        return getMostSevereHealthStatus(getHealthRecords(timeliness));
     }
 
     public static HealthStatus getMostSevereHealthStatus(final Collection<HealthRecord> healthRecords) {
@@ -77,27 +101,6 @@ public class HealthMonitor implements PwmService {
         return returnStatus;
     }
 
-    public void registerHealthCheck(final HealthChecker healthChecker) {
-        healthCheckers.add(healthChecker);
-    }
-
-    public Set<HealthRecord> getHealthRecords() {
-        return getHealthRecords(false);
-    }
-
-    public synchronized Set<HealthRecord> getHealthRecords(final boolean refreshImmediate) {
-        if (lastHealthCheckDate == null || refreshImmediate) {
-            doHealthChecks();
-        } else {
-            final long lastHealthCheckMs = lastHealthCheckDate.getTime();
-            final long lastValidHealthCheckMs = System.currentTimeMillis() - (intervalSeconds * 1000);
-            if (lastHealthCheckMs < lastValidHealthCheckMs) {
-                doHealthChecks();
-            }
-        }
-        return healthRecords;
-    }
-
     public STATUS status() {
         return status;
     }
@@ -105,29 +108,47 @@ public class HealthMonitor implements PwmService {
     public void init(PwmApplication pwmApplication) throws PwmException {
         status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
-        this.intervalSeconds = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTH_MIN_CHECK_INTERVAL_SECONDS));
+        settings = HealthMonitorSettings.fromConfiguration(pwmApplication.getConfig());
 
-        if (intervalSeconds < MIN_INTERVAL_SECONDS) {
-            intervalSeconds = MIN_INTERVAL_SECONDS;
-        } else if (intervalSeconds > MAX_INTERVAL_SECONDS) {
-            intervalSeconds = MAX_INTERVAL_SECONDS;
-        }
+        executorService = Executors.newSingleThreadScheduledExecutor(
+                Helper.makePwmThreadFactory(
+                        Helper.makeThreadName(pwmApplication, this.getClass()) + "-",
+                        true
+                ));
 
-        registerHealthCheck(new LDAPStatusChecker());
-        registerHealthCheck(new JavaChecker());
-        registerHealthCheck(new ConfigurationChecker());
-        registerHealthCheck(new LocalDBHealthChecker());
-        registerHealthCheck(new CertificateChecker());
 
-        final Set<HealthRecord> newHealthRecords = new HashSet<>();
-        newHealthRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthTopic.Application, "Health Check operation has not been performed since PWM has started."));
-        healthRecords = Collections.unmodifiableSet(newHealthRecords);
+        executorService.scheduleAtFixedRate(new ScheduledUpdater(), 0, settings.getNominalCheckInterval().getTotalMilliseconds(), TimeUnit.MILLISECONDS);
 
         status = STATUS.OPEN;
     }
 
+    public Set<HealthRecord> getHealthRecords(final CheckTimeliness timeliness) {
+        lastRequestedUpdateTime = new Date();
+
+        {
+            final boolean recordsAreStale = TimeDuration.fromCurrent(lastHealthCheckTime).isLongerThan(settings.getMaximumRecordAge());
+            if (timeliness == CheckTimeliness.Immediate || (timeliness == CheckTimeliness.CurrentButNotAncient && recordsAreStale)) {
+                final ScheduledFuture updateTask = executorService.schedule(new ImmediateUpdater(), 0, TimeUnit.NANOSECONDS);
+                final Date beginWaitTime = new Date();
+                while (!updateTask.isDone() && TimeDuration.fromCurrent(beginWaitTime).isShorterThan(settings.getMaximumForceCheckWait())) {
+                    Helper.pause(500);
+                }
+            }
+        }
+
+        final boolean recordsAreStale = TimeDuration.fromCurrent(lastHealthCheckTime).isLongerThan(settings.getMaximumRecordAge());
+        if (recordsAreStale) {
+            return Collections.singleton(HealthRecord.forMessage(HealthMessage.NoData));
+        }
+
+        return Collections.unmodifiableSet(healthRecords);
+    }
+
     public void close() {
-        healthRecords = Collections.emptySet();
+        if (executorService != null) {
+            executorService.shutdown();
+        }
+        healthRecords.clear();
         status = STATUS.CLOSED;
     }
 
@@ -140,13 +161,19 @@ public class HealthMonitor implements PwmService {
             return;
         }
 
-        LOGGER.trace("beginning health check process");
-        final List<HealthRecord> newResults = new ArrayList<>();
-        for (final HealthChecker loopChecker : healthCheckers) {
+        final TimeDuration timeSinceLastUpdate = TimeDuration.fromCurrent(lastHealthCheckTime);
+        if (timeSinceLastUpdate.isShorterThan(settings.getMinimumCheckInterval().getTotalMilliseconds(), TimeUnit.MILLISECONDS)) {
+            return;
+        }
+
+        final Date startTime = new Date();
+        LOGGER.trace("beginning background health check process");
+        final List<HealthRecord> tempResults = new ArrayList<>();
+        for (final HealthChecker loopChecker : HEALTH_CHECKERS) {
             try {
                 final List<HealthRecord> loopResults = loopChecker.doHealthCheck(pwmApplication);
                 if (loopResults != null) {
-                    newResults.addAll(loopResults);
+                    tempResults.addAll(loopResults);
                 }
             } catch (Exception e) {
                 LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
@@ -156,17 +183,16 @@ public class HealthMonitor implements PwmService {
             try {
                 final List<HealthRecord> loopResults = service.healthCheck();
                 if (loopResults != null) {
-                    newResults.addAll(loopResults);
+                    tempResults.addAll(loopResults);
                 }
             } catch (Exception e) {
                 LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
             }
         }
-        final Set<HealthRecord> sortedRecordList = new TreeSet<>();
-        sortedRecordList.addAll(newResults);
-        healthRecords = Collections.unmodifiableSet(sortedRecordList);
-        lastHealthCheckDate = new Date();
-        LOGGER.trace("health check process completed");
+        healthRecords.clear();
+        healthRecords.addAll(tempResults);
+        lastHealthCheckTime = new Date();
+        LOGGER.trace("health check process completed (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
     }
 
     public ServiceInfo serviceInfo()
@@ -174,8 +200,38 @@ public class HealthMonitor implements PwmService {
         return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
     }
 
-    public Map<HealthProperty, Serializable> getHealthProperties()
+    public Map<HealthMonitorFlag, Serializable> getHealthProperties()
     {
         return healthProperties;
     }
+
+    private class ScheduledUpdater implements Runnable {
+        @Override
+        public void run() {
+            final TimeDuration timeSinceLastRequest = TimeDuration.fromCurrent(lastRequestedUpdateTime);
+            if (timeSinceLastRequest.isShorterThan(settings.getNominalCheckInterval().getTotalMilliseconds() + 1000, TimeUnit.MILLISECONDS)) {
+                try {
+                    doHealthChecks();
+                } catch (Throwable e) {
+                    LOGGER.error("error during health check execution: " + e.getMessage(), e);
+
+                }
+            }
+        }
+    }
+
+    private class ImmediateUpdater implements Runnable {
+        @Override
+        public void run() {
+            final TimeDuration timeSinceLastUpdate = TimeDuration.fromCurrent(lastHealthCheckTime);
+            if (timeSinceLastUpdate.isLongerThan(settings.getMinimumCheckInterval().getTotalMilliseconds(), TimeUnit.MILLISECONDS)){
+                try {
+                    doHealthChecks();
+                } catch (Throwable e) {
+                    LOGGER.error("error during health check execution: " + e.getMessage(), e);
+                }
+            }
+        }
+    }
+
 }

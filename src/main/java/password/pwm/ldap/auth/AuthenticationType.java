@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,5 +28,5 @@ public enum AuthenticationType {
     AUTH_BIND_INHIBIT,  // normal auth, but can't do ldap bind (ad pw expired, force change, etc)
     AUTH_FROM_PUBLIC_MODULE,  // auth via forgotten password or user activation or similar /public auth.
     AUTH_WITHOUT_PASSWORD,  // auth via SSO method that did not supply the user's password
-    AUTH_FROM_LOGIN_COOKIE,  // authentication due to login cookie from peer node
+    AUTH_FROM_REQ_COOKIE,  // authentication due to crypto request cookie from peer instance
 }

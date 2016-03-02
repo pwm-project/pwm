@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ import org.xeustechnologies.jcl.JarClassLoader;
 import org.xeustechnologies.jcl.JclObjectFactory;
 import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -779,7 +780,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
     }
 
     private void updateStats(boolean readOperation, boolean writeOperation) {
-        if (pwmApplication != null && pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
+        if (pwmApplication != null && pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING) {
             final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
             if (statisticsManager != null && statisticsManager.status() == STATUS.OPEN) {
                 if (readOperation) {

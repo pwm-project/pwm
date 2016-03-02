@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -300,7 +300,7 @@ public class OtpService implements PwmService {
         final Configuration config = pwmApplication.getConfig();
         final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(
                 PwmSetting.OTP_SECRET_READ_PREFERENCE);
-        final String userGUID = readGuidIfNeeded(pwmApplication, pwmSession.getLabel(), otpSecretStorageLocations, userIdentity);
+        final String userGUID = readGuidIfNeeded(pwmApplication, pwmSession == null ? null : pwmSession.getLabel(), otpSecretStorageLocations, userIdentity);
 
         final StringBuilder errorMsgs = new StringBuilder();
         if (otpSecretStorageLocations != null) {

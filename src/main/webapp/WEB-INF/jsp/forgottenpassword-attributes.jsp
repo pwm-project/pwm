@@ -1,9 +1,9 @@
 <%--
   ~ Password Management Servlets (PWM)
-  ~ http://code.google.com/p/pwm/
+  ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2015 The PWM Project
+  ~ Copyright (c) 2009-2016 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -25,6 +25,8 @@
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="java.util.List" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -32,7 +34,7 @@
 <% final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean(); %>
 <% final ForgottenPasswordBean recoverBean = JspUtility.getSessionBean(pageContext, ForgottenPasswordBean.class); %>
 <% final List<FormConfiguration> requiredAttrParams = recoverBean.getAttributeForm(); %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <%--
 in the body onload below, the true parameter toggles the hide button an extra time to default the page to hiding the responses.

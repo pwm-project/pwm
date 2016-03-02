@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,13 +27,12 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ADPolicyComplexity;
@@ -41,7 +40,6 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordPolicy.RuleHelper;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.*;
-import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.logging.PwmLogger;
@@ -219,7 +217,10 @@ public class PwmPasswordRuleValidator {
 
         // check against disallowed values;
         if (!ruleHelper.getDisallowedValues().isEmpty()) {
-            MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, uiBean.getUserIdentity());
+            final MacroMachine macroMachine = uiBean == null
+                    ? MacroMachine.forNonUserSpecific(pwmApplication, SessionLabel.SYSTEM_LABEL)
+                    : MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, uiBean.getUserIdentity());
+
 
             final String lcasePwd = passwordString.toLowerCase();
             final Set<String> paramValues = new HashSet<>(ruleHelper.getDisallowedValues());
@@ -229,7 +230,7 @@ public class PwmPasswordRuleValidator {
                     final String expandedValue = macroMachine.expandMacros(loopValue);
                     final String loweredLoop = expandedValue.toLowerCase();
                     if (lcasePwd.contains(loweredLoop)) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_USING_DISALLOWED_VALUE));
+                        errorList.add(new ErrorInformation(PwmError.PASSWORD_USING_DISALLOWED));
                     }
                 }
             }
@@ -576,7 +577,7 @@ public class PwmPasswordRuleValidator {
         try {
             final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication, locale, restURL,
                     jsonRequestBody);
-            final Map<String,Object> responseMap = JsonUtil.deserialize(responseBody, 
+            final Map<String,Object> responseMap = JsonUtil.deserialize(responseBody,
                     new TypeToken<Map<String, Object>>() {}
             );
             if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR) && Boolean.parseBoolean(responseMap.get(
@@ -688,12 +689,12 @@ public class PwmPasswordRuleValidator {
             final int numberOfNonAlphaChars = charCounter.getNonAlphaCharCount();
 
             if (numberOfNonAlphaChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumNonAlpha)) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NON_ALPHA));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NONALPHA));
             }
 
             final int maxNonAlpha = ruleHelper.readIntValue(PwmPasswordRule.MaximumNonAlpha);
             if (maxNonAlpha > 0 && numberOfNonAlphaChars > maxNonAlpha) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_NON_ALPHA));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_NONALPHA));
             }
         }
 

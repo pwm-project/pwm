@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.ServletHelper;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.http.client.PwmHttpClientResponse;
@@ -279,7 +278,7 @@ public class CaptchaServlet extends AbstractPwmServlet {
         final String allowedSkipValue = figureSkipCookieValue(pwmRequest);
         final String captchaSkipCookieName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME);
         if (allowedSkipValue != null) {
-            final String cookieValue = ServletHelper.readCookie(pwmRequest.getHttpServletRequest(), captchaSkipCookieName);
+            final String cookieValue = pwmRequest.readCookie(captchaSkipCookieName);
             if (allowedSkipValue.equals(cookieValue)) {
                 LOGGER.debug(pwmRequest, "browser has a valid " + captchaSkipCookieName+ " cookie value of " + figureSkipCookieValue(pwmRequest) + ", skipping captcha check");
                 return true;

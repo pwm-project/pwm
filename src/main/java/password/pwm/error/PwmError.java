@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,8 @@ package password.pwm.error;
 
 import com.novell.ldapchai.exception.ChaiError;
 import password.pwm.config.Configuration;
+import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.logging.PwmLogger;
 
 import java.util.Locale;
 
@@ -33,167 +33,172 @@ import java.util.Locale;
  * @author Jason D. Rivard
  */
 public enum PwmError {
-    PASSWORD_MISSING_CONFIRM("Password_MissingConfirm", 4001, false),
-    PASSWORD_MISSING("Password_Missing", 4002, false),
-    PASSWORD_DOESNOTMATCH("Password_DoesNotMatch", 4003, false),
-    PASSWORD_PREVIOUSLYUSED("Password_PreviouslyUsed", 4004, false, ChaiError.PASSWORD_PREVIOUSLYUSED),
-    PASSWORD_BADOLDPASSWORD("Password_BadOldPassword", 4005, false, ChaiError.PASSWORD_BADOLDPASSWORD),
-    PASSWORD_BADPASSWORD("Password_BadPassword", 4006, false, ChaiError.PASSWORD_BADPASSWORD),
-    PASSWORD_TOO_SHORT("Password_TooShort", 4007, false, ChaiError.PASSWORD_TOO_SHORT),
-    PASSWORD_TOO_LONG("Password_TooLong", 4008, false, ChaiError.PASSWORD_TOO_LONG),
-    PASSWORD_NOT_ENOUGH_NUM("Password_NotEnoughNum", 4009, false, ChaiError.PASSWORD_NOT_ENOUGH_NUM),
-    PASSWORD_NOT_ENOUGH_ALPHA("Password_NotEnoughAlpha", 4010, false, ChaiError.PASSWORD_NOT_ENOUGH_ALPHA),
-    PASSWORD_NOT_ENOUGH_SPECIAL("Password_NotEnoughSpecial", 4011, false, ChaiError.PASSWORD_NOT_ENOUGH_SPECIAL),
-    PASSWORD_NOT_ENOUGH_LOWER("Password_NotEnoughLower", 4012, false, ChaiError.PASSWORD_NOT_ENOUGH_LOWER),
-    PASSWORD_NOT_ENOUGH_UPPER("Password_NotEnoughUpper", 4013, false, ChaiError.PASSWORD_NOT_ENOUGH_UPPER),
-    PASSWORD_NOT_ENOUGH_UNIQUE("Password_NotEnoughUnique", 4014, false, ChaiError.PASSWORD_NOT_ENOUGH_UNIQUE),
-    PASSWORD_TOO_MANY_REPEAT("Password_TooManyRepeat", 4015, false, ChaiError.PASSWORD_TOO_MANY_REPEAT),
-    PASSWORD_TOO_MANY_NUMERIC("Password_TooManyNumeric", 4016, false, ChaiError.PASSWORD_TOO_MANY_NUMERIC, ChaiError.PASSWORD_NUMERIC_DISALLOWED),
-    PASSWORD_TOO_MANY_ALPHA("Password_TooManyAlpha", 4017, false, ChaiError.PASSWORD_TOO_MANY_ALPHA),
-    PASSWORD_TOO_MANY_LOWER("Password_TooManyLower", 4018, false, ChaiError.PASSWORD_TOO_MANY_LOWER),
-    PASSWORD_TOO_MANY_UPPER("Password_TooManyUpper", 4019, false, ChaiError.PASSWORD_TOO_MANY_UPPER),
-    PASSWORD_FIRST_IS_NUMERIC("Password_FirstIsNumeric", 4020, false, ChaiError.PASSWORD_FIRST_IS_NUMERIC),
-    PASSWORD_LAST_IS_NUMERIC("Password_LastIsNumeric", 4021, false, ChaiError.PASSWORD_LAST_IS_NUMERIC),
-    PASSWORD_FIRST_IS_SPECIAL("Password_FirstIsSpecial", 4022, false, ChaiError.PASSWORD_FIRST_IS_SPECIAL),
-    PASSWORD_LAST_IS_SPECIAL("Password_LastIsSpecial", 4023, false, ChaiError.PASSWORD_LAST_IS_SPECIAL),
-    PASSWORD_TOO_MANY_SPECIAL("Password_TooManyNonAlphaSpecial", 4024, false, ChaiError.PASSWORD_TOO_MANY_SPECIAL, ChaiError.PASSWORD_NUMERIC_DISALLOWED),
-    PASSWORD_INVALID_CHAR("Password_InvalidChar", 4025, false, ChaiError.PASSWORD_INVALID_CHAR),
-    PASSWORD_REQUIREDMISSING("Password_RequiredMissing", 4026, false),
-    PASSWORD_INWORDLIST("Password_InWordlist", 4027, false, ChaiError.PASSWORD_INWORDLIST),
-    PASSWORD_SAMEASOLD("Password_SameAsOld", 4028, false),
-    PASSWORD_SAMEASATTR("Password_SameAsAttr", 4029, false, ChaiError.PASSWORD_SAMEASATTR),
-    PASSWORD_MEETS_RULES("Password_MeetsRules", 4030, false),
-    PASSWORD_TOO_MANY_OLD_CHARS("Password_TooManyOldChars", 4031, false),
-    PASSWORD_HISTORY_FULL("Password_HistoryFull", 4032, false, ChaiError.PASSWORD_HISTORY_FULL),
-    PASSWORD_TOO_SOON("Password_TooSoon", 4033, false, ChaiError.PASSWORD_TOO_SOON),
-    PASSWORD_USING_DISALLOWED_VALUE("Password_UsingDisallowedValue", 4034, false),
-    PASSWORD_TOO_WEAK("Password_TooWeak", 4035, false),
-    PASSWORD_TOO_MANY_NON_ALPHA("Password_TooManyNonAlpha", 4036, false),
-    PASSWORD_NOT_ENOUGH_NON_ALPHA("Password_NotEnoughNonAlpha", 4037, false),
-    PASSWORD_UNKNOWN_VALIDATION("Password_UnknownValidation", 4038, false),
-    PASSWORD_NEW_PASSWORD_REQUIRED("Password_NewPasswordRequired", 4039, false, ChaiError.NEW_PASSWORD_REQUIRED),
-    PASSWORD_EXPIRED("Password_Expired", 4040, false, ChaiError.PASSWORD_EXPIRED),
-    PASSWORD_CUSTOM_ERROR("Password_CustomError", 4041, false),
-    PASSWORD_NOT_ENOUGH_GROUPS("Password_NotEnoughGroups", 4042, false, (ChaiError[]) null),
-    PASSWORD_TOO_MANY_CONSECUTIVE("Password_TooManyConsecutive", 4043, false),
+    PASSWORD_MISSING_CONFIRM(       4001, "Password_MissingConfirm",        null),
+    PASSWORD_MISSING(               4002, "Password_Missing",               null),
+    PASSWORD_DOESNOTMATCH(          4003, "Password_DoesNotMatch",          null),
+    PASSWORD_PREVIOUSLYUSED(        4004, "Password_PreviouslyUsed",        new ChaiError[]{ChaiError.PASSWORD_PREVIOUSLYUSED}),
+    PASSWORD_BADOLDPASSWORD(        4005, "Password_BadOldPassword",        new ChaiError[]{ChaiError.PASSWORD_BADOLDPASSWORD}),
+    PASSWORD_BADPASSWORD(           4006, "Password_BadPassword",           new ChaiError[]{ChaiError.PASSWORD_BADPASSWORD}),
+    PASSWORD_TOO_SHORT(             4007, "Password_TooShort",              new ChaiError[]{ChaiError.PASSWORD_TOO_SHORT}),
+    PASSWORD_TOO_LONG(              4008, "Password_TooLong",               new ChaiError[]{ChaiError.PASSWORD_TOO_LONG}),
+    PASSWORD_NOT_ENOUGH_NUM(        4009, "Password_NotEnoughNum",          new ChaiError[]{ChaiError.PASSWORD_NOT_ENOUGH_NUM}),
+    PASSWORD_NOT_ENOUGH_ALPHA(      4010, "Password_NotEnoughAlpha",        new ChaiError[]{ChaiError.PASSWORD_NOT_ENOUGH_ALPHA}),
+    PASSWORD_NOT_ENOUGH_SPECIAL(    4011, "Password_NotEnoughSpecial",      new ChaiError[]{ChaiError.PASSWORD_NOT_ENOUGH_SPECIAL}),
+    PASSWORD_NOT_ENOUGH_LOWER(      4012, "Password_NotEnoughLower",        new ChaiError[]{ChaiError.PASSWORD_NOT_ENOUGH_LOWER}),
+    PASSWORD_NOT_ENOUGH_UPPER(      4013, "Password_NotEnoughUpper",        new ChaiError[]{ChaiError.PASSWORD_NOT_ENOUGH_UPPER}),
+    PASSWORD_NOT_ENOUGH_UNIQUE(     4014, "Password_NotEnoughUnique",       new ChaiError[]{ChaiError.PASSWORD_NOT_ENOUGH_UNIQUE}),
+    PASSWORD_TOO_MANY_REPEAT(       4015, "Password_TooManyRepeat",         new ChaiError[]{ChaiError.PASSWORD_TOO_MANY_REPEAT}),
+    PASSWORD_TOO_MANY_NUMERIC(      4016, "Password_TooManyNumeric",        new ChaiError[]{ChaiError.PASSWORD_TOO_MANY_NUMERIC, ChaiError.PASSWORD_NUMERIC_DISALLOWED}),
+    PASSWORD_TOO_MANY_ALPHA(        4017, "Password_TooManyAlpha",          new ChaiError[]{ChaiError.PASSWORD_TOO_MANY_ALPHA}),
+    PASSWORD_TOO_MANY_LOWER(        4018, "Password_TooManyLower",          new ChaiError[]{ChaiError.PASSWORD_TOO_MANY_LOWER}),
+    PASSWORD_TOO_MANY_UPPER(        4019, "Password_TooManyUpper",          new ChaiError[]{ChaiError.PASSWORD_TOO_MANY_UPPER}),
+    PASSWORD_FIRST_IS_NUMERIC(      4020, "Password_FirstIsNumeric",        new ChaiError[]{ChaiError.PASSWORD_FIRST_IS_NUMERIC}),
+    PASSWORD_LAST_IS_NUMERIC(       4021, "Password_LastIsNumeric",         new ChaiError[]{ChaiError.PASSWORD_LAST_IS_NUMERIC}),
+    PASSWORD_FIRST_IS_SPECIAL(      4022, "Password_FirstIsSpecial",        new ChaiError[]{ChaiError.PASSWORD_FIRST_IS_SPECIAL}),
+    PASSWORD_LAST_IS_SPECIAL(       4023, "Password_LastIsSpecial",         new ChaiError[]{ChaiError.PASSWORD_LAST_IS_SPECIAL}),
+    PASSWORD_TOO_MANY_SPECIAL(      4024, "Password_TooManyNonAlphaSpecial",new ChaiError[]{ChaiError.PASSWORD_TOO_MANY_SPECIAL, ChaiError.PASSWORD_NUMERIC_DISALLOWED}),
+    PASSWORD_INVALID_CHAR(          4025, "Password_InvalidChar",           new ChaiError[]{ChaiError.PASSWORD_INVALID_CHAR}),
+    PASSWORD_REQUIREDMISSING(       4026, "Password_RequiredMissing",       null),
+    PASSWORD_INWORDLIST(            4027, "Password_InWordlist",            new ChaiError[]{ChaiError.PASSWORD_INWORDLIST}),
+    PASSWORD_SAMEASOLD(             4028, "Password_SameAsOld",             null),
+    PASSWORD_SAMEASATTR(            4029, "Password_SameAsAttr",            new ChaiError[]{ChaiError.PASSWORD_SAMEASATTR}),
+    PASSWORD_MEETS_RULES(           4030, "Password_MeetsRules",            null),
+    PASSWORD_TOO_MANY_OLD_CHARS(    4031, "Password_TooManyOldChars",       null),
+    PASSWORD_HISTORY_FULL(          4032, "Password_HistoryFull",           new ChaiError[]{ChaiError.PASSWORD_HISTORY_FULL}),
+    PASSWORD_TOO_SOON(              4033, "Password_TooSoon",               new ChaiError[]{ChaiError.PASSWORD_TOO_SOON}),
+    PASSWORD_USING_DISALLOWED(      4034, "Password_UsingDisallowedValue",  null),
+    PASSWORD_TOO_WEAK(              4035, "Password_TooWeak",               null),
+    PASSWORD_TOO_MANY_NONALPHA(     4036, "Password_TooManyNonAlpha",       null),
+    PASSWORD_NOT_ENOUGH_NONALPHA(   4037, "Password_NotEnoughNonAlpha",     null),
+    PASSWORD_UNKNOWN_VALIDATION(    4038, "Password_UnknownValidation",     null),
+    PASSWORD_NEW_PASSWORD_REQUIRED( 4039, "Password_NewPasswordRequired",   new ChaiError[]{ChaiError.NEW_PASSWORD_REQUIRED}),
+    PASSWORD_EXPIRED(               4040, "Password_Expired",               new ChaiError[]{ChaiError.PASSWORD_EXPIRED}),
+    PASSWORD_CUSTOM_ERROR(          4041, "Password_CustomError",           null),
+    PASSWORD_NOT_ENOUGH_GROUPS(     4042, "Password_NotEnoughGroups",       null),
+    PASSWORD_TOO_MANY_CONSECUTIVE(  4043, "Password_TooManyConsecutive",    null),
 
-    ERROR_WRONGPASSWORD("Error_WrongPassword", 5001, false, ChaiError.FAILED_AUTHENTICATION),
-    ERROR_INCORRECT_RESPONSE("Error_WrongResponse", 5002, false),
-    ERROR_USERAUTHENTICATED("Error_UserAuthenticated", 5003, false),
-    ERROR_AUTHENTICATION_REQUIRED("Error_AuthenticationRequired", 5004, false),
-    ERROR_RESPONSES_NORESPONSES("Error_Response_NoResponse", 5006, false),
-    ERROR_RESPONSE_WORDLIST("Error_Response_Wordlist", 5007, false),
-    ERROR_RESPONSE_TOO_SHORT("Error_Response_TooShort", 5008, false),
-    ERROR_RESPONSE_TOO_LONG("Error_Response_TooLong", 5009, false),
-    ERROR_RESPONSE_DUPLICATE("Error_Response_Duplicate", 5010, false),
-    ERROR_CHALLENGE_DUPLICATE("Error_Challenge_Duplicate", 5011, false),
-    ERROR_MISSING_CHALLENGE_TEXT("Error_Missing_Challenge_Text", 5012, false),
-    ERROR_MISSING_PARAMETER("Error_MissingParameter", 5013, false),
-    ERROR_UNKNOWN("Error_Unknown", 5015, false),
-    ERROR_CANT_MATCH_USER("Error_CantMatchUser", 5016, false),
-    ERROR_DIRECTORY_UNAVAILABLE("Error_DirectoryUnavailable", 5017, false),
-    ERROR_ACTIVATION_VALIDATION_FAILED("Error_ActivationValidationFailed", 5018, false),
-    ERROR_SERVICE_NOT_AVAILABLE("Error_ServiceNotAvailable", 5019, false),
-    ERROR_USER_MISMATCH("Error_UserMisMatch", 5020, false),
-    ERROR_ACTIVATE_USER_NO_QUERY_MATCH("Error_ActivateUserNoQueryMatch", 5021, false),
-    ERROR_NO_CHALLENGES("Error_NoChallenges", 5022, false),
-    ERROR_INTRUDER_USER("Error_UserIntruder", 5023, true),
-    ERROR_INTRUDER_ADDRESS("Error_AddressIntruder", 5024, true),
-    ERROR_INTRUDER_SESSION("Error_SessionIntruder", 5025, true),
-    ERROR_BAD_SESSION_PASSWORD("Error_BadSessionPassword", 5026, false),
-    ERROR_UNAUTHORIZED("Error_Unauthorized", 5027, true),
-    ERROR_BAD_SESSION("Error_BadSession", 5028, false),
-    ERROR_MISSING_REQUIRED_RESPONSE("Error_MissingRequiredResponse", 5029, false),
-    ERROR_MISSING_RANDOM_RESPONSE("Error_MissingRandomResponse", 5030, false),
-    ERROR_BAD_CAPTCHA_RESPONSE("Error_BadCaptchaResponse", 5031, false),
-    ERROR_CAPTCHA_API_ERROR("Error_CaptchaAPIError", 5032, false),
-    ERROR_INVALID_CONFIG("Error_InvalidConfig", 5033, false),
-    ERROR_INVALID_FORMID("Error_InvalidFormID", 5034, false),
-    ERROR_INCORRECT_REQUEST_SEQUENCE("Error_IncorrectRequestSequence", 5035, false),
-    ERROR_TOKEN_MISSING_CONTACT("Error_TokenMissingContact", 5036, false),
-    ERROR_TOKEN_INCORRECT("Error_TokenIncorrect", 5037, false),
-    ERROR_BAD_CURRENT_PASSWORD("Error_BadCurrentPassword", 5038, false),
-    ERROR_CLOSING("Error_Closing", 5039, false),
-    ERROR_MISSING_GUID("Error_Missing_GUID", 5040, false),
-    ERROR_TOKEN_EXPIRED("Error_TokenExpired", 5041, false),
-    ERROR_MULTI_USERNAME("Error_Multi_Username", 5042, false),
-    ERROR_ORIG_ADMIN_ONLY("Error_Orig_Admin_Only", 5043, false),
-    ERROR_SECURE_REQUEST_REQUIRED("Error_SecureRequestRequired", 5044, false),
-    ERROR_WRITING_RESPONSES("Error_Writing_Responses",5045, false),
-    ERROR_UNLOCK_FAILURE("Error_Unlock_Failure",5046, false),
-    ERROR_UPDATE_ATTRS_FAILURE("Error_Update_Attrs_Failure",5047, false),
-    ERROR_ACTIVATION_FAILURE("Error_Activation_Failure",5048, false),
-    ERROR_NEW_USER_FAILURE("Error_NewUser_Failure",5049, false),
-    ERROR_ACTIVATION("Error_Activation",5050, false),
-    ERROR_DB_UNAVAILABLE("Error_DB_Unavailable",5051, false),
-    ERROR_LOCALDB_UNAVAILABLE("Error_LocalDB_Unavailable",5052, false),
-    ERROR_APP_UNAVAILABLE("Error_App_Unavailable",5053, false),
-    ERROR_UNREACHABLE_CLOUD_SERVICE("Error_UnreachableCloudService", 5054, false),
-    ERROR_INVALID_SECURITY_KEY("Error_InvalidSecurityKey", 5055, false),
-    ERROR_CLEARING_RESPONSES("Error_Clearing_Responses",5056, false),
-    ERROR_SERVICE_UNREACHABLE("Error_ServiceUnreachable",5057, false),
-    ERROR_CHALLENGE_IN_RESPONSE("Error_ChallengeInResponse", 5058, false),
-    ERROR_CERTIFICATE_ERROR("Error_CertificateError", 5059, false),
-    ERROR_SYSLOG_WRITE_ERROR("Error_SyslogWriteError",5060, false),
-    ERROR_TOO_MANY_THREADS("Error_TooManyThreads",5061, false),
-    ERROR_PASSWORD_REQUIRED("Error_PasswordRequired",5062, false),
-    ERROR_SECURITY_VIOLATION("Error_SecurityViolation",5063, false),
-    ERROR_TRIAL_VIOLATION("Error_TrialViolation",5064, false),
-    ERROR_ACCOUNT_DISABLED("Error_AccountDisabled",5065, false, ChaiError.ACCOUNT_DISABLED),
-    ERROR_ACCOUNT_EXPIRED("Error_AccountExpired",5066, false, ChaiError.ACCOUNT_EXPIRED),
-    ERROR_NO_OTP_CONFIGURATION("Error_NoOtpConfiguration",5064, false),
-    ERROR_INCORRECT_OTP_TOKEN("Error_WrongOtpToken", 5065, false),
-    ERROR_WRITING_OTP_SECRET("Error_Writing_Otp_Secret", 5066, false),
-    ERROR_INTRUDER_ATTR_SEARCH("Error_AttrIntruder", 5067, true),
-    ERROR_AUDIT_WRITE("Error_AuditWrite", 5068, false),
-    ERROR_INTRUDER_LDAP("Error_LdapIntruder", 5069, true, ChaiError.INTRUDER_LOCKOUT),
-    ERROR_NO_LDAP_CONNECTION("Error_NoLdapConnection", 5070, true),
-    ERROR_OAUTH_ERROR("Error_OAuthError",5071, true),
-    ERROR_REPORTING_ERROR("Error_ReportingError", 5072, true),
-    ERROR_INTRUDER_TOKEN_DEST("Error_TokenDestIntruder", 5073, true),
-    ERROR_OTP_RECOVERY_USED("Error_OtpRecoveryUsed", 5074, true),
-    ERROR_REDIRECT_ILLEGAL("Error_RedirectIllegal", 5075, true),
-    ERROR_CRYPT_ERROR("Error_CryptError", 5076, true),
-    ERROR_SMS_SEND_ERROR("Error_SmsSendError",5078, true),
-    ERROR_LDAP_DATA_ERROR("Error_LdapDataError",5079, true),
-    ERROR_MACRO_PARSE_ERROR("Error_MacroParseError",5080,true),
-    ERROR_NO_PROFILE_ASSIGNED("Error_NoProfileAssigned",5081,true),
-    ERROR_STARTUP_ERROR("Error_StartupError",5082,true),
-    ERROR_ENVIRONMENT_ERROR("Error_EnvironmentError",5083,true),
+    ERROR_WRONGPASSWORD(            5001, "Error_WrongPassword",            new ChaiError[]{ChaiError.FAILED_AUTHENTICATION}),
+    ERROR_INCORRECT_RESPONSE(       5002, "Error_WrongResponse",            null),
+    ERROR_USERAUTHENTICATED(        5003, "Error_UserAuthenticated",        null),
+    ERROR_AUTHENTICATION_REQUIRED(  5004, "Error_AuthenticationRequired",   null),
+    ERROR_RESPONSES_NORESPONSES(    5006, "Error_Response_NoResponse",      null),
+    ERROR_RESPONSE_WORDLIST(        5007, "Error_Response_Wordlist",        null),
+    ERROR_RESPONSE_TOO_SHORT(       5008, "Error_Response_TooShort",        null),
+    ERROR_RESPONSE_TOO_LONG(        5009, "Error_Response_TooLong",         null),
+    ERROR_RESPONSE_DUPLICATE(       5010, "Error_Response_Duplicate",       null),
+    ERROR_CHALLENGE_DUPLICATE(      5011, "Error_Challenge_Duplicate",      null),
+    ERROR_MISSING_CHALLENGE_TEXT(   5012, "Error_Missing_Challenge_Text",   null),
+    ERROR_MISSING_PARAMETER(        5013, "Error_MissingParameter",         null),
+    ERROR_UNKNOWN(                  5015, "Error_Unknown",                  null),
+    ERROR_CANT_MATCH_USER(          5016, "Error_CantMatchUser",            null),
+    ERROR_DIRECTORY_UNAVAILABLE(    5017, "Error_DirectoryUnavailable",     null),
+    ERROR_ACTIVATION_VALIDATIONFAIL(5018, "Error_ActivationValidationFailed", null),
+    ERROR_SERVICE_NOT_AVAILABLE(    5019, "Error_ServiceNotAvailable",      null),
+    ERROR_USER_MISMATCH(            5020, "Error_UserMisMatch",             null),
+    ERROR_ACTIVATE_NO_PERMISSION(   5021, "Error_ActivateUserNoQueryMatch", null),
+    ERROR_NO_CHALLENGES(            5022, "Error_NoChallenges",             null),
+    ERROR_INTRUDER_USER(            5023, "Error_UserIntruder",             null, ErrorFlag.Permanent),
+    ERROR_INTRUDER_ADDRESS(         5024, "Error_AddressIntruder",          null, ErrorFlag.Permanent),
+    ERROR_INTRUDER_SESSION(         5025, "Error_SessionIntruder",          null, ErrorFlag.Permanent),
+    ERROR_BAD_SESSION_PASSWORD(     5026, "Error_BadSessionPassword",       null),
+    ERROR_UNAUTHORIZED(             5027, "Error_Unauthorized",             null, ErrorFlag.Permanent),
+    ERROR_BAD_SESSION(              5028, "Error_BadSession",               null),
+    ERROR_MISSING_REQUIRED_RESPONSE(5029, "Error_MissingRequiredResponse",  null),
+    ERROR_MISSING_RANDOM_RESPONSE(  5030, "Error_MissingRandomResponse",    null),
+    ERROR_BAD_CAPTCHA_RESPONSE(     5031, "Error_BadCaptchaResponse",       null),
+    ERROR_CAPTCHA_API_ERROR(        5032, "Error_CaptchaAPIError",          null),
+    ERROR_INVALID_CONFIG(           5033, "Error_InvalidConfig",            null),
+    ERROR_INVALID_FORMID(           5034, "Error_InvalidFormID",            null),
+    ERROR_INCORRECT_REQ_SEQUENCE(   5035, "Error_IncorrectRequestSequence",null),
+    ERROR_TOKEN_MISSING_CONTACT(    5036, "Error_TokenMissingContact",      null),
+    ERROR_TOKEN_INCORRECT(          5037, "Error_TokenIncorrect",           null),
+    ERROR_BAD_CURRENT_PASSWORD(     5038, "Error_BadCurrentPassword",       null),
+    ERROR_CLOSING(                  5039, "Error_Closing",                  null),
+    ERROR_MISSING_GUID(             5040, "Error_Missing_GUID",             null),
+    ERROR_TOKEN_EXPIRED(            5041, "Error_TokenExpired",             null),
+    ERROR_MULTI_USERNAME(           5042, "Error_Multi_Username",           null),
+    ERROR_ORIG_ADMIN_ONLY(          5043, "Error_Orig_Admin_Only",          null),
+    ERROR_SECURE_REQUEST_REQUIRED(  5044, "Error_SecureRequestRequired",    null),
+    ERROR_WRITING_RESPONSES(        5045, "Error_Writing_Responses",        null),
+    ERROR_UNLOCK_FAILURE(           5046, "Error_Unlock_Failure",           null),
+    ERROR_UPDATE_ATTRS_FAILURE(     5047, "Error_Update_Attrs_Failure",     null),
+    ERROR_ACTIVATION_FAILURE(       5048, "Error_Activation_Failure",       null),
+    ERROR_NEW_USER_FAILURE(         5049, "Error_NewUser_Failure",          null),
+    ERROR_ACTIVATION(               5050, "Error_Activation",               null),
+    ERROR_DB_UNAVAILABLE(           5051, "Error_DB_Unavailable",           null),
+    ERROR_LOCALDB_UNAVAILABLE(      5052, "Error_LocalDB_Unavailable",      null),
+    ERROR_APP_UNAVAILABLE(          5053, "Error_App_Unavailable",          null),
+    ERROR_UNREACHABLE_CLOUD_SERVICE(5054, "Error_UnreachableCloudService",  null),
+    ERROR_INVALID_SECURITY_KEY(     5055, "Error_InvalidSecurityKey",       null),
+    ERROR_CLEARING_RESPONSES(       5056, "Error_Clearing_Responses",       null),
+    ERROR_SERVICE_UNREACHABLE(      5057, "Error_ServiceUnreachable",       null),
+    ERROR_CHALLENGE_IN_RESPONSE(    5058, "Error_ChallengeInResponse",      null),
+    ERROR_CERTIFICATE_ERROR(        5059, "Error_CertificateError",         null),
+    ERROR_SYSLOG_WRITE_ERROR(       5060, "Error_SyslogWriteError",         null),
+    ERROR_TOO_MANY_THREADS(         5061, "Error_TooManyThreads",           null),
+    ERROR_PASSWORD_REQUIRED(        5062, "Error_PasswordRequired",         null),
+    ERROR_SECURITY_VIOLATION(       5063, "Error_SecurityViolation",        null),
+    ERROR_TRIAL_VIOLATION(          5064, "Error_TrialViolation",           null),
+    ERROR_ACCOUNT_DISABLED(         5065, "Error_AccountDisabled",          new ChaiError[]{ChaiError.ACCOUNT_DISABLED}),
+    ERROR_ACCOUNT_EXPIRED(          5066, "Error_AccountExpired",           new ChaiError[]{ChaiError.ACCOUNT_EXPIRED}),
+    ERROR_NO_OTP_CONFIGURATION(     5064, "Error_NoOtpConfiguration",       null),
+    ERROR_INCORRECT_OTP_TOKEN(      5065, "Error_WrongOtpToken",            null),
+    ERROR_WRITING_OTP_SECRET(       5066, "Error_Writing_Otp_Secret",       null),
+    ERROR_INTRUDER_ATTR_SEARCH(     5067, "Error_AttrIntruder",             null, ErrorFlag.Permanent),
+    ERROR_AUDIT_WRITE(              5068, "Error_AuditWrite",               null),
+    ERROR_INTRUDER_LDAP(            5069, "Error_LdapIntruder",             new ChaiError[]{ChaiError.INTRUDER_LOCKOUT}, ErrorFlag.Permanent),
+    ERROR_NO_LDAP_CONNECTION(       5070, "Error_NoLdapConnection",         null, ErrorFlag.Permanent),
+    ERROR_OAUTH_ERROR(              5071, "Error_OAuthError",               null, ErrorFlag.Permanent),
+    ERROR_REPORTING_ERROR(          5072, "Error_ReportingError",           null, ErrorFlag.Permanent),
+    ERROR_INTRUDER_TOKEN_DEST(      5073, "Error_TokenDestIntruder",        null, ErrorFlag.Permanent),
+    ERROR_OTP_RECOVERY_USED(        5074, "Error_OtpRecoveryUsed",          null, ErrorFlag.Permanent),
+    ERROR_REDIRECT_ILLEGAL(         5075, "Error_RedirectIllegal",          null, ErrorFlag.Permanent),
+    ERROR_CRYPT_ERROR(              5076, "Error_CryptError",               null, ErrorFlag.Permanent),
+    ERROR_SMS_SEND_ERROR(           5078, "Error_SmsSendError",             null, ErrorFlag.Permanent),
+    ERROR_LDAP_DATA_ERROR(          5079, "Error_LdapDataError",            null, ErrorFlag.Permanent),
+    ERROR_MACRO_PARSE_ERROR(        5080, "Error_MacroParseError",          null, ErrorFlag.Permanent),
+    ERROR_NO_PROFILE_ASSIGNED(      5081, "Error_NoProfileAssigned",        null, ErrorFlag.Permanent),
+    ERROR_STARTUP_ERROR(            5082, "Error_StartupError",             null, ErrorFlag.Permanent),
+    ERROR_ENVIRONMENT_ERROR(        5083, "Error_EnvironmentError",         null, ErrorFlag.Permanent),
 
-    ERROR_REMOTE_ERROR_VALUE("Error_RemoteErrorValue",6000,true),
+    ERROR_REMOTE_ERROR_VALUE(       6000, "Error_RemoteErrorValue",         null, ErrorFlag.Permanent),
 
-    ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100, false),
-    ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101, false),
-    ERROR_FIELD_INVALID_EMAIL("Error_FieldInvalidEmail", 5102, false),
-    ERROR_FIELD_TOO_SHORT("Error_FieldTooShort", 5103, false),
-    ERROR_FIELD_TOO_LONG("Error_FieldTooLong", 5104, false),
-    ERROR_FIELD_DUPLICATE("Error_FieldDuplicate", 5105, false),
-    ERROR_FIELD_BAD_CONFIRM("Error_FieldBadConfirm", 5106, false),
-    ERROR_FIELD_REGEX_NOMATCH("Error_FieldRegexNoMatch", 5107, false),
+    ERROR_FIELD_REQUIRED(           5100, "Error_FieldRequired",            null),
+    ERROR_FIELD_NOT_A_NUMBER(       5101, "Error_FieldNotANumber",          null),
+    ERROR_FIELD_INVALID_EMAIL(      5102, "Error_FieldInvalidEmail",        null),
+    ERROR_FIELD_TOO_SHORT(          5103, "Error_FieldTooShort",            null),
+    ERROR_FIELD_TOO_LONG(           5104, "Error_FieldTooLong",             null),
+    ERROR_FIELD_DUPLICATE(          5105, "Error_FieldDuplicate",           null),
+    ERROR_FIELD_BAD_CONFIRM(        5106, "Error_FieldBadConfirm",          null),
+    ERROR_FIELD_REGEX_NOMATCH(      5107, "Error_FieldRegexNoMatch",        null),
 
-    CONFIG_UPLOAD_SUCCESS("Error_ConfigUploadSuccess", 5200, false),
-    CONFIG_UPLOAD_FAILURE("Error_ConfigUploadFailure", 5201, false),
-    CONFIG_SAVE_SUCCESS("Error_ConfigSaveSuccess", 5202, false),
-    CONFIG_FORMAT_ERROR("Error_ConfigFormatError", 5203, false),
-    CONFIG_LDAP_FAILURE("Error_ConfigLdapFailure", 5204, false),
-    CONFIG_LDAP_SUCCESS("Error_ConfigLdapSuccess", 5205, false),
+    CONFIG_UPLOAD_SUCCESS(          5200, "Error_ConfigUploadSuccess",      null),
+    CONFIG_UPLOAD_FAILURE(          5201, "Error_ConfigUploadFailure",      null),
+    CONFIG_SAVE_SUCCESS(            5202, "Error_ConfigSaveSuccess",        null),
+    CONFIG_FORMAT_ERROR(            5203, "Error_ConfigFormatError",        null),
+    CONFIG_LDAP_FAILURE(            5204, "Error_ConfigLdapFailure",        null),
+    CONFIG_LDAP_SUCCESS(            5205, "Error_ConfigLdapSuccess",        null),
 
-    ERROR_HTTP_404("Error_HTTP_404",5300, false),
+    ERROR_HTTP_404(                 5300, "Error_HTTP_404",                 null),
 
     ;
 
-
-// ------------------------------ FIELDS ------------------------------
-
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmError.class);
+    enum ErrorFlag {
+        Permanent
+    }
 
     private final int errorCode;
     private final String resourceKey;
     private final ChaiError[] chaiErrorCode;
     private final boolean errorIsPermanent;
 
-// -------------------------- STATIC METHODS --------------------------
+    PwmError(final int errorCode, final String resourceKey, final ChaiError[] chaiErrorCode, final ErrorFlag...errorFlags) {
+        this.resourceKey = resourceKey;
+        this.errorCode = errorCode;
+        this.errorIsPermanent = Helper.enumArrayContainsValue(errorFlags, ErrorFlag.Permanent);
+        this.chaiErrorCode = chaiErrorCode;
+
+    }
 
     public String getLocalizedMessage(final Locale locale, final Configuration config, final String... fieldValue) {
         return LocaleHelper.getLocalizedMessage(locale, this.getResourceKey(), config, password.pwm.i18n.Error.class, fieldValue);
@@ -231,18 +236,6 @@ public enum PwmError {
         return errorIsPermanent;
     }
 
-    // --------------------------- CONSTRUCTORS ---------------------------
-
-    PwmError(final String resourceKey, final int errorCode, boolean errorIsPermanent, final ChaiError... chaiErrorCode) {
-        this.resourceKey = resourceKey;
-        this.errorCode = errorCode;
-        this.errorIsPermanent = errorIsPermanent;
-        this.chaiErrorCode = chaiErrorCode;
-
-    }
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
     public String getResourceKey() {
         return resourceKey;
     }
@@ -251,12 +244,9 @@ public enum PwmError {
         return errorCode;
     }
 
-    // -------------------------- OTHER METHODS --------------------------
-
     public ErrorInformation toInfo() {
         return new ErrorInformation(this);
     }
-
 }
 
 

@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ import org.apache.log4j.xml.DOMConfigurator;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -175,7 +176,7 @@ public class PwmLogManager {
     public static LocalDBLogger initializeLocalDBLogger(final PwmApplication pwmApplication) {
         final LocalDB localDB = pwmApplication.getLocalDB();
 
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
+        if (pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY) {
             LOGGER.trace("skipping initialization of LocalDBLogger due to read-only mode");
             return null;
         }

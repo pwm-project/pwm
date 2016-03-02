@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -180,7 +180,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
             return;
         }
 
-        final InputStream inputStream = ServletHelper.readFileUpload(pwmRequest.getHttpServletRequest(),"uploadFile");
+        final InputStream inputStream = pwmRequest.readFileUploadStream(PwmConstants.PARAM_FILE_UPLOAD);
         try {
             pwmApplication.getWordlistManager().populate(inputStream);
         } catch (PwmUnrecoverableException e) {
@@ -366,7 +366,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
     {
         final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
         LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(storedConfiguration);
-        pwmRequest.setAttribute(PwmRequest.Attribute.ConfigurationSummaryOutput,ldapPermissionCalculator);
+        pwmRequest.setAttribute(PwmRequest.Attribute.LdapPermissionItems,ldapPermissionCalculator);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_PERMISSIONS);
     }
 

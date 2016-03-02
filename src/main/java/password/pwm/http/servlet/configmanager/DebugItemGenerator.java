@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,33 +18,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  */
 
 package password.pwm.http.servlet.configmanager;
 
-import com.novell.ldapchai.ChaiEntry;
-import com.novell.ldapchai.ChaiFactory;
-import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.util.ChaiUtility;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
 import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
-import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.svc.PwmService;
-import password.pwm.util.FileSystemUtility;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.LDAPPermissionCalculator;
+import password.pwm.util.*;
 import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
@@ -85,18 +76,6 @@ public class DebugItemGenerator {
             throws IOException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-
-        { // kick off health check so that it might be faster later..
-            Thread healthThread = new Thread() {
-                public void run() {
-                    pwmApplication.getHealthMonitor().getHealthRecords();
-                }
-            };
-            healthThread.setName(Helper.makeThreadName(pwmApplication, ConfigManagerServlet.class) + "-HealthCheck");
-            healthThread.setDaemon(true);
-            healthThread.start();
-        }
-
 
         for (final Class<? extends DebugItemGenerator.Generator> serviceClass : DEBUG_ZIP_ITEM_GENERATORS) {
             try {
@@ -197,7 +176,7 @@ public class DebugItemGenerator {
                 }
             };
 
-            final Map<PwmAboutProperty,String> infoBean = Helper.makeInfoBean(pwmApplication);
+            final Map<PwmAboutProperty,String> infoBean = PwmAboutProperty.makeInfoBean(pwmApplication);
             for (final PwmAboutProperty aboutProperty : infoBean.keySet()) {
                 outputProps.put(aboutProperty.toString().replace("_","."), infoBean.get(aboutProperty));
             }
@@ -305,7 +284,7 @@ public class DebugItemGenerator {
 
         @Override
         public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception {
-            final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
+            final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords(HealthMonitor.CheckTimeliness.CurrentButNotAncient);
             final String recordJson = JsonUtil.serializeCollection(records, JsonUtil.Flag.PrettyPrint);
             outputStream.write(recordJson.getBytes(PwmConstants.DEFAULT_CHARSET));
         }
@@ -334,46 +313,22 @@ public class DebugItemGenerator {
     static class LdapDebugItemGenerator implements Generator {
         @Override
         public String getFilename() {
-            return "ldap.txt";
+            return "ldap-servers.json";
         }
 
         @Override
         public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception {
+            final List<LdapDebugDataGenerator.LdapDebugInfo> ldapDebugInfos = LdapDebugDataGenerator.makeLdapDebugInfos(
+                    pwmRequest.getSessionLabel(),
+                    pwmApplication.getConfig(),
+                    pwmRequest.getLocale()
+            );
             final Writer writer = new OutputStreamWriter(outputStream, PwmConstants.DEFAULT_CHARSET);
-            for (LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values()) {
-                writer.write("ldap profile: " + ldapProfile.getIdentifier() + "\n");
-                try {
-                    final ChaiProvider chaiProvider = ldapProfile.getProxyChaiProvider(pwmApplication);
-                    {
-                        final ChaiEntry rootDSEentry = ChaiUtility.getRootDSE(chaiProvider);
-                        final Map<String, List<String>> rootDSEdata = LdapOperationsHelper.readAllEntryAttributeValues(rootDSEentry);
-                        writer.write("Root DSE: " + JsonUtil.serializeMap(rootDSEdata, JsonUtil.Flag.PrettyPrint) + "\n");
-                    }
-                    {
-                        final String proxyUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
-                        final ChaiEntry proxyUserEntry = ChaiFactory.createChaiEntry(proxyUserDN, chaiProvider);
-                        final Map<String, List<String>> proxyUserData = LdapOperationsHelper.readAllEntryAttributeValues(proxyUserEntry);
-                        writer.write("Proxy User: " + JsonUtil.serializeMap(proxyUserData, JsonUtil.Flag.PrettyPrint) + "\n");
-                    }
-                    {
-                        final String testUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
-                        if (testUserDN != null) {
-                            final ChaiEntry testUserEntry = ChaiFactory.createChaiEntry(testUserDN, chaiProvider);
-                            if (testUserEntry.isValid()) {
-                                final Map<String, List<String>> testUserdata = LdapOperationsHelper.readAllEntryAttributeValues(testUserEntry);
-                                writer.write("Test User: " + JsonUtil.serializeMap(testUserdata, JsonUtil.Flag.PrettyPrint) + "\n");
-                            }
-                        }
-                    }
-                    writer.write("\n\n");
-                } catch (Exception e) {
-                    LOGGER.error("error during output of ldap profile debug data profile: " + ldapProfile + ", error: " + e.getMessage());
-                }
-            }
-
+            writer.write(JsonUtil.serializeCollection(ldapDebugInfos, JsonUtil.Flag.PrettyPrint));
             writer.flush();
         }
     }
+
 
     static class FileInfoDebugItemGenerator implements Generator {
         @Override
@@ -419,7 +374,7 @@ public class DebugItemGenerator {
                     headerRow.add("Last Modified");
                     headerRow.add("Size");
                     headerRow.add("sha1sum");
-                    csvPrinter.printRecord(headerRow);
+                    csvPrinter.printComment(StringUtil.join(headerRow,","));
                 }
                 for (final FileSystemUtility.FileSummaryInformation fileSummaryInformation : fileSummaryInformations) {
                     final List<String> dataRow = new ArrayList<>();

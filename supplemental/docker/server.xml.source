@@ -9,7 +9,7 @@
     <Resource name="UserDatabase" auth="Container" type="org.apache.catalina.UserDatabase" description="User database that can be updated and saved" factory="org.apache.catalina.users.MemoryUserDatabaseFactory" pathname="conf/tomcat-users.xml" />
   </GlobalNamingResources>
   <Service name="Catalina">
-    <Connector port="8443" protocol="org.apache.coyote.http11.Http11Protocol" maxThreads="150" scheme="https" secure="true" SSLEnabled="true" keystoreFile="/appliance/https-cert" keystorePass="password" keyAlias="https" clientAuth="false" sslEnabledProtocols="%TLS_PROTOCOLS%" ciphers="%TLS_CIPHERS%"/>
+    <Connector port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol" maxThreads="150" scheme="https" secure="true" SSLEnabled="true" keystoreFile="/appliance/https-cert" keystorePass="password" keyAlias="https" clientAuth="false" sslEnabledProtocols="%TLS_PROTOCOLS%" ciphers="%TLS_CIPHERS%"/>
     <Engine name="Catalina" defaultHost="localhost">
       <Realm className="org.apache.catalina.realm.LockOutRealm">
         <Realm className="org.apache.catalina.realm.UserDatabaseRealm" resourceName="UserDatabase" />
@@ -20,3 +20,4 @@
     </Engine>
   </Service>
 </Server>
+w

@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,10 +28,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.HttpMethod;
-import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
-import password.pwm.http.ServletHelper;
+import password.pwm.http.*;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -126,7 +123,7 @@ public class LogoutServlet extends AbstractPwmServlet {
                     }
                 }
 
-                final String logoutURL = ServletHelper.appendAndEncodeUrlParameters(configuredLogoutURL, logoutUrlParameters);
+                final String logoutURL = PwmURL.appendAndEncodeUrlParameters(configuredLogoutURL, logoutUrlParameters);
 
                 LOGGER.trace(pwmSession, "redirecting user to configured logout url:" + logoutURL.toString());
                 pwmRequest.sendRedirect(logoutURL.toString());
@@ -136,11 +133,11 @@ public class LogoutServlet extends AbstractPwmServlet {
         }
 
         // if we didn't go anywhere yet, then show the pwm logout jsp
-        final String logoutURL = ServletHelper.appendAndEncodeUrlParameters(
+        final String logoutURL = PwmURL.appendAndEncodeUrlParameters(
                 pwmRequest.getContextPath() + PwmServletDefinition.Logout.servletUrl(),
                 Collections.singletonMap(PwmConstants.PARAM_ACTION_REQUEST, LogoutAction.showLogout.toString())
         );
-        pwmRequest.sendRedirect(logoutURL);
         pwmRequest.invalidateSession();
+        pwmRequest.sendRedirect(logoutURL);
     }
 }

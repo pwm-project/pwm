@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 package password.pwm.http.filter;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -42,6 +43,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
 
     @Override
     public void processFilter(
+            final PwmApplicationMode mode,
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
     )
@@ -70,17 +72,22 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
         chain.doFilter();
     }
 
+    @Override
+    boolean isInterested(PwmApplicationMode mode, PwmURL pwmURL) {
+        return !pwmURL.isResourceURL();
+    }
+
     private static boolean checkConfigModes(
             final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PwmApplication.MODE mode = pwmApplication.getApplicationMode();
+        final PwmApplicationMode mode = pwmApplication.getApplicationMode();
 
         final PwmURL pwmURL = pwmRequest.getURL();
 
-        if (mode == PwmApplication.MODE.NEW) {
+        if (mode == PwmApplicationMode.NEW) {
             // check if current request is actually for the config url, if it is, just do nothing.
             if (pwmURL.isCommandServletURL() || pwmURL.isWebServiceURL()) {
                 return false;
@@ -95,7 +102,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
             }
         }
 
-        if (mode == PwmApplication.MODE.ERROR) {
+        if (mode == PwmApplicationMode.ERROR) {
             ErrorInformation rootError = ContextManager.getContextManager(pwmRequest.getHttpServletRequest().getSession()).getStartupErrorInformation();
             if (rootError == null) {
                 rootError = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, "Application startup failed.");
@@ -112,11 +119,11 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
         // block if public request and not running or in trial
         if (!PwmConstants.TRIAL_MODE) {
             if (pwmURL.isPublicUrl() && !pwmURL.isLogoutURL() && !pwmURL.isCommandServletURL() && !pwmURL.isCaptchaURL())  {
-                if (mode == PwmApplication.MODE.CONFIGURATION) {
+                if (mode == PwmApplicationMode.CONFIGURATION) {
                     pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"public services are not available while configuration is open"));
                     return true;
                 }
-                if (mode != PwmApplication.MODE.RUNNING) {
+                if (mode != PwmApplicationMode.RUNNING) {
                     pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"public services are not available while application is not in running mode"));
                     return true;
                 }

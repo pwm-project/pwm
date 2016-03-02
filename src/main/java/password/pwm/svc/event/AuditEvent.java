@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,8 @@ public enum AuditEvent {
     HELPDESK_ACTION(Message.EventLog_HelpdeskAction, Type.HELPDESK),
     HELPDESK_DELETE_USER(Message.EventLog_HelpdeskDeleteUser, Type.HELPDESK),
     HELPDESK_VIEW_DETAIL(Message.EventLog_HelpdeskViewDetail, Type.HELPDESK),
-    HELPDESK_VERIFY_OTP(Message.EventLog_HelpdeskViewDetail, Type.HELPDESK),
+    HELPDESK_VERIFY_OTP(Message.EventLog_HelpdeskVerifyOtp, Type.HELPDESK),
+    HELPDESK_VERIFY_TOKEN(Message.EventLog_HelpdeskVerifyToken, Type.HELPDESK),
 
 
     ;
