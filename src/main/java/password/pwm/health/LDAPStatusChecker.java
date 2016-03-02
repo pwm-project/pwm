@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,8 +65,6 @@ public class LDAPStatusChecker implements HealthChecker {
 
     final private static PwmLogger LOGGER = PwmLogger.forClass(LDAPStatusChecker.class);
     final private static String TOPIC = "LDAP";
-
-    private ChaiProvider.DIRECTORY_VENDOR directoryVendor = null;
 
     public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication)
     {
@@ -303,6 +301,7 @@ public class LDAPStatusChecker implements HealthChecker {
         final List<HealthRecord> returnRecords = new ArrayList<>();
         ChaiProvider chaiProvider = null;
         try{
+            ChaiProvider.DIRECTORY_VENDOR directoryVendor = null;
             try {
                 final String proxyDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
                 final PasswordData proxyPW = ldapProfile.readSettingAsPassword(PwmSetting.LDAP_PROXY_USER_PASSWORD);
@@ -438,9 +437,9 @@ public class LDAPStatusChecker implements HealthChecker {
     }
 
     private List<HealthRecord> checkVendorSameness(final PwmApplication pwmApplication) {
-        final Map<HealthMonitor.HealthProperty,Serializable> healthProperties = pwmApplication.getHealthMonitor().getHealthProperties();
-        if (healthProperties.containsKey(HealthMonitor.HealthProperty.LdapVendorSameCheck)) {
-            return (List<HealthRecord>)healthProperties.get(HealthMonitor.HealthProperty.LdapVendorSameCheck);
+        final Map<HealthMonitor.HealthMonitorFlag,Serializable> healthProperties = pwmApplication.getHealthMonitor().getHealthProperties();
+        if (healthProperties.containsKey(HealthMonitor.HealthMonitorFlag.LdapVendorSameCheck)) {
+            return (List<HealthRecord>)healthProperties.get(HealthMonitor.HealthMonitorFlag.LdapVendorSameCheck);
         }
 
         LOGGER.trace(PwmConstants.HEALTH_SESSION_LABEL,"beginning check for replica vendor sameness");
@@ -478,13 +477,13 @@ public class LDAPStatusChecker implements HealthChecker {
             }
             healthRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_VendorsNotSame, vendorMsg.toString()));
             // cache the error
-            healthProperties.put(HealthMonitor.HealthProperty.LdapVendorSameCheck, healthRecords);
+            healthProperties.put(HealthMonitor.HealthMonitorFlag.LdapVendorSameCheck, healthRecords);
 
             LOGGER.warn(PwmConstants.HEALTH_SESSION_LABEL,"multiple ldap vendors found: " + vendorMsg.toString());
         } else if (discoveredVendors.size() == 1) {
             if (!errorReachingServer) {
                 // cache the no errors
-                healthProperties.put(HealthMonitor.HealthProperty.LdapVendorSameCheck, healthRecords);
+                healthProperties.put(HealthMonitor.HealthMonitorFlag.LdapVendorSameCheck, healthRecords);
             }
         }
 
@@ -499,9 +498,9 @@ public class LDAPStatusChecker implements HealthChecker {
             return Collections.emptyList();
         }
 
-        final Map<HealthMonitor.HealthProperty,Serializable> healthProperties = pwmApplication.getHealthMonitor().getHealthProperties();
-        if (healthProperties.containsKey(HealthMonitor.HealthProperty.AdPasswordPolicyApiCheck)) {
-            return (List<HealthRecord>)healthProperties.get(HealthMonitor.HealthProperty.AdPasswordPolicyApiCheck);
+        final Map<HealthMonitor.HealthMonitorFlag,Serializable> healthProperties = pwmApplication.getHealthMonitor().getHealthProperties();
+        if (healthProperties.containsKey(HealthMonitor.HealthMonitorFlag.AdPasswordPolicyApiCheck)) {
+            return (List<HealthRecord>)healthProperties.get(HealthMonitor.HealthMonitorFlag.AdPasswordPolicyApiCheck);
         }
 
         LOGGER.trace(PwmConstants.HEALTH_SESSION_LABEL,"beginning check for ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") support");
@@ -539,7 +538,7 @@ public class LDAPStatusChecker implements HealthChecker {
         }
 
         if (!errorReachingServer) {
-            healthProperties.put(HealthMonitor.HealthProperty.AdPasswordPolicyApiCheck, healthRecords);
+            healthProperties.put(HealthMonitor.HealthMonitorFlag.AdPasswordPolicyApiCheck, healthRecords);
         }
 
         return healthRecords;

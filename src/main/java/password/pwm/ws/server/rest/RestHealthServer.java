@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -54,16 +55,17 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 @Path("/health")
 public class RestHealthServer extends AbstractRestServer {
     final private static PwmLogger LOGGER = PwmLogger.forClass(RestHealthServer.class);
 
+    final private static String PARAM_IMMEDIATE_REFRESH = "refreshImmediate";
+
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String doPwmHealthPlainGet(
-            @QueryParam("refreshImmediate") final boolean requestImmediateParam
+            @QueryParam(PARAM_IMMEDIATE_REFRESH) final boolean requestImmediateParam
     ) {
         final ServicePermissions servicePermissions = figurePermissions();
         final RestRequestBean restRequestBean;
@@ -75,8 +77,8 @@ public class RestHealthServer extends AbstractRestServer {
         }
 
         try {
-            processCheckImeddiateFlag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), requestImmediateParam);
-            final String resultString = restRequestBean.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus().toString() + "\n";
+            final HealthMonitor.CheckTimeliness timeliness = determineDataTimeliness(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), requestImmediateParam);
+            final String resultString = restRequestBean.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus(timeliness).toString() + "\n";
             if (restRequestBean.isExternal()) {
                 StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_HEALTH);
             }
@@ -92,7 +94,7 @@ public class RestHealthServer extends AbstractRestServer {
     @GET
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doPwmHealthJsonGet(
-            @QueryParam("refreshImmediate") final boolean requestImmediateParam
+            @QueryParam(PARAM_IMMEDIATE_REFRESH) final boolean requestImmediateParam
     ) {
         final ServicePermissions servicePermissions = figurePermissions();
         final RestRequestBean restRequestBean;
@@ -103,8 +105,12 @@ public class RestHealthServer extends AbstractRestServer {
         }
 
         try {
-            processCheckImeddiateFlag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), requestImmediateParam);
-            final HealthData jsonOutput = processGetHealthCheckData(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession().getSessionStateBean().getLocale());
+            final HealthData jsonOutput = processGetHealthCheckData(
+                    restRequestBean.getPwmApplication(),
+                    restRequestBean.getPwmSession(),
+                    requestImmediateParam
+            );
+
             if (restRequestBean.isExternal()) {
                 StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_HEALTH);
             }
@@ -120,49 +126,39 @@ public class RestHealthServer extends AbstractRestServer {
         }
     }
 
-    private static HealthData processGetHealthCheckData(
-            final PwmApplication pwmApplication,
-            final Locale locale
-    )
-            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
-    {
-        final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
-        final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList(healthMonitor.getHealthRecords(false));
-        final List<HealthRecord> healthRecordBeans = HealthRecord.fromHealthRecords(healthRecords, locale,
-                pwmApplication.getConfig());
-        final HealthData returnMap = new HealthData();
-        returnMap.timestamp = healthMonitor.getLastHealthCheckDate();
-        returnMap.overall = healthMonitor.getMostSevereHealthStatus().toString();
-        returnMap.records = healthRecordBeans;
-        return returnMap;
-    }
-
-    private static void processCheckImeddiateFlag(
+    private static HealthMonitor.CheckTimeliness determineDataTimeliness(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final boolean refreshImmediate
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
-        boolean doRefresh = false;
-        if (refreshImmediate) {
-            if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
-                doRefresh = true;
-            } else {
-                if (pwmSession.isAuthenticated()) {
-                    try {
-                        doRefresh = pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
-                    } catch (Exception e) {
-                        /* nooop */
-                    }
-                }
-            }
-        }
+        boolean allowImmediate = pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION
+                && pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
 
-        if (doRefresh) {
-            final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
-            healthMonitor.getHealthRecords(true);
-        }
+        return refreshImmediate && allowImmediate
+                ? HealthMonitor.CheckTimeliness.Immediate
+                : HealthMonitor.CheckTimeliness.CurrentButNotAncient;
+
+    }
+
+    private static HealthData processGetHealthCheckData(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final boolean refreshImmediate
+    )
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+    {
+        final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
+        final HealthMonitor.CheckTimeliness timeliness = determineDataTimeliness(pwmApplication, pwmSession, refreshImmediate);
+        final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>(healthMonitor.getHealthRecords(timeliness));
+        final List<HealthRecord> healthRecordBeans = HealthRecord.fromHealthRecords(healthRecords, pwmSession.getSessionStateBean().getLocale(),
+                pwmApplication.getConfig());
+        final HealthData healthData = new HealthData();
+        healthData.timestamp = healthMonitor.getLastHealthCheckTime();
+        healthData.overall = healthMonitor.getMostSevereHealthStatus(timeliness).toString();
+        healthData.records = healthRecordBeans;
+        return healthData;
     }
 
     private ServicePermissions figurePermissions() {

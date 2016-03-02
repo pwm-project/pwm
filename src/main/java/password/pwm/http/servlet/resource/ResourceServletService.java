@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,12 +26,15 @@ import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
+import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.util.Percent;
 import password.pwm.util.logging.PwmLogger;
 
+import javax.servlet.ServletContext;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,6 +51,8 @@ public class ResourceServletService implements PwmService {
     private String resourceNonce;
     private STATUS status = STATUS.NEW;
 
+    private PwmApplication pwmApplication;
+
     public String getResourceNonce() {
         return resourceNonce;
     }
@@ -62,7 +67,6 @@ public class ResourceServletService implements PwmService {
 
 
     public long bytesInCache() {
-        final ResourceServletConfiguration cpv = resourceServletConfiguration;
         final Map<CacheKey, CacheEntry> responseCache = getCacheMap();
         final Map<CacheKey, CacheEntry> cacheCopy = new HashMap<>();
         cacheCopy.putAll(responseCache);
@@ -77,7 +81,6 @@ public class ResourceServletService implements PwmService {
     }
 
     public int itemsInCache() {
-        final ResourceServletConfiguration cpv = resourceServletConfiguration;
         final Map<CacheKey, CacheEntry> responseCache = getCacheMap();
         return responseCache.size();
     }
@@ -95,9 +98,10 @@ public class ResourceServletService implements PwmService {
 
     @Override
     public void init(PwmApplication pwmApplication) throws PwmException {
+        this.pwmApplication = pwmApplication;
         status = STATUS.OPENING;
         try {
-            this.resourceServletConfiguration = new ResourceServletConfiguration(pwmApplication);
+            this.resourceServletConfiguration = ResourceServletConfiguration.createResourceServletConfiguration(pwmApplication);
 
             cacheMap = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
                     .maximumWeightedCapacity(resourceServletConfiguration.getMaxCacheItems())
@@ -140,6 +144,35 @@ public class ResourceServletService implements PwmService {
         } else {
             return "";
         }
+    }
+
+    public boolean checkIfThemeExists(final PwmRequest pwmRequest, final String themeName)
+            throws PwmUnrecoverableException
+    {
+        if (themeName == null) {
+            return false;
+        }
+
+        if (!themeName.matches(pwmRequest.getConfig().readAppProperty(AppProperty.SECURITY_INPUT_THEME_MATCH_REGEX))) {
+            LOGGER.warn(pwmRequest, "discarding suspicous theme name in request: " + themeName);
+            return false;
+        }
+
+        final ServletContext servletContext = pwmRequest.getHttpServletRequest().getServletContext();
+
+        final String[] testUrls = new String[]{ ResourceFileServlet.THEME_CSS_PATH,  ResourceFileServlet.THEME_CSS_MOBILE_PATH };
+
+        for (final String testUrl : testUrls) {
+            final String themePathUrl = ResourceFileServlet.RESOURCE_PATH + testUrl.replace(ResourceFileServlet.TOKEN_THEME, themeName);
+            final FileResource resolvedFile = ResourceFileServlet.resolveRequestedFile(servletContext, themePathUrl, getResourceServletConfiguration());
+            if (resolvedFile != null && resolvedFile.exists()) {
+                LOGGER.debug(pwmRequest, "check for theme validity of '" + themeName + "' returned true");
+                return true;
+            }
+        }
+
+        LOGGER.debug(pwmRequest, "check for theme validity of '" + themeName + "' returned false");
+        return false;
     }
 
 }

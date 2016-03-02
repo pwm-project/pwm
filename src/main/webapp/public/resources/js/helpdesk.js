@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -245,9 +245,19 @@ PWM_HELPDESK.setRandomPasswordPopup = function() {
 };
 
 PWM_HELPDESK.loadSearchDetails = function(userKey) {
-    PWM_MAIN.showWaitDialog({loadFunction:function() {
-        PWM_MAIN.submitPostAction('helpdesk','detail',{userKey:userKey});
-    }});
+
+    var gotoDetailFunction = function() {
+        PWM_MAIN.showWaitDialog({loadFunction:function() {
+            PWM_MAIN.submitPostAction('helpdesk','detail',{userKey:userKey});
+        }});
+    };
+
+//    PWM_HELPDESK.validateOtpCode(userKey,gotoDetailFunction);
+
+    /*
+     */
+
+    gotoDetailFunction();
 };
 
 PWM_HELPDESK.processHelpdeskSearch = function() {
@@ -340,18 +350,30 @@ PWM_HELPDESK.deleteUser = function() {
     })
 };
 
-PWM_HELPDESK.validateOtpCode = function(userKey) {
+PWM_HELPDESK.validateOtpCode = function(userKey, successFunction) {
+    var dialogText = 'Instruct the user to load their mobile authentication app and share the current pass code.';
+
+    PWM_HELPDESK.validateCode(userKey, successFunction, 'validateOtpCode', dialogText, {})
+};
+
+PWM_HELPDESK.validateCode = function(userKey, successFunction, processAction, dialogText, extraPayload) {
     var validateOtpCodeFunction = function(){
         PWM_MAIN.getObject('icon-working').style.display = 'inherit';
         PWM_MAIN.getObject('icon-cross').style.display = 'none';
         PWM_MAIN.getObject('icon-check').style.display = 'none';
-        var content = {
-            userKey:userKey,
-            code:PWM_MAIN.getObject('otpCode').value
-        };
-        var url = 'helpdesk?processAction=validateOtpCode';
+        var content = extraPayload === undefined ? {} : extraPayload;
+
+        content['userKey'] = userKey;
+        content['code'] = PWM_MAIN.getObject('code').value;
+        var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", processAction);
         var loadFunction = function(data) {
             PWM_MAIN.getObject('icon-working').style.display = 'none';
+
+            if (data['error']) {
+                PWM_MAIN.showErrorDialog(data);
+                return;
+            }
+
             var passed =  data['data'];
             if (passed) {
                 PWM_MAIN.getObject('icon-check').style.display = 'inherit';
@@ -359,37 +381,42 @@ PWM_HELPDESK.validateOtpCode = function(userKey) {
                 PWM_MAIN.getObject('button-checkCode').disabled = true;
             } else {
                 PWM_MAIN.getObject('icon-cross').style.display = 'inherit';
+                PWM_MAIN.getObject('code').value = '';
+                PWM_MAIN.getObject('code').focus();
             }
         };
         PWM_MAIN.ajaxRequest(url,loadFunction,{content:content});
     };
-    var text = '<div></div><table class="noborder"><tr><td style="width: 100px"><input style="width: 100px" id="otpCode" name="otpCode"/></td><td style="width:40px">'
+    var text = '<div>' + dialogText + '</div><br/><div><table class="noborder"><tr><td style="width: 100px"><input style="width: 100px" id="code" name="code"/></td><td style="width:40px">'
         + '<span style="display:none;color:green" id="icon-check" class="btn-icon pwm-icon pwm-icon-lg pwm-icon-check"></span>'
         + '<span style="display:none;color:red" id="icon-cross" class="btn-icon pwm-icon pwm-icon-lg pwm-icon-times"></span>'
         + '<span style="display:none;" id="icon-working" class="pwm-icon pwm-icon-lg pwm-icon-spin pwm-icon-spinner"></span></td><td>'
         + '<button type="button" class="btn" id="button-checkCode"><span class="btn-icon pwm-icon pwm-icon-check"></span>' + PWM_MAIN.showString('Button_CheckCode') + '</button>'
         + '</td></table></div>';
+
+    var successFunction = successFunction === undefined ? function(){} : successFunction;
     PWM_MAIN.showDialog({
         showClose:true,
         allowMove:true,
-        title:'Validate OTP Code',
+        title:'Validate Code',
         text:text,
         loadFunction:function(){
             PWM_MAIN.addEventHandler('button-checkCode','click',function(){
                 validateOtpCodeFunction();
             });
             PWM_MAIN.getObject('dialog_ok_button').disabled = true;
-        }
+        },
+        okAction:successFunction
     });
 };
 
-PWM_HELPDESK.sendVerificationToken = function() {
+PWM_HELPDESK.sendVerificationToken = function(userKey) {
     var sendMethodSetting = PWM_VAR["helpdesk_setting_tokenSendMethod"];
     var choiceFlag = sendMethodSetting == 'CHOICE_SMS_EMAIL';
 
     var sendTokenAction = function(choice) {
         var sendContent = {};
-        sendContent['userKey'] = PWM_VAR['helpdesk_obfuscatedDN'];
+        sendContent['userKey'] = userKey;
         if (choiceFlag && choice) {
             sendContent['method'] = choice;
         }
@@ -397,9 +424,8 @@ PWM_HELPDESK.sendVerificationToken = function() {
             var url = 'helpdesk?processAction=sendVerificationToken';
             var loadFunction = function(data) {
                 if (!data['error']) {
-                    var text = '<table><tr><td>Token Destination</td><td>' + data['data']['destination'] + '</td></tr>'
-                        + '<tr><td>Token</td><td><pre>' + data['data']['token'] + '</pre></td></tr></table>';
-                    PWM_MAIN.showDialog({title:PWM_MAIN.showString('Title_Success'),text:text});
+                    var text = '<table><tr><td>Token Destination</td><td>' + data['data']['destination'] + '</td></tr></table>';
+                    PWM_HELPDESK.validateCode(userKey, function(){}, 'verifyVerificationToken',text,data['data']);
                 } else {
                     PWM_MAIN.showErrorDialog(data);
                 }
@@ -490,7 +516,7 @@ PWM_HELPDESK.initHelpdeskDetailPage = function() {
         PWM_HELPDESK.validateOtpCode(PWM_VAR['helpdesk_obfuscatedDN']);
     });
     PWM_MAIN.addEventHandler('sendTokenButton','click',function(){
-        PWM_HELPDESK.sendVerificationToken();
+        PWM_HELPDESK.sendVerificationToken(PWM_VAR['helpdesk_obfuscatedDN']);
     });
     PWM_MAIN.addEventHandler('helpdesk_deleteUserButton','click',function(){
         PWM_HELPDESK.deleteUser();

@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ import com.novell.ldapchai.provider.ChaiSetting;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -46,7 +47,7 @@ import password.pwm.health.*;
 import password.pwm.http.*;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
-import password.pwm.http.servlet.ConfigEditorServlet;
+import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
@@ -134,7 +135,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
         final ConfigGuideBean configGuideBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ConfigGuideBean.class);
 
-        if (pwmApplication.getApplicationMode() != PwmApplication.MODE.NEW) {
+        if (pwmApplication.getApplicationMode() != PwmApplicationMode.NEW) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"ConfigGuide unavailable unless in NEW mode");
             LOGGER.error(pwmSession, errorInformation.toDebugStr());
             pwmRequest.respondWithError(errorInformation);
@@ -143,7 +144,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
         if (!configGuideBean.getFormData().containsKey(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL)) {
             final URI uri = URI.create(pwmRequest.getHttpServletRequest().getRequestURL().toString());
-            final int port = Helper.portForUriSchema(uri);
+            final int port = PwmURL.portForUriSchema(uri);
             final String newUri = uri.getScheme() + "://" + uri.getHost() + ":" + port + pwmRequest.getContextPath();
             configGuideBean.getFormData().put(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL,newUri);
         }
@@ -222,7 +223,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
+        if (pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING) {
             final String errorMsg = "config upload is not permitted when in running mode";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE,errorMsg,new String[]{errorMsg});
             pwmRequest.respondWithError(errorInformation, true);
@@ -230,7 +231,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         }
 
         if (ServletFileUpload.isMultipartContent(req)) {
-            final InputStream uploadedFile = ServletHelper.readFileUpload(req,"uploadFile");
+            final InputStream uploadedFile = pwmRequest.readFileUploadStream(PwmConstants.PARAM_FILE_UPLOAD);
             if (uploadedFile != null) {
                 try {
                     final StoredConfigurationImpl storedConfig = StoredConfigurationImpl.fromXml(uploadedFile);
@@ -548,9 +549,15 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        final ConfigGuideBean configGuideBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest,ConfigGuideBean.class);
+
+        if (configGuideBean.getStep() == GuideStep.LDAP_PERMISSIONS) {
+            LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(ConfigGuideForm.generateStoredConfig(configGuideBean));
+            pwmRequest.setAttribute(PwmRequest.Attribute.LdapPermissionItems,ldapPermissionCalculator);
+        }
+
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final ServletContext servletContext = req.getSession().getServletContext();
-        final ConfigGuideBean configGuideBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest,ConfigGuideBean.class);
         String destURL = '/' + PwmConstants.URL_JSP_CONFIG_GUIDE;
         destURL = destURL.replace("%1%", configGuideBean.getStep().toString().toLowerCase());
         servletContext.getRequestDispatcher(destURL).forward(req, pwmRequest.getPwmResponse().getHttpServletResponse());

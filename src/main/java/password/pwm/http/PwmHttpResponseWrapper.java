@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ import java.net.URI;
 import java.util.Arrays;
 
 public class PwmHttpResponseWrapper {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmHttpRequestWrapper.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmHttpResponseWrapper.class);
 
     private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
@@ -146,7 +146,7 @@ public class PwmHttpResponseWrapper {
             final Flag... flags
     ) {
         if (this.getHttpServletResponse().isCommitted()) {
-            LOGGER.warn("attempting to write cookie '" + cookieName + "' after response is committed");
+            LOGGER.warn("attempt to write cookie '" + cookieName + "' after response is committed");
         }
         boolean secureFlag;
         {

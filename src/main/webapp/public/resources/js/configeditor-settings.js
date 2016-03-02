@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -295,7 +295,7 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
     var deleteButtonID = 'button-' + settingKey + '-' + iteration + '-delete';
     rowHtml += '<td style="border:0; padding:0; width:10px" title="Delete">';
 
-    if (itemCount > 1 || (!settingInfo['required'] && (syntax != 'PROFILE'))) {
+    if (itemCount > 1 || (!settingInfo['required'])) {
         rowHtml += '<span id="' + deleteButtonID + '" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
     }
     rowHtml += '</td>';
@@ -658,19 +658,20 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         htmlRow += '<td style="border:1px solid #D4D4D4; width:170px"><div style="" class="noWrapTextBox " id="' + inputID + 'label"><span>' + value['labels'][''] + '</span></div></td>';
 
         var userDNtypeAllowed = options['type-userDN'] == 'show';
-        var optionList = [];
-        if ('Form_Types' in options) {
-            optionList = JSON.parse(properties['Form_Types']);
-        }
-        if (!PWM_MAIN.JSLibrary.isEmpty(optionList)) {
+        //var optionList = [];
+        //if ('Form_Types' in properties) {
+        //    optionList = JSON.parse(properties['Form_Types']);
+        //}
+        //debugger;
+        if (!PWM_MAIN.JSLibrary.isEmpty(options)) {
             htmlRow += '<td style="width:15px;">';
             htmlRow += '<select id="' + inputID + 'type">';
-            for (var optionItem in optionList) {
-                if (optionList[optionItem] != 'userDN' || userDNtypeAllowed) {
-                    var optionName = optionList[optionItem];
+            for (var optionItem in options) {
+                //if (optionList[optionItem] != 'userDN' || userDNtypeAllowed) {
+                    var optionName = options[optionItem];
                     var selected = (optionName == PWM_VAR['clientSettingCache'][settingKey][iteration]['type']);
                     htmlRow += '<option value="' + optionName + '"' + (selected ? " selected" : "") + '>' + optionName + '</option>';
-                }
+                //}
             }
             htmlRow += '</select>';
             htmlRow += '</td>';
@@ -790,11 +791,14 @@ FormTableHandler.addRow = function(keyName) {
 
 FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     var type = PWM_VAR['clientSettingCache'][keyName][iteration]['type'];
+    var settings = PWM_SETTINGS['settings'][keyName];
     var options = 'options' in PWM_SETTINGS['settings'][keyName] ? PWM_SETTINGS['settings'][keyName]['options'] : {};
-    var showRequired = options['required'] != 'hide' && type != 'checkbox';
     var showConfirmation = type != 'checkbox' && type != 'select';
-    var showUnique = options['unique'] == 'show';
-    var showReadOnly = options['readonly'] == 'show';
+
+    var showRequired = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowRequiredOption') && (type != 'checkbox');
+    var showUnique = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowUniqueOption');
+    var showReadOnly = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowReadOnlyOption');
+
     require(["dijit/Dialog","dijit/form/Textarea","dijit/form/CheckBox","dijit/form/NumberSpinner"],function(){
         var inputID = 'value_' + keyName + '_' + iteration + "_";
         var bodyText = '<div style="max-height: 500px; overflow-y: auto"><table class="noborder">';
@@ -876,7 +880,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
                 }
             }, inputID + "confirmationRequired");
 
-            if (PWM_SETTINGS['settings'][keyName]['options']['readonly'] == 'show') {
+            if (showReadOnly) {
                 PWM_MAIN.clearDijitWidget(inputID + "readonly");
                 new dijit.form.CheckBox({
                     checked: PWM_VAR['clientSettingCache'][keyName][iteration]['readonly'],
@@ -1165,19 +1169,30 @@ ChangePasswordHandler.popup = function(settingKey,settingName,writeFunction) {
     ChangePasswordHandler.changePasswordPopup(settingKey);
 };
 
-ChangePasswordHandler.validatePasswordPopupFields = function() {
+ChangePasswordHandler.validatePasswordPopupFields = function(settingKey) {
     var password1 = PWM_MAIN.getObject('password1').value;
     var password2 = PWM_MAIN.getObject('password2').value;
 
     var matchStatus = "";
 
+    var properties = settingKey === undefined || PWM_SETTINGS['settings'][settingKey] === undefined ? {} : PWM_SETTINGS['settings'][settingKey]['properties'];
+    var minLength = properties && 'Minimum' in properties ? properties['Minimum'] : 1;
+
+    PWM_MAIN.getObject('field-password-length').innerHTML = password1.length;
     PWM_MAIN.getObject('button-storePassword').disabled = true;
-    if (password2.length > 0) {
-        if (password1 == password2) {
-            matchStatus = "MATCH";
-            PWM_MAIN.getObject('button-storePassword').disabled = false;
-        } else {
-            matchStatus = "NO_MATCH";
+
+    if (minLength > 1 && password1.length < minLength) {
+        PWM_MAIN.addCssClass('field-password-length','invalid-value');
+    } else {
+        PWM_MAIN.removeCssClass('field-password-length','invalid-value');
+        if (password2.length > 0) {
+
+            if (password1 == password2) {
+                matchStatus = "MATCH";
+                PWM_MAIN.getObject('button-storePassword').disabled = false;
+            } else {
+                matchStatus = "NO_MATCH";
+            }
         }
     }
 
@@ -1256,10 +1271,17 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
     var showFields = PWM_VAR['clientSettingCache'][settingKey]['settings']['showFields'];
     var p1 = PWM_VAR['clientSettingCache'][settingKey]['settings']['p1'];
     var p2 = PWM_VAR['clientSettingCache'][settingKey]['settings']['p2'];
-    var length = 'passwordDialog-randomLength' in PWM_VAR ? PWM_VAR['passwordDialog-randomLength'] : 25;
+    var properties = settingKey === undefined || PWM_SETTINGS['settings'][settingKey] === undefined ? {} : PWM_SETTINGS['settings'][settingKey]['properties'];
+    var minLength = properties && 'Minimum' in properties ? properties['Minimum'] : 1;
+    var randomLength = 'passwordDialog-randomLength' in PWM_VAR ? PWM_VAR['passwordDialog-randomLength'] : 25;
+    randomLength = randomLength < minLength ? minLength : randomLength;
     var special = 'passwordDialog-special' in PWM_VAR ? PWM_VAR['passwordDialog-special'] : false;
 
-    var bodyText = '<table class="noborder">'
+    var bodyText = '';
+    if (minLength > 1) {
+        bodyText += 'Minimum Length: ' + minLength + '</span><br/><br/>'
+    }
+    bodyText += '<table class="noborder">'
         + '<tr><td><span class="formFieldLabel">' + PWM_MAIN.showString('Field_NewPassword') + '</span></td></tr>'
         + '<tr><td>';
 
@@ -1284,10 +1306,13 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
         + '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/greenCheck.png">'
         + '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png">'
         + '</div></td>'
-        + '</tr></table>'
-        + '<br/><br/><div class="dialogSection" style="width: 400px"><span class="formFieldLabel">Generate Random Password </span><br/>'
+        + '</tr></table>';
+
+    bodyText += '<br/>Length: <span id="field-password-length">-</span>';
+
+    bodyText += '<br/><br/><div class="dialogSection" style="width: 400px"><span class="formFieldLabel">Generate Random Password </span><br/>'
         + '<label class="checkboxWrapper"><input id="input-special" type="checkbox"' + (special ? ' checked' : '') + '>Specials</input></label>'
-        + '&nbsp;&nbsp;&nbsp;&nbsp;<input id="input-randomLength" type="number" min="10" max="1000" value="' + length + '" style="width:45px">Length'
+        + '&nbsp;&nbsp;&nbsp;&nbsp;<input id="input-randomLength" type="number" min="10" max="1000" value="' + randomLength + '" style="width:45px">Length'
         + '&nbsp;&nbsp;&nbsp;&nbsp;<button id="button-generateRandom" name="button-generateRandom"><span class="pwm-icon pwm-icon-random btn-icon"></span>Generate Random</button>'
         + '</div><br/><br/>'
         + '<button name="button-storePassword" class="btn" id="button-storePassword" disabled="true"/>'
@@ -1313,19 +1338,19 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
             });
             PWM_MAIN.addEventHandler('password1','input',function(){
                 PWM_VAR['clientSettingCache'][settingKey]['settings']['p1'] = PWM_MAIN.getObject('password1').value;
-                ChangePasswordHandler.validatePasswordPopupFields();
+                ChangePasswordHandler.validatePasswordPopupFields(settingKey);
                 PWM_MAIN.getObject('password2').value = '';
             });
             PWM_MAIN.addEventHandler('password2','input',function(){
                 PWM_VAR['clientSettingCache'][settingKey]['settings']['p2'] = PWM_MAIN.getObject('password2').value;
-                ChangePasswordHandler.validatePasswordPopupFields();
+                ChangePasswordHandler.validatePasswordPopupFields(settingKey);
             });
             PWM_MAIN.addEventHandler('show','change',function(){
                 PWM_VAR['clientSettingCache'][settingKey]['settings']['showFields'] = PWM_MAIN.getObject('show').checked;
                 ChangePasswordHandler.changePasswordPopup(settingKey);
             });
             PWM_MAIN.getObject('password1').focus();
-            ChangePasswordHandler.validatePasswordPopupFields();
+            ChangePasswordHandler.validatePasswordPopupFields(settingKey);
         }
     });
 };

@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.impl.edir.NmasCrFactory;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
@@ -509,6 +510,16 @@ public class CrService implements PwmService {
         if (challengeSet == null || challengeSet.getChallenges().isEmpty()) {
             LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: no challenge sets configured for user " + userIdentity);
             return false;
+        }
+
+        // ignore NMAS based CR set if so configured
+        if (responseInfoBean != null && (responseInfoBean.getDataStorageMethod() == DataStorageMethod.NMAS || responseInfoBean.getDataStorageMethod() == DataStorageMethod.NMASUAWS)) {
+            final boolean ignoreNmasCr = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK));
+            if (ignoreNmasCr) {
+                LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: app property " + AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK.getKey()
+                        + "=true and user's responses are in " + responseInfoBean.getDataStorageMethod() + " format, so forcing setup of new responses.");
+                return true;
+            }
         }
 
         try {

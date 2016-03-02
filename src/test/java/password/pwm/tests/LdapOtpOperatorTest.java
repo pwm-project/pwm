@@ -29,6 +29,7 @@ package password.pwm.tests;
 import junit.framework.TestCase;
 import org.junit.*;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.ConfigurationReader;
@@ -69,7 +70,7 @@ public class LdapOtpOperatorTest extends TestCase {
         final ConfigurationReader reader = new ConfigurationReader(configFileLocation);
         final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder(config,configFileLocation)
                 .setInternalRuntimeInstance(true)
-                .setApplicationMode(PwmApplication.MODE.RUNNING)
+                .setApplicationMode(PwmApplicationMode.RUNNING)
                 .createPwmEnvironment();
         final PwmApplication pwmApplication = new PwmApplication(pwmEnvironment);
         config = reader.getConfiguration();

@@ -1,9 +1,9 @@
 <%--
   ~ Password Management Servlets (PWM)
-  ~ http://code.google.com/p/pwm/
+  ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2015 The PWM Project
+  ~ Copyright (c) 2009-2016 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -20,75 +20,50 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.error.PwmUnrecoverableException" %>
-<%@ page import="password.pwm.http.PwmRequest" %>
-<%@ page import="password.pwm.http.PwmSession" %>
-<%@ page import="password.pwm.util.TimeDuration" %>
-<%@ page import="password.pwm.http.tag.PwmValue" %>
-<%@ page import="java.util.Locale" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
+<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.PwmRequestFlag" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    PwmSession pwmSessionFooter = null;
-    PwmApplication pwmApplicationFooter = null;
-    PwmRequest footer_pwmRequest = null;
-    try {
-        footer_pwmRequest = PwmRequest.forRequest(request,response);
-        pwmApplicationFooter = footer_pwmRequest.getPwmApplication();
-        pwmSessionFooter = footer_pwmRequest.getPwmSession();
-    } catch (PwmUnrecoverableException e) {
-        /* application must be unavailable */
-    }
-%>
-<% final Locale userLocaleFooter = pwmSessionFooter == null ? PwmConstants.DEFAULT_LOCALE : pwmSessionFooter.getSessionStateBean().getLocale(); %>
-<% boolean segmentDisplayed = false; %>
 <%-- begin pwm footer --%>
-<% if (footer_pwmRequest != null && !footer_pwmRequest.isFlag(PwmRequestFlag.HIDE_FOOTER_TEXT)) { %>
-<div id="footer">
-    <div id="footer-content">
-        <span class="infotext">
-            <pwm:display key="Display_FooterInfoText"/>&nbsp;
-        </span>
-        <div>
-            <% if (footer_pwmRequest.isAuthenticated()) { %>
-            <% if (footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername() != null) {%>
-            <%= footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername()  %>
-            <% } %>
-            <% segmentDisplayed = true; } %>
-            <% if (pwmApplicationFooter.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT)) { %>
-            <% if (!footer_pwmRequest.isFlag(PwmRequestFlag.HIDE_IDLE)) { %>
-            <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
-            <span id="idle_wrapper">
-            <span id="idle_status">
-                <pwm:display key="Display_IdleTimeout"/> <%=new TimeDuration(request.getSession().getMaxInactiveInterval() * 1000).asLongString(userLocaleFooter)%>
-            </span>
-            </span>
-            <% segmentDisplayed = true; } %>
-            <% } %>
-            <% if (!footer_pwmRequest.isFlag(PwmRequestFlag.HIDE_LOCALE)) { %>
-            <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
-            <a id="localeSelectionMenu">
-                <% String flagFileName = pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter);%>
-                <% if (flagFileName != null && !flagFileName.isEmpty()) { %>
-                <img src="<pwm:context/><pwm:url url='/public/resources/flags/png/'/><%=flagFileName%>.png"/>
-                <% } %>
-                &nbsp;<%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayName(userLocaleFooter)%>
-            </a>
-            <% segmentDisplayed = true; } %>
+<pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.HIDE_FOOTER_TEXT%>" negate="true">
+    <div id="footer">
+        <span class="infotext"><pwm:display key="Display_FooterInfoText"/>&nbsp;</span>
+        <div id="footer-content">
+            <pwm:if test="<%=PwmIfTest.authenticated%>">
+                <span class="footer-segment">
+                    <span id="session-username"><pwm:value name="<%=PwmValue.username%>"/></span>
+                </span>
+            </pwm:if>
+            <pwm:if test="<%=PwmIfTest.booleanSetting%>" setting="<%=PwmSetting.DISPLAY_IDLE_TIMEOUT%>">
+                <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.HIDE_IDLE%>" negate="true">
+                <span class="footer-segment">
+                <span id="idle_wrapper">
+                <span id="idle_status">
+                <pwm:display key="Display_IdleTimeout"/> <pwm:value name="<%=PwmValue.inactiveTimeRemaining%>"/>
+                </span>
+                </span>
+                </span>
+                </pwm:if>
+            </pwm:if>
+            <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.HIDE_LOCALE%>" negate="true">
+                <span class="footer-segment">
+                    <span id="localeSelectionMenu">
+                        <img src="<pwm:context/><pwm:url url='/public/resources/flags/png/'/><pwm:value name="<%=PwmValue.localeFlagFile%>"/>.png"/>
+                        <span class="localeDisplayName"><pwm:value name="<%=PwmValue.localeName%>"/></span>
+                    </span>
+                </span>
+            </pwm:if>
         </div>
     </div>
-</div>
-<% } %>
-<% if (footer_pwmRequest != null && footer_pwmRequest.isFlag(PwmRequestFlag.NO_IDLE_TIMEOUT)) { %>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['idle_suspendTimeout'] = true;
-    </script>
-</pwm:script>
-<% } %>
+</pwm:if>
+<pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.NO_IDLE_TIMEOUT%>">
+    <pwm:script>
+        <script type="text/javascript">
+            PWM_GLOBAL['idle_suspendTimeout'] = true;
+        </script>
+    </pwm:script>
+</pwm:if>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function() {
@@ -96,5 +71,5 @@
         });
     </script>
 </pwm:script>
-<script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
+<script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<pwm:url addContext="true" url='/public/resources/dojo/dojo/dojo.js'/>"></script>
 <pwm:script-ref url="/public/resources/js/main.js"/>

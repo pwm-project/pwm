@@ -7,10 +7,10 @@
 <%@ page import="java.util.*" %>
 <%--
   ~ Password Management Servlets (PWM)
-  ~ http://code.google.com/p/pwm/
+  ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2015 The PWM Project
+  ~ Copyright (c) 2009-2016 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_REQ_COUNTER); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_BUTTONS); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_FOOTER_TEXT); %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">

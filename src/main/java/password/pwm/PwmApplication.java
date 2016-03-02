@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -195,7 +195,7 @@ public class PwmApplication {
         );
 
         if (!pwmEnvironment.isInternalRuntimeInstance()) {
-            if (getApplicationMode() == MODE.ERROR || getApplicationMode() == MODE.NEW) {
+            if (getApplicationMode() == PwmApplicationMode.ERROR || getApplicationMode() == PwmApplicationMode.NEW) {
                 LOGGER.warn("skipping LocalDB open due to application mode " + getApplicationMode());
             } else {
                 this.localDB = Initializer.initializeLocalDB(this);
@@ -290,7 +290,7 @@ public class PwmApplication {
         }
 
         try {
-            Map<PwmAboutProperty,String> infoMap = Helper.makeInfoBean(this);
+            Map<PwmAboutProperty,String> infoMap = PwmAboutProperty.makeInfoBean(this);
             LOGGER.trace("application info: " + JsonUtil.serializeMap(infoMap));
         } catch (Exception e) {
             LOGGER.error("error generating about application bean: " + e.getMessage());
@@ -406,7 +406,7 @@ public class PwmApplication {
         return pwmEnvironment.getConfig();
     }
 
-    public MODE getApplicationMode() {
+    public PwmApplicationMode getApplicationMode() {
         return pwmEnvironment.getApplicationMode();
     }
 
@@ -579,7 +579,7 @@ public class PwmApplication {
 
             // initialize the localDB
             try {
-                final boolean readOnly = pwmApplication.getApplicationMode() == MODE.READ_ONLY;
+                final boolean readOnly = pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY;
                 return LocalDBFactory.getInstance(databaseDirectory, readOnly, pwmApplication, pwmApplication.getConfig());
             } catch (Exception e) {
                 pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"unable to initialize LocalDB: " + e.getMessage());
@@ -591,14 +591,6 @@ public class PwmApplication {
 
     public PwmEnvironment getPwmEnvironment() {
         return pwmEnvironment;
-    }
-
-    public enum MODE {
-        NEW,
-        CONFIGURATION,
-        RUNNING,
-        READ_ONLY,
-        ERROR
     }
 
     public String getInstanceNonce() {

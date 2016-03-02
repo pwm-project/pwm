@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,6 +71,7 @@ public enum AppProperty {
     HTTP_RESOURCES_ENABLE_GZIP                      ("http.resources.gzip.enable"),
     HTTP_RESOURCES_ENABLE_PATH_NONCE                ("http.resources.pathNonceEnable"),
     HTTP_RESOURCES_NONCE_PATH_PREFIX                ("http.resources.pathNoncePrefix"),
+    HTTP_RESOURCES_WEBJAR_MAPPINGS                  ("http.resources.webjarMappings"),
     HTTP_RESOURCES_ZIP_FILES                        ("http.resources.zipFiles"),
     HTTP_COOKIE_DEFAULT_SECURE_FLAG                 ("http.cookie.default.secureFlag"),
     HTTP_COOKIE_THEME_NAME                          ("http.cookie.theme.name"),
@@ -86,6 +87,8 @@ public enum AppProperty {
     HTTP_BODY_MAXREAD_LENGTH                        ("http.body.maxReadLength"),
     HTTP_ENABLE_GZIP                                ("http.gzip.enable"),
     HTTP_ERRORS_ALLOW_HTML                          ("http.errors.allowHtml"),
+    HTTP_HEADER_SERVER                              ("http.header.server"),
+    HTTP_HEADER_SEND_CONTENT_LANGUAGE               ("http.header.sendContentLanguage"),
     HTTP_HEADER_SEND_XAMB                           ("http.header.sendXAmb"),
     HTTP_HEADER_SEND_XINSTANCE                      ("http.header.sendXInstance"),
     HTTP_HEADER_SEND_XNOISE                         ("http.header.sendXNoise"),
@@ -100,6 +103,7 @@ public enum AppProperty {
     HTTP_PARAM_NAME_PASSWORD_EXPIRED                ("http.parameter.passwordExpired"),
     HTTP_PARAM_NAME_SSO_ENABLE                      ("http.parameter.ssoBypass"),
     HTTP_PARAM_MAX_READ_LENGTH                      ("http.parameter.maxReadLength"),
+    HTTP_PARAM_SESSION_VERIFICATION                 ("http.parameter.sessionVerification"),
     HTTP_PARAM_OAUTH_ACCESS_TOKEN                   ("http.parameter.oauth.accessToken"),
     HTTP_PARAM_OAUTH_ATTRIBUTES                     ("http.parameter.oauth.attributes"),
     HTTP_PARAM_OAUTH_CLIENT_ID                      ("http.parameter.oauth.clientID"),
@@ -134,11 +138,15 @@ public enum AppProperty {
     INTRUDER_MAX_DELAY_PENALTY_MS                   ("intruder.maximumDelayPenaltyMS"),
     INTRUDER_DELAY_PER_COUNT_MS                     ("intruder.delayPerCountMS"),
     INTRUDER_DELAY_MAX_JITTER_MS                    ("intruder.delayMaxJitterMS"),
-    HEALTH_MIN_CHECK_INTERVAL_SECONDS               ("health.minimumCheckIntervalSeconds"),
+    HEALTHCHECK_NOMINAL_CHECK_INTERVAL              ("healthCheck.nominalCheckIntervalSeconds"),
+    HEALTHCHECK_MIN_CHECK_INTERVAL                  ("healthCheck.minimumCheckIntervalSeconds"),
+    HEALTHCHECK_MAX_RECORD_AGE                      ("healthCheck.maximumRecordAgeSeconds"),
+    HEALTHCHECK_MAX_FORCE_WAIT                      ("healthCheck.maximumForceCheckWaitSeconds"),
     HEALTH_CERTIFICATE_WARN_SECONDS                 ("health.certificate.warnSeconds"),
     HEALTH_LDAP_CAUTION_DURATION_MS                 ("health.ldap.cautionDurationMS"),
     HEALTH_JAVA_MAX_THREADS                         ("health.java.maxThreads"),
     HEALTH_JAVA_MIN_HEAP_BYTES                      ("health.java.minHeapBytes"),
+    HELPDESK_TOKEN_MAX_AGE                          ("helpdesk.token.maxAgeSeconds"),
     HELPDESK_TOKEN_VALUE                            ("helpdesk.token.value"),
     LDAP_CHAI_SETTINGS                              ("ldap.chaiSettings"),
     LDAP_CONNECTION_TIMEOUT                         ("ldap.connection.timeoutMS"),
@@ -161,6 +169,7 @@ public enum AppProperty {
     NMAS_THREADS_MIN_SECONDS                        ("nmas.threads.minSeconds"),
     NMAS_THREADS_MAX_SECONDS                        ("nmas.threads.maxSeconds"),
     NMAS_THREADS_WATCHDOG_FREQUENCY                 ("nmas.threads.watchdogFrequencyMs"),
+    NMAS_IGNORE_NMASCR_DURING_FORCECHECK            ("nmas.ignoreNmasCrDuringForceSetupCheck"),
     OAUTH_ID_REQUEST_TYPE                           ("oauth.id.requestType"),
     OAUTH_ID_ACCESS_GRANT_TYPE                      ("oauth.id.accessGrantType"),
     OAUTH_ID_REFRESH_GRANT_TYPE                     ("oauth.id.refreshGrantType"),
@@ -210,6 +219,7 @@ public enum AppProperty {
     SECURITY_RESPONSES_HASH_ITERATIONS              ("security.responses.hashIterations"),
     SECURITY_INPUT_TRIM                             ("security.input.trim"),
     SECURITY_INPUT_PASSWORD_TRIM                    ("security.input.password.trim"),
+    SECURITY_INPUT_THEME_MATCH_REGEX                ("security.input.themeMatchRegex"),
     SECURITY_WS_REST_CLIENT_KEY_LENGTH              ("security.ws.rest.clientKeyLength"),
     SECURITY_SHAREDHISTORY_HASH_ITERATIONS          ("security.sharedHistory.hashIterations"),
     SECURITY_SHAREDHISTORY_HASH_NAME                ("security.sharedHistory.hashName"),

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <!--
   ~ Password Management Servlets (PWM)
-  ~ http://code.google.com/p/pwm/
+  ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2015 The PWM Project
+  ~ Copyright (c) 2009-2016 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -131,14 +131,14 @@
     </tag>
     <tag>
         <name>value</name>
-        <tag-class>password.pwm.http.tag.PwmValueTag</tag-class>
+        <tag-class>password.pwm.http.tag.value.PwmValueTag</tag-class>
         <body-content>empty</body-content>
         <description>Output a named value</description>
         <attribute>
             <name>name</name>
             <required>true</required>
             <rtexprvalue>true</rtexprvalue>
-            <type>password.pwm.http.tag.PwmValue</type>
+            <type>password.pwm.http.tag.value.PwmValue</type>
         </attribute>
     </tag>
     <tag>
@@ -187,33 +187,39 @@
         <description>Displays the context url path</description>
     </tag>
     <tag>
-        <name>LocaleOrientation</name>
-        <tag-class>password.pwm.http.tag.LocaleOrientationTag</tag-class>
-        <body-content>empty</body-content>
-        <description>Output text "rtl" or "ltr" depending on session locale</description>
-    </tag>
-    <tag>
         <name>if</name>
-        <tag-class>password.pwm.http.tag.PwmIfTag</tag-class>
+        <tag-class>password.pwm.http.tag.conditional.PwmIfTag</tag-class>
         <body-content>JSP</body-content>
         <description>If test is true, output body.</description>
         <attribute>
             <name>test</name>
             <required>true</required>
             <rtexprvalue>true</rtexprvalue>
-            <type>password.pwm.http.tag.PwmIfTest</type>
+            <type>password.pwm.http.tag.conditional.PwmIfTest</type>
         </attribute>
-       <attribute>
+        <attribute>
             <name>permission</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
-           <type>password.pwm.Permission</type>
+            <type>password.pwm.Permission</type>
+        </attribute>
+        <attribute>
+            <name>setting</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>password.pwm.config.PwmSetting</type>
         </attribute>
         <attribute>
             <name>negate</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
             <type>boolean</type>
+        </attribute>
+        <attribute>
+            <name>requestFlag</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>password.pwm.http.PwmRequestFlag</type>
         </attribute>
     </tag>
     <tag>

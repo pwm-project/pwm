@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ package password.pwm.svc.wordlist;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
@@ -78,7 +79,6 @@ public class SharedHistoryManager implements PwmService {
 
     public void close() {
         status = STATUS.CLOSED;
-        LOGGER.debug("closed");
         if (cleanerTimer != null) {
             cleanerTimer.cancel();
         }
@@ -207,7 +207,7 @@ public class SharedHistoryManager implements PwmService {
         status = STATUS.OPEN;
         //populateFromWordlist();  //only used for debugging!!!
 
-        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING || pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
+        if (pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING || pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION) {
             long frequencyMs = maxAgeMs > MAX_CLEANER_FREQUENCY ? MAX_CLEANER_FREQUENCY : maxAgeMs;
             frequencyMs = frequencyMs < MIN_CLEANER_FREQUENCY ? MIN_CLEANER_FREQUENCY : frequencyMs;
 

@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 package password.pwm.http.tag;
 
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -49,9 +50,9 @@ public class DisplayLocationOptionsTag extends PwmAbstractTag {
         for (final String contextDN : locationsMap.keySet()) {
             final String displayName = locationsMap.get(contextDN);
 
-            sb.append("<option value=\"").append(contextDN).append("\"");
+            sb.append("<option value=\"").append(StringUtil.escapeHtml(contextDN)).append("\"");
             sb.append(">");
-            sb.append(displayName);
+            sb.append(StringUtil.escapeHtml(displayName));
             sb.append("</option>");
         }
 

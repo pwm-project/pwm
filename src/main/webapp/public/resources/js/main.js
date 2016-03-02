@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -711,13 +711,14 @@ PWM_MAIN.showErrorDialog = function(error, options) {
     console.log('displaying error message: ' + logMsg);
     options['title'] = titleMsg;
     options['text'] = body;
-    options['okAction'] = 'okAction' in options
-        ? options['okAction']
-        : function() {
+    var previousOkAction = 'okAction' in options ? options['okAction'] : function() {};
+    options['okAction'] =  function() {
         if (forceReload) { // incorrect page sequence;
             var newURL = window.location.pathname;
             PWM_MAIN.goto(newURL);
             PWM_MAIN.showWaitDialog();
+        } else {
+            previousOkAction();
         }
     };
     PWM_MAIN.showDialog(options);

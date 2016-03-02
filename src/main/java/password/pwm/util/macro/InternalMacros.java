@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,14 @@ public abstract class InternalMacros {
         INTERNAL_MACROS = Collections.unmodifiableList(defaultMacros);
     }
 
-    public static class OtpSetupTimeMacro extends AbstractMacro {
+    static abstract class InternalAbstractMacro extends AbstractMacro {
+        @Override
+        public MacroDefinitionFlag[] flags() {
+            return new MacroDefinitionFlag[] { MacroDefinitionFlag.OnlyDebugLogging };
+        }
+    }
+
+    public static class OtpSetupTimeMacro extends InternalAbstractMacro {
         private static final Pattern PATTERN = Pattern.compile("@OtpSetupTime@");
 
         public Pattern getRegExPattern() {
@@ -63,7 +70,7 @@ public abstract class InternalMacros {
         }
     }
 
-    public static class ResponseSetupTimeMacro extends AbstractMacro {
+    public static class ResponseSetupTimeMacro extends InternalAbstractMacro {
         private static final Pattern PATTERN = Pattern.compile("@ResponseSetupTime@");
 
         public Pattern getRegExPattern() {
@@ -80,7 +87,7 @@ public abstract class InternalMacros {
         }
     }
 
-    public static class PwmSettingReference extends AbstractMacro {
+    public static class PwmSettingReference extends InternalAbstractMacro {
         private static final Pattern PATTERN = Pattern.compile("@PwmSettingReference" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
         public Pattern getRegExPattern() {
@@ -103,7 +110,7 @@ public abstract class InternalMacros {
     }
 
 
-    public static class PwmAppName extends AbstractMacro {
+    public static class PwmAppName extends InternalAbstractMacro {
         private static final Pattern PATTERN = Pattern.compile("@PwmAppName@" );
 
         public Pattern getRegExPattern() {

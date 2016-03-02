@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ package password.pwm.http.filter;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
@@ -36,8 +37,9 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ChangePasswordBean;
 import password.pwm.http.servlet.LoginServlet;
-import password.pwm.http.servlet.OAuthConsumerServlet;
+import password.pwm.http.servlet.oauth.OAuthConsumerServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 import password.pwm.ldap.UserSearchEngine;
@@ -72,6 +74,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(AuthenticationFilter.class.getName());
 
     public void processFilter(
+            final PwmApplicationMode mode,
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
     )
@@ -88,14 +91,14 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
             final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-            if (pwmApplication.getApplicationMode() == PwmApplication.MODE.NEW) {
+            if (pwmApplication.getApplicationMode() == PwmApplicationMode.NEW) {
                 if (pwmRequest.getURL().isConfigGuideURL()) {
                     chain.doFilter();
                     return;
                 }
             }
 
-            if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
+            if (pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION) {
                 if (pwmRequest.getURL().isConfigManagerURL()) {
                     chain.doFilter();
                     return;
@@ -114,7 +117,10 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    @Override
+    boolean isInterested(PwmApplicationMode mode, PwmURL pwmURL) {
+        return !pwmURL.isResourceURL();
+    }
 
     private void processAuthenticatedSession(
             final PwmRequest pwmRequest,
@@ -544,7 +550,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         )
                 throws PwmUnrecoverableException, IOException
         {
-            final OAuthConsumerServlet.Settings settings = OAuthConsumerServlet.Settings.fromConfiguration(pwmRequest.getConfig());
+            final OAuthSettings settings = OAuthSettings.fromConfiguration(pwmRequest.getConfig());
             if (!settings.oAuthIsConfigured()) {
                 return;
             }

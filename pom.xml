@@ -2,10 +2,23 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.pwmproject</groupId>
+    <groupId>org.pwm-project</groupId>
     <artifactId>pwm</artifactId>
     <version>1.8.0-SNAPSHOT</version>
     <packaging>war</packaging>
+
+    <licenses>
+        <license>
+            <name>The GNU General Public License (GPL) Version 2</name>
+            <url>LICENSE</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>Pwm Project</name>
+        <url>http://www.pwm-project.org</url>
+    </organization>
 
     <properties>
         <maven.compiler.source>1.7</maven.compiler.source>
@@ -383,9 +396,53 @@
             <version>2.7</version>
         </dependency>
 
+        <!-- client webjar dependencies -->
+        <!-- changes in client dependencies require updating AppProperty.properties:http.resources.webjarMappings -->
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>dojo</artifactId>
+            <version>1.10.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>dijit</artifactId>
+            <version>1.10.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>dojox</artifactId>
+            <version>1.10.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>dgrid</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>dstore</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>font-awesome</artifactId>
+            <version>4.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>famfamfam-flags</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
         <!-- Include our own local maven repository, for artifacts that aren't available elsewhere -->
         <repository>
             <id>project.local</id>
@@ -399,4 +456,13 @@
             <layout>default</layout>
         </repository>
     </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 </project>

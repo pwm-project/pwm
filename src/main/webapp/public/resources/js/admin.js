@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -703,7 +703,8 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
 
 PWM_ADMIN.makeHealthHtml = function(healthData, showTimestamp, showRefresh) {
     var healthRecords = healthData['records'];
-    var htmlBody = '<table width="100%" style="width=100%; border=0">';
+    var htmlBody = '<div>';
+    htmlBody += '<div class="healthTable-wrapper"><table>';
     for (var i = 0; i < healthRecords.length; i++) {
         (function(iter){
             var loopRecord = healthRecords[iter];
@@ -716,20 +717,22 @@ PWM_ADMIN.makeHealthHtml = function(healthData, showTimestamp, showRefresh) {
             htmlBody += '</div></td></tr>';
         })(i)
     }
+    htmlBody += '</table></div>';
+
     if (showTimestamp || showRefresh) {
-        htmlBody += '<tr><td colspan="3" style="text-align:center;">';
+        htmlBody += '<div class="healthTable-footer">';
         if (showTimestamp) {
             htmlBody += '<span id="healthCheckTimestamp" class="timestamp">';
             htmlBody += (healthData['timestamp']);
-            htmlBody += '</span>&nbsp;&nbsp;&nbsp;&nbsp;';
+            htmlBody += '</span>';
         }
         if (showRefresh) {
-            htmlBody += '<span id="button-refreshHealth" class="pwm-icon btn-icon pwm-icon-refresh"></span>';
+            htmlBody += '&nbsp;&nbsp;&nbsp;&nbsp;<span id="button-refreshHealth" class="pwm-icon btn-icon pwm-icon-refresh"></span>';
         }
-        htmlBody += "</td></tr>";
+        htmlBody += "</div>";
     }
+    htmlBody += '</div>';
 
-    htmlBody += '</table>';
     return htmlBody;
 };
 

@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
 import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.error.ErrorInformation;
@@ -257,23 +258,22 @@ public class SessionManager implements Serializable {
         return new MacroMachine(pwmApplication, pwmSession.getLabel(), userInfoBean, pwmSession.getLoginInfoBean(), userDataReader);
     }
 
-    public HelpdeskProfile getHelpdeskProfile(final PwmApplication pwmApplication) {
-        if (pwmSession.isAuthenticated()) {
-            final String profileID = pwmSession.getUserInfoBean().getProfileIDs().get(ProfileType.Helpdesk);
-            if (profileID != null) {
-                return pwmApplication.getConfig().getHelpdeskProfiles().get(profileID);
-            }
+    public Profile getProfile(final PwmApplication pwmApplication, final ProfileType profileType) {
+        if (profileType.isAuthenticated() && !pwmSession.isAuthenticated()) {
+            return null;
+        }
+        final String profileID = pwmSession.getUserInfoBean().getProfileIDs().get(profileType);
+        if (profileID != null) {
+            return pwmApplication.getConfig().profileMap(profileType).get(profileID);
         }
         return null;
     }
 
+    public HelpdeskProfile getHelpdeskProfile(final PwmApplication pwmApplication) {
+        return (HelpdeskProfile)getProfile(pwmApplication, ProfileType.Helpdesk);
+    }
+
     public UpdateAttributesProfile getUpdateAttributeProfile(final PwmApplication pwmApplication) {
-        if (pwmSession.isAuthenticated()) {
-            final String profileID = pwmSession.getUserInfoBean().getProfileIDs().get(ProfileType.UpdateAttributes);
-            if (profileID != null) {
-                return pwmApplication.getConfig().getUpdateAttributesProfile().get(profileID);
-            }
-        }
-        return null;
+        return (UpdateAttributesProfile)getProfile(pwmApplication, ProfileType.UpdateAttributes);
     }
 }
