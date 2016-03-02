@@ -98,8 +98,8 @@ public class PwmLogManager {
 
         initFileLogger(config, fileLogLevel, pwmApplicationPath);
 
-        // disable java's logging altogether, since you can't seem to change the log level for Jersey programmatically, and have it stick.
-        java.util.logging.LogManager.getLogManager().reset();
+        // disable jersey warnings.
+        java.util.logging.Logger.getLogger("org.glassfish.jersey").setLevel(java.util.logging.Level.SEVERE);
     }
 
     private static void initConsoleLogger(
