@@ -79,9 +79,46 @@ html, body {
 #header-page, #header-title {
     font: 100% "Andale Mono","Lucida Console",Monaco,monospace;
     color: #00cc00;
-
 }
+#button-openHeader {
+    color: #00cc00;
+	}
 
+.header-button {
+	margin: 0px;
+	margin-top: 6px;
+	margin-left: 6px;
+    background-color: black;
+    color: #00cc00;
+	}
+#header-username-group, #header-username {
+	text-align: right;
+	}
+#HomeButton span.btn-icon, #LogoutButton span.btn-icon, #header-username-caret span.m-icon {
+	font: 20px FontAwesome;
+	margin-right: 0px;
+}
+#HomeButton span.btn-icon:before {
+	content: "\f015";
+	}
+#LogoutButton span.btn-icon:before {
+	content: "\f08b";
+	}
+#header-username-caret span.m-icon {
+	content: "\f08b";
+	}
+	
+.tile {
+	background: transparent;
+	width: 160px;
+	height: 160px;
+	border: 1px solid #00cc00;
+	}	
+.tile:hover {
+	background: transparent;
+	border: 1px solid #fff;
+	}	
+	
 #centerbody {
     padding: 10px 10px 40px 10px;
     border: 0;
@@ -89,7 +126,7 @@ html, body {
 }
 
 a {
-    font: 100% "Andale Mono","Lucida Console",Monaco,monospace;
+	font-family: "Andale Mono","Lucida Console",Monaco,monospace;
     color: #008800;
 }
 
@@ -127,11 +164,6 @@ p, h1, h2, h3, h4 {
     color: #00cc00;
 }
 
-.header-button {
-    background-color: black;
-    color: #00cc00;
-}
-
 table td.title {
     font-family: "Andale Mono","Lucida Console",Monaco,monospace;;
     background-color: #338833;
@@ -161,6 +193,3 @@ input, button {
     color: #00cc00;
 }
 
-.btn-icon {
-    display: none;
-}

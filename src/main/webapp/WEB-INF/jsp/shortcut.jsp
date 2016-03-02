@@ -48,7 +48,7 @@
         <jsp:param name="pwm.PageName" value="Title_Shortcuts"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:display key="Display_Shortcuts"/></p>
+        <div class="centerbody-head"><pwm:display key="Title_Shortcuts"/></div>
         <%@ include file="fragment/message.jsp" %>
         <% if (shortcutItems.isEmpty()) { %>
         <p>No shortcuts</p>

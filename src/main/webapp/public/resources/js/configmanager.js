@@ -183,13 +183,11 @@ PWM_CONFIG.showHeaderHealth = function() {
                     }
                 }
                 if (hasWarnTopics) {
-//                    PWM_MAIN.addCssClass('button-openHeader','blink');
-                    PWM_MAIN.setStyle('button-openHeader','color','red');
+                    PWM_MAIN.addCssClass('button-openHeader','blink');
 
                     parentDiv.innerHTML = '<div id="panel-healthHeaderErrors" class="header-error"><span class="pwm-icon pwm-icon-warning"></span> ' + PWM_ADMIN.showString('Header_HealthWarningsPresent') + '</div>';
                 } else {
-//                    PWM_MAIN.removeCssClass('button-openHeader','blink');
-                    PWM_MAIN.setStyle('button-openHeader','color');
+                    PWM_MAIN.removeCssClass('button-openHeader','blink');
                 }
                 setTimeout(function () {
                     PWM_CONFIG.showHeaderHealth()
@@ -321,6 +319,9 @@ PWM_CONFIG.initConfigHeader = function() {
         PWM_CONFIG.closeHeaderWarningPanel();
     });
     PWM_MAIN.addEventHandler('button-openHeader','click',function(){
+        PWM_CONFIG.openHeaderWarningPanel();
+    });
+    PWM_MAIN.addEventHandler('header-username-group','click',function(){
         PWM_CONFIG.openHeaderWarningPanel();
     });
 

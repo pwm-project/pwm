@@ -20,3 +20,11 @@
 /bin/
 /src/main/webapp/WEB-INF/applicationPath.lock
 /src/main/webapp/public/resources/themes/mdefault
+
+src/main/webapp/public/resources/.DS_Store
+
+src/main/webapp/WEB-INF/jsp/fragment/.DS_Store
+
+src/main/webapp/public/resources/font/.DS_Store
+
+src/main/webapp/public/resources/themes/tulips/.DS_Store

@@ -25,26 +25,25 @@ body {
 }
 
 .border {
-    border: 1px solid #D4D4D4 !important;
+    border: 1px solid #dae1e1 !important;
 }
 
 .setting_outline {
-    background-color: #eaeaea;
-    border-radius: 3px 3px 5px 5px;
+    background-color: #eef2f2;
+    border-radius: 3px;
     /* box-shadow: 2px 2px 1px 1px #dcdcdc; */
     margin-bottom: 10px;
+	padding-bottom: 5px;
     animation: fadein 0.5s;
     -moz-animation: fadein 0.5s; /* Firefox */
     -webkit-animation: fadein 0.5s; /* Safari and Chrome */
 }
 
 .setting_title {
-    color: black;
-    background-color: #d3d3d3;
-    opacity: 0.75;
+    color: #2d3d45;
     padding-left: 10px;
-    padding-top: 4px;
-    padding-bottom: 3px;
+    padding-top: 5px;
+    padding-bottom: 5px;
     font-weight: bold;
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
@@ -68,7 +67,7 @@ body {
 }
 
 .setting_body {
-    padding: 5px;
+    padding: 10px;
 }
 
 .setting_body.modified {
@@ -83,16 +82,17 @@ body {
     cursor: pointer;
 }
 
-.pwm-icon-question-circle {
-    border-bottom-right-radius: 3px;
-    box-shadow: 2px 2px 2px 2px #bfbfbf;
+.pwm-icon-question-circle, .pwm-icon-undo {
+	font-size: 15px;
+    /* border-bottom-right-radius: 3px;
+    box-shadow: 2px 2px 2px 2px #bfbfbf; */
 }
 
 .pwm-icon-reply {
     color: #920000;
     visibility: hidden;
     border-bottom-right-radius: 3px;
-    box-shadow: 2px 2px 2px 2px #bfbfbf;
+    box-shadow: 2px 2px 2px 2px #dae1e1;
 }
 
 .helpDiv {
@@ -127,7 +127,7 @@ body {
     width: 850px;
     margin: 0 auto;
     position:relative;
-    padding:4px;
+    padding: 4px;
 }
 
 .headerIcon {
@@ -201,7 +201,7 @@ body {
 table {
     max-width: 100%;
     font-size: 12px;
-    border-color: #D4D4D4;
+    border-color: #dae1e1;
 }
 
 .modifiedNoticeIcon {
@@ -220,14 +220,14 @@ table {
 }
 
 #searchResults {
-    padding:5px;
-    border: 1px solid;
+    padding: 15px;
+    border: 1px solid #dae1e1;
     max-height: 250px;
     width: 580px;
     overflow-y: auto;
     position: fixed;
-    margin-left: 120px;
-    margin-right: 110px;
+    margin-left: 0px;
+    margin-right: auto;
     z-index: 10;
     background: white;
 }
@@ -240,13 +240,12 @@ table {
 }
 
 #navigationTreeWrapper {
-    border: 1px solid #bfbfbf;
-    border-radius: 3px 3px 5px 5px;
-    box-shadow: 1px 1px 0px 0px #dfdfdf;
+    border: 1px solid #dae1e1;
+    border-radius: 3px;
     float: left;
     margin-right: 5px;
     background-color: white;
-    margin-top: 57px;
+    margin-top: 45px;
     height: 85vh;
     width: 242px;
     position: fixed;
@@ -257,6 +256,7 @@ table {
 
 #navigationTree {
     height: 100%;
+	padding-top: 3px;
 }
 
 #navTreeExpanderButtons {
@@ -270,13 +270,13 @@ table {
     width:600px;
     float:right;
     border:0;
-    margin-top: 57px;
+    margin-top: 45px;
 }
 
 #settingSearchPanel {
-    margin-top: 10px;
+/*    margin-top: 10px;
     padding-top: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 10px; */
     position:fixed;
     z-index: 2;
     background: white;
@@ -284,26 +284,36 @@ table {
     animation: fadein 1.5s;
     -moz-animation: fadein 1.5s; /* Firefox */
     -webkit-animation: fadein 1.5s; /* Safari and Chrome */
-}
+	}
+	#settingSearchPanel .pwm-icon-search {
+		display: none;
+		}
 
 .setting_item_value_wrapper {
-    border: 2px solid #D4D4D4;
+    border: 0px solid #dae1e1;
     margin-bottom: 4px;
 }
 
 .checkboxWrapper {
     padding: 2px 5px;
-    border: 1px solid #bfbfbf;
+    border: 1px solid #eef2f2;
     border-radius: 3px;
-    background-color: white;
+    background-color: #f6f9f8;
     display: inline-block;
-}
+	margin-right: 1px;
+	margin-bottom: 1px;
+	}
+	.checkboxWrapper:hover {
+	    border: 1px solid #dae1e1;
+		cursor: pointer;
+		}
+
 
 .configStringInput {
     width: 500px;
-    padding:2px 5px;
+    padding: 5px;
     margin: 0;
-    border: 1px solid #bfbfbf;
+    border: 1px solid #dae1e1;
     font-size: 9pt;
     background: white;
     display: inline-block;
@@ -312,9 +322,9 @@ table {
 
 .configNumericInput {
     width: 85px;
-    padding:2px 5px;
+    padding: 5px;
     margin: 0;
-    border: 1px solid #bfbfbf;
+    border: 1px solid #dae1e1;
     font-size: 9pt;
     background: white;
     display: inline-block;
@@ -330,7 +340,8 @@ input:invalid{
     font-weight: bold;
 }
 .pane-help {
-    border-bottom: 1px #d3d3d3 solid;
+	color: #697c87;
+    border-bottom: 1px solid #dae1e1;
     padding: 5px;
     max-height: 250px;
     margin: 2px 2px 15px;
@@ -355,34 +366,53 @@ input:invalid{
 }
 
 .configeditor-header {
-    height: 25px !important;
-    position: fixed !important;
+    height: 40px !important;
+  /*  position: fixed !important; */
+	background:linear-gradient(to right, #26a9e0, #0088ce ) !important;
 }
+.configeditor-header #header-title {
+	margin-top: 8px;
+	}
+
 
 .settingSearchPanelTable {
     width:600px;
-    margin-left: auto;
-    margin-right: auto
-}
+    margin-left: 0;
+    margin-right: auto;
+	}
+	.settingSearchPanelTable td {padding: 0;}
+	.settingSearchPanelTable td input {
+		font-size: 14px;
+		width: 300px;
+		border: 1px solid #dae1e1;
+		border-radius: 2px;
+		padding: 5px;
+		border: 1px solid #dae1e1 !important;
+		}
 
 .settingSearchPanelTable_Col1 {
-    width:10px;
+    width: 1px;
 }
 
 .settingSearchPanelTable_Col2 {
-    width:580px;
+    width: 300px;
 }
 
 .settingSearchPanelTable_Col3 {
-    min-width:10px;
-    max-width:10px;
-    display: inline-block
+    min-width: 300px;
+    max-width: 300px;
+    display: inline-block;
 }
 
 #homeSettingSearch {
-    width: 570px;
-    margin-left:auto;
-    margin-right: auto
+	font-size: 16px !important;
+	border-radius: 2px;
+	border: 1px solid #dae1e1 !important;
+    width: 280px;
+	height: 30px;
+    margin-left:0;
+    margin-right: auto;
+	padding: 5px;
 }
 
 #working_icon {
@@ -413,8 +443,8 @@ input:invalid{
 }
 
 .configNumericLimits {
-    font-size: smaller;
-    color: grey;
+    font-size: small;
+    color: #697c87;
     margin-left: 10px;
 }
 
@@ -427,7 +457,7 @@ input:invalid{
 }
 
 .noWrapTextBox.border {
-    border: 1px solid #bfbfbf;
+    border: 1px solid #dae1e1;
     margin: 0;
 }
 
@@ -445,7 +475,7 @@ input:invalid{
     margin-left: auto;
     margin-right: auto;
     */
-    color: #c3c3c3;
+    color: #f6f9f8;
     text-align: center;
     font-size: 10px;
     font-family: "Courier New", Courier, monospace;
@@ -498,15 +528,20 @@ input[type=range]:focus::-ms-fill-upper {
     background: #ccc;
 }
 
-
-button {
+button, .btn {
     text-decoration: none;
     color: #3e374c;
-    background: white;
+    background: #f6f9f8;
+	margin-top: 10px;
     cursor: pointer;
-    border: 1px solid #9e9e9e;
-    border-radius: 2px;
-}.button:disabled {
+    border: 1px solid #dae1e1;
+    border-radius: 3px;
+	}
+button:hover {
+	color: #0088ce;
+	border: 1px solid #28A9E1;
+	}
+.button:disabled {
      color: #9e9e9e;
  }
 
@@ -537,3 +572,13 @@ button {
 .selectableDN {
     cursor: pointer;
 }
+
+.footnote {
+	color: #697c87;
+	background: #eef2f2;
+	width: auto !important;
+	padding: 3px;
+	}
+#panel-skippedSettingInfo {
+	background: transparent !important;
+	}	

@@ -78,7 +78,7 @@
                         <span id="settingSearchIcon" class="pwm-icon pwm-icon-search" title="<pwm:display key="Tooltip_IconSettingsSearch" bundle="Config"/>"></span>
                     </td>
                     <td>
-                        <input type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" <pwm:autofocus/>/>
+                        <input type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" placeholder="Search Configuration" <pwm:autofocus/>/>
                     </td>
                     <td>
                         <div style="margin-top:5px; width:20px; max-width: 20px;">
