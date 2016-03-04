@@ -579,7 +579,7 @@
                         </button>
                         <% } %>
                         <% } %>
-                        <% if ((boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled) == true) { %>
+                        <% if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled) == true) { %>
                         <button id="sendTokenButton" class="helpdesk-detail-btn btn">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-mobile-phone"></span></pwm:if>
                             <pwm:display key="Button_Verify"/>

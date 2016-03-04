@@ -49,7 +49,7 @@
                             <span style="color: #ffcd59;" class="pwm-icon pwm-icon-lg pwm-icon-exclamation-circle"></span>
                         </div>
                     </td>
-                    <% if ((boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled) == true) { %>
+                    <% if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled) == true) { %>
                     <td style="width: 45px">
                         <button class="btn" id="button-show-current-verifications">Verifications</button>
                     </td>

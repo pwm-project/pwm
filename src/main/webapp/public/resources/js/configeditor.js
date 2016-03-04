@@ -311,7 +311,7 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
             text:PWM_CONFIG.showString('Display_ConfigOpenInfo'),
             loadFunction:function(){
                 PWM_MAIN.addEventHandler('link-configManager','click',function(){
-                    PWM_MAIN.goto('/private/config/ConfigManager');
+                    PWM_MAIN.goto('/private/config/manager');
                 });
             }
         });
@@ -587,13 +587,13 @@ PWM_CFGEDIT.cancelEditing = function() {
                         function () {
                             PWM_MAIN.showWaitDialog({loadFunction: function () {
                                 PWM_MAIN.ajaxRequest('ConfigEditor?processAction=cancelEditing',function(){
-                                    PWM_MAIN.goto('ConfigManager', {addFormID: true});
+                                    PWM_MAIN.goto('manager', {addFormID: true});
                                 });
                             }});
                         }
                     });
                 } else {
-                    PWM_MAIN.goto('ConfigManager', {addFormID: true});
+                    PWM_MAIN.goto('manager', {addFormID: true});
                 }
             }
         };
