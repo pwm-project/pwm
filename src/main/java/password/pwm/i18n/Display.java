@@ -56,6 +56,7 @@ public enum Display implements PwmDisplayBundle {
     Button_Logout,
     Button_More,
     Button_OrgChart,
+    Button_OTP,
     Button_RecoverPassword,
     Button_Reset,
     Button_Search,
@@ -295,6 +296,7 @@ public enum Display implements PwmDisplayBundle {
     Value_True,
     Value_NotApplicable,
     Value_Default,
+    Placeholder_Search,
     
     ;
 

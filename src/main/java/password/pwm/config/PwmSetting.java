@@ -935,8 +935,6 @@ public enum PwmSetting {
             "helpdesk.displayName", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK_PROFILE),
     HELPDESK_TOKEN_SEND_METHOD(
             "helpdesk.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK_PROFILE),
-    HELPDESK_ENABLE_OTP_VERIFY(
-            "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
     HELPDESK_PASSWORD_MASKVALUE(
             "helpdesk.setPassword.maskValue", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
     HELPDESK_VERIFICATION_METHODS(
@@ -1074,6 +1072,8 @@ public enum PwmSetting {
             "challenge.requireResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS),
     FORGOTTEN_PASSWORD_REQUIRE_OTP(
             "recovery.require.otp", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS),
+    HELPDESK_ENABLE_OTP_VERIFY(
+            "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
 
 
 

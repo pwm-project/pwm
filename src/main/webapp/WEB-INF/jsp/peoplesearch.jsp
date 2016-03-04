@@ -34,7 +34,7 @@
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
         <div id="panel-searchbar">
-	        <input id="username" name="username" placeholder="People Search" class="peoplesearch-input-username" <pwm:autofocus/> autocomplete="off" />
+	        <input id="username" name="username" placeholder="<pwm:display key="Placeholder_Search"/>" class="peoplesearch-input-username" <pwm:autofocus/> autocomplete="off" />
             <div style="width:20px; max-width: 20px; display: inline-block;">
                 <div id="searchIndicator" style="display: none">
                     <span style="" class="pwm-icon pwm-icon-lg pwm-icon-spin pwm-icon-spinner"></span>

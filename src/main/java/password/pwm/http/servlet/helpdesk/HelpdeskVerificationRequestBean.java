@@ -30,7 +30,8 @@ public class HelpdeskVerificationRequestBean implements Serializable {
     private String destination;
     private String userKey;
     private String code;
-    private String tokenData;
+    private String tokenData; // encrypted during transport
+    private String verificationState;
 
     public String getDestination() {
         return destination;
@@ -62,6 +63,14 @@ public class HelpdeskVerificationRequestBean implements Serializable {
 
     public void setTokenData(String tokenData) {
         this.tokenData = tokenData;
+    }
+
+    public String getVerificationState() {
+        return verificationState;
+    }
+
+    public void setVerificationState(String verificationState) {
+        this.verificationState = verificationState;
     }
 
     static class TokenData implements Serializable {

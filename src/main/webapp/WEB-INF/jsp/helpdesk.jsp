@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.JspUtility" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -38,7 +39,7 @@
                         <span class="pwm-icon pwm-icon-search"></span>
                     </td>
                     <td style="width:400px">
-                        <input type="search" id="username" name="username" class="helpdesk-input-username" style="width: 400px" <pwm:autofocus/> autocomplete="off"/>
+                        <input placeholder="<pwm:display key="Placeholder_Search"/>" type="search" id="username" name="username" class="helpdesk-input-username" style="width: 400px" <pwm:autofocus/> autocomplete="off"/>
                     </td>
                     <td style="width:20px">
                         <div id="searchIndicator" style="display:none">
@@ -48,6 +49,11 @@
                             <span style="color: #ffcd59;" class="pwm-icon pwm-icon-lg pwm-icon-exclamation-circle"></span>
                         </div>
                     </td>
+                    <% if ((boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled) == true) { %>
+                    <td style="width: 45px">
+                        <button class="btn" id="button-show-current-verifications">Verifications</button>
+                    </td>
+                    <% } %>
                 </tr>
             </table>
             <noscript>

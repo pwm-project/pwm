@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public interface RecoveryVerificationMethod {
+public interface VerificationMethodSystem {
     enum VerificationState {
         INPROGRESS,
         FAILED,
@@ -65,15 +65,15 @@ public interface RecoveryVerificationMethod {
         }
     }
 
-    public List<UserPrompt> getCurrentPrompts() throws PwmUnrecoverableException;
+    List<UserPrompt> getCurrentPrompts() throws PwmUnrecoverableException;
 
-    public String getCurrentDisplayInstructions();
+    String getCurrentDisplayInstructions();
 
-    public ErrorInformation respondToPrompts(final Map<String, String> answers) throws PwmUnrecoverableException;
+    ErrorInformation respondToPrompts(final Map<String, String> answers) throws PwmUnrecoverableException;
 
-    public VerificationState getVerificationState();
+    VerificationState getVerificationState();
 
-    public void init(final PwmApplication pwmApplication, final UserInfoBean userInfoBean, SessionLabel sessionLabel, Locale locale)
+    void init(final PwmApplication pwmApplication, final UserInfoBean userInfoBean, SessionLabel sessionLabel, Locale locale)
             throws PwmUnrecoverableException
             ;
 

@@ -23,7 +23,7 @@
 package password.pwm.config.profile;
 
 import password.pwm.config.*;
-import password.pwm.config.option.RecoveryVerificationMethods;
+import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.VerificationMethodValue;
 
@@ -31,8 +31,8 @@ import java.util.*;
 
 public class ForgottenPasswordProfile extends AbstractProfile {
 
-    private Set<RecoveryVerificationMethods> requiredRecoveryVerificationMethods;
-    private Set<RecoveryVerificationMethods> optionalRecoveryVerificationMethods;
+    private Set<IdentityVerificationMethod> requiredRecoveryVerificationMethods;
+    private Set<IdentityVerificationMethod> optionalRecoveryVerificationMethods;
 
     public ForgottenPasswordProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);
@@ -59,21 +59,21 @@ public class ForgottenPasswordProfile extends AbstractProfile {
         return ProfileType.ForgottenPassword;
     }
     
-    public Set<RecoveryVerificationMethods> requiredRecoveryAuthenticationMethods() {
+    public Set<IdentityVerificationMethod> requiredRecoveryAuthenticationMethods() {
         if (requiredRecoveryVerificationMethods == null) {
             requiredRecoveryVerificationMethods = readRecoveryAuthMethods(VerificationMethodValue.EnabledState.required);
         }
         return requiredRecoveryVerificationMethods;
     }
 
-    public Set<RecoveryVerificationMethods> optionalRecoveryAuthenticationMethods() {
+    public Set<IdentityVerificationMethod> optionalRecoveryAuthenticationMethods() {
         if (optionalRecoveryVerificationMethods == null) {
             optionalRecoveryVerificationMethods = readRecoveryAuthMethods(VerificationMethodValue.EnabledState.optional);
         }
         return optionalRecoveryVerificationMethods;
     }
     
-    private Set<RecoveryVerificationMethods> readRecoveryAuthMethods(final VerificationMethodValue.EnabledState enabledState) {
+    private Set<IdentityVerificationMethod> readRecoveryAuthMethods(final VerificationMethodValue.EnabledState enabledState) {
         return this.readVerificationMethods(PwmSetting.RECOVERY_VERIFICATION_METHODS, enabledState);
     }
 

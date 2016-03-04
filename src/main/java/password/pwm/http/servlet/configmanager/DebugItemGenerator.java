@@ -467,6 +467,8 @@ public class DebugItemGenerator {
                 dataRow.add(record.getProfile() == null ? "" : record.getProfile());
                 csvPrinter.printRecord(dataRow);
             }
+            csvPrinter.flush();
+            outputStream.write(byteArrayOutputStream.toByteArray());
         }
     }
 

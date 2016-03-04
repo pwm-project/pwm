@@ -24,7 +24,7 @@ package password.pwm.ws.client.rest.naaf;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.RecoveryVerificationMethod;
+import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
@@ -37,7 +37,7 @@ import password.pwm.util.macro.MacroMachine;
 
 import java.util.*;
 
-public class PwmNAAFVerificationMethod implements RecoveryVerificationMethod {
+public class PwmNAAFVerificationMethod implements VerificationMethodSystem {
     private PwmApplication pwmApplication;
     private NAAFLoginSequence naafLoginSequence;
     private Locale locale;
