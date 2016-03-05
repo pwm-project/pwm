@@ -49,6 +49,7 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.ws.server.RestResultBean;

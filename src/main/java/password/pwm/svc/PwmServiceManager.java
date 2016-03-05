@@ -23,7 +23,7 @@
 package password.pwm.svc;
 
 import password.pwm.PwmApplication;
-import password.pwm.VersionChecker;
+import password.pwm.util.VersionChecker;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;

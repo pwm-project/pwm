@@ -25,7 +25,7 @@ package password.pwm.http;
 import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
-import password.pwm.Validator;
+import password.pwm.util.Validator;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;

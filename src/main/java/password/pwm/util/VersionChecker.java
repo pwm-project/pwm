@@ -20,12 +20,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm;
+package password.pwm.util;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
+import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
@@ -37,8 +40,6 @@ import password.pwm.health.HealthTopic;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.i18n.Display;
 import password.pwm.svc.PwmService;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;

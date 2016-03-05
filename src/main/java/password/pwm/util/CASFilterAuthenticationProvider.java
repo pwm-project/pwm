@@ -28,13 +28,14 @@ import org.jasig.cas.client.util.CommonUtils;
 import org.jasig.cas.client.util.XmlUtils;
 import org.jasig.cas.client.validation.Assertion;
 import password.pwm.PwmApplication;
+import password.pwm.PwmHttpFilterAuthenticationProvider;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.util.logging.PwmLogger;
@@ -42,11 +43,39 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.http.HttpSession;
 import java.io.UnsupportedEncodingException;
 
-public class CASAuthenticationHelper {
+public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticationProvider {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(AuthenticationFilter.class.getName());
+    private static final PwmLogger LOGGER = PwmLogger.forClass(CASFilterAuthenticationProvider.class);
 
-    public static boolean authUserUsingCASClearPass(
+    @Override
+    public void attemptAuthentication(
+            final PwmRequest pwmRequest
+    )
+            throws PwmUnrecoverableException
+    {
+        try {
+            final String clearPassUrl = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
+            if (clearPassUrl != null && clearPassUrl.length() > 0) {
+                LOGGER.trace(pwmRequest, "checking for authentication via CAS");
+                if (authUserUsingCASClearPass(pwmRequest, clearPassUrl)) {
+                    LOGGER.debug(pwmRequest, "login via CAS successful");
+                }
+            }
+        } catch (ChaiUnavailableException e) {
+            throw PwmUnrecoverableException.fromChaiException(e);
+        } catch (PwmOperationalException e) {
+            throw new PwmUnrecoverableException(e.getErrorInformation());
+        } catch (UnsupportedEncodingException e) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"error during CAS authentication: " + e.getMessage()));
+        }
+    }
+
+    @Override
+    public boolean hasRedirectedResponse() {
+        return false;
+    }
+
+    private static boolean authUserUsingCASClearPass(
             final PwmRequest pwmRequest,
             final String clearPassUrl
     )
