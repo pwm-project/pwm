@@ -273,6 +273,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         HelpdeskDetail,
         HelpdeskObfuscatedDN,
         HelpdeskUsername,
+        HelpdeskVerificationEnabled,
 
         ConfigFilename,
         ConfigLastModified,

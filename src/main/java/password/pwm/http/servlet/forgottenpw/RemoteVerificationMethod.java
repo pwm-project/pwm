@@ -24,7 +24,7 @@ package password.pwm.http.servlet.forgottenpw;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.RecoveryVerificationMethod;
+import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.*;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.PwmSetting;
@@ -43,7 +43,7 @@ import password.pwm.util.secure.PwmRandom;
 
 import java.util.*;
 
-public class RemoteVerificationMethod implements RecoveryVerificationMethod {
+public class RemoteVerificationMethod implements VerificationMethodSystem {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(RemoteVerificationMethod.class);
 

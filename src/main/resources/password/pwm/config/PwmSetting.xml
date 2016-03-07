@@ -1469,7 +1469,9 @@
             <value>HELPDESK_VIEW_DETAIL</value>
             <value>HELPDESK_ACTION</value>
             <value>HELPDESK_VERIFY_OTP</value>
+            <value>HELPDESK_VERIFY_OTP_INCORRECT</value>
             <value>HELPDESK_VERIFY_TOKEN</value>
+            <value>HELPDESK_VERIFY_TOKEN_INCORRECT</value>
         </default>
         <options>
             <option value="AUTHENTICATE">Authenticate</option>
@@ -1494,7 +1496,9 @@
             <option value="HELPDESK_VIEW_DETAIL">Helpdesk View Detail</option>
             <option value="HELPDESK_ACTION">Helpdesk Action</option>
             <option value="HELPDESK_VERIFY_OTP">Helpdesk Verify OTP</option>
+            <option value="HELPDESK_VERIFY_OTP_INCORRECT">Helpdesk Incorrect Verify OTP</option>
             <option value="HELPDESK_VERIFY_TOKEN">Helpdesk Verify Token</option>
+            <option value="HELPDESK_VERIFY_TOKEN_INCORRECT">Helpdesk Incorrect Verify Token</option>
         </options>
     </setting>
     <setting hidden="false" key="audit.syslog.servers" level="1" required="false">
@@ -3144,25 +3148,17 @@
             <option value="NONE">None - Token verification will not be available</option>
             <option value="EMAILONLY">Email Only - Send to email address</option>
             <option value="SMSONLY">SMS Only - Send via SMS</option>
-            <option value="BOTH">Both - Send token to both email and SMS</option>
-            <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
-            <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
             <option value="CHOICE_SMS_EMAIL">Operator Choice - If both SMS and email address is available, helpdesk operator decides</option>
         </options>
-    </setting>
-    <setting hidden="false" key="helpdesk.otp.verify" level="1">
-        <default>
-            <value>false</value>
-        </default>
     </setting>
     <setting hidden="false" key="helpdesk.setPassword.maskValue" level="1">
         <default>
             <value>false</value>
         </default>
     </setting>
-    <setting hidden="true" key="helpdesk.verificationMethods" level="1">
+    <setting hidden="false" key="helpdesk.verificationMethods" level="1">
         <default>
-            <value>{"methodSettings":{"CHALLENGE_RESPONSES":{"enabledState":"required"}},"minOptionalRequired":0}</value>
+            <value>{"methodSettings":{},"minOptionalRequired":0}</value>
         </default>
         <options>
             <!--<option value="ATTRIBUTES">LDAP Attributes</option>-->
@@ -3469,6 +3465,11 @@
     <setting hidden="true" key="challenge.requireResponses" level="1">
         <default>
             <value>true</value>
+        </default>
+    </setting>
+    <setting hidden="true" key="helpdesk.otp.verify" level="1">
+        <default>
+            <value>false</value>
         </default>
     </setting>
     <category hidden="false" key="TEMPLATES">

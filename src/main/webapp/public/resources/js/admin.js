@@ -65,7 +65,7 @@ PWM_ADMIN.initAdminNavMenu = function() {
                     label: '<span class="pwm-icon pwm-icon-external-link"></span> Application Reference',
                     id: 'applictionReference_dropitem',
                     onClick: function() {
-                        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference','referencedoc');
+                        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/','referencedoc');
                     }
                 }));
                 if (PWM_GLOBAL['setting-displayEula'] == true) {
