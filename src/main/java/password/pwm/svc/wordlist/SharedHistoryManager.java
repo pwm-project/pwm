@@ -78,7 +78,6 @@ public class SharedHistoryManager implements PwmService {
 
     public void close() {
         status = STATUS.CLOSED;
-        LOGGER.debug("closed");
         if (cleanerTimer != null) {
             cleanerTimer.cancel();
         }

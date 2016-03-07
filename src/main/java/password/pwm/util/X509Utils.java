@@ -28,6 +28,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmURL;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
@@ -47,7 +48,7 @@ public abstract class X509Utils {
             throws PwmOperationalException
     {
         final String host = uri.getHost();
-        final int port = Helper.portForUriSchema(uri);
+        final int port = PwmURL.portForUriSchema(uri);
 
         return readRemoteCertificates(host, port);
     }

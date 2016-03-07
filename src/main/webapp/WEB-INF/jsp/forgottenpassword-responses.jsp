@@ -28,7 +28,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final ChallengeSet challengeSet = (ChallengeSet)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordChallengeSet); %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <%--
 in the body onload below, the true parameter toggles the hide button an extra time to default the page to hiding the responses.

@@ -29,7 +29,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmRequest changepassword_pwmRequest = PwmRequest.forRequest(request,response); %>
 <% final PasswordStatus passwordStatus = changepassword_pwmRequest.getPwmSession().getUserInfoBean().getPasswordState(); %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">

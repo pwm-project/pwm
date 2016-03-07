@@ -31,7 +31,7 @@
     final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
     final Set<RecoveryVerificationMethods> methods = new HashSet<RecoveryVerificationMethods>((Set<RecoveryVerificationMethods>) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.AvailableAuthMethods));
 %>
-<html dir="<pwm:LocaleOrientation/>">
+<html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">

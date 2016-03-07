@@ -1178,6 +1178,10 @@
     </setting>
     <setting hidden="false" key="pwm.securityKey" level="0">
         <regex>.{32}.*</regex>
+        <properties>
+            <property key="Minimum">32</property>
+            <property key="Maximum">100000</property>
+        </properties>
     </setting>
     <setting hidden="false" key="intruder.user.resetTime" level="1" required="true">
         <default>
@@ -1624,6 +1628,7 @@
     </setting>
     <setting hidden="false" key="otp.secret.ldap.attribute" level="2" required="false">
         <ldapPermission actor="proxy" access="read"/>
+        <ldapPermission actor="proxy" access="write"/>
         <ldapPermission actor="self" access="write"/>
         <default>
             <value>pwmOtpSecret</value>

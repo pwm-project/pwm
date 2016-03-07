@@ -29,7 +29,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.ServletHelper;
+import password.pwm.http.PwmURL;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.http.client.PwmHttpClientRequest;
@@ -125,7 +125,7 @@ public class NAAFEndPoint {
         urlParams.put("is_trusted", "true");
         urlParams.put("endpoint_session_id", this.getEndpoint_session_id());
 
-        final String url = ServletHelper.appendAndEncodeUrlParameters( "/logon/chains", urlParams );
+        final String url = PwmURL.appendAndEncodeUrlParameters("/logon/chains", urlParams);
 
         final PwmHttpClientResponse response = makeApiRequest(
                 HttpMethod.POST,

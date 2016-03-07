@@ -3,7 +3,7 @@ package password.pwm.http.servlet.helpdesk;
 import java.io.Serializable;
 import java.util.Date;
 
-public class HelpdeskTokenValidationBean implements Serializable {
+public class HelpdeskVerificationRequestBean implements Serializable {
 
     private String destination;
     private String userKey;

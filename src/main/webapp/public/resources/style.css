@@ -763,6 +763,11 @@ select {
 #localeSelectionMenu {
     white-space: nowrap;
     cursor: pointer;
+    text-decoration: none;
+}
+
+.localeDisplayName {
+    text-decoration: underline;
 }
 
 .login-wrapper {
@@ -913,3 +918,5 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 
 
 
+.footer-segment:after { padding: 10px; content: '\2022'; filter: brightness(50%); }
+.footer-segment:last-child:after { content: ""; }​

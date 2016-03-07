@@ -30,7 +30,6 @@ import password.pwm.error.*;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
-import password.pwm.http.ServletHelper;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
@@ -256,7 +255,7 @@ public class LoginServlet extends AbstractPwmServlet {
 
         final String encryptedRedirUrl = pwmRequest.getPwmApplication().getSecureService().encryptToString(originalRequestedUrl);
 
-        final String redirectUrl = ServletHelper.appendAndEncodeUrlParameters(
+        final String redirectUrl = PwmURL.appendAndEncodeUrlParameters(
                 pwmRequest.getContextPath() + PwmServletDefinition.Login.servletUrl(),
                 Collections.singletonMap(PwmConstants.PARAM_POST_LOGIN_URL, encryptedRedirUrl)
         );

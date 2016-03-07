@@ -16,7 +16,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.ServletHelper;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.intruder.RecordType;
@@ -127,10 +126,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
             }
 
             {
-                final String cookieStr = ServletHelper.readCookie(
-                        pwmRequest.getHttpServletRequest(),
-                        PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN
-                );
+                final String cookieStr = pwmRequest.readCookie(PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN);
                 if (securityKey != null && cookieStr != null && !cookieStr.isEmpty()) {
                     try {
                         final String jsonStr = pwmApplication.getSecureService().decryptStringValue(cookieStr);

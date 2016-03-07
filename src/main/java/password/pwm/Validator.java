@@ -97,10 +97,10 @@ public class Validator {
                             + ", submittedPageID=" + submittedRequestVerificationKey
                             +  ", url=" + pwmRequest.getURL().toString();
 
-                    throw new PwmOperationalException(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE, debugMsg);
+                    throw new PwmOperationalException(PwmError.ERROR_INCORRECT_REQ_SEQUENCE, debugMsg);
                 }
             } catch (StringIndexOutOfBoundsException | NumberFormatException e) {
-                throw new PwmOperationalException(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE);
+                throw new PwmOperationalException(PwmError.ERROR_INCORRECT_REQ_SEQUENCE);
             }
         }
     }

@@ -24,6 +24,7 @@ package password.pwm.http;
 
 import password.pwm.PwmConstants;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.util.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
@@ -180,5 +181,53 @@ public class PwmURL {
             }
         }
         return urlSegments;
+    }
+
+    public static String appendAndEncodeUrlParameters(
+            final String inputUrl,
+            final Map<String, String> parameters
+    )
+    {
+        final StringBuilder output = new StringBuilder();
+        output.append(inputUrl == null ? "" : inputUrl);
+
+        if (parameters != null) {
+            for (final String key : parameters.keySet()) {
+                final String value = parameters.get(key);
+                final String encodedValue = StringUtil.urlEncode(value);
+
+                output.append(output.toString().contains("?") ? "&" : "?");
+                output.append(key);
+                output.append("=");
+                output.append(encodedValue);
+            }
+        }
+
+        if (output.charAt(0) == '?' || output.charAt(0) == '&') {
+            output.deleteCharAt(0);
+        }
+
+        return output.toString();
+    }
+
+    public static int portForUriSchema(final URI uri) {
+        final int port = uri.getPort();
+        if (port < 1) {
+            return portForUriScheme(uri.getScheme());
+        }
+        return port;
+    }
+
+    private static int portForUriScheme(final String scheme) {
+        if (scheme == null) {
+            throw new NullPointerException("scheme cannot be null");
+        }
+        switch (scheme) {
+            case "http": return 80;
+            case "https": return 443;
+            case "ldap": return 389;
+            case "ldaps": return 636;
+        }
+        throw new IllegalArgumentException("unknown scheme: " + scheme);
     }
 }

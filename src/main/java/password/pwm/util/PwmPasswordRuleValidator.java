@@ -230,7 +230,7 @@ public class PwmPasswordRuleValidator {
                     final String expandedValue = macroMachine.expandMacros(loopValue);
                     final String loweredLoop = expandedValue.toLowerCase();
                     if (lcasePwd.contains(loweredLoop)) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_USING_DISALLOWED_VALUE));
+                        errorList.add(new ErrorInformation(PwmError.PASSWORD_USING_DISALLOWED));
                     }
                 }
             }
@@ -689,12 +689,12 @@ public class PwmPasswordRuleValidator {
             final int numberOfNonAlphaChars = charCounter.getNonAlphaCharCount();
 
             if (numberOfNonAlphaChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumNonAlpha)) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NON_ALPHA));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NONALPHA));
             }
 
             final int maxNonAlpha = ruleHelper.readIntValue(PwmPasswordRule.MaximumNonAlpha);
             if (maxNonAlpha > 0 && numberOfNonAlphaChars > maxNonAlpha) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_NON_ALPHA));
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_NONALPHA));
             }
         }
 

@@ -11,7 +11,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.tag.value.PwmValue;
 import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
@@ -77,7 +76,7 @@ public enum PwmIfTest {
         return tests;
     }
 
-    public boolean passed(final PwmRequest pwmRequest, final Options options)
+    public boolean passed(final PwmRequest pwmRequest, final PwmIfOptions options)
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         for (final PwmIfTest.Test loopTest : getTests()) {
@@ -93,7 +92,7 @@ public enum PwmIfTest {
     interface Test {
         boolean test(
                 final PwmRequest pwmRequest,
-                final Options options
+                final PwmIfOptions options
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException;
     }
@@ -108,7 +107,7 @@ public enum PwmIfTest {
 
         public boolean test(
                 PwmRequest pwmRequest,
-                Options options
+                PwmIfOptions options
         )
         {
             if (pwmRequest.getPwmApplication() != null && pwmRequest.getConfig() != null) {
@@ -129,17 +128,25 @@ public enum PwmIfTest {
 
         public boolean test(
                 PwmRequest pwmRequest,
-                Options options
+                PwmIfOptions options
         )
         {
+            final PwmSetting setting = options != null && options.getPwmSetting() != null
+                    ? options.getPwmSetting()
+                    : this.pwmSetting;
+
+            if (setting == null) {
+                return false;
+            }
+
             return pwmRequest != null && pwmRequest.getConfig() != null &&
-                    pwmRequest.getConfig().readSettingAsBoolean(pwmSetting);
+                    pwmRequest.getConfig().readSettingAsBoolean(setting);
         }
     }
 
     private static class ShowHeaderMenuTest implements Test {
         @Override
-        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
             final PwmApplication.MODE applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
             boolean configMode = applicationMode == PwmApplication.MODE.CONFIGURATION;
             boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN);
@@ -170,7 +177,7 @@ public enum PwmIfTest {
 
         public boolean test(
                 PwmRequest pwmRequest,
-                Options options
+                PwmIfOptions options
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -189,7 +196,7 @@ public enum PwmIfTest {
     private static class AuthenticatedTest implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
-                Options options
+                PwmIfOptions options
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -200,7 +207,7 @@ public enum PwmIfTest {
     private static class ForcedPageViewTest implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
-                Options options
+                PwmIfOptions options
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -211,7 +218,7 @@ public enum PwmIfTest {
     private static class ConfigurationOpen implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
-                Options options
+                PwmIfOptions options
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -222,7 +229,7 @@ public enum PwmIfTest {
     private static class HasStoredOtpTimestamp implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
-                Options options
+                PwmIfOptions options
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -241,7 +248,7 @@ public enum PwmIfTest {
     private static class ShowErrorDetailTest implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
-                Options options
+                PwmIfOptions options
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -252,7 +259,7 @@ public enum PwmIfTest {
     private static class ForwardUrlDefinedTest implements Test {
         public boolean test(
                 PwmRequest pwmRequest,
-                Options options
+                PwmIfOptions options
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -262,14 +269,14 @@ public enum PwmIfTest {
 
     private static class TrialModeTest implements Test {
         @Override
-        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
             return PwmConstants.TRIAL_MODE;
         }
     }
 
     private static class ConfigModeTest implements Test {
         @Override
-        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
             final PwmApplication.MODE applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
             return applicationMode == PwmApplication.MODE.CONFIGURATION;
         }
@@ -277,7 +284,7 @@ public enum PwmIfTest {
 
     private static class HealthWarningsPresentTest implements Test {
         @Override
-        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
             final HealthMonitor healthMonitor = pwmRequest.getPwmApplication().getHealthMonitor();
             if (healthMonitor != null && healthMonitor.status() == PwmService.STATUS.OPEN) {
                 if (healthMonitor.getMostSevereHealthStatus(HealthMonitor.CheckTimeliness.NeverBlock) == HealthStatus.WARN) {
@@ -290,7 +297,7 @@ public enum PwmIfTest {
 
     private static class UsernameHasValueTest implements Test {
         @Override
-        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
             final String usernameValue = PwmValue.username.getValueOutput().valueOutput(pwmRequest, null);
             return usernameValue != null && !usernameValue.isEmpty();
         }
@@ -299,7 +306,7 @@ public enum PwmIfTest {
 
     private static class HeaderMenuIsVisibleTest implements Test {
         @Override
-        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
             if (PwmConstants.TRIAL_MODE) {
                 return true;
             }
@@ -327,7 +334,7 @@ public enum PwmIfTest {
         }
 
         @Override
-        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
             return pwmRequest.getPwmSession().getSessionManager().getProfile(pwmRequest.getPwmApplication(), profileType) != null;
         }
     }
@@ -335,7 +342,7 @@ public enum PwmIfTest {
     private static class RequestFlagTest implements Test {
 
         @Override
-        public boolean test(PwmRequest pwmRequest, Options options) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
             if (options.getRequestFlag() == null) {
                 return false;
             }
@@ -343,27 +350,4 @@ public enum PwmIfTest {
         }
     }
 
-    static class Options {
-        private boolean negate;
-        private Permission permission;
-        private PwmRequestFlag requestFlag;
-
-        public Options(final boolean negate, final Permission permission, final PwmRequestFlag pwmRequestFlag) {
-            this.negate = negate;
-            this.permission = permission;
-            this.requestFlag = pwmRequestFlag;
-        }
-
-        public boolean isNegate() {
-            return negate;
-        }
-
-        public Permission getPermission() {
-            return permission;
-        }
-
-        public PwmRequestFlag getRequestFlag() {
-            return requestFlag;
-        }
-    }
 }

@@ -35,7 +35,6 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.ServletHelper;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.svc.intruder.RecordType;
@@ -71,12 +70,6 @@ public abstract class RestServerHelper {
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-
-        ServletHelper.handleRequestInitialization(pwmRequest, pwmApplication, pwmSession);
-
-        if (servicePermissions.isAuthRequired()) {
-            ServletHelper.handleRequestSecurityChecks(request, pwmApplication, pwmSession);
-        }
 
         if (pwmSession.getSessionStateBean().getLocale() == null) {
             final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();

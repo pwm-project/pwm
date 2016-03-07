@@ -180,7 +180,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
             return;
         }
 
-        final InputStream inputStream = ServletHelper.readFileUpload(pwmRequest.getHttpServletRequest(),"uploadFile");
+        final InputStream inputStream = pwmRequest.readFileUploadStream(PwmConstants.PARAM_FILE_UPLOAD);
         try {
             pwmApplication.getWordlistManager().populate(inputStream);
         } catch (PwmUnrecoverableException e) {

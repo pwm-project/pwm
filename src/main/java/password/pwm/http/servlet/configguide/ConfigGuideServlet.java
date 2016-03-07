@@ -143,7 +143,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
         if (!configGuideBean.getFormData().containsKey(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL)) {
             final URI uri = URI.create(pwmRequest.getHttpServletRequest().getRequestURL().toString());
-            final int port = Helper.portForUriSchema(uri);
+            final int port = PwmURL.portForUriSchema(uri);
             final String newUri = uri.getScheme() + "://" + uri.getHost() + ":" + port + pwmRequest.getContextPath();
             configGuideBean.getFormData().put(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL,newUri);
         }
@@ -230,7 +230,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         }
 
         if (ServletFileUpload.isMultipartContent(req)) {
-            final InputStream uploadedFile = ServletHelper.readFileUpload(req,"uploadFile");
+            final InputStream uploadedFile = pwmRequest.readFileUploadStream(PwmConstants.PARAM_FILE_UPLOAD);
             if (uploadedFile != null) {
                 try {
                     final StoredConfigurationImpl storedConfig = StoredConfigurationImpl.fromXml(uploadedFile);

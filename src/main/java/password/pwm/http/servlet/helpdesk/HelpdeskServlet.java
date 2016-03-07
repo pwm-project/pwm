@@ -789,18 +789,18 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         }
 
         StatisticsManager.incrementStat(pwmRequest,Statistic.HELPDESK_TOKENS_SENT);
-        final HelpdeskTokenValidationBean helpdeskTokenValidationBean = new HelpdeskTokenValidationBean();
-        helpdeskTokenValidationBean.setDestination(destDisplayString.toString());
-        helpdeskTokenValidationBean.setUserKey(bodyParams.get("userKey"));
+        final HelpdeskVerificationRequestBean helpdeskVerificationRequestBean = new HelpdeskVerificationRequestBean();
+        helpdeskVerificationRequestBean.setDestination(destDisplayString.toString());
+        helpdeskVerificationRequestBean.setUserKey(bodyParams.get("userKey"));
 
-        final HelpdeskTokenValidationBean.TokenData tokenData = new HelpdeskTokenValidationBean.TokenData();
+        final HelpdeskVerificationRequestBean.TokenData tokenData = new HelpdeskVerificationRequestBean.TokenData();
         tokenData.setToken(tokenKey);
         tokenData.setIssueDate(new Date());
 
         final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
-        helpdeskTokenValidationBean.setTokenData(secureService.encryptObjectToString(tokenData));
+        helpdeskVerificationRequestBean.setTokenData(secureService.encryptObjectToString(tokenData));
 
-        final RestResultBean restResultBean = new RestResultBean(helpdeskTokenValidationBean);
+        final RestResultBean restResultBean = new RestResultBean(helpdeskVerificationRequestBean);
         pwmRequest.outputJsonResult(restResultBean);
         LOGGER.debug(pwmRequest, "helpdesk operator "
                 + pwmRequest.getUserInfoIfLoggedIn().toDisplayString()
@@ -816,19 +816,19 @@ public class HelpdeskServlet extends AbstractPwmServlet {
     )
             throws IOException, PwmUnrecoverableException, ServletException
     {
-        final HelpdeskTokenValidationBean helpdeskTokenValidationBean =JsonUtil.deserialize(
+        final HelpdeskVerificationRequestBean helpdeskVerificationRequestBean =JsonUtil.deserialize(
                 pwmRequest.readRequestBodyAsString(),
-                HelpdeskTokenValidationBean.class
+                HelpdeskVerificationRequestBean.class
         );
-        final String token = helpdeskTokenValidationBean.getCode();
+        final String token = helpdeskVerificationRequestBean.getCode();
 
         final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
-        final HelpdeskTokenValidationBean.TokenData tokenData = secureService.decryptObject(
-                helpdeskTokenValidationBean.getTokenData(),
-                HelpdeskTokenValidationBean.TokenData.class
+        final HelpdeskVerificationRequestBean.TokenData tokenData = secureService.decryptObject(
+                helpdeskVerificationRequestBean.getTokenData(),
+                HelpdeskVerificationRequestBean.TokenData.class
         );
 
-        final UserIdentity userIdentity = UserIdentity.fromKey(helpdeskTokenValidationBean.getUserKey(), pwmRequest.getPwmApplication());
+        final UserIdentity userIdentity = UserIdentity.fromKey(helpdeskVerificationRequestBean.getUserKey(), pwmRequest.getPwmApplication());
 
         if (tokenData == null || tokenData.getIssueDate() == null || tokenData.getToken() == null || tokenData.getToken().isEmpty()) {
             final String errorMsg = "token data is corrupted";

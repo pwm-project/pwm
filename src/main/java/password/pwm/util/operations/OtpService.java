@@ -300,7 +300,7 @@ public class OtpService implements PwmService {
         final Configuration config = pwmApplication.getConfig();
         final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(
                 PwmSetting.OTP_SECRET_READ_PREFERENCE);
-        final String userGUID = readGuidIfNeeded(pwmApplication, pwmSession.getLabel(), otpSecretStorageLocations, userIdentity);
+        final String userGUID = readGuidIfNeeded(pwmApplication, pwmSession == null ? null : pwmSession.getLabel(), otpSecretStorageLocations, userIdentity);
 
         final StringBuilder errorMsgs = new StringBuilder();
         if (otpSecretStorageLocations != null) {

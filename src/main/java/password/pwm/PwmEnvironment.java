@@ -57,6 +57,7 @@ public class PwmEnvironment implements Serializable {
 
     public enum ApplicationFlag {
         Appliance,
+        Docker,
         ManageHttps,
         NoFileLock,
         CommandLineInstance,
