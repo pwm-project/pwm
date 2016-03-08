@@ -148,6 +148,8 @@ public enum AppProperty {
     HEALTH_JAVA_MIN_HEAP_BYTES                      ("health.java.minHeapBytes"),
     HELPDESK_TOKEN_MAX_AGE                          ("helpdesk.token.maxAgeSeconds"),
     HELPDESK_TOKEN_VALUE                            ("helpdesk.token.value"),
+    HELPDESK_VERIFICATION_INVALID_DELAY_MS          ("helpdesk.verification.invalid.delayMs"),
+    HELPDESK_VERIFICATION_TIMEOUT_SECONDS           ("helpdesk.verification.timeoutSeconds"),
     LDAP_CHAI_SETTINGS                              ("ldap.chaiSettings"),
     LDAP_CONNECTION_TIMEOUT                         ("ldap.connection.timeoutMS"),
     LDAP_PROFILE_RETRY_DELAY                        ("ldap.profile.retryDelayMS"),

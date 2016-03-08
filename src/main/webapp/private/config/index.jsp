@@ -27,14 +27,14 @@
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <jsp:include page="/WEB-INF/jsp/fragment/header.jsp"/>
 <body>
-<meta http-equiv="refresh" content="0;url=<pwm:context/><pwm:url url="/private/config/ConfigManager"/>"/>
+<meta http-equiv="refresh" content="0;url=<pwm:context/><pwm:url url="/private/config/manager"/>"/>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Configuration"/>
     </jsp:include>
     <div id="content">
         <div id="centerbody">
-            <pwm:display key="Display_PleaseWait"/> <a href="<pwm:context/><pwm:url url="/private/config/ConfigManage"/>"><pwm:display bundle="Admin" key="MenuItem_ConfigManager"/></a>
+            <pwm:display key="Display_PleaseWait"/> <a href="<pwm:context/><pwm:url url="/private/config/manager"/>"><pwm:display bundle="Admin" key="MenuItem_ConfigManager"/></a>
         </div>
     </div>
     <br class="clear"/>

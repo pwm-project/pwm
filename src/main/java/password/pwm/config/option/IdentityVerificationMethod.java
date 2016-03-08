@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-public enum RecoveryVerificationMethods implements ConfigurationOption {
+public enum IdentityVerificationMethod implements ConfigurationOption {
     PREVIOUS_AUTH(      false,  Display.Field_VerificationMethodPreviousAuth),
     ATTRIBUTES(         true,   Display.Field_VerificationMethodAttributes),
     CHALLENGE_RESPONSES(true,   Display.Field_VerificationMethodChallengeResponses),
@@ -44,7 +44,7 @@ public enum RecoveryVerificationMethods implements ConfigurationOption {
     private final boolean userSelectable;
     private final Display displayKey;
 
-    RecoveryVerificationMethods(boolean userSelectable, Display displayKey) {
+    IdentityVerificationMethod(boolean userSelectable, Display displayKey) {
         this.userSelectable = userSelectable;
         this.displayKey = displayKey;
     }
@@ -61,10 +61,10 @@ public enum RecoveryVerificationMethods implements ConfigurationOption {
         return Display.getLocalizedMessage(locale, this.getDisplayKey(), configuration);
     }
 
-    public static RecoveryVerificationMethods[] availableValues() {
-        final List<RecoveryVerificationMethods> values = new ArrayList<>();
-        values.addAll(Arrays.asList(RecoveryVerificationMethods.values()));
-        return values.toArray(new RecoveryVerificationMethods[values.size()]);
+    public static IdentityVerificationMethod[] availableValues() {
+        final List<IdentityVerificationMethod> values = new ArrayList<>();
+        values.addAll(Arrays.asList(IdentityVerificationMethod.values()));
+        return values.toArray(new IdentityVerificationMethod[values.size()]);
     }
 
 }

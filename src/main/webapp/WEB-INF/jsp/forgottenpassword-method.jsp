@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.config.option.RecoveryVerificationMethods" %>
+<%@ page import="password.pwm.config.option.IdentityVerificationMethod" %>
 <%@ page import="java.util.HashSet" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
@@ -29,7 +29,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-    final Set<RecoveryVerificationMethods> methods = new HashSet<RecoveryVerificationMethods>((Set<RecoveryVerificationMethods>) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.AvailableAuthMethods));
+    final Set<IdentityVerificationMethod> methods = new HashSet<IdentityVerificationMethod>((Set<IdentityVerificationMethod>) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.AvailableAuthMethods));
 %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
@@ -47,7 +47,7 @@
             <colgroup>
 
             </colgroup>
-            <% for (RecoveryVerificationMethods method : methods) { %>
+            <% for (IdentityVerificationMethod method : methods) { %>
             <% if (method.isUserSelectable()) { %>
             <tr>
                 <td>

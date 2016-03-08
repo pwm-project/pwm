@@ -273,7 +273,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
                 searchDuration.asCompactString() + " not using cache, size=" + results.getResults().size());
 
         final SearchResultBean searchResultBean = new SearchResultBean();
-        searchResultBean.setSearchResults(new ArrayList<>(results.resultsAsJsonOutput(pwmRequest.getPwmApplication())));
+        searchResultBean.setSearchResults(new ArrayList<>(results.resultsAsJsonOutput(pwmRequest.getPwmApplication(),null)));
         searchResultBean.setSizeExceeded(sizeExceeded);
         final String aboutMessage = LocaleHelper.getLocalizedMessage(
                 pwmRequest.getLocale(),

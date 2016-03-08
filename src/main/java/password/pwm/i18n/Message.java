@@ -84,7 +84,9 @@ public enum Message implements PwmDisplayBundle {
     EventLog_HelpdeskDeleteUser(null),
     EventLog_HelpdeskViewDetail(null),
     EventLog_HelpdeskVerifyOtp(null),
+    EventLog_HelpdeskVerifyOtpIncorrect(null),
     EventLog_HelpdeskVerifyToken(null),
+    EventLog_HelpdeskVerifyTokenIncorrect(null),
 
     Requirement_MinLengthPlural(null),
     Requirement_MinLength(Requirement_MinLengthPlural),

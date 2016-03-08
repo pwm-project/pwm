@@ -22,19 +22,11 @@
 
 package password.pwm.config.profile;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
-
+import com.novell.ldapchai.ChaiPasswordPolicy;
+import com.novell.ldapchai.ChaiPasswordRule;
+import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
+import com.novell.ldapchai.util.PasswordRuleHelper;
+import com.novell.ldapchai.util.StringHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import password.pwm.config.UserPermission;
@@ -42,14 +34,13 @@ import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
 
-import com.novell.ldapchai.ChaiPasswordPolicy;
-import com.novell.ldapchai.ChaiPasswordRule;
-import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
-import com.novell.ldapchai.util.PasswordRuleHelper;
-import com.novell.ldapchai.util.StringHelper;
+import java.io.Serializable;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 
 /**
@@ -125,33 +116,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("PwmPasswordPolicy");
-        sb.append(": ");
-
-        final List<String> outputList = new ArrayList<>();
-        for (final String key : policyMap.keySet()) {
-            final PwmPasswordRule rule = PwmPasswordRule.forKey(key);
-            if (rule != null) {
-                switch (rule) {
-                    case DisallowedAttributes:
-                    case DisallowedValues:
-                        outputList.add(rule + "=[" + StringHelper.stringCollectionToString(StringHelper.tokenizeString(policyMap.get(key), "\n"), ", ") + "]");
-                        break;
-                    default:
-                        outputList.add(rule + "=" + policyMap.get(key));
-                        break;
-                }
-            } else {
-                outputList.add(key + "=" + policyMap.get(key));
-            }
-        }
-
-        sb.append("{");
-        sb.append(StringHelper.stringCollectionToString(outputList, ", "));
-        sb.append("}");
-
-        return sb.toString();
+        return "PwmPasswordPolicy" + ": " + JsonUtil.serialize(this);
     }
 
     public ChaiPasswordPolicy getChaiPasswordPolicy() {

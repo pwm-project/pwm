@@ -26,9 +26,9 @@ import java.io.Serializable;
 
 public class HelpdeskVerificationResponseBean implements Serializable {
     private boolean passed;
-    private HelpdeskVerificationStateBean verificationState;
+    private String verificationState;
 
-    public HelpdeskVerificationResponseBean(boolean passed, HelpdeskVerificationStateBean verificationState) {
+    public HelpdeskVerificationResponseBean(boolean passed, String verificationState) {
         this.passed = passed;
         this.verificationState = verificationState;
     }
@@ -37,7 +37,7 @@ public class HelpdeskVerificationResponseBean implements Serializable {
         return passed;
     }
 
-    public HelpdeskVerificationStateBean getVerificationState() {
+    public String getVerificationState() {
         return verificationState;
     }
 }
