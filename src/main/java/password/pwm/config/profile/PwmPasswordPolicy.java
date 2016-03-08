@@ -22,11 +22,19 @@
 
 package password.pwm.config.profile;
 
-import com.novell.ldapchai.ChaiPasswordPolicy;
-import com.novell.ldapchai.ChaiPasswordRule;
-import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
-import com.novell.ldapchai.util.PasswordRuleHelper;
-import com.novell.ldapchai.util.StringHelper;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
 import org.apache.commons.lang3.StringUtils;
 
 import password.pwm.config.UserPermission;
@@ -36,11 +44,13 @@ import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
-import java.io.Serializable;
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+import com.novell.ldapchai.ChaiPasswordPolicy;
+import com.novell.ldapchai.ChaiPasswordRule;
+import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
+import com.novell.ldapchai.util.PasswordRuleHelper;
+import com.novell.ldapchai.util.StringHelper;
 
 
 /**
