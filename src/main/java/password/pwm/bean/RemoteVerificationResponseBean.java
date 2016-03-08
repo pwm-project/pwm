@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,15 +22,15 @@
 
 package password.pwm.bean;
 
-import password.pwm.RecoveryVerificationMethod;
+import password.pwm.VerificationMethodSystem;
 
 import java.io.Serializable;
 import java.util.List;
 
 public class RemoteVerificationResponseBean implements Serializable {
     private String displayInstructions;
-    private RecoveryVerificationMethod.VerificationState verificationState;
-    private List<RecoveryVerificationMethod.UserPromptBean> userPrompts;
+    private VerificationMethodSystem.VerificationState verificationState;
+    private List<VerificationMethodSystem.UserPromptBean> userPrompts;
     private String errorMessage;
 
     public String getDisplayInstructions() {
@@ -41,19 +41,19 @@ public class RemoteVerificationResponseBean implements Serializable {
         this.displayInstructions = displayInstructions;
     }
 
-    public RecoveryVerificationMethod.VerificationState getVerificationState() {
+    public VerificationMethodSystem.VerificationState getVerificationState() {
         return verificationState;
     }
 
-    public void setVerificationState(RecoveryVerificationMethod.VerificationState verificationState) {
+    public void setVerificationState(VerificationMethodSystem.VerificationState verificationState) {
         this.verificationState = verificationState;
     }
 
-    public List<RecoveryVerificationMethod.UserPromptBean> getUserPrompts() {
+    public List<VerificationMethodSystem.UserPromptBean> getUserPrompts() {
         return userPrompts;
     }
 
-    public void setUserPrompts(List<RecoveryVerificationMethod.UserPromptBean> userPrompts) {
+    public void setUserPrompts(List<VerificationMethodSystem.UserPromptBean> userPrompts) {
         this.userPrompts = userPrompts;
     }
 

@@ -1,10 +1,29 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2016 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package password.pwm.http.tag.conditional;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.AppProperty;
-import password.pwm.Permission;
-import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
+import password.pwm.*;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.error.PwmUnrecoverableException;
@@ -147,8 +166,8 @@ public enum PwmIfTest {
     private static class ShowHeaderMenuTest implements Test {
         @Override
         public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
-            final PwmApplication.MODE applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
-            boolean configMode = applicationMode == PwmApplication.MODE.CONFIGURATION;
+            final PwmApplicationMode applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
+            boolean configMode = applicationMode == PwmApplicationMode.CONFIGURATION;
             boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN);
             if (Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_WARNING_HEADER_SHOW))) {
                 if (configMode || PwmConstants.TRIAL_MODE) {
@@ -222,7 +241,7 @@ public enum PwmIfTest {
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmApplication().getApplicationMode() == PwmApplication.MODE.CONFIGURATION;
+            return pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION;
         }
     }
 
@@ -277,8 +296,8 @@ public enum PwmIfTest {
     private static class ConfigModeTest implements Test {
         @Override
         public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
-            final PwmApplication.MODE applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
-            return applicationMode == PwmApplication.MODE.CONFIGURATION;
+            final PwmApplicationMode applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
+            return applicationMode == PwmApplicationMode.CONFIGURATION;
         }
     }
 
@@ -311,7 +330,7 @@ public enum PwmIfTest {
                 return true;
             }
 
-            if (pwmRequest.getPwmApplication().getApplicationMode() != PwmApplication.MODE.RUNNING) {
+            if (pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING) {
                 return true;
             }
 

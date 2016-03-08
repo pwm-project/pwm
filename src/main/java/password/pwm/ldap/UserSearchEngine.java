@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -617,20 +617,22 @@ public class UserSearchEngine {
             return sizeExceeded;
         }
 
-        public List<Map<String,Object>> resultsAsJsonOutput(final PwmApplication pwmApplication)
+        public List<Map<String,Object>> resultsAsJsonOutput(final PwmApplication pwmApplication, final UserIdentity ignoreUser)
                 throws PwmUnrecoverableException
         {
             final List<Map<String,Object>> outputList = new ArrayList<>();
             int idCounter = 0;
             for (final UserIdentity userIdentity : this.getResults().keySet()) {
-                final Map<String,Object> rowMap = new LinkedHashMap<>();
-                for (final String attribute : this.getHeaderAttributeMap().keySet()) {
-                    rowMap.put(attribute,this.getResults().get(userIdentity).get(attribute));
+                if (ignoreUser == null || !ignoreUser.equals(userIdentity)) {
+                    final Map<String, Object> rowMap = new LinkedHashMap<>();
+                    for (final String attribute : this.getHeaderAttributeMap().keySet()) {
+                        rowMap.put(attribute, this.getResults().get(userIdentity).get(attribute));
+                    }
+                    rowMap.put("userKey", userIdentity.toObfuscatedKey(pwmApplication));
+                    rowMap.put("id", idCounter);
+                    outputList.add(rowMap);
+                    idCounter++;
                 }
-                rowMap.put("userKey",userIdentity.toObfuscatedKey(pwmApplication));
-                rowMap.put("id",idCounter);
-                outputList.add(rowMap);
-                idCounter++;
             }
             return outputList;
         }

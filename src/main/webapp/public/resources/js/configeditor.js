@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -311,7 +311,7 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
             text:PWM_CONFIG.showString('Display_ConfigOpenInfo'),
             loadFunction:function(){
                 PWM_MAIN.addEventHandler('link-configManager','click',function(){
-                    PWM_MAIN.goto('/private/config/ConfigManager');
+                    PWM_MAIN.goto('/private/config/manager');
                 });
             }
         });
@@ -325,7 +325,7 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
     PWM_MAIN.addEventHandler('saveButton_icon','click',function(){PWM_CFGEDIT.saveConfiguration()});
     PWM_MAIN.addEventHandler('setPassword_icon','click',function(){PWM_CFGEDIT.setConfigurationPassword()});
     PWM_MAIN.addEventHandler('referenceDoc_icon','click',function(){
-        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference','referencedoc');
+        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/reference/','referencedoc');
     });
     PWM_MAIN.addEventHandler('macroDoc_icon','click',function(){ PWM_CFGEDIT.showMacroHelp(); });
     PWM_MAIN.addEventHandler('settingFilter_icon','click',function(){ PWM_CFGEDIT.showSettingFilter(); });
@@ -587,13 +587,13 @@ PWM_CFGEDIT.cancelEditing = function() {
                         function () {
                             PWM_MAIN.showWaitDialog({loadFunction: function () {
                                 PWM_MAIN.ajaxRequest('ConfigEditor?processAction=cancelEditing',function(){
-                                    PWM_MAIN.goto('ConfigManager', {addFormID: true});
+                                    PWM_MAIN.goto('manager', {addFormID: true});
                                 });
                             }});
                         }
                     });
                 } else {
-                    PWM_MAIN.goto('ConfigManager', {addFormID: true});
+                    PWM_MAIN.goto('manager', {addFormID: true});
                 }
             }
         };

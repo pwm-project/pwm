@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,10 @@ package password.pwm.http.servlet.helpdesk;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.HelpdeskUIMode;
 import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.option.IdentityVerificationMethod;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,6 +39,7 @@ public class HelpdeskClientDataBean implements Serializable {
     private HelpdeskUIMode helpdesk_setting_PwUiMode;
     private MessageSendMethod helpdesk_setting_tokenSendMethod;
     private Map<String, ActionInformation> actions = new HashMap<>();
+    private Map<String, Collection<IdentityVerificationMethod>> verificationMethods = new HashMap<>();
 
     public Map<String, String> getHelpdesk_search_columns() {
         return helpdesk_search_columns;
@@ -84,6 +87,14 @@ public class HelpdeskClientDataBean implements Serializable {
 
     public void setActions(Map<String, ActionInformation> actions) {
         this.actions = actions;
+    }
+
+    public Map<String, Collection<IdentityVerificationMethod>> getVerificationMethods() {
+        return verificationMethods;
+    }
+
+    public void setVerificationMethods(Map<String, Collection<IdentityVerificationMethod>> verificationMethods) {
+        this.verificationMethods = verificationMethods;
     }
 
     public static class ActionInformation implements Serializable {

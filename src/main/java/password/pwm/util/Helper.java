@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.FormNonce;
 import password.pwm.bean.SessionLabel;
@@ -411,11 +412,11 @@ public class
         if (pwmApplication == null) {
             return false;
         }
-        PwmApplication.MODE mode = pwmApplication.getApplicationMode();
-        if (mode == PwmApplication.MODE.CONFIGURATION || mode == PwmApplication.MODE.NEW) {
+        PwmApplicationMode mode = pwmApplication.getApplicationMode();
+        if (mode == PwmApplicationMode.CONFIGURATION || mode == PwmApplicationMode.NEW) {
             return true;
         }
-        if (mode == PwmApplication.MODE.RUNNING) {
+        if (mode == PwmApplicationMode.RUNNING) {
             if (pwmApplication.getConfig() != null) {
                 if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
                     return true;

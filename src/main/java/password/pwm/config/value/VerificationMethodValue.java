@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,9 +26,11 @@ import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.config.option.RecoveryVerificationMethods;
+import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.i18n.Display;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -48,18 +50,18 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     }
 
     public static class VerificationMethodSettings implements Serializable {
-        private Map<RecoveryVerificationMethods,VerificationMethodSetting> methodSettings = new HashMap<>();
+        private Map<IdentityVerificationMethod,VerificationMethodSetting> methodSettings = new HashMap<>();
         private int minOptionalRequired = 0;
 
         public VerificationMethodSettings() {
         }
 
-        public VerificationMethodSettings(Map<RecoveryVerificationMethods, VerificationMethodSetting> methodSettings, int minOptionalRequired) {
+        public VerificationMethodSettings(Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings, int minOptionalRequired) {
             this.methodSettings = methodSettings;
             this.minOptionalRequired = minOptionalRequired;
         }
 
-        public Map<RecoveryVerificationMethods, VerificationMethodSetting> getMethodSettings() {
+        public Map<IdentityVerificationMethod, VerificationMethodSetting> getMethodSettings() {
             return Collections.unmodifiableMap(methodSettings);
         }
 
@@ -86,7 +88,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
     public VerificationMethodValue(VerificationMethodSettings value) {
         this.value = value;
-        for (final RecoveryVerificationMethods recoveryVerificationMethods : RecoveryVerificationMethods.availableValues()) {
+        for (final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.availableValues()) {
             if (!value.methodSettings.containsKey(recoveryVerificationMethods)) {
                 value.methodSettings.put(recoveryVerificationMethods,new VerificationMethodSetting(EnabledState.disabled));
             }
@@ -140,11 +142,31 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
             return "No Verification Methods";
         }
         final StringBuilder out = new StringBuilder();
-        for (final RecoveryVerificationMethods method : value.getMethodSettings().keySet()) {
-            out.append(" ").append(method.toString()).append(": ").append(value.getMethodSettings().get(method).getEnabledState());
-            out.append("\n");
+        final List<String> optionals = new ArrayList<>();
+        final List<String> required = new ArrayList<>();
+        for (final IdentityVerificationMethod method : value.getMethodSettings().keySet()) {
+            switch (value.getMethodSettings().get(method).getEnabledState()) {
+                case optional:
+                    optionals.add(method.getLabel(null, locale));
+                    break;
+
+                case required:
+                    required.add(method.getLabel(null, locale));
+                    break;
+            }
+            method.getLabel(null,locale);
         }
-        out.append("  Minimum Optional Methods Required: ").append(value.getMinOptionalRequired());
+
+        out.append("optional methods: ").append(optionals.isEmpty()
+                        ? LocaleHelper.getLocalizedMessage(locale, Display.Value_NotApplicable, null)
+                        : JsonUtil.serializeCollection(optionals)
+        );
+        out.append(", required methods: ").append(required.isEmpty()
+                        ? LocaleHelper.getLocalizedMessage(locale, Display.Value_NotApplicable, null)
+                        : JsonUtil.serializeCollection(required)
+        );
+
+        out.append(",  minimum optional methods required: ").append(value.getMinOptionalRequired());
         return out.toString();
     }
 }

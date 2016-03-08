@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +23,9 @@
 package password.pwm.util;
 
 import org.apache.commons.codec.binary.Base32;
+import net.iharder.Base64;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import password.pwm.PwmConstants;
 import password.pwm.util.logging.PwmLogger;
 
@@ -153,10 +153,10 @@ public abstract class StringUtil {
             optionsEnum.addAll(Arrays.asList(options));
 
             if (optionsEnum.contains(Base64Options.GZIP)) {
-                b64UtilOptions = b64UtilOptions | Base64Util.GZIP;
+                b64UtilOptions = b64UtilOptions | Base64.GZIP;
             }
             if (optionsEnum.contains(Base64Options.URL_SAFE)) {
-                b64UtilOptions = b64UtilOptions | Base64Util.URL_SAFE;
+                b64UtilOptions = b64UtilOptions | Base64.URL_SAFE;
             }
             return b64UtilOptions;
         }
@@ -207,7 +207,7 @@ public abstract class StringUtil {
     public static byte[] base64Decode(final String input)
             throws IOException
     {
-        return Base64Util.decode(input);
+        return Base64.decode(input);
     }
 
     public static String base32Encode(final byte[] input)
@@ -222,12 +222,12 @@ public abstract class StringUtil {
     {
         final int b64UtilOptions = Base64Options.asBase64UtilOptions(options);
 
-        return Base64Util.decode(input, b64UtilOptions);
+        return Base64.decode(input, b64UtilOptions);
     }
 
     public static String base64Encode(final byte[] input)
     {
-        return Base64Util.encodeBytes(input);
+        return Base64.encodeBytes(input);
     }
 
     public static String base64Encode(final byte[] input, final StringUtil.Base64Options... options)
@@ -236,9 +236,9 @@ public abstract class StringUtil {
         final int b64UtilOptions = Base64Options.asBase64UtilOptions(options);
 
         if (b64UtilOptions > 0) {
-            return Base64Util.encodeBytes(input, b64UtilOptions);
+            return Base64.encodeBytes(input, b64UtilOptions);
         } else {
-            return Base64Util.encodeBytes(input);
+            return Base64.encodeBytes(input);
         }
     }
 

@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@
 
 package password.pwm.util.logging;
 
+import net.iharder.Base64;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
-import password.pwm.util.Base64Util;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
 
@@ -86,7 +86,7 @@ public class PwmLogEvent implements Serializable, Comparable {
 
         Throwable throwable = null;
         if (srcMap.containsKey(KEY_THROWABLE)) {
-            throwable = (Throwable) Base64Util.decodeToObject(srcMap.get(KEY_THROWABLE));
+            throwable = (Throwable) Base64.decodeToObject(srcMap.get(KEY_THROWABLE));
         }
 
         PwmLogLevel level = null;
@@ -300,7 +300,7 @@ public class PwmLogEvent implements Serializable, Comparable {
         }
 
         if (throwable != null) {
-            tempMap.put(KEY_THROWABLE, Base64Util.encodeObject(throwable, Base64Util.NO_OPTIONS));
+            tempMap.put(KEY_THROWABLE, Base64.encodeObject(throwable, Base64.NO_OPTIONS));
         }
 
         return JsonUtil.serializeMap(tempMap);

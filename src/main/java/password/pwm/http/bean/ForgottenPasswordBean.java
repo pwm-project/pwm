@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,11 +24,11 @@ package password.pwm.http.bean;
 
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
-import password.pwm.RecoveryVerificationMethod;
+import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.option.MessageSendMethod;
-import password.pwm.config.option.RecoveryVerificationMethods;
+import password.pwm.config.option.IdentityVerificationMethod;
 
 import java.io.Serializable;
 import java.util.*;
@@ -122,16 +122,16 @@ public class ForgottenPasswordBean extends PwmSessionBean {
     public static class Progress implements Serializable {
         private boolean tokenSent;
         private boolean allPassed;
-        private final Set<RecoveryVerificationMethods> satisfiedMethods = new HashSet<>();
+        private final Set<IdentityVerificationMethod> satisfiedMethods = new HashSet<>();
 
         private MessageSendMethod tokenSendChoice;
         private String tokenSentAddress;
-        private RecoveryVerificationMethods inProgressVerificationMethod;
+        private IdentityVerificationMethod inProgressVerificationMethod;
 
-        private transient RecoveryVerificationMethod naafRecoveryMethod;
-        private transient RecoveryVerificationMethod remoteRecoveryMethod;
+        private transient VerificationMethodSystem naafRecoveryMethod;
+        private transient VerificationMethodSystem remoteRecoveryMethod;
 
-        public Set<RecoveryVerificationMethods> getSatisfiedMethods() {
+        public Set<IdentityVerificationMethod> getSatisfiedMethods() {
             return satisfiedMethods;
         }
 
@@ -175,35 +175,35 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             this.tokenSentAddress = tokenSentAddress;
         }
 
-        public RecoveryVerificationMethods getInProgressVerificationMethod() {
+        public IdentityVerificationMethod getInProgressVerificationMethod() {
             return inProgressVerificationMethod;
         }
 
-        public void setInProgressVerificationMethod(RecoveryVerificationMethods inProgressVerificationMethod) {
+        public void setInProgressVerificationMethod(IdentityVerificationMethod inProgressVerificationMethod) {
             this.inProgressVerificationMethod = inProgressVerificationMethod;
         }
 
-        public void setNaafRecoveryMethod(RecoveryVerificationMethod naafRecoveryMethod) {
+        public void setNaafRecoveryMethod(VerificationMethodSystem naafRecoveryMethod) {
             this.naafRecoveryMethod = naafRecoveryMethod;
         }
 
-        public RecoveryVerificationMethod getNaafRecoveryMethod() {
+        public VerificationMethodSystem getNaafRecoveryMethod() {
             return naafRecoveryMethod;
         }
 
-        public RecoveryVerificationMethod getRemoteRecoveryMethod() {
+        public VerificationMethodSystem getRemoteRecoveryMethod() {
             return remoteRecoveryMethod;
         }
 
-        public void setRemoteRecoveryMethod(RecoveryVerificationMethod remoteRecoveryMethod) {
+        public void setRemoteRecoveryMethod(VerificationMethodSystem remoteRecoveryMethod) {
             this.remoteRecoveryMethod = remoteRecoveryMethod;
         }
     }
 
     public static class RecoveryFlags implements Serializable {
         private final boolean allowWhenLdapIntruderLocked;
-        private final Set<RecoveryVerificationMethods> requiredAuthMethods;
-        private final Set<RecoveryVerificationMethods> optionalAuthMethods;
+        private final Set<IdentityVerificationMethod> requiredAuthMethods;
+        private final Set<IdentityVerificationMethod> optionalAuthMethods;
         private final int minimumOptionalAuthMethods;
         private final MessageSendMethod tokenSendMethod;
 
@@ -217,8 +217,8 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         }
 
         public RecoveryFlags(
-                final Set<RecoveryVerificationMethods> requiredAuthMethods,
-                final Set<RecoveryVerificationMethods> optionalAuthMethods,
+                final Set<IdentityVerificationMethod> requiredAuthMethods,
+                final Set<IdentityVerificationMethod> optionalAuthMethods,
                 final int minimumOptionalAuthMethods,
                 final boolean allowWhenLdapIntruderLocked,
                 final MessageSendMethod tokenSendMethod
@@ -231,7 +231,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             this.tokenSendMethod = tokenSendMethod;
         }
 
-        public Set<RecoveryVerificationMethods> getRequiredAuthMethods() {
+        public Set<IdentityVerificationMethod> getRequiredAuthMethods() {
             return requiredAuthMethods;
         }
 
@@ -244,7 +244,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             return tokenSendMethod;
         }
 
-        public Set<RecoveryVerificationMethods> getOptionalAuthMethods() {
+        public Set<IdentityVerificationMethod> getOptionalAuthMethods() {
             return optionalAuthMethods;
         }
 

@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.filter.RequestInitializationFilter;
 import password.pwm.http.servlet.PwmServlet;
 import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.svc.stats.Statistic;
@@ -69,6 +70,8 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
     public static final String TOKEN_THEME = "%THEME%";
     public static final String EMBED_THEME = "EMBED";
 
+    public static final String WEBJAR_RESOURCE_PREFIX = "META-INF/resources";
+
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -103,7 +106,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         final FileResource file = resolveRequestedFile(
                 req.getServletContext(),
                 figureRequestPathMinusContext(req),
-                new ResourceServletConfiguration()
+                ResourceServletConfiguration.defaultConfiguration()
         );
 
         if (file == null || !file.exists()) {
@@ -131,7 +134,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         final String requestURI = stripNonceFromURI(resourceConfiguration, figureRequestPathMinusContext(pwmRequest.getHttpServletRequest()));
 
         try {
-            if ( handleSpecialURIs(pwmApplication, requestURI, pwmRequest.getPwmResponse().getHttpServletResponse(), resourceConfiguration)) {
+            if ( handleEmbeddedURIs(pwmApplication, requestURI, pwmRequest.getPwmResponse().getHttpServletResponse(), resourceConfiguration)) {
                 return;
             }
         } catch (Exception e) {
@@ -177,6 +180,8 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
                 contentType += ";charset=UTF-8";
             }
         }
+
+        RequestInitializationFilter.addPwmResponseHeaders(pwmRequest);
 
         final HttpServletResponse response = pwmRequest.getPwmResponse().getHttpServletResponse();
         final String eTagValue = resourceConfiguration.getNonceValue();
@@ -313,7 +318,9 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
             } else {
                 // Content length is not directly predictable in case of GZIP.
                 // So only add it if there is no means of GZIP, else browser will hang.
-                response.setHeader("Content-Length", String.valueOf(file.length()));
+                if (file.length() > 0) {
+                    response.setHeader("Content-Length", String.valueOf(file.length()));
+                }
             }
 
             // Copy full range.
@@ -383,9 +390,17 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
             filename = filename.substring(0, filename.indexOf(";"));
         }
 
+
         if (!filename.startsWith(RESOURCE_PATH)) {
             LOGGER.warn("illegal url request to " + filename);
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal url request"));
+        }
+
+        {
+            FileResource resource = handleWebjarURIs(servletContext, resourcePathUri, resourceServletConfiguration);
+            if (resource != null) {
+                return resource;
+            }
         }
 
         { // check custom (configuration defined) zip file bundles
@@ -440,7 +455,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal file path request"));
     }
 
-    private boolean handleSpecialURIs(
+    private boolean handleEmbeddedURIs(
             final PwmApplication pwmApplication,
             final String requestURI,
             final HttpServletResponse response,
@@ -505,5 +520,55 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
     private String figureRequestPathMinusContext(final HttpServletRequest httpServletRequest) {
         final String requestURI = httpServletRequest.getRequestURI();
         return requestURI.substring(httpServletRequest.getContextPath().length(), requestURI.length());
+    }
+
+    private static FileResource handleWebjarURIs(
+            final ServletContext servletContext,
+            final String resourcePathUri,
+            final ResourceServletConfiguration resourceServletConfiguration
+    )
+            throws PwmUnrecoverableException
+    {
+        final Map<String,String> webJarMappings = resourceServletConfiguration.getWebJarUriMappings();
+
+        for (final String sourceMapping : webJarMappings.keySet()) {
+            if (resourcePathUri.startsWith(sourceMapping)) {
+                final String redirectBasePath = webJarMappings.get(sourceMapping);
+                final String requestPath = resourcePathUri.substring(sourceMapping.length(), resourcePathUri.length());
+                final ClassLoader classLoader = servletContext.getClassLoader();
+                final String jarInternalFilename = WEBJAR_RESOURCE_PREFIX + redirectBasePath + requestPath;
+                final InputStream inputStream = classLoader.getResourceAsStream(jarInternalFilename);
+                if (inputStream != null) {
+                    return new FileResource() {
+                        @Override
+                        public InputStream getInputStream() throws IOException {
+                            return inputStream;
+                        }
+
+                        @Override
+                        public long length() {
+                            return 0;
+                        }
+
+                        @Override
+                        public long lastModified() {
+                            return 0;
+                        }
+
+                        @Override
+                        public boolean exists() {
+                            return true;
+                        }
+
+                        @Override
+                        public String getName() {
+                            return jarInternalFilename;
+                        }
+                    };
+                }
+            }
+        }
+
+        return null;
     }
 }

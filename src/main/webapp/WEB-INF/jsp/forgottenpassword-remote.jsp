@@ -1,9 +1,9 @@
 <%--
   ~ Password Management Servlets (PWM)
-  ~ http://code.google.com/p/pwm/
+  ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2015 The PWM Project
+  ~ Copyright (c) 2009-2016 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<%@ page import="password.pwm.RecoveryVerificationMethod" %>
+<%@ page import="password.pwm.VerificationMethodSystem" %>
 <%@ page import="java.util.List" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -35,14 +35,14 @@
     </jsp:include>
     <div id="centerbody">
         <%
-            final List<RecoveryVerificationMethod.UserPrompt> prompts = (List<RecoveryVerificationMethod.UserPrompt>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordPrompts);
+            final List<VerificationMethodSystem.UserPrompt> prompts = (List<VerificationMethodSystem.UserPrompt>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordPrompts);
             final String instructions = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordInstructions);
         %>
         <p><%=instructions%></p>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br/>
-            <% for (final RecoveryVerificationMethod.UserPrompt userPrompt : prompts) { %>
+            <% for (final VerificationMethodSystem.UserPrompt userPrompt : prompts) { %>
             <div class="formFieldLabel">
                 <%= userPrompt.getDisplayPrompt() %>
             </div>

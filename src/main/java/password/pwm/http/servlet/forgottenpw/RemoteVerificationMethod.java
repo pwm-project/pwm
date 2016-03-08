@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ package password.pwm.http.servlet.forgottenpw;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.RecoveryVerificationMethod;
+import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.*;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.PwmSetting;
@@ -43,7 +43,7 @@ import password.pwm.util.secure.PwmRandom;
 
 import java.util.*;
 
-public class RemoteVerificationMethod implements RecoveryVerificationMethod {
+public class RemoteVerificationMethod implements VerificationMethodSystem {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(RemoteVerificationMethod.class);
 

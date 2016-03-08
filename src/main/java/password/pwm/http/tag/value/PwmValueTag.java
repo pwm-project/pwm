@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 package password.pwm.http.tag.value;
 
+import password.pwm.PwmApplicationMode;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.StringUtil;
@@ -54,6 +55,10 @@ public class PwmValueTag extends TagSupport {
     public int doEndTag()
             throws JspTagException
     {
+        if (PwmApplicationMode.determineMode((HttpServletRequest) pageContext.getRequest()) == PwmApplicationMode.ERROR) {
+            return EVAL_PAGE;
+        }
+
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmRequest pwmRequest = PwmRequest.forRequest(req, (HttpServletResponse) pageContext.getResponse());
@@ -67,7 +72,7 @@ public class PwmValueTag extends TagSupport {
                 LOGGER.error("can't output requested value name '" + getName() + "'");
             }
         } catch (PwmUnrecoverableException e) {
-            LOGGER.error("error while processing PwmScriptTag: " + e.getMessage());
+            LOGGER.error("error while processing PwmValueTag: " + e.getMessage());
         } catch (Exception e) {
             throw new JspTagException(e.getMessage(),e);
         }

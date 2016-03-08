@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 package password.pwm.http.tag;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.PwmSetting;
@@ -65,8 +66,6 @@ public class PwmUrlTag extends PwmAbstractTag {
             throws javax.servlet.jsp.JspTagException
     {
         String outputURL = url;
-        //try {
-        outputURL = url;
         PwmRequest pwmRequest = null;
         try {
             pwmRequest = PwmRequest.forRequest((HttpServletRequest)pageContext.getRequest(), (HttpServletResponse)pageContext.getResponse());
@@ -74,27 +73,24 @@ public class PwmUrlTag extends PwmAbstractTag {
 
         String workingUrl;
         if (THEME_URL.equals(url)) {
-            workingUrl = figureThemeURL(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), false);
+            workingUrl = figureThemeURL(pwmRequest, false);
             workingUrl = insertContext(pageContext, workingUrl);
         } else if (MOBILE_THEME_URL.equals(url)) {
-            workingUrl = figureThemeURL(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), true);
+            workingUrl = figureThemeURL(pwmRequest, true);
             workingUrl = insertContext(pageContext, workingUrl);
         } else {
             workingUrl = url;
         }
 
-        //workingUrl = SessionFilter.rewriteURL(workingUrl, pageContext.getRequest(), pageContext.getResponse());
         if (addContext) {
             workingUrl = insertContext(pageContext, workingUrl);
         }
         if (pwmRequest != null) {
             workingUrl = insertResourceNonce(pwmRequest.getPwmApplication(), workingUrl);
         }
-        //workingUrl = injectFormID(pwmSession, workingUrl);
+
         outputURL = workingUrl;
-        //} catch (PwmUnrecoverableException e) {
-            /* application unavailable */
-        //}
+
         try {
             pageContext.getOut().write(outputURL);
         } catch (Exception e) {
@@ -157,15 +153,17 @@ public class PwmUrlTag extends PwmAbstractTag {
     }
 
     private static String figureThemeURL(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final boolean mobile
     )
     {
         String themeURL = null;
-        String themeName = "default";
+        String themeName = AppProperty.CONFIG_GUIDE_THEME.getDefaultValue();
 
-        if (pwmApplication != null && pwmSession != null) {
+        if (pwmRequest != null) {
+            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+            final PwmSession pwmSession = pwmRequest.getPwmSession();
+
             themeName = figureThemeName(pwmApplication, pwmSession);
 
             if (themeName.equals("custom")) {

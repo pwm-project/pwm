@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -132,7 +132,7 @@ public class NMASCrOperator implements CrOperator {
     }
 
     public void close() {
-        final List<NMASSessionThread> threads = new ArrayList(sessionMonitorThreads);
+        final List<NMASSessionThread> threads = new ArrayList<>(sessionMonitorThreads);
         for (final NMASSessionThread thread : threads) {
             LOGGER.debug("killing thread due to NMASCrOperator service closing: " + thread.toDebugString());
             thread.abort();
@@ -146,7 +146,6 @@ public class NMASCrOperator implements CrOperator {
     )
             throws PwmUnrecoverableException
     {
-        final String userDN = theUser.getEntryDN();
         pwmApplication.getIntruderManager().convenience().checkUserIdentity(userIdentity);
 
         try {
@@ -657,7 +656,7 @@ public class NMASCrOperator implements CrOperator {
                             this.loginDN,
                             "dn:" + this.loginDN,
                             new String[] { "NMAS_LOGIN" },
-                            new HashMap(CR_OPTIONS_MAP),
+                            new HashMap<>(CR_OPTIONS_MAP),
                             this.callbackHandler
                     );
                 } catch (NullPointerException e) {
@@ -726,8 +725,8 @@ public class NMASCrOperator implements CrOperator {
     private class ThreadWatchdogTask extends TimerTask {
         @Override
         public void run() {
-            //logThreadInfo();
-            final List<NMASSessionThread> threads = new ArrayList(sessionMonitorThreads);
+            logThreadInfo();
+            final List<NMASSessionThread> threads = new ArrayList<>(sessionMonitorThreads);
             for (final NMASSessionThread thread : threads) {
                 final TimeDuration idleTime = TimeDuration.fromCurrent(thread.getLastActivityTimestamp());
                 if (idleTime.isLongerThan(maxThreadIdleTime)) {
@@ -737,9 +736,9 @@ public class NMASCrOperator implements CrOperator {
             }
         }
 
-        /*
+
         private void logThreadInfo() {
-            final List<NMASSessionThread> threads = new ArrayList(sessionMonitorThreads);
+            final List<NMASSessionThread> threads = new ArrayList<>(sessionMonitorThreads);
             final StringBuilder threadDebugInfo = new StringBuilder();
             threadDebugInfo.append("NMASCrOperator watchdog timer, activeCount=").append(threads.size());
             threadDebugInfo.append(", maxIdleThreadTime=").append(maxThreadIdleTime.asCompactString());
@@ -748,8 +747,7 @@ public class NMASCrOperator implements CrOperator {
             }
             LOGGER.trace(threadDebugInfo.toString());
         }
-        */
+
     }
-
-
 }
+

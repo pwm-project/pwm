@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -132,7 +133,7 @@ public class RestHealthServer extends AbstractRestServer {
     )
             throws PwmUnrecoverableException
     {
-        boolean allowImmediate = pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION
+        boolean allowImmediate = pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION
                 && pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
 
         return refreshImmediate && allowImmediate

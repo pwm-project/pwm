@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 package password.pwm.config.profile;
 
 import password.pwm.config.*;
-import password.pwm.config.option.RecoveryVerificationMethods;
+import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.VerificationMethodValue;
 import password.pwm.util.PasswordData;
@@ -128,12 +128,12 @@ public abstract class AbstractProfile implements Profile, SettingReader {
         return valueMap;
     }
 
-    public Set<RecoveryVerificationMethods> readVerificationMethods(final PwmSetting pwmSetting, VerificationMethodValue.EnabledState enabledState) {
-        final Set<RecoveryVerificationMethods> result = new LinkedHashSet<>();
+    public Set<IdentityVerificationMethod> readVerificationMethods(final PwmSetting pwmSetting, VerificationMethodValue.EnabledState enabledState) {
+        final Set<IdentityVerificationMethod> result = new LinkedHashSet<>();
         final StoredValue configValue = storedValueMap.get(pwmSetting);
         final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = (VerificationMethodValue.VerificationMethodSettings)configValue.toNativeObject();
 
-        for (final RecoveryVerificationMethods recoveryVerificationMethods : RecoveryVerificationMethods.availableValues()) {
+        for (final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.availableValues()) {
             if (verificationMethodSettings.getMethodSettings().containsKey(recoveryVerificationMethods)) {
                 if (verificationMethodSettings.getMethodSettings().get(recoveryVerificationMethods).getEnabledState() == enabledState) {
                     result.add(recoveryVerificationMethods);

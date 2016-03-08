@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2015 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 package password.pwm.http.filter;
 
 
+import password.pwm.PwmApplicationMode;
 import password.pwm.error.PwmException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
@@ -52,36 +53,58 @@ public abstract class AbstractPwmFilter implements Filter {
     {
         final HttpServletRequest req = (HttpServletRequest)servletRequest;
         final HttpServletResponse resp = (HttpServletResponse)servletResponse;
+        final PwmApplicationMode mode = PwmApplicationMode.determineMode(req);
 
-        PwmRequest pwmRequest = null;
+        final boolean interested;
         try {
-            pwmRequest = PwmRequest.forRequest(req, resp);
-        } catch (PwmException e) {
             final PwmURL pwmURL = new PwmURL(req);
-            if (pwmURL.isResourceURL()) {
-                filterChain.doFilter(req,resp);
-                return;
-            }
-
-            LOGGER.error(pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e);
+            interested = isInterested(mode, pwmURL);
+        } catch (Exception e) {
+            LOGGER.error("unexpected error processing filter chain during isInterested(): " + e.getMessage(), e);
+            resp.sendError(500,"unexpected error processing filter chain during isInterested");
+            return;
         }
 
-        try {
-            final PwmFilterChain pwmFilterChain = new PwmFilterChain(servletRequest, servletResponse, filterChain);
-            processFilter(pwmRequest, pwmFilterChain);
-        } catch (PwmException e) {
-            LOGGER.error(pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e);
-        } catch (IOException e) {
-            LOGGER.debug(pwmRequest, "i/o error processing request: " + e.getMessage());
+        if (interested) {
+            PwmRequest pwmRequest = null;
+            try {
+                pwmRequest = PwmRequest.forRequest(req, resp);
+            } catch (PwmException e) {
+                final PwmURL pwmURL = new PwmURL(req);
+                if (pwmURL.isResourceURL()) {
+                    filterChain.doFilter(req,resp);
+                    return;
+                }
+
+                LOGGER.error(pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e);
+            }
+
+            try {
+                final PwmFilterChain pwmFilterChain = new PwmFilterChain(servletRequest, servletResponse, filterChain);
+                processFilter(mode, pwmRequest, pwmFilterChain);
+            } catch (PwmException e) {
+                LOGGER.error(pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e);
+            } catch (IOException e) {
+                LOGGER.debug(pwmRequest, "i/o error processing request: " + e.getMessage());
+            }
+
+        } else {
+            filterChain.doFilter(req, resp);
         }
 
     }
 
     abstract void processFilter(
+            final PwmApplicationMode mode,
             final PwmRequest pwmRequest,
             final PwmFilterChain filterChain
     )
-        throws PwmException, IOException, ServletException;
+            throws PwmException, IOException, ServletException;
+
+    abstract boolean isInterested(
+            final PwmApplicationMode mode,
+            final PwmURL pwmURL
+    );
 
     @Override
     public void destroy()
@@ -121,4 +144,5 @@ public abstract class AbstractPwmFilter implements Filter {
             return servletResponse;
         }
     }
+
 }
