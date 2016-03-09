@@ -23,8 +23,10 @@
 package password.pwm.util.logging;
 
 import com.novell.ldapchai.ChaiUser;
+
 import org.apache.log4j.*;
 import org.apache.log4j.xml.DOMConfigurator;
+
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -97,8 +99,7 @@ public class PwmLogManager {
         initFileLogger(config, fileLogLevel, pwmApplicationPath);
 
         // disable jersey warnings.
-        java.util.logging.LogManager.getLogManager().addLogger(java.util.logging.Logger.getLogger("com.sun.jersey.spi.container.servlet.WebComponent"));
-        java.util.logging.LogManager.getLogManager().getLogger("com.sun.jersey.spi.container.servlet.WebComponent").setLevel(java.util.logging.Level.OFF);
+        java.util.logging.Logger.getLogger("org.glassfish.jersey").setLevel(java.util.logging.Level.SEVERE);
     }
 
     private static void initConsoleLogger(
