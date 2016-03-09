@@ -22,11 +22,21 @@
 
 package password.pwm.config.profile;
 
-import com.novell.ldapchai.ChaiPasswordPolicy;
-import com.novell.ldapchai.ChaiPasswordRule;
-import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
-import com.novell.ldapchai.util.PasswordRuleHelper;
-import com.novell.ldapchai.util.StringHelper;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+import org.apache.commons.lang3.StringUtils;
+
 import password.pwm.config.UserPermission;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.health.HealthMessage;
@@ -34,11 +44,13 @@ import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
-import java.io.Serializable;
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+import com.novell.ldapchai.ChaiPasswordPolicy;
+import com.novell.ldapchai.ChaiPasswordRule;
+import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
+import com.novell.ldapchai.util.PasswordRuleHelper;
+import com.novell.ldapchai.util.StringHelper;
 
 
 /**
@@ -159,6 +171,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
             final String ruleKey = rule.getKey();
             if (this.policyMap.containsKey(ruleKey) || otherPolicy.policyMap.containsKey(ruleKey)) {
+
                 switch (rule) {
                     case DisallowedValues:
                     case DisallowedAttributes:
@@ -182,26 +195,33 @@ public class PwmPasswordPolicy implements Profile,Serializable {
                         break;
 
                     case ExpirationInterval:
-                        newPasswordPolicies.put(ruleKey, mergeMin(policyMap.get(ruleKey), otherPolicy.policyMap.get(ruleKey)));
+                        final String expirationIntervalLocalValue = StringUtils.defaultString(policyMap.get(ruleKey), rule.getDefaultValue());
+                        final String expirationIntervalOtherValue = StringUtils.defaultString(otherPolicy.policyMap.get(ruleKey), rule.getDefaultValue());
+                        newPasswordPolicies.put(ruleKey, mergeMin(expirationIntervalLocalValue, expirationIntervalOtherValue));
                         break;
 
                     case MinimumLifetime:
-                        newPasswordPolicies.put(ruleKey, mergeMin(policyMap.get(ruleKey), otherPolicy.policyMap.get(ruleKey)));
+                        final String minimumLifetimeLocalValue = StringUtils.defaultString(policyMap.get(ruleKey), rule.getDefaultValue());
+                        final String minimumLifetimeOtherValue = StringUtils.defaultString(otherPolicy.policyMap.get(ruleKey), rule.getDefaultValue());
+                        newPasswordPolicies.put(ruleKey, mergeMin(minimumLifetimeLocalValue, minimumLifetimeOtherValue));
                         break;
 
                     default:
+                        final String localValueString = StringUtils.defaultString(policyMap.get(ruleKey), rule.getDefaultValue());
+                        final String otherValueString = StringUtils.defaultString(otherPolicy.policyMap.get(ruleKey), rule.getDefaultValue());
+
                         switch (rule.getRuleType()) {
                             case MIN:
-                                newPasswordPolicies.put(ruleKey, mergeMin(policyMap.get(ruleKey), otherPolicy.policyMap.get(ruleKey)));
+                                newPasswordPolicies.put(ruleKey, mergeMin(localValueString, otherValueString));
                                 break;
 
                             case MAX:
-                                newPasswordPolicies.put(ruleKey, mergeMax(policyMap.get(ruleKey), otherPolicy.policyMap.get(ruleKey)));
+                                newPasswordPolicies.put(ruleKey, mergeMax(localValueString, otherValueString));
                                 break;
 
                             case BOOLEAN:
-                                final boolean localValue = StringHelper.convertStrToBoolean(policyMap.get(ruleKey));
-                                final boolean otherValue = StringHelper.convertStrToBoolean(otherPolicy.policyMap.get(ruleKey));
+                                final boolean localValue = StringHelper.convertStrToBoolean(localValueString);
+                                final boolean otherValue = StringHelper.convertStrToBoolean(otherValueString);
 
                                 if (rule.isPositiveBooleanMerge()) {
                                     newPasswordPolicies.put(ruleKey, String.valueOf(localValue || otherValue));
@@ -295,16 +315,16 @@ public class PwmPasswordPolicy implements Profile,Serializable {
             }
         }
 
-        public List<Pattern> getRegExMatch() {
-            return readRegExSetting(PwmPasswordRule.RegExMatch);
+        public List<Pattern> getRegExMatch(MacroMachine macroMachine) {
+            return readRegExSetting(PwmPasswordRule.RegExMatch, macroMachine);
         }
 
-        public List<Pattern> getRegExNoMatch() {
-            return readRegExSetting(PwmPasswordRule.RegExNoMatch);
+        public List<Pattern> getRegExNoMatch(MacroMachine macroMachine) {
+            return readRegExSetting(PwmPasswordRule.RegExNoMatch, macroMachine);
         }
 
         public List<Pattern> getCharGroupValues() {
-            return readRegExSetting(PwmPasswordRule.CharGroupsValues);
+            return readRegExSetting(PwmPasswordRule.CharGroupsValues, null);
         }
 
 
@@ -331,22 +351,34 @@ public class PwmPasswordPolicy implements Profile,Serializable {
             return StringHelper.convertStrToBoolean(value);
         }
 
-        private List<Pattern> readRegExSetting(final PwmPasswordRule rule) {
+        private List<Pattern> readRegExSetting(final PwmPasswordRule rule, MacroMachine macroMachine) {
             final String input = passwordPolicy.policyMap.get(rule.getKey());
+
+            return readRegExSetting(rule, macroMachine, input);
+        }
+
+        List<Pattern> readRegExSetting(final PwmPasswordRule rule, final MacroMachine macroMachine, final String input) {
             if (input == null) {
                 return Collections.emptyList();
             }
+
             final String separator = (rule == PwmPasswordRule.RegExMatch || rule == PwmPasswordRule.RegExNoMatch) ? ";;;" : "\n";
             final List<String> values = new ArrayList<>(StringHelper.tokenizeString(input, separator));
             final List<Pattern> patterns = new ArrayList<>();
 
             for (final String value : values) {
                 if (value != null && value.length() > 0) {
+                    String valueToCompile = value;
+
+                    if (macroMachine != null && readBooleanValue(PwmPasswordRule.AllowMacroInRegExSetting)) {
+                        valueToCompile = macroMachine.expandMacros(value);
+                    }
+
                     try {
-                        final Pattern loopPattern = Pattern.compile(value);
+                        final Pattern loopPattern = Pattern.compile(valueToCompile);
                         patterns.add(loopPattern);
                     } catch (PatternSyntaxException e) {
-                        LOGGER.warn("reading password rule value '" + value + "' for rule " + rule.getKey() + " is not a valid regular expression " + e.getMessage());
+                        LOGGER.warn("reading password rule value '" + valueToCompile + "' for rule " + rule.getKey() + " is not a valid regular expression " + e.getMessage());
                     }
                 }
             }
