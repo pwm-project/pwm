@@ -28,3 +28,7 @@ src/main/webapp/WEB-INF/jsp/fragment/.DS_Store
 src/main/webapp/public/resources/font/.DS_Store
 
 src/main/webapp/public/resources/themes/tulips/.DS_Store
+/src/main/webapp/public/resources/themes/netiq32
+/src/main/webapp/public/resources/themes/idm
+/src/main/webapp/public/resources/themes/mdefault
+/src/main/webapp/public/resources/themes/netiq
