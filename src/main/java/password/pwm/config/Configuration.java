@@ -377,7 +377,7 @@ public class Configuration implements Serializable, SettingReader {
     {
         final Map<String, String> passwordPolicySettings = new LinkedHashMap<>();
         for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
-            if (rule.getPwmSetting() != null) {
+            if (rule.getPwmSetting() != null || rule.getAppProperty() != null) {
                 final String value;
                 final PwmSetting pwmSetting = rule.getPwmSetting();
                 switch (rule) {
@@ -402,6 +402,9 @@ public class Configuration implements Serializable, SettingReader {
                                 pwmSetting, storedConfiguration.readSetting(pwmSetting,profile),
                                 ADPolicyComplexity.class
                         ).toString();
+                        break;
+                    case AllowMacroInRegExSetting:
+                        value = readAppProperty(AppProperty.ALLOW_MACRO_IN_REGEX_SETTING);
                         break;
                     default:
                         value = String.valueOf(
