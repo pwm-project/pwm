@@ -22,13 +22,12 @@
 
 package password.pwm.tests;
 
-import junit.framework.Assert;
 import junit.framework.TestCase;
-import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.util.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.Percent;
@@ -36,15 +35,16 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.logging.LocalDBLogger;
+import password.pwm.util.logging.LocalDBLoggerSettings;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.secure.PwmRandom;
-import password.pwm.svc.stats.EventRateMeter;
 
 import java.io.File;
 import java.math.RoundingMode;
-import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LocalDBLoggerTest extends TestCase {
 
@@ -53,11 +53,10 @@ public class LocalDBLoggerTest extends TestCase {
     private LocalDBLogger localDBLogger;
     private LocalDB localDB;
     private Configuration config;
-    private int maxSize;
 
 
-    private int eventsAdded;
-    private int eventsRemaining;
+    private final AtomicInteger eventsAdded = new AtomicInteger(0);
+    private final AtomicInteger eventsRemaining = new AtomicInteger(0);
     final StringBuffer randomValue = new StringBuffer();
     final Random random = new Random();
 
@@ -82,10 +81,9 @@ public class LocalDBLoggerTest extends TestCase {
         );
 
 
-        final LocalDBLogger.Settings settings = new LocalDBLogger.Settings();
-        settings.setMaxEvents((int)reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS));
-        settings.setMaxAgeMs(reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * (long)1000);
-        settings.setDevDebug(Boolean.parseBoolean(reader.getConfiguration().readAppProperty(AppProperty.LOGGING_DEV_OUTPUT)));
+        final int maxEvents = (int)reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
+        final long maxAgeMs = reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * (long)1000;
+        final LocalDBLoggerSettings settings = new LocalDBLoggerSettings(maxEvents, new TimeDuration(maxAgeMs), Collections.<LocalDBLoggerSettings.Flag>emptySet());
 
         localDBLogger = new LocalDBLogger(null, localDB, settings);
 
@@ -99,54 +97,46 @@ public class LocalDBLoggerTest extends TestCase {
 
     public void testBulkAddEvents() {
         final int startingSize = localDBLogger.getStoredEventCount();
-        eventsRemaining = BULK_EVENT_COUNT;
-        eventsAdded = 0;
+        eventsRemaining.addAndGet(BULK_EVENT_COUNT);
         final Timer timer = new Timer();
         timer.scheduleAtFixedRate(new DebugOutputTimerTask(),5 * 1000, 5 * 1000);
 
-        for (int loopCount = 0; loopCount < 1; loopCount++) {
+        for (int loopCount = 0; loopCount < 5; loopCount++) {
             final Thread populatorThread = new PopulatorThread();
             populatorThread.start();
         }
 
-        while (eventsRemaining > 0) {
+        while (eventsRemaining.get() > 0) {
             Helper.pause(5);
         }
 
         final long startWaitTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() - startWaitTime < 30 * 1000 && localDBLogger.getPendingEventCount() > 0) {
+        while (TimeDuration.fromCurrent(startWaitTime).isShorterThan(new TimeDuration(10, TimeUnit.HOURS)) && eventsRemaining.get() > 0) {
             Helper.pause(500);
         }
         Helper.pause(5000);
 
-        if (startingSize + BULK_EVENT_COUNT >= maxSize) {
-            Assert.assertEquals(localDBLogger.getStoredEventCount(), maxSize);
-        } else {
-            Assert.assertEquals(localDBLogger.getStoredEventCount(), startingSize + BULK_EVENT_COUNT);
-        }
         timer.cancel();
     }
+
 
     private class PopulatorThread extends Thread {
         public void run() {
             int loopCount = 3;
-            while (eventsRemaining > 0) {
-                while (localDBLogger.getPendingEventCount() >= PwmConstants.LOCALDB_LOGGER_MAX_QUEUE_SIZE - (loopCount + 1)) {
-                    Helper.pause(11);
-                }
+            while (eventsRemaining.get() > 0) {
                 final Collection<PwmLogEvent> events = makeEvents(loopCount);
                 for (final PwmLogEvent logEvent : events) {
                     localDBLogger.writeEvent(logEvent);
                     eventRateMeter.markEvents(1);
-                    eventsRemaining--;
-                    eventsAdded++;
+                    eventsRemaining.decrementAndGet();
+                    eventsAdded.incrementAndGet();
                 }
             }
         }
     }
 
     private Collection<PwmLogEvent> makeEvents(final int count) {
-        final Collection<PwmLogEvent> events = new ArrayList<PwmLogEvent>();
+        final Collection<PwmLogEvent> events = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
             events.add(makeEvent());
@@ -176,14 +166,13 @@ public class LocalDBLoggerTest extends TestCase {
             final long maxEvents = config.readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
             final long eventCount = localDBLogger.getStoredEventCount();
             final Percent percent = new Percent(eventCount,maxEvents);
-            sb.append(new SimpleDateFormat("HH:mm:ss").format(new Date()));
+            sb.append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
             sb.append(", added ").append(eventsAdded);
             sb.append(", db size: ").append(Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
             sb.append(", events: ").append(localDBLogger.getStoredEventCount()).append("/").append(maxEvents);
             sb.append(" (").append(percent.pretty(3)).append(")");
             sb.append(", free space: ").append(Helper.formatDiskSize(
                     FileSystemUtility.diskSpaceRemaining(localDB.getFileLocation())));
-            sb.append(", pending: ").append(localDBLogger.getPendingEventCount());
             sb.append(", eps: ").append(eventRateMeter.readEventRate().setScale(0, RoundingMode.UP));
             System.out.println(sb);
         }

@@ -24,20 +24,31 @@ package password.pwm.util.localdb;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 public class H2_LocalDB extends AbstractJDBC_LocalDB {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(H2_LocalDB.class, true);
 
     private static final String H2_CLASSPATH = "org.h2.Driver";
+    private static final Map<String,String> DEFAULT_INIT_PARAMS;
+    static {
+        final Map<String,String> defaultInitParams = new HashMap<>();
+        defaultInitParams.put("DB_CLOSE_ON_EXIT","FALSE");
+        defaultInitParams.put("COMPRESS","TRUE");
+        //defaultInitParams.put("TRACE_LEVEL_FILE","2");
+        DEFAULT_INIT_PARAMS = Collections.unmodifiableMap(defaultInitParams);
+    }
+
+    private Driver driver;
 
     H2_LocalDB()
             throws Exception
@@ -56,8 +67,15 @@ public class H2_LocalDB extends AbstractJDBC_LocalDB {
     closeConnection(final Connection connection)
             throws SQLException
     {
-        connection.close();
-        DriverManager.getConnection("jdbc:h2:;shutdown=true");
+        try {
+            connection.close();
+            if (driver != null) {
+                DriverManager.deregisterDriver(driver);
+                driver = null;
+            }
+        } catch (Exception e) {
+            LOGGER.error("error during H2 shutdown: " + e.getMessage());
+        }
     }
 
     @Override
@@ -66,19 +84,26 @@ public class H2_LocalDB extends AbstractJDBC_LocalDB {
             final String driverClasspath,
             final Map<String,String> initParams
     ) throws LocalDBException {
-        final String filePath = databaseDirectory.getAbsolutePath() + File.separator + "h2-db";
-        final String baseConnectionURL = "jdbc:h2:" + filePath;
+        final String filePath = databaseDirectory.getAbsolutePath() + File.separator + "localdb-h2";
+        final String baseConnectionURL = "jdbc:h2:" + filePath + ";" + makeInitStringParams(initParams);
 
         try {
-            final Driver driver = (Driver)Class.forName(H2_CLASSPATH).newInstance();
-            DriverManager.registerDriver(driver);
-            final Connection connection = DriverManager.getConnection(baseConnectionURL);
-            connection.setAutoCommit(false);
+            driver = (Driver)Class.forName(H2_CLASSPATH).newInstance();
+            final Properties connectionProps = new Properties();
+            final Connection connection = driver.connect(baseConnectionURL, connectionProps);
+            connection.setAutoCommit(true);
             return connection;
         } catch (Throwable e) {
             final String errorMsg = "error opening DB: " + e.getMessage();
             LOGGER.error(errorMsg, e);
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,errorMsg));
         }
+    }
+
+    private static String makeInitStringParams(final Map<String,String> initParams) {
+        final Map<String,String> params = new HashMap<>();
+        params.putAll(DEFAULT_INIT_PARAMS);
+        params.putAll(initParams);
+        return StringUtil.mapToString(params,"=",";");
     }
 }

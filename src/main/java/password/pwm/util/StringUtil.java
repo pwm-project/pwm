@@ -119,7 +119,7 @@ public abstract class StringUtil {
     }
 
     public static Map<String, String> convertStringListToNameValuePair(final Collection<String> input, final String separator) {
-        if (input == null) {
+        if (input == null || input.isEmpty()) {
             return Collections.emptyMap();
         }
 
@@ -128,10 +128,14 @@ public abstract class StringUtil {
             if (loopStr != null && separator != null && loopStr.contains(separator)) {
                 final int separatorLocation = loopStr.indexOf(separator);
                 final String key = loopStr.substring(0, separatorLocation);
-                final String value = loopStr.substring(separatorLocation + separator.length(), loopStr.length());
-                returnMap.put(key, value);
+                if (!key.trim().isEmpty()) {
+                    final String value = loopStr.substring(separatorLocation + separator.length(), loopStr.length());
+                    returnMap.put(key, value);
+                }
             } else {
-                returnMap.put(loopStr, "");
+                if (!loopStr.trim().isEmpty()) {
+                    returnMap.put(loopStr, "");
+                }
             }
         }
 
@@ -281,5 +285,22 @@ public abstract class StringUtil {
         }
 
         return chunks.toArray(new String[numOfChunks]);
+    }
+
+    public static String mapToString(final Map<String,String> map, final String keyValueSeparator, final String recordSeparator) {
+        final StringBuilder sb = new StringBuilder();
+        for (final Iterator<String> iterator = map.keySet().iterator(); iterator.hasNext(); ) {
+            final String key = iterator.next();
+            final String value = map.get(key);
+            if (key != null && value != null && !key.trim().isEmpty() && !value.trim().isEmpty()) {
+                sb.append(key.trim());
+                sb.append(keyValueSeparator);
+                sb.append(value.trim());
+                if (iterator.hasNext()) {
+                    sb.append(recordSeparator);
+                }
+            }
+        }
+        return sb.toString();
     }
 }

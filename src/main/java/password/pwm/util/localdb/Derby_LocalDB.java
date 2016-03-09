@@ -30,11 +30,9 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Apache Derby Wrapper for {@link LocalDB} interface.   Uses a single table per DB, with
@@ -49,6 +47,8 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
     private static final String DERBY_DEFAULT_SCHEMA = "APP";
 
     private static final String OPTION_KEY_RECLAIM_SPACE = "reclaimAllSpace";
+
+    private Driver driver;
 
     Derby_LocalDB()
             throws Exception
@@ -68,7 +68,10 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
             throws SQLException
     {
         try {
-            DriverManager.getConnection("jdbc:derby:;shutdown=true");
+            if (driver != null) {
+                driver.connect("jdbc:derby:;shutdown=true", new Properties());
+            }
+
         } catch (SQLException e) {
             if ("XJ015".equals(e.getSQLState())) {
                 LOGGER.trace("Derby shutdown succeeded. SQLState=" + e.getSQLState() + ", message=" + e.getMessage());
@@ -76,7 +79,22 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
                 throw e;
             }
         }
-        connection.close();
+
+        try {
+            if (driver != null) {
+                DriverManager.deregisterDriver(driver);
+            }
+        } catch (Exception e) {
+            LOGGER.error("error while de-registering derby driver: " + e.getMessage());
+        }
+
+        driver = null;
+
+        try {
+            connection.close();
+        } catch (Exception e) {
+            LOGGER.error("error while closing derby connection: " + e.getMessage());
+        }
     }
 
     @Override
@@ -90,8 +108,8 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
         final String connectionURL = baseConnectionURL + ";create=true";
 
         try {
-            Class.forName(driverClasspath).newInstance(); //load driver.
-            final Connection connection = DriverManager.getConnection(connectionURL);
+            driver = (Driver)Class.forName(driverClasspath).newInstance(); //load driver.
+            final Connection connection = driver.connect(connectionURL, new Properties());
             connection.setAutoCommit(false);
 
             if (initOptions != null && initOptions.containsKey(OPTION_KEY_RECLAIM_SPACE) && Boolean.parseBoolean(initOptions.get(OPTION_KEY_RECLAIM_SPACE))) {
@@ -146,7 +164,7 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
 
     private void reclaimSpace(final Connection dbConnection, final LocalDB.DB db)
     {
-        if (getStatus() != LocalDB.Status.OPEN || readOnly) {
+        if (readOnly) {
             return;
         }
 

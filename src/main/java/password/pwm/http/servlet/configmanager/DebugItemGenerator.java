@@ -365,12 +365,11 @@ public class DebugItemGenerator {
             }
 
             {
-                final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                final CSVPrinter csvPrinter = Helper.makeCsvPrinter(byteArrayOutputStream);
+                final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
                 {
                     final List<String> headerRow = new ArrayList<>();
-                    headerRow.add("Filename");
                     headerRow.add("Filepath");
+                    headerRow.add("Filename");
                     headerRow.add("Last Modified");
                     headerRow.add("Size");
                     headerRow.add("sha1sum");
@@ -378,15 +377,14 @@ public class DebugItemGenerator {
                 }
                 for (final FileSystemUtility.FileSummaryInformation fileSummaryInformation : fileSummaryInformations) {
                     final List<String> dataRow = new ArrayList<>();
-                    dataRow.add(fileSummaryInformation.getFilename());
                     dataRow.add(fileSummaryInformation.getFilepath());
+                    dataRow.add(fileSummaryInformation.getFilename());
                     dataRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(fileSummaryInformation.getModified()));
                     dataRow.add(String.valueOf(fileSummaryInformation.getSize()));
                     dataRow.add(fileSummaryInformation.getSha1sum());
                     csvPrinter.printRecord(dataRow);
                 }
                 csvPrinter.flush();
-                outputStream.write(byteArrayOutputStream.toByteArray());
             }
         }
     }
@@ -446,8 +444,7 @@ public class DebugItemGenerator {
             final StoredConfigurationImpl storedConfiguration = ConfigManagerServlet.readCurrentConfiguration(pwmRequest);
             final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(storedConfiguration);
 
-            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            final CSVPrinter csvPrinter = Helper.makeCsvPrinter(byteArrayOutputStream);
+            final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
             {
                 final List<String> headerRow = new ArrayList<>();
                 headerRow.add("Attribute");
@@ -468,7 +465,6 @@ public class DebugItemGenerator {
                 csvPrinter.printRecord(dataRow);
             }
             csvPrinter.flush();
-            outputStream.write(byteArrayOutputStream.toByteArray());
         }
     }
 

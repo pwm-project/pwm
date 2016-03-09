@@ -33,6 +33,8 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionActivationListener;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Servlet event listener, defined in web.xml
@@ -87,6 +89,8 @@ public class HttpEventManager implements
 
     public void contextInitialized(final ServletContextEvent servletContextEvent)
     {
+        Logger.getLogger("org.glassfish.jersey").setLevel(Level.SEVERE);
+
         if (null != servletContextEvent.getServletContext().getAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER)) {
             LOGGER.warn("notice, previous servlet ContextManager exists");
         }

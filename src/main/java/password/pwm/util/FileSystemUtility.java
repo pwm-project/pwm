@@ -71,7 +71,7 @@ public class FileSystemUtility {
         }
         return new FileSummaryInformation(
                 file.getName(),
-                file.getAbsolutePath(),
+                file.getParentFile().getAbsolutePath(),
                 new Date(file.lastModified()),
                 file.length(),
                 SecureEngine.hash(file, PwmHashAlgorithm.SHA1)

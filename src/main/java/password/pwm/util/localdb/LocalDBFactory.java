@@ -71,6 +71,7 @@ public class LocalDBFactory {
             initParameters = StringUtil.convertStringListToNameValuePair(Arrays.asList(initStrings.split(";;;")), "=");
         }
 
+
         final LocalDBProvider dbProvider = createInstance(className);
         LOGGER.debug("initializing " + className + " localDBProvider instance");
 

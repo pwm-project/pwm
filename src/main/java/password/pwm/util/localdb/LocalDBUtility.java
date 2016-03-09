@@ -60,9 +60,10 @@ public class LocalDBUtility {
             throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"outputFileStream for exportLocalDB cannot be null");
         }
 
-        writeStringToOut(debugOutput,"counting records in LocalDB...");
+
         final int totalLines;
         if (showLineCount) {
+            writeStringToOut(debugOutput,"counting records in LocalDB...");
             exportLineCounter = 0;
             for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
                 if (loopDB.isBackup()) {
@@ -85,9 +86,9 @@ public class LocalDBUtility {
                 if (showLineCount) {
                     final float percentComplete = (float) exportLineCounter / (float) totalLines;
                     final String percentStr = DecimalFormat.getPercentInstance().format(percentComplete);
-                    writeStringToOut(debugOutput," exported " + exportLineCounter + " records, " + percentStr + " complete");
+                    writeStringToOut(debugOutput,"exported " + exportLineCounter + " records, " + percentStr + " complete");
                 } else {
-                    writeStringToOut(debugOutput," exported " + exportLineCounter + " records");
+                    writeStringToOut(debugOutput,"exported " + exportLineCounter + " records");
                 }
             }
         },30 * 1000, 30 * 1000);
@@ -110,6 +111,7 @@ public class LocalDBUtility {
                     } finally {
                         localDBIterator.close();
                     }
+                    csvPrinter.flush();
                 }
             }
         } catch (IOException e) {
@@ -182,12 +184,14 @@ public class LocalDBUtility {
         this.prepareForImport();
 
         importLineCounter = 0;
-        if (totalLines > 0) writeStringToOut(out, " total lines: " + totalLines);
+        if (totalLines > 0) {
+            writeStringToOut(out, "total lines: " + totalLines);
+        }
 
         writeStringToOut(out, "beginning restore...");
 
         final Date startTime = new Date();
-        final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(900, 50, 50 * 1000);
+        final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(100, 50, 5 * 1000);
 
         final Map<LocalDB.DB,Map<String,String>> transactionMap = new HashMap<>();
         for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
@@ -202,9 +206,9 @@ public class LocalDBUtility {
                 if (totalLines > 0) {
                     final ProgressInfo progressInfo = new ProgressInfo(startTime, totalLines, importLineCounter);
                     writeStringToOut(out,
-                            " " + progressInfo.debugOutput() + ", transactionSize=" + transactionCalculator.getTransactionSize());
+                            progressInfo.debugOutput() + ", transactionSize=" + transactionCalculator.getTransactionSize());
                 } else {
-                    writeStringToOut(out, " linesImported=" + importLineCounter);
+                    writeStringToOut(out, "linesImported=" + importLineCounter + ", transactionSize=" + transactionCalculator.getTransactionSize());
                 }
             }
         }, 0, 30 * 1000);

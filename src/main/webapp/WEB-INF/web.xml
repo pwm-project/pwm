@@ -28,9 +28,6 @@
     <display-name>PWM Password Management</display-name>
     <!-- <distributable/> Clustering/Session replication is not supported -->
     <description>Password Management Servlet</description>
-    <listener>
-        <listener-class>password.pwm.util.PwmServletContextListener</listener-class>
-    </listener>
     <context-param>
         <description>
             Explicit location of application working directory. If a relative path is specified, it is relative to the

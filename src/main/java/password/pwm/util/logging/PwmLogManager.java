@@ -32,7 +32,6 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
 import password.pwm.util.FileSystemUtility;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -185,9 +184,7 @@ public class PwmLogManager {
         final LocalDBLogger localDBLogger;
         final PwmLogLevel localDBLogLevel = pwmApplication.getConfig().getEventLogLocalDBLevel();
         try {
-            final int maxEvents = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
-            final long maxAgeMS = 1000 * pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE);
-            localDBLogger = initLocalDBLogger(localDB, maxEvents, maxAgeMS, pwmApplication);
+            localDBLogger = initLocalDBLogger(localDB, pwmApplication);
             if (localDBLogger != null) {
                 PwmLogger.setLocalDBLogger(localDBLogLevel, localDBLogger);
             }
@@ -216,16 +213,10 @@ public class PwmLogManager {
 
     static LocalDBLogger initLocalDBLogger(
             final LocalDB pwmDB,
-            final int maxEvents,
-            final long maxAgeMS,
             final PwmApplication pwmApplication
     ) {
-        final boolean devDebugMode = pwmApplication.getConfig().isDevDebugMode();
         try {
-            final LocalDBLogger.Settings settings = new LocalDBLogger.Settings();
-            settings.setMaxEvents(maxEvents);
-            settings.setMaxAgeMs(maxAgeMS);
-            settings.setDevDebug(devDebugMode);
+            final LocalDBLoggerSettings settings = LocalDBLoggerSettings.fromConfiguration(pwmApplication.getConfig());
             return new LocalDBLogger(pwmApplication, pwmDB, settings);
         } catch (LocalDBException e) {
             //nothing to do;

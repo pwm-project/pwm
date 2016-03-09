@@ -23,6 +23,7 @@
 package password.pwm.util.localdb;
 
 import org.mapdb.DBMaker;
+import org.mapdb.Serializer;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.TimeDuration;
@@ -134,7 +135,10 @@ public class MapDB_LocalDB implements LocalDBProvider {
             LOCK.writeLock().lock();
             this.dbDirectory = dbDirectory;
             final File dbFile = new File(dbDirectory.getAbsolutePath() + File.separator + FILE_NAME);
-            recman = DBMaker.newFileDB(dbFile).make();
+            recman = DBMaker.fileDB(dbFile.getAbsolutePath()).make();
+
+            LOGGER.debug("beginning DB compact");
+            recman.getStore().compact();
 
             LOGGER.info("LocalDB opened in " + TimeDuration.fromCurrent(startTime).asCompactString());
             status = LocalDB.Status.OPEN;
@@ -270,9 +274,11 @@ public class MapDB_LocalDB implements LocalDBProvider {
     private static Map<String, String> openHTree(
             final String name,
             final org.mapdb.DB recman
-    )
-            throws IOException {
-        return recman.getTreeMap(name);
+    ) {
+        return recman.hashMap(name)
+                .keySerializer(Serializer.STRING)
+                .valueSerializer(Serializer.STRING)
+                .open();
     }
 
 // -------------------------- INNER CLASSES --------------------------
