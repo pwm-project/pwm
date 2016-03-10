@@ -29,6 +29,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <build.number>0</build.number>  <!-- default in case not set on command line -->
         <build.revision>0</build.revision>  <!-- default in case not set on command line -->
+        <pwm.trial>false</pwm.trial>
     </properties>
 
     <profiles>
@@ -68,6 +69,13 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>trial</id>
+            <properties>
+                <!-- Configures this app for a trial release (trial is set to true in PwmConstants.properties) -->
+                <pwm.trial>true</pwm.trial>
+            </properties>
         </profile>
         <profile>
             <!-- Disables source and javadoc jar file creation.  Handy when wanting to run quick development builds -->
@@ -176,6 +184,7 @@
                                     <directory>src/main/resources</directory>
                                     <includes>
                                         <include>password/pwm/BuildInformation.properties</include>
+                                        <include>password/pwm/PwmConstants.properties</include>
                                     </includes>
                                 </resource>
                             </resources>
