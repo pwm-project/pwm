@@ -388,7 +388,7 @@ UILibrary.uploadFileDialog = function(options) {
         xhr.upload.addEventListener('progress',progressFunction,false);
         xhr.upload.onprogress = progressFunction;
         xhr.open("POST", uploadUrl, true);
-        fd.append("uploadFile", files[0]);
+        fd.append("fileUpload", files[0]);
         xhr.send(fd);
         PWM_GLOBAL['inhibitHealthUpdate'] = true;
         PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();

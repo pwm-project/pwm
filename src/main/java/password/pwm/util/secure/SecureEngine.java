@@ -34,6 +34,8 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -198,14 +200,27 @@ public class SecureEngine {
             final File file,
             final PwmHashAlgorithm hashAlgorithm
     )
-            throws IOException, PwmUnrecoverableException {
-        if (file == null || !file.exists()) {
-            return null;
-        }
+            throws IOException, PwmUnrecoverableException
+    {
         FileInputStream fileInputStream = null;
         try {
+            final MessageDigest messageDigest = MessageDigest.getInstance(hashAlgorithm.getAlgName());
             fileInputStream = new FileInputStream(file);
-            return hash(fileInputStream, hashAlgorithm);
+            final FileChannel fileChannel = fileInputStream.getChannel();
+            final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024 * 16); // allocation in bytes - 1024, 2048, 4096, 8192
+
+            while (fileChannel.read(byteBuffer) > 0) {
+                byteBuffer.flip();
+                messageDigest.update(byteBuffer);
+                byteBuffer.clear();
+            }
+
+            return Helper.byteArrayToHexString(messageDigest.digest());
+
+        } catch (NoSuchAlgorithmException | IOException e) {
+            final String errorMsg = "unexpected error during hash operation: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);
+            throw new PwmUnrecoverableException(errorInformation);
         } finally {
             if (fileInputStream != null) {
                 fileInputStream.close();

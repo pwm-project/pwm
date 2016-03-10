@@ -171,16 +171,6 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             LOCK.writeLock().unlock();
         }
 
-        try {
-            LOCK.writeLock().lock();
-            DriverManager.deregisterDriver(driver);
-            driver = null;
-        } catch (SQLException e) {
-            LOGGER.error("unable to de-register sql driver: " + e.getMessage());
-        } finally {
-            LOCK.writeLock().unlock();
-        }
-
         LOGGER.debug("closed");
     }
 

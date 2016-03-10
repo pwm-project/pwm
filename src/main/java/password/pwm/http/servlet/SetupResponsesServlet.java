@@ -34,7 +34,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.Validator;
+import password.pwm.util.Validator;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;

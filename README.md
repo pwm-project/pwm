@@ -5,10 +5,11 @@ PWM is an open source password self service application for LDAP directories. PW
 Official project page is at [https://github.com/pwm-project/pwm/](https://github.com/pwm-project/pwm/).
 
 # Links
-* [Release Downloads](https://drive.google.com/folderview?id=0B3oHdiTrftrGV3ZrMi1LUzVCY1U&usp=sharing#list) - the release versions are quite dated, consider using a current build.
+* [PWM-General Google Group](https://groups.google.com/group/pwm-general) - please ask for assistance here first.
 * [Current Builds](http://www.pwm-project.org/artifacts/pwm/) - Current downloads built from recent github project commits
-* [Google Groups](https://groups.google.com/group/pwm-general) - please ask for assistance here.
-* [PWM Admin Guide](http://pwm.googlecode.com/svn/trunk/pwm/supplemental/PWMAdministrationGuide.pdf) - guide for 1.7.  For current documentation, please help us migrate to the [PWM Wiki](https://github.com/pwm-project/pwm/wiki) 
+* [PWM Documentation Wiki](https://github.com/pwm-project/pwm/wiki) - Current home for PWM documentation
+* [Old Release Downloads](https://drive.google.com/folderview?id=0B3oHdiTrftrGV3ZrMi1LUzVCY1U&usp=sharing#list) - the release versions are quite dated, consider using a current build.
+* [Old PWM Admin Guide](https://docs.google.com/document/d/1BBHPcOUxZytrqncYFInTaY2PXgW5p1EmzwV8zcpspRg/pub) - guide for 1.7.  For current documentation, please help us migrate to the [PWM Wiki](https://github.com/pwm-project/pwm/wiki) 
 
 Features
 * Web based configuration manager with over 400 configurable settings

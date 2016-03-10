@@ -32,10 +32,7 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.io.Serializable;
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.*;
@@ -460,11 +457,35 @@ public class PwmEnvironment implements Serializable {
                     lock = f.tryLock();
                     if (lock != null) {
                         LOGGER.debug("obtained file lock on file " + lockfile.getAbsolutePath());
+                        writeLockFileContents(lockfile);
                     } else {
                         LOGGER.debug("unable to obtain file lock on file " + lockfile.getAbsolutePath());
                     }
                 } catch (Exception e) {
                     LOGGER.error("unable to obtain file lock on file " + lockfile.getAbsolutePath() + " due to error: " + e.getMessage());
+                }
+            }
+        }
+
+        void writeLockFileContents(final File file) {
+            FileWriter fileWriter = null;
+            try {
+                final Properties props = new Properties();
+                props.put("timestamp", PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+                props.put("applicationPath",PwmEnvironment.this.getApplicationPath() == null ? "n/a" : PwmEnvironment.this.getApplicationPath().getAbsolutePath());
+                props.put("configurationFile", PwmEnvironment.this.getConfigurationFile() == null ? "n/a" : PwmEnvironment.this.getConfigurationFile().getAbsolutePath());
+                final String comment = PwmConstants.PWM_APP_NAME + " file lock";
+                fileWriter = new FileWriter(lockfile);
+                props.store(new FileWriter(file, false), comment);
+            } catch (IOException e) {
+                LOGGER.error("unable to write contents of application lock file: " + e.getMessage());
+            } finally {
+                if (fileWriter != null) {
+                    try {
+                        fileWriter.close();
+                    } catch (IOException e) {
+                        LOGGER.error("unable to close contents of application lock file: " + e.getMessage());
+                    }
                 }
             }
         }

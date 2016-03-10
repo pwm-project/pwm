@@ -42,6 +42,7 @@ import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
+import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.otp.OTPUserRecord;

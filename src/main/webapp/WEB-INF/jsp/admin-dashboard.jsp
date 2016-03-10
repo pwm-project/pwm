@@ -426,31 +426,10 @@
                         </tr>
                         <tr>
                             <td class="key">
-                                Log Events in Write Queue
-                            </td>
-                            <td>
-                                <%= dashboard_pwmApplication.getLocalDBLogger() != null
-                                        ? numberFormat.format(dashboard_pwmApplication.getLocalDBLogger().getPendingEventCount())
-                                        : JspUtility.getMessage(pageContext, Display.Value_NotApplicable) %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
                                 Log Events in LocalDB
                             </td>
                             <td>
                                 <%= dashboard_pwmApplication.getLocalDBLogger().sizeToDebugString() %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
-                                Oldest Log Event in Write Queue
-                            </td>
-                            <td>
-                                <%= dashboard_pwmApplication.getLocalDBLogger() != null
-                                        ? dashboard_pwmApplication.getLocalDBLogger().getDirtyQueueTime().asCompactString()
-                                        : JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                %>
                             </td>
                         </tr>
                         <tr>

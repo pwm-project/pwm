@@ -53,6 +53,15 @@ public class Berkeley_LocalDB implements LocalDBProvider {
     private final static int CLOSE_RETRY_SECONDS = 120;
     private final static int ITERATOR_LIMIT = 100;
 
+    private static final Map<String,String> DEFAULT_INIT_PARAMS;
+    static {
+        final Map<String,String> defaultInitParams = new HashMap<>();
+        defaultInitParams.put("je.maxMemory","50000000");
+        defaultInitParams.put("je.log.fileMax","10000000");
+        defaultInitParams.put("je.cleaner.minUtilization","60");
+        DEFAULT_INIT_PARAMS = Collections.unmodifiableMap(defaultInitParams);
+    }
+
     private final static TupleBinding<String> STRING_TUPLE = TupleBinding.getPrimitiveBinding(String.class);
 
     private Environment environment;
@@ -101,9 +110,14 @@ public class Berkeley_LocalDB implements LocalDBProvider {
         environmentConfig.setTransactional(IS_TRANSACTIONAL);
         environmentConfig.setReadOnly(readonly);
 
+        final Map<String,String> effectiveProperties = new HashMap<>(DEFAULT_INIT_PARAMS);
         if (initProps != null) {
-            for (final String key : initProps.keySet()) {
-                environmentConfig.setConfigParam(key, initProps.get(key));
+            effectiveProperties.putAll(initProps);
+        }
+
+        if (initProps != null) {
+            for (final String key : effectiveProperties.keySet()) {
+                environmentConfig.setConfigParam(key, effectiveProperties.get(key));
             }
         }
 

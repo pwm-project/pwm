@@ -24,7 +24,7 @@ package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
-import password.pwm.Validator;
+import password.pwm.util.Validator;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.*;
 import password.pwm.http.HttpMethod;

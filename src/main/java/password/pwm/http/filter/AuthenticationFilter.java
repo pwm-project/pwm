@@ -23,10 +23,7 @@
 package password.pwm.http.filter;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
-import password.pwm.PwmApplicationMode;
-import password.pwm.PwmConstants;
+import password.pwm.*;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
@@ -37,8 +34,8 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ChangePasswordBean;
 import password.pwm.http.servlet.LoginServlet;
-import password.pwm.http.servlet.oauth.OAuthConsumerServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.http.servlet.oauth.OAuthConsumerServlet;
 import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.PasswordChangeProgressChecker;
@@ -49,7 +46,6 @@ import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
-import password.pwm.util.CASAuthenticationHelper;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
@@ -57,7 +53,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.util.Date;
 
 /**
@@ -247,8 +242,8 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             for (final AuthenticationMethod authenticationMethod : AuthenticationMethod.values()) {
                 if (!pwmRequest.isAuthenticated()) {
                     try {
-                        final Class<? extends FilterAuthenticationProvider> clazz = authenticationMethod.getImplementationClass();
-                        final FilterAuthenticationProvider filterAuthenticationProvider = clazz.newInstance();
+                        final Class<? extends PwmHttpFilterAuthenticationProvider> clazz = authenticationMethod.getImplementationClass();
+                        final PwmHttpFilterAuthenticationProvider filterAuthenticationProvider = clazz.newInstance();
                         filterAuthenticationProvider.attemptAuthentication(pwmRequest);
 
                         if (pwmRequest.isAuthenticated()) {
@@ -394,33 +389,32 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         return false;
     }
 
-    interface FilterAuthenticationProvider {
-        void attemptAuthentication(final PwmRequest pwmRequest)
-                throws PwmUnrecoverableException, IOException;
-
-        boolean hasRedirectedResponse();
-    }
-
     enum AuthenticationMethod {
-        BASIC_AUTH(BasicFilterAuthenticationProvider.class),
-        SSO_AUTH_HEADER(SSOHeaderFilterAuthenticationProvider.class),
-        CAS(CASFilterAuthenticationProvider.class),
-        OAUTH(OAuthFilterAuthenticationProvider.class)
+        BASIC_AUTH(BasicFilterAuthenticationProvider.class.getName()),
+        SSO_AUTH_HEADER(SSOHeaderFilterAuthenticationProvider.class.getName()),
+        CAS("password.pwm.util.CASFilterAuthenticationProvider"),
+        OAUTH(OAuthFilterAuthenticationProvider.class.getName())
 
         ;
 
-        private final Class<? extends FilterAuthenticationProvider> implementationClass;
+        private final String className;
 
-        AuthenticationMethod(Class<? extends FilterAuthenticationProvider> implementationClass) {
-            this.implementationClass = implementationClass;
+        AuthenticationMethod(String className) {
+            this.className = className;
         }
 
-        public Class<? extends FilterAuthenticationProvider> getImplementationClass() {
-            return implementationClass;
+        public Class<? extends PwmHttpFilterAuthenticationProvider> getImplementationClass() throws PwmUnrecoverableException {
+            try {
+                return (Class<? extends PwmHttpFilterAuthenticationProvider>) Class.forName(className);
+            } catch (ClassNotFoundException | ClassCastException e) {
+                final String errorMsg = "error loading authentication method: " + this.getImplementationClass() + ", error: " + e.getMessage();
+                LOGGER.error(errorMsg,e);
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
+            }
         }
     }
 
-    public static class BasicFilterAuthenticationProvider implements FilterAuthenticationProvider {
+    public static class BasicFilterAuthenticationProvider implements PwmHttpFilterAuthenticationProvider {
 
         @Override
         public void attemptAuthentication(
@@ -464,7 +458,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
     }
 
-    static class SSOHeaderFilterAuthenticationProvider implements FilterAuthenticationProvider {
+    static class SSOHeaderFilterAuthenticationProvider implements PwmHttpFilterAuthenticationProvider {
 
         @Override
         public void attemptAuthentication(
@@ -509,39 +503,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
     }
 
 
-    static class CASFilterAuthenticationProvider implements FilterAuthenticationProvider {
-
-        @Override
-        public void attemptAuthentication(
-                final PwmRequest pwmRequest
-        )
-                throws PwmUnrecoverableException
-        {
-            try {
-                final String clearPassUrl = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
-                if (clearPassUrl != null && clearPassUrl.length() > 0) {
-                    LOGGER.trace(pwmRequest, "checking for authentication via CAS");
-                    if (CASAuthenticationHelper.authUserUsingCASClearPass(pwmRequest, clearPassUrl)) {
-                        LOGGER.debug(pwmRequest, "login via CAS successful");
-                    }
-                }
-            } catch (ChaiUnavailableException e) {
-                throw PwmUnrecoverableException.fromChaiException(e);
-            } catch (PwmOperationalException e) {
-                throw new PwmUnrecoverableException(e.getErrorInformation());
-            } catch (UnsupportedEncodingException e) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"error during CAS authentication: " + e.getMessage()));
-            }
-        }
-
-        @Override
-        public boolean hasRedirectedResponse() {
-            return false;
-        }
-    }
-
-
-    static class OAuthFilterAuthenticationProvider implements FilterAuthenticationProvider {
+    static class OAuthFilterAuthenticationProvider implements PwmHttpFilterAuthenticationProvider {
 
         private boolean redirected = false;
 

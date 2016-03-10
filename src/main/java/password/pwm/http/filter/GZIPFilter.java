@@ -88,7 +88,7 @@ public class GZIPFilter implements Filter {
             pwmApplication = ContextManager.getPwmApplication((HttpServletRequest) servletRequest);
             return Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_ENABLE_GZIP));
         } catch (PwmUnrecoverableException e) {
-            LOGGER.trace("unable to read http-gzip app-property, defaulting to non-gzip: " + e.getMessage());
+            //LOGGER.trace("unable to read http-gzip app-property, defaulting to non-gzip: " + e.getMessage());
         }
         return false;
     }
