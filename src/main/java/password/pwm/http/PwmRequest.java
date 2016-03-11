@@ -349,7 +349,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     public boolean convertURLtokenCommand()
             throws IOException, PwmUnrecoverableException
     {
-        final String uri = this.getHttpServletRequest().getRequestURI();
+        final String uri = getURLwithoutQueryString();
         if (uri == null || uri.length() < 1) {
             return false;
         }
@@ -424,7 +424,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
         sb.append(req.getMethod());
         sb.append(" request for: ");
-        sb.append(req.getRequestURI());
+        sb.append(getURLwithoutQueryString());
 
         if (req.getParameterMap().isEmpty()) {
             sb.append(" (no params)");
@@ -541,22 +541,22 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     }
 
     public <T extends Serializable> T readEncryptedCookie(final String cookieName, Class<T> returnClass)
-            throws PwmUnrecoverableException 
+            throws PwmUnrecoverableException
     {
         final String strValue = this.readCookie(cookieName);
 
         if (strValue != null && !strValue.isEmpty()) {
             return pwmApplication.getSecureService().decryptObject(strValue, returnClass);
         }
-        
+
         return null;
     }
-    
+
     public String toString() {
         return this.getClass().getSimpleName() + " "
                 + (this.getSessionLabel() == null ? "" : getSessionLabel().toString())
-                + " " + this.getHttpServletRequest().getRequestURI();
-        
+                + " " + getURLwithoutQueryString();
+
     }
 
     public void addFormInfoToRequestAttr(
@@ -566,7 +566,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     ) {
         final ArrayList<FormConfiguration> formConfiguration = new ArrayList<>(this.getConfig().readSettingAsForm(formSetting));
         addFormInfoToRequestAttr(formConfiguration, null, readOnly, showPasswordFields);
-        
+
     }
     public void addFormInfoToRequestAttr(
             final List<FormConfiguration> formConfiguration,
@@ -574,10 +574,10 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             final boolean readOnly,
             final boolean showPasswordFields
     ) {
-        final LinkedHashMap<FormConfiguration,String> formDataMapValue = formDataMap == null 
-                ? new LinkedHashMap<FormConfiguration,String>() 
+        final LinkedHashMap<FormConfiguration,String> formDataMapValue = formDataMap == null
+                ? new LinkedHashMap<FormConfiguration,String>()
                 : new LinkedHashMap<>(formDataMap);
-        
+
         this.setAttribute(Attribute.FormConfiguration, new ArrayList<>(formConfiguration));
         this.setAttribute(Attribute.FormData, formDataMapValue);
         this.setAttribute(Attribute.FormReadOnly, readOnly);
@@ -591,12 +591,13 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     public String getURLwithQueryString() throws PwmUnrecoverableException {
         final HttpServletRequest req = this.getHttpServletRequest();
-        return PwmURL.appendAndEncodeUrlParameters(req.getRequestURI(), readParametersAsMap());
+        return PwmURL.appendAndEncodeUrlParameters(getURLwithoutQueryString(), readParametersAsMap());
     }
 
-    public String getURLwithoutQueryString() throws PwmUnrecoverableException {
+    public String getURLwithoutQueryString() {
         final HttpServletRequest req = this.getHttpServletRequest();
-        return req.getRequestURI();
+        String requestUri = (String) req.getAttribute("javax.servlet.forward.request_uri");
+        return (requestUri == null) ? req.getRequestURI() : requestUri;
     }
 
     public String debugHttpHeaders() {
