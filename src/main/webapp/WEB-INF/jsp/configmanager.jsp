@@ -104,10 +104,9 @@
             <% } %>
         </table>
         <br/>
-        <div id="healthBody">
+        <div id="healthBody" class="health-body">
             <div class="WaitDialogBlank"></div>
         </div>
-        <br/>
         <table class="noborder">
             <tr class="buttonrow">
                 <td class="buttoncell">

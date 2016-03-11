@@ -27,6 +27,10 @@
     background-image: url('header-gradient.gif')
 }
 
+#button-openHeader {
+    color: red;
+}
+
 #header-company-logo {
     position: relative;
     float: left;
@@ -37,6 +41,43 @@
     height: 50px;
     z-index: 1;
 }
+
+.header-button {
+    margin: 0px;
+    margin-top: 6px;
+    margin-left: 6px;
+}
+
+#header-username-group, #header-username {
+    text-align: right;
+    color: white;
+}
+
+#HomeButton span.btn-icon, #LogoutButton span.btn-icon, #header-username-caret span.m-icon {
+    font: 20px FontAwesome;
+    margin-right: 0px;
+    color: red;
+}
+
+#HomeButton span.btn-icon:before {
+    content: "\f015";
+}
+
+#LogoutButton span.btn-icon:before {
+    content: "\f08b";
+}
+
+#header-username-caret span.m-icon {
+    content: "\f08b";
+}
+
+.tile {
+    width: 165px;
+    height: 165px;
+}
+
+.tile:hover {border: 1px solid red;}
+.tile-image {color: red;}
 
 #centerbody {
     background-color: #eeeeee;

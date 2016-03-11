@@ -36,7 +36,7 @@
         });
     </script>
 </pwm:script>
-<div style="text-align: center">
+<div style="text-align: center; margin-bottom: 10px;">
     <% boolean selected = currentPage == AdminServlet.Page.dashboard; %>
     <form action="<%=AdminServlet.Page.dashboard%>" method="get" id="dashboard" name="dashboard">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
@@ -61,6 +61,5 @@
     <div style="display: inline" id="admin-nav-menu-container">
     </div>
 </div>
-<br/>
 
 
