@@ -28,6 +28,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.util.Validator;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -39,7 +40,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.ws.server.RestResultBean;
@@ -349,7 +349,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     public boolean convertURLtokenCommand()
             throws IOException, PwmUnrecoverableException
     {
-        final String uri = this.getHttpServletRequest().getRequestURI();
+        final String uri = getURLwithoutQueryString();
         if (uri == null || uri.length() < 1) {
             return false;
         }
@@ -424,7 +424,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
         sb.append(req.getMethod());
         sb.append(" request for: ");
-        sb.append(req.getRequestURI());
+        sb.append(getURLwithoutQueryString());
 
         if (req.getParameterMap().isEmpty()) {
             sb.append(" (no params)");
@@ -555,7 +555,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     public String toString() {
         return this.getClass().getSimpleName() + " "
                 + (this.getSessionLabel() == null ? "" : getSessionLabel().toString())
-                + " " + this.getHttpServletRequest().getRequestURI();
+                + " " + getURLwithoutQueryString();
 
     }
 
@@ -591,12 +591,13 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     public String getURLwithQueryString() throws PwmUnrecoverableException {
         final HttpServletRequest req = this.getHttpServletRequest();
-        return PwmURL.appendAndEncodeUrlParameters(req.getRequestURI(), readParametersAsMap());
+        return PwmURL.appendAndEncodeUrlParameters(getURLwithoutQueryString(), readParametersAsMap());
     }
 
-    public String getURLwithoutQueryString() throws PwmUnrecoverableException {
+    public String getURLwithoutQueryString() {
         final HttpServletRequest req = this.getHttpServletRequest();
-        return req.getRequestURI();
+        String requestUri = (String) req.getAttribute("javax.servlet.forward.request_uri");
+        return (requestUri == null) ? req.getRequestURI() : requestUri;
     }
 
     public String debugHttpHeaders() {
