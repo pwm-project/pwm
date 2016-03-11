@@ -28,7 +28,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.util.Validator;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -40,6 +39,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.ws.server.RestResultBean;
@@ -541,22 +541,22 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     }
 
     public <T extends Serializable> T readEncryptedCookie(final String cookieName, Class<T> returnClass)
-            throws PwmUnrecoverableException 
+            throws PwmUnrecoverableException
     {
         final String strValue = this.readCookie(cookieName);
 
         if (strValue != null && !strValue.isEmpty()) {
             return pwmApplication.getSecureService().decryptObject(strValue, returnClass);
         }
-        
+
         return null;
     }
-    
+
     public String toString() {
         return this.getClass().getSimpleName() + " "
                 + (this.getSessionLabel() == null ? "" : getSessionLabel().toString())
                 + " " + this.getHttpServletRequest().getRequestURI();
-        
+
     }
 
     public void addFormInfoToRequestAttr(
@@ -566,7 +566,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     ) {
         final ArrayList<FormConfiguration> formConfiguration = new ArrayList<>(this.getConfig().readSettingAsForm(formSetting));
         addFormInfoToRequestAttr(formConfiguration, null, readOnly, showPasswordFields);
-        
+
     }
     public void addFormInfoToRequestAttr(
             final List<FormConfiguration> formConfiguration,
@@ -574,10 +574,10 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             final boolean readOnly,
             final boolean showPasswordFields
     ) {
-        final LinkedHashMap<FormConfiguration,String> formDataMapValue = formDataMap == null 
-                ? new LinkedHashMap<FormConfiguration,String>() 
+        final LinkedHashMap<FormConfiguration,String> formDataMapValue = formDataMap == null
+                ? new LinkedHashMap<FormConfiguration,String>()
                 : new LinkedHashMap<>(formDataMap);
-        
+
         this.setAttribute(Attribute.FormConfiguration, new ArrayList<>(formConfiguration));
         this.setAttribute(Attribute.FormData, formDataMapValue);
         this.setAttribute(Attribute.FormReadOnly, readOnly);

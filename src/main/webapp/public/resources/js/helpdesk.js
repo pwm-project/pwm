@@ -508,7 +508,8 @@ PWM_HELPDESK.sendVerificationToken = function(userKey, methods) {
         }});
     };
 
-    var dialogText = '<div style="text-align:center"><br/>';
+    var dialogText = '<div>' + PWM_MAIN.showString('Long_Title_VerificationSend') + "</div><br/>";
+    dialogText += '<div style="text-align:center"><br/>';
     if (PWM_MAIN.JSLibrary.arrayContains(methods,'TOKEN')) {
         if (tokenChoiceFlag || sendMethodSetting == 'EMAILONLY') {
             dialogText += '<br/><button class="btn" type="button" name="emailChoiceButton" id="emailChoiceButton">'
@@ -525,19 +526,21 @@ PWM_HELPDESK.sendVerificationToken = function(userKey, methods) {
     }
     dialogText += '</div>';
 
-    var dialoagLoadFunction = function() {
+    var dialogLoadFunction = function() {
         PWM_MAIN.addEventHandler('emailChoiceButton','click',function(){sendTokenAction('email')});
         PWM_MAIN.addEventHandler('smsChoiceButton','click',function(){sendTokenAction('sms')});
         PWM_MAIN.addEventHandler('otpChoiceButton','click',function(){PWM_HELPDESK.validateOtpCode(userKey)});
     };
     PWM_MAIN.showConfirmDialog({
-        title:'Verification send method',
+        title:PWM_MAIN.showString('Title_VerificationSend'),
         text:dialogText,
-        showOk: !tokenChoiceFlag,
+        showOk:false,
+        showCancel:false,
+        showClose: true,
         okAction:function(){
             sendTokenAction();
         },
-        loadFunction:dialoagLoadFunction
+        loadFunction:dialogLoadFunction
     });
 };
 

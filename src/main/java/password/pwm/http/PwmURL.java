@@ -94,6 +94,21 @@ public class PwmURL {
         return checkIfStartsWithURL(PwmConstants.URL_PREFIX_PRIVATE + "/");
     }
 
+    public boolean isAdminUrl() {
+        return isPwmServletURL(PwmServletDefinition.Admin);
+    }
+
+    public boolean isIndexPage() {
+        return checkIfMatchesURL(
+                "",
+                "/",
+                PwmConstants.URL_PREFIX_PRIVATE,
+                PwmConstants.URL_PREFIX_PUBLIC,
+                PwmConstants.URL_PREFIX_PRIVATE + "/",
+                PwmConstants.URL_PREFIX_PUBLIC + "/"
+        );
+    }
+
     public boolean isPublicUrl() {
         return checkIfStartsWithURL(PwmConstants.URL_PREFIX_PUBLIC + "/");
     }

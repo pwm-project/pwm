@@ -51,7 +51,11 @@ public enum PwmSettingCategory {
     ACTIVE_DIRECTORY            (LDAP_SETTINGS),
     ORACLE_DS                   (LDAP_SETTINGS),
 
-    GENERAL                     (SETTINGS),
+    APPLICATION                 (SETTINGS),
+    GENERAL                     (APPLICATION),
+    CLUSTERING                  (APPLICATION),
+    LOCALIZATION                (APPLICATION),
+    TELEMETRY                   (APPLICATION),
 
     AUDITING                    (SETTINGS),
     AUDIT_CONFIG                (AUDITING),

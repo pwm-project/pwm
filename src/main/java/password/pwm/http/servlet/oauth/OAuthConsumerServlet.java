@@ -262,14 +262,6 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         requestParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID), clientID);
 
         final RestResults restResults = makeHttpRequest(pwmRequest, "oauth code resolver", settings, requestUrl, requestParams);
-        final HttpResponse httpResponse = restResults.getHttpResponse();
-
-        if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            throw new PwmUnrecoverableException(new ErrorInformation(
-                    PwmError.ERROR_OAUTH_ERROR,
-                    "unexpected HTTP status code (" + httpResponse.getStatusLine().getStatusCode() + ") during oauth code resolver request to " + requestUrl
-            ));
-        }
 
         final String resolveResponseBodyStr = restResults.getResponseBody();
 
@@ -343,14 +335,6 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         requestParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_GRANT_TYPE),grant_type);
 
         final RestResults restResults = makeHttpRequest(pwmRequest, "OAuth refresh resolver", settings, requestUrl, requestParams);
-        final HttpResponse httpResponse = restResults.getHttpResponse();
-
-        if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            throw new PwmUnrecoverableException(new ErrorInformation(
-                    PwmError.ERROR_OAUTH_ERROR,
-                    "unexpected HTTP status code (" + httpResponse.getStatusLine().getStatusCode() + ")"
-            ));
-        }
 
         final String resolveResponseBodyStr = restResults.getResponseBody();
 
@@ -383,14 +367,6 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         requestParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_ATTRIBUTES),settings.getDnAttributeName());
 
         final RestResults restResults = makeHttpRequest(pwmRequest, "OAuth getattribute", settings, requestUrl, requestParams);
-        final HttpResponse httpResponse = restResults.getHttpResponse();
-
-        if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            throw new PwmUnrecoverableException(new ErrorInformation(
-                    PwmError.ERROR_OAUTH_ERROR,
-                    "unexpected HTTP status code (" + httpResponse.getStatusLine().getStatusCode() + ") returned from OAuth during getattribute request"
-            ));
-        }
 
         return restResults.getResponseBody();
     }
@@ -415,13 +391,25 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         httpPost.setEntity(bodyEntity);
 
         final X509Certificate[] certs = pwmRequest.getConfig().readSettingAsCertificate(PwmSetting.OAUTH_ID_CERTIFICATE);
+
         final HttpResponse httpResponse;
-        if (certs == null || certs.length == 0) {
-            httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig()).execute(httpPost);
-        } else {
-            httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig(),new PwmHttpClientConfiguration(certs)).execute(httpPost);
+        final String bodyResponse;
+        try {
+            if (certs == null || certs.length == 0) {
+                httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig()).execute(httpPost);
+            } else {
+                httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig(), new PwmHttpClientConfiguration(certs)).execute(httpPost);
+            }
+            bodyResponse = EntityUtils.toString(httpResponse.getEntity());
+        } catch (PwmException | IOException e) {
+            final String errorMsg;
+            if (e instanceof PwmException) {
+                errorMsg = "error during " + debugText + " http request to oauth server, remote error: " + ((PwmException) e).getErrorInformation().toDebugStr();
+            } else {
+                errorMsg = "io error during " + debugText + " http request to oauth server: " + e.getMessage();
+            }
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_OAUTH_ERROR, errorMsg));
         }
-        final String bodyResponse = EntityUtils.toString(httpResponse.getEntity());
 
         final StringBuilder debugOutput = new StringBuilder();
         debugOutput.append(debugText).append(
@@ -433,6 +421,14 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         }
 
         debugOutput.append(" body:\n ").append(bodyResponse);
+
+        if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+            throw new PwmUnrecoverableException(new ErrorInformation(
+                    PwmError.ERROR_OAUTH_ERROR,
+                    "unexpected HTTP status code (" + httpResponse.getStatusLine().getStatusCode() + ") during " + debugText + " request to " + requestUrl
+            ));
+        }
+
         LOGGER.trace(pwmRequest, debugOutput.toString());
         return new RestResults(httpResponse, bodyResponse);
     }

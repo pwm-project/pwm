@@ -41,6 +41,11 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ApplicationModeFilter.class.getName());
 
+    enum ProcessStatus {
+        Continue,
+        Halt,
+    }
+
     @Override
     public void processFilter(
             final PwmApplicationMode mode,
@@ -57,7 +62,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
         if (!pwmURL.isResourceURL() && !pwmURL.isWebServiceURL() && !pwmURL.isReferenceURL()) {
             // check for valid config
             try {
-                if (checkConfigModes(pwmRequest)) {
+                if (checkConfigModes(pwmRequest) == ProcessStatus.Halt) {
                     return;
                 }
             } catch (PwmUnrecoverableException e) {
@@ -77,7 +82,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
         return !pwmURL.isResourceURL();
     }
 
-    private static boolean checkConfigModes(
+    private static ProcessStatus checkConfigModes(
             final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException
@@ -90,15 +95,15 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
         if (mode == PwmApplicationMode.NEW) {
             // check if current request is actually for the config url, if it is, just do nothing.
             if (pwmURL.isCommandServletURL() || pwmURL.isWebServiceURL()) {
-                return false;
+                return ProcessStatus.Continue;
             }
 
             if (pwmURL.isConfigGuideURL()) {
-                return false;
+                return ProcessStatus.Continue;
             } else {
                 LOGGER.debug("unable to find a valid configuration, redirecting " + pwmURL + " to ConfigGuide");
                 pwmRequest.sendRedirect(PwmServletDefinition.ConfigGuide);
-                return true;
+                return ProcessStatus.Halt;
             }
         }
 
@@ -108,28 +113,38 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
                 rootError = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, "Application startup failed.");
             }
             pwmRequest.respondWithError(rootError);
-            return true;
+            return ProcessStatus.Halt;
         }
 
         // allow oauth
         if (pwmURL.isOauthConsumer()) {
-            return false;
+            return ProcessStatus.Continue;
         }
 
         // block if public request and not running or in trial
         if (!PwmConstants.TRIAL_MODE) {
-            if (pwmURL.isPublicUrl() && !pwmURL.isLogoutURL() && !pwmURL.isCommandServletURL() && !pwmURL.isCaptchaURL())  {
-                if (mode == PwmApplicationMode.CONFIGURATION) {
-                    pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"public services are not available while configuration is open"));
-                    return true;
-                }
-                if (mode != PwmApplicationMode.RUNNING) {
-                    pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"public services are not available while application is not in running mode"));
-                    return true;
+            if (mode != PwmApplicationMode.RUNNING) {
+                final boolean permittedURl = pwmURL.isResourceURL()
+                        || pwmURL.isIndexPage()
+                        || pwmURL.isConfigManagerURL()
+                        || pwmURL.isConfigGuideURL()
+                        || pwmURL.isCommandServletURL()
+                        || pwmURL.isReferenceURL()
+                        || pwmURL.isCaptchaURL()
+                        || pwmURL.isLoginServlet()
+                        || pwmURL.isLogoutURL()
+                        || pwmURL.isOauthConsumer()
+                        || pwmURL.isAdminUrl()
+                        || pwmURL.isWebServiceURL();
+
+                if (!permittedURl) {
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APPLICATION_NOT_RUNNING);
+                    pwmRequest.respondWithError(errorInformation);
+                    return ProcessStatus.Halt;
                 }
             }
         }
 
-        return false;
+        return ProcessStatus.Continue;
     }
 }

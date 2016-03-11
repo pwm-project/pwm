@@ -129,10 +129,6 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
             }
 
         }
-        final int peopleSearchIdleTimeout = (int)pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS);
-        if (peopleSearchIdleTimeout > 0 && pwmRequest.getURL().isPrivateUrl()) {
-            pwmRequest.getPwmSession().setSessionTimeout(pwmRequest.getHttpServletRequest().getSession(), peopleSearchIdleTimeout);
-        }
 
         final PeopleSearchConfiguration peopleSearchConfiguration = new PeopleSearchConfiguration(pwmRequest.getConfig());
 

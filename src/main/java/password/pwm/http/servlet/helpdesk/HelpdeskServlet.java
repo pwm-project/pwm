@@ -151,11 +151,6 @@ public class HelpdeskServlet extends AbstractPwmServlet {
             return;
         }
 
-        final int helpdeskIdleTimeout = (int)helpdeskProfile.readSettingAsLong(PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS);
-        if (helpdeskIdleTimeout > 0) {
-            pwmSession.setSessionTimeout(pwmRequest.getHttpServletRequest().getSession(), helpdeskIdleTimeout);
-        }
-
         final HelpdeskAction action = readProcessAction(pwmRequest);
         if (action != null) {
             pwmRequest.validatePwmFormID();

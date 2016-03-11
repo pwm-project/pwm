@@ -207,7 +207,7 @@ public class SecureEngine {
             final MessageDigest messageDigest = MessageDigest.getInstance(hashAlgorithm.getAlgName());
             fileInputStream = new FileInputStream(file);
             final FileChannel fileChannel = fileInputStream.getChannel();
-            final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024 * 16); // allocation in bytes - 1024, 2048, 4096, 8192
+            final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024 * 8);
 
             while (fileChannel.read(byteBuffer) > 0) {
                 byteBuffer.flip();
@@ -218,7 +218,7 @@ public class SecureEngine {
             return Helper.byteArrayToHexString(messageDigest.digest());
 
         } catch (NoSuchAlgorithmException | IOException e) {
-            final String errorMsg = "unexpected error during hash operation: " + e.getMessage();
+            final String errorMsg = "unexpected error during file hash operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         } finally {
