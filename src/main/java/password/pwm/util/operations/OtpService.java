@@ -23,7 +23,6 @@
 package password.pwm.util.operations;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.util.internal.Base64Util;
 import org.apache.commons.codec.binary.Base32;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -232,7 +231,7 @@ public class OtpService implements PwmService {
         for (int i = 0; i < hashCount; i++) {
             hashedBytes = md.digest(hashedBytes);
         }
-        return Base64Util.encodeBytes(hashedBytes);
+        return StringUtil.base64Encode(hashedBytes);
     }
 
     @Override

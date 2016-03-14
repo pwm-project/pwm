@@ -84,7 +84,9 @@ public class IdleTimeoutCalculator {
                 final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile(pwmApplication);
                 if (helpdeskProfile != null) {
                     final long helpdeskIdleTimeout = helpdeskProfile.readSettingAsLong(PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS);
-                    return new TimeDuration(helpdeskIdleTimeout, TimeUnit.SECONDS);
+                    if (helpdeskIdleTimeout > 0) {
+                        return new TimeDuration(helpdeskIdleTimeout, TimeUnit.SECONDS);
+                    }
                 }
             }
         }
@@ -92,7 +94,9 @@ public class IdleTimeoutCalculator {
         if (pwmURL.isPwmServletURL(PwmServletDefinition.PeopleSearch) && pwmURL.isPrivateUrl()) {
             if (config.readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) {
                 final long peopleSearchIdleTimeout = config.readSettingAsLong(PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS);
-                return new TimeDuration(peopleSearchIdleTimeout, TimeUnit.SECONDS);
+                if (peopleSearchIdleTimeout > 0) {
+                    return new TimeDuration(peopleSearchIdleTimeout, TimeUnit.SECONDS);
+                }
             }
         }
 
@@ -100,7 +104,9 @@ public class IdleTimeoutCalculator {
             try {
                 if (pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN)) {
                     final long configEditorIdleTimeout = Long.parseLong(config.readAppProperty(AppProperty.CONFIG_EDITOR_IDLE_TIMEOUT));
-                    return new TimeDuration(configEditorIdleTimeout, TimeUnit.SECONDS);
+                    if (configEditorIdleTimeout > 0) {
+                        return new TimeDuration(configEditorIdleTimeout, TimeUnit.SECONDS);
+                    }
                 }
             } catch (PwmUnrecoverableException e) {
                 LOGGER.error(pwmSession,"error while figuring max idle timeout for session: " + e.getMessage());
@@ -110,10 +116,11 @@ public class IdleTimeoutCalculator {
         if (pwmURL.isPwmServletURL(PwmServletDefinition.ConfigGuide)) {
             if (pwmApplication.getApplicationMode() == PwmApplicationMode.NEW) {
                 final long configGuideIdleTimeout = Long.parseLong(config.readAppProperty(AppProperty.CONFIG_GUIDE_IDLE_TIMEOUT));
-                return new TimeDuration(configGuideIdleTimeout, TimeUnit.SECONDS);
+                if (configGuideIdleTimeout > 0) {
+                    return new TimeDuration(configGuideIdleTimeout, TimeUnit.SECONDS);
+                }
             }
         }
-
 
         final long idleTimeout = config.readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
         return new TimeDuration(idleTimeout, TimeUnit.SECONDS);
