@@ -40,7 +40,7 @@
                 <span class="footer-segment">
                 <span id="idle_wrapper">
                 <span id="idle_status">
-                <pwm:display key="Display_IdleTimeout"/> <pwm:value name="<%=PwmValue.inactiveTimeRemaining%>"/>
+                <pwm:display key="Display_IdleTimeout"/>&nbsp;<pwm:value name="<%=PwmValue.inactiveTimeRemaining%>"/>
                 </span>
                 </span>
                 </span>

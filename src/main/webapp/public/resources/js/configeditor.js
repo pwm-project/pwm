@@ -768,6 +768,8 @@ PWM_CFGEDIT.loadMainPageBody = function() {
     var lastSelected = PWM_MAIN.Preferences.readSessionStorage('configEditor-lastSelected',null);
     if (lastSelected) {
         PWM_CFGEDIT.dispatchNavigationItem(lastSelected);
+    } else {
+        PWM_CFGEDIT.dispatchNavigationItem({id:'TEMPLATES',type:'category'});
     }
 
     require(["dojo/io-query"],function(ioQuery){

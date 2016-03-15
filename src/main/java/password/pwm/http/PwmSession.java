@@ -26,14 +26,10 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionLabel;
-import password.pwm.bean.LocalSessionStateBean;
-import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.bean.LoginInfoBean;
 import password.pwm.http.bean.UserSessionDataCacheBean;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.stats.Statistic;
@@ -44,7 +40,6 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
-import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.*;
@@ -278,14 +273,6 @@ public class PwmSession implements Serializable {
         final String newKey = Long.toString(System.currentTimeMillis(),36) + PwmRandom.getInstance().alphaNumericString(settings.restKeyLength);
         this.getSessionStateBean().setRestClientKey(newKey);
         return newKey;
-    }
-
-    public void setSessionTimeout(final HttpSession session, final int maxSeconds)
-            throws PwmUnrecoverableException
-    {
-        if (maxSeconds > 0) {
-            session.setMaxInactiveInterval(maxSeconds);
-        }
     }
 
     public boolean isAuthenticated() {

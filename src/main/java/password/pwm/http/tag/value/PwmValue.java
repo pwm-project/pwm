@@ -23,13 +23,16 @@
 package password.pwm.http.tag.value;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.Permission;
+import password.pwm.PwmApplicationMode;
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.IdleTimeoutCalculator;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Admin;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.ws.server.rest.RestAppDataServer;
@@ -242,7 +245,7 @@ public enum PwmValue {
     static class InactiveTimeRemainingOutput implements ValueOutput {
         @Override
         public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
-            return new TimeDuration(pwmRequest.getHttpServletRequest().getSession().getMaxInactiveInterval() * 1000).asLongString(pwmRequest.getLocale());
+            return IdleTimeoutCalculator.idleTimeoutForRequest(pwmRequest).asLongString();
         }
     }
 }

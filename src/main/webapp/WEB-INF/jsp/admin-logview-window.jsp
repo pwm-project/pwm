@@ -35,7 +35,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_IDLE_TIMEOUT); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% final PwmRequest pwmRequest = PwmRequest.forRequest(request,response); %>
+<% final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext); %>
 <% final LocalDBLogger localDBLogger = pwmRequest.getPwmApplication().getLocalDBLogger(); %>
 <% final String selectedLevel = pwmRequest.readParameterAsString("level", 255);%>
 <% final PwmLogLevel configuredLevel = pwmRequest.getConfig().readSettingAsEnum(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL,PwmLogLevel.class); %>
@@ -43,13 +43,13 @@
 <% if ("".equals(selectedLevel)) { %>
 <div style="text-align: center;"><pwm:display key="Display_PleaseWait"/></div>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.showWaitDialog({loadFunction:function() {
-            PWM_CONFIG.openLogViewer('INFO');
-        }});
-    });
-</script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.showWaitDialog({loadFunction:function() {
+                PWM_CONFIG.openLogViewer('INFO');
+            }});
+        });
+    </script>
 </pwm:script>
 <% } else { %>
 <div style="width: 100%; text-align:center; background-color: #eeeeee" id="headerDiv">
@@ -84,19 +84,19 @@
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        var refreshFunction = function(){
-            var levelSelectElement = PWM_MAIN.getObject('select-level');
-            var level=levelSelectElement.options[levelSelectElement.selectedIndex].value;
-            PWM_MAIN.showWaitDialog({loadFunction:function(){PWM_CONFIG.openLogViewer(level)}});
-        };
-        PWM_MAIN.addEventHandler('button-refresh','click',function(){
-            refreshFunction();
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            var refreshFunction = function(){
+                var levelSelectElement = PWM_MAIN.getObject('select-level');
+                var level=levelSelectElement.options[levelSelectElement.selectedIndex].value;
+                PWM_MAIN.showWaitDialog({loadFunction:function(){PWM_CONFIG.openLogViewer(level)}});
+            };
+            PWM_MAIN.addEventHandler('button-refresh','click',function(){
+                refreshFunction();
+            });
+            document.title = "Log Viewer";
         });
-        document.title = "Log Viewer";
-    });
-</script>
+    </script>
 </pwm:script>
 </body>
 </html>

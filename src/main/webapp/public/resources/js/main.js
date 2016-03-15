@@ -78,6 +78,7 @@ PWM_MAIN.pageLoadHandler = function() {
 PWM_MAIN.loadClientData=function(completeFunction) {
     PWM_GLOBAL['app-data-client-retry-count'] = PWM_GLOBAL['app-data-client-retry-count'] + 1;
     var url = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client?etag=" + PWM_GLOBAL['clientEtag'];
+    url = PWM_MAIN.addParamToUrl(url,'pageUrl',window.location.href);
     var loadFunction = function(data) {
         for (var globalProp in data['data']['PWM_GLOBAL']) {
             PWM_GLOBAL[globalProp] = data['data']['PWM_GLOBAL'][globalProp];

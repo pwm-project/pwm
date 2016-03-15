@@ -27,6 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
+import password.pwm.http.IdleTimeoutCalculator;
 import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
@@ -193,9 +194,8 @@ class CryptoRequestLoginImpl implements SessionLoginProvider {
             throw new PwmOperationalException(errorInformation);
         }
         {
-            final long sessionMaxIdleSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
             final TimeDuration loginCookieIssueAge = TimeDuration.fromCurrent(loginInfoBean.getReqTime());
-            final TimeDuration maxIdleDuration = new TimeDuration(sessionMaxIdleSeconds, TimeUnit.SECONDS);
+            final TimeDuration maxIdleDuration = IdleTimeoutCalculator.idleTimeoutForRequest(pwmRequest);
             if (loginCookieIssueAge.isLongerThan(maxIdleDuration)) {
                 final String errorMsg = "decrypted login cookie issue time ("
                         + loginCookieIssueAge.asCompactString()

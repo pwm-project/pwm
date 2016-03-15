@@ -37,8 +37,10 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.IdleTimeoutCalculator;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.PwmURL;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Display;
 import password.pwm.svc.event.AuditRecord;
@@ -48,6 +50,7 @@ import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.PwmHashAlgorithm;
@@ -65,6 +68,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
@@ -208,6 +212,7 @@ public class RestAppDataServer extends AbstractRestServer {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Path("/client")
     public Response doGetAppClientData(
+            @QueryParam("pageUrl") String pageUrl,
             @PathParam(value = "eTagUri") final String eTagUri,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response
@@ -235,7 +240,7 @@ public class RestAppDataServer extends AbstractRestServer {
         response.setDateHeader("Expires", System.currentTimeMillis() + (maxCacheAgeSeconds * 1000));
         response.setHeader("Cache-Control", "public, max-age=" + maxCacheAgeSeconds);
 
-        final AppData appData = makeAppData(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), request, response);
+        final AppData appData = makeAppData(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), request, response, pageUrl);
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(appData);
         return restResultBean.asJsonResponse();
@@ -279,12 +284,13 @@ public class RestAppDataServer extends AbstractRestServer {
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final HttpServletRequest request,
-            final HttpServletResponse response
+            final HttpServletResponse response,
+            final String pageUrl
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final AppData appData = new AppData();
-        appData.PWM_GLOBAL = makeClientData(pwmApplication, pwmSession, request, response);
+        appData.PWM_GLOBAL = makeClientData(pwmApplication, pwmSession, request, response, pageUrl);
         return appData;
     }
 
@@ -318,7 +324,8 @@ public class RestAppDataServer extends AbstractRestServer {
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final HttpServletRequest request,
-            final HttpServletResponse response
+            final HttpServletResponse response,
+            final String pageUrl
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
@@ -335,7 +342,17 @@ public class RestAppDataServer extends AbstractRestServer {
         settingMap.put("setting-displayEula",PwmConstants.ENABLE_EULA_DISPLAY);
         settingMap.put("setting-showStrengthMeter",config.readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER));
 
-        settingMap.put("MaxInactiveInterval",request.getSession().getMaxInactiveInterval());
+        {
+            long idleSeconds = config.readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
+            try {
+                final PwmURL pwmURL = new PwmURL(new URI(pageUrl), request.getContextPath());
+                final TimeDuration maxIdleTime = IdleTimeoutCalculator.idleTimeoutForRequest(pwmURL, pwmApplication, pwmSession);
+                idleSeconds = maxIdleTime.getTotalSeconds();
+            } catch (Exception e) {
+                LOGGER.error(pwmSession, "error determining idle timeout time for request: " + e.getMessage());
+            }
+            settingMap.put("MaxInactiveInterval", idleSeconds);
+        }
         settingMap.put("paramName.locale", config.readAppProperty(AppProperty.HTTP_PARAM_NAME_LOCALE));
         settingMap.put("startupTime",pwmApplication.getStartupTime());
         settingMap.put("applicationMode",pwmApplication.getApplicationMode());

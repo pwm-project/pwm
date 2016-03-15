@@ -64,9 +64,7 @@
     <setting hidden="false" key="pwm.selfURL" level="0">
         <regex>^(http|https)://.+$</regex>
         <example>http://www.example.com/password</example>
-        <default>
-            <value>http://www.example.com/password</value>
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="pwm.versionCheck.enable" level="1" required="true">
         <default>
@@ -3493,7 +3491,15 @@
     </category>
     <category hidden="false" key="LDAP_SETTINGS">
     </category>
+    <category hidden="false" key="APPLICATION">
+    </category>
     <category hidden="false" key="GENERAL">
+    </category>
+    <category hidden="false" key="LOCALIZATION">
+    </category>
+    <category hidden="false" key="TELEMETRY">
+    </category>
+    <category hidden="false" key="CLUSTERING">
     </category>
     <category hidden="false" key="USER_INTERFACE">
     </category>

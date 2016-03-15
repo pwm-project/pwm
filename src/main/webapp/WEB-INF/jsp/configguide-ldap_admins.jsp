@@ -98,7 +98,7 @@
 
             PWM_MAIN.addEventHandler('button-viewAdminMatches','click',function(){
                 PWM_MAIN.showWaitDialog({loadFunction:function(){
-                    var url = 'ConfigGuide?processAction=viewAdminMatches';
+                    var url = PWM_MAIN.addParamToUrl(window.location.href, 'processAction', 'viewAdminMatches');
                     var loadFunction = function(data){
                         if (data['error']) {
                             PWM_MAIN.showErrorDialog(data);

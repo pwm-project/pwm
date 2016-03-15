@@ -53,7 +53,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Authentication servlet filter.  This filter wraps all servlet requests and requests direct to *.jsp
@@ -239,7 +242,14 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
 
         if (!bypassSSOAuth) {
-            for (final AuthenticationMethod authenticationMethod : AuthenticationMethod.values()) {
+            final Set<AuthenticationMethod> authenticationMethods = new HashSet<>(Arrays.asList(AuthenticationMethod.values()));
+            {
+                final String casUrl = pwmApplication.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
+                if (casUrl == null || casUrl.trim().isEmpty()) {
+                    authenticationMethods.remove(AuthenticationMethod.CAS);
+                }
+            }
+            for (final AuthenticationMethod authenticationMethod : authenticationMethods) {
                 if (!pwmRequest.isAuthenticated()) {
                     try {
                         final Class<? extends PwmHttpFilterAuthenticationProvider> clazz = authenticationMethod.getImplementationClass();

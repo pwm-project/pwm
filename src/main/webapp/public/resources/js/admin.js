@@ -652,6 +652,7 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
                 PWM_GLOBAL['pwm-health'] = data['data']['overall'];
                 var htmlBody = PWM_ADMIN.makeHealthHtml(data['data'], showTimestamp, showRefresh);
                 parentDiv.innerHTML = htmlBody;
+                PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('healthCheckTimestamp'));
 
                 PWM_MAIN.addEventHandler('button-refreshHealth','click',function(){
                     PWM_ADMIN.showAppHealth(parentDivID, options, true);

@@ -176,6 +176,7 @@ public enum AppProperty {
     OAUTH_ID_ACCESS_GRANT_TYPE                      ("oauth.id.accessGrantType"),
     OAUTH_ID_REFRESH_GRANT_TYPE                     ("oauth.id.refreshGrantType"),
     OAUTH_ENABLE_TOKEN_REFRESH                      ("oauth.enableTokenRefresh"),
+    OAUTH_RETURN_URL_OVERRIDE                       ("oauth.returnUrlOverride"),
 
     /* Allows one older TOTP token - compensate for clock out of sync */
     TOTP_PAST_INTERVALS                             ("otp.totp.pastIntervals"),
