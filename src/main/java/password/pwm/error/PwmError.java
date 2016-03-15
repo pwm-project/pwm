@@ -89,9 +89,9 @@ public enum PwmError {
     ERROR_CHALLENGE_DUPLICATE(      5011, "Error_Challenge_Duplicate",      null),
     ERROR_MISSING_CHALLENGE_TEXT(   5012, "Error_Missing_Challenge_Text",   null),
     ERROR_MISSING_PARAMETER(        5013, "Error_MissingParameter",         null),
-    ERROR_UNKNOWN(                  5015, "Error_Unknown",                  null),
+    ERROR_UNKNOWN(                  5015, "Error_Unknown",                  null, ErrorFlag.ForceLogout),
     ERROR_CANT_MATCH_USER(          5016, "Error_CantMatchUser",            null),
-    ERROR_DIRECTORY_UNAVAILABLE(    5017, "Error_DirectoryUnavailable",     null),
+    ERROR_DIRECTORY_UNAVAILABLE(    5017, "Error_DirectoryUnavailable",     null, ErrorFlag.ForceLogout),
     ERROR_ACTIVATION_VALIDATIONFAIL(5018, "Error_ActivationValidationFailed", null),
     ERROR_SERVICE_NOT_AVAILABLE(    5019, "Error_ServiceNotAvailable",      null),
     ERROR_USER_MISMATCH(            5020, "Error_UserMisMatch",             null),
@@ -160,6 +160,7 @@ public enum PwmError {
     ERROR_NO_PROFILE_ASSIGNED(      5081, "Error_NoProfileAssigned",        null, ErrorFlag.Permanent),
     ERROR_STARTUP_ERROR(            5082, "Error_StartupError",             null, ErrorFlag.Permanent),
     ERROR_ENVIRONMENT_ERROR(        5083, "Error_EnvironmentError",         null, ErrorFlag.Permanent),
+    ERROR_APPLICATION_NOT_RUNNING(  5084, "Error_ApplicationNotRunning",    null, ErrorFlag.Permanent),
 
     ERROR_REMOTE_ERROR_VALUE(       6000, "Error_RemoteErrorValue",         null, ErrorFlag.Permanent),
 
@@ -184,18 +185,21 @@ public enum PwmError {
     ;
 
     enum ErrorFlag {
-        Permanent
+        Permanent,
+        ForceLogout,
     }
 
     private final int errorCode;
     private final String resourceKey;
     private final ChaiError[] chaiErrorCode;
     private final boolean errorIsPermanent;
+    private final boolean forceLogout;
 
     PwmError(final int errorCode, final String resourceKey, final ChaiError[] chaiErrorCode, final ErrorFlag...errorFlags) {
         this.resourceKey = resourceKey;
         this.errorCode = errorCode;
         this.errorIsPermanent = Helper.enumArrayContainsValue(errorFlags, ErrorFlag.Permanent);
+        this.forceLogout = Helper.enumArrayContainsValue(errorFlags, ErrorFlag.ForceLogout);
         this.chaiErrorCode = chaiErrorCode;
 
     }
@@ -230,6 +234,10 @@ public enum PwmError {
         }
 
         return null;
+    }
+
+    private boolean isForceLogout() {
+        return forceLogout;
     }
 
     public boolean isErrorIsPermanent() {

@@ -28,7 +28,8 @@ var PWM_GLOBAL = PWM_GLOBAL || {};
 
 PWM_GUIDE.selectTemplate = function(template) {
     PWM_MAIN.showWaitDialog({title:'Loading...',loadFunction:function() {
-        var url = "config-guide?processAction=selectTemplate&template=" + template;
+        var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','selectTemplate');
+        url = PWM_MAIN.addParamToUrl(url, 'template', template);
         PWM_MAIN.showDialog(url,function(result){
             if (!result['error']) {
                 PWM_MAIN.getObject('button_next').disabled = template == "NOTSELECTED";
@@ -44,8 +45,10 @@ PWM_GUIDE.selectTemplate = function(template) {
 PWM_GUIDE.updateForm = function() {
     require(["dojo","dijit/registry","dojo/dom-form"],function(dojo,registry,domForm){
         var formJson = dojo.formToJson('configForm');
+        var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','updateForm');
+        url = PWM_MAIN.addPwmFormIDtoURL(url);
         dojo.xhrPost({
-            url: "config-guide?processAction=updateForm&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            url: url,
             postData: formJson,
             headers: {"Accept":"application/json"},
             contentType: "application/json;charset=utf-8",
@@ -67,7 +70,8 @@ PWM_GUIDE.gotoStep = function(step) {
     PWM_MAIN.showWaitDialog({loadFunction:function(){
         //preload in case of server restart
         PWM_MAIN.preloadAll(function(){
-            var url =  "config-guide?processAction=gotoStep&step=" + step;
+            var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','gotoStep');
+            url = PWM_MAIN.addParamToUrl(url, 'step', step);
             var loadFunction = function(result) {
                 if (result['error']) {
                     PWM_MAIN.showErrorDialog(result);
@@ -86,7 +90,8 @@ PWM_GUIDE.gotoStep = function(step) {
 };
 
 PWM_GUIDE.setUseConfiguredCerts = function(value) {
-    var url = "config-guide?processAction=useConfiguredCerts&value=" + value;
+    var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','useConfiguredCerts');
+    url = PWM_MAIN.addParamToUrl(url, 'value', value);
     var loadFunction = function(result) {
         if (result['error']) {
             PWM_MAIN.showError(result['errorDetail']);
@@ -98,7 +103,7 @@ PWM_GUIDE.setUseConfiguredCerts = function(value) {
 PWM_GUIDE.extendSchema = function() {
     PWM_MAIN.showConfirmDialog({text:"Are you sure you want to extend the LDAP schema?",okAction:function(){
         PWM_MAIN.showWaitDialog({loadFunction:function() {
-            var url = "config-guide?processAction=extendSchema";
+            var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','extendSchema');
             var loadFunction = function(result) {
                 if (result['error']) {
                     PWM_MAIN.showError(result['errorDetail']);

@@ -149,10 +149,6 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             configGuideBean.getFormData().put(ConfigGuideForm.FormParameter.PARAM_APP_SITEURL,newUri);
         }
 
-        pwmSession.setSessionTimeout(
-                pwmRequest.getHttpServletRequest().getSession(),
-                Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_GUIDE_IDLE_TIMEOUT)));
-
         if (configGuideBean.getStep() == GuideStep.LDAP_CERT) {
             final String ldapServerString = ConfigGuideForm.figureLdapUrlFromFormConfig(configGuideBean.getFormData());
             try {

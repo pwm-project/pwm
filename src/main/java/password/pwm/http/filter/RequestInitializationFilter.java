@@ -150,6 +150,8 @@ public class RequestInitializationFilter implements Filter {
 
             addPwmResponseHeaders(pwmRequest);
 
+            checkIdleTimeout(pwmRequest);
+
             try {
                 handleRequestSecurityChecks(pwmRequest);
             } catch (PwmUnrecoverableException e) {
@@ -431,7 +433,8 @@ public class RequestInitializationFilter implements Filter {
         // set idle timeout (may get overridden by module-specific values elsewhere
         if (!pwmURL.isResourceURL() && !pwmURL.isCommandServletURL() && !pwmURL.isWebServiceURL()){
             final int sessionIdleSeconds = (int) pwmRequest.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
-            pwmRequest.getPwmSession().setSessionTimeout(pwmRequest.getHttpServletRequest().getSession(), sessionIdleSeconds);
+            final TimeDuration maxIdleTimeout = IdleTimeoutCalculator.figureMaxIdleTimeout(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
+            pwmRequest.getHttpServletRequest().getSession().setMaxInactiveInterval((int) maxIdleTimeout.getTotalSeconds());
         }
     }
 
@@ -565,4 +568,13 @@ public class RequestInitializationFilter implements Filter {
         pwmRequest.getPwmApplication().getIntruderManager().convenience().checkAddressAndSession(pwmRequest.getPwmSession());
     }
 
+    private void checkIdleTimeout(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        final TimeDuration maxDurationForRequest = IdleTimeoutCalculator.idleTimeoutForRequest(pwmRequest);
+        final TimeDuration currentDuration = TimeDuration.fromCurrent(pwmRequest.getHttpServletRequest().getSession().getLastAccessedTime());
+        if (currentDuration.isLongerThan(maxDurationForRequest)) {
+            LOGGER.debug("closing session due to idle time, max for request is " + maxDurationForRequest.asCompactString() + ", session idle time is " + currentDuration.asCompactString());
+            pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_USERAUTHENTICATED,"idle timeout exceeded"));
+        }
+    }
 }

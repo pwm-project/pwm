@@ -236,6 +236,7 @@ public class AdminServlet extends AbstractPwmServlet {
         tokenLookup(PwmConstants.JSP_URL.ADMIN_TOKEN_LOOKUP,"/tokens"),
         viewLog(PwmConstants.JSP_URL.ADMIN_LOGVIEW,"/logs"),
         urlReference(PwmConstants.JSP_URL.ADMIN_URLREFERENCE,"/urls"),
+        debugUser(PwmConstants.JSP_URL.ADMIN_DEBUG,"/debug"),
 
         ;
 

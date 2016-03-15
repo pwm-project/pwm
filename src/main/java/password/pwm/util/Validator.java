@@ -28,6 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.FormNonce;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -69,8 +70,11 @@ public class Validator {
                     submittedPwmFormID,
                     FormNonce.class
             );
+            if (formNonce == null) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INVALID_FORMID,"form nonce missing"));
+            }
             if (!pwmSession.getLoginInfoBean().getGuid().equals(formNonce.getSessionGUID())) {
-                throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INVALID_FORMID,"form nonce incorrect"));
             }
         }
     }

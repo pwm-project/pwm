@@ -161,6 +161,7 @@ public abstract class PwmConstants {
         ADMIN_LOGVIEW_WINDOW("admin-logview-window.jsp"),
         ADMIN_LOGVIEW("admin-logview.jsp"),
         ADMIN_URLREFERENCE("admin-urlreference.jsp"),
+        ADMIN_DEBUG("admin-user-debug.jsp"),
         ACTIVATE_USER("activateuser.jsp"),
         ACTIVATE_USER_AGREEMENT("activateuser-agreement.jsp"),
         ACTIVATE_USER_ENTER_CODE("activateuser-entercode.jsp"),

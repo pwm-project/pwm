@@ -63,11 +63,11 @@ public enum PwmSetting {
     PWM_SITE_URL(
             "pwm.selfURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     VERSION_CHECK_ENABLE(
-            "pwm.versionCheck.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.GENERAL),
+            "pwm.versionCheck.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.TELEMETRY),
     PUBLISH_STATS_ENABLE(
-            "pwm.publishStats.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.GENERAL),
+            "pwm.publishStats.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.TELEMETRY),
     PUBLISH_STATS_SITE_DESCRIPTION(
-            "pwm.publishStats.siteDescription", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
+            "pwm.publishStats.siteDescription", PwmSettingSyntax.STRING, PwmSettingCategory.TELEMETRY),
     URL_FORWARD(
             "pwm.forwardURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     URL_LOGOUT(
@@ -81,15 +81,19 @@ public enum PwmSetting {
     HIDE_CONFIGURATION_HEALTH_WARNINGS(
             "display.hideConfigHealthWarnings", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.GENERAL),
     KNOWN_LOCALES(
-            "knownLocales", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL),
+            "knownLocales", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LOCALIZATION),
     LOCALE_COOKIE_MAX_AGE(
-            "locale.cookie.age", PwmSettingSyntax.DURATION, PwmSettingCategory.GENERAL),
+            "locale.cookie.age", PwmSettingSyntax.DURATION, PwmSettingCategory.LOCALIZATION),
     PWMDB_LOCATION(
             "pwmDb.location", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     HTTP_PROXY_URL(
             "http.proxy.url", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     APP_PROPERTY_OVERRIDES(
             "pwm.appProperty.overrides", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL),
+    SECURITY_LOGIN_SESSION_MODE(
+            "security.loginSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING),
+    SECURITY_MODULE_SESSION_MODE(
+            "security.moduleSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING),
 
     // user interface
     INTERFACE_THEME(
@@ -447,10 +451,6 @@ public enum PwmSetting {
             "display.showDetailedErrors", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
     SESSION_MAX_SECONDS(
             "session.maxSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.APP_SECURITY),
-    SECURITY_LOGIN_SESSION_MODE(
-            "security.loginSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.APP_SECURITY),
-    SECURITY_MODULE_SESSION_MODE(
-            "security.moduleSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.APP_SECURITY),
 
 
     // web security

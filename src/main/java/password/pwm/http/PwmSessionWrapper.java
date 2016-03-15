@@ -24,10 +24,10 @@ package password.pwm.http;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.TimeDuration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -35,7 +35,7 @@ import javax.servlet.http.HttpSession;
 public class PwmSessionWrapper {
 
     private transient PwmSession pwmSession;
-    
+
     private PwmSessionWrapper() {
 
     }
@@ -44,15 +44,16 @@ public class PwmSessionWrapper {
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final HttpSession httpSession
-    ) 
-            throws PwmUnrecoverableException 
+    )
+            throws PwmUnrecoverableException
     {
-        final int sessionIdle = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
-        pwmSession.setSessionTimeout(httpSession, sessionIdle);
         httpSession.setAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION, pwmSession);
+
+        final TimeDuration maxIdleTime = IdleTimeoutCalculator.figureMaxIdleTimeout(pwmApplication, pwmSession);
+        httpSession.setMaxInactiveInterval((int) maxIdleTime.getTotalSeconds());
     }
-    
-    
+
+
     public static PwmSession readPwmSession(final HttpSession httpSession)
             throws PwmUnrecoverableException
     {
