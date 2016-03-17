@@ -84,7 +84,7 @@ form {
 
 table {
     border-collapse: collapse;
-    border: 1px solid #D4D4D4;
+    border: 1px solid #dae1e1;
     width: 98%;
     margin-left: auto;
     margin-right: auto
@@ -92,18 +92,18 @@ table {
 
 table.nomargin {
     border-collapse: collapse;
-    border: 1px solid #D4D4D4;
+    border: 1px solid #dae1e1;
     width: 100%;
     margin:0;
     padding: 0;
 }
 
 .tabContent {
-    padding:0 !important;
+    padding: 10px !important;
 }
 
 table td {
-    border: 1px solid #D4D4D4;
+    border: 1px solid #dae1e1;
     padding: 5px;
 }
 
@@ -112,7 +112,7 @@ table td.title {
     font-weight: bold;
     font-size: 120%;
     padding-right: 10px;
-    background-color: #DDDDDD
+    background-color: #dae1e1;
 }
 
 table td.key {
@@ -120,6 +120,15 @@ table td.key {
     font-weight: bold;
     padding-right: 10px;
     width: 36%;
+}
+
+.health-body {
+	margin: 20px; 
+	padding:0; 
+	max-height: 300px; 
+	overflow-y: auto;
+	border-top: 1px solid #dae1e1;
+	border-bottom: 1px solid #dae1e1;
 }
 
 .healthTable-wrapper {
@@ -132,6 +141,7 @@ table td.key {
 }
 
 .healthTable {
+
 }
 
 .health-GOOD {
@@ -382,7 +392,7 @@ input[type=password]::-ms-reveal{display: none;}
     border-style:none;
     border-radius: 3px;
     padding: 5px 10px;
-/*    margin: 9px 7px;  */
+    margin: 9px 7px;  
     text-decoration: none;
     color: white;
     background: #3e374c;
@@ -486,7 +496,6 @@ div.progress-container > div {
 }
 
 #header-menu-wrapper { /*temp assignment */
-    display:none;
 }
 
 #header-warning {
@@ -497,8 +506,8 @@ div.progress-container > div {
     width: 200px;
     border: 2px solid #aaaaaa;
     background-color: #DDDDDD;
-    z-index: 10;
-    padding: 10px;
+    padding: 15px;
+    z-index: 1000;
 }
 	#header-warning span {
 		padding-left: 3px;
@@ -603,7 +612,7 @@ div.progress-container > div {
     position: absolute;
     width: 100%;
     bottom: 0;
-    padding-bottom: 5px;
+    padding-bottom: 10px;
 }
 
 
@@ -722,13 +731,13 @@ select {
 
 #button-openHeader {
     position: absolute;
-    top: 10px;
+    top: 30px;
     right: 10px;
     z-index: 100;
     cursor: pointer;
     color: #f39c12;
-}
-	#button-openHeader span {font-size: 16px;}
+	}
+	#button-openHeader span {font-size: 18px;}
 
 #button-closeHeader {
     background: transparent url("close_40.png") no-repeat scroll 0 0 / cover ;
@@ -846,13 +855,8 @@ progress[value] {
 }
 
 .dgrid-row-odd {
-    background: #f6f9f8;
+    background: #fff;
 }
-.dgrid-selected {
-	background: #70cff0;
-	color: #fff;
-}
-
 
 /* begin dialog section */
 .dialogBody { width: 500px; max-width: 500px; }
