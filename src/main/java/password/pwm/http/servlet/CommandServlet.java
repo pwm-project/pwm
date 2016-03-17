@@ -27,6 +27,7 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -34,6 +35,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.filter.AbstractPwmFilter;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -141,7 +143,7 @@ public class CommandServlet extends AbstractPwmServlet {
         final Configuration config = pwmApplication.getConfig();
 
         if (pwmRequest.isAuthenticated()) {
-            if (AuthenticationFilter.forceRequiredRedirects(pwmRequest)) {
+            if (AuthenticationFilter.forceRequiredRedirects(pwmRequest) == AbstractPwmFilter.ProcessStatus.Halt) {
                 return;
             }
 
@@ -217,7 +219,6 @@ public class CommandServlet extends AbstractPwmServlet {
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         if (!pwmRequest.isAuthenticated()) {
             final String action = pwmRequest.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST);
@@ -254,7 +255,7 @@ public class CommandServlet extends AbstractPwmServlet {
                 return;
             }
 
-            if (!AuthenticationFilter.forceRequiredRedirects(pwmRequest)) {
+            if (AuthenticationFilter.forceRequiredRedirects(pwmRequest) == AbstractPwmFilter.ProcessStatus.Continue) {
                 redirectToForwardURL(pwmRequest);
             }
         }
@@ -285,7 +286,7 @@ public class CommandServlet extends AbstractPwmServlet {
             }
 
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            if (pwmSession.getUserInfoBean().isRequiresNewPassword() && !pwmSession.getSessionStateBean().isSkippedRequireNewPassword()) {
+            if (pwmSession.getUserInfoBean().isRequiresNewPassword() && !pwmSession.getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipNewPw)) {
                 pwmRequest.sendRedirect(PwmServletDefinition.ChangePassword.servletUrlName());
             } else {
                 redirectToForwardURL(pwmRequest);

@@ -166,7 +166,9 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
                         : JsonUtil.serializeCollection(required)
         );
 
-        out.append(",  minimum optional methods required: ").append(value.getMinOptionalRequired());
+        if (value.getMinOptionalRequired() > 0) {
+            out.append(",  minimum optional methods required: ").append(value.getMinOptionalRequired());
+        }
         return out.toString();
     }
 }

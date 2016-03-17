@@ -24,6 +24,7 @@ package password.pwm.http.filter;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
@@ -153,7 +154,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
 
         // check status of oauth expiration
-        if (pwmSession.getLoginInfoBean().getOauthExpiration() != null) {
+        if (pwmSession.getLoginInfoBean().getOauthExp() != null) {
             if (OAuthConsumerServlet.checkOAuthExpiration(pwmRequest)) {
                 pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,"oauth access token has expired"));
                 return;
@@ -161,7 +162,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         }
         handleAuthenticationCookie(pwmRequest);
 
-        if (forceRequiredRedirects(pwmRequest)) {
+        if (forceRequiredRedirects(pwmRequest) == ProcessStatus.Halt) {
             return;
         }
 
@@ -174,11 +175,11 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             return;
         }
 
-        if (pwmRequest.getPwmSession().getLoginInfoBean().isAuthRecordCookieSet()) {
+        if (pwmRequest.getPwmSession().getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.authRecordSet)) {
             return;
         }
 
-        pwmRequest.getPwmSession().getLoginInfoBean().setAuthRecordCookieSet(true);
+        pwmRequest.getPwmSession().getLoginInfoBean().setFlag(LoginInfoBean.LoginFlag.authRecordSet);
 
         final String cookieName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_AUTHRECORD_NAME);
         if (cookieName == null || cookieName.isEmpty()) {
@@ -232,52 +233,10 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
-        boolean bypassSSOAuth = false;
-        {
-            final String ssoBypassParamName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_SSO_ENABLE);
-            if (pwmRequest.hasParameter(ssoBypassParamName) && !pwmRequest.readParameterAsBoolean(ssoBypassParamName)) {
-                bypassSSOAuth = true;
-                LOGGER.trace(pwmRequest, "bypassing sso authentication due to parameter " + pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_SSO_ENABLE) + "=true");
-            }
-        }
-
-        if (!bypassSSOAuth) {
-            final Set<AuthenticationMethod> authenticationMethods = new HashSet<>(Arrays.asList(AuthenticationMethod.values()));
-            {
-                final String casUrl = pwmApplication.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
-                if (casUrl == null || casUrl.trim().isEmpty()) {
-                    authenticationMethods.remove(AuthenticationMethod.CAS);
-                }
-            }
-            for (final AuthenticationMethod authenticationMethod : authenticationMethods) {
-                if (!pwmRequest.isAuthenticated()) {
-                    try {
-                        final Class<? extends PwmHttpFilterAuthenticationProvider> clazz = authenticationMethod.getImplementationClass();
-                        final PwmHttpFilterAuthenticationProvider filterAuthenticationProvider = clazz.newInstance();
-                        filterAuthenticationProvider.attemptAuthentication(pwmRequest);
-
-                        if (pwmRequest.isAuthenticated()) {
-                            LOGGER.trace(pwmRequest, "authentication provided by method " + clazz.getName());
-                        }
-
-                        if (filterAuthenticationProvider.hasRedirectedResponse()) {
-                            LOGGER.trace(pwmRequest, "authentication provider " + clazz.getName() + " has issued a redirect, halting authentication process");
-                            return;
-                        }
-
-                    } catch (Exception e) {
-                        final ErrorInformation errorInformation;
-                        if (e instanceof PwmException) {
-                            final String erorrMessage = "error during " + authenticationMethod + " authentication attempt: " + e.getMessage();
-                            errorInformation = new ErrorInformation(((PwmException)e).getError(), erorrMessage);
-                        } else {
-                            errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage());
-
-                        }
-                        LOGGER.error(pwmRequest, errorInformation);
-                        pwmRequest.respondWithError(errorInformation);
-                    }
-                }
+        if (!pwmRequest.getPwmSession().getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.noSso)) {
+            final ProcessStatus authenticationProcessStatus = attemptAuthenticationMethods(pwmRequest);
+            if (authenticationProcessStatus == ProcessStatus.Halt) {
+                return;
             }
         }
 
@@ -316,8 +275,50 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         LoginServlet.redirectToLoginServlet(pwmRequest);
     }
 
+    public static ProcessStatus attemptAuthenticationMethods(final PwmRequest pwmRequest) throws IOException, ServletException {
+        final Set<AuthenticationMethod> authenticationMethods = new HashSet<>(Arrays.asList(AuthenticationMethod.values()));
+        {
+            final String casUrl = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
+            if (casUrl == null || casUrl.trim().isEmpty()) {
+                authenticationMethods.remove(AuthenticationMethod.CAS);
+            }
+        }
+        for (final AuthenticationMethod authenticationMethod : authenticationMethods) {
+            if (!pwmRequest.isAuthenticated()) {
+                try {
+                    final Class<? extends PwmHttpFilterAuthenticationProvider> clazz = authenticationMethod.getImplementationClass();
+                    final PwmHttpFilterAuthenticationProvider filterAuthenticationProvider = clazz.newInstance();
+                    filterAuthenticationProvider.attemptAuthentication(pwmRequest);
 
-    public static boolean forceRequiredRedirects(
+                    if (pwmRequest.isAuthenticated()) {
+                        LOGGER.trace(pwmRequest, "authentication provided by method " + clazz.getName());
+                    }
+
+                    if (filterAuthenticationProvider.hasRedirectedResponse()) {
+                        LOGGER.trace(pwmRequest, "authentication provider " + clazz.getName() + " has issued a redirect, halting authentication process");
+                        return ProcessStatus.Halt;
+                    }
+
+                } catch (Exception e) {
+                    final ErrorInformation errorInformation;
+                    if (e instanceof PwmException) {
+                        final String erorrMessage = "error during " + authenticationMethod + " authentication attempt: " + e.getMessage();
+                        errorInformation = new ErrorInformation(((PwmException) e).getError(), erorrMessage);
+                    } else {
+                        errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage());
+
+                    }
+                    LOGGER.error(pwmRequest, errorInformation);
+                    pwmRequest.respondWithError(errorInformation);
+                    return ProcessStatus.Halt;
+                }
+            }
+        }
+        return ProcessStatus.Continue;
+    }
+
+
+    public static ProcessStatus forceRequiredRedirects(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException
@@ -328,7 +329,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
 
         if (pwmURL.isResourceURL() || pwmURL.isConfigManagerURL() || pwmURL.isLogoutURL() || pwmURL.isLoginServlet()) {
-            return false;
+            return ProcessStatus.Continue;
         }
 
         // high priority pw change
@@ -340,9 +341,9 @@ public class AuthenticationFilter extends AbstractPwmFilter {
                                 + PwmConstants.URL_PREFIX_PUBLIC
                                 + "/"
                                 + PwmServletDefinition.ChangePassword.servletUrlName());
-                return true;
+                return ProcessStatus.Halt;
             } else {
-                return false;
+                return ProcessStatus.Continue;
             }
         }
 
@@ -351,7 +352,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             final ChangePasswordBean cpb = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ChangePasswordBean.class);
             final PasswordChangeProgressChecker.ProgressTracker progressTracker = cpb.getChangeProgressTracker();
             if (progressTracker != null && progressTracker.getBeginTime() != null) {
-                return false;
+                return ProcessStatus.Continue;
             }
         }
 
@@ -360,19 +361,19 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             if (!pwmURL.isSetupResponsesURL()) {
                 LOGGER.debug(pwmRequest, "user is required to setup responses, redirecting to setup responses servlet");
                 pwmRequest.sendRedirect(PwmServletDefinition.SetupResponses);
-                return true;
+                return ProcessStatus.Halt;
             } {
-                return false;
+                return ProcessStatus.Continue;
             }
         }
 
-        if (uiBean.isRequiresOtpConfig() && !pwmSession.getSessionStateBean().isSkippedOtpSetup()) {
+        if (uiBean.isRequiresOtpConfig() && !pwmSession.getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipOtp)) {
             if (!pwmURL.isSetupOtpSecretURL()) {
                 LOGGER.debug(pwmRequest, "user is required to setup OTP configuration, redirecting to OTP setup page");
                 pwmRequest.sendRedirect(PwmServletDefinition.SetupOtp);
-                return true;
+                return ProcessStatus.Halt;
             } else {
-                return false;
+                return ProcessStatus.Continue;
             }
         }
 
@@ -380,23 +381,23 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             if (!pwmURL.isProfileUpdateURL()) {
                 LOGGER.debug(pwmRequest, "user is required to update profile, redirecting to profile update servlet");
                 pwmRequest.sendRedirect(PwmServletDefinition.UpdateProfile);
-                return true;
+                return ProcessStatus.Halt;
             } else {
-                return false;
+                return ProcessStatus.Continue;
             }
         }
 
-        if (uiBean.isRequiresNewPassword() && !pwmSession.getSessionStateBean().isSkippedRequireNewPassword()) {
+        if (uiBean.isRequiresNewPassword() && !pwmSession.getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipNewPw)) {
             if (!pwmURL.isChangePasswordURL()) {
                 LOGGER.debug(pwmRequest, "user password requires changing, redirecting to change password servlet");
                 pwmRequest.sendRedirect(PwmServletDefinition.ChangePassword);
-                return true;
+                return ProcessStatus.Halt;
             } else {
-                return false;
+                return ProcessStatus.Continue;
             }
         }
 
-        return false;
+        return ProcessStatus.Continue;
     }
 
     enum AuthenticationMethod {

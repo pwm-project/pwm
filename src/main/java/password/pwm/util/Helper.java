@@ -263,7 +263,7 @@ public class
         final FormNonce formID = new FormNonce(
                 pwmRequest.getPwmSession().getLoginInfoBean().getGuid(),
                 new Date(),
-                pwmRequest.getPwmSession().getLoginInfoBean().getPostReqCounter()
+                pwmRequest.getPwmSession().getLoginInfoBean().getReqCounter()
         );
         return pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(formID);
     }

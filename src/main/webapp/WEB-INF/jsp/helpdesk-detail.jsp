@@ -511,7 +511,7 @@
                         <% } %>
                     </div>
                     <br/>
-                    <div class="footnote"><span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></span></div>
+                    <div class="footnote"><div class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></div></div>
                 </td>
                 <td style="border:0; width: 200px; max-width:200px; text-align: left; vertical-align: top">
                     <div style="border:0; margin-top: 25px; margin-left: 5px">

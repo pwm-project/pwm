@@ -109,7 +109,7 @@ class ResourceServletConfiguration {
                 customFileBundle.clear();
                 customFileBundle.putAll(customFiles);
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error("error assembling memory file map zip bundle: " + e.getMessage());
             }
         }
 

@@ -86,7 +86,7 @@ public class Validator {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_ENABLE_REQUEST_SEQUENCE)) {
-            final String requestVerificationKey = String.valueOf(pwmSession.getLoginInfoBean().getPostReqCounter());
+            final String requestVerificationKey = String.valueOf(pwmSession.getLoginInfoBean().getReqCounter());
 
             final String submittedPwmFormID = pwmRequest.readParameterAsString(PwmConstants.PARAM_FORM_ID);
             if (submittedPwmFormID == null || submittedPwmFormID.isEmpty()) {

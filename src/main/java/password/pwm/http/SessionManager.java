@@ -207,11 +207,11 @@ public class SessionManager implements Serializable {
 
     public void incrementRequestCounterKey() {
         if (this.pwmSession != null) {
-            this.pwmSession.getLoginInfoBean().setPostReqCounter(
-                    this.pwmSession.getLoginInfoBean().getPostReqCounter()+1)
+            this.pwmSession.getLoginInfoBean().setReqCounter(
+                    this.pwmSession.getLoginInfoBean().getReqCounter() + 1)
             ;
 
-            LOGGER.trace(pwmSession.getLabel(), "incremented request counter to " + this.pwmSession.getLoginInfoBean().getPostReqCounter());
+            LOGGER.trace(pwmSession.getLabel(), "incremented request counter to " + this.pwmSession.getLoginInfoBean().getReqCounter());
         }
     }
 

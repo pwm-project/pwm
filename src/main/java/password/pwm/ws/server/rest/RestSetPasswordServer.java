@@ -37,6 +37,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -52,6 +53,8 @@ import java.io.Serializable;
 
 @Path("/setpassword")
 public class RestSetPasswordServer extends AbstractRestServer {
+
+    public static final PwmLogger LOGGER = PwmLogger.forClass(RestSetPasswordServer.class);
 
     public static class JsonInputData implements Serializable
     {
@@ -195,10 +198,12 @@ public class RestSetPasswordServer extends AbstractRestServer {
                     restRequestBean.getPwmApplication().getConfig()));
             return restResultBean.asJsonResponse();
         } catch (PwmException e) {
+            LOGGER.error("error during set password REST operation: " + e.getMessage());
             return RestResultBean.fromError(e.getErrorInformation(),restRequestBean).asJsonResponse();
         } catch (Exception e) {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
+            LOGGER.error("error during set password REST operation: " + e.getMessage(),e);
             return RestResultBean.fromError(errorInformation,restRequestBean).asJsonResponse();
         }
     }

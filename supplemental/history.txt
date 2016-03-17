@@ -9,6 +9,7 @@ http://code.google.com/p/pwm
 [ ~ partial implementation   ]
 [----------------------------]
 
+[this file is no longer maintained]
 
 v1.8.0
 ---

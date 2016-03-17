@@ -29,7 +29,6 @@ import password.pwm.config.value.ValueFactory;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
-import password.pwm.i18n.ConfigEditor;
 import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.StringUtil;
@@ -1266,7 +1265,7 @@ public enum PwmSetting {
     public String getLabel(final Locale locale) {
         final String key = "Setting_Label_" + this.getKey();
         try {
-            return LocaleHelper.getLocalizedMessage(locale, key, null, ConfigEditor.class);
+            return LocaleHelper.getLocalizedMessage(locale, key, null, password.pwm.i18n.PwmSetting.class);
         } catch (MissingResourceException e) {
             return "MISSING_SETTING_LABEL-" + key;
         }
@@ -1275,7 +1274,7 @@ public enum PwmSetting {
     public String getDescription(final Locale locale) {
         final String key = "Setting_Description_" + this.getKey();
         try {
-            final String storedText = LocaleHelper.getLocalizedMessage(locale, key, null, ConfigEditor.class);
+            final String storedText = LocaleHelper.getLocalizedMessage(locale, key, null, password.pwm.i18n.PwmSetting.class);
             final MacroMachine macroMachine = MacroMachine.forStatic();
             return macroMachine.expandMacros(storedText);
         } catch (MissingResourceException e) {
@@ -1376,7 +1375,7 @@ public enum PwmSetting {
     public static Map<SettingStat, Object> getStats() {
         final Map<SettingStat,Object> returnObj = new LinkedHashMap<>();
         {
-            returnObj.put(SettingStat.Total,PwmSetting.values().length);
+            returnObj.put(SettingStat.Total, password.pwm.config.PwmSetting.values().length);
         }
         {
             int hasProfile = 0;

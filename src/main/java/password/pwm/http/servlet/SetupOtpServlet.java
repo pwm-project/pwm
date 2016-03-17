@@ -25,6 +25,7 @@ package password.pwm.http.servlet;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import net.glxn.qrgen.QRCode;
 import password.pwm.*;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
@@ -278,7 +279,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        pwmSession.getSessionStateBean().setSkippedOtpSetup(true);
+        pwmSession.getLoginInfoBean().setFlag(LoginInfoBean.LoginFlag.skipOtp);
         pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, SetupOtpBean.class);
 
         pwmRequest.sendRedirectToContinue();

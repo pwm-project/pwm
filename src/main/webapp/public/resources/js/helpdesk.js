@@ -253,7 +253,7 @@ PWM_HELPDESK.loadSearchDetails = function(userKey) {
             if (PWM_MAIN.Preferences.readSessionStorage(PREF_KEY_VERIFICATION_STATE)) {
                 contents[PARAM_VERIFICATION_STATE] = PWM_MAIN.Preferences.readSessionStorage(PREF_KEY_VERIFICATION_STATE);
             }
-            PWM_MAIN.submitPostAction('helpdesk','detail',contents);
+            PWM_MAIN.submitPostAction(window.location.href,'detail',contents);
         }});
     };
 
@@ -294,7 +294,10 @@ PWM_HELPDESK.showRecentVerifications = function() {
                 html += PWM_MAIN.showString('Display_SearchResultsNone');
             } else {
                 html += '<table>';
-                html += '<tr><td class="title">Profile</td><td class="title">Username</td><td class="title">Time</td><td class="title">Method</td>';
+                html += '<tr><td class="title">' + PWM_MAIN.showString('Field_LdapProfile') + '</td><td class="title">'
+                    + PWM_MAIN.showString('Field_Username') + '</td><td class="title">'
+                    + PWM_MAIN.showString('Field_DateTime') + '</td><td class="title">'
+                    + PWM_MAIN.showString('Field_Method') + '</td>';
                 for (var i in records) {
                     var record = records[i];
                     html += '<tr>';
@@ -522,7 +525,7 @@ PWM_HELPDESK.sendVerificationToken = function(userKey, methods) {
     }
     if (PWM_MAIN.JSLibrary.arrayContains(methods,'OTP')) {
         dialogText += '<br/><br/><button class="btn" type="button" name="otpChoiceButton" id="otpChoiceButton">'
-        + '<span class="btn-icon pwm-icon pwm-icon-qrcode"></span>' + PWM_MAIN.showString('Button_OTP') + '</button>';
+            + '<span class="btn-icon pwm-icon pwm-icon-qrcode"></span>' + PWM_MAIN.showString('Button_OTP') + '</button>';
     }
     dialogText += '</div>';
 
@@ -634,11 +637,8 @@ PWM_HELPDESK.initPage = function() {
 };
 
 PWM_HELPDESK.refreshDetailPage = function() {
-    PWM_MAIN.showWaitDialog({loadFunction:function(){
-        setTimeout(function(){
-            PWM_MAIN.submitPostAction('helpdesk', 'detail', {userKey: PWM_VAR['helpdesk_obfuscatedDN']});
-        },1000);
-    }});
+    var userKey = PWM_VAR['helpdesk_obfuscatedDN'];
+    PWM_HELPDESK.loadSearchDetails(userKey);
 };
 
 PWM_HELPDESK.unlockIntruder = function() {

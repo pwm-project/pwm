@@ -64,5 +64,4 @@ public class HelpdeskProfile extends AbstractProfile implements Profile {
     public Collection<IdentityVerificationMethod> readRequiredVerificationMethods() {
         return readVerificationMethods(PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.required);
     }
-
 }
