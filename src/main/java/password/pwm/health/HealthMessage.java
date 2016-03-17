@@ -56,7 +56,7 @@ public enum HealthMessage {
     Config_UsingLocalDBResponseStorage      (HealthStatus.CAUTION,  HealthTopic.Configuration),
     Config_WeakPassword                     (HealthStatus.CONFIG,   HealthTopic.Configuration),
     Config_LDAPUnsecure                     (HealthStatus.CAUTION,  HealthTopic.Configuration),
-    Config_ConfigMode                       (HealthStatus.CAUTION,  HealthTopic.Configuration),
+    Config_ConfigMode                       (HealthStatus.WARN,     HealthTopic.Configuration),
     Config_MissingDB                        (HealthStatus.CAUTION,  HealthTopic.Configuration),
     Config_MissingLDAPResponseAttr          (HealthStatus.CAUTION,  HealthTopic.Configuration),
     Config_URLNotSecure                     (HealthStatus.CAUTION,  HealthTopic.Configuration),

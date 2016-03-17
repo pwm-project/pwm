@@ -233,7 +233,8 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
-        if (!pwmRequest.getPwmSession().getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.noSso)) {
+        final boolean bypassSso = pwmRequest.getPwmSession().getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.noSso);
+        if (!bypassSso && pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.RUNNING) {
             final ProcessStatus authenticationProcessStatus = attemptAuthenticationMethods(pwmRequest);
             if (authenticationProcessStatus == ProcessStatus.Halt) {
                 return;
@@ -329,6 +330,10 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
 
         if (pwmURL.isResourceURL() || pwmURL.isConfigManagerURL() || pwmURL.isLogoutURL() || pwmURL.isLoginServlet()) {
+            return ProcessStatus.Continue;
+        }
+
+        if (pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING) {
             return ProcessStatus.Continue;
         }
 
