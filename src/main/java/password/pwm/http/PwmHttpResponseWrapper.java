@@ -56,7 +56,7 @@ public class PwmHttpResponseWrapper {
         String toStringPath(final HttpServletRequest httpServletRequest) {
             switch (this) {
                 case Application:
-                    return httpServletRequest.getServletContext().getContextPath();
+                    return httpServletRequest.getServletContext().getContextPath() + "/";
 
                 case Private:
                     return httpServletRequest.getServletContext().getContextPath() + PwmConstants.URL_PREFIX_PRIVATE;

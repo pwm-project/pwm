@@ -37,8 +37,8 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.HelpdeskUIMode;
-import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.IdentityVerificationMethod;
+import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.error.*;
 import password.pwm.http.HttpMethod;
@@ -132,7 +132,6 @@ public class HelpdeskServlet extends AbstractPwmServlet {
     protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
         if (!pwmRequest.isAuthenticated()) {
@@ -688,8 +687,8 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         }
         final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication());
 
-        if (!helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_OTP_VERIFY)) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, "password unlock request, but helpdesk otp verify is not enabled");
+        if (!helpdeskProfile.readOptionalVerificationMethods().contains(IdentityVerificationMethod.OTP)) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, "password otp verification request, but otp verify is not enabled");
             LOGGER.error(pwmRequest, errorInformation);
             pwmRequest.respondWithError(errorInformation);
             return;
@@ -1069,11 +1068,11 @@ public class HelpdeskServlet extends AbstractPwmServlet {
             return true;
         }
         for (final IdentityVerificationMethod method : requiredMethods) {
-            if (!verificationStateBean.hasRecord(userIdentity, method)) {
-                return false;
+            if (verificationStateBean.hasRecord(userIdentity, method)) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     private void restShowVerifications(final PwmRequest pwmRequest)

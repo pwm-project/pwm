@@ -196,7 +196,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         if (pwmRequest.getPwmSession().getUserInfoBean().getPasswordState().isWarnPeriod()) {
             final String warnResponse = pwmRequest.readParameterAsString("warnResponse");
             if ("skip".equalsIgnoreCase(warnResponse)) {
-                pwmRequest.getPwmSession().getSessionStateBean().setSkippedRequirePassword(true);
+                pwmRequest.getPwmSession().getLoginInfoBean().setFlag(LoginInfoBean.LoginFlag.skipNewPw);
                 pwmRequest.sendRedirectToContinue();
             } else if ("change".equalsIgnoreCase(warnResponse)) {
                 changePasswordBean.setWarnPassed(true);
@@ -654,7 +654,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             return false;
         }
 
-        if (pwmRequest.getPwmSession().getSessionStateBean().isSkippedRequireNewPassword()) {
+        if (pwmRequest.getPwmSession().getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipNewPw)) {
             return false;
         }
 
@@ -662,7 +662,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             return false;
         }
 
-        if (pwmRequest.getPwmSession().getLoginInfoBean().getFlags().contains(AuthenticationType.AUTH_FROM_PUBLIC_MODULE)) {
+        if (pwmRequest.getPwmSession().getLoginInfoBean().getAuthFlags().contains(AuthenticationType.AUTH_FROM_PUBLIC_MODULE)) {
             return false;
         }
 

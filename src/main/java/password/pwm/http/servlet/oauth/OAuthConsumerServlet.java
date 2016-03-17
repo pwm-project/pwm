@@ -289,7 +289,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         }
 
         final LoginInfoBean loginInfoBean = pwmRequest.getPwmSession().getLoginInfoBean();
-        final Date expirationDate = loginInfoBean.getOauthExpiration();
+        final Date expirationDate = loginInfoBean.getOauthExp();
 
         if (expirationDate == null || (new Date()).before(expirationDate)) {
             //not expired
@@ -301,13 +301,13 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         final OAuthSettings settings = OAuthSettings.fromConfiguration(pwmRequest.getConfig());
         try {
             OAuthResolveResults resolveResults = makeOAuthRefreshRequest(pwmRequest, settings,
-                    loginInfoBean.getOauthRefreshToken());
+                    loginInfoBean.getOauthRefToken());
             if (resolveResults != null) {
                 if (resolveResults.getExpiresSeconds() > 0) {
                     final Date accessTokenExpirationDate = new Date(System.currentTimeMillis() + 1000 * resolveResults.getExpiresSeconds());
                     LOGGER.trace(pwmRequest, "noted oauth access token expiration at timestamp " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(accessTokenExpirationDate));
-                    loginInfoBean.setOauthExpiration(accessTokenExpirationDate);
-                    loginInfoBean.setOauthRefreshToken(resolveResults.getRefreshToken());
+                    loginInfoBean.setOauthExp(accessTokenExpirationDate);
+                    loginInfoBean.setOauthRefToken(resolveResults.getRefreshToken());
                     return false;
                 }
             }

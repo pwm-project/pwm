@@ -27,6 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SessionVerificationMode;
@@ -72,16 +73,11 @@ public class SessionFilter extends AbstractPwmFilter {
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        boolean continueFilter = true;
-        {
-            final PwmURL pwmURL = pwmRequest.getURL();
-            if (!pwmURL.isWebServiceURL() && !pwmURL.isResourceURL()) {
-                continueFilter = handleStandardRequestOperations(pwmRequest);
+        final PwmURL pwmURL = pwmRequest.getURL();
+        if (!pwmURL.isWebServiceURL() && !pwmURL.isResourceURL()) {
+            if (handleStandardRequestOperations(pwmRequest) == ProcessStatus.Halt) {
+                return;
             }
-        }
-
-        if (!continueFilter) {
-            return;
         }
 
         try {
@@ -105,7 +101,7 @@ public class SessionFilter extends AbstractPwmFilter {
         }
     }
 
-    private boolean handleStandardRequestOperations(
+    private ProcessStatus handleStandardRequestOperations(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException
@@ -147,7 +143,7 @@ public class SessionFilter extends AbstractPwmFilter {
             LOGGER.warn("invalidating session due to dirty page leave time greater then configured timeout");
             pwmRequest.invalidateSession();
             resp.sendRedirect(pwmRequest.getHttpServletRequest().getRequestURI());
-            return false;
+            return ProcessStatus.Halt;
         }
 
         //override session locale due to parameter
@@ -156,10 +152,13 @@ public class SessionFilter extends AbstractPwmFilter {
         //set the session's theme
         handleThemeParam(pwmRequest);
 
+        //check the sso override flag
+        handleSsoOverrideParam(pwmRequest);
+
         // make sure connection is secure.
         if (config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS) && !pwmRequest.getHttpServletRequest().isSecure()) {
             pwmRequest.respondWithError(PwmError.ERROR_SECURE_REQUEST_REQUIRED.toInfo());
-            return false;
+            return ProcessStatus.Halt;
         }
 
         //check for session verification failure
@@ -170,8 +169,8 @@ public class SessionFilter extends AbstractPwmFilter {
             if (mode == SessionVerificationMode.OFF) {
                 ssBean.setSessionVerified(true);
             } else {
-                if (verifySession(pwmRequest, mode)) {
-                    return false;
+                if (verifySession(pwmRequest, mode) == ProcessStatus.Halt) {
+                    return ProcessStatus.Halt;
                 }
             }
         }
@@ -184,7 +183,7 @@ public class SessionFilter extends AbstractPwmFilter {
                 } catch (PwmOperationalException e) {
                     LOGGER.error(pwmRequest, e.getErrorInformation());
                     pwmRequest.respondWithError(e.getErrorInformation());
-                    return false;
+                    return ProcessStatus.Halt;
                 }
                 ssBean.setForwardURL(forwardURL);
                 LOGGER.debug(pwmRequest, "forwardURL parameter detected in request, setting session forward url to " + forwardURL);
@@ -200,7 +199,7 @@ public class SessionFilter extends AbstractPwmFilter {
                 } catch (PwmOperationalException e) {
                     LOGGER.error(pwmRequest, e.getErrorInformation());
                     pwmRequest.respondWithError(e.getErrorInformation());
-                    return false;
+                    return ProcessStatus.Halt;
                 }
                 ssBean.setLogoutURL(logoutURL);
                 LOGGER.debug(pwmRequest, "logoutURL parameter detected in request, setting session logout url to " + logoutURL);
@@ -230,7 +229,7 @@ public class SessionFilter extends AbstractPwmFilter {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.HTTP_REQUESTS);
         }
 
-        return true;
+        return ProcessStatus.Continue;
     }
 
     public void destroy() {
@@ -239,7 +238,7 @@ public class SessionFilter extends AbstractPwmFilter {
     /**
      * Attempt to determine if user agent is able to track sessions (either via url rewriting or cookies).
      */
-    private static boolean verifySession(
+    private static ProcessStatus verifySession(
             final PwmRequest pwmRequest,
             final SessionVerificationMode mode
     )
@@ -250,11 +249,11 @@ public class SessionFilter extends AbstractPwmFilter {
 
         if (!pwmRequest.getMethod().isIdempotent() && pwmRequest.hasParameter(PwmConstants.PARAM_FORM_ID)) {
             LOGGER.debug(pwmRequest,"session is unvalidated but can not be validated during a " + pwmRequest.getMethod().toString() + " request, will allow");
-            return false;
+            return ProcessStatus.Continue;
         }
 
         if (pwmRequest.getURL().isCommandServletURL()) {
-            return false;
+            return ProcessStatus.Continue;
         }
 
         final String verificationParamName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_SESSION_VERIFICATION);
@@ -274,7 +273,7 @@ public class SessionFilter extends AbstractPwmFilter {
             } else {
                 pwmResponse.sendRedirect(returnURL);
             }
-            return true;
+            return ProcessStatus.Halt;
         }
 
         // else, request has a key, so investigate.
@@ -285,7 +284,7 @@ public class SessionFilter extends AbstractPwmFilter {
             LOGGER.trace(pwmRequest, "session validated, redirecting to original request url: " + returnURL);
             ssBean.setSessionVerified(true);
             pwmRequest.getPwmResponse().sendRedirect(returnURL);
-            return true;
+            return ProcessStatus.Halt;
         }
 
         // user's session is messed up.  send to error page.
@@ -293,7 +292,7 @@ public class SessionFilter extends AbstractPwmFilter {
         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION, errorMsg);
         LOGGER.error(pwmRequest, errorInformation);
         pwmRequest.respondWithError(errorInformation, true);
-        return true;
+        return ProcessStatus.Halt;
     }
 
     private static String figureValidationURL(final PwmRequest pwmRequest, final String validationKey) {
@@ -399,6 +398,24 @@ public class SessionFilter extends AbstractPwmFilter {
                         pwmRequest.getPwmResponse().writeCookie(themeCookieName, themeReqParameter, maxAge, PwmHttpResponseWrapper.CookiePath.Application);
                     }
                 }
+            }
+        }
+    }
+
+    private static void handleSsoOverrideParam(
+            final PwmRequest pwmRequest
+    )
+            throws PwmUnrecoverableException
+    {
+
+        final String ssoOverrideParameterName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_SSO_OVERRIDE);
+        if (pwmRequest.hasParameter(ssoOverrideParameterName)) {
+            if (pwmRequest.readParameterAsBoolean(ssoOverrideParameterName)) {
+                LOGGER.trace(pwmRequest, "enabling sso authentication due to parameter " + ssoOverrideParameterName + "=" + pwmRequest.readParameterAsString(ssoOverrideParameterName));
+                pwmRequest.getPwmSession().getLoginInfoBean().removeFlag(LoginInfoBean.LoginFlag.noSso);
+            } else {
+                LOGGER.trace(pwmRequest, "disabling sso authentication due to parameter " + ssoOverrideParameterName + "=" + pwmRequest.readParameterAsString(ssoOverrideParameterName));
+                pwmRequest.getPwmSession().getLoginInfoBean().setFlag(LoginInfoBean.LoginFlag.noSso);
             }
         }
     }

@@ -145,7 +145,7 @@ class CryptoRequestLoginImpl implements SessionLoginProvider {
                             remoteLoginCookie.getUserCurrentPassword()
                     );
                 }
-                remoteLoginCookie.getFlags().add(AuthenticationType.AUTH_FROM_REQ_COOKIE);
+                remoteLoginCookie.getAuthFlags().add(AuthenticationType.AUTH_FROM_REQ_COOKIE);
                 LOGGER.debug(pwmRequest, "logged in using encrypted request cookie = " + JsonUtil.serialize(remoteLoginCookie));
             } catch (Exception e) {
                 final String errorMsg = "unexpected error reading session cookie: " + e.getMessage();

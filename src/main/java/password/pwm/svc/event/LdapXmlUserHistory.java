@@ -37,6 +37,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
@@ -111,8 +112,17 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
         // read current value;
         final StoredHistory storedHistory;
         final ConfigObjectRecord theCor;
+        final List corList;
         try {
-            final List corList = ConfigObjectRecord.readRecordFromLDAP(theUser, corAttribute, corRecordIdentifer, null, null);
+            corList = ConfigObjectRecord.readRecordFromLDAP(theUser, corAttribute, corRecordIdentifer, null, null);
+        } catch (Exception e) {
+            final String errorMsg = "error reading LDAP user event history for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            LOGGER.error(errorInformation.toDebugStr(),e);
+            throw new PwmUnrecoverableException(errorInformation, e);
+        }
+
+        try {
             if (!corList.isEmpty()) {
                 theCor = (ConfigObjectRecord) corList.get(0);
             } else {
@@ -120,7 +130,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             }
 
             storedHistory = StoredHistory.fromXml(theCor.getPayload());
-        } catch (ChaiOperationException e) {
+        } catch (Exception e) {
             LOGGER.error("ldap error writing user event log: " + e.getMessage());
             return;
         }

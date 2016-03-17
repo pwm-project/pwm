@@ -492,7 +492,6 @@ public class PasswordUtility {
                 proxiedUser.expirePassword();
             } catch (ChaiOperationException e) {
                 LOGGER.warn(pwmSession, "error while forcing password expiration for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage());
-                e.printStackTrace();
             }
         }
 

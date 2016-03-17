@@ -31,18 +31,27 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
+
+/**
+ * This bean is synchronized across application sessions by {@link password.pwm.http.state.SessionLoginProvider}
+ */
 public class LoginInfoBean implements Serializable {
 
-    private UserIdentity userIdentity;
-    private boolean authenticated;
+    public enum LoginFlag {
+        skipOtp,
+        skipNewPw,
+        noSso, // bypass sso
+        authRecordSet,
+    }
+
+    private UserIdentity user;
+    private boolean auth;
     private PasswordData pw;
 
     private AuthenticationType type = AuthenticationType.UNAUTHENTICATED;
-    private List<AuthenticationType> flags = new ArrayList<>();
+    private List<AuthenticationType> authFlags = new ArrayList<>();
     private PwmAuthenticationSource authSource;
     private Date authTime;
     private Date reqTime;
@@ -51,11 +60,12 @@ public class LoginInfoBean implements Serializable {
 
     private BasicAuthInfo basicAuth;
 
-    private Date oauthExpiration;
-    private transient String oauthRefreshToken;
+    private Date oauthExp;
+    private String oauthRefToken;
     
-    private boolean authRecordCookieSet;
-    private int postReqCounter;
+    private int reqCounter;
+
+    private Set<LoginFlag> loginFlags = new HashSet<>();
 
     public Date getAuthTime()
     {
@@ -97,36 +107,28 @@ public class LoginInfoBean implements Serializable {
         this.basicAuth = basicAuth;
     }
 
-    public Date getOauthExpiration()
+    public Date getOauthExp()
     {
-        return oauthExpiration;
+        return oauthExp;
     }
 
-    public void setOauthExpiration(Date oauthExpiration)
+    public void setOauthExp(Date oauthExp)
     {
-        this.oauthExpiration = oauthExpiration;
+        this.oauthExp = oauthExp;
     }
 
-    public String getOauthRefreshToken()
+    public String getOauthRefToken()
     {
-        return oauthRefreshToken;
+        return oauthRefToken;
     }
 
-    public void setOauthRefreshToken(String oauthRefreshToken)
+    public void setOauthRefToken(String oauthRefToken)
     {
-        this.oauthRefreshToken = oauthRefreshToken;
+        this.oauthRefToken = oauthRefToken;
     }
 
-    public boolean isAuthRecordCookieSet() {
-        return authRecordCookieSet;
-    }
-
-    public void setAuthRecordCookieSet(boolean authRecordCookieSet) {
-        this.authRecordCookieSet = authRecordCookieSet;
-    }
-
-    public List<AuthenticationType> getFlags() {
-        return flags;
+    public List<AuthenticationType> getAuthFlags() {
+        return authFlags;
     }
 
     public PwmAuthenticationSource getAuthSource() {
@@ -145,28 +147,28 @@ public class LoginInfoBean implements Serializable {
         this.guid = guid;
     }
 
-    public int getPostReqCounter() {
-        return postReqCounter;
+    public int getReqCounter() {
+        return reqCounter;
     }
 
-    public void setPostReqCounter(int postReqCounter) {
-        this.postReqCounter = postReqCounter;
+    public void setReqCounter(int reqCounter) {
+        this.reqCounter = reqCounter;
     }
 
     public UserIdentity getUserIdentity() {
-        return userIdentity;
+        return user;
     }
 
     public void setUserIdentity(UserIdentity userIdentity) {
-        this.userIdentity = userIdentity;
+        this.user = userIdentity;
     }
 
     public boolean isAuthenticated() {
-        return authenticated;
+        return auth;
     }
 
     public void setAuthenticated(boolean authenticated) {
-        this.authenticated = authenticated;
+        this.auth = authenticated;
     }
 
     public PasswordData getPw() {
@@ -183,6 +185,18 @@ public class LoginInfoBean implements Serializable {
 
     public void setReqTime(Date reqTime) {
         this.reqTime = reqTime;
+    }
+
+    public boolean isLoginFlag(LoginFlag loginStateFlag) {
+        return loginFlags.contains(loginStateFlag);
+    }
+
+    public void setFlag(final LoginFlag loginFlag) {
+        loginFlags.add(loginFlag);
+    }
+
+    public void removeFlag(final LoginFlag loginFlag) {
+        loginFlags.remove(loginFlag);
     }
 
     public String toDebugString() throws PwmUnrecoverableException {

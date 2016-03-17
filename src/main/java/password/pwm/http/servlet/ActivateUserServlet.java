@@ -361,7 +361,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 
             //ensure a change password is triggered
             pwmSession.getLoginInfoBean().setType(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
-            pwmSession.getLoginInfoBean().getFlags().add(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
+            pwmSession.getLoginInfoBean().getAuthFlags().add(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
             pwmSession.getUserInfoBean().setRequiresNewPassword(true);
 
 

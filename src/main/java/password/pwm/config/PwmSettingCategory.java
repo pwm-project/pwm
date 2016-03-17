@@ -25,7 +25,7 @@ package password.pwm.config;
 import org.jdom2.Attribute;
 import org.jdom2.Element;
 import password.pwm.i18n.Config;
-import password.pwm.i18n.ConfigEditor;
+import password.pwm.i18n.PwmSetting;
 import password.pwm.util.LocaleHelper;
 
 import java.util.*;
@@ -142,7 +142,7 @@ public enum PwmSettingCategory {
     ;
 
     private final PwmSettingCategory parent;
-    private static final Map<PwmSettingCategory,PwmSetting> CACHE_PROFILE_SETTING = new HashMap<>();
+    private static final Map<PwmSettingCategory, password.pwm.config.PwmSetting> CACHE_PROFILE_SETTING = new HashMap<>();
     private static List<PwmSettingCategory> cached_sortedSettings;
 
     private Integer level;
@@ -161,7 +161,7 @@ public enum PwmSettingCategory {
         return this.toString();
     }
 
-    public PwmSetting getProfileSetting()
+    public password.pwm.config.PwmSetting getProfileSetting()
     {
         if (!CACHE_PROFILE_SETTING.containsKey(this)) {
             CACHE_PROFILE_SETTING.put(this, readProfileSettingFromXml());
@@ -175,12 +175,12 @@ public enum PwmSettingCategory {
 
     public String getLabel(final Locale locale) {
         final String key = "Category_Label_" + this.getKey();
-        return LocaleHelper.getLocalizedMessage(locale, key, null, ConfigEditor.class);
+        return LocaleHelper.getLocalizedMessage(locale, key, null, PwmSetting.class);
     }
 
     public String getDescription(final Locale locale) {
         final String key = "Category_Description_" + this.getKey();
-        return LocaleHelper.getLocalizedMessage(locale, key, null, ConfigEditor.class);
+        return LocaleHelper.getLocalizedMessage(locale, key, null, PwmSetting.class);
     }
 
     public int getLevel() {
@@ -246,23 +246,23 @@ public enum PwmSettingCategory {
         return returnObj;
     }
 
-    private PwmSetting readProfileSettingFromXml()
+    private password.pwm.config.PwmSetting readProfileSettingFromXml()
     {
         final Element categoryElement = PwmSettingXml.readCategoryXml(this);
         final Element profileElement = categoryElement.getChild("profile");
         if (profileElement != null) {
             final String settingKey = profileElement.getAttributeValue("setting");
             if (settingKey != null) {
-                return PwmSetting.forKey(settingKey);
+                return password.pwm.config.PwmSetting.forKey(settingKey);
             }
         }
 
         return null;
     }
 
-    public List<PwmSetting> getSettings() {
-        final List<PwmSetting> returnList = new ArrayList<>();
-        for (final PwmSetting setting : PwmSetting.values()) {
+    public List<password.pwm.config.PwmSetting> getSettings() {
+        final List<password.pwm.config.PwmSetting> returnList = new ArrayList<>();
+        for (final password.pwm.config.PwmSetting setting : password.pwm.config.PwmSetting.values()) {
             if (setting.getCategory() == this) {
                 returnList.add(setting);
             }

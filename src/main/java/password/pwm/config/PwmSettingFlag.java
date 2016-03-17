@@ -40,4 +40,6 @@ public enum PwmSettingFlag {
     Form_ShowReadOnlyOption,
     Form_ShowRequiredOption,
 
+    Verification_HideMinimumOptional,
+
 }

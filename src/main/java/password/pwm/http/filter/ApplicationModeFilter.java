@@ -41,11 +41,6 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ApplicationModeFilter.class.getName());
 
-    enum ProcessStatus {
-        Continue,
-        Halt,
-    }
-
     @Override
     public void processFilter(
             final PwmApplicationMode mode,

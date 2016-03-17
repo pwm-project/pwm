@@ -368,13 +368,12 @@ StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
     editorOptions['completeFunction'] = okAction;
     editorOptions['value'] = iteration > -1 ? PWM_VAR['clientSettingCache'][settingKey][iteration] : '';
 
-    var isLdapDN = 'ldapDNsyntax' in PWM_SETTINGS['settings'][settingKey]['flags'];
+    var isLdapDN = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'],'ldapDNsyntax');
     if (isLdapDN) {
         UILibrary.editLdapDN(okAction);
     } else {
         UILibrary.stringEditorDialog(editorOptions);
     }
-
 };
 
 StringArrayValueHandler.move = function(settingKey, moveUp, iteration) {
@@ -2775,6 +2774,8 @@ VerificationMethodHandler.draw = function(settingKey) {
     var parentDiv = 'table_setting_' + settingKey;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
+    var showMinOptional = !PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'],'Verification_HideMinimumOptional');
+
     var htmlBody = '<table class="">';
     for (var method in settingOptions) {
         var id = settingKey + '-' + method;
@@ -2784,7 +2785,10 @@ VerificationMethodHandler.draw = function(settingKey) {
         htmlBody += '<td><span id="label-' + id +'"></span></td></tr>';
     }
     htmlBody += '</table>';
-    htmlBody += '<br/><label>Minimum Optional Required <input min="0" style="width:30px;" id="input-minOptional-' + settingKey + '" type="number" value="0" class="configNumericInput""></label>';
+
+    if (showMinOptional) {
+        htmlBody += '<br/><label>Minimum Optional Required <input min="0" style="width:30px;" id="input-minOptional-' + settingKey + '" type="number" value="0" class="configNumericInput""></label>';
+    }
     parentDivElement.innerHTML = htmlBody;
     for (var method in settingOptions) {
         var id = settingKey + '-' + method;
@@ -2814,19 +2818,23 @@ VerificationMethodHandler.draw = function(settingKey) {
         }
         PWM_MAIN.getObject('input-range-' + id).value = numberValue;
     }
-    PWM_MAIN.getObject('input-minOptional-' + settingKey).value = PWM_VAR['clientSettingCache'][settingKey]['minOptionalRequired'];
-    PWM_MAIN.addEventHandler('input-minOptional-' + settingKey,'input',function(){
-        VerificationMethodHandler.updateLabels(settingKey);
-        VerificationMethodHandler.write(settingKey);
-    });
+    if (showMinOptional) {
+        PWM_MAIN.getObject('input-minOptional-' + settingKey).value = PWM_VAR['clientSettingCache'][settingKey]['minOptionalRequired'];
+        PWM_MAIN.addEventHandler('input-minOptional-' + settingKey, 'input', function () {
+            VerificationMethodHandler.updateLabels(settingKey);
+            VerificationMethodHandler.write(settingKey);
+        });
+    }
 
     VerificationMethodHandler.updateLabels(settingKey);
 };
 
 VerificationMethodHandler.write = function(settingKey) {
+    var showMinOptional = !PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'],'Verification_HideMinimumOptional');
+
     var settingOptions = PWM_SETTINGS['settings'][settingKey]['options'];
     var values = {};
-    values['minOptionalRequired'] = Number(PWM_MAIN.getObject('input-minOptional-' + settingKey).value);
+    values['minOptionalRequired'] = showMinOptional ? Number(PWM_MAIN.getObject('input-minOptional-' + settingKey).value) : 0;
     values['methodSettings'] = {};
     for (var method in settingOptions) {
         var id = settingKey + '-' + method;
@@ -2873,11 +2881,14 @@ VerificationMethodHandler.updateLabels = function(settingKey) {
         }
         PWM_MAIN.getObject('label-' + id).innerHTML = label;
     }
-    var minOptionalInput = PWM_MAIN.getObject('input-minOptional-' + settingKey);
-    minOptionalInput.max = optionalCount;
-    var currentMax = Number(minOptionalInput.value);
-    if (currentMax > optionalCount) {
-        minOptionalInput.value = optionalCount.toString();
+    var showMinOptional = !PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'],'Verification_HideMinimumOptional');
+    if (showMinOptional) {
+        var minOptionalInput = PWM_MAIN.getObject('input-minOptional-' + settingKey);
+        minOptionalInput.max = optionalCount;
+        var currentMax = Number(minOptionalInput.value);
+        if (currentMax > optionalCount) {
+            minOptionalInput.value = optionalCount.toString();
+        }
     }
 };
 

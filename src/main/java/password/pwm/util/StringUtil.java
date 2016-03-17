@@ -287,11 +287,11 @@ public abstract class StringUtil {
         return chunks.toArray(new String[numOfChunks]);
     }
 
-    public static String mapToString(final Map<String,String> map, final String keyValueSeparator, final String recordSeparator) {
+    public static String mapToString(final Map map, final String keyValueSeparator, final String recordSeparator) {
         final StringBuilder sb = new StringBuilder();
-        for (final Iterator<String> iterator = map.keySet().iterator(); iterator.hasNext(); ) {
-            final String key = iterator.next();
-            final String value = map.get(key);
+        for (final Iterator iterator = map.keySet().iterator(); iterator.hasNext(); ) {
+            final String key = iterator.next().toString();
+            final String value = map.get(key) == null ? "" : map.get(key).toString();
             if (key != null && value != null && !key.trim().isEmpty() && !value.trim().isEmpty()) {
                 sb.append(key.trim());
                 sb.append(keyValueSeparator);

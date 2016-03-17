@@ -1715,13 +1715,13 @@
     </setting>
     <setting hidden="false" key="events.user.storageMethod" level="2" required="true">
         <default>
-            <value><![CDATA[AUTO]]></value>
+            <value><![CDATA[LDAP]]></value>
         </default>
         <default template="DB">
             <value><![CDATA[DATABASE]]></value>
         </default>
         <options>
-            <option value="AUTO">Auto Configure - Database if configured, LDAP otherwise</option>
+            <!--<option value="AUTO">Auto Configure - Database if configured, LDAP otherwise</option>-->
             <option value="DATABASE">Remote Database</option>
             <option value="LDAP">LDAP</option>
         </options>
@@ -2136,6 +2136,10 @@
             <option value="SHA256_SALT">SHA-256 with Salt</option>
             <option value="SHA512_SALT">SHA-512 with Salt</option>
             <option value="PBKDF2">PBKDF2WithHmacSHA1</option>
+            <!--
+            <option value="PBKDF2_SHA256">PBKDF2WithHmacSHA256</option>
+            <option value="PBKDF2_SHA512">PBKDF2WithHmacSHA512</option>
+            -->
             <option value="BCRYPT">BCrypt</option>
             <option value="SCRYPT">SCrypt</option>
         </options>
@@ -3155,6 +3159,7 @@
         </default>
     </setting>
     <setting hidden="false" key="helpdesk.verificationMethods" level="1">
+        <flag>Verification_HideMinimumOptional</flag>
         <default>
             <value>{"methodSettings":{},"minOptionalRequired":0}</value>
         </default>

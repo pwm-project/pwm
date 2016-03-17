@@ -73,10 +73,6 @@ public class LocalSessionStateBean implements Serializable {
 
     // settings
     private int sessionVerificationKeyLength;
-
-    private boolean skippedOtpSetup;
-    private boolean skippedRequireNewPassword;
-    
     private boolean sessionIdRecycleNeeded;
 
 
@@ -267,26 +263,6 @@ public class LocalSessionStateBean implements Serializable {
 
     public void regenerateSessionVerificationKey() {
         sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(sessionVerificationKeyLength) + Long.toHexString(System.currentTimeMillis());
-    }
-
-    public boolean isSkippedOtpSetup()
-    {
-        return skippedOtpSetup;
-    }
-
-    public void setSkippedOtpSetup(boolean skippedOtpSetup)
-    {
-        this.skippedOtpSetup = skippedOtpSetup;
-    }
-
-    public boolean isSkippedRequireNewPassword()
-    {
-        return skippedRequireNewPassword;
-    }
-
-    public void setSkippedRequirePassword(boolean skippedPasswordWarn)
-    {
-        this.skippedRequireNewPassword = skippedPasswordWarn;
     }
 
     public boolean isSessionIdRecycleNeeded() {
