@@ -143,3 +143,49 @@ a:hover {
 @keyframes fadein { from { opacity:0; } to { opacity:1; } }
 @-moz-keyframes fadein { from { opacity:0 } to { opacity:1 } }
 @-webkit-keyframes fadein { from { opacity:0 } to { opacity:1 } }
+
+#header-menu-wrapper {
+    color: white;
+    text-align: right;
+}
+
+#header-menu-alert {
+    display: inline-block;
+    height: 10px;
+}
+
+#header-menu-alert::before {
+    color: #e50000;
+    content: "\f071";
+    font: 12px FontAwesome;
+}
+
+#header-username-group, #header-username {
+    display: inline-block;
+}
+
+#header-menu {
+    cursor: pointer;
+}
+
+#header-menu:only-child {
+  padding-top: 15px;
+}
+
+#header-username-caret {
+    display: inline-block;
+}
+
+#header-username-caret::after {
+    content: "\f078";
+    font: 12px FontAwesome;
+}
+
+#header-menu-icon {
+  display: inline-block;
+}
+
+#header-menu-icon::after {
+  content: "\f141";
+  font: 12px FontAwesome;
+}

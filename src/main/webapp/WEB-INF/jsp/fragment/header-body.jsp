@@ -44,7 +44,7 @@
         <div id="header-center-right">
             <div id="header-menu-wrapper">
                 <pwm:if test="<%=PwmIfTest.headerMenuIsVisible%>">
-                    <div class="header-menu">
+                    <div id="header-menu">
                     <pwm:if test="<%=PwmIfTest.healthWarningsPresent%>">
                         <div id="header-menu-alert" class="m-icon icon_m_message-error-red-fill"></div>
                     </pwm:if>
@@ -72,13 +72,11 @@
                         <pwm:if test="<%=PwmIfTest.showHome%>">
                             <a class="header-button" href="<pwm:value name="<%=PwmValue.homeURL%>"/>" id="HomeButton">
                                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon icon_m_home" title="<pwm:display key="Button_Home"/>"></span></pwm:if>
-                                <pwm:display key="Button_Home"/>
                             </a>
                         </pwm:if>
                         <pwm:if test="<%=PwmIfTest.showLogout%>">
                             <a class="header-button" href="<pwm:url url='<%=PwmServletDefinition.Logout.servletUrl()%>' addContext="true"/>" id="LogoutButton">
                                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon icon_m_signout" title="<pwm:display key="Button_Logout"/>"></span></pwm:if>
-                                <pwm:display key="Button_Logout"/>
                             </a>
                         </pwm:if>
                     </pwm:if>

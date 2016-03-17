@@ -139,17 +139,20 @@ PWM_CONFIG.closeHeaderWarningPanel = function() {
     console.log('action closeHeader');
     PWM_MAIN.setStyle('header-warning','display','none');
     PWM_MAIN.setStyle('button-openHeader','display','inherit');
-    PWM_MAIN.Preferences.writeSessionStorage('headerVisibility','hide');
 };
 
 PWM_CONFIG.openHeaderWarningPanel = function() {
     console.log('action openHeader');
-    PWM_MAIN.setStyle('header-warning','display','inherit');
-    PWM_MAIN.setStyle('button-openHeader','display','none');
-    PWM_MAIN.Preferences.writeSessionStorage('headerVisibility','show');
+
+    require(["dojo"], function(dojo){
+        var headerPosition = dojo.position('header-menu', true);
+        PWM_MAIN.setStyle('header-warning','left', headerPosition.x + 'px');
+        PWM_MAIN.setStyle('header-warning','top', headerPosition.y + headerPosition.h + 'px');
+
+        PWM_MAIN.setStyle('header-warning','display','inherit');
+        PWM_MAIN.setStyle('button-openHeader','display','none');
+    })
 };
-
-
 
 PWM_CONFIG.showString=function (key, options) {
     options = options === undefined ? {} : options;
@@ -183,11 +186,7 @@ PWM_CONFIG.showHeaderHealth = function() {
                     }
                 }
                 if (hasWarnTopics) {
-                    PWM_MAIN.addCssClass('button-openHeader','blink');
-
                     parentDiv.innerHTML = '<div id="panel-healthHeaderErrors" class="header-error"><span class="pwm-icon pwm-icon-warning"></span> ' + PWM_ADMIN.showString('Header_HealthWarningsPresent') + '</div>';
-                } else {
-                    PWM_MAIN.removeCssClass('button-openHeader','blink');
                 }
                 setTimeout(function () {
                     PWM_CONFIG.showHeaderHealth()
@@ -321,15 +320,11 @@ PWM_CONFIG.initConfigHeader = function() {
     PWM_MAIN.addEventHandler('button-openHeader','click',function(){
         PWM_CONFIG.openHeaderWarningPanel();
     });
-    PWM_MAIN.addEventHandler('header-username-group','click',function(){
+    PWM_MAIN.addEventHandler('header-menu','click',function(){
         PWM_CONFIG.openHeaderWarningPanel();
     });
 
     PWM_CONFIG.showHeaderHealth();
-
-    if (PWM_MAIN.Preferences.readSessionStorage('headerVisibility') != 'hide') {
-        PWM_CONFIG.openHeaderWarningPanel();
-    }
 
     console.log('initConfigHeader completed');
 };
