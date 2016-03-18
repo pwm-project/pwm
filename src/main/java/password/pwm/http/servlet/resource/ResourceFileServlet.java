@@ -66,6 +66,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
     public static final String RESOURCE_PATH = "/public/resources";
     public static final String THEME_CSS_PATH = "/themes/%THEME%/style.css";
     public static final String THEME_CSS_MOBILE_PATH = "/themes/%THEME%/mobileStyle.css";
+    public static final String THEME_CSS_CONFIG_PATH = "/themes/%THEME%/configStyle.css";
 
     public static final String TOKEN_THEME = "%THEME%";
     public static final String EMBED_THEME = "EMBED";
