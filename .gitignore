@@ -26,3 +26,7 @@
 /bin/
 /src/main/webapp/WEB-INF/applicationPath.lock
 /src/main/webapp/public/resources/themes/mdefault
+/src/main/webapp/public/resources/themes/netiq32
+/src/main/webapp/public/resources/themes/idm
+/src/main/webapp/public/resources/themes/mdefault
+/src/main/webapp/public/resources/themes/netiq

@@ -33,4 +33,5 @@ public enum PwmRequestFlag {
     NO_IDLE_TIMEOUT,
     NO_MOBILE_CSS,
     ALWAYS_EXPAND_MESSAGE_TEXT,
+    INCLUDE_CONFIG_CSS,
 }

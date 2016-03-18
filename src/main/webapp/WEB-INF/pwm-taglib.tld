@@ -154,7 +154,7 @@
     </tag>
     <tag>
         <name>url</name>
-        <tag-class>password.pwm.http.tag.PwmUrlTag</tag-class>
+        <tag-class>password.pwm.http.tag.url.PwmUrlTag</tag-class>
         <body-content>empty</body-content>
         <description>Rewrite/Encode outbound URLs</description>
         <attribute>

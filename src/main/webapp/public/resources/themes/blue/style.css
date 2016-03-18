@@ -38,6 +38,43 @@
     z-index: 1;
 }
 
+.header-button {
+    margin: 0px;
+    margin-top: 6px;
+    margin-left: 6px;
+}
+
+.header-button:hover {background: #4f5be8;}
+
+#header-username-group, #header-username {
+    text-align: right;
+    color: white;
+}
+
+#HomeButton span.btn-icon, #LogoutButton span.btn-icon, #header-username-caret span.m-icon {
+    font: 20px FontAwesome;
+    margin-right: 0px;
+}
+
+#HomeButton span.btn-icon:before {
+    content: "\f015";
+}
+
+#LogoutButton span.btn-icon:before {
+    content: "\f08b";
+}
+
+#header-username-caret span.m-icon {
+    content: "\f08b";
+}
+
+.tile {
+    width: 165px;
+    height: 165px;
+}
+
+.tile:hover {border: 1px solid #4f5be8;}
+
 #centerbody {
     background-color: #eeeeee;
     padding: 10px 10px 40px 15px;
@@ -63,4 +100,50 @@
 
 .menubutton {
     white-space: normal;
+}
+
+#header-menu-wrapper {
+    color: white;
+    text-align: right;
+}
+
+#header-menu-alert {
+    display: inline-block;
+    height: 10px;
+}
+
+#header-menu-alert::before {
+    color: #e50000;
+    content: "\f071";
+    font: 12px FontAwesome;
+}
+
+#header-username-group, #header-username {
+    display: inline-block;
+}
+
+#header-menu {
+    cursor: pointer;
+}
+
+#header-menu:only-child {
+  padding-top: 15px;
+}
+
+#header-username-caret {
+    display: inline-block;
+}
+
+#header-username-caret::after {
+    content: "\f078";
+    font: 12px FontAwesome;
+}
+
+#header-menu-icon {
+  display: inline-block;
+}
+
+#header-menu-icon::after {
+  content: "\f141";
+  font: 12px FontAwesome;
 }

@@ -24,6 +24,7 @@ package password.pwm.http.servlet.configmanager;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -106,6 +107,8 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ConfigManagerBean.class);
+
+        pwmRequest.setAttribute(PwmRequest.Attribute.ThemeOverride, pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_GUIDE_THEME));
 
         final ConfigManagerAction processAction = readProcessAction(pwmRequest);
         if (processAction != null) {

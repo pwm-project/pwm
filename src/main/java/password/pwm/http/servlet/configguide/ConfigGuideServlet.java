@@ -128,10 +128,9 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
         if (pwmApplication.getSessionStateService().getBean(pwmRequest, ConfigGuideBean.class).getStep() == GuideStep.START) {
             pwmApplication.getSessionStateService().clearBean(pwmRequest, ConfigGuideBean.class);
-            if (pwmSession.getSessionStateBean().getTheme() == null) {
-                pwmSession.getSessionStateBean().setTheme(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_GUIDE_THEME));
-            }
         }
+
+        pwmRequest.setAttribute(PwmRequest.Attribute.ThemeOverride, pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_GUIDE_THEME));
 
         final ConfigGuideBean configGuideBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ConfigGuideBean.class);
 

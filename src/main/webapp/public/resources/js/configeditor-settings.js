@@ -464,7 +464,7 @@ MultiLocaleTableHandler.draw = function(keyName) {
             localeTableRow.appendChild(localeTdContent);
 
             var localeTableElement = document.createElement("table");
-            localeTableElement.setAttribute("style", "border-width: 2px; width:525px; margin:0");
+            localeTableElement.setAttribute("style", "border-width: 0px; width:525px; margin:0");
             localeTdContent.appendChild(localeTableElement);
 
             var multiValues = resultValue[localeName];
@@ -490,7 +490,7 @@ MultiLocaleTableHandler.draw = function(keyName) {
                 inputElement.setAttribute("id", inputID);
                 inputElement.setAttribute("value", multiValues[iteration]);
                 inputElement.setAttribute("onchange", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',this.value,'" + regExPattern + "')");
-                inputElement.setAttribute("style", "width: 490px");
+                inputElement.setAttribute("style", "width: 480px; padding: 5px;");
                 inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
                 inputElement.setAttribute("regExp", regExPattern);
                 inputElement.setAttribute("invalidMessage", "The value does not have the correct format.");
@@ -652,9 +652,9 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         newTableRow.setAttribute("style", "border-width: 0");
 
         var htmlRow = '';
-        htmlRow += '<td style="border:1px solid #D4D4D4; width:180px"><div class="noWrapTextBox" id="panel-name-' + inputID + '" ></div></td>';
+        htmlRow += '<td style="background: #f6f9f8; border:1px solid #dae1e1; width:180px"><div class="noWrapTextBox" id="panel-name-' + inputID + '" ></div></td>';
         htmlRow += '<td style="width:1px" id="icon-editLabel-' + inputID + '"><span class="btn-icon pwm-icon pwm-icon-edit"></span></td>';
-        htmlRow += '<td style="border:1px solid #D4D4D4; width:170px"><div style="" class="noWrapTextBox " id="' + inputID + 'label"><span>' + value['labels'][''] + '</span></div></td>';
+        htmlRow += '<td style="background: #f6f9f8; border:1px solid #dae1e1; width:170px"><div style="" class="noWrapTextBox " id="' + inputID + 'label"><span>' + value['labels'][''] + '</span></div></td>';
 
         var userDNtypeAllowed = options['type-userDN'] == 'show';
         //var optionList = [];
@@ -2263,7 +2263,7 @@ UserPermissionHandler.draw = function(keyName) {
                 htmlBody += '<tr>'
                     + '<td><span id="' + inputID + '_FilterHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Filter') + '</span></td>'
                     + '<td id="icon-edit-query-' + inputID + '"><div title="Edit Value" class="btn-icon pwm-icon pwm-icon-edit"></div></td>'
-                    + '<td><div style="width: 350px;" class="configStringPanel noWrapTextBox border" id="' + inputID + '-query"></div></td>'
+                    + '<td><div style="width: 350px; padding: 5px;" class="configStringPanel noWrapTextBox border" id="' + inputID + '-query"></div></td>'
                     + '</tr>';
             }
 
@@ -2272,7 +2272,7 @@ UserPermissionHandler.draw = function(keyName) {
                 + PWM_CONFIG.showString((resultValue[rowKey]['type'] == 'ldapGroup') ?  'Setting_Permission_Base_Group' : 'Setting_Permission_Base')
                 + '</span></td>'
                 + '<td id="icon-edit-base-' + inputID + '"><div title="Edit Value" class="btn-icon pwm-icon pwm-icon-edit"></div></td>'
-                + '<td><div style="width: 350px;" class="configStringPanel noWrapTextBox border" id="' + inputID + '-base">&nbsp;</div></td>'
+                + '<td><div style="width: 350px; padding: 5px;" class="configStringPanel noWrapTextBox border" id="' + inputID + '-base">&nbsp;</div></td>'
                 + '</tr>';
 
 

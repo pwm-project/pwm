@@ -22,6 +22,7 @@
 
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
+<%@ page import="password.pwm.http.tag.url.PwmThemeURL" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -29,14 +30,13 @@
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_FOOTER_TEXT); %>
-<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_THEME); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_MOBILE_CSS); %>
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <style nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" type="text/css">
     html { overflow-y: scroll; } <%-- always add verticle scrollbar to page --%>
 </style>
-<link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
 
     <div class="configeditor-header" id="header" >
@@ -78,7 +78,7 @@
                         <span id="settingSearchIcon" class="pwm-icon pwm-icon-search" title="<pwm:display key="Tooltip_IconSettingsSearch" bundle="Config"/>"></span>
                     </td>
                     <td>
-                        <input placeholder="<pwm:display key="Placeholder_Search"/>" type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" <pwm:autofocus/>/>
+                        <input placeholder="<pwm:display key="Placeholder_Search"/>" type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" placeholder="Search Configuration" <pwm:autofocus/>/>
                     </td>
                     <td>
                         <div style="margin-top:5px; width:20px; max-width: 20px;">
