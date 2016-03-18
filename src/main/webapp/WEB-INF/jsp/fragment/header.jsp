@@ -29,6 +29,7 @@
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.PwmRequestFlag" %>
+<%@ page import="password.pwm.http.tag.url.PwmThemeURL" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <head>
     <title><pwm:display key="Title_TitleBar"/></title>
@@ -53,6 +54,9 @@
             <link media="only screen and (max-width: 600px)" href="<pwm:url url='/public/resources/mobileStyle.css' addContext="true"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
             <link media="only screen and (max-width: 600px)" href="<pwm:url url="%MOBILE_THEME_URL%"/>" type="text/css" rel="stylesheet"/><%-- mobile css --%>
         </pwm:if>
+    </pwm:if>
+    <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.INCLUDE_CONFIG_CSS%>">
+        <link href="<pwm:url url='<%=PwmThemeURL.CONFIG_THEME_URL.token()%>' addContext="true"/>" rel="stylesheet" type="text/css" media="screen"/>
     </pwm:if>
     <link href="<pwm:url url='/public/resources/dojo/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
     <link href="<pwm:url url='/public/resources/dojo/dgrid/css/dgrid.css' addContext="true"/>" rel="stylesheet" type="text/css"/>

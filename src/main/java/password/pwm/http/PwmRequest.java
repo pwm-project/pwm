@@ -297,7 +297,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
         NewUser_FormShowBackButton,
 
-        CookieBeanStorage,
+        CookieBeanStorage, ThemeOverride,
     }
 
     public static class FileUploadItem {
