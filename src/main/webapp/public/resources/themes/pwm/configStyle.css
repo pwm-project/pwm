@@ -170,6 +170,10 @@ body {
     background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
 }
 
+.menubutton.important {
+    color: red;
+}
+
 .text {
     text-decoration: none;
 }

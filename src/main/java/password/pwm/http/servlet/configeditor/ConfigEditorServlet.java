@@ -23,7 +23,9 @@
 package password.pwm.http.servlet.configeditor;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.PwmApplicationMode;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
@@ -154,11 +156,11 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
 
 
     protected void processAction(final PwmRequest pwmRequest)
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+    {
         final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ConfigManagerBean.class);
 
-        pwmRequest.setAttribute(PwmRequest.Attribute.ThemeOverride, pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_GUIDE_THEME));
+        pwmRequest.setAttribute(PwmRequest.Attribute.ThemeOverride, pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_THEME));
 
         if (configManagerBean.getStoredConfiguration() == null) {
             final StoredConfigurationImpl loadedConfig = ConfigManagerServlet.readCurrentConfiguration(pwmRequest);

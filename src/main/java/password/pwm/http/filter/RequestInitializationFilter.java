@@ -286,9 +286,10 @@ public class RequestInitializationFilter implements Filter {
         final boolean sendNoise = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XNOISE));
 
         if (sendNoise) {
+            final int noiseLength = Integer.parseInt(config.readAppProperty(AppProperty.HTTP_HEADER_NOISE_LENGTH));
             resp.setHeader(
                     PwmConstants.HttpHeader.XNoise,
-                    PwmRandom.getInstance().alphaNumericString(PwmRandom.getInstance().nextInt(100)+10)
+                    PwmRandom.getInstance().alphaNumericString(PwmRandom.getInstance().nextInt(noiseLength)+11)
             );
         }
 

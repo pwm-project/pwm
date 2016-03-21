@@ -35,6 +35,7 @@ import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -116,7 +117,9 @@ public class LocaleHelper {
                 }
             }
         }
-        return returnValue;
+
+        final MacroMachine macroMachine = MacroMachine.forStatic();
+        return macroMachine.expandMacros(returnValue);
     }
 
     private static ResourceBundle getMessageBundle(final Locale locale, final Class bundleClass) {

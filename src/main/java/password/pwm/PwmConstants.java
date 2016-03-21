@@ -344,6 +344,7 @@ public abstract class PwmConstants {
         Accept_Encoding("Accept-Encoding"),
         Accept_Language("Accept-Language"),
         Authorization("Authorization"),
+        UserAgent("User-Agent"),
 
         XFrameOptions("X-Frame-Options"),
         XContentTypeOptions("X-Content-Type-Options"),

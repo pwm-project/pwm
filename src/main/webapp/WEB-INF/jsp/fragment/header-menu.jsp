@@ -40,12 +40,12 @@
                 <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
             </pwm:if>
             <pwm:if test="<%=PwmIfTest.trialMode%>" negate="true">
-                <pwm:if test="<%=PwmIfTest.configMode%>">
+                <pwm:if test="<%=PwmIfTest.configurationOpen%>">
                     <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
 
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span id="icon-configModeHelp" class="btn-icon pwm-icon pwm-icon-question-circle"></span></pwm:if>
                 </pwm:if>
-                <pwm:if test="<%=PwmIfTest.configMode%>" negate="true">
+                <pwm:if test="<%=PwmIfTest.configurationOpen%>" negate="true">
                     <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">
                         <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
                     </pwm:if>
@@ -57,7 +57,7 @@
                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-gears"></span></pwm:if>
                 <pwm:display key="MenuItem_ConfigManager" bundle="Admin"/>
             </a>
-            <a class="header-warning-button" id="header_configEditorButton">
+            <a class="header-warning-button" id="header_configEditorButton" href="<pwm:url addContext="true" url="<%=PwmServletDefinition.ConfigEditor.servletUrl()%>"/>">
                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-edit"></span></pwm:if>
                 <pwm:display key="MenuItem_ConfigEditor" bundle="Admin"/>
             </a>

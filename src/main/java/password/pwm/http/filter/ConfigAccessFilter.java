@@ -22,6 +22,8 @@
 
 package password.pwm.http.filter;
 
+import eu.bitwalker.useragentutils.Browser;
+import eu.bitwalker.useragentutils.UserAgent;
 import password.pwm.*;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -63,6 +65,13 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         final PwmApplicationMode appMode = pwmRequest.getPwmApplication().getApplicationMode();
         if (appMode == PwmApplicationMode.NEW) {
             filterChain.doFilter();
+            return;
+        }
+
+        try {
+            checkUserAgent(pwmRequest);
+        } catch (PwmException e) {
+            pwmRequest.respondWithError(e.getErrorInformation());
             return;
         }
 
@@ -346,5 +355,36 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
     static int figureMaxLoginSeconds(final PwmRequest pwmRequest) {
         return Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_PERSISTENT_LOGIN_SECONDS));
+    }
+
+    private void checkUserAgent(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        final String userAgentString = pwmRequest.readHeaderValueAsString(PwmConstants.HttpHeader.UserAgent);
+        if (userAgentString == null || userAgentString.isEmpty()) {
+            return;
+        }
+
+        boolean badBrowser = false;
+        try {
+            final UserAgent userAgent = new UserAgent(userAgentString);
+            final Browser browser = userAgent.getBrowser();
+            switch (browser) {
+                case IE5:
+                case IE5_5:
+                case IE6:
+                case IE7:
+                case IE8:
+                case IE9:
+                case IE10:
+                    badBrowser = true;
+
+            }
+        } catch (Exception e) {
+            LOGGER.error(pwmRequest, "error during browser user-agent detection: " + e.getMessage());
+        }
+
+        if (badBrowser) {
+            final String errorMsg = "Internet Explorer version is not supported for this function.  Please use Internet Explorer 11 or higher or another web browser.";
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg));
+        }
     }
 }

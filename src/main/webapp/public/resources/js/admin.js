@@ -82,14 +82,14 @@ PWM_ADMIN.initAdminNavMenu = function() {
                     label: 'Configuration Manager',
                     id: 'configurationManager_dropitem',
                     onClick: function() {
-                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/config/ConfigManager');
+                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/config/manager');
                     }
                 }));
                 pMenu.addChild(new MenuItem({
                     label: 'Configuration Editor',
                     id: 'configurationEditor_dropitem',
                     onClick: function() {
-                        PWM_CONFIG.startConfigurationEditor();
+                        PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/config/editor');
                     }
                 }));
 

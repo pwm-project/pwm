@@ -123,12 +123,8 @@ table td.key {
 }
 
 .health-body {
-    margin: 20px; 
-    padding:0; 
-    max-height: 300px; 
-    overflow-y: auto;
-    border-top: 1px solid #dae1e1;
-    border-bottom: 1px solid #dae1e1;
+    padding-top:5px;
+    padding-bottom:10px;
 }
 
 .healthTable-wrapper {
@@ -359,6 +355,10 @@ input[type=password]::-ms-reveal{display: none;}
 
 .tile-image.admin-image:before {
     content: "\f0e4";
+}
+
+.tile-image.configmanager-image:before {
+    content: "\f085";
 }
 
 .tile-title {

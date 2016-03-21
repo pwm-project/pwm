@@ -93,18 +93,6 @@ PWM_CONFIG.startNewConfigurationEditor=function(template) {
     }});
 };
 
-PWM_CONFIG.startConfigurationEditor=function() {
-    require(["dojo"],function(dojo){
-        if(dojo.isIE <= 8){ // only IE8 and below
-            alert('Internet Explorer 8 and below is not able to edit the configuration.  Please use a newer version of Internet Explorer or a different browser.');
-            document.forms['cancelEditing'].submit();
-        } else {
-            PWM_MAIN.goto('/private/config/editor');
-        }
-    });
-};
-
-
 PWM_CONFIG.uploadConfigDialog=function() {
     var uploadOptions = {};
     uploadOptions['url'] = window.location.pathname + '?processAction=uploadConfig';
@@ -302,12 +290,6 @@ PWM_CONFIG.heartbeatCheck = function() {
 };
 
 PWM_CONFIG.initConfigHeader = function() {
-    // header initialization
-    if (PWM_MAIN.getObject('header_configEditorButton')) {
-        PWM_MAIN.addEventHandler('header_configEditorButton', 'click', function () {
-            PWM_CONFIG.startConfigurationEditor();
-        });
-    }
     PWM_MAIN.addEventHandler('header_openLogViewerButton', 'click', function () {
         PWM_CONFIG.openLogViewer(null)
     });
