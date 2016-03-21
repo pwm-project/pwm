@@ -22,6 +22,7 @@
 
 package password.pwm.bean;
 
+import com.google.gson.annotations.SerializedName;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -35,7 +36,9 @@ import java.util.*;
 
 
 /**
- * This bean is synchronized across application sessions by {@link password.pwm.http.state.SessionLoginProvider}
+ * This bean is synchronized across application sessions by {@link password.pwm.http.state.SessionLoginProvider}.
+ *
+ * Short serialized names are used to shrink the effective size of the login cookie.
  */
 public class LoginInfoBean implements Serializable {
 
@@ -46,25 +49,46 @@ public class LoginInfoBean implements Serializable {
         authRecordSet,
     }
 
-    private UserIdentity user;
+    @SerializedName("u")
+    private UserIdentity userIdentity;
+
+    @SerializedName("a")
     private boolean auth;
+
+    @SerializedName("p")
     private PasswordData pw;
 
+    @SerializedName("t")
     private AuthenticationType type = AuthenticationType.UNAUTHENTICATED;
+
+    @SerializedName("af")
     private List<AuthenticationType> authFlags = new ArrayList<>();
+
+    @SerializedName("as")
     private PwmAuthenticationSource authSource;
+
+    @SerializedName("at")
     private Date authTime;
+
+    @SerializedName("rq")
     private Date reqTime;
 
+    @SerializedName("g")
     private String guid;
 
+    @SerializedName("ba")
     private BasicAuthInfo basicAuth;
 
+    @SerializedName("oe")
     private Date oauthExp;
+
+    @SerializedName("or")
     private String oauthRefToken;
-    
+
+    @SerializedName("c")
     private int reqCounter;
 
+    @SerializedName("lf")
     private Set<LoginFlag> loginFlags = new HashSet<>();
 
     public Date getAuthTime()
@@ -156,11 +180,11 @@ public class LoginInfoBean implements Serializable {
     }
 
     public UserIdentity getUserIdentity() {
-        return user;
+        return userIdentity;
     }
 
     public void setUserIdentity(UserIdentity userIdentity) {
-        this.user = userIdentity;
+        this.userIdentity = userIdentity;
     }
 
     public boolean isAuthenticated() {

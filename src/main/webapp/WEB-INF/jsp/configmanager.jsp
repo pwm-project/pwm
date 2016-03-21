@@ -37,14 +37,13 @@
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
+<link href="<pwm:context/><pwm:url url='/public/resources/configmanagerStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="<%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%>"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/configmanager-nav.jsp" %>
-        <style nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
-        </style>
         <table style="width:550px">
             <col class="key" style="width:150px">
             <col class="key" style="width:400px">
@@ -175,7 +174,7 @@
             <tr class="buttonrow">
                 <td class="buttoncell">
                     <pwm:if test="<%=PwmIfTest.configurationOpen%>">
-                        <a class="menubutton" id="MenuItem_LockConfig" title="<pwm:display key="MenuDisplay_LockConfig" bundle="Config"/>">
+                        <a class="menubutton important" id="MenuItem_LockConfig" title="<pwm:display key="MenuDisplay_LockConfig" bundle="Config"/>">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-lock"></span></pwm:if>
                             <pwm:display key="MenuItem_LockConfig" bundle="Config"/>
                         </a>
@@ -188,6 +187,7 @@
                                 });
                             </script>
                         </pwm:script>
+                        </div>
                     </pwm:if>
                     <pwm:if test="<%=PwmIfTest.configurationOpen%>" negate="true">
                         <a class="menubutton" id="MenuItem_UnlockConfig">

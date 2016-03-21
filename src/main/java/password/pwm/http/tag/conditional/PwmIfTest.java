@@ -70,7 +70,6 @@ public enum PwmIfTest {
     forwardUrlDefined(new ForwardUrlDefinedTest()),
 
     trialMode(new TrialModeTest()),
-    configMode(new ConfigModeTest()),
 
     healthWarningsPresent(new HealthWarningsPresentTest()),
     usernameHasValue(new UsernameHasValueTest()),
@@ -234,16 +233,6 @@ public enum PwmIfTest {
         }
     }
 
-    private static class ConfigurationOpen implements Test {
-        public boolean test(
-                PwmRequest pwmRequest,
-                PwmIfOptions options
-        )
-                throws ChaiUnavailableException, PwmUnrecoverableException
-        {
-            return pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION;
-        }
-    }
 
     private static class HasStoredOtpTimestamp implements Test {
         public boolean test(
@@ -293,13 +282,18 @@ public enum PwmIfTest {
         }
     }
 
-    private static class ConfigModeTest implements Test {
+    private static class ConfigurationOpen implements Test {
         @Override
-        public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
-            final PwmApplicationMode applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
-            return applicationMode == PwmApplicationMode.CONFIGURATION;
+        public boolean test(
+                PwmRequest pwmRequest,
+                PwmIfOptions options
+        )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            return pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION;
         }
     }
+
 
     private static class HealthWarningsPresentTest implements Test {
         @Override

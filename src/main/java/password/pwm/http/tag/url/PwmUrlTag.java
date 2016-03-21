@@ -151,7 +151,7 @@ public class PwmUrlTag extends PwmAbstractTag {
     )
     {
         String themeURL = null;
-        String themeName = AppProperty.CONFIG_GUIDE_THEME.getDefaultValue();
+        String themeName = AppProperty.CONFIG_THEME.getDefaultValue();
 
         if (pwmRequest != null) {
             final PwmApplication pwmApplication = pwmRequest.getPwmApplication();

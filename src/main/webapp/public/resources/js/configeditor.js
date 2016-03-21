@@ -305,18 +305,6 @@ function handleResetClick(settingKey) {
 }
 
 PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
-    if (PWM_SETTINGS['var']['configUnlocked']) {
-        PWM_MAIN.showDialog({
-            title:'Notice - Configuration Status: Open',
-            text:PWM_CONFIG.showString('Display_ConfigOpenInfo'),
-            loadFunction:function(){
-                PWM_MAIN.addEventHandler('link-configManager','click',function(){
-                    PWM_MAIN.goto('/private/config/manager');
-                });
-            }
-        });
-    }
-
     PWM_MAIN.addEventHandler('homeSettingSearch',['input','focus'],function(){PWM_CFGEDIT.processSettingSearch(PWM_MAIN.getObject('searchResults'));});
     PWM_MAIN.addEventHandler('button-navigationExpandAll','click',function(){PWM_VAR['navigationTree'].expandAll()});
     PWM_MAIN.addEventHandler('button-navigationCollapseAll','click',function(){PWM_VAR['navigationTree'].collapseAll()});
@@ -1235,7 +1223,7 @@ PWM_CFGEDIT.showSettingFilter = function() {
     var updateVars = function() {
         PWM_VAR['settingFilter_modifiedSettingsOnly'] = PWM_MAIN.getObject('input-modifiedSettingsOnly-modified').checked;
         PWM_VAR['settingFilter_level'] = parseInt(PWM_MAIN.getObject('input-settingLevel').value);
-        PWM_VAR['settingFilter_text'] = PWM_MAIN.getObject('input-settingFilterText').value;
+        //PWM_VAR['settingFilter_text'] = PWM_MAIN.getObject('input-settingFilterText').value;
         updateSettingLevelDescription();
     };
 

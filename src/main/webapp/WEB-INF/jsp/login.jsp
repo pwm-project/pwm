@@ -58,63 +58,65 @@
                 </div>
             </div>
         </form>
-        <pwm:if test="<%=PwmIfTest.showLoginOptions%>">
-            <table class="noborder">
-                <pwm:if test="<%=PwmIfTest.forgottenPasswordEnabled%>">
-                    <tr>
-                        <td class="menubutton_key">
-                            <a class="menubutton" id="Title_ForgottenPassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenPassword.servletUrl()%>'/>">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
-                                <pwm:display key="Title_ForgottenPassword"/>
-                            </a>
-                        </td>
-                        <td class="menubutton-description">
-                            <p><pwm:display key="Long_Title_ForgottenPassword"/></p>
-                        </td>
-                    </tr>
-                </pwm:if>
-                <pwm:if test="<%=PwmIfTest.forgottenUsernameEnabled%>">
-                    <tr>
-                        <td class="menubutton_key">
-                            <a class="menubutton" id="forgotten-username" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenUsername.servletUrl()%>'/>">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
-                                <pwm:display key="Title_ForgottenUsername"/>
-                            </a>
-                        </td>
-                        <td class="menubutton-description">
-                            <p><pwm:display key="Long_Title_ForgottenUsername"/></p>
-                        </td>
-                    </tr>
-                </pwm:if>
-                <pwm:if test="<%=PwmIfTest.activateUserEnabled%>">
-                    <tr>
-                        <td class="menubutton_key">
-                            <a class="menubutton" id="activate-user" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ActivateUser.servletUrl()%>'/>">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-graduation-cap"></span></pwm:if>
-                                <pwm:display key="Title_ActivateUser"/>
-                            </a>
-                        </td>
-                        <td class="menubutton-description">
-                            <p><pwm:display key="Long_Title_ActivateUser"/></p>
-                        </td>
-                    </tr>
-                </pwm:if>
-                <pwm:if test="<%=PwmIfTest.newUserRegistrationEnabled%>">
-                    <tr>
-                        <td class="menubutton_key">
-                            <a class="menubutton" id="new-user" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.NewUser.servletUrl()%>'/>">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-text-o"></span></pwm:if>
-                                <pwm:display key="Title_NewUser"/>
-                            </a>
-                        </td>
-                        <td class="menubutton-description">
-                            <p><pwm:display key="Long_Title_NewUser"/></p>
-                        </td>
-                    </tr>
-                </pwm:if>
-            </table>
+        <pwm:if test="<%=PwmIfTest.configurationOpen%>" negate="true">
+            <pwm:if test="<%=PwmIfTest.showLoginOptions%>">
+                <table class="noborder">
+                    <pwm:if test="<%=PwmIfTest.forgottenPasswordEnabled%>">
+                        <tr>
+                            <td class="menubutton_key">
+                                <a class="menubutton" id="Title_ForgottenPassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenPassword.servletUrl()%>'/>">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
+                                    <pwm:display key="Title_ForgottenPassword"/>
+                                </a>
+                            </td>
+                            <td class="menubutton-description">
+                                <p><pwm:display key="Long_Title_ForgottenPassword"/></p>
+                            </td>
+                        </tr>
+                    </pwm:if>
+                    <pwm:if test="<%=PwmIfTest.forgottenUsernameEnabled%>">
+                        <tr>
+                            <td class="menubutton_key">
+                                <a class="menubutton" id="forgotten-username" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenUsername.servletUrl()%>'/>">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
+                                    <pwm:display key="Title_ForgottenUsername"/>
+                                </a>
+                            </td>
+                            <td class="menubutton-description">
+                                <p><pwm:display key="Long_Title_ForgottenUsername"/></p>
+                            </td>
+                        </tr>
+                    </pwm:if>
+                    <pwm:if test="<%=PwmIfTest.activateUserEnabled%>">
+                        <tr>
+                            <td class="menubutton_key">
+                                <a class="menubutton" id="activate-user" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ActivateUser.servletUrl()%>'/>">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-graduation-cap"></span></pwm:if>
+                                    <pwm:display key="Title_ActivateUser"/>
+                                </a>
+                            </td>
+                            <td class="menubutton-description">
+                                <p><pwm:display key="Long_Title_ActivateUser"/></p>
+                            </td>
+                        </tr>
+                    </pwm:if>
+                    <pwm:if test="<%=PwmIfTest.newUserRegistrationEnabled%>">
+                        <tr>
+                            <td class="menubutton_key">
+                                <a class="menubutton" id="new-user" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.NewUser.servletUrl()%>'/>">
+                                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-text-o"></span></pwm:if>
+                                    <pwm:display key="Title_NewUser"/>
+                                </a>
+                            </td>
+                            <td class="menubutton-description">
+                                <p><pwm:display key="Long_Title_NewUser"/></p>
+                            </td>
+                        </tr>
+                    </pwm:if>
+                </table>
+            </pwm:if>
         </pwm:if>
-        <pwm:if test="<%=PwmIfTest.configMode%>">
+        <pwm:if test="<%=PwmIfTest.configurationOpen%>">
             <table class="noborder">
                 <tr>
                     <td class="menubutton_key">

@@ -56,7 +56,7 @@
                 <input type="hidden" name="processAction" value="warnResponse"/>
                 <input type="hidden" name="warnResponse" value="change"/>
 
-                <button type="submit" name="changePassword" class="btn" id="changePassword">
+                <button type="submit" <pwm:autofocus/> name="changePassword" class="btn" id="changePassword">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
                     <pwm:display key="Button_ChangePassword"/>
                 </button>
@@ -66,7 +66,7 @@
                   enctype="application/x-www-form-urlencoded" id="setupOtpSecret-skip" class="pwm-form">
                 <input type="hidden" name="processAction" value="warnResponse"/>
                 <input type="hidden" name="warnResponse" value="skip"/>
-                <button type="submit" name="skipbutton" class="btn" id="skipbutton">
+                <button type="submit" <pwm:autofocus/> name="skipbutton" class="btn" id="skipbutton">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-fighter-jet"></span></pwm:if>
                     <pwm:display key="Button_Skip"/>
                 </button>
