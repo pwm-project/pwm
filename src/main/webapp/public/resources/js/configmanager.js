@@ -126,20 +126,24 @@ PWM_CONFIG.uploadLocalDB=function() {
 PWM_CONFIG.closeHeaderWarningPanel = function() {
     console.log('action closeHeader');
     PWM_MAIN.setStyle('header-warning','display','none');
+    PWM_MAIN.setStyle('header-warning-backdrop','display','none');
     PWM_MAIN.setStyle('button-openHeader','display','inherit');
 };
 
 PWM_CONFIG.openHeaderWarningPanel = function() {
     console.log('action openHeader');
 
-    require(["dojo"], function(dojo){
-        var headerPosition = dojo.position('header-menu', true);
-        PWM_MAIN.setStyle('header-warning','left', headerPosition.x + 'px');
-        PWM_MAIN.setStyle('header-warning','top', headerPosition.y + headerPosition.h + 'px');
+    require(['dojo/dom','dijit/place','dojo/on'], function(dom, place, on) {
+        place.around(dom.byId("header-warning"), dom.byId("header-menu-wrapper"), ["below-alt"], false);
 
+        on.once(dom.byId("header-warning-backdrop"), "click", function(event) {
+            PWM_CONFIG.closeHeaderWarningPanel();
+        });
+
+        PWM_MAIN.setStyle('header-warning-backdrop','display','inherit');
         PWM_MAIN.setStyle('header-warning','display','inherit');
         PWM_MAIN.setStyle('button-openHeader','display','none');
-    })
+    });
 };
 
 PWM_CONFIG.showString=function (key, options) {
@@ -304,6 +308,10 @@ PWM_CONFIG.initConfigHeader = function() {
     });
     PWM_MAIN.addEventHandler('header-menu','click',function(){
         PWM_CONFIG.openHeaderWarningPanel();
+    });
+
+    require(["dojo/dom-construct", "dojo/_base/window"], function(domConstruct, win){
+        domConstruct.create("div", { id: "header-warning-backdrop" }, win.body());
     });
 
     PWM_CONFIG.showHeaderHealth();

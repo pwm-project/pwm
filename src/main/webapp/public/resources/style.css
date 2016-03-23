@@ -492,6 +492,16 @@ div.progress-container > div {
     position: relative;
 }
 
+#header-warning-backdrop {
+    bottom: 0;
+    display: none;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 1000;
+}
+
 #header-warning {
     text-align: center;
     position: absolute;
