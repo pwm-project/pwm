@@ -111,7 +111,6 @@ h3 {
     box-shadow: 4px 4px 2px #888888;
     border:none;
     border-radius: 2px;
-    animation: slideInTop 0.05s;
 }
 
 .header-button {
