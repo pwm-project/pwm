@@ -657,11 +657,6 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         htmlRow += '<td style="background: #f6f9f8; border:1px solid #dae1e1; width:170px"><div style="" class="noWrapTextBox " id="' + inputID + 'label"><span>' + value['labels'][''] + '</span></div></td>';
 
         var userDNtypeAllowed = options['type-userDN'] == 'show';
-        //var optionList = [];
-        //if ('Form_Types' in properties) {
-        //    optionList = JSON.parse(properties['Form_Types']);
-        //}
-        //debugger;
         if (!PWM_MAIN.JSLibrary.isEmpty(options)) {
             htmlRow += '<td style="width:15px;">';
             htmlRow += '<select id="' + inputID + 'type">';
@@ -1557,15 +1552,15 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
         var value = PWM_VAR['clientSettingCache'][keyName][iteration];
         var titleText = 'title';
         var bodyText = '<table class="noborder">';
-        if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'webservice') {
-            titleText = 'Web Service options for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
+        if (value['type'] == 'webservice') {
+            titleText = 'Web Service options for ' + value['name'];
             bodyText += '<tr>';
             bodyText += '<td class="key">HTTP Method</td><td style="border:0;"><select id="select-' + inputID + '-method">';
 
             for (var optionItem in ActionHandler.httpMethodOptions) {
                 var label = ActionHandler.httpMethodOptions[optionItem]['label'];
                 var optionValue = ActionHandler.httpMethodOptions[optionItem]['value'];
-                var selected = optionValue == PWM_VAR['clientSettingCache'][keyName][iteration]['method'];
+                var selected = optionValue == value['method'];
                 bodyText += '<option value="' + optionValue + '"' + (selected ? ' selected' : '') + '>' + label + '</option>';
             }
             bodyText += '</td>';
@@ -1574,12 +1569,19 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
             bodyText += '</tr><tr>';
             bodyText += '<td class="key">URL</td><td><input type="text" class="configstringinput" style="width:400px" placeholder="http://www.example.com/service"  id="input-' + inputID + '-url' + '" value="' + value['url'] + '"/></td>';
             bodyText += '</tr>';
-            if (PWM_VAR['clientSettingCache'][keyName][iteration]['method'] != 'get') {
+            if (value['method'] != 'get') {
                 bodyText += '<tr><td class="key">Body</td><td><textarea style="max-width:400px; height:100px; max-height:100px" class="configStringInput" id="input-' + inputID + '-body' + '"/>' + value['body'] + '</textarea></td></tr>';
             }
+            if (!PWM_MAIN.JSLibrary.isEmpty(value['certificateInfos'])) {
+                bodyText += '<tr><td class="key">Certificates</td><td><a id="button-' + inputID + '-certDetail">View Certificates</a></td>';
+                bodyText += '</tr>';
+            } else {
+                bodyText += '<tr><td class="key">Certificates</td><td>None</td>';
+                bodyText += '</tr>';
+            }
             bodyText += '';
-        } else if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'ldap') {
-            titleText = 'LDAP options for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
+        } else if (value['type'] == 'ldap') {
+            titleText = 'LDAP options for ' + value['name'];
             bodyText += '<tr>';
             bodyText += '<td class="key">Attribute Name</td><td><input style="width:300px" class="configStringInput" type="text" id="input-' + inputID + '-attributeName' + '" value="' + value['attributeName'] + '"/></td>';
             bodyText += '</tr><tr>';
@@ -1591,13 +1593,20 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
             for (var optionItem in ActionHandler.ldapMethodOptions) {
                 var label = ActionHandler.ldapMethodOptions[optionItem]['label'];
                 var optionValue = ActionHandler.ldapMethodOptions[optionItem]['value'];
-                var selected = optionValue == PWM_VAR['clientSettingCache'][keyName][iteration]['ldapMethod'];
+                var selected = optionValue == value['ldapMethod'];
                 bodyText += '<option value="' + optionValue + '"' + (selected ? ' selected' : '') + '>' + label + '</option>';
             }
             bodyText += '</td></tr>';
         }
         bodyText += '</table>';
 
+        if (value['type'] == 'webservice') {
+            if (!PWM_MAIN.JSLibrary.isEmpty(value['certificateInfos'])) {
+                bodyText += '<button class="btn" id="button-' + inputID + '-clearCertificates"><span class="btn-icon pwm-icon pwm-icon-trash"></span>Clear Certificates</button>'
+            } else {
+                bodyText += '<button class="btn" id="button-' + inputID + '-importCertificates"><span class="btn-icon pwm-icon pwm-icon-download"></span>Import From Server</button>'
+            }
+        }
 
         PWM_MAIN.showDialog({
             title: titleText,
@@ -1606,34 +1615,80 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
                 PWM_MAIN.addEventHandler('button-' + inputID + '-headers','click',function(){
                     ActionHandler.showHeadersDialog(keyName,iteration);
                 });
-                if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'webservice') {
+                if (value['type'] == 'webservice') {
                     PWM_MAIN.addEventHandler('select-' + inputID + '-method','change',function(){
                         var value = PWM_MAIN.getObject('select-' + inputID + '-method').value;
                         if (value == 'get') {
-                            PWM_VAR['clientSettingCache'][keyName][iteration]['body'] = '';
+                            value['body'] = '';
                         }
-                        PWM_VAR['clientSettingCache'][keyName][iteration]['method'] = value;
+                        value['method'] = value;
                         ActionHandler.write(keyName, function(){ ActionHandler.showOptionsDialog(keyName,iteration)});
                     });
                     PWM_MAIN.addEventHandler('input-' + inputID + '-url','input',function(){
-                        PWM_VAR['clientSettingCache'][keyName][iteration]['url'] = PWM_MAIN.getObject('input-' + inputID + '-url').value;
+                        value['url'] = PWM_MAIN.getObject('input-' + inputID + '-url').value;
                         ActionHandler.write(keyName);
                     });
                     PWM_MAIN.addEventHandler('input-' + inputID + '-body','input',function(){
-                        PWM_VAR['clientSettingCache'][keyName][iteration]['body'] = PWM_MAIN.getObject('input-' + inputID + '-body').value;
+                        value['body'] = PWM_MAIN.getObject('input-' + inputID + '-body').value;
                         ActionHandler.write(keyName);
                     });
-                } else if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'ldap') {
+                    if (!PWM_MAIN.JSLibrary.isEmpty(value['certificateInfos'])) {
+                        PWM_MAIN.addEventHandler('button-' + inputID + '-certDetail','click',function(){
+                            var bodyText = '';
+                            for (var i in value['certificateInfos']) {
+                                var certificate = value['certificateInfos'][i];
+                                bodyText += X509CertificateHandler.certificateToHtml(certificate,keyName,i);
+                            }
+                            var cancelFunction = function(){ ActionHandler.showOptionsDialog(keyName,iteration); };
+                            var loadFunction = function(){
+                                for (var i in value['certificateInfos']) {
+                                    var certificate = value['certificateInfos'][i];
+                                    X509CertificateHandler.certHtmlActions(certificate,keyName,i);
+                                }
+                            };
+                           PWM_MAIN.showDialog({
+                               title:'Certificate Detail',
+                               dialogClass: 'wide',
+                               text:bodyText,
+                               okAction:cancelFunction,
+                               loadFunction:loadFunction
+                           });
+                        });
+                        PWM_MAIN.addEventHandler('button-' + inputID + '-clearCertificates','click',function() {
+                            PWM_MAIN.showConfirmDialog({okAction:function(){
+                                delete value['certificates'];
+                                delete value['certificateInfos'];
+                                ActionHandler.write(keyName, function(){ ActionHandler.showOptionsDialog(keyName,iteration)});
+                            },cancelAction:function(){
+                                ActionHandler.showOptionsDialog(keyName,iteration);
+                            }});
+                        });
+                    } else {
+                        PWM_MAIN.addEventHandler('button-' + inputID + '-importCertificates','click',function() {
+                            var dataHandler = function(data) {
+                                var msgBody = '<div style="max-height: 400px; overflow-y: auto">' + data['successMessage'] + '</div>';
+                                PWM_MAIN.showDialog({width:700,title: 'Results', text: msgBody, okAction: function () {
+                                    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
+                                        PWM_VAR['clientSettingCache'][keyName] = resultValue;
+                                        ActionHandler.showOptionsDialog(keyName, iteration);
+                                    });
+                                }});
+                            };
+                            PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.config.function.ActionCertImportFunction', dataHandler, value['name'])
+                        });
+                    }
+
+                } else if (value['type'] == 'ldap') {
                     PWM_MAIN.addEventHandler('input-' + inputID + '-attributeName','input',function(){
-                        PWM_VAR['clientSettingCache'][keyName][iteration]['attributeName'] = PWM_MAIN.getObject('input-' + inputID + '-attributeName').value;
+                        value['attributeName'] = PWM_MAIN.getObject('input-' + inputID + '-attributeName').value;
                         ActionHandler.write(keyName);
                     });
                     PWM_MAIN.addEventHandler('input-' + inputID + '-attributeValue','input',function(){
-                        PWM_VAR['clientSettingCache'][keyName][iteration]['attributeValue'] = PWM_MAIN.getObject('input-' + inputID + '-attributeValue').value;
+                        value['attributeValue'] = PWM_MAIN.getObject('input-' + inputID + '-attributeValue').value;
                         ActionHandler.write(keyName);
                     });
                     PWM_MAIN.addEventHandler('select-' + inputID + '-ldapMethod','change',function(){
-                        PWM_VAR['clientSettingCache'][keyName][iteration]['ldapMethod'] = PWM_MAIN.getObject('select-' + inputID + '-ldapMethod').value;
+                        value['ldapMethod'] = PWM_MAIN.getObject('select-' + inputID + '-ldapMethod').value;
                         ActionHandler.write(keyName);
                     });
                 }
@@ -2419,7 +2474,7 @@ UserPermissionHandler.draw = function(keyName) {
             var html = PWM_CONFIG.convertListOfIdentitiesToHtml(data['data']);
             PWM_MAIN.showDialog({title:'Matches',text:html});
         };
-        PWM_CFGEDIT.executeSettingFunction(keyName,'password.pwm.config.function.UserMatchViewerFunction',null,dataHandler)
+        PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.config.function.UserMatchViewerFunction', dataHandler, null)
     });
 
     PWM_MAIN.addEventHandler('button-' + keyName + '-addFilterValue','click',function(){
@@ -2730,6 +2785,35 @@ X509CertificateHandler.init = function(keyName) {
     });
 };
 
+X509CertificateHandler.certificateToHtml = function(certificate, keyName, id) {
+    var htmlBody = '';
+    htmlBody += '<div style="max-width:100%; margin-bottom:8px"><table style="max-width:100%" id="table_certificate' + keyName + '-' + id + '">';
+    htmlBody += '<tr><td colspan="2" class="key" style="text-align: center">Certificate ' + id + '  <a id="certTimestamp-detail-' + keyName + '-' + id + '">(detail)</a></td></tr>';
+    htmlBody += '<tr><td>Subject</td><td><div class="setting_table_value">' + certificate['subject'] + '</div></td></tr>';
+    htmlBody += '<tr><td>Issuer</td><td><div class="setting_table_value">' + certificate['issuer'] + '</div></td></tr>';
+    htmlBody += '<tr><td>Serial</td><td><div class="setting_table_value">' + certificate['serial'] + '</div></td></tr>';
+    htmlBody += '<tr><td>Issue Date</td><td id="certTimestamp-issue-' + keyName + '-' + id + '" class="setting_table_value timestamp">' + certificate['issueDate'] + '</td></tr>';
+    htmlBody += '<tr><td>Expire Date</td><td id="certTimestamp-expire-' + keyName + '-' + id + '" class="setting_table_value timestamp">' + certificate['expireDate'] + '</td></tr>';
+    htmlBody += '<tr><td>MD5 Hash</td><td><div class="setting_table_value">' + certificate['md5Hash'] + '</div></td></tr>';
+    htmlBody += '<tr><td>SHA1 Hash</td><td><div class="setting_table_value">' + certificate['sha1Hash'] + '</div></td></tr>';
+    htmlBody += '<tr><td>SHA512 Hash</td><td><div class="setting_table_value">' + certificate['sha512Hash'] + '</div></td></tr>';
+    htmlBody += '</table></div>';
+    return htmlBody;
+};
+
+X509CertificateHandler.certHtmlActions = function(certificate, keyName, id) {
+    PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('certTimestamp-issue-' + keyName + '-' + id));
+    PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('certTimestamp-expire-' + keyName + '-' + id));
+    PWM_MAIN.addEventHandler('certTimestamp-detail-' + keyName + '-' + id,'click',function(){
+        PWM_MAIN.showDialog({
+            title: 'Detail - ' + PWM_SETTINGS['settings'][keyName]['label'] + ' - Certificate ' + id,
+            text: '<pre>' + certificate['detail'] + '</pre>',
+            dialogClass: 'wide',
+            showClose: true
+        });
+    });
+};
+
 X509CertificateHandler.draw = function(keyName) {
     var parentDiv = 'table_setting_' + keyName;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
@@ -2740,17 +2824,7 @@ X509CertificateHandler.draw = function(keyName) {
     for (var certCounter in resultValue) {
         (function (counter) {
             var certificate = resultValue[counter];
-            htmlBody += '<div style="max-width:100%; margin-bottom:8px"><table style="max-width:100%" id="table_certificate' + keyName + '-' + counter + '">';
-            htmlBody += '<tr><td colspan="2" class="key" style="text-align: center">Certificate ' + counter + '  <a id="certTimestamp-detail-' + keyName + '-' + counter + '">(detail)</a></td></tr>';
-            htmlBody += '<tr><td>Subject</td><td><div class="setting_table_value">' + certificate['subject'] + '</div></td></tr>';
-            htmlBody += '<tr><td>Issuer</td><td><div class="setting_table_value">' + certificate['issuer'] + '</div></td></tr>';
-            htmlBody += '<tr><td>Serial</td><td><div class="setting_table_value">' + certificate['serial'] + '</div></td></tr>';
-            htmlBody += '<tr><td>Issue Date</td><td id="certTimestamp-issue-' + keyName + '-' + counter + '" class="setting_table_value timestamp">' + certificate['issueDate'] + '</td></tr>';
-            htmlBody += '<tr><td>Expire Date</td><td id="certTimestamp-expire-' + keyName + '-' + counter + '" class="setting_table_value timestamp">' + certificate['expireDate'] + '</td></tr>';
-            htmlBody += '<tr><td>MD5 Hash</td><td><div class="setting_table_value">' + certificate['md5Hash'] + '</div></td></tr>';
-            htmlBody += '<tr><td>SHA1 Hash</td><td><div class="setting_table_value">' + certificate['sha1Hash'] + '</div></td></tr>';
-            htmlBody += '<tr><td>SHA512 Hash</td><td><div class="setting_table_value">' + certificate['sha512Hash'] + '</div></td></tr>';
-            htmlBody += '</table></div>'
+            htmlBody += X509CertificateHandler.certificateToHtml(certificate, keyName, counter);
         })(certCounter);
     }
     htmlBody += '</div>';
@@ -2763,16 +2837,8 @@ X509CertificateHandler.draw = function(keyName) {
 
     for (certCounter in resultValue) {
         (function (counter) {
-            PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('certTimestamp-issue-' + keyName + '-' + counter));
-            PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('certTimestamp-expire-' + keyName + '-' + counter));
-            PWM_MAIN.addEventHandler('certTimestamp-detail-' + keyName + '-' + counter,'click',function(){
-                PWM_MAIN.showDialog({
-                    title: 'Detail - ' + PWM_SETTINGS['settings'][keyName]['label'] + ' - Certificate ' + counter,
-                    text: '<pre>' + resultValue[counter]['detail'] + '</pre>',
-                    dialogClass: 'wide',
-                    showClose: true
-                });
-            });
+            var certificate = resultValue[counter];
+            X509CertificateHandler.certHtmlActions(certificate, keyName, counter)
         })(certCounter);
     }
 

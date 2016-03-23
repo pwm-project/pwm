@@ -336,10 +336,11 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
     }
 };
 
-PWM_CFGEDIT.executeSettingFunction = function(setting, name, input, resultHandler) {
+PWM_CFGEDIT.executeSettingFunction = function (setting, name, resultHandler, extraData) {
     var jsonSendData = {};
     jsonSendData['setting'] = setting;
     jsonSendData['function'] = name;
+    jsonSendData['extraData'] = extraData;
 
     resultHandler = resultHandler !== undefined ? resultHandler : function(data) {
         var msgBody = '<div style="max-height: 400px; overflow-y: auto">' + data['successMessage'] + '</div>';

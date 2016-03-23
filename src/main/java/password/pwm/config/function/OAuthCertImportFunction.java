@@ -23,11 +23,30 @@
 package password.pwm.config.function;
 
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+
+import java.net.URI;
 
 public class OAuthCertImportFunction extends AbstractUriCertImportFunction {
 
+    final static PwmSetting uriSourceSetting = PwmSetting.OAUTH_ID_CODERESOLVE_URL;
+
     @Override
-    PwmSetting getSetting() {
-        return PwmSetting.OAUTH_ID_CODERESOLVE_URL;
+    String getUri(StoredConfigurationImpl storedConfiguration, PwmSetting pwmSetting, String profile, String extraData) throws PwmOperationalException {
+        final String uriString = (String)storedConfiguration.readSetting(uriSourceSetting).toNativeObject();
+        if (uriString == null || uriString.isEmpty()) {
+            ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + uriSourceSetting.toMenuLocationDebug(profile, null) + " must first be configured");
+            throw new PwmOperationalException(errorInformation);
+        }
+        try {
+            URI.create(uriString);
+        } catch (IllegalArgumentException e) {
+            ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + uriSourceSetting.toMenuLocationDebug(profile, null) + " has an invalid URL syntax");
+            throw new PwmOperationalException(errorInformation);
+        }
+        return uriString;
     }
 }

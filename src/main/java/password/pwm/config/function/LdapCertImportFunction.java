@@ -49,8 +49,8 @@ public class LdapCertImportFunction implements SettingUIFunction {
             PwmRequest pwmRequest,
             StoredConfigurationImpl storedConfiguration,
             PwmSetting setting,
-            String profile
-    )
+            String profile,
+            String extraData)
             throws PwmOperationalException, PwmUnrecoverableException {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();

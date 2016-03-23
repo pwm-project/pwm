@@ -52,25 +52,17 @@ public class JsonUtil {
             .create();
 
     private static Gson getGson(final Flag... flags) {
-        if (flags == null) {
-            return getGson(Collections.<Flag>emptySet());
-        } else {
-            return getGson(new HashSet(Arrays.asList(flags)));
-        }
-    }
-
-    private static Gson getGson(final Set<Flag> flags) {
-        if (flags == null || flags.isEmpty()) {
+        if (flags == null || flags.length == 0) {
             return GENERIC_GSON;
         }
 
         final GsonBuilder gsonBuilder = registerTypeAdapters(new GsonBuilder());
 
-        if (!flags.contains(Flag.HtmlEscape)) {
+        if (!Helper.enumArrayContainsValue(flags, Flag.HtmlEscape)) {
             gsonBuilder.disableHtmlEscaping();
         }
 
-        if (flags.contains(Flag.PrettyPrint)) {
+        if (Helper.enumArrayContainsValue(flags, Flag.PrettyPrint)) {
             gsonBuilder.setPrettyPrinting();
         }
 

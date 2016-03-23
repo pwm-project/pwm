@@ -26,6 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -38,21 +39,16 @@ import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
-public class HttpsCertParseFunction extends AbstractUriCertImportFunction {
+public class HttpsCertParseFunction implements SettingUIFunction {
 
     @Override
-    public String provideFunction(PwmRequest pwmRequest, StoredConfigurationImpl storedConfiguration, PwmSetting setting, String profile)
+    public String provideFunction(PwmRequest pwmRequest, StoredConfigurationImpl storedConfiguration, PwmSetting setting, String profile, String extraData)
             throws PwmUnrecoverableException
     {
         final PwmEnvironment pwmEnvironment = pwmRequest.getPwmApplication().getPwmEnvironment().makeRuntimeInstance(new Configuration(storedConfiguration));
         final PwmApplication tempApplication = new PwmApplication(pwmEnvironment);
         final HttpsServerCertificateManager httpsCertificateManager = new HttpsServerCertificateManager(tempApplication);
         return keyStoreToStringOutput(httpsCertificateManager.configToKeystore());
-    }
-
-    @Override
-    PwmSetting getSetting() {
-        return null;
     }
 
     String keyStoreToStringOutput(final KeyStore keyStore) throws PwmUnrecoverableException {

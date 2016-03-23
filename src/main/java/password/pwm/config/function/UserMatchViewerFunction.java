@@ -53,11 +53,11 @@ public class UserMatchViewerFunction implements SettingUIFunction {
 
     @Override
     public Serializable provideFunction(
-            PwmRequest pwmRequest,
+            final PwmRequest pwmRequest,
             final StoredConfigurationImpl storedConfiguration,
             final PwmSetting setting,
-            final String profile
-    )
+            final String profile,
+            String extraData)
             throws Exception
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();

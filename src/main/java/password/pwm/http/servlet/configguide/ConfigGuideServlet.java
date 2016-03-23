@@ -379,7 +379,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         try {
             final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
             final StoredConfigurationImpl storedConfiguration = ConfigGuideForm.generateStoredConfig(configGuideBean);
-            final Serializable output = userMatchViewerFunction.provideFunction(pwmRequest, storedConfiguration, PwmSetting.QUERY_MATCH_PWM_ADMIN, null);
+            final Serializable output = userMatchViewerFunction.provideFunction(pwmRequest, storedConfiguration, PwmSetting.QUERY_MATCH_PWM_ADMIN, null, null);
             pwmRequest.outputJsonResult(new RestResultBean(output));
         } catch (PwmException e) {
             LOGGER.error(pwmRequest,e.getErrorInformation());
