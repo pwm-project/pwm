@@ -1,5 +1,5 @@
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -147,8 +147,8 @@
 
                 htmlBody += '<br/><br/><table><tr><td colspan="3" class="title">URLs</td></tr>';
                 htmlBody += '<tr><td class="key">Application</td><td> <a href="<pwm:context/>"><pwm:context/></a></td></tr>';
-                htmlBody += '<tr><td class="key">Configuration Manager</td><td> <a href="<pwm:context/>/private/config/ConfigManager"><pwm:context/>/private/config/ConfigManager</a></td></tr>';
-                htmlBody += '<tr><td class="key">Configuration Editor</td><td> <a href="<pwm:context/>/private/config/ConfigEditor"><pwm:context/>/private/config/ConfigEditor</a></td></tr>';
+                htmlBody += '<tr><td class="key">Configuration Manager</td><td> <a href="<pwm:context/><pwm:context/><%=PwmServletDefinition.ConfigManager.servletUrl()%>"><pwm:context/><pwm:context/><%=PwmServletDefinition.ConfigManager.servletUrl()%></a></td></tr>';
+                htmlBody += '<tr><td class="key">Configuration Editor</td><td> <a href="<pwm:context/><pwm:context/><%=PwmServletDefinition.ConfigEditor.servletUrl()%>"><pwm:context/><pwm:context/><%=PwmServletDefinition.ConfigEditor.servletUrl()%></a></td></tr>';
                 htmlBody += '</table>';
 
                 PWM_MAIN.showConfirmDialog({text:htmlBody,okAction:function(){

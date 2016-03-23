@@ -2136,10 +2136,8 @@
             <option value="SHA256_SALT">SHA-256 with Salt</option>
             <option value="SHA512_SALT">SHA-512 with Salt</option>
             <option value="PBKDF2">PBKDF2WithHmacSHA1</option>
-            <!--
             <option value="PBKDF2_SHA256">PBKDF2WithHmacSHA256</option>
             <option value="PBKDF2_SHA512">PBKDF2WithHmacSHA512</option>
-            -->
             <option value="BCRYPT">BCrypt</option>
             <option value="SCRYPT">SCrypt</option>
         </options>
@@ -2697,7 +2695,8 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.detail.form" level="1" required="true">
-        <flag>Form_HideOptions</flag>
+        <flag>Form_HideStandardOptions</flag>
+        <flag>Form_ShowMultiValueOption</flag>
         <ldapPermission actor="proxy" access="read"/>
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2928,7 +2927,8 @@
         </default>
     </setting>
     <setting hidden="false" key="helpdesk.detail.form" level="1" required="true">
-        <flag>Form_HideOptions</flag>
+        <flag>Form_HideStandardOptions</flag>
+        <flag>Form_ShowMultiValueOption</flag>
         <ldapPermission actor="helpdesk" access="read"/>
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"CN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>

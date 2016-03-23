@@ -26,12 +26,13 @@ import password.pwm.config.FormConfiguration;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 
 class AttributeDetailBean implements Serializable {
     private String name;
     private String label;
     private FormConfiguration.Type type;
-    private String value;
+    private List<String> values;
     private Collection<UserReferenceBean> userReferences;
     private boolean searchable;
 
@@ -59,12 +60,12 @@ class AttributeDetailBean implements Serializable {
         this.type = type;
     }
 
-    public String getValue() {
-        return value;
+    public List<String> getValues() {
+        return values;
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    public void setValues(List<String> values) {
+        this.values = values;
     }
 
     public Collection<UserReferenceBean> getUserReferences() {

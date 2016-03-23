@@ -580,11 +580,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
 
         {
             final List<FormConfiguration> detailFormConfig = helpdeskProfile.readSettingAsForm(PwmSetting.HELPDESK_DETAIL_FORM);
-            final Map<FormConfiguration,String> formData = new LinkedHashMap<>();
-            for (final FormConfiguration formConfiguration : detailFormConfig) {
-                formData.put(formConfiguration,"");
-            }
-            FormUtility.populateFormMapFromLdap(detailFormConfig, pwmRequest.getPwmSession().getLabel(), formData, userDataReader);
+            final Map<FormConfiguration,List<String>> formData = FormUtility.populateFormMapFromLdap(detailFormConfig, pwmRequest.getPwmSession().getLabel(), userDataReader);
             detailInfo.setSearchDetails(formData);
         }
 

@@ -70,6 +70,7 @@ public enum PwmIfTest {
     forwardUrlDefined(new ForwardUrlDefinedTest()),
 
     trialMode(new TrialModeTest()),
+    appliance(new EnvironmentFlagTest(PwmEnvironment.ApplicationFlag.Appliance)),
 
     healthWarningsPresent(new HealthWarningsPresentTest()),
     usernameHasValue(new UsernameHasValueTest()),
@@ -360,6 +361,19 @@ public enum PwmIfTest {
                 return false;
             }
             return pwmRequest.isFlag(options.getRequestFlag());
+        }
+    }
+
+    private static class EnvironmentFlagTest implements Test {
+        private final PwmEnvironment.ApplicationFlag flag;
+
+        public EnvironmentFlagTest(PwmEnvironment.ApplicationFlag flag) {
+            this.flag = flag;
+        }
+
+        @Override
+        public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
+            return pwmRequest.getPwmApplication().getPwmEnvironment().getFlags().contains(flag);
         }
     }
 

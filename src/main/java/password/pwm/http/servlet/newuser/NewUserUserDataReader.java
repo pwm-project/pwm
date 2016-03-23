@@ -43,16 +43,9 @@ class NewUserUserDataReader implements UserDataReader {
     }
 
     @Override
-    public String readStringAttribute(String attribute)
-            throws ChaiUnavailableException, ChaiOperationException
-    {
-        return readStringAttribute(attribute, false);
-    }
-
-    @Override
     public String readStringAttribute(
             String attribute,
-            boolean ignoreCache
+            Flag...flags
     )
             throws ChaiUnavailableException, ChaiOperationException
     {
@@ -67,16 +60,9 @@ class NewUserUserDataReader implements UserDataReader {
     }
 
     @Override
-    public Map<String, String> readStringAttributes(Collection<String> attributes)
-            throws ChaiUnavailableException, ChaiOperationException
-    {
-        return readStringAttributes(attributes, false);
-    }
-
-    @Override
     public Map<String, String> readStringAttributes(
             Collection<String> attributes,
-            boolean ignoreCache
+            Flag... flags
     )
             throws ChaiUnavailableException, ChaiOperationException
     {
@@ -85,5 +71,11 @@ class NewUserUserDataReader implements UserDataReader {
             returnObj.put(key, readStringAttribute(key));
         }
         return Collections.unmodifiableMap(returnObj);
+    }
+
+    @Override
+    public List<String> readMultiStringAttribute(String attribute, Flag... flags) throws ChaiUnavailableException, ChaiOperationException {
+        final String value = readStringAttribute(attribute, flags);
+        return value == null ? null : Collections.singletonList(value);
     }
 }

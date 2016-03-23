@@ -159,7 +159,9 @@ public class LoginServlet extends AbstractPwmServlet {
         }
 
         final String username = valueMap.get(PwmConstants.PARAM_USERNAME);
-        final PasswordData password = new PasswordData(valueMap.get(PwmConstants.PARAM_PASSWORD));
+        final PasswordData password = valueMap.containsKey(PwmConstants.PARAM_PASSWORD)
+                ? new PasswordData(valueMap.get(PwmConstants.PARAM_PASSWORD))
+                : null;
         final String context = valueMap.get(PwmConstants.PARAM_CONTEXT);
         final String ldapProfile = valueMap.get(PwmConstants.PARAM_LDAP_PROFILE);
 

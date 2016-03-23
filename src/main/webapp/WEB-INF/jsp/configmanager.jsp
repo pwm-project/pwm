@@ -77,7 +77,7 @@
                     <%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigHasPassword)%>
                 </td>
             </tr>
-            <% if (!JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Appliance)) { %>
+            <pwm:if test="<%=PwmIfTest.appliance%>" negate="true">
             <tr>
                 <td>
                     Application Data Path
@@ -98,7 +98,7 @@
                     </div>
                 </td>
             </tr>
-            <% } %>
+            </pwm:if>
         </table>
         <br/>
         <div id="healthBody" class="health-body">
@@ -190,6 +190,7 @@
                         </div>
                     </pwm:if>
                     <pwm:if test="<%=PwmIfTest.configurationOpen%>" negate="true">
+                        <pwm:if test="<%=PwmIfTest.appliance%>" negate="true">
                         <a class="menubutton" id="MenuItem_UnlockConfig">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
                             <pwm:display key="MenuItem_UnlockConfig" bundle="Config"/>
@@ -209,6 +210,7 @@
                                 });
                             </script>
                         </pwm:script>
+                        </pwm:if>
                     </pwm:if>
                 </td>
                 <td class="buttoncell">

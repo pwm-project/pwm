@@ -33,6 +33,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
+import password.pwm.util.Helper;
 
 import java.io.Serializable;
 import java.util.*;
@@ -46,6 +47,10 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
             .build();
     private final ChaiUser user;
     private final UserIdentity userIdentity;
+
+    private enum PrivateFlag {
+        MultiValueRead
+    }
 
     public LdapUserDataReader(
             UserIdentity userIdentity,
@@ -62,7 +67,7 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
             throws PwmUnrecoverableException
     {
         final ChaiUser user;
-            user = pwmApplication.getProxiedChaiUser(userIdentity);
+        user = pwmApplication.getProxiedChaiUser(userIdentity);
         return new LdapUserDataReader(userIdentity, user);
     }
 
@@ -88,20 +93,13 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
     }
 
     @Override
-    public String readStringAttribute(final String attribute)
-            throws ChaiUnavailableException, ChaiOperationException
-    {
-        return readStringAttribute(attribute, false);
-    }
-
-    @Override
     public String readStringAttribute(
             final String attribute,
-            boolean ignoreCache
+            final Flag... flags
     )
             throws ChaiUnavailableException, ChaiOperationException
     {
-        Map<String,String> results = readStringAttributes(Collections.singletonList(attribute),ignoreCache);
+        Map<String,String> results = readStringAttributes(Collections.singletonList(attribute), flags);
         if (results == null || results.isEmpty()) {
             return null;
         }
@@ -117,20 +115,40 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
     }
 
 
-    @Override
-    public Map<String,String> readStringAttributes(final Collection<String> attributes)
-            throws ChaiUnavailableException, ChaiOperationException
-    {
-        return readStringAttributes(attributes, false);
-    }
-
-    @Override
     public Map<String,String> readStringAttributes(
             final Collection<String> attributes,
-            boolean ignoreCache
+            final Flag... flags
     )
             throws ChaiUnavailableException, ChaiOperationException
     {
+        final Map<String,List<String>> valueMap = readMultiStringAttributesImpl(attributes, Collections.<PrivateFlag>emptyList(), flags);
+        final Map<String,String> returnValue = new LinkedHashMap<>();
+        for (final String key : valueMap.keySet()) {
+            final List<String> values = valueMap.get(key);
+            if (values != null && !values.isEmpty()) {
+                returnValue.put(key, values.iterator().next());
+            }
+        }
+        return returnValue;
+    }
+
+    public Map<String,List<String>> readMultiStringAttributes(
+            final Collection<String> attributes,
+            final Flag... flags
+    )
+            throws ChaiUnavailableException, ChaiOperationException
+    {
+        return readMultiStringAttributesImpl(attributes, Collections.singletonList(PrivateFlag.MultiValueRead), flags);
+    }
+
+    private Map<String,List<String>> readMultiStringAttributesImpl(
+            final Collection<String> attributes,
+            final Collection<PrivateFlag> privateFlags,
+            final Flag... flags
+    )
+            throws ChaiUnavailableException, ChaiOperationException
+    {
+        final boolean ignoreCache = Helper.enumArrayContainsValue(flags, Flag.ignoreCache);
         if (user == null || attributes == null || attributes.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -145,20 +163,31 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
 
         // read uncached attributes into cache
         if (!uncachedAttributes.isEmpty()) {
-            final Map<String,String> readData = user.readStringAttributes(new HashSet<>(uncachedAttributes));
             for (final String attribute : attributes) {
-                cacheMap.put(attribute,readData.containsKey(attribute) ? readData.get(attribute) : NULL_CACHE_VALUE);
+                if (privateFlags.contains(PrivateFlag.MultiValueRead)) {
+                    final Set<String> readData = user.readMultiStringAttribute(attribute);
+                    final List<String> stringList = readData == null ? null : new ArrayList<>(readData);
+                    cacheMap.put(attribute, stringList != null && !stringList.isEmpty() ? stringList : NULL_CACHE_VALUE);
+                } else {
+                    final String readData = user.readStringAttribute(attribute);
+                    cacheMap.put(attribute, readData != null ? Collections.singletonList(readData) : NULL_CACHE_VALUE);
+                }
             }
         }
 
         // build result data from cache
-        final Map<String,String> returnMap = new HashMap<>();
+        final Map<String,List<String>> returnMap = new HashMap<>();
         for (final String attribute : attributes) {
             final Object cachedValue = cacheMap.get(attribute);
             if (cachedValue != null && !NULL_CACHE_VALUE.equals(cachedValue)) {
-                returnMap.put(attribute,(String)cachedValue);
+                returnMap.put(attribute,(List<String>)cachedValue);
             }
         }
-        return returnMap;
+        return Collections.unmodifiableMap(returnMap);
+    }
+
+    @Override
+    public List<String> readMultiStringAttribute(String attribute, Flag... flags) throws ChaiUnavailableException, ChaiOperationException {
+        return readMultiStringAttributesImpl(Collections.singletonList(attribute), Collections.singletonList(PrivateFlag.MultiValueRead), flags).get(attribute);
     }
 }
