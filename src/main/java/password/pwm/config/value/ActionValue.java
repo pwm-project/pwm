@@ -32,6 +32,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.secure.PwmSecurityKey;
 
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 public class ActionValue extends AbstractValue implements StoredValue {
@@ -168,6 +169,33 @@ public class ActionValue extends AbstractValue implements StoredValue {
             }
         }
         return sb.toString();
+    }
+
+
+    public List<Map<String,Object>> toInfoMap() {
+        final String originalJson = JsonUtil.serializeCollection(values);
+        final List<Map<String,Object>> tempObj = JsonUtil.deserialize(originalJson, new TypeToken<List<Map<String,Object>>>() {
+        });
+        for (final Map<String,Object> mapObj : tempObj) {
+            ActionConfiguration actionConfiguration = forName((String)mapObj.get("name"));
+            if (actionConfiguration != null && actionConfiguration.getCertificates() != null) {
+                final List<Map<String,Object>> certificateInfos = new ArrayList<>();
+                for (final X509Certificate certificate : actionConfiguration.getCertificates()) {
+                    certificateInfos.add(X509CertificateValue.toInfoMap(certificate,true));
+                }
+                mapObj.put("certificateInfos", certificateInfos);
+            }
+        }
+        return tempObj;
+    }
+
+    public ActionConfiguration forName(final String name) {
+        for (final ActionConfiguration actionConfiguration : values) {
+            if (name.equals(actionConfiguration.getName())) {
+                return actionConfiguration;
+            }
+        }
+        return null;
     }
 
 }

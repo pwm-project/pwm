@@ -27,29 +27,34 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 public interface UserDataReader {
-    String getUserDN();
+    enum Flag {
+        ignoreCache
+    }
 
-    String readStringAttribute(String attribute)
-            throws ChaiUnavailableException, ChaiOperationException;
+    String getUserDN();
 
     String readStringAttribute(
             String attribute,
-            boolean ignoreCache
+            Flag... flags
     )
                     throws ChaiUnavailableException, ChaiOperationException;
+
+    List<String> readMultiStringAttribute(
+            String attribute,
+            Flag... flags
+    )
+            throws ChaiUnavailableException, ChaiOperationException;
 
     Date readDateAttribute(String attribute)
                             throws ChaiUnavailableException, ChaiOperationException;
 
-    Map<String,String> readStringAttributes(Collection<String> attributes)
-                                    throws ChaiUnavailableException, ChaiOperationException;
-
     Map<String,String> readStringAttributes(
             Collection<String> attributes,
-            boolean ignoreCache
+            Flag... flags
     )
                                             throws ChaiUnavailableException, ChaiOperationException;
 }

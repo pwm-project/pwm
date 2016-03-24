@@ -32,7 +32,8 @@ public interface SettingUIFunction {
             final PwmRequest pwmRequest,
             final StoredConfigurationImpl storedConfiguration,
             final PwmSetting setting,
-            final String profile
+            final String profile,
+            String extraData
     )
             throws Exception;
 }

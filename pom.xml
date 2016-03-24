@@ -10,7 +10,7 @@
     <licenses>
         <license>
             <name>The GNU General Public License (GPL) Version 2</name>
-            <url>LICENSE</url>
+            <url>http://www.gnu.org/licenses/gpl-2.0.html</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -140,7 +140,9 @@
                 <version>2.6</version>
                 <configuration>
                     <archiveClasses>true</archiveClasses>
+                    <!--
                     <packagingExcludes>WEB-INF/classes</packagingExcludes>
+                    -->
                 </configuration>
             </plugin>
             <plugin>
@@ -282,7 +284,7 @@
 
         <dependency>
             <groupId>com.github.ldapchai</groupId>
-            <version>0.6.6</version>
+            <version>0.6.7</version>
             <artifactId>ldapchai</artifactId>
         </dependency>
         <dependency>

@@ -28,7 +28,6 @@
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.option.HelpdeskUIMode" %>
-<%@ page import="password.pwm.config.option.MessageSendMethod" %>
 <%@ page import="password.pwm.config.option.ViewStatusFields" %>
 <%@ page import="password.pwm.config.profile.HelpdeskProfile" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordRule" %>
@@ -42,6 +41,7 @@
 <%@ page import="password.pwm.util.macro.MacroMachine" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.Date" %>
+<%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Set" %>
 <!DOCTYPE html>
@@ -93,12 +93,15 @@
                                 <table class="nomargin">
                                     <% for (FormConfiguration formItem : helpdeskDetailInfoBean.getSearchDetails().keySet()) { %>
                                     <tr>
-                                        <td class="key" id="key_<%=formItem.getName()%>">
+                                        <td class="key" id="key_<%=StringUtil.escapeHtml(formItem.getName())%>" title="<%=StringUtil.escapeHtml(formItem.getDescription(pwmRequest.getLocale()))%>">
                                             <%= formItem.getLabel(pwmSession.getSessionStateBean().getLocale())%>
                                         </td>
                                         <td id="value_<%=formItem.getName()%>">
-                                            <% final String loopValue = helpdeskDetailInfoBean.getSearchDetails().get(formItem); %>
+                                            <% for (Iterator<String> iter = helpdeskDetailInfoBean.getSearchDetails().get(formItem).iterator(); iter.hasNext(); ) { %>
+                                            <% final String loopValue = iter.next(); %>
                                             <%= loopValue == null ? "" : StringUtil.escapeHtml(loopValue) %>
+                                            <% if (iter.hasNext()) { %> <br/> <% } %>
+                                            <% } %>
                                         </td>
                                     </tr>
                                     <%  } %>

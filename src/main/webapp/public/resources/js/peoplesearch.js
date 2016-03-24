@@ -130,15 +130,22 @@ PWM_PS.convertDetailResultToHtml = function(data) {
                     })(refIter);
                 }
                 htmlBody += '</div>';
-            } else if (type == 'email') {
-                var value = attributeData['value'];
-                htmlBody += '<a href="mailto:' + value + '">' + value + '</a>';
             } else {
-                htmlBody += attributeData['value'];
-            }
-            if (attributeData['searchable'] == true) {
-                var likeSearchID = 'link-' + attributeData['name'] + '-' + '-likeUserSearch';
-                htmlBody += '<span id="' + likeSearchID + '" class="icon-likeUserSearch btn-icon pwm-icon pwm-icon-search" title="' + PWM_MAIN.showString('Button_Search') + '"></span>';
+                var values = attributeData['values'];
+                for (var i in values) {
+                    if (i > 0) {
+                        htmlBody += '</br>'
+                    }
+                    if (type == 'email') {
+                        htmlBody += '<a href="mailto:' + values[i] + '">' + values[i] + '</a>';
+                    } else {
+                        htmlBody += values[i];
+                    }
+                    if (attributeData['searchable'] == true) {
+                        var likeSearchID = 'link-' + attributeData['name'] + '-' + values[i] + '-likeUserSearch';
+                        htmlBody += '<span id="' + likeSearchID + '" class="icon-likeUserSearch btn-icon pwm-icon pwm-icon-search" title="' + PWM_MAIN.showString('Button_Search') + ' &quot;' + values[i] + '&quot;"></span>';
+                    }
+                }
             }
             htmlBody += '</div></td>'
         })(iter);
@@ -165,10 +172,13 @@ PWM_PS.applyEventHandlersToDetailView = function(data) {
         (function(iterCount){
             var attributeData = data['detail'][iterCount];
             if (attributeData['searchable'] == true) {
-                var likeSearchID = 'link-' + attributeData['name'] + '-' + '-likeUserSearch';
-                PWM_MAIN.addEventHandler(likeSearchID,'click',function(){
-                    PWM_PS.submitLikeUserSearch(attributeData['value']);
-                });
+                var values = attributeData['values'];
+                for (var i in values) {
+                    var likeSearchID = 'link-' + attributeData['name'] + '-' + values[i] + '-likeUserSearch';
+                    PWM_MAIN.addEventHandler(likeSearchID,'click',function(){
+                        PWM_PS.submitLikeUserSearch(values[i]);
+                    });
+                }
             }
             var type = attributeData['type'];
             if (type == 'userDN') {

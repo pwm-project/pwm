@@ -153,7 +153,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
         return Collections.unmodifiableList(list);
     }
 
-    private static Map<String,Object> toInfoMap(final X509Certificate cert, final boolean includeDetail) {
+     static Map<String,Object> toInfoMap(final X509Certificate cert, final boolean includeDetail) {
         final LinkedHashMap<String,Object> map = new LinkedHashMap<>();
         map.put("subject",cert.getSubjectDN().toString());
         map.put("serial", X509Utils.hexSerial(cert));

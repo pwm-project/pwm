@@ -25,8 +25,10 @@ package password.pwm.config;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.JsonUtil;
 
 import java.io.Serializable;
+import java.security.cert.X509Certificate;
 import java.util.Map;
 
 public class ActionConfiguration implements Serializable {
@@ -44,6 +46,8 @@ public class ActionConfiguration implements Serializable {
     private Map<String,String> headers;
     private String url;
     private String body;
+    private X509Certificate[] certificates;
+
 
     private LdapMethod ldapMethod = LdapMethod.replace;
     private String attributeName;
@@ -51,6 +55,10 @@ public class ActionConfiguration implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+    public X509Certificate[] getCertificates() {
+        return certificates;
     }
 
     public String getDescription() {
@@ -126,5 +134,11 @@ public class ActionConfiguration implements Serializable {
                 throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, null, new String[]{" attribute value for ldap action " + this.getName() + " is required"}));
             }
         }
+    }
+
+    public ActionConfiguration copyWithNewCertificate(final X509Certificate[] certificates) {
+        final ActionConfiguration clone = JsonUtil.cloneUsingJson(this, ActionConfiguration.class);
+        clone.certificates = certificates;
+        return clone;
     }
 }

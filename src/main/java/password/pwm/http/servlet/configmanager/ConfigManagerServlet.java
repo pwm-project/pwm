@@ -38,6 +38,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.*;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.configguide.ConfigGuideServlet;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
@@ -295,8 +296,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
     static void forwardToEditor(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final String url = pwmRequest.getHttpServletRequest().getContextPath() + "/private/config/ConfigEditor";
-        pwmRequest.sendRedirect(url);
+        pwmRequest.sendRedirect(PwmServletDefinition.ConfigEditor);
     }
 
     private void doDownloadConfig(final PwmRequest pwmRequest)

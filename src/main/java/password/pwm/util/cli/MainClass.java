@@ -57,7 +57,7 @@ public class MainClass {
 
     private static MainOptions MAIN_OPTIONS = new MainOptions();
 
-    public static final Map<String,CliCommand> COMMANDS;
+    private static final Map<String,CliCommand> COMMANDS;
     static {
         final List<CliCommand> commandList = new ArrayList<>();
         commandList.add(new LocalDBInfoCommand());
@@ -91,7 +91,7 @@ public class MainClass {
         COMMANDS = Collections.unmodifiableMap(sortedMap);
     }
 
-    public static String helpTextFromCommands(Collection<CliCommand> commands) {
+    static String helpTextFromCommands(Collection<CliCommand> commands) {
         final StringBuilder output = new StringBuilder();
         for (CliCommand command : commands) {
             output.append(command.getCliParameters().commandName);
@@ -112,13 +112,13 @@ public class MainClass {
         return output.toString();
     }
 
-    public static String makeHelpTextOutput() {
+    private static String makeHelpTextOutput() {
         final StringBuilder output = new StringBuilder();
         output.append(helpTextFromCommands(COMMANDS.values()));
         output.append("\n");
         output.append("options:\n");
         output.append(" -force                force operations skipping any confirmation\n");
-        output.append(" -debugLevel=x         set the debug level where x is TRACE, DEBUG, INFO, WARN or FATAL\n");
+        output.append(" -debugLevel=x         set the debug level where x is TRACE, DEBUG, INFO, ERROR, WARN or FATAL\n");
         output.append(" -applicationPath=x    set the application path, default is current path\n");
         output.append("\n");
         output.append("usage: \n");
@@ -260,6 +260,9 @@ public class MainClass {
                     try {
                         cliEnvironment = createEnv(command.getCliParameters(), argList);
                     } catch (Exception e) {
+                        final String errorMsg = "unable to establish operating environment: " + e.getMessage();
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ENVIRONMENT_ERROR, errorMsg);
+                        LOGGER.error(errorInformation.toDebugStr(),e);
                         System.out.println("unable to establish operating environment: " + e.getMessage());
                         System.exit(-1);
                         return;
@@ -296,7 +299,7 @@ public class MainClass {
         }
     }
 
-    static String[] parseMainCommandLineOptions(String[] args) {
+    private static String[] parseMainCommandLineOptions(String[] args) {
         final String OPT_DEBUG_LEVEL = "-debugLevel";
         final String OPT_APP_PATH = "-applicationPath";
         final String OPT_APP_FLAGS= "-applicationFlags";
@@ -351,7 +354,7 @@ public class MainClass {
         return outputArgs.toArray(new String[outputArgs.size()]);
     }
 
-    static void initLog4j(PwmLogLevel logLevel) {
+    private static void initLog4j(PwmLogLevel logLevel) {
         if (logLevel == null) {
             Logger.getRootLogger().removeAllAppenders();
             Logger.getRootLogger().addAppender(new NullAppender());
@@ -371,7 +374,7 @@ public class MainClass {
         PwmLogger.markInitialized();
     }
 
-    static LocalDB loadPwmDB(
+    private static LocalDB loadPwmDB(
             final Configuration config,
             final boolean readonly,
             final File applicationPath
@@ -384,7 +387,7 @@ public class MainClass {
         return LocalDBFactory.getInstance(databaseDirectory, readonly, null, config);
     }
 
-    static ConfigurationReader loadConfiguration(final File configurationFile) throws Exception {
+    private static ConfigurationReader loadConfiguration(final File configurationFile) throws Exception {
         final ConfigurationReader reader = new ConfigurationReader(configurationFile);
 
         if (reader.getConfigMode() == PwmApplicationMode.ERROR) {
@@ -396,7 +399,7 @@ public class MainClass {
         return reader;
     }
 
-    static PwmApplication loadPwmApplication(
+    private static PwmApplication loadPwmApplication(
             final File applicationPath,
             final Collection<PwmEnvironment.ApplicationFlag> flags,
             final Configuration config,
@@ -406,9 +409,12 @@ public class MainClass {
             throws LocalDBException, PwmUnrecoverableException
     {
         final PwmApplicationMode mode = readonly ? PwmApplicationMode.READ_ONLY : PwmApplicationMode.RUNNING;
-        final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = flags == null
-                ? PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(null)
-                : flags;
+        final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = new HashSet<>();
+        if (flags == null) {
+            applicationFlags.addAll(PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(null));
+        } else {
+            applicationFlags.addAll(flags);
+        }
         applicationFlags.add(PwmEnvironment.ApplicationFlag.CommandLineInstance);
         final PwmEnvironment pwmEnvironment = new PwmEnvironment.Builder(config, applicationPath)
                 .setApplicationMode(mode)
@@ -426,7 +432,7 @@ public class MainClass {
         return pwmApplication;
     }
 
-    static File locateConfigurationFile(File applicationPath) {
+    private static File locateConfigurationFile(File applicationPath) {
         return new File(applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
     }
 
@@ -434,7 +440,7 @@ public class MainClass {
         System.out.println(txt + "\n");
     }
 
-    public static class MainOptions {
+    static class MainOptions {
         private PwmLogLevel pwmLogLevel = null;
         private File applicationPath = null;
         private boolean forceFlag = false;
@@ -448,7 +454,7 @@ public class MainClass {
             return applicationPath;
         }
 
-        public boolean isForceFlag() {
+        boolean isForceFlag() {
             return forceFlag;
         }
     }

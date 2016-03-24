@@ -33,6 +33,7 @@ import password.pwm.config.function.HttpsCertParseFunction;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.ValueMetaData;
+import password.pwm.config.value.ActionValue;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.config.value.X509CertificateValue;
@@ -270,11 +271,12 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final PwmSetting pwmSetting = PwmSetting.forKey(requestMap.get("setting"));
         final String functionName = requestMap.get("function");
         final String profileID = pwmSetting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString("profile") : null;
+        final String extraData = requestMap.get("extraData");
 
         try {
             Class implementingClass = Class.forName(functionName);
             SettingUIFunction function = (SettingUIFunction) implementingClass.newInstance();
-            final Serializable result = function.provideFunction(pwmRequest, configManagerBean.getStoredConfiguration(), pwmSetting, profileID);
+            final Serializable result = function.provideFunction(pwmRequest, configManagerBean.getStoredConfiguration(), pwmSetting, profileID, extraData);
             RestResultBean restResultBean = new RestResultBean();
             restResultBean.setSuccessMessage(Message.Success_Unknown.getLocalizedMessage(pwmRequest.getLocale(),pwmRequest.getConfig()));
             restResultBean.setData(result);
@@ -348,6 +350,10 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
 
                 case X509CERT:
                     returnValue = ((X509CertificateValue) storedConfig.readSetting(theSetting, profile)).toInfoMap(true);
+                    break;
+
+                case ACTION:
+                    returnValue = ((ActionValue)storedConfig.readSetting(theSetting, profile)).toInfoMap();
                     break;
 
                 case FILE:
@@ -667,7 +673,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final Date startTime = new Date();
         LOGGER.debug(pwmRequest, "beginning restHttpsCertificateView");
         final HttpsCertParseFunction httpsCertParseFunction = new HttpsCertParseFunction();
-        final String output = httpsCertParseFunction.provideFunction(pwmRequest, configManagerBean.getStoredConfiguration(),null,null);
+        final String output = httpsCertParseFunction.provideFunction(pwmRequest, configManagerBean.getStoredConfiguration(),null,null, null);
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(output);
         pwmRequest.outputJsonResult(restResultBean);

@@ -813,6 +813,11 @@ public class Configuration implements Serializable, SettingReader {
         return newProfile;
     }
 
+    public StoredConfigurationImpl getStoredConfiguration() throws PwmUnrecoverableException {
+        final StoredConfigurationImpl copiedStoredConfiguration = StoredConfigurationImpl.copy(storedConfiguration);
+        copiedStoredConfiguration.lock();
+        return copiedStoredConfiguration;
+    }
 
     public boolean isDevDebugMode() {
         return Boolean.parseBoolean(readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
@@ -831,4 +836,6 @@ public class Configuration implements Serializable, SettingReader {
         }
         return returnSet;
     }
+
+
 }

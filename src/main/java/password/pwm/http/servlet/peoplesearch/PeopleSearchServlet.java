@@ -670,8 +670,15 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
                         bean.setUserReferences(userReferences.values());
                     }
                 } else {
-                    bean.setValue(searchResults.containsKey(formConfiguration.getName()) ? searchResults.get(
-                            formConfiguration.getName()) : "");
+                    if (formConfiguration.isMultivalue()) {
+                        bean.setValues(readUserMultiAttributeValues(pwmRequest, userIdentity, formConfiguration.getName()));
+                    } else {
+                        if (searchResults.containsKey(formConfiguration.getName())) {
+                            bean.setValues(Collections.singletonList(searchResults.get(formConfiguration.getName())));
+                        } else {
+                            bean.setValues(Collections.<String>emptyList());
+                        }
+                    }
                 }
                 returnObj.put(formConfiguration.getName(),bean);
             }
@@ -861,6 +868,29 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
 
         }
         return returnObj;
+    }
+
+    private static List<String> readUserMultiAttributeValues(
+            final PwmRequest pwmRequest,
+            final UserIdentity userIdentity,
+            final String attributeName
+    )
+            throws PwmUnrecoverableException
+    {
+
+        final List<UserIdentity> returnObj = new ArrayList<>();
+
+        final int MAX_VALUES = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.PEOPLESEARCH_VALUE_MAXCOUNT));
+        final ChaiUser chaiUser = getChaiUser(pwmRequest, userIdentity);
+        try {
+            final Set<String> ldapValues = chaiUser.readMultiStringAttribute(attributeName);
+            return ldapValues != null ? new ArrayList<>(ldapValues) : Collections.<String>emptyList();
+        } catch (ChaiOperationException e) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, "error reading attribute value '" + attributeName + "', error:" +  e.getMessage()));
+        } catch (ChaiUnavailableException e) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
+        }
+
     }
 
     private CacheKey makeCacheKey(

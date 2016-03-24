@@ -39,6 +39,8 @@ public enum PwmSettingFlag {
     Form_ShowUniqueOption,
     Form_ShowReadOnlyOption,
     Form_ShowRequiredOption,
+    Form_ShowMultiValueOption,
+    Form_HideStandardOptions,
 
     Verification_HideMinimumOptional,
 

@@ -151,15 +151,13 @@ public abstract class StringUtil {
         URL_SAFE,
         ;
 
-        private static int asBase64UtilOptions(Base64Options[] options) {
+        private static int asBase64UtilOptions(final Base64Options... options) {
             int b64UtilOptions = 0;
-            Set<Base64Options> optionsEnum = EnumSet.noneOf(Base64Options.class);
-            optionsEnum.addAll(Arrays.asList(options));
 
-            if (optionsEnum.contains(Base64Options.GZIP)) {
+            if (Helper.enumArrayContainsValue(options, Base64Options.GZIP)) {
                 b64UtilOptions = b64UtilOptions | Base64.GZIP;
             }
-            if (optionsEnum.contains(Base64Options.URL_SAFE)) {
+            if (Helper.enumArrayContainsValue(options, Base64Options.URL_SAFE)) {
                 b64UtilOptions = b64UtilOptions | Base64.URL_SAFE;
             }
             return b64UtilOptions;

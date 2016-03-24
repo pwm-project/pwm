@@ -29,7 +29,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.util.Validator;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.*;
@@ -41,6 +40,7 @@ import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
+import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.*;
@@ -133,7 +133,7 @@ public class FormUtility {
                 final String confirmFieldName = formConfiguration.getName() + Validator.PARAM_CONFIRM_SUFFIX;
                 returnObj.put(confirmFieldName, input.get(formConfiguration));
             }
-            
+
         }
         return returnObj;
     }
@@ -360,11 +360,43 @@ public class FormUtility {
     )
             throws PwmUnrecoverableException
     {
+        final Map<FormConfiguration, List<String>> valueMap = populateFormMapFromLdap(formFields, sessionLabel, userDataReader);
+        for (FormConfiguration formConfiguration : formMap.keySet()) {
+            if (valueMap.containsKey(formConfiguration)) {
+                final List<String> values = valueMap.get(formConfiguration);
+                if (values != null && !values.isEmpty()) {
+                    final String value = values.iterator().next();
+                    formMap.put(formConfiguration, value);
+                }
+            }
+        }
+    }
+
+    public static Map<FormConfiguration, List<String>> populateFormMapFromLdap(
+            final List<FormConfiguration> formFields,
+            final SessionLabel sessionLabel,
+            final UserDataReader userDataReader
+    )
+            throws PwmUnrecoverableException
+    {
         final List<String> formFieldNames = FormConfiguration.convertToListOfNames(formFields);
         LOGGER.trace(sessionLabel, "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection(formFieldNames));
-        final Map<String,String> userData = new LinkedHashMap<>();
+        final Map<String,List<String>> dataFromLdap = new LinkedHashMap<>();
         try {
-            userData.putAll(userDataReader.readStringAttributes(formFieldNames, true));
+            for (final FormConfiguration formConfiguration : formFields) {
+                final String attribute = formConfiguration.getName();
+                if (formConfiguration.isMultivalue()) {
+                    final List<String> values = userDataReader.readMultiStringAttribute(attribute, UserDataReader.Flag.ignoreCache);
+                    if (values != null && !values.isEmpty()) {
+                        dataFromLdap.put(attribute, values);
+                    }
+                } else {
+                    final String value = userDataReader.readStringAttribute(attribute);
+                    if (value != null) {
+                        dataFromLdap.put(attribute, Collections.singletonList(value));
+                    }
+                }
+            }
         } catch (Exception e) {
             PwmError error = null;
             if (e instanceof ChaiException) {
@@ -379,13 +411,20 @@ public class FormUtility {
             throw new PwmUnrecoverableException(errorInformation);
         }
 
+        final Map<FormConfiguration, List<String>> returnMap = new LinkedHashMap<>();
         for (final FormConfiguration formItem : formFields) {
             final String attrName = formItem.getName();
-            if (userData.containsKey(attrName)) {
-                final String value = parseInputValueToFormValue(formItem, userData.get(attrName));
-                formMap.put(formItem, value);
-                LOGGER.trace(sessionLabel, "loaded value for form item '" + attrName + "' with value=" + value);
+            if (dataFromLdap.containsKey(attrName)) {
+                final List<String> values = new ArrayList<>();
+                for (final String value : dataFromLdap.get(attrName)) {
+                    final String parsedValue = parseInputValueToFormValue(formItem, value);
+                    values.add(parsedValue);
+                    LOGGER.trace(sessionLabel, "loaded value for form item '" + attrName + "' with value=" + value);
+                }
+
+                returnMap.put(formItem, values);
             }
         }
+        return returnMap;
     }
 }
