@@ -26,11 +26,11 @@ import com.novell.ldapchai.exception.ChaiException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.bean.LoginInfoBean;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
@@ -47,30 +47,31 @@ import java.util.regex.Pattern;
 public abstract class StandardMacros {
     private static final PwmLogger LOGGER = PwmLogger.forClass(StandardMacros.class);
 
-    public static final List<Class<? extends MacroImplementation>> STANDARD_MACROS;
+    public static final Map<Class<? extends MacroImplementation>,MacroImplementation.Scope> STANDARD_MACROS;
     static {
-        final List<Class<? extends MacroImplementation>> defaultMacros = new ArrayList<>();
+        final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> defaultMacros = new LinkedHashMap<>();
 
         // wrapper macros
-        defaultMacros.add(EncodingMacro.class);
+        defaultMacros.put(EncodingMacro.class, MacroImplementation.Scope.System);
 
-        defaultMacros.add(LdapMacro.class);
-        defaultMacros.add(UserPwExpirationTimeMacro.class);
-        defaultMacros.add(UserPwExpirationTimeDefaultMacro.class);
-        defaultMacros.add(UserDaysUntilPwExpireMacro.class);
-        defaultMacros.add(UserIDMacro.class);
-        defaultMacros.add(UserEmailMacro.class);
-        defaultMacros.add(UserPasswordMacro.class);
-        defaultMacros.add(InstanceIDMacro.class);
-        defaultMacros.add(CurrentTimeMacro.class);
-        defaultMacros.add(DefaultEmailFromAddressMacro.class);
-        defaultMacros.add(SiteURLMacro.class);
-        defaultMacros.add(SiteHostMacro.class);
-        defaultMacros.add(RandomCharMacro.class);
-        defaultMacros.add(RandomNumberMacro.class);
-        defaultMacros.add(UUIDMacro.class);
-        defaultMacros.add(UserLdapProfileMacro.class);
-        STANDARD_MACROS = Collections.unmodifiableList(defaultMacros);
+        defaultMacros.put(CurrentTimeMacro.class, MacroImplementation.Scope.System);
+        defaultMacros.put(InstanceIDMacro.class, MacroImplementation.Scope.System);
+        defaultMacros.put(DefaultEmailFromAddressMacro.class, MacroImplementation.Scope.System);
+        defaultMacros.put(SiteURLMacro.class, MacroImplementation.Scope.System);
+        defaultMacros.put(SiteHostMacro.class, MacroImplementation.Scope.System);
+        defaultMacros.put(RandomCharMacro.class, MacroImplementation.Scope.System);
+        defaultMacros.put(RandomNumberMacro.class, MacroImplementation.Scope.System);
+        defaultMacros.put(UUIDMacro.class, MacroImplementation.Scope.System);
+
+        defaultMacros.put(LdapMacro.class, MacroImplementation.Scope.User);
+        defaultMacros.put(UserPwExpirationTimeMacro.class, MacroImplementation.Scope.User);
+        defaultMacros.put(UserPwExpirationTimeDefaultMacro.class, MacroImplementation.Scope.User);
+        defaultMacros.put(UserDaysUntilPwExpireMacro.class, MacroImplementation.Scope.User);
+        defaultMacros.put(UserIDMacro.class, MacroImplementation.Scope.User);
+        defaultMacros.put(UserEmailMacro.class, MacroImplementation.Scope.User);
+        defaultMacros.put(UserPasswordMacro.class, MacroImplementation.Scope.User);
+        defaultMacros.put(UserLdapProfileMacro.class, MacroImplementation.Scope.User);
+        STANDARD_MACROS = Collections.unmodifiableMap(defaultMacros);
     }
 
 
