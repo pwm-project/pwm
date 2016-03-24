@@ -24,6 +24,10 @@ body {
     background-color: white;
 }
 
+html {
+    overflow-y: auto !important;
+}
+
 .border {
     border: 1px solid #D4D4D4 !important;
 }
@@ -105,15 +109,15 @@ body {
 }
 
 .centerbody-config {
-    width: 850px;
-    min-width: 850px;
-    padding: 10px;
+    bottom: 0;
+    left: 0;
     margin-left: auto;
     margin-right: auto;
-    clear: both;
-    border-radius: 0 0 5px 5px;
-    box-shadow: 0;
-    background-color: white;
+    min-width: 870px;
+    position: absolute;
+    right: 0;
+    top: 20px;
+    width: 870px;
 }
 
 .categoryDescription {
@@ -244,48 +248,56 @@ table {
 }
 
 #navigationTreeWrapper {
-    border: 1px solid #bfbfbf;
-    border-radius: 3px 3px 5px 5px;
-    box-shadow: 1px 1px 0px 0px #dfdfdf;
-    float: left;
-    margin-right: 5px;
     background-color: white;
-    margin-top: 57px;
-    height: 85vh;
+    border: 1px solid #dae1e1;
+    border-radius: 3px;
+    bottom: 20px;
+    left: 8px;
+    position: absolute;
+    top: 55px;
     width: 242px;
-    position: fixed;
+
     animation: fadein 0.5s;
     -moz-animation: fadein 0.5s; /* Firefox */
     -webkit-animation: fadein 0.5s; /* Safari and Chrome */
 }
 
 #navigationTree {
-    height: 100%;
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
 }
 
 #navTreeExpanderButtons {
+    bottom: -20px;
+    cursor: pointer;
+    position: absolute;
     text-align: center;
     width: 100%;
-    cursor: pointer;
-    height: 10px;
 }
 
 #settingsPanel {
-    width:600px;
-    float:right;
-    border:0;
-    margin-top: 57px;
+    border: 0 none;
+    bottom: 0;
+    left: 258px;
+    overflow: auto;
+    padding-right: 6px;
+    position: absolute;
+    top: 55px;
+    width: 600px;
 }
 
 #settingSearchPanel {
-    margin-top: 10px;
-    padding-top: 10px;
-    margin-bottom: 10px;
-    position:fixed;
-    z-index: 2;
-    background: white;
-    width:850px;
     animation: fadein 1.5s;
+    background: white none repeat scroll 0 0;
+    left: 8px;
+    position: absolute;
+    top: 10px;
+    width: 850px;
+    z-index: 2;
+
     -moz-animation: fadein 1.5s; /* Firefox */
     -webkit-animation: fadein 1.5s; /* Safari and Chrome */
 }
