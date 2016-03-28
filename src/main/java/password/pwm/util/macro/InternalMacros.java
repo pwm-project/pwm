@@ -27,23 +27,23 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public abstract class InternalMacros {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(InternalMacros.class);
 
-    public static final List<Class<? extends MacroImplementation>> INTERNAL_MACROS;
+    public static final Map<Class<? extends MacroImplementation>,MacroImplementation.Scope> INTERNAL_MACROS;
     static {
-        final List<Class<? extends MacroImplementation>> defaultMacros = new ArrayList<>();
-        defaultMacros.add(OtpSetupTimeMacro.class);
-        defaultMacros.add(ResponseSetupTimeMacro.class);
-        defaultMacros.add(PwmSettingReference.class);
-        defaultMacros.add(PwmAppName.class);
-        INTERNAL_MACROS = Collections.unmodifiableList(defaultMacros);
+        final Map<Class<? extends MacroImplementation>,MacroImplementation.Scope>  defaultMacros = new HashMap<>();
+        defaultMacros.put(OtpSetupTimeMacro.class, MacroImplementation.Scope.Static);
+        defaultMacros.put(ResponseSetupTimeMacro.class, MacroImplementation.Scope.Static);
+        defaultMacros.put(PwmSettingReference.class, MacroImplementation.Scope.Static);
+        defaultMacros.put(PwmAppName.class, MacroImplementation.Scope.Static);
+        INTERNAL_MACROS = Collections.unmodifiableMap(defaultMacros);
     }
 
     static abstract class InternalAbstractMacro extends AbstractMacro {
@@ -66,7 +66,7 @@ public abstract class InternalMacros {
             if (userInfoBean != null && userInfoBean.getOtpUserRecord() != null && userInfoBean.getOtpUserRecord().getTimestamp() != null) {
                 return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getOtpUserRecord().getTimestamp());
             }
-            return null;
+            return "";
         }
     }
 
@@ -83,7 +83,7 @@ public abstract class InternalMacros {
             if (userInfoBean != null && userInfoBean.getResponseInfoBean() != null && userInfoBean.getResponseInfoBean().getTimestamp() != null) {
                 return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getResponseInfoBean().getTimestamp());
             }
-            return null;
+            return "";
         }
     }
 

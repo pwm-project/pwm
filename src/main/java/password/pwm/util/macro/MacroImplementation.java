@@ -23,15 +23,21 @@
 package password.pwm.util.macro;
 
 import password.pwm.PwmApplication;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.ldap.UserDataReader;
 
 import java.util.regex.Pattern;
 
 public interface MacroImplementation {
+    enum Scope {
+        Static,
+        System,
+        User,
+    }
+
     Pattern getRegExPattern();
-    
+
     String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
             throws MacroParseException;
 
