@@ -33,9 +33,9 @@
     <div id="centerbody" class="wide tall" style="height:100%">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
-        <div id="panel-searchbar">
+        <div id="panel-searchbar" class="searchbar">
 	        <input id="username" name="username" placeholder="<pwm:display key="Placeholder_Search"/>" class="peoplesearch-input-username" <pwm:autofocus/> autocomplete="off" />
-            <div style="width:20px; max-width: 20px; display: inline-block;">
+            <div class="searchbar-extras">
                 <div id="searchIndicator" style="display: none">
                     <span style="" class="pwm-icon pwm-icon-lg pwm-icon-spin pwm-icon-spinner"></span>
                 </div>
@@ -50,7 +50,7 @@
                 <a href="<pwm:context/>"><pwm:display key="Title_MainPage"/></a>
             </noscript>
         </div>
-        <div id="peoplesearch-searchResultsGrid" class="grid tall">
+        <div id="peoplesearch-searchResultsGrid" class="searchResultsGrid grid tall">
         </div>
     </div>
     <div class="push"></div>

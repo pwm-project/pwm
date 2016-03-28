@@ -122,6 +122,10 @@
     display: inline-block;
 }
 
+#header-menu-wrapper > #header-username {
+    display: block;
+}
+
 #header-menu {
     cursor: pointer;
 }
