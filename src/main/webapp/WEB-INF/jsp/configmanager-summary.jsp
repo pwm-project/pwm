@@ -51,11 +51,12 @@
 <body class="nihilo">
 <div id="wrapper">
   <jsp:include page="fragment/header-body.jsp">
-    <jsp:param name="pwm.PageName" value="Configuration Summary"/>
+    <jsp:param name="pwm.PageName" value="Title_ConfigurationSummary"/>
   </jsp:include>
   <div id="centerbody wide">
     <br/>
     <div style="text-align: center; width: 100%">
+      <div id="page-content-title" style="display: none;"><pwm:display key="Title_ConfigurationSummary" displayIfMissing="true"/></div>
       <div>
         <%=PwmConstants.PWM_APP_NAME%>  <%=PwmConstants.SERVLET_VERSION%>
       </div>

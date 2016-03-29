@@ -42,9 +42,10 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Log Viewer"/>
+        <jsp:param name="pwm.PageName" value="Title_LogViewer"/>
     </jsp:include>
     <div id="centerbody" style="width: 96%; margin-left: 2%; margin-right: 2%; background: white">
+        <div id="page-content-title" style="display: none;"><pwm:display key="Title_LogViewer" displayIfMissing="true"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm" id="searchForm" class="pwm-form">

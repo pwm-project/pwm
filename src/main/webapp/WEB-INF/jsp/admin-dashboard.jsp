@@ -65,9 +65,10 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Dashboard"/>
+        <jsp:param name="pwm.PageName" value="Title_Dashboard"/>
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title" style="display: none;"><pwm:display key="Title_Dashboard" displayIfMissing="true"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
         <div id="DashboardTabContainer" data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
             <div id="StatusTab" data-dojo-type="dijit.layout.ContentPane" title="Status" class="tabContent">

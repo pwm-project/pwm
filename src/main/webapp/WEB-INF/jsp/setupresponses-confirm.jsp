@@ -36,6 +36,7 @@
         <jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/>
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title" style="display: none;"><pwm:display key="Title_ConfirmResponses" displayIfMissing="true"/></div>
         <p><pwm:display key="Display_ConfirmResponses"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>

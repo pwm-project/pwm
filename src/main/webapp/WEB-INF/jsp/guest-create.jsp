@@ -36,6 +36,7 @@
         <jsp:param name="pwm.PageName" value="Title_GuestRegistration"/>
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title" style="display: none;"><pwm:display key="Title_GuestRegistration" displayIfMissing="true"/></div>
         <%@ include file="/WEB-INF/jsp/fragment/guest-nav.jsp" %>
         <p><pwm:display key="Display_GuestRegistration"/></p>
 

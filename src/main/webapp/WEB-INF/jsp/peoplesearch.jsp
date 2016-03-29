@@ -31,8 +31,9 @@
         <jsp:param name="pwm.PageName" value="Title_PeopleSearch"/>
     </jsp:include>
     <div id="centerbody" class="wide tall" style="height:100%">
-        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+        <div id="page-content-title" style="display: none;"><pwm:display key="Title_PeopleSearch" displayIfMissing="true"/></div>
 
+        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <div id="panel-searchbar" class="searchbar">
 	        <input id="username" name="username" placeholder="<pwm:display key="Placeholder_Search"/>" class="peoplesearch-input-username" <pwm:autofocus/> autocomplete="off" />
             <div class="searchbar-extras">

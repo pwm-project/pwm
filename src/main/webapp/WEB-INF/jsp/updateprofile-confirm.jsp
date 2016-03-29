@@ -38,6 +38,7 @@
         <jsp:param name="pwm.PageName" value="Title_UpdateProfileConfirm"/>
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title" style="display: none;"><pwm:display key="Title_UpdateProfileConfirm" displayIfMissing="true"/></div>
         <p><pwm:display key="Display_UpdateProfileConfirm"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>

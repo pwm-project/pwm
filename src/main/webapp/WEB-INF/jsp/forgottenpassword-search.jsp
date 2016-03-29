@@ -33,6 +33,7 @@
         <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title" style="display: none;"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <p><pwm:display key="Display_ForgottenPassword"/></p>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" autocomplete="off"
               name="searchForm" class="pwm-form" id="searchForm">

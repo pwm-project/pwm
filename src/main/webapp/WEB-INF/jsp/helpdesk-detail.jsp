@@ -72,6 +72,7 @@
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
     </jsp:include>
     <div id="centerbody" style="min-width: 800px">
+        <div id="page-content-title" style="display: none;"><pwm:display key="Title_Helpdesk" displayIfMissing="true"/></div>
         <% if (displayName != null && !displayName.isEmpty()) { %>
         <h2 style="text-align: center"><%=displayName%></h2>
         <% } %>

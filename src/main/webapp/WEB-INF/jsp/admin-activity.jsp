@@ -56,9 +56,10 @@
 </style>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="User Activity"/>
+        <jsp:param name="pwm.PageName" value="Title_UserActivity"/>
     </jsp:include>
     <div id="centerbody" class="wide">
+        <div id="page-content-title" style="display: none;"><pwm:display key="Title_UserActivity" displayIfMissing="true"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
         <div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
             <div id="ActiveWebSessions" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Sessions" bundle="Admin"/>" class="tabContent">

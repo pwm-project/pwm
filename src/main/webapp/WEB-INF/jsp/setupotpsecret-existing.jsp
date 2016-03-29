@@ -31,6 +31,7 @@
         <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret" />
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title" style="display: none;"><pwm:display key="Title_SetupOtpSecret" displayIfMissing="true"/></div>
         <p>
             <pwm:if test="<%=PwmIfTest.hasStoredOtpTimestamp%>">
                 <pwm:display key="Display_WarnExistingOtpSecretTime" value1="@OtpSetupTime@"/>

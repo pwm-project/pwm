@@ -33,9 +33,10 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="LDAP Permission Recommendations"/>
+        <jsp:param name="pwm.PageName" value="Title_LDAPPermissionRecommendations"/>
     </jsp:include>
     <div id="centerbody" class="wide">
+        <div id="page-content-title" style="display: none;"><pwm:display key="Title_LDAPPermissionRecommendations" displayIfMissing="true"/></div>
         <jsp:include page="fragment/ldap-permissions.jsp"/>
     </div>
     <div class="push"></div>

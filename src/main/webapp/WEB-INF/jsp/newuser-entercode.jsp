@@ -40,6 +40,7 @@
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title" style="display: none;"><pwm:display key="Title_NewUser" displayIfMissing="true"/></div>
         <% if (newUserBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.EMAIL) { %>
         <p><pwm:display key="Display_RecoverEnterCode" value1="<%=tokenVerificationProgress.getTokenDisplayText()%>"/></p>
         <% } else if (newUserBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.SMS) { %>
