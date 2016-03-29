@@ -361,7 +361,7 @@ public class LocalDBLogger implements PwmService {
                         final Date startTime = new Date();
                         localDBListQueue.removeLast(cleanupCount);
                         final TimeDuration purgeTime = TimeDuration.fromCurrent(startTime);
-                        Helper.pause(Math.max(Math.min(purgeTime.getMilliseconds(),100),1000));
+                        Helper.pause(Math.max(Math.min(purgeTime.getMilliseconds(),20),2000));
                     }
                 }
             } catch (Exception e) {

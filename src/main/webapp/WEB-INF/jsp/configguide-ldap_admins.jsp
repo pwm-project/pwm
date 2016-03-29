@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.config.PwmSettingTemplate" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -28,6 +29,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
+<% boolean isAD = ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().getTemplates().contains(PwmSettingTemplate.AD); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
@@ -50,10 +52,12 @@
                         <b>Administrator Group DN</b>
                         <br/>
                         <input style="width:400px;" class="configStringInput" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_ADMIN_GROUP%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_ADMIN_GROUP%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_ADMIN_GROUP))%>" <pwm:autofocus/> required/>
+                        <% if (isAD) { %>
                         <button type="button" class="btn" id="button-browse-adminGroup">
                             <span class="btn-icon pwm-icon pwm-icon-sitemap"></span>
                             <pwm:display key="Button_Browse"/>
                         </button>
+                        <% } %>
                         <button type="button" id="button-viewAdminMatches" class="btn">
                             <span class="btn-icon pwm-icon pwm-icon-eye"></span>
                             View Group Members

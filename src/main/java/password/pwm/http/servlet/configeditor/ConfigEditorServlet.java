@@ -755,8 +755,8 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             return null;
         }
 
-        if (fileUploads.containsKey("uploadFile")) {
-            final PwmRequest.FileUploadItem uploadItem = fileUploads.get("uploadFile");
+        if (fileUploads.containsKey(PwmConstants.PARAM_FILE_UPLOAD)) {
+            final PwmRequest.FileUploadItem uploadItem = fileUploads.get(PwmConstants.PARAM_FILE_UPLOAD);
 
             final Map<FileValue.FileInformation, FileValue.FileContent> newFileValueMap = new LinkedHashMap<>();
             newFileValueMap.put(new FileValue.FileInformation(uploadItem.getName(), uploadItem.getType()), new FileValue.FileContent(uploadItem.getContent()));
