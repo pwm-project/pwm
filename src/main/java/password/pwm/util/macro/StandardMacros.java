@@ -54,6 +54,7 @@ public abstract class StandardMacros {
         // wrapper macros
         defaultMacros.put(EncodingMacro.class, MacroImplementation.Scope.System);
 
+        // system macros
         defaultMacros.put(CurrentTimeMacro.class, MacroImplementation.Scope.System);
         defaultMacros.put(InstanceIDMacro.class, MacroImplementation.Scope.System);
         defaultMacros.put(DefaultEmailFromAddressMacro.class, MacroImplementation.Scope.System);
@@ -63,11 +64,14 @@ public abstract class StandardMacros {
         defaultMacros.put(RandomNumberMacro.class, MacroImplementation.Scope.System);
         defaultMacros.put(UUIDMacro.class, MacroImplementation.Scope.System);
 
+        // user or system macros
+        defaultMacros.put(UserIDMacro.class, MacroImplementation.Scope.System);
+
+        // user macros
         defaultMacros.put(LdapMacro.class, MacroImplementation.Scope.User);
         defaultMacros.put(UserPwExpirationTimeMacro.class, MacroImplementation.Scope.User);
         defaultMacros.put(UserPwExpirationTimeDefaultMacro.class, MacroImplementation.Scope.User);
         defaultMacros.put(UserDaysUntilPwExpireMacro.class, MacroImplementation.Scope.User);
-        defaultMacros.put(UserIDMacro.class, MacroImplementation.Scope.User);
         defaultMacros.put(UserEmailMacro.class, MacroImplementation.Scope.User);
         defaultMacros.put(UserPasswordMacro.class, MacroImplementation.Scope.User);
         defaultMacros.put(UserLdapProfileMacro.class, MacroImplementation.Scope.User);

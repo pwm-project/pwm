@@ -351,6 +351,7 @@ input:invalid{
     max-height: 250px;
     margin: 2px 2px 15px;
     overflow-x: auto;
+    animation: fadein 1s;
 }
 
 .pane-settingValue {

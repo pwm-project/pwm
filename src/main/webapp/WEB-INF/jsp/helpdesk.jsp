@@ -43,9 +43,12 @@
                     <span style="color: #ffcd59;" class="pwm-icon pwm-icon-lg pwm-icon-exclamation-circle"></span>
                 </div>
 
-                <% if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled) == true) { %>
+                <% if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled)) { %>
                 <div id="verifications-btn">
-                    <button class="btn" id="button-show-current-verifications">Verifications</button>
+                    <button class="btn" id="button-show-current-verifications">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
+                        <pwm:display key="Button_Verificiations"/>
+                    </button>
                 </div>
                 <% } %>
             </div>
