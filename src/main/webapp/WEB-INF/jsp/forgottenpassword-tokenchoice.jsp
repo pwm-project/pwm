@@ -32,7 +32,7 @@
         <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title" style="display: none;"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
+        <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p><pwm:display key="Display_RecoverTokenSendChoices"/></p>
         <table class="noborder">

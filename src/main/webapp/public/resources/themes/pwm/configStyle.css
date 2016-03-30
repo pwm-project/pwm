@@ -525,11 +525,11 @@ button {
     border-radius: 2px;
 }.button:disabled {
      color: #9e9e9e;
- }
+}
 
- select {
-     color: black;
- }
+select {
+    color: black;
+}
 
 #button-openMenu {
     position: absolute;
@@ -554,3 +554,15 @@ button {
 .selectableDN {
     cursor: pointer;
 }
+
+.setting-challenge-question-summary {
+    cursor: pointer;
+    table-layout: fixed;
+    transition: box-shadow 0.3s;
+}
+
+.setting-challenge-question-summary:hover {
+    border: 1px solid #E8E1F6;
+    box-shadow: 0 0 0 0 white, 0 0 0 0 white, 9px 0 12px -4px #B2B1B9, -9px 0 12px -4px #B2B1B9;
+}
+

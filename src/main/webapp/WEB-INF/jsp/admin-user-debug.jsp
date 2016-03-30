@@ -37,7 +37,7 @@
         <jsp:param name="pwm.PageName" value="Debug"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title" style="display: none;">Debug</div>
+        <div id="page-content-title">Debug</div>
         <table>
             <tr>
                 <td class="key">UserDN</td>

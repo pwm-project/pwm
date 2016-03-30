@@ -34,7 +34,7 @@
         <jsp:param name="pwm.PageName" value="Title_Success"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title" style="display: none;"><pwm:display key="Title_Success" displayIfMissing="true"/></div>
+        <div id="page-content-title"><pwm:display key="Title_Success" displayIfMissing="true"/></div>
         <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post"
               enctype="application/x-www-form-urlencoded" class="pwm-form">
             <p><pwm:SuccessMessage/></p>

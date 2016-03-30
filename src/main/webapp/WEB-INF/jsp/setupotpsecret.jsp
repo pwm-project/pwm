@@ -51,7 +51,7 @@
         <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title" style="display: none;"><pwm:display key="Title_SetupOtpSecret" displayIfMissing="true"/></div>
+        <div id="page-content-title"><pwm:display key="Title_SetupOtpSecret" displayIfMissing="true"/></div>
         <p><pwm:display key="Display_SetupOtpSecret"/></p>
         <%@ include file="fragment/message.jsp" %>
         <div data-dojo-type="dijit.layout.TabContainer" data-dojo-props="doLayout: false, persist: true">

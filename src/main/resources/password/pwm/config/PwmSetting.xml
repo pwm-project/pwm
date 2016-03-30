@@ -1394,7 +1394,7 @@
     </setting>
     <setting hidden="false" key="security.moduleSession.mode" level="2">
         <default>
-            <value>LOCAL</value>
+            <value>CRYPTCOOKIE</value>
         </default>
         <options>
             <option value="LOCAL">Local</option>

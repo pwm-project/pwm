@@ -365,7 +365,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
     public static Percent stepProgress(GuideStep step) {
         final int ordinal = step.ordinal();
-        final int total = GuideStep.values().length;
+        final int total = GuideStep.values().length - 2;
         return new Percent(ordinal,total);
     }
 

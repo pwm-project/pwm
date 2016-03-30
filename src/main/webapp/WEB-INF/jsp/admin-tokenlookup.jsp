@@ -1,9 +1,8 @@
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.error.PwmOperationalException" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.i18n.Admin" %>
 <%@ page import="password.pwm.svc.token.TokenPayload" %>
-<%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Iterator" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -43,11 +42,12 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
+    <% String PageName = JspUtility.localizedString(pageContext,"Title_TokenLookup",Admin.class);%>
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_TokenLookup"/>
+        <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title" style="display: none;"><pwm:display key="Title_TokenLookup" displayIfMissing="true"/></div>
+        <div id="page-content-title"><pwm:display key="Title_TokenLookup" bundle="PageName" displayIfMissing="true"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
         <% final String tokenKey = tokenlookup_pwmRequest.readParameterAsString("token");%>
         <% if (tokenKey != null && tokenKey.length() > 0) { %>

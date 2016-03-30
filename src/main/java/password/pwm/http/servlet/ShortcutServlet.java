@@ -33,6 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.bean.ShortcutsBean;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.logging.PwmLogger;
@@ -53,7 +54,7 @@ public class ShortcutServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ShortcutServlet.class);
 
-    public enum ShortcutAction implements AbstractPwmServlet.ProcessAction {
+    enum ShortcutAction implements AbstractPwmServlet.ProcessAction {
         selectShortcut,
         ;
 
@@ -84,10 +85,11 @@ public class ShortcutServlet extends AbstractPwmServlet {
             return;
         }
 
-        if (pwmSession.getSessionStateBean().getVisibleShortcutItems() == null) {
+        final ShortcutsBean shortcutsBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ShortcutsBean.class);
+        if (shortcutsBean.getVisibleItems() == null) {
             LOGGER.debug(pwmSession, "building visible shortcut list for user");
             final Map<String, ShortcutItem> visibleItems = figureVisibleShortcuts(pwmRequest);
-            pwmSession.getSessionStateBean().setVisibleShortcutItems(visibleItems);
+            shortcutsBean.setVisibleItems(visibleItems);
         } else {
             LOGGER.trace(pwmSession, "using cashed shortcut values");
         }
@@ -97,14 +99,22 @@ public class ShortcutServlet extends AbstractPwmServlet {
             pwmRequest.validatePwmFormID();
             switch (action) {
                 case selectShortcut:
-                    handleUserSelection(pwmRequest);
+                    handleUserSelection(pwmRequest, shortcutsBean);
                     return;
             }
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SHORTCUT);
+        forwardToJsp(pwmRequest, shortcutsBean);
     }
 
+    private void forwardToJsp(final PwmRequest pwmRequest, final ShortcutsBean shortcutsBean)
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final ArrayList<ShortcutItem> shortcutItems = new ArrayList<>();
+        shortcutItems.addAll(shortcutsBean.getVisibleItems().values());
+        pwmRequest.setAttribute(PwmRequest.Attribute.ShortcutItems, shortcutItems);
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SHORTCUT);
+    }
 
     /**
      * Loop through each configured shortcut setting to determine if the shortcut is is able to the user pwmSession.
@@ -160,7 +170,8 @@ public class ShortcutServlet extends AbstractPwmServlet {
     }
 
     private void handleUserSelection(
-            final PwmRequest pwmRequest
+            final PwmRequest pwmRequest,
+            final ShortcutsBean shortcutsBean
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
@@ -168,7 +179,7 @@ public class ShortcutServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
         final String link = pwmRequest.readParameterAsString("link");
-        final Map<String, ShortcutItem> visibleItems = pwmSession.getSessionStateBean().getVisibleShortcutItems();
+        final Map<String, ShortcutItem> visibleItems = shortcutsBean.getVisibleItems();
 
         if (link != null && visibleItems.keySet().contains(link)) {
             final ShortcutItem item = visibleItems.get(link);

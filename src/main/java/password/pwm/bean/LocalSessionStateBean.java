@@ -22,13 +22,11 @@
 
 package password.pwm.bean;
 
-import password.pwm.config.ShortcutItem;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * Only information that is particular to the http session is stored in the
@@ -51,8 +49,6 @@ public class LocalSessionStateBean implements Serializable {
     private String sessionID;
     private String theme;
     private String lastRequestURL;
-
-    private Map<String, ShortcutItem> visibleShortcutItems;
 
     private String sessionVerificationKey = "key";
     private String restClientKey;
@@ -173,14 +169,6 @@ public class LocalSessionStateBean implements Serializable {
 
     public void setSessionVerified(final boolean sessionVerified) {
         this.sessionVerified = sessionVerified;
-    }
-
-    public Map<String, ShortcutItem> getVisibleShortcutItems() {
-        return visibleShortcutItems;
-    }
-
-    public void setVisibleShortcutItems(final Map<String, ShortcutItem> visibleShortcutItems) {
-        this.visibleShortcutItems = visibleShortcutItems;
     }
 
     public boolean isDebugInitialized() {

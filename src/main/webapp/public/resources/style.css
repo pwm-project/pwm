@@ -474,6 +474,10 @@ div.progress-container > div {
     border-radius: 2px;
 }
 
+#page-content-title {
+    display: none; /* must be overridden by themes to use */
+}
+
 #header-page {
     padding-top: 9px;
     margin-left: auto;
@@ -769,6 +773,11 @@ select {
     white-space: nowrap;
     cursor: pointer;
     text-decoration: none;
+    background:none;
+    border:none;
+    font-size:1em;
+    padding:0;
+    color:inherit;
 }
 
 .localeDisplayName {
@@ -967,3 +976,4 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 
 .footer-segment:after { padding: 10px; content: '\2022'; filter: brightness(50%); }
 .footer-segment:last-child:after { content: ""; }​
+

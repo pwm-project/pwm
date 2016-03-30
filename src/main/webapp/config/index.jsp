@@ -34,7 +34,7 @@
     </jsp:include>
     <div id="content">
         <div id="centerbody">
-            <div id="page-content-title" style="display: none;"><pwm:display key="Title_Configuration" displayIfMissing="true"/></div>
+            <div id="page-content-title"><pwm:display key="Title_Configuration" bundle="Config" displayIfMissing="true"/></div>
             <pwm:display key="Display_PleaseWait"/> <a href="<pwm:context/><pwm:url url="/private/config/ConfigManage"/>"><pwm:display bundle="Admin" key="MenuItem_ConfigManager"/></a>
         </div>
     </div>

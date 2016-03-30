@@ -31,7 +31,7 @@
         <jsp:param name="pwm.PageName" value="Title_PeopleSearch"/>
     </jsp:include>
     <div id="centerbody" class="wide tall" style="height:100%">
-        <div id="page-content-title" style="display: none;"><pwm:display key="Title_PeopleSearch" displayIfMissing="true"/></div>
+        <div id="page-content-title"><pwm:display key="Title_PeopleSearch" displayIfMissing="true"/></div>
 
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <div id="panel-searchbar" class="searchbar">

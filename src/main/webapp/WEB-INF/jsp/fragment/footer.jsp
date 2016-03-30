@@ -48,10 +48,10 @@
             </pwm:if>
             <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.HIDE_LOCALE%>" negate="true">
                 <span class="footer-segment">
-                    <span id="localeSelectionMenu">
+                    <button id="localeSelectionMenu">
                         <img src="<pwm:context/><pwm:url url='/public/resources/flags/png/'/><pwm:value name="<%=PwmValue.localeFlagFile%>"/>.png"/>
                         <span class="localeDisplayName"><pwm:value name="<%=PwmValue.localeName%>"/></span>
-                    </span>
+                    </button>
                 </span>
             </pwm:if>
         </div>

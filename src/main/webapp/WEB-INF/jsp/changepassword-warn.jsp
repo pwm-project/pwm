@@ -40,7 +40,7 @@
         <jsp:param name="pwm.PageName" value="Title_PasswordWarning"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title" style="display: none;"><pwm:display key="Title_PasswordWarning" displayIfMissing="true"/></div>
+        <div id="page-content-title"><pwm:display key="Title_PasswordWarning" displayIfMissing="true"/></div>
         <p>
             <% if (uiBean.getPasswordExpirationTime() != null) { %>
             <pwm:display key="Display_PasswordWarn"

@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.i18n.PwmLocaleBundle" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
@@ -50,13 +51,14 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
+  <% String PageName = JspUtility.localizedString(pageContext,"Title_ConfigurationSummary",Config.class);%>
   <jsp:include page="fragment/header-body.jsp">
-    <jsp:param name="pwm.PageName" value="Title_ConfigurationSummary"/>
+    <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
   </jsp:include>
   <div id="centerbody wide">
     <br/>
     <div style="text-align: center; width: 100%">
-      <div id="page-content-title" style="display: none;"><pwm:display key="Title_ConfigurationSummary" displayIfMissing="true"/></div>
+      <div id="page-content-title"><pwm:display key="Title_ConfigurationSummary" bundle="Config" displayIfMissing="true"/></div>
       <div>
         <%=PwmConstants.PWM_APP_NAME%>  <%=PwmConstants.SERVLET_VERSION%>
       </div>

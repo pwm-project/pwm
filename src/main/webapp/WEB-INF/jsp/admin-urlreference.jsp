@@ -31,7 +31,7 @@
         <jsp:param name="pwm.PageName" value="Title_URLReference"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title" style="display: none;"><pwm:display key="Title_URLReference" displayIfMissing="true"/></div>
+        <div id="page-content-title"><pwm:display key="Title_URLReference" displayIfMissing="true"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
         <br/>
         <br/>

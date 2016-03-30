@@ -2030,7 +2030,7 @@ ChallengeSettingHandler.draw = function(settingKey) {
     var parentDiv = "table_setting_" + settingKey;
     var resultValue = PWM_VAR['clientSettingCache'][settingKey];
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
-    var bodyText = '';
+    var bodyText = '<div class="footnote">Click on challenge questions to edit questions and policies</div>';
     PWM_CFGEDIT.clearDivElements(parentDiv, false);
     for (var localeName in resultValue) {
         (function(localeKey) {
@@ -2038,7 +2038,7 @@ ChallengeSettingHandler.draw = function(settingKey) {
             var rowCount = PWM_MAIN.JSLibrary.itemCount(multiValues);
 
             bodyText += '<table class="noborder"><tr><td>';
-            bodyText += '<table style="cursor: pointer; table-layout: fixed">';
+            bodyText += '<table class="setting-challenge-question-summary">';
             var localeLabel = localeName == '' ? 'Default Locale' : PWM_GLOBAL['localeInfo'][localeName] + " (" + localeName + ")";
             if (PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) > 1) {
                 bodyText += '<tr><td class="title" style="font-size:100%; font-weight:normal">' + localeLabel + '</td></tr>';

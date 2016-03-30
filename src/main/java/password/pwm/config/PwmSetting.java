@@ -89,6 +89,8 @@ public enum PwmSetting {
             "http.proxy.url", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     APP_PROPERTY_OVERRIDES(
             "pwm.appProperty.overrides", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL),
+
+    // clustering
     SECURITY_LOGIN_SESSION_MODE(
             "security.loginSession.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.CLUSTERING),
     SECURITY_MODULE_SESSION_MODE(

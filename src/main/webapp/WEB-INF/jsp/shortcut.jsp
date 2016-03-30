@@ -22,8 +22,9 @@
 
 <%@ page import="password.pwm.config.ShortcutItem" %>
 <%@ page import="password.pwm.error.PwmException" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="java.util.Collections" %>
+<%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <!DOCTYPE html>
 
@@ -35,44 +36,33 @@
 <body class="nihilo">
 <%
     final boolean newWindow = JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_NEW_WINDOW);
-    Map<String, ShortcutItem> shortcutItems = Collections.emptyMap();
-    try {
-        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-        shortcutItems = pwmRequest.getPwmSession().getSessionStateBean().getVisibleShortcutItems();
-    } catch (PwmException e) {
-        /* noop */
-    }
+    final List<ShortcutItem> shortcutItems = (List<ShortcutItem>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ShortcutItems);
 %>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Shortcuts"/>
     </jsp:include>
-    <div id="centerbody">
-        <div class="centerbody-head"><pwm:display key="Title_Shortcuts"/></div>
-        <%@ include file="fragment/message.jsp" %>
+    <div id="centerbody" class="tile-centerbody">
+        <div id="page-content-title"><pwm:display key="Title_Shortcuts" displayIfMissing="true"/></div>
         <% if (shortcutItems.isEmpty()) { %>
         <p>No shortcuts</p>
         <% } else { %>
-        <table class="noborder">
-            <% for (final ShortcutItem item : shortcutItems.values()) { %>
-            <tr>
-                <td class="menubutton_key">
-                    <form action="<pwm:current-url/>" method="post" name="form-shortcuts-<%=item%>" enctype="application/x-www-form-urlencoded" id="form-shortcuts-<%=item%>" <%=newWindow ? " target=\"_blank\"" : ""%>>
-                        <input type="hidden" name="processAction" value="selectShortcut">
-                        <input type="hidden" name="link" value="<%=item.getLabel()%>">
-                        <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-                        <button type="submit" class="menubutton">
-                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-external-link"></span></pwm:if>
-                            <%=item.getLabel()%>
-                        </button>
-                    </form>
-                </td>
-                <td>
-                    <p><%= item.getDescription() %></p>
-                </td>
-            </tr>
-            <% } %>
-        </table>
+        <% for (final ShortcutItem item : shortcutItems) { %>
+        <form action="<pwm:current-url/>" method="post" name="form-shortcuts-<%=item%>" enctype="application/x-www-form-urlencoded" id="form-shortcuts-<%=item%>" <%=newWindow ? " target=\"_blank\"" : ""%>>
+            <input type="hidden" name="processAction" value="selectShortcut">
+            <input type="hidden" name="link" value="<%=item.getLabel()%>">
+            <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
+            <button type="submit" class="tile">
+                <div class="tile-content">
+                    <div class="tile-image">
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-external-link"></span></pwm:if>
+                    </div>
+                    <div class="tile-title"><%=item.getLabel()%></div>
+                    <div class="tile-subtitle"><%=item.getDescription()%></div>
+                </div>
+            </button>
+        </form>
+        <% } %>
         <% } %>
     </div>
     <div class="push"></div>

@@ -42,7 +42,7 @@
         <jsp:param name="pwm.PageName" value="Title_UpdateProfile"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title" style="display: none;"><pwm:display key="Title_UpdateProfile" displayIfMissing="true"/></div>
+        <div id="page-content-title"><pwm:display key="Title_UpdateProfile" displayIfMissing="true"/></div>
         <% if (updateProfileBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.EMAIL) { %>
         <p><pwm:display key="Display_UpdateProfileEnterCode" value1="<%=tokenVerificationProgress.getTokenDisplayText()%>"/></p>
         <% } else if (updateProfileBean.getTokenVerificationProgress().getPhase() == TokenVerificationProgress.TokenChannel.SMS) { %>

@@ -32,7 +32,7 @@
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
     </jsp:include>
     <div id="centerbody" class="wide tall">
-        <div id="page-content-title" style="display: none;"><pwm:display key="Title_Helpdesk" displayIfMissing="true"/></div>
+        <div id="page-content-title"><pwm:display key="Title_Helpdesk" displayIfMissing="true"/></div>
         <div id="panel-searchbar" class="searchbar">
             <input id="username" name="username" placeholder="<pwm:display key="Placeholder_Search"/>" class="helpdesk-input-username" <pwm:autofocus/> autocomplete="off"/>
             <div class="searchbar-extras">

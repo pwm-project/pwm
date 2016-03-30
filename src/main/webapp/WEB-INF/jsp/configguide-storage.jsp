@@ -36,7 +36,7 @@
     <div id="centerbody">
         <form id="configForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <pwm:display key="Display_ConfigGuideSelectCrStorage" bundle="Config"/>
+            <pwm:display key="Display_ConfigGuideSelectStorage" bundle="Config"/>
             <br/>
             <select id="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE%>" name="<%=ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE%>">
             <% if (selectedTemplate == null || selectedTemplate.isEmpty()) { %>
@@ -54,18 +54,17 @@
             <br/>
         </form>
         <p>
-            <b>LDAP</b>: Storing the challenge/response data in LDAP is ideal if your LDAP directory is extensible and can accommodate the storage.  You will need to extend
+            <b>LDAP</b> <p> Storing user data in LDAP is ideal if your LDAP directory is extensible and can accommodate the storage.  You will need to extend
             the LDAP server's schema or adjust the configuration to use pre-existing defined attributes.  You will also need to adjust the access control lists (ACLs) or rights
-            in the LDAP directory to accommodate the challenge/response storage and other data.  See the documentation for more information.
+            in the LDAP directory to accommodate the challenge/response storage and other data.  See the documentation for more information.</p>
         </p>
         <p>
-            <b>Remote Database</b>: If modifying the LDAP's server schema and rights is not desired or possible, you can use a database to store the user's challenge/response data.
-            After the configuration guide process is complete, you will need to edit the Database settings and upload your database vendor's JDBC driver into the configuration.
-            Your database vendor will supply you with the appropriate JDBC driver file and configuration instructions.
+            <b>Remote Database</b> <p> If modifying the LDAP's server schema and rights is not desired or possible, you can use a database to store user data.
+            Your database vendor will supply you with the appropriate JDBC driver file and configuration instructions.</p>
         </p>
         <p>
-            <b>LocalDB (Testing only)</b>: This server has it's own embedded local database (LocalDB) that is capable of storing user challenge/responses.  This option should never be used in a production
-            environment and is provided only for testing purposes.  User challenge/response's stored in the LocalDB are server specific..
+            <b>LocalDB (Testing only)</b> <p> This server has it's own embedded local database (LocalDB) that is capable of storing user challenge/responses.  This option should never be used in a production
+            environment and is provided only for testing purposes.  User data including challenge/response answers stored in the LocalDB are server specific.</p>
         </p>
         <%@ include file="fragment/configguide-buttonbar.jsp" %>
     </div>

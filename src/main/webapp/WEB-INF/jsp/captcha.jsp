@@ -49,7 +49,7 @@
         <jsp:param name="pwm.PageName" value="Title_Captcha"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title" style="display: none;"><pwm:display key="Title_Captcha" displayIfMissing="true"/></div>
+        <div id="page-content-title"><pwm:display key="Title_Captcha" displayIfMissing="true"/></div>
         <p><pwm:display key="Display_Captcha"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
