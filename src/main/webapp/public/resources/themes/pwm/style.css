@@ -210,3 +210,12 @@ h3 {
   content: "\f141";
   font: 12px FontAwesome;
 }
+
+.panel-orgChart-person {
+    transition: box-shadow 0.3s;
+}
+
+.panel-orgChart-person:hover {
+    border: 1px solid transparent;
+    box-shadow: 0 0 0 0 white, 0 0 0 0 white, 9px 0 12px -4px #B2B1B9, -9px 0 12px -4px #B2B1B9;
+}

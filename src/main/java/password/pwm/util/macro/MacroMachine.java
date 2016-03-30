@@ -156,11 +156,12 @@ public class MacroMachine {
             }
         };
 
+        final Set<MacroImplementation.Scope> scopes = effectiveScopes(macroRequestInfo);
         final Map<Pattern,MacroImplementation> macroImplementations = new LinkedHashMap<>();
-        for (final MacroImplementation.Scope scope : effectiveScopes()) {
+        for (final MacroImplementation.Scope scope : scopes) {
             macroImplementations.putAll(BUILTIN_MACROS.get(scope));
         }
-        if (effectiveScopes().contains(MacroImplementation.Scope.User)) {
+        if (scopes.contains(MacroImplementation.Scope.User)) {
             macroImplementations.putAll(makeExternalImplementations(pwmApplication));
         }
 
@@ -188,14 +189,17 @@ public class MacroMachine {
         return workingString;
     }
 
-    private Set<MacroImplementation.Scope> effectiveScopes() {
+    private static Set<MacroImplementation.Scope> effectiveScopes(MacroImplementation.MacroRequestInfo macroRequestInfo) {
         final Set<MacroImplementation.Scope> scopes = new HashSet<>();
         scopes.add(MacroImplementation.Scope.Static);
-        if (this.pwmApplication != null
-                && (pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING || pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION)
-                ) {
+
+        final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
+        final PwmApplicationMode mode = pwmApplication != null ? pwmApplication.getApplicationMode() : PwmApplicationMode.ERROR;
+        final boolean appModeOk = mode == PwmApplicationMode.RUNNING || mode == PwmApplicationMode.CONFIGURATION;
+        if (appModeOk) {
             scopes.add(MacroImplementation.Scope.System);
-            if (this.userInfoBean != null && this.userDataReader != null) {
+
+            if (macroRequestInfo.getUserInfoBean() != null || macroRequestInfo.getUserDataReader() != null) {
                 scopes.add(MacroImplementation.Scope.User);
             }
         }
