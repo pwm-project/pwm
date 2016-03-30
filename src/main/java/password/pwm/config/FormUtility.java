@@ -361,7 +361,7 @@ public class FormUtility {
             throws PwmUnrecoverableException
     {
         final Map<FormConfiguration, List<String>> valueMap = populateFormMapFromLdap(formFields, sessionLabel, userDataReader);
-        for (FormConfiguration formConfiguration : formMap.keySet()) {
+        for (FormConfiguration formConfiguration : formFields) {
             if (valueMap.containsKey(formConfiguration)) {
                 final List<String> values = valueMap.get(formConfiguration);
                 if (values != null && !values.isEmpty()) {
