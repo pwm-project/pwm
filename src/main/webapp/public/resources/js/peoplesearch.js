@@ -101,12 +101,17 @@ PWM_PS.convertDetailResultToHtml = function(data) {
         })(iter);
     }
     htmlBody += '</div>'; //3
-    if (data['hasOrgChart']) {
-        htmlBody += '<div class="icon-peoplesearch-orgChart" id="icon-peoplesearch-orgChart" title="' + PWM_MAIN.showString('Title_OrgChart') + '"></div>';
-    }
     htmlBody += '</div>';
 
     htmlBody += '<div id="peopleSearch-userDetailWrapper">';
+
+    if (data['hasOrgChart']) {
+        htmlBody += '<div style="text-align: center"><button class="btn" id="button-peoplesearch-orgChart">'
+            + '<span class="btn-icon pwm-icon pwm-icon-sitemap"></span>'
+            + PWM_MAIN.showString('Title_OrgChart')
+            + '</div>';
+    }
+
     htmlBody += '<table class="peopleSearch-userDetails">';
     for (var iter in data['detail']) {
         (function(iterCount){
@@ -151,6 +156,7 @@ PWM_PS.convertDetailResultToHtml = function(data) {
         })(iter);
     }
     htmlBody += '</table></div>';
+    
     return htmlBody;
 };
 
@@ -162,7 +168,7 @@ PWM_PS.applyEventHandlersToDetailView = function(data) {
     }
 
     if (data['hasOrgChart']) {
-        PWM_MAIN.addEventHandler('icon-peoplesearch-orgChart', 'click', function () {
+        PWM_MAIN.addEventHandler('button-peoplesearch-orgChart', 'click', function () {
             PWM_PS.showOrgChartView(data['userKey']);
         });
     }
@@ -412,7 +418,8 @@ PWM_PS.initPeopleSearchPage = function() {
     var applicationData = PWM_MAIN.getObject("application-info");
     var jspName = applicationData ? applicationData.getAttribute("data-jsp-name") : "";
     if ("peoplesearch.jsp" == jspName) {
-        PWM_MAIN.ajaxRequest("PeopleSearch?processAction=clientData",function(data){
+        var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','clientData');
+        PWM_MAIN.ajaxRequest(url,function(data){
             if (data['error']) {
                 PWM_MAIN.showErrorDialog(data);
                 return;
@@ -422,7 +429,22 @@ PWM_PS.initPeopleSearchPage = function() {
             }
             console.log('loaded peoplesearch jsClientData');
             PWM_PS.makeSearchGrid(function () {
+
+                try {
+                    var fieldUsername = PWM_MAIN.Preferences.readSessionStorage("peoplesearch_field_username","");
+                    PWM_MAIN.getObject('username').value = fieldUsername;
+                } catch (e) {
+                    console.log('error reading username field from sessionStorage: ' + e);
+                }
+
                 PWM_MAIN.addEventHandler('username', "keyup, input", function () {
+                    try {
+                        var fieldUsername = PWM_MAIN.getObject('username').value;
+                        PWM_MAIN.Preferences.writeSessionStorage("peoplesearch_field_username", fieldUsername);
+                    } catch (e) {
+                        console.log('error writing username field from sessionStorage: ' + e);
+                    }
+
                     PWM_PS.processPeopleSearch();
                 });
                 if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
@@ -434,3 +456,5 @@ PWM_PS.initPeopleSearchPage = function() {
 };
 
 PWM_PS.initPeopleSearchPage();
+
+
