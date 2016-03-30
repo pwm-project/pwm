@@ -41,6 +41,7 @@
         <jsp:param name="pwm.PageName" value="Title_Error"/>
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title"><pwm:display key="Title_Error" displayIfMissing="true"/></div>
         <br/>
         <h2>HTTP <%=statusCode%></h2>
         <br/>

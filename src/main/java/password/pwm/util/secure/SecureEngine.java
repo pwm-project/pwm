@@ -22,6 +22,7 @@
 
 package password.pwm.util.secure;
 
+import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -222,9 +223,7 @@ public class SecureEngine {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         } finally {
-            if (fileInputStream != null) {
-                fileInputStream.close();
-            }
+            IOUtils.closeQuietly(fileInputStream);
         }
     }
 

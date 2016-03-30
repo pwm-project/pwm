@@ -28,9 +28,10 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="URL Reference"/>
+        <jsp:param name="pwm.PageName" value="Title_URLReference"/>
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title"><pwm:display key="Title_URLReference" displayIfMissing="true"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
         <br/>
         <br/>

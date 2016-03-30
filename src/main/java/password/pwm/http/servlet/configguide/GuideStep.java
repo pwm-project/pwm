@@ -38,7 +38,7 @@ public enum GuideStep {
     LDAP_CONTEXT(null),
     LDAP_ADMINS(null),
     LDAP_TESTUSER(null),
-    CR_STORAGE(null),
+    STORAGE(null),
     LDAP_SCHEMA(LdapSchemeVisibilityCheck.class),
     DATABASE(DbVisibilityCheck.class),
     LDAP_PERMISSIONS(null),

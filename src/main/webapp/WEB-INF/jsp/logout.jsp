@@ -34,6 +34,7 @@
         <jsp:param name="pwm.PageName" value="Title_Logout"/>
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title"><pwm:display key="Title_Logout" displayIfMissing="true"/></div>
         <%@ include file="fragment/message.jsp" %>
         <p><pwm:display key="Display_Logout"/></p>
     </div>

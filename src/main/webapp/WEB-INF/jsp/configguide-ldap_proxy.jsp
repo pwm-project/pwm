@@ -1,5 +1,5 @@
+<%@ page import="password.pwm.config.PwmSettingTemplate" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -27,6 +27,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
+<% boolean isAD = ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().getTemplates().contains(PwmSettingTemplate.AD); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
@@ -49,10 +50,12 @@
                             <b><pwm:display key="ldap_admin_title_proxy-dn" bundle="ConfigGuide"/></b>
                             <br/>
                             <input class="configStringInput" type="text" style="width:400px" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN%>" value="<%=configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_PROXY_DN)%>" <pwm:autofocus/> />
+                            <% if (!isAD) { %>
                             <button type="button" class="btn" id="button-browse-adminDN">
                                 <span class="btn-icon pwm-icon pwm-icon-sitemap"></span>
                                 <pwm:display key="Button_Browse"/>
                             </button>
+                            <% } %>
                         </label>
                     </div>
                     &nbsp;<br/>

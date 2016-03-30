@@ -1,4 +1,5 @@
-<%--
+<%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.i18n.Config" %><%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
   ~
@@ -29,11 +30,13 @@
 <body>
 <meta http-equiv="refresh" content="0;url=<pwm:context/><pwm:url url="/private/config/manager"/>"/>
 <div id="wrapper">
+    <% String PageName = JspUtility.localizedString(pageContext,"Title_UserActivity",Config.class);%>
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Configuration"/>
+        <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
     <div id="content">
         <div id="centerbody">
+            <div id="page-content-title"><pwm:display key="Title_Configuration" bundle="Config" displayIfMissing="true"/></div>
             <pwm:display key="Display_PleaseWait"/> <a href="<pwm:context/><pwm:url url="/private/config/manager"/>"><pwm:display bundle="Admin" key="MenuItem_ConfigManager"/></a>
         </div>
     </div>

@@ -152,7 +152,6 @@
                 </a>
             </pwm:if>
         </pwm:if>
-
         <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">
             <a id="button_Admin" href="<pwm:url url='<%=PwmServletDefinition.Admin.servletUrl()%>' addContext="true"/> " style="font-weight: normal;">
                 <div class="tile">
@@ -160,14 +159,6 @@
                         <div class="tile-image admin-image"></div>
                         <div class="tile-title"><pwm:display key="Title_Admin"/></div>
                         <div class="tile-subtitle"><pwm:display key="Long_Title_Admin"/></div>
-                    </div>
-                </div>
-            </a>
-            <a id="button_Admin" href="<pwm:url url='<%=PwmServletDefinition.ConfigManager.servletUrl()%>' addContext="true"/> " style="font-weight: normal;">
-                <div class="tile">
-                    <div class="tile-content">
-                        <div class="tile-image configmanager-image"></div>
-                        <div class="tile-title"><pwm:display key="Title_ConfigManager" bundle="Config"/></div>
                     </div>
                 </div>
             </a>

@@ -137,7 +137,15 @@ h3 {
 .tile {
     width: 165px;
     height: 165px;
+    border: 1px solid #E8E1F6;
+    transition: box-shadow 0.3s;
 }
+
+.tile:hover {
+    border: 1px solid #E8E1F6;
+    box-shadow: 0 0 0 0 white, 0 0 0 0 white, 9px 0 12px -4px #B2B1B9, -9px 0 12px -4px #B2B1B9;
+}
+
 
 .btn-icon {
     opacity:0.75;
@@ -173,6 +181,10 @@ h3 {
     display: inline-block;
 }
 
+#header-menu-wrapper > #header-username {
+    display: block;
+}
+
 #header-menu {
     cursor: pointer;
 }
@@ -197,4 +209,13 @@ h3 {
 #header-menu-icon::after {
   content: "\f141";
   font: 12px FontAwesome;
+}
+
+.panel-orgChart-person {
+    transition: box-shadow 0.3s;
+}
+
+.panel-orgChart-person:hover {
+    border: 1px solid transparent;
+    box-shadow: 0 0 0 0 white, 0 0 0 0 white, 9px 0 12px -4px #B2B1B9, -9px 0 12px -4px #B2B1B9;
 }

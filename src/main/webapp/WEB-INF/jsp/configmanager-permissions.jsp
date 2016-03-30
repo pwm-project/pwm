@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.i18n.Config" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -32,10 +33,12 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
+    <% String PageName = JspUtility.localizedString(pageContext,"Title_LDAPPermissionRecommendations",Config.class);%>
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="LDAP Permission Recommendations"/>
+        <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
     <div id="centerbody" class="wide">
+        <div id="page-content-title"><pwm:display key="Title_LDAPPermissionRecommendations" bundle="Config" displayIfMissing="true"/></div>
         <jsp:include page="fragment/ldap-permissions.jsp"/>
     </div>
     <div class="push"></div>

@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.error.PwmException" %>
+<%@ page import="password.pwm.i18n.Admin" %>
 <%@ page import="password.pwm.svc.stats.Statistic" %>
 <%@ page import="password.pwm.svc.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.svc.stats.StatisticsManager" %>
@@ -54,10 +55,12 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
+    <% String PageName = JspUtility.localizedString(pageContext,"Title_DataAnalysis",Admin.class);%>
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Data Analysis"/>
+        <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
     <div id="centerbody" class="wide">
+        <div id="page-content-title"><pwm:display key="Title_DataAnalysis" bundle="Admin" displayIfMissing="true"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
         <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true" id="analysis-topLevelTab">
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">

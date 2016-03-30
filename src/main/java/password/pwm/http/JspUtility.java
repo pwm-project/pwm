@@ -130,5 +130,13 @@ public abstract class JspUtility {
 
     public static PwmRequest getPwmRequest(final PageContext pageContext) {
         return forRequest(pageContext.getRequest());
-    }}
+    }
+
+    public static String localizedString(final PageContext pageContext, final String key, Class<? extends PwmDisplayBundle> bundleClass, final String... values) {
+        final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
+        return LocaleHelper.getLocalizedMessage(pwmRequest.getLocale(), key, pwmRequest.getConfig(), bundleClass, values);
+    }
+}
+
+
 

@@ -27,42 +27,39 @@
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
-<div id="wrapper">
+<div id="wrapper" class="helpdesk-wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
     </jsp:include>
     <div id="centerbody" class="wide tall">
+        <div id="page-content-title"><pwm:display key="Title_Helpdesk" displayIfMissing="true"/></div>
         <div id="panel-searchbar" class="searchbar">
-            <table class="noborder" style="margin-left: auto; margin-right: auto; width:100px; table-layout: fixed" >
-                <tr>
-                    <td style="width:15px">
-                        <span class="pwm-icon pwm-icon-search"></span>
-                    </td>
-                    <td style="width:400px">
-                        <input placeholder="<pwm:display key="Placeholder_Search"/>" type="search" id="username" name="username" class="helpdesk-input-username" style="width: 400px" <pwm:autofocus/> autocomplete="off"/>
-                    </td>
-                    <td style="width:20px">
-                        <div id="searchIndicator" style="display:none">
-                            <span class="pwm-icon pwm-icon-lg pwm-icon-spin pwm-icon-spinner"></span>
-                        </div>
-                        <div id="maxResultsIndicator" style="display:none">
-                            <span style="color: #ffcd59;" class="pwm-icon pwm-icon-lg pwm-icon-exclamation-circle"></span>
-                        </div>
-                    </td>
-                    <% if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled) == true) { %>
-                    <td style="width: 45px">
-                        <button class="btn" id="button-show-current-verifications">Verifications</button>
-                    </td>
-                    <% } %>
-                </tr>
-            </table>
+            <input id="username" name="username" placeholder="<pwm:display key="Placeholder_Search"/>" class="helpdesk-input-username" <pwm:autofocus/> autocomplete="off"/>
+            <div class="searchbar-extras">
+                <div id="searchIndicator" style="display: none;">
+                    <span style="" class="pwm-icon pwm-icon-lg pwm-icon-spin pwm-icon-spinner"></span>
+                </div>
+
+                <div id="maxResultsIndicator" style="display: none;">
+                    <span style="color: #ffcd59;" class="pwm-icon pwm-icon-lg pwm-icon-exclamation-circle"></span>
+                </div>
+
+                <% if ((Boolean)JspUtility.getPwmRequest(pageContext).getAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled)) { %>
+                <div id="verifications-btn">
+                    <button class="btn" id="button-show-current-verifications">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
+                        <pwm:display key="Button_Verificiations"/>
+                    </button>
+                </div>
+                <% } %>
+            </div>
+
             <noscript>
                 <span><pwm:display key="Display_JavascriptRequired"/></span>
                 <a href="<pwm:context/>"><pwm:display key="Title_MainPage"/></a>
             </noscript>
-            <br/>
         </div>
-        <div id="helpdesk-searchResultsGrid" class="grid tall">
+        <div id="helpdesk-searchResultsGrid" class="searchResultsGrid grid tall">
         </div>
     </div>
     <div class="push"></div>

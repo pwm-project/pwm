@@ -68,7 +68,7 @@ public class DebugItemGenerator {
             LDAPPermissionItemGenerator.class
     ));
 
-   static void outputZipDebugFile(
+    static void outputZipDebugFile(
             final PwmRequest pwmRequest,
             final ZipOutputStream zipOutput,
             final String pathPrefix
@@ -76,21 +76,44 @@ public class DebugItemGenerator {
             throws IOException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final String DEBUG_FILENAME = "zipDebugGeneration.csv";
+
+        final ByteArrayOutputStream debugGeneratorLogBaos = new ByteArrayOutputStream();
+        final CSVPrinter debugGeneratorLogFile = Helper.makeCsvPrinter(debugGeneratorLogBaos);
 
         for (final Class<? extends DebugItemGenerator.Generator> serviceClass : DEBUG_ZIP_ITEM_GENERATORS) {
             try {
-                LOGGER.trace(pwmRequest, "beginning debug output of item " + serviceClass.getSimpleName());
+                final Date startTime = new Date();
+                LOGGER.trace(pwmRequest, "beginning output of item " + serviceClass.getSimpleName());
                 final Object newInstance = serviceClass.newInstance();
                 final DebugItemGenerator.Generator newGeneratorItem = (DebugItemGenerator.Generator)newInstance;
                 zipOutput.putNextEntry(new ZipEntry(pathPrefix + newGeneratorItem.getFilename()));
                 newGeneratorItem.outputItem(pwmApplication, pwmRequest, zipOutput);
                 zipOutput.closeEntry();
                 zipOutput.flush();
+                final String finishMsg = "completed output of " + newGeneratorItem.getFilename() + " in " + TimeDuration.fromCurrent(startTime).asCompactString();
+                LOGGER.trace(pwmRequest, finishMsg);
+                debugGeneratorLogFile.printRecord(PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()),finishMsg);
             } catch (Exception e) {
                 final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
                 LOGGER.error(pwmRequest, errorMsg);
+                debugGeneratorLogFile.printRecord(PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()),errorMsg);
+                final Writer stackTraceOutput = new StringWriter();
+                e.printStackTrace(new PrintWriter(stackTraceOutput));
+                debugGeneratorLogFile.printRecord(stackTraceOutput);
             }
         }
+
+        try {
+            zipOutput.putNextEntry(new ZipEntry(pathPrefix + DEBUG_FILENAME));
+            debugGeneratorLogFile.flush();
+            zipOutput.write(debugGeneratorLogBaos.toByteArray());
+            zipOutput.closeEntry();
+        } catch (Exception e) {
+            LOGGER.error("error generating " + DEBUG_FILENAME + ": " + e.getMessage());
+        }
+
+        zipOutput.flush();
     }
 
     static class ConfigurationDebugJsonItemGenerator implements Generator {
@@ -452,15 +475,15 @@ public class DebugItemGenerator {
                 headerRow.add("Access");
                 headerRow.add("Setting");
                 headerRow.add("Profile");
-                csvPrinter.printRecord(headerRow);
+                csvPrinter.printComment(StringUtil.join(headerRow,","));
             }
 
             for (final LDAPPermissionCalculator.PermissionRecord record : ldapPermissionCalculator.getPermissionRecords()) {
                 final List<String> dataRow = new ArrayList<>();
                 dataRow.add(record.getAttribute());
-                dataRow.add(record.getActor().toString());
-                dataRow.add(record.getAccess().toString());
-                dataRow.add(record.getPwmSetting().getKey());
+                dataRow.add(record.getActor() == null ? "" : record.getActor().toString());
+                dataRow.add(record.getAccess() == null ? "" : record.getAccess().toString());
+                dataRow.add(record.getPwmSetting() == null ? "" : record.getPwmSetting().getKey());
                 dataRow.add(record.getProfile() == null ? "" : record.getProfile());
                 csvPrinter.printRecord(dataRow);
             }

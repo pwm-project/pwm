@@ -28,7 +28,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.util.Validator;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -36,10 +35,13 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.ShortcutItem;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.ws.server.RestResultBean;
@@ -297,7 +299,10 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
         NewUser_FormShowBackButton,
 
-        CookieBeanStorage, ThemeOverride,
+        CookieBeanStorage,
+        ThemeOverride,
+
+        ShortcutItems,
     }
 
     public static class FileUploadItem {

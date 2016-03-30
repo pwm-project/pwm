@@ -41,6 +41,7 @@
         <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title"><pwm:display key="Title_SetupOtpSecret" displayIfMissing="true"/></div>
         <p><pwm:display key="Success_OtpSetup" bundle="Message"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>

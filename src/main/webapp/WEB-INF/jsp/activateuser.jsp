@@ -32,6 +32,7 @@
         <jsp:param name="pwm.PageName" value="Title_ActivateUser"/>
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title"><pwm:display key="Title_ActivateUser" displayIfMissing="true"/></div>
         <p><pwm:display key="Display_ActivateUser"/></p>
         <form action="<pwm:current-url/>" method="post" name="activateUser" enctype="application/x-www-form-urlencoded" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>

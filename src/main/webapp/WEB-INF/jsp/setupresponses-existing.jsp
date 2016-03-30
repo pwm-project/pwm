@@ -36,6 +36,7 @@
         <jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/>
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title"><pwm:display key="Title_ConfirmResponses" displayIfMissing="true"/></div>
         <p>
             <% if (responseInfoBean != null && responseInfoBean.getTimestamp() != null) { %>
             <pwm:display key="Display_WarnExistingResponseTime" value1="@ResponseSetupTime@"/>

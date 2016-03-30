@@ -20,38 +20,32 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.macro;
+package password.pwm.http.bean;
 
-import password.pwm.PwmApplication;
-import password.pwm.bean.LoginInfoBean;
-import password.pwm.bean.UserInfoBean;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.config.ShortcutItem;
 
-import java.util.regex.Pattern;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
-public interface MacroImplementation {
-    enum Scope {
-        Static,
-        System,
-        User,
+public class ShortcutsBean extends PwmSessionBean {
+
+    private Map<String,ShortcutItem> visibleItems;
+
+    public Map<String, ShortcutItem> getVisibleItems() {
+        return visibleItems;
     }
 
-    Pattern getRegExPattern();
-
-    String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
-            throws MacroParseException;
-
-    interface MacroRequestInfo {
-        PwmApplication getPwmApplication();
-        UserInfoBean getUserInfoBean();
-        LoginInfoBean getLoginInfoBean();
-        UserDataReader getUserDataReader();
+    public void setVisibleItems(Map<String, ShortcutItem> visibleItems) {
+        this.visibleItems = visibleItems;
     }
 
-    MacroDefinitionFlag[] flags();
-
-    enum MacroDefinitionFlag {
-        SensitiveValue,
-        OnlyDebugLogging,
+    public Type getType() {
+        return Type.AUTHENTICATED;
     }
+
+    public Set<Flag> getFlags() {
+        return Collections.emptySet();
+    }
+
 }

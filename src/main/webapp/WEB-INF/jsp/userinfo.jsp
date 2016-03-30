@@ -63,6 +63,7 @@
     <jsp:param name="pwm.PageName" value="Title_UserInformation"/>
 </jsp:include>
 <div id="centerbody">
+<div id="page-content-title" style="display: none;"><pwm:display key="Title_UserInformation" displayIfMissing="true"/></div>
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
 <div data-dojo-type="dijit.layout.ContentPane" id="UserInformation" title="<pwm:display key="Title_UserInformation"/>" class="tabContent">
     <table class="nomargin">

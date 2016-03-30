@@ -405,7 +405,6 @@ input[type=password]::-ms-reveal{display: none;}
     width: 175px;
 }
 
-
 /* used for password complexity meter */
 div.progress-container {
     border: 1px solid #ccc;
@@ -466,13 +465,17 @@ div.progress-container > div {
     display: inline-block;
     border: 10px;
     color: black;
-    margin: 4px 4px;
+    margin: 4px 0 4px 8px;
     cursor: pointer;
     background: white;
     float: right;
     text-decoration: none;
     white-space: nowrap;
     border-radius: 2px;
+}
+
+#page-content-title {
+    display: none; /* must be overridden by themes to use */
 }
 
 #header-page {
@@ -770,6 +773,11 @@ select {
     white-space: nowrap;
     cursor: pointer;
     text-decoration: none;
+    background:none;
+    border:none;
+    font-size:1em;
+    padding:0;
+    color:inherit;
 }
 
 .localeDisplayName {
@@ -826,7 +834,49 @@ input[type=search] {
 }
 
 .searchbar {
-    position: relative; margin-left: auto; margin-right: auto; width: 100%; text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    text-align: center;
+    width: 100%;
+}
+
+#panel-searchbar {
+    min-width: 550px;
+}
+
+#panel-searchbar * {
+    vertical-align: middle;
+}
+
+#searchIndicator, #maxResultsIndicator {
+    margin-top: -9px;
+    position: absolute;
+    top: 50%;
+}
+
+.searchbar::before {
+    content: "\f002";
+    font-family: FontAwesome;
+    vertical-align: -1px;
+}
+
+.searchbar .searchbar-extras {
+    display: inline-block;
+    position: relative;
+}
+
+.searchbar .searchbar-extras div {
+    display: inline-block;
+}
+
+.searchbar #verifications-btn {
+    display: inline-block;
+    margin-left: 20px;
+}
+
+.searchbar #button-show-current-verifications {
+    margin: 0;
 }
 
 .formFieldWrapper {
@@ -890,11 +940,10 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 
 
 #peopleSearch-userDetailWrapper { max-height: 450px; overflow-y: auto; }
-.peoplesearch-input-username { width:400px; }
+.peoplesearch-input-username, .helpdesk-input-username { width:400px; }
 
 .peopleSearch-userDetails { max-height: 450px; overflow-y: auto; border: 1px solid #d8e2e2; }
 .peopleSearch-userDetails td.key { font-weight: normal; color: #949494; width: auto; padding: 3px 15px 3px 10px; border-bottom: 1px solid #d8e2e2; }
-
 
 
 /* end peoplesearch section */
@@ -927,3 +976,4 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 
 .footer-segment:after { padding: 10px; content: '\2022'; filter: brightness(50%); }
 .footer-segment:last-child:after { content: ""; }​
+

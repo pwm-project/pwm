@@ -35,6 +35,7 @@
         <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
     </jsp:include>
     <div id="centerbody">
+        <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <% final ForgottenPasswordBean fpb = JspUtility.getSessionBean(pageContext, ForgottenPasswordBean.class); %>
         <%
             OTPUserRecord otp = fpb.getUserInfo().getOtpUserRecord();
