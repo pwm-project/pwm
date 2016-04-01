@@ -92,6 +92,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         viewAdminMatches(HttpMethod.POST),
         browseLdap(HttpMethod.POST),
         uploadJDBCDriver(HttpMethod.POST),
+        skipGuide(HttpMethod.POST),
 
         ;
 
@@ -202,6 +203,10 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
                 case uploadJDBCDriver:
                     restUploadJDBCDriver(pwmRequest, configGuideBean);
+                    return;
+
+                case skipGuide:
+                    restSkipGuide(pwmRequest);
                     return;
             }
         }
@@ -512,6 +517,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             storedConfiguration.writeConfigProperty(ConfigurationProperty.PASSWORD_HASH, null);
         }
 
+        storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE, "false");
         writeConfig(contextManager, storedConfiguration);
     }
 
@@ -526,7 +532,6 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             // add a random security key
             storedConfiguration.initNewRandomSecurityKey();
 
-            storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE, "false");
             configReader.saveConfiguration(storedConfiguration, pwmApplication, null);
 
             contextManager.requestPwmApplicationRestart();
@@ -611,7 +616,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         }
     }
 
-    public static void restUploadJDBCDriver(final PwmRequest pwmRequest, final ConfigGuideBean configGuideBean)
+    static void restUploadJDBCDriver(final PwmRequest pwmRequest, final ConfigGuideBean configGuideBean)
             throws PwmUnrecoverableException, IOException, ServletException
     {
         try {
@@ -627,6 +632,20 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             LOGGER.error(pwmRequest, e.getErrorInformation().toDebugStr());
         }
     }
+
+    private void restSkipGuide(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException {
+        final ContextManager contextManager = ContextManager.getContextManager(pwmRequest);
+        try {
+            final StoredConfigurationImpl storedConfiguration = new StoredConfigurationImpl();
+            storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE, "true");
+            writeConfig(contextManager, storedConfiguration);
+            pwmRequest.outputJsonResult(new RestResultBean());
+            pwmRequest.invalidateSession();
+        } catch (PwmOperationalException e) {
+            LOGGER.error("error during skip config guide: " + e.getMessage(),e);
+        }
+    }
+
 }
 
 

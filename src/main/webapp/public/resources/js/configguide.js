@@ -118,3 +118,19 @@ PWM_GUIDE.extendSchema = function() {
         }});
     }});
 };
+
+PWM_GUIDE.skipWizard = function() {
+    PWM_MAIN.preloadAll(function(){
+        PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('Confirm_SkipGuide'),okAction:function() {
+            var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','skipGuide');
+            var loadFunction = function(result) {
+                if (result['error']) {
+                    PWM_MAIN.showError(result['errorDetail']);
+                } else {
+                    PWM_CONFIG.waitForRestart();
+                }
+            };
+            PWM_MAIN.ajaxRequest(url,loadFunction);
+        }});
+    });
+};

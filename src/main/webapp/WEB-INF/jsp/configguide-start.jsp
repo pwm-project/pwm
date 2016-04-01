@@ -99,10 +99,10 @@
             PWM_MAIN.addEventHandler('button-manualConfig', 'click', function () {
                 if (PWM_GLOBAL['setting-displayEula']) {
                     PWM_MAIN.showEula(true,function(){
-                        skipWizard();
+                        PWM_GUIDE.skipWizard();
                     });
                 } else {
-                    skipWizard();
+                    PWM_GUIDE.skipWizard();
                 }
             });
             PWM_MAIN.addEventHandler('button-uploadConfig', 'click', function () {
@@ -116,12 +116,6 @@
             });
 
         });
-
-        function skipWizard() {
-            PWM_MAIN.showConfirmDialog({text:'<pwm:display key="Confirm_SkipGuide" bundle="Config"/>',okAction:function() {
-                PWM_GUIDE.gotoStep('FINISH');
-            }});
-        }
     </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/configguide.js"/>
