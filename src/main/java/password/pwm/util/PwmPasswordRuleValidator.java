@@ -174,7 +174,7 @@ public class PwmPasswordRuleValidator {
 
         final List<ErrorInformation> errorList = new ArrayList<>();
         final PwmPasswordPolicy.RuleHelper ruleHelper = policy.getRuleHelper();
-        final MacroMachine macroMachine = uiBean == null
+        final MacroMachine macroMachine = uiBean == null || uiBean.getUserIdentity() == null
             ? MacroMachine.forNonUserSpecific(pwmApplication, SessionLabel.SYSTEM_LABEL)
             : MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, uiBean.getUserIdentity());
 
@@ -226,9 +226,11 @@ public class PwmPasswordRuleValidator {
             for (final String loopValue : paramValues) {
                 if (loopValue != null && loopValue.length() > 0) {
                     final String expandedValue = macroMachine.expandMacros(loopValue);
-                    final String loweredLoop = expandedValue.toLowerCase();
-                    if (lcasePwd.contains(loweredLoop)) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_USING_DISALLOWED));
+                    if (StringUtils.isNotBlank(expandedValue)) {
+                        final String loweredLoop = expandedValue.toLowerCase();
+                        if (lcasePwd.contains(loweredLoop)) {
+                            errorList.add(new ErrorInformation(PwmError.PASSWORD_USING_DISALLOWED));
+                        }
                     }
                 }
             }
