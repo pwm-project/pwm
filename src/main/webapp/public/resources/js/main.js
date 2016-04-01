@@ -161,16 +161,17 @@ PWM_MAIN.initPage = function() {
         });
     }
 
-    PWM_MAIN.showTooltip({
-        id: ['header-warning-message'],
-        position: ['below', 'above'],
-        text: '<pwm:display key="HealthMessage_Config_ConfigMode" bundle="Health"/>',
-        width: 500
+    PWM_MAIN.addEventHandler('icon-configModeHelp','click',function(){
+        PWM_MAIN.showDialog({title:'Notice - Configuration Mode',text:PWM_MAIN.showString('Display_ConfigOpenInfo',{bundle:'Config'})});
     });
 
-    PWM_MAIN.addEventHandler('icon-configModeHelp','click',function(){
-        PWM_MAIN.showDialog({title:'Notice - Configuration Status: Open',text:PWM_CONFIG.showString('Display_ConfigOpenInfo')});
-    });
+    if (PWM_GLOBAL['applicationMode'] == 'CONFIGURATION') {
+        var configModeNoticeSeen = PWM_MAIN.Preferences.readSessionStorage('configModeNoticeSeen');
+        if (!configModeNoticeSeen) {
+            PWM_MAIN.Preferences.writeSessionStorage('configModeNoticeSeen',true);
+            PWM_MAIN.showDialog({title:'Notice - Configuration Mode',text:PWM_MAIN.showString('Display_ConfigOpenInfo',{bundle:'Config'})});
+        }
+    }
 
     if (PWM_GLOBAL['pageLeaveNotice'] > 0) {
         require(["dojo","dojo/on"], function(dojo,on){

@@ -37,6 +37,10 @@
     </jsp:include>
 
     <div id="centerbody" class="tile-centerbody">
+    <pwm:if test="<%=PwmIfTest.configurationOpen%>">
+        <p><pwm:display key="Warning_NoEndUserModules" bundle="Config"/></p>
+        <br/>
+    </pwm:if>
         <pwm:if test="<%=PwmIfTest.configurationOpen%>" negate="true">
             <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.CHANGE_PASSWORD%>">
                 <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ChangePassword.servletUrl()%>'/>" style="font-weight: normal;">

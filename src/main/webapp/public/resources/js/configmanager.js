@@ -298,7 +298,7 @@ PWM_CONFIG.initConfigHeader = function() {
         PWM_CONFIG.openLogViewer(null)
     });
     PWM_MAIN.addEventHandler('panel-header-healthData','click',function(){
-        PWM_MAIN.goto('/private/config/ConfigManager');
+        PWM_MAIN.goto('/private/config/manager');
     });
     PWM_MAIN.addEventHandler('button-closeHeader','click',function(){
         PWM_CONFIG.closeHeaderWarningPanel();

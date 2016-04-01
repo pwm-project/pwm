@@ -25,6 +25,7 @@ package password.pwm.util.localdb;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.StringUtil;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
@@ -67,6 +68,24 @@ public class H2_LocalDB extends AbstractJDBC_LocalDB {
     closeConnection(final Connection connection)
             throws SQLException
     {
+
+        CallableStatement statement = null;
+        try {
+            LOCK.writeLock().lock();
+            final java.util.Date start = new java.util.Date();
+            LOGGER.trace("beginning shutdown compact");
+            statement = dbConnection.prepareCall("SHUTDOWN COMPACT");
+            statement.execute();
+            LOGGER.trace("completed shutdown compact in " + TimeDuration.fromCurrent(start).asCompactString());
+        } catch (SQLException ex) {
+            LOGGER.error("error during shutdown compact: " + ex.getMessage());
+        } finally {
+            close(statement);
+            LOCK.writeLock().unlock();
+        }
+
+
+
         try {
             connection.close();
             if (driver != null) {

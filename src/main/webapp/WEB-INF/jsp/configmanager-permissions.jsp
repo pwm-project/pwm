@@ -29,19 +29,13 @@
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_REQ_COUNTER); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_BUTTONS); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_FOOTER_TEXT); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_IDLE_TIMEOUT); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<div id="wrapper">
-    <% String PageName = JspUtility.localizedString(pageContext,"Title_LDAPPermissionRecommendations",Config.class);%>
-    <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
-    </jsp:include>
-    <div id="centerbody" class="wide">
-        <div id="page-content-title"><pwm:display key="Title_LDAPPermissionRecommendations" bundle="Config" displayIfMissing="true"/></div>
-        <jsp:include page="fragment/ldap-permissions.jsp"/>
-    </div>
-    <div class="push"></div>
+<div style="padding: 10px">
+    <div id="page-content-title"><pwm:display key="Title_LDAPPermissionRecommendations" bundle="Config" displayIfMissing="true"/></div>
+    <jsp:include page="fragment/ldap-permissions.jsp"/>
 </div>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

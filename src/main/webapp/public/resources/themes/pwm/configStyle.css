@@ -176,6 +176,9 @@ html {
 
 .menubutton.important {
     color: red;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-weight: bold;
 }
 
 .text {

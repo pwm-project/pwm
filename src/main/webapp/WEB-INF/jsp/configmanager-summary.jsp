@@ -47,25 +47,23 @@
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_REQ_COUNTER); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_BUTTONS); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_FOOTER_TEXT); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_IDLE_TIMEOUT); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
-  <% String PageName = JspUtility.localizedString(pageContext,"Title_ConfigurationSummary",Config.class);%>
-  <jsp:include page="fragment/header-body.jsp">
-    <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
-  </jsp:include>
-  <div id="centerbody wide">
+  <div style="padding:10px">
     <br/>
     <div style="text-align: center; width: 100%">
-      <div id="page-content-title"><pwm:display key="Title_ConfigurationSummary" bundle="Config" displayIfMissing="true"/></div>
+      <h1>
+      <pwm:display key="Title_ConfigurationSummary" bundle="Config"/>
+      </h1>
       <div>
-        <%=PwmConstants.PWM_APP_NAME%>  <%=PwmConstants.SERVLET_VERSION%>
+        <%=PwmConstants.PWM_APP_NAME%> &nbsp; <%=PwmConstants.SERVLET_VERSION%>
       </div>
       <div>
         Current Time: <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></span>
         <br/>
-        Configuration Template: <%=outputData.get("template")%>
         <br/>
         <br/>
         <span class="footnote">Only settings modified from their default value are shown.</span>
@@ -78,10 +76,10 @@
         <col style="max-width: 700px; overflow: auto">
         <tr>
           <td>
-            Title
+            Setting
           </td>
           <td>
-            <%=record.get("label")%>
+            <b><%=record.get("label")%></b>
           </td>
         </tr>
         <% if (record.containsKey("profile")) { %>

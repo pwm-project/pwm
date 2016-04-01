@@ -526,7 +526,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             // add a random security key
             storedConfiguration.initNewRandomSecurityKey();
 
-            storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE, "true");
+            storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE, "false");
             configReader.saveConfiguration(storedConfiguration, pwmApplication, null);
 
             contextManager.requestPwmApplicationRestart();

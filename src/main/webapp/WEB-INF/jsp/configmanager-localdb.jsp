@@ -30,6 +30,7 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS);%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     PwmRequest localdb_pwmRequest = null;

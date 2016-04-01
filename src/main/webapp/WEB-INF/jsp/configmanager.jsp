@@ -46,14 +46,15 @@
         <div id="page-content-title"><%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%></div>
         <%@ include file="fragment/configmanager-nav.jsp" %>
         <table style="width:550px">
-            <col class="key" style="width:150px">
-            <col class="key" style="width:400px">
+            <tr>
+                <td colspan="2" class="title">Configuration Status</td>
+            </tr>
             <tr>
                 <td>
-                    Configuration Status
+                    Application Mode
                 </td>
                 <td>
-                    <pwm:if test="<%=PwmIfTest.configurationOpen%>">Open</pwm:if>
+                    <pwm:if test="<%=PwmIfTest.configurationOpen%>">Configuration (LDAP directory authentication not required)</pwm:if>
                     <pwm:if test="<%=PwmIfTest.configurationOpen%>" negate="true">Restricted</pwm:if>
                 </td>
             </tr>
@@ -79,78 +80,65 @@
                 </td>
             </tr>
             <pwm:if test="<%=PwmIfTest.appliance%>" negate="true">
-            <tr>
-                <td>
-                    Application Data Path
-                </td>
-                <td>
-                    <div style="max-width:398px; overflow-x: auto; white-space: nowrap">
-                        <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ApplicationPath))%>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    Configuration File
-                </td>
-                <td>
-                    <div style="max-width:398px; overflow-x: auto; white-space: nowrap">
-                        <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigFilename))%>
-                    </div>
-                </td>
-            </tr>
+                <tr>
+                    <td>
+                        Application Data Path
+                    </td>
+                    <td>
+                        <div style="max-width:398px; overflow-x: auto; white-space: nowrap">
+                            <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ApplicationPath))%>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Configuration File
+                    </td>
+                    <td>
+                        <div style="max-width:398px; overflow-x: auto; white-space: nowrap">
+                            <%=StringUtil.escapeHtml((String) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigFilename))%>
+                        </div>
+                    </td>
+                </tr>
             </pwm:if>
         </table>
         <br/>
-        <div id="healthBody" class="health-body">
-            <div class="WaitDialogBlank"></div>
-        </div>
-        <table class="noborder">
-            <tr class="buttonrow">
-                <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_DownloadBundle" title="<pwm:display key="MenuDisplay_DownloadBundle" bundle="Config"/>">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-suitcase"></span></pwm:if>
-                        <pwm:display key="MenuItem_DownloadBundle" bundle="Config"/>
-                    </a>
-                    <pwm:script>
-                        <script type="application/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                PWM_MAIN.addEventHandler('MenuItem_DownloadBundle','click',function(){PWM_CONFIG.downloadSupportBundle()});
-                            });
-                        </script>
-                    </pwm:script>
-                </td>
-                <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_DownloadConfig" title="<pwm:display key="MenuDisplay_DownloadConfig" bundle="Config"/>">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
-                        <pwm:display key="MenuItem_DownloadConfig" bundle="Config"/>
-                    </a>
-                    <pwm:script>
-                        <script type="application/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                PWM_MAIN.addEventHandler('MenuItem_DownloadConfig','click',function(){PWM_CONFIG.downloadConfig()});
-                            });
-                        </script>
-                    </pwm:script>
-                </td>
+        <table style="width:550px">
+            <tr>
+                <td class="title">Health</td>
             </tr>
-            <tr class="buttonrow">
-                <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_ConfigurationSummary" href="#">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-files-o"></span></pwm:if>
-                        Configuration Summary
-                    </a>
-                    <pwm:script>
-                        <script type="application/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                PWM_MAIN.addEventHandler('MenuItem_ConfigurationSummary','click',function(){
-                                    window.open('ConfigManager?processAction=summary','_blank', 'width=650,toolbar=0,location=0,menubar=0');
-                                });
-                            });
-                        </script>
-                    </pwm:script>
+            <tr><td>
+                <div id="healthBody" class="health-body" style="border: 0; padding: 0">
+                    <div class="WaitDialogBlank"></div>
+                </div>
+            </td></tr>
+        </table>
 
-                </td>
+        <br/>
+
+        <table style="width: 550px">
+            <tr><td colspan="2" class="title">Configuration Activities</td></tr>
+            <pwm:if test="<%=PwmIfTest.configurationOpen%>">
+                <tr class="buttonrow">
+                    <td class="buttoncell" colspan="2">
+                        <% String configFileName = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigFilename); %>
+                        <a class="menubutton important" id="MenuItem_LockConfig" title="<pwm:display key="MenuDisplay_LockConfig" value1="<%=configFileName%>" bundle="Config"/>">
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-lock"></span></pwm:if>
+                            <pwm:display key="MenuItem_LockConfig" bundle="Config"/>
+                        </a>
+                        <pwm:script>
+                            <script type="application/javascript">
+                                PWM_GLOBAL['startupFunctions'].push(function(){
+                                    PWM_MAIN.addEventHandler('MenuItem_LockConfig','click',function(){
+                                        PWM_CONFIG.lockConfiguration();
+                                    });
+                                });
+                            </script>
+                        </pwm:script>
+                    </td>
+                </tr>
+            </pwm:if>
+            <tr class="buttonrow">
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_UploadConfig"  title="<pwm:display key="MenuDisplay_UploadConfig" bundle="Config"/>">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
@@ -171,52 +159,59 @@
                         </script>
                     </pwm:script>
                 </td>
+                <td class="buttoncell">
+                    <a class="menubutton" id="MenuItem_DownloadConfig" title="<pwm:display key="MenuDisplay_DownloadConfig" bundle="Config"/>">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
+                        <pwm:display key="MenuItem_DownloadConfig" bundle="Config"/>
+                    </a>
+                    <pwm:script>
+                        <script type="application/javascript">
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                PWM_MAIN.addEventHandler('MenuItem_DownloadConfig','click',function(){PWM_CONFIG.downloadConfig()});
+                            });
+                        </script>
+                    </pwm:script>
+                </td>
+            </tr>
+        </table>
+        <br/>
+        <table style="width: 550px">
+            <tr><td colspan="2" class="title">Reports</td></tr>
+            <tr class="buttonrow">
+                <td class="buttoncell">
+                    <a class="menubutton" id="MenuItem_ConfigurationSummary">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-files-o"></span></pwm:if>
+                        Configuration Summary
+                    </a>
+                    <pwm:script>
+                        <script type="application/javascript">
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                PWM_MAIN.addEventHandler('MenuItem_ConfigurationSummary','click',function(){
+                                    window.open('ConfigManager?processAction=summary','_blank', 'width=650,toolbar=0,location=0,menubar=0');
+                                });
+                            });
+                        </script>
+                    </pwm:script>
+
+                </td>
+                <td class="buttoncell">
+                    <a class="menubutton" id="MenuItem_DownloadBundle" title="<pwm:display key="MenuDisplay_DownloadBundle" bundle="Config"/>">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-suitcase"></span></pwm:if>
+                        <pwm:display key="MenuItem_DownloadBundle" bundle="Config"/>
+                    </a>
+                    <pwm:script>
+                        <script type="application/javascript">
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                PWM_MAIN.addEventHandler('MenuItem_DownloadBundle','click',function(){PWM_CONFIG.downloadSupportBundle()});
+                            });
+                        </script>
+                    </pwm:script>
+                </td>
             </tr>
             <tr class="buttonrow">
                 <td class="buttoncell">
-                    <pwm:if test="<%=PwmIfTest.configurationOpen%>">
-                        <a class="menubutton important" id="MenuItem_LockConfig" title="<pwm:display key="MenuDisplay_LockConfig" bundle="Config"/>">
-                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-lock"></span></pwm:if>
-                            <pwm:display key="MenuItem_LockConfig" bundle="Config"/>
-                        </a>
-                        <pwm:script>
-                            <script type="application/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('MenuItem_LockConfig','click',function(){
-                                        PWM_CONFIG.lockConfiguration();
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
-                        </div>
-                    </pwm:if>
-                    <pwm:if test="<%=PwmIfTest.configurationOpen%>" negate="true">
-                        <pwm:if test="<%=PwmIfTest.appliance%>" negate="true">
-                        <a class="menubutton" id="MenuItem_UnlockConfig">
-                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
-                            <pwm:display key="MenuItem_UnlockConfig" bundle="Config"/>
-                        </a>
-                        <pwm:script>
-                            <script type="application/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('MenuItem_UnlockConfig','click',function(){
-                                        PWM_MAIN.showDialog({
-                                            title:'Alert',
-                                            width:500,
-                                            text:PWM_CONFIG.showString('MenuDisplay_UnlockConfig',{
-                                                value1:'<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext,PwmRequest.Attribute.ConfigFilename))%>'
-                                            })
-                                        });
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
-                        </pwm:if>
-                    </pwm:if>
-                </td>
-                <td class="buttoncell">
-                    <a class="menubutton" id="MenuItem_LdapPermissions" href="#">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-files-o"></span></pwm:if>
+                    <a class="menubutton" id="MenuItem_LdapPermissions">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-key"></span></pwm:if>
                         LDAP Permissions
                     </a>
                     <pwm:script>
