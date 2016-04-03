@@ -79,7 +79,6 @@ public class ConfigGuideForm {
         PARAM_DB_VENDOR(PwmSetting.DB_VENDOR_TEMPLATE),
 
         PARAM_CONFIG_PASSWORD(null),
-        PARAM_CONFIG_PASSWORD_VERIFY(null),
 
         ;
 

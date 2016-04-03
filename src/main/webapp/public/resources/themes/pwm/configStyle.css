@@ -569,3 +569,7 @@ select {
     box-shadow: 0 0 0 0 white, 0 0 0 0 white, 9px 0 12px -4px #B2B1B9, -9px 0 12px -4px #B2B1B9;
 }
 
+
+.buttonbar.configguide {
+   text-align: center;
+}

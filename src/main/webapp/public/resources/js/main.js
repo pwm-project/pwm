@@ -1447,6 +1447,8 @@ ShowHidePasswordHandler.hide = function(nodeName) {
     ShowHidePasswordHandler.changeInputTypeField(PWM_MAIN.getObject(nodeName),'password');
     ShowHidePasswordHandler.setupTooltip(nodeName);
     ShowHidePasswordHandler.renderIcon(nodeName);
+    var node = PWM_MAIN.getObject(nodeName);
+    node.focus();
 };
 
 ShowHidePasswordHandler.show = function(nodeName) {
@@ -1456,6 +1458,7 @@ ShowHidePasswordHandler.show = function(nodeName) {
     ShowHidePasswordHandler.renderIcon(nodeName);
 
     var node = PWM_MAIN.getObject(nodeName);
+    node.focus();
     require(["dojo/dom-construct", "dojo/on", "dojo/dom-attr"], function(domConstruct, on, attr) {
         var defaultType = attr.get(nodeName, "data-originalType");
         if (defaultType == 'password') {
@@ -1492,7 +1495,7 @@ ShowHidePasswordHandler.changeInputTypeField = function(object, type) {
             if (object.readonly) newObject.readonly = object.readonly;
             if (object.data) newObject.data = object.data;
         } else {
-            newObject = lang.clone(object);
+            newObject = object;
             attr.set(newObject, "type", type);
         }
 

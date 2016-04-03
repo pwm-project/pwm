@@ -119,18 +119,28 @@ PWM_GUIDE.extendSchema = function() {
     }});
 };
 
-PWM_GUIDE.skipWizard = function() {
+PWM_GUIDE.skipGuide = function() {
     PWM_MAIN.preloadAll(function(){
         PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('Confirm_SkipGuide'),okAction:function() {
-            var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','skipGuide');
-            var loadFunction = function(result) {
-                if (result['error']) {
-                    PWM_MAIN.showError(result['errorDetail']);
-                } else {
-                    PWM_CONFIG.waitForRestart();
-                }
+            
+            var skipGuideFunction = function(password) {
+                var contents = {};
+                contents['password'] = password;
+                var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','skipGuide');
+                var loadFunction = function(result) {
+                    if (result['error']) {
+                        PWM_MAIN.showError(result['errorDetail']);
+                    } else {
+                        PWM_MAIN.showWaitDialog({loadFunction:function(){
+                            PWM_CONFIG.waitForRestart();
+                        }});
+                    }
+                };
+                PWM_MAIN.ajaxRequest(url,loadFunction,{content:contents});
             };
-            PWM_MAIN.ajaxRequest(url,loadFunction);
+
+            var text = 'Set Configuration Password';
+            UILibrary.passwordDialogPopup({minimumLength:8, title:text, writeFunction:skipGuideFunction});
         }});
     });
 };

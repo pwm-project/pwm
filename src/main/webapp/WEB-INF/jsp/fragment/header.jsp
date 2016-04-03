@@ -32,7 +32,8 @@
 <%@ page import="password.pwm.http.tag.url.PwmThemeURL" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <head>
-    <title><pwm:display key="Title_TitleBar"/></title>
+    <pwm:if test="<%=PwmIfTest.authenticated%>" negate="true"><title><pwm:display key="Title_TitleBar"/></title></pwm:if>
+    <pwm:if test="<%=PwmIfTest.authenticated%>"><title><pwm:display key="Title_TitleBarAuthenticated"/></title></pwm:if>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
     <meta name="robots" content="noindex,nofollow"/>
     <meta id="application-info" name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service"

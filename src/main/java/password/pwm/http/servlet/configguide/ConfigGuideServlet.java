@@ -634,10 +634,13 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
     }
 
     private void restSkipGuide(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException {
+        final Map<String,String> inputJson = pwmRequest.readBodyAsJsonStringMap(PwmHttpRequestWrapper.Flag.BypassValidation);
+        final String password = inputJson.get("password");
         final ContextManager contextManager = ContextManager.getContextManager(pwmRequest);
         try {
             final StoredConfigurationImpl storedConfiguration = new StoredConfigurationImpl();
             storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE, "true");
+            storedConfiguration.setPassword(password);
             writeConfig(contextManager, storedConfiguration);
             pwmRequest.outputJsonResult(new RestResultBean());
             pwmRequest.invalidateSession();
