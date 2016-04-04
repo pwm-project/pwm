@@ -66,7 +66,9 @@ public enum AuditEvent {
     HELPDESK_VERIFY_OTP(Message.EventLog_HelpdeskVerifyOtp, Type.HELPDESK),
     HELPDESK_VERIFY_OTP_INCORRECT(Message.EventLog_HelpdeskVerifyOtpIncorrect, Type.HELPDESK),
     HELPDESK_VERIFY_TOKEN(Message.EventLog_HelpdeskVerifyToken, Type.HELPDESK),
-    HELPDESK_VERIFY_TOKEN_INCORRECT(Message.EventLog_HelpdeskVerifyOtpIncorrect, Type.HELPDESK),
+    HELPDESK_VERIFY_TOKEN_INCORRECT(Message.EventLog_HelpdeskVerifyTokenIncorrect, Type.HELPDESK),
+    HELPDESK_VERIFY_ATTRIBUTES(Message.EventLog_HelpdeskVerifyAttributes, Type.HELPDESK),
+    HELPDESK_VERIFY_ATTRIBUTES_INCORRECT(Message.EventLog_HelpdeskVerifyAttributesIncorrect, Type.HELPDESK),
 
 
     ;

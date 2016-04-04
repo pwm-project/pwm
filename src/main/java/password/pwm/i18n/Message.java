@@ -87,6 +87,8 @@ public enum Message implements PwmDisplayBundle {
     EventLog_HelpdeskVerifyOtpIncorrect(null),
     EventLog_HelpdeskVerifyToken(null),
     EventLog_HelpdeskVerifyTokenIncorrect(null),
+    EventLog_HelpdeskVerifyAttributes(null),
+    EventLog_HelpdeskVerifyAttributesIncorrect(null),
 
     Requirement_MinLengthPlural(null),
     Requirement_MinLength(Requirement_MinLengthPlural),

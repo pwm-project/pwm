@@ -940,7 +940,8 @@ public enum PwmSetting {
             "helpdesk.setPassword.maskValue", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
     HELPDESK_VERIFICATION_METHODS(
             "helpdesk.verificationMethods", PwmSettingSyntax.VERIFICATION_METHOD, PwmSettingCategory.HELPDESK_PROFILE),
-
+    HELPDESK_VERIFICATION_FORM(
+            "helpdesk.verification.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_PROFILE),
 
 
     // Database
