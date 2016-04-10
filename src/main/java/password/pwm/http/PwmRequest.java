@@ -35,10 +35,8 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.ShortcutItem;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.Validator;
@@ -300,7 +298,6 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         NewUser_FormShowBackButton,
 
         CookieBeanStorage,
-        ThemeOverride,
 
         ShortcutItems,
     }

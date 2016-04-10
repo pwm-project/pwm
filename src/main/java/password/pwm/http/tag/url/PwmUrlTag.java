@@ -28,6 +28,7 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.resource.ResourceFileServlet;
 import password.pwm.http.tag.PwmAbstractTag;
 import password.pwm.util.StringUtil;
@@ -128,9 +129,8 @@ public class PwmUrlTag extends PwmAbstractTag {
             final PwmRequest pwmRequest
     )
     {
-        final String reqThemeOverride = (String)pwmRequest.getAttribute(PwmRequest.Attribute.ThemeOverride);
-        if (reqThemeOverride != null && !reqThemeOverride.isEmpty()) {
-            return reqThemeOverride;
+        if (pwmRequest.isFlag(PwmRequestFlag.INCLUDE_CONFIG_CSS)) {
+            return pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_THEME);
         }
 
         final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();

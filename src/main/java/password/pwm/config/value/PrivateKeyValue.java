@@ -150,7 +150,11 @@ public class PrivateKeyValue extends AbstractValue {
     }
 
     public String toDebugString(Locale locale) {
-        return "PrivateKey: " + JsonUtil.serializeCollection(X509Utils.makeDebugInfoMap(privateKeyCertificate.getCertificates()));
+        if (privateKeyCertificate != null) {
+            return "PrivateKeyCertificate: key=" + JsonUtil.serializeMap(X509Utils.makeDebugInfoMap(privateKeyCertificate.getKey()))
+                    + ", certificates=" + JsonUtil.serializeCollection(X509Utils.makeDebugInfoMap(privateKeyCertificate.getCertificates()));
+        }
+        return "";
     }
 
     public Map<String,Object> toInfoMap(final boolean includeDetail) {

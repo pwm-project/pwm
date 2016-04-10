@@ -158,8 +158,6 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
     {
         final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ConfigManagerBean.class);
 
-        pwmRequest.setAttribute(PwmRequest.Attribute.ThemeOverride, pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_THEME));
-
         if (configManagerBean.getStoredConfiguration() == null) {
             final StoredConfigurationImpl loadedConfig = ConfigManagerServlet.readCurrentConfiguration(pwmRequest);
             configManagerBean.setConfiguration(loadedConfig);

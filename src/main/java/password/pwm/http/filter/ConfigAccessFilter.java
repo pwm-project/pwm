@@ -255,8 +255,6 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
         final ConfigLoginHistory configLoginHistory = readConfigLoginHistory(pwmRequest);
 
-        pwmRequest.setAttribute(PwmRequest.Attribute.ThemeOverride, pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_THEME));
-
         pwmRequest.setAttribute(PwmRequest.Attribute.ConfigLoginHistory, configLoginHistory);
         pwmRequest.setAttribute(PwmRequest.Attribute.ConfigPasswordRememberTime,time);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_LOGIN);
