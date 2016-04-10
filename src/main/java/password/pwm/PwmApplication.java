@@ -68,11 +68,14 @@ import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.queue.EmailQueueManager;
 import password.pwm.util.queue.SmsQueueManager;
+import password.pwm.util.secure.HttpsServerCertificateManager;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.SecureService;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.Serializable;
+import java.security.KeyStore;
 import java.util.*;
 
 /**
@@ -215,6 +218,9 @@ public class PwmApplication {
         installTime = fetchInstallDate(startupTime);
         LOGGER.debug("this application instance first installed on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(installTime));
 
+        LOGGER.debug("application environment flags: " + JsonUtil.serializeCollection(pwmEnvironment.getFlags()));
+        LOGGER.debug("application environment parameters: " + JsonUtil.serializeMap(pwmEnvironment.getParameters()));
+
         pwmServiceManager.initAllServices();
 
         if (!pwmEnvironment.isInternalRuntimeInstance()) {
@@ -302,7 +308,33 @@ public class PwmApplication {
             LOGGER.debug("error while clearing configmanager-intruder-username from intruder table: " + e.getMessage());
         }
 
+        try {
+            outputKeystore(this);
+        } catch (Exception e) {
+            LOGGER.debug("error while clearing configmanager-intruder-username from intruder table: " + e.getMessage());
+        }
+
         LOGGER.trace("completed post init tasks in " + TimeDuration.fromCurrent(startTime).asCompactString());
+    }
+
+    private static void outputKeystore(final PwmApplication pwmApplication) throws Exception {
+        final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = pwmApplication.getPwmEnvironment().getParameters();
+        final String keystoreFileString = applicationParams.get(PwmEnvironment.ApplicationParameter.AutoExportHtptsKeyStoreFile);
+        if (keystoreFileString != null && !keystoreFileString.isEmpty()) {
+            LOGGER.trace("attempting to output keystore as configured by environment parameters to " + keystoreFileString);
+            final File keyStoreFile = new File(keystoreFileString);
+            final String password = applicationParams.get(PwmEnvironment.ApplicationParameter.AutoExportHtptsKeyStorePassword);
+            final String alias = applicationParams.get(PwmEnvironment.ApplicationParameter.AutoExportHtptsKeyStoreAlias);
+            final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication(pwmApplication, new PasswordData(password), alias);
+            if (keyStoreFile.exists()) {
+                LOGGER.trace("deleting existing keystore file " + keyStoreFile.getAbsolutePath());
+                if (keyStoreFile.delete()) {
+                    LOGGER.trace("deleted existing keystore file: " + keyStoreFile.getAbsolutePath());
+                }
+            }
+            keyStore.store(new FileOutputStream(keyStoreFile), password.toCharArray());
+            LOGGER.info("successfully exported application https key to keystore file " + keyStoreFile.getAbsolutePath());
+        }
     }
 
     public String getInstanceID() {
@@ -515,7 +547,9 @@ public class PwmApplication {
                     getInstanceID()
             );
             try {
-                getAuditManager().submit(auditRecord);
+                if (getAuditManager() != null) {
+                    getAuditManager().submit(auditRecord);
+                }
             } catch (PwmException e) {
                 LOGGER.warn("unable to submit alert event " + JsonUtil.serialize(auditRecord));
             }

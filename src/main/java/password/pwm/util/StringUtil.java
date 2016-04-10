@@ -133,13 +133,17 @@ public abstract class StringUtil {
                     returnMap.put(key, value);
                 }
             } else {
-                if (!loopStr.trim().isEmpty()) {
+                if (loopStr != null && !loopStr.trim().isEmpty()) {
                     returnMap.put(loopStr, "");
                 }
             }
         }
 
         return returnMap;
+    }
+
+    public static String join(Object[] inputs, String separator) {
+        return StringUtils.join(inputs, separator);
     }
 
     public static String join(Collection inputs, String separator) {

@@ -26,6 +26,7 @@ import com.novell.ldapchai.util.StringHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
@@ -485,6 +486,16 @@ public class Configuration implements Serializable, SettingReader {
             return new X509Certificate[0];
         }
         return (X509Certificate[])readStoredValue(setting).toNativeObject();
+    }
+
+    public PrivateKeyCertificate readSettingAsPrivateKey(final PwmSetting setting) {
+        if (PwmSettingSyntax.PRIVATE_KEY != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read PRIVATE_KEY value for setting: " + setting.toString());
+        }
+        if (readStoredValue(setting) == null) {
+            return null;
+        }
+        return (PrivateKeyCertificate)readStoredValue(setting).toNativeObject();
     }
 
     public String getNotes() {

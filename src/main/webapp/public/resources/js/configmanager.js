@@ -73,6 +73,7 @@ PWM_CONFIG.waitForRestart=function(options) {
         console.log('Waiting for server restart, unable to contact server: ' + error);
     };
     var url = PWM_GLOBAL['url-restservice'] + "/app-data/client?checkForRestart=true";
+    url = PWM_MAIN.addParamToUrl(url,'pageUrl',window.location.href);
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET'});
 };
 
@@ -293,6 +294,7 @@ PWM_CONFIG.heartbeatCheck = function() {
         handleErrorFunction('I/O error communicating with server.');
     };
     var url = PWM_GLOBAL['url-restservice'] + "/app-data/client?heartbeat=true";
+    url = PWM_MAIN.addParamToUrl(url,'pageUrl',window.location.href);
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET'});
 };
 

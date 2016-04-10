@@ -42,12 +42,6 @@
       LocalDB
     </button>
   </form>
-  <form action="<pwm:context/><%=PwmServletDefinition.ConfigEditor.servletUrl()%>" method="get">
-    <button type="submit" class="navbutton">
-      <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-gear"></span></pwm:if>
-      Configuration Editor
-    </button>
-  </form>
 </div>
 <br/>
 

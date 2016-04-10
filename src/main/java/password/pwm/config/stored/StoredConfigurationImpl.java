@@ -687,52 +687,6 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         }
     }
 
-    public void renameProfileID(final PwmSettingCategory category, final String sourceID, final String destinationID, final UserIdentity userIdentity)
-            throws PwmUnrecoverableException
-    {
-        copyProfileID(category, sourceID, destinationID, userIdentity);
-        if (category == PwmSettingCategory.LDAP_PROFILE) {
-            for (final SettingValueRecord settingValueRecord : this.modifiedSettings()) {
-                if (settingValueRecord.getSetting().getSyntax() == PwmSettingSyntax.USER_PERMISSION) {
-                    UserPermissionValue value = (UserPermissionValue)settingValueRecord.getStoredValue();
-                    final List<UserPermission> newValues = new ArrayList<>();
-                    boolean modified = false;
-
-                    for (final UserPermission userPermission : value.toNativeObject()) {
-                        if (userPermission != null && userPermission.getLdapProfileID() != null) {
-                            if (userPermission.getLdapProfileID().equals(sourceID)) {
-                                final UserPermission newPermission = new UserPermission(
-                                        userPermission.getType(),
-                                        destinationID,
-                                        userPermission.getLdapQuery(),
-                                        userPermission.getLdapBase());
-                                modified = true;
-                                newValues.add(newPermission);
-                            } else {
-                                newValues.add(userPermission);
-                            }
-                        }
-                    }
-
-                    if (modified) {
-                        UserPermissionValue newUserPermissionValue = new UserPermissionValue(newValues);
-                        this.writeSetting(settingValueRecord.getSetting(),settingValueRecord.getProfile(),newUserPermissionValue,userIdentity);
-                    }
-                }
-            }
-        }
-
-        {
-            final List<String> existingProfiles = this.profilesForSetting(category.getProfileSetting());
-            final List<String> newProfileIDList = new ArrayList<>();
-            newProfileIDList.addAll(existingProfiles);
-            newProfileIDList.remove(sourceID);
-            writeSetting(category.getProfileSetting(), new StringArrayValue(newProfileIDList), userIdentity);
-        }
-
-        ConfigurationCleaner.stripOrphanedProfileSettings(this);
-
-    }
 
     public void copyProfileID(final PwmSettingCategory category, final String sourceID, final String destinationID, final UserIdentity userIdentity)
             throws PwmUnrecoverableException
@@ -797,13 +751,17 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             }
 
             if (setting.getSyntax() == PwmSettingSyntax.PASSWORD) {
-                final List<Element> valueElements = ((PasswordValue)value).toXmlValues("value", getKey());
+                final List<Element> valueElements = ((PasswordValue) value).toXmlValues("value", getKey());
                 settingElement.addContent(new Comment("Note: This value is encrypted and can not be edited directly."));
                 settingElement.addContent(new Comment("Please use the Configuration Manager GUI to modify this value."));
+                settingElement.addContent(valueElements);
+            } else if (setting.getSyntax() == PwmSettingSyntax.PRIVATE_KEY) {
+                final List<Element> valueElements = ((PrivateKeyValue)value).toXmlValues("value", getKey());
                 settingElement.addContent(valueElements);
             } else {
                 settingElement.addContent(value.toXmlValues("value"));
             }
+
 
             updateMetaData(settingElement, userIdentity);
         } finally {

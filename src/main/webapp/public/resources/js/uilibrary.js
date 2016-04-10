@@ -302,7 +302,13 @@ UILibrary.editLdapDN = function(nextFunction, options) {
 UILibrary.uploadFileDialog = function(options) {
     options = options === undefined ? {} : options;
 
-    var body = '<div id="uploadFormWrapper">';
+    var body = '';
+
+    if ('text' in options) {
+        body += options['text'];
+    }
+
+    body += '<div id="uploadFormWrapper">';
     body += '<div id="fileList"></div>';
     body += '<input style="width:80%" class="btn" name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
     body += '<div class="buttonbar">';
@@ -323,6 +329,7 @@ UILibrary.uploadFileDialog = function(options) {
 
 
     var completeFunction = function(data){
+        console.log('upload dialog completeFunction() starting');
         if (data['error'] == true) {
             var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
             PWM_MAIN.showErrorDialog(data,{text:errorText,okAction:function(){
@@ -371,28 +378,45 @@ UILibrary.uploadFileDialog = function(options) {
             alert('File is not selected.');
             return;
         }
+
+        if ('urlUpdateFunction' in options) {
+            uploadUrl = options['urlUpdateFunction'](uploadUrl);
+        }
+
         var xhr = new XMLHttpRequest();
         var fd = new FormData();
         xhr.onreadystatechange = function() {
-            console.log('on ready state change');
+            console.log('upload handler onreadystate change: ' + xhr.readyState);
             if (xhr.readyState == 4) {
+                xhr.upload.onprogress = null;
                 if( xhr.status == 200) {
                     // Every thing ok, file uploaded
                     console.log(xhr.responseText); // handle response.
-                    completeFunction(xhr.responseText);
+                    try {
+                        var response = JSON.parse(xhr.response);
+                        setTimeout(function(){
+                            completeFunction(response);
+                        },1000);
+                    } catch (e) {
+                        console.log('error parsing upload response log: ' + e)
+                    }
                 } else {
                     errorFunction(xhr.status, xhr.statusText)
                 }
             }
         };
+
         xhr.upload.addEventListener('progress',progressFunction,false);
         xhr.upload.onprogress = progressFunction;
         xhr.open("POST", uploadUrl, true);
+        xhr.setRequestHeader('Accept',"application/json");
         fd.append("fileUpload", files[0]);
         xhr.send(fd);
         PWM_GLOBAL['inhibitHealthUpdate'] = true;
         PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
-        PWM_MAIN.getObject('centerbody').innerHTML = 'Upload in progress...';
+        if (PWM_MAIN.getObject('centerbody')) {
+            PWM_MAIN.getObject('centerbody').innerHTML = 'Upload in progress...';
+        }
         PWM_MAIN.showWaitDialog({title:'Uploading...'});
     };
 
@@ -558,9 +582,9 @@ UILibrary.passwordDialogPopup = function(options, state) {
         + '<span class="pwm-icon pwm-icon-forward btn-icon"></span>Store Password</button>';
 
     if (option_showValues) {
-    bodyText += '&nbsp;&nbsp;'
-        + '<label class="checkboxWrapper"><input id="show" type="checkbox"' + (state['showFields'] ? ' checked' : '') + '>Show Passwords</input></label>'
-        + '</div><br/><br/>';
+        bodyText += '&nbsp;&nbsp;'
+            + '<label class="checkboxWrapper"><input id="show" type="checkbox"' + (state['showFields'] ? ' checked' : '') + '>Show Passwords</input></label>'
+            + '</div><br/><br/>';
     }
 
     PWM_MAIN.showDialog({
@@ -571,7 +595,7 @@ UILibrary.passwordDialogPopup = function(options, state) {
         loadFunction:function(){
             ShowHidePasswordHandler.init('password1');
             ShowHidePasswordHandler.init('password2');
-            
+
             PWM_MAIN.addEventHandler('button-storePassword','click',function() {
                 var passwordValue = PWM_MAIN.getObject('password1').value;
                 PWM_MAIN.closeWaitDialog();
@@ -603,7 +627,7 @@ UILibrary.passwordDialogPopup = function(options, state) {
             PWM_MAIN.getObject('password1').focus();
             validateFunction();
         }
-    });  
-    
+    });
+
 };
 

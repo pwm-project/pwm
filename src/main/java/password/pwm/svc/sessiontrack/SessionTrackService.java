@@ -138,17 +138,30 @@ public class SessionTrackService implements PwmService {
         return returnSet;
     }
 
-    public Collection<SessionStateInfoBean> getSessionList(final int maximumResults) {
-        final List<SessionStateInfoBean> returnList = new ArrayList<>();
+    public Iterator<SessionStateInfoBean> getSessionInfoIterator() {
+        final Iterator<PwmSession> sessionIterator = new HashSet<>(currentValidSessionSet()).iterator();
+        return new Iterator<SessionStateInfoBean>() {
+            @Override
+            public boolean hasNext() {
+                return sessionIterator.hasNext();
+            }
 
-        final Iterator<PwmSession> sessionIterator = currentValidSessionSet().iterator();
-        while (sessionIterator.hasNext() && (maximumResults > 0 && returnList.size() < maximumResults)) {
-            final PwmSession pwmSession = sessionIterator.next();
-            returnList.add(infoBeanFromPwmSession(pwmSession));
-        }
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
 
-        return Collections.unmodifiableList(returnList);
+            @Override
+            public SessionStateInfoBean next() {
+                final PwmSession pwmSession = sessionIterator.next();
+                if (pwmSession != null) {
+                    return infoBeanFromPwmSession(pwmSession);
+                }
+                return null;
+            }
+        };
     }
+
 
     private static SessionStateInfoBean infoBeanFromPwmSession(final PwmSession loopSession) {
         final LocalSessionStateBean loopSsBean = loopSession.getSessionStateBean();

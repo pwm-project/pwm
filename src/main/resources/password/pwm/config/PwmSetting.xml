@@ -3427,10 +3427,7 @@
             <option value="VOICE">Voice</option>
         </options>
     </setting>
-    <setting hidden="false" key="https.server.cert.pkcs12" level="1">
-        <default/>
-    </setting>
-    <setting hidden="false" key="https.server.cert.password" level="1">
+    <setting hidden="false" key="https.server.cert" level="1">
         <default/>
     </setting>
     <setting hidden="false" key="https.server.tls.protocols" level="1">

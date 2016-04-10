@@ -27,6 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
@@ -65,7 +66,8 @@ public class DebugItemGenerator {
             FileInfoDebugItemGenerator.class,
             LogDebugItemGenerator.class,
             LdapDebugItemGenerator.class,
-            LDAPPermissionItemGenerator.class
+            LDAPPermissionItemGenerator.class,
+            SessionDataGenerator.class
     ));
 
     static void outputZipDebugFile(
@@ -485,6 +487,58 @@ public class DebugItemGenerator {
                 dataRow.add(record.getAccess() == null ? "" : record.getAccess().toString());
                 dataRow.add(record.getPwmSetting() == null ? "" : record.getPwmSetting().getKey());
                 dataRow.add(record.getProfile() == null ? "" : record.getProfile());
+                csvPrinter.printRecord(dataRow);
+            }
+            csvPrinter.flush();
+        }
+    }
+
+    static class SessionDataGenerator implements Generator {
+        @Override
+        public String getFilename() {
+            return "sessions.csv";
+        }
+
+        @Override
+        public void outputItem(
+                final PwmApplication pwmApplication,
+                final PwmRequest pwmRequest,
+                final OutputStream outputStream
+        ) throws Exception {
+
+
+            final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+            {
+                final List<String> headerRow = new ArrayList<>();
+                headerRow.add("Label");
+                headerRow.add("Create Time");
+                headerRow.add("Last Time");
+                headerRow.add("Idle");
+                headerRow.add("Source Address");
+                headerRow.add("Source Host");
+                headerRow.add("LDAP Profile");
+                headerRow.add("UserID");
+                headerRow.add("UserDN");
+                headerRow.add("Locale");
+                headerRow.add("Last URL");
+                csvPrinter.printComment(StringUtil.join(headerRow,","));
+            }
+
+            final Iterator<SessionStateInfoBean> debugInfos = pwmApplication.getSessionTrackService().getSessionInfoIterator();
+            while (debugInfos.hasNext()) {
+                final SessionStateInfoBean info = debugInfos.next();
+                final List<String> dataRow = new ArrayList<>();
+                dataRow.add(info.getLabel());
+                dataRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(info.getCreateTime()));
+                dataRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(info.getLastTime()));
+                dataRow.add(info.getIdle());
+                dataRow.add(info.getSrcAddress());
+                dataRow.add(info.getSrcHost());
+                dataRow.add(info.getLdapProfile());
+                dataRow.add(info.getUserID());
+                dataRow.add(info.getUserDN());
+                dataRow.add(info.getLocale() != null ? info.getLocale().toLanguageTag() : "");
+                dataRow.add(info.getLastUrl());
                 csvPrinter.printRecord(dataRow);
             }
             csvPrinter.flush();

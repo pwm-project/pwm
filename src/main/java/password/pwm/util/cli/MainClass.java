@@ -79,6 +79,7 @@ public class MainClass {
         commandList.add(new LdapSchemaExtendCommand());
         commandList.add(new ConfigDeleteCommand());
         commandList.add(new ResponseStatsCommand());
+        commandList.add(new ImportHttpsKeyCommand());
         commandList.add(new ExportHttpsKeyStoreCommand());
         commandList.add(new ExportHttpsTomcatConfigCommand());
         commandList.add(new ShellCommand());
@@ -281,6 +282,7 @@ public class MainClass {
                             cliEnvironment.getPwmApplication().shutdown();
                         } catch (Exception e) {
                             System.out.println("error closing operating environment: " + e.getMessage());
+                            e.printStackTrace();
                         }
                     }
                     if (cliEnvironment.getLocalDB() != null) {
@@ -420,6 +422,7 @@ public class MainClass {
                 .setApplicationMode(mode)
                 .setConfigurationFile(configurationFile)
                 .setFlags(applicationFlags)
+                .setInternalRuntimeInstance(true)
                 .createPwmEnvironment();
         final PwmApplication pwmApplication = new PwmApplication(pwmEnvironment);
         final PwmApplicationMode runningMode = pwmApplication.getApplicationMode();

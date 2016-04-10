@@ -29,19 +29,13 @@ import password.pwm.config.stored.StoredConfigurationImpl;
 import java.util.Collections;
 
 public class ConfigSetPasswordCommand extends AbstractCliCommand {
-    protected static final String PASSWORD_OPTIONNAME = "password";
 
     public void doCommand()
             throws Exception
     {
         final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
         final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
-        final String password;
-        if (cliEnvironment.getOptions().containsKey(PASSWORD_OPTIONNAME)) {
-            password = (String)cliEnvironment.getOptions().get(PASSWORD_OPTIONNAME);
-        } else {
-            password = promptForPassword();
-        }
+        final String password = getOptionalPassword();
         storedConfiguration.setPassword(password);
         configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), PwmConstants.CLI_SESSION_LABEL);
         out("success");
@@ -50,27 +44,10 @@ public class ConfigSetPasswordCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        final CliParameters.Option passwordValueOption = new CliParameters.Option() {
-            public boolean isOptional()
-            {
-                return true;
-            }
-
-            public type getType()
-            {
-                return type.STRING;
-            }
-
-            public String getName()
-            {
-                return PASSWORD_OPTIONNAME;
-            }
-        };
-
         CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigSetPassword";
         cliParameters.description = "Sets the configuration password";
-        cliParameters.options = Collections.singletonList(passwordValueOption);
+        cliParameters.options = Collections.singletonList(CliParameters.OPTIONAL_PASSWORD);
         cliParameters.needsPwmApplication = true;
         cliParameters.needsLocalDB = false;
         cliParameters.readOnly = true;

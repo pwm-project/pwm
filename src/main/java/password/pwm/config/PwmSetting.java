@@ -1051,10 +1051,8 @@ public enum PwmSetting {
             "naaf.requiredMethods", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.NAAF),
 
     //appliance
-    HTTPS_CERT_PKCS12(
-            "https.server.cert.pkcs12", PwmSettingSyntax.FILE, PwmSettingCategory.HTTPS_SERVER),
-    HTTPS_CERT_PASSWORD(
-            "https.server.cert.password", PwmSettingSyntax.PASSWORD, PwmSettingCategory.HTTPS_SERVER),
+    HTTPS_CERT(
+            "https.server.cert", PwmSettingSyntax.PRIVATE_KEY, PwmSettingCategory.HTTPS_SERVER),
     HTTPS_PROTOCOLS(
             "https.server.tls.protocols", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.HTTPS_SERVER),
     HTTPS_CIPHERS(

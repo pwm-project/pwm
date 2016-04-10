@@ -27,7 +27,6 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.StringUtil;
 import password.pwm.util.X509Utils;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
@@ -37,7 +36,6 @@ import password.pwm.util.secure.SecureEngine;
 import java.io.ByteArrayInputStream;
 import java.io.Serializable;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
@@ -53,10 +51,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
                 for (final Element loopValueElement : valueElements) {
                     final String b64encodedStr = loopValueElement.getText();
                     try {
-                        final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                        final byte[] certByteValue = StringUtil.base64Decode(b64encodedStr);
-                        final X509Certificate certificate = (X509Certificate)certificateFactory.generateCertificate(new ByteArrayInputStream(certByteValue));
-                        certificates.add(certificate);
+                        certificates.add(X509Utils.certificateFromBase64(b64encodedStr));
                     } catch (Exception e) {
                         LOGGER.error("error decoding certificate: " + e.getMessage());
                     }
@@ -95,7 +90,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
         for (final X509Certificate value : certificates) {
             final Element valueElement = new Element(valueElementName);
             try {
-                valueElement.addContent(StringUtil.base64Encode(value.getEncoded()));
+                valueElement.addContent(X509Utils.certificateToBase64(value));
             } catch (CertificateEncodingException e) {
                 LOGGER.error("error encoding certificate: " + e.getMessage());
             }
@@ -141,38 +136,16 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
         return (Serializable)toInfoMap(false);
     }
 
-    public List<Map<String,Object>> toInfoMap(final boolean includeDetail) {
+    public List<Map<String,String>> toInfoMap(final boolean includeDetail) {
         if (this.certificates == null) {
             return Collections.emptyList();
         }
 
-        final List<Map<String,Object>> list = new ArrayList<>();
-        for (X509Certificate cert : this.certificates) {
-            list.add(toInfoMap(cert, includeDetail));
+        final List<Map<String,String>> list = new ArrayList<>();
+        for (final X509Certificate cert : this.certificates) {
+            final X509Utils.DebugInfoFlag[] flags = includeDetail ? new X509Utils.DebugInfoFlag[]{X509Utils.DebugInfoFlag.IncludeCertificateDetail} : null;
+            list.add(X509Utils.makeDebugInfoMap(cert, flags));
         }
         return Collections.unmodifiableList(list);
-    }
-
-     static Map<String,Object> toInfoMap(final X509Certificate cert, final boolean includeDetail) {
-        final LinkedHashMap<String,Object> map = new LinkedHashMap<>();
-        map.put("subject",cert.getSubjectDN().toString());
-        map.put("serial", X509Utils.hexSerial(cert));
-        map.put("issuer",cert.getIssuerDN().toString());
-        map.put("issueDate",cert.getNotBefore());
-        map.put("expireDate",cert.getNotAfter());
-        try {
-            map.put("md5Hash", SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()),
-                    PwmHashAlgorithm.MD5));
-            map.put("sha1Hash", SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()),
-                    PwmHashAlgorithm.SHA1));
-            map.put("sha512Hash", SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()),
-                    PwmHashAlgorithm.SHA512));
-            if (includeDetail) {
-                map.put("detail",X509Utils.makeDetailText(cert));
-            }
-        } catch (PwmUnrecoverableException | CertificateEncodingException e) {
-            LOGGER.warn("error generating hash for certificate: " + e.getMessage());
-        }
-        return Collections.unmodifiableMap(map);
     }
 }

@@ -3060,3 +3060,91 @@ FileValueHandler.uploadFile = function(keyName) {
     UILibrary.uploadFileDialog(options);
 };
 
+
+// -------------------------- x509 setting handler ------------------------------------
+
+var PrivateKeyHandler = {};
+
+PrivateKeyHandler.init = function(keyName) {
+    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
+        PWM_VAR['clientSettingCache'][keyName] = resultValue;
+        PrivateKeyHandler.draw(keyName);
+    });
+};
+
+PrivateKeyHandler.draw = function(keyName) {
+    var parentDiv = 'table_setting_' + keyName;
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+
+    var resultValue = PWM_VAR['clientSettingCache'][keyName];
+
+    var htmlBody = '<div style="max-height: 300px; overflow-y: auto">';
+
+    var hasValue = resultValue != null && 'key' in resultValue;
+
+    if (hasValue) {
+        var certificates = resultValue['certificates'];
+        for (var certCounter in certificates) {
+            (function (counter) {
+                var certificate = certificates[counter];
+                htmlBody += X509CertificateHandler.certificateToHtml(certificate, keyName, counter);
+            })(certCounter);
+        }
+        htmlBody += '</div>';
+
+        var key = resultValue['key'];
+        htmlBody += '<div style="max-width:100%; margin-bottom:8px"><table style="max-width:100%">';
+        htmlBody += '<tr><td colspan="2" class="key" style="text-align: center">Key</td></tr>';
+        htmlBody += '<tr><td>Format</td><td><div class="setting_table_value">' + key['format'] + '</div></td></tr>';
+        htmlBody += '<tr><td>Algorithm</td><td><div class="setting_table_value">' + key['algorithm'] + '</div></td></tr>';
+        htmlBody += '</table></div>';
+        htmlBody += '<button id="' + keyName + '_ClearButton" class="btn"><span class="btn-icon pwm-icon pwm-icon-times"></span>Clear</button>'
+    } else {
+        htmlBody += '<div>No Key Present</div><br/>';
+    }
+
+    if (!hasValue) {
+        htmlBody += '<button id="' + keyName + '_UploadButton" class="btn"><span class="btn-icon pwm-icon pwm-icon-upload"></span>Import Private Key &amp; Certificate</button>'
+    }
+    parentDivElement.innerHTML = htmlBody;
+
+    if (hasValue) {
+        var certificates = resultValue['certificates'];
+        for (var certCounter in certificates) {
+            (function (counter) {
+                var certificate = certificates[counter];
+                X509CertificateHandler.certHtmlActions(certificate, keyName, counter);
+            })(certCounter);
+        }
+    }
+
+    if (!PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
+        PWM_MAIN.addEventHandler(keyName + '_ClearButton','click',function(){
+            handleResetClick(keyName);
+        });
+    }
+    PWM_MAIN.addEventHandler(keyName + '_UploadButton','click',function(){
+        var options = {};
+        var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','uploadFile');
+        url = PWM_MAIN.addParamToUrl(url, 'key', keyName);
+        options['url'] = url;
+
+        var text = '<form autocomplete="off"><table class="noborder">';
+        text += '<tr><td class="key">File Format</td><td><select id="input-certificateUpload-format"><option value="PKCS12">PKCS12 / PFX</option><option value="JKS">Java Keystore (JKS)</option></select></td></tr>';
+        text += '<tr><td class="key">Password</td><td><input required type="password" class="configInput" id="input-certificateUpload-password"/></td></tr>';
+        text += '<tr><td class="key">Alias</td><td><input type="text" class="configInput" id="input-certificateUpload-alias"/><br/><span class="footnote">Alias only required if file has multiple aliases</span></td></tr>';
+        text += '</table></form>';
+        options['text'] = text;
+        
+        var urlUpdateFunction = function(url) {
+            var formatSelect = PWM_MAIN.getObject('input-certificateUpload-format');
+            url = PWM_MAIN.addParamToUrl(url,'format',formatSelect.options[formatSelect.selectedIndex].value);
+            url = PWM_MAIN.addParamToUrl(url,'password',PWM_MAIN.getObject('input-certificateUpload-password').value);
+            url = PWM_MAIN.addParamToUrl(url,'alias',PWM_MAIN.getObject('input-certificateUpload-alias').value);
+            return url;
+        };
+        options['title'] = 'Import Private Key & Certificate';
+        options['urlUpdateFunction'] = urlUpdateFunction;
+        UILibrary.uploadFileDialog(options);
+    });
+};
