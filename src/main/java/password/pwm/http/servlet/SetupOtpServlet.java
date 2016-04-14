@@ -24,7 +24,10 @@ package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import net.glxn.qrgen.QRCode;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.Permission;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
@@ -52,7 +55,6 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -73,13 +75,12 @@ import java.util.Map;
 public class SetupOtpServlet extends AbstractPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SetupOtpServlet.class);
 
-    public enum SetupOtpAction implements AbstractPwmServlet.ProcessAction {
+    enum SetupOtpAction implements AbstractPwmServlet.ProcessAction {
         clearOtp(HttpMethod.POST),
         testOtpSecret(HttpMethod.POST),
         toggleSeen(HttpMethod.POST),
         restValidateCode(HttpMethod.POST),
         complete(HttpMethod.POST),
-        showQrImage(HttpMethod.GET),
         skip(HttpMethod.POST),
 
         ;
@@ -174,10 +175,6 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                     handleComplete(pwmRequest);
                     return;
 
-                case showQrImage:
-                    handleQrImageRequest(pwmRequest, otpBean);
-                    return;
-
                 case skip: {
                     handleSkip(pwmRequest, otpBean);
                     return;
@@ -243,6 +240,8 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_OTP_SECRET_TEST);
             }
         } else {
+            final String qrCodeValue = makeQrCodeDataImageUrl(pwmRequest, otpBean.getOtpUserRecord());
+            pwmRequest.setAttribute(PwmRequest.Attribute.SetupOtp_QrCodeValue, qrCodeValue);
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_OTP_SECRET);
         }
     }
@@ -358,6 +357,10 @@ public class SetupOtpServlet extends AbstractPwmServlet {
         final OtpService otpService = pwmApplication.getOtpService();
         if (otpToken != null && otpToken.length() > 0) {
             try {
+                if (pwmRequest.getConfig().isDevDebugMode()) {
+                    LOGGER.trace(pwmRequest, "testing against otp record: " + JsonUtil.serialize(otpBean.getOtpUserRecord()));
+                }
+
                 if (otpService.validateToken(
                         pwmSession,
                         pwmSession.getUserInfoBean().getUserIdentity(),
@@ -365,12 +368,12 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                         otpToken,
                         false
                 )) {
-                    LOGGER.debug(pwmRequest, "request OTP token returned true, valid OTP secret provided");
+                    LOGGER.debug(pwmRequest, "test OTP token returned true, valid OTP secret provided");
                     otpBean.setConfirmed(true);
                     otpBean.setChallenge(null);
                 } else {
-                    LOGGER.debug(pwmRequest, "request OTP token returned false, incorrect OTP secret provided");
-                            pwmRequest.setResponseError(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE));
+                    LOGGER.debug(pwmRequest, "test OTP token returned false, incorrect OTP secret provided");
+                            pwmRequest.setResponseError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
                 }
             } catch (PwmOperationalException e) {
                 LOGGER.error(pwmRequest, "error validating otp token: " + e.getMessage());
@@ -423,6 +426,9 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                 otpBean.setOtpUserRecord(otpUserRecord);
                 otpBean.setRecoveryCodes(rawRecoveryCodes);
                 LOGGER.trace(pwmSession, "generated new otp record");
+                if (config.isDevDebugMode()) {
+                    LOGGER.trace(pwmRequest, "newly generated otp record: " + JsonUtil.serialize(otpUserRecord));
+                }
             } catch (Exception e) {
                 final String errorMsg = "error setting up new OTP secret: " + e.getMessage();
                 LOGGER.error(pwmSession, errorMsg);
@@ -436,26 +442,18 @@ public class SetupOtpServlet extends AbstractPwmServlet {
         return true;
     }
 
-
-    private void handleQrImageRequest(
+    private static String makeQrCodeDataImageUrl(
             final PwmRequest pwmRequest,
-            final SetupOtpBean setupOtpBean
+            final OTPUserRecord otpUserRecord
     )
-            throws IOException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
-        final OTPUserRecord otpUserRecord = setupOtpBean.getOtpUserRecord();
-        final String qrCodeContent;
-        {
-            final String otpTypeValue = otpUserRecord.getType().toString().toLowerCase();
-            final String identifier = StringUtil.urlEncode(otpUserRecord.getIdentifier());
-            final String secret = StringUtil.urlEncode(otpUserRecord.getSecret());
-            qrCodeContent = "otpauth://" + otpTypeValue 
-                    + "/" + identifier
-                    + "?secret=" + secret;
-            if (pwmRequest.getConfig().isDevDebugMode()) {
-                LOGGER.trace(pwmRequest, "qrCodeContent: " + qrCodeContent);
-            }
-        }
+        final String otpTypeValue = otpUserRecord.getType().toString().toLowerCase();
+        final String identifier = StringUtil.urlEncode(otpUserRecord.getIdentifier());
+        final String secret = StringUtil.urlEncode(otpUserRecord.getSecret());
+        final String qrCodeContent = "otpauth://" + otpTypeValue
+                + "/" + identifier
+                + "?secret=" + secret;
 
         final int height = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.OTP_QR_IMAGE_HEIGHT));
         final int width = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.OTP_QR_IMAGE_WIDTH));
@@ -473,20 +471,6 @@ public class SetupOtpServlet extends AbstractPwmServlet {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
         }
 
-        OutputStream outputStream = null;
-        try {
-            pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.png);
-            outputStream = pwmRequest.getPwmResponse().getOutputStream();
-            outputStream.write(imageBytes);
-            outputStream.flush();
-        } catch (Exception e) {
-            final String errorMsg = "error while sending qrcode image to http client: " + e.getMessage();
-            LOGGER.error(pwmRequest, errorMsg);
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
-        } finally {
-            if (outputStream != null) {
-                try { outputStream.close(); } catch (Exception e) { /*noop*/ }
-            }
-        }
+        return "data:image/png;base64," + StringUtil.base64Encode(imageBytes);
     }
 }

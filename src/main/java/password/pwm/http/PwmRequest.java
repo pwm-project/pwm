@@ -270,6 +270,8 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
         SetupResponses_ResponseInfo,
 
+        SetupOtp_QrCodeValue,
+
         HelpdeskDetail,
         HelpdeskObfuscatedDN,
         HelpdeskUsername,
