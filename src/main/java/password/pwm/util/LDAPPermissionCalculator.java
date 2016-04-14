@@ -265,6 +265,7 @@ public class LDAPPermissionCalculator implements Serializable {
                     return Collections.emptyList();
                 }
             }
+            break;
 
             case SMS_USER_PHONE_ATTRIBUTE:
             {
