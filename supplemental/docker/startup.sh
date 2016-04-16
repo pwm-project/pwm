@@ -15,7 +15,7 @@ chmod a+x command.sh
 
 # update the https certificate file used by tomcat
 rm /appliance/https-cert
-./command.sh ExportHttpsKeyStore /appliance/https-cert password
+./command.sh ExportHttpsKeyStore /appliance/https-cert https password
 
 # update the https configuration used by tomcat
 rm $TOMCAT_HOME/conf/server.xml
