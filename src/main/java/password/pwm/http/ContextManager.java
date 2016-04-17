@@ -438,7 +438,7 @@ public class ContextManager implements Serializable {
 
     public Map<PwmEnvironment.ApplicationParameter,String> readApplicationParams() {
         final String contextAppParamsValue = servletContext.getInitParameter(
-                PwmEnvironment.EnvironmentParameter.applicationParams.toString()
+                PwmEnvironment.EnvironmentParameter.applicationParamFile.toString()
         );
 
         if (contextAppParamsValue != null && !contextAppParamsValue.isEmpty()) {

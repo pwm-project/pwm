@@ -54,9 +54,11 @@ public class PwmEnvironment implements Serializable {
     private final FileLocker fileLocker;
 
     public enum ApplicationParameter {
-        AutoExportHtptsKeyStoreFile,
-        AutoExportHtptsKeyStorePassword,
-        AutoExportHtptsKeyStoreAlias,
+        AutoExportHttpsKeyStoreFile,
+        AutoExportHttpsKeyStorePassword,
+        AutoExportHttpsKeyStoreAlias,
+        AutoWriteTomcatConfSourceFile,
+        AutoWriteTomcatConfOutputFile,
 
         ;
 
@@ -82,7 +84,7 @@ public class PwmEnvironment implements Serializable {
     public enum EnvironmentParameter {
         applicationPath,
         applicationFlags,
-        applicationParams,
+        applicationParamFile,
 
         ;
 
@@ -255,7 +257,7 @@ public class PwmEnvironment implements Serializable {
         }
 
         public static Map<ApplicationParameter,String> readApplicationParmsFromSystem(final String contextName) {
-            final String rawValue = readValueFromSystem(EnvironmentParameter.applicationParams, contextName);
+            final String rawValue = readValueFromSystem(EnvironmentParameter.applicationParamFile, contextName);
             if (rawValue != null) {
                 return parseApplicationParamValueParameter(rawValue);
             }
@@ -320,29 +322,30 @@ public class PwmEnvironment implements Serializable {
                 return Collections.emptyMap();
             }
 
-
-            Map<String,String> jsonValues = null;
+            Properties propValues = null;
             try {
-                jsonValues = JsonUtil.deserializeStringMap(input);
+                final Properties newProps = new Properties();
+                newProps.load(new FileInputStream(new File(input)));
+                propValues = newProps;
             } catch (Exception e) {
-                LOGGER.warn("unable to parse jason value of " + EnvironmentParameter.applicationParams.toString() + ", error: " + e.getMessage());
+                LOGGER.warn("error reading properties file '" + input + "' specified by environment setting " + EnvironmentParameter.applicationParamFile.toString() + ", error: " + e.getMessage());
             }
 
-            if (jsonValues != null) {
+            if (propValues != null) {
                 try {
                     final Map<ApplicationParameter, String> returnParams = new HashMap<>();
-                    for (final String key : jsonValues.keySet()) {
+                    for (final Object key : propValues.keySet()) {
 
-                        final ApplicationParameter param = ApplicationParameter.forString(key);
+                        final ApplicationParameter param = ApplicationParameter.forString(key.toString());
                         if (param != null) {
-                            returnParams.put(param, jsonValues.get(key));
+                            returnParams.put(param, propValues.getProperty(key.toString()));
                         } else {
-                            LOGGER.warn("unknown " + EnvironmentParameter.applicationParams.toString() + " value: " + input);
+                            LOGGER.warn("unknown " + EnvironmentParameter.applicationParamFile.toString() + " value: " + input);
                         }
                     }
                     return Collections.unmodifiableMap(returnParams);
                 } catch (Exception e) {
-                    LOGGER.warn("unable to parse jason value of " + EnvironmentParameter.applicationParams.toString() + ", error: " + e.getMessage());
+                    LOGGER.warn("unable to parse jason value of " + EnvironmentParameter.applicationParamFile.toString() + ", error: " + e.getMessage());
                 }
             }
 

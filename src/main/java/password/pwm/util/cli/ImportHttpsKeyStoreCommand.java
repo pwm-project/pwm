@@ -33,7 +33,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Arrays;
 
-public class ImportHttpsKeyCommand extends AbstractCliCommand {
+public class ImportHttpsKeyStoreCommand extends AbstractCliCommand {
 
     private static final String ALIAS_OPTIONNAME = "alias";
     private static final String FORMAT_OPTIONNAME = "format";
@@ -118,7 +118,7 @@ public class ImportHttpsKeyCommand extends AbstractCliCommand {
         };
 
         CliParameters cliParameters = new CliParameters();
-        cliParameters.commandName = "ImportHttpsKey";
+        cliParameters.commandName = "ImportHttpsKeyStore";
         cliParameters.description = "Import configured HTTPS certificate to Java KeyStore file.  [format] must be one of "
                 + StringUtil.join(HttpsServerCertificateManager.KeyStoreFormat.values(),",");
         cliParameters.options = Arrays.asList(

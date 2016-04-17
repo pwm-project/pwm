@@ -79,7 +79,7 @@ public class MainClass {
         commandList.add(new LdapSchemaExtendCommand());
         commandList.add(new ConfigDeleteCommand());
         commandList.add(new ResponseStatsCommand());
-        commandList.add(new ImportHttpsKeyCommand());
+        commandList.add(new ImportHttpsKeyStoreCommand());
         commandList.add(new ExportHttpsKeyStoreCommand());
         commandList.add(new ExportHttpsTomcatConfigCommand());
         commandList.add(new ShellCommand());
