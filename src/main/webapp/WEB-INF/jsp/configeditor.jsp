@@ -32,7 +32,6 @@
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_FOOTER_TEXT); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_MOBILE_CSS); %>
-<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_THEME); %>
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <style nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" type="text/css">

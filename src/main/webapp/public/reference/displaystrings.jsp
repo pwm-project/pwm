@@ -27,7 +27,6 @@
 
 <!DOCTYPE html>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_WARNINGS); %>
-<% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_THEME); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_REQ_COUNTER); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_IDLE_TIMEOUT); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_BUTTONS); %>
@@ -44,7 +43,7 @@
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Display Strings Reference"/>
     </jsp:include>
-    <div id="centerbody wide">
+    <div id="centerbody" style="width:95%">
         <%@ include file="reference-nav.jsp"%>
         <ol>
                 <% for (PwmLocaleBundle bundle : PwmLocaleBundle.values()) { %>
