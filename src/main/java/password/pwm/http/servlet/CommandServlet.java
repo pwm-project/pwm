@@ -23,7 +23,6 @@
 package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
@@ -37,13 +36,14 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AbstractPwmFilter;
 import password.pwm.http.filter.AuthenticationFilter;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Processes a variety of different commands sent in an HTTP Request, including logoff.
@@ -110,12 +110,26 @@ public class CommandServlet extends AbstractPwmServlet {
             processContinue(pwmRequest);
         } else if (action.equalsIgnoreCase("pageLeaveNotice")) {
             processPageLeaveNotice(pwmRequest);
-        } else if (action.equalsIgnoreCase("clearIntruderTable")) {
-            processClearIntruderTable(pwmRequest);
+        } else if (action.equalsIgnoreCase("csp-report")) {
+            processCspReport(pwmRequest);
         } else {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unknown command sent to CommandServlet: " + action);
             LOGGER.debug(pwmSession, errorInformation);
             pwmRequest.respondWithError(errorInformation);
+        }
+    }
+
+    private static void processCspReport(
+            final PwmRequest pwmRequest
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        final String body = pwmRequest.readRequestBodyAsString();
+        try {
+            Map<String, Object> map = JsonUtil.deserializeStringObjectMap(body);
+            LOGGER.trace("CSP Report: " + JsonUtil.serializeMap(map, JsonUtil.Flag.PrettyPrint));
+        } catch (Exception e) {
+            LOGGER.error("error processing csp report: " + e.getMessage() + ", body=" + body);
         }
     }
 
@@ -174,27 +188,6 @@ public class CommandServlet extends AbstractPwmServlet {
         }
     }
 
-
-    private void processClearIntruderTable(
-            final PwmRequest pwmRequest
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
-    {
-        pwmRequest.validatePwmFormID();
-        if (!checkIfUserAuthenticated(pwmRequest)) {
-            return;
-        }
-
-        if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
-            LOGGER.info(pwmRequest, "unable to execute clear intruder records");
-            return;
-        }
-
-        //pwmApplication.getIntruderManager().clear();
-
-        RestResultBean restResultBean = new RestResultBean();
-        pwmRequest.outputJsonResult(restResultBean);
-    }
 
 
     private static void redirectToForwardURL(final PwmRequest pwmRequest)

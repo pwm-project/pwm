@@ -83,6 +83,11 @@ public class JsonUtil {
         }.getType());
     }
 
+    public static Map<String, Object> deserializeStringObjectMap(final String jsonString) {
+        return JsonUtil.getGson().fromJson(jsonString, new TypeToken<Map<String, Object>>() {
+        }.getType());
+    }
+
     public static Map<String, Object> deserializeMap(final String jsonString) {
         return JsonUtil.getGson().fromJson(jsonString, new TypeToken<Map<String, Object>>() {
         }.getType());

@@ -1414,8 +1414,8 @@
     </setting>
     <setting hidden="false" key="security.cspHeader" level="2">
         <default>
-            <value><![CDATA[]]></value>
-            <!--<value><![CDATA[default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'nonce-%NONCE%' www.google.com/recaptcha]]></value>-->
+            <!--<value><![CDATA[]]></value>-->
+            <value><![CDATA[default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/csp-report]]></value>
         </default>
     </setting>
     <setting hidden="false" key="email.adminAlert.toAddress" level="1">
