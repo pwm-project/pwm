@@ -449,9 +449,9 @@ PWM_CHANGEPW.refreshCreateStatus=function(refreshInterval) {
                     for (var msgItem in data['data']['messages']) {
                         (function(message){
                             if (message['show']) {
-                                tableBody += '<tr><td>' + message['label'] + '</td><td>'
-                                tableBody += message['complete'] ? "Completed" : "In Progress"
-                                tableBody += '</td></tr>'
+                                tableBody += '<tr><td>' + message['label'] + '</td><td>';
+                                tableBody += message['complete'] ? PWM_MAIN.showString('Value_ProgressComplete') : PWM_MAIN.showString('Value_ProgressInProgress');
+                                tableBody += '</td></tr>';
                             }
                         }(data['data']['messages'][msgItem]));
                     }
