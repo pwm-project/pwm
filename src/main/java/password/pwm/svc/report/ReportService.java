@@ -521,6 +521,7 @@ public class ReportService implements PwmService {
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_HasResponses", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_HasHelpdeskResponses", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseStorageMethod", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseFormatType", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdExpired", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdPreExpired", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdViolatesPolicy", config, localeClass));
@@ -576,6 +577,7 @@ public class ReportService implements PwmService {
         csvRow.add(userCacheRecord.isHasResponses() ? trueField : falseField);
         csvRow.add(userCacheRecord.isHasHelpdeskResponses() ? trueField : falseField);
         csvRow.add(userCacheRecord.getResponseStorageMethod() == null ? naField : userCacheRecord.getResponseStorageMethod().toString());
+        csvRow.add(userCacheRecord.getResponseFormatType() == null ? naField : userCacheRecord.getResponseFormatType().toString());
         csvRow.add(userCacheRecord.getPasswordStatus().isExpired() ? trueField : falseField);
         csvRow.add(userCacheRecord.getPasswordStatus().isPreExpired() ? trueField : falseField);
         csvRow.add(userCacheRecord.getPasswordStatus().isViolatesPolicy() ? trueField : falseField);
