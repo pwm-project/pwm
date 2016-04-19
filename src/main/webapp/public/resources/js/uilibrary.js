@@ -422,23 +422,38 @@ UILibrary.uploadFileDialog = function(options) {
 
     completeFunction = 'completeFunction' in options ? options['completeFunction'] : completeFunction;
 
+    var supportAjaxUploadWithProgress = function() {
+        var supportFileAPI = function () {
+            var fi = document.createElement('INPUT');
+            fi.type = 'file';
+            return 'files' in fi;
+        };
 
-    require(["dojo"],function(dojo){
+        var supportAjaxUploadProgressEvents = function() {
+            var xhr = new XMLHttpRequest();
+            return !! (xhr && ('upload' in xhr) && ('onprogress' in xhr.upload));
+        };
 
-        if(dojo.isIE <= 10){ // IE10 and below no workie
-            PWM_MAIN.showDialog({title:PWM_MAIN.showString("Title_Error"),text:PWM_CONFIG.showString("Warning_UploadIE9")});
-            return;
+        var supportFormData = function() {
+            return !! window.FormData;
+        };
+
+        return supportFileAPI() && supportAjaxUploadProgressEvents() && supportFormData();
+    };
+    
+    if(!supportAjaxUploadWithProgress()){
+        PWM_MAIN.showDialog('This browser does not support HTML5 file uploads.');
+        return;
+    }
+
+    PWM_MAIN.showDialog({
+        title:title,
+        showClose:true,
+        showOk:false,
+        text:body,
+        loadFunction:function(){
+            PWM_MAIN.addEventHandler('uploadButton','click',uploadFunction);
         }
-
-        PWM_MAIN.showDialog({
-            title:title,
-            showClose:true,
-            showOk:false,
-            text:body,
-            loadFunction:function(){
-                PWM_MAIN.addEventHandler('uploadButton','click',uploadFunction);
-            }
-        });
     });
 };
 
