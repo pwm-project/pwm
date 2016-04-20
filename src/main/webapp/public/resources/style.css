@@ -365,7 +365,7 @@ input[type=password]::-ms-reveal{display: none;}
     color: #434c50;
     font-size: 16px;
     line-height: 18px;
-    max-height: 34px;
+    max-height: none;
     overflow: hidden;
     margin-bottom: 2px;
     text-overflow: ellipsis;
