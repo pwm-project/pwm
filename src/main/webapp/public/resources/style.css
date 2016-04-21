@@ -317,6 +317,10 @@ input[type=password]::-ms-reveal{display: none;}
     margin-bottom: 5px;
 }
 
+.tile-image > .btn-icon {
+    margin-right: 0;
+}
+
 .tile-image.password-image:before {
     content: "\f084";
 }
@@ -364,8 +368,6 @@ input[type=password]::-ms-reveal{display: none;}
 .tile-title {
     color: #434c50;
     font-size: 16px;
-    line-height: 18px;
-    max-height: none;
     overflow: hidden;
     margin-bottom: 2px;
     text-overflow: ellipsis;

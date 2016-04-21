@@ -52,15 +52,15 @@
             <input type="hidden" name="processAction" value="selectShortcut">
             <input type="hidden" name="link" value="<%=item.getLabel()%>">
             <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-            <button type="submit" class="tile">
+            <div type="submit" class="tile">
                 <div class="tile-content">
                     <div class="tile-image">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-external-link"></span></pwm:if>
                     </div>
-                    <div class="tile-title"><%=item.getLabel()%></div>
-                    <div class="tile-subtitle"><%=item.getDescription()%></div>
+                    <div class="tile-title" title="<%=item.getLabel()%>"><%=item.getLabel()%></div>
+                    <div class="tile-subtitle" title="<%=item.getDescription()%>"><%=item.getDescription()%></div>
                 </div>
-            </button>
+            </div>
         </form>
         <% } %>
         <% } %>

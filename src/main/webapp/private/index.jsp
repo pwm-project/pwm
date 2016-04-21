@@ -47,7 +47,7 @@
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image password-image"></div>
-                            <div class="tile-title"><pwm:display key="Title_ChangePassword"/></div>
+                            <div class="tile-title" title="<pwm:display key='Title_ChangePassword'/>"><pwm:display key="Title_ChangePassword"/></div>
                             <div class="tile-subtitle" title="<pwm:display key='Long_Title_ChangePassword'/>"><pwm:display key="Long_Title_ChangePassword"/></div>
                         </div>
                     </div>
@@ -60,7 +60,7 @@
                         <div class="tile">
                             <div class="tile-content">
                                 <div class="tile-image search-image"></div>
-                                <div class="tile-title"><pwm:display key="Title_PeopleSearch"/></div>
+                                <div class="tile-title" title="<pwm:display key='Title_PeopleSearch'/>"><pwm:display key="Title_PeopleSearch"/></div>
                                 <div class="tile-subtitle" title="<pwm:display key='Long_Title_PeopleSearch'/>"><pwm:display key="Long_Title_PeopleSearch"/></div>
                             </div>
                         </div>
@@ -74,7 +74,7 @@
                         <div class="tile">
                             <div class="tile-content">
                                 <div class="tile-image security-image"></div>
-                                <div class="tile-title"><pwm:display key="Title_SetupResponses"/></div>
+                                <div class="tile-title" title="<pwm:display key='Title_SetupResponses'/>"><pwm:display key="Title_SetupResponses"/></div>
                                 <div class="tile-subtitle" title="<pwm:display key='Long_Title_SetupResponses'/>"><pwm:display key="Long_Title_SetupResponses"/></div>
                             </div>
                         </div>
@@ -88,7 +88,7 @@
                         <div class="tile">
                             <div class="tile-content">
                                 <div class="tile-image mobile-image"></div>
-                                <div class="tile-title"><pwm:display key="Title_SetupOtpSecret"/></div>
+                                <div class="tile-title" title="<pwm:display key='Title_SetupOtpSecret'/>"><pwm:display key="Title_SetupOtpSecret"/></div>
                                 <div class="tile-subtitle" title="<pwm:display key='Long_Title_SetupOtpSecret'/>"><pwm:display key="Long_Title_SetupOtpSecret"/></div>
                             </div>
                         </div>
@@ -101,7 +101,7 @@
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image profile-image"></div>
-                            <div class="tile-title"><pwm:display key="Title_UpdateProfile"/></div>
+                            <div class="tile-title" title="<pwm:display key='Title_UpdateProfile'/>"><pwm:display key="Title_UpdateProfile"/></div>
                             <div class="tile-subtitle" title="<pwm:display key='Long_Title_UpdateProfile'/>"><pwm:display key="Long_Title_UpdateProfile"/></div>
                         </div>
                     </div>
@@ -113,7 +113,7 @@
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image shortcut-image"></div>
-                            <div class="tile-title"><pwm:display key="Title_Shortcuts"/></div>
+                            <div class="tile-title" title="<pwm:display key='Title_Shortcuts'/>"><pwm:display key="Title_Shortcuts"/></div>
                             <div class="tile-subtitle" title="<pwm:display key='Long_Title_Shortcuts'/>"><pwm:display key="Long_Title_Shortcuts"/></div>
                         </div>
                     </div>
@@ -125,7 +125,7 @@
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image user-image"></div>
-                            <div class="tile-title"><pwm:display key="Title_UserInformation"/></div>
+                            <div class="tile-title" title="<pwm:display key='Title_UserInformation'/>"><pwm:display key="Title_UserInformation"/></div>
                             <div class="tile-subtitle" title="<pwm:display key='Long_Title_UserInformation'/>"><pwm:display key="Long_Title_UserInformation"/></div>
                         </div>
                     </div>
@@ -137,7 +137,7 @@
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image support-image"></div>
-                            <div class="tile-title"><pwm:display key="Title_Helpdesk"/></div>
+                            <div class="tile-title" title="<pwm:display key='Title_Helpdesk'/>"><pwm:display key="Title_Helpdesk"/></div>
                             <div class="tile-subtitle" title="<pwm:display key='Long_Title_Helpdesk'/>"><pwm:display key="Long_Title_Helpdesk"/></div>
                         </div>
                     </div>
@@ -149,7 +149,7 @@
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image guest-image"></div>
-                            <div class="tile-title"><pwm:display key="Title_GuestRegistration"/></div>
+                            <div class="tile-title" title="<pwm:display key='Title_GuestRegistration'/>"><pwm:display key="Title_GuestRegistration"/></div>
                             <div class="tile-subtitle" title="<pwm:display key='Long_Title_GuestRegistration'/>"><pwm:display key="Long_Title_GuestRegistration"/></div>
                         </div>
                     </div>
@@ -161,7 +161,7 @@
                 <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image admin-image"></div>
-                        <div class="tile-title"><pwm:display key="Title_Admin"/></div>
+                        <div class="tile-title" title="<pwm:display key='Title_Admin'/>"><pwm:display key="Title_Admin"/></div>
                         <div class="tile-subtitle" title="<pwm:display key='Long_Title_Admin'/>"><pwm:display key="Long_Title_Admin"/></div>
                     </div>
                 </div>
