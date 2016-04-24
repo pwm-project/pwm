@@ -143,9 +143,11 @@ PWM_RESPONSES.startupResponsesPage=function() {
                 PWM_MAIN.showInfo(initialPrompt);
             }
         }
-        PWM_MAIN.addEventHandler('form-setupResponses','input',function(){
-            console.log('form-setupResponses input event handler');
-            PWM_RESPONSES.validateResponses();
+        PWM_MAIN.doQuery('input.response',function(result){
+            PWM_MAIN.addEventHandler(result,'input',function(){
+                console.log('form-setupResponses input event handler');
+                PWM_RESPONSES.validateResponses();
+            });
         });
         PWM_MAIN.getObject("button-setResponses").disabled = true;
         PWM_RESPONSES.initSimpleRandomElements();
