@@ -61,6 +61,14 @@ public enum PwmBlockAlgorithm {
             "PWM.Config.AES"
     ),
 
+    AES128_GCM          (
+            "AES/GCM/NoPadding",
+            PwmSecurityKey.Type.AES,
+            null,
+            "PWM.GCM1".getBytes(PwmConstants.DEFAULT_CHARSET),
+            "AES128+GCM"
+    )
+
     ;
 
     /** Java block crypto algorithm */
@@ -109,6 +117,5 @@ public enum PwmBlockAlgorithm {
     public String getLabel() {
         return label;
     }
-
 
 }

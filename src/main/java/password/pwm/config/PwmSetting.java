@@ -412,7 +412,7 @@ public enum PwmSetting {
     PASSWORD_POLICY_MAXIMUM_OLD_PASSWORD_CHARS(
             "password.policy.maximumOldPasswordChars", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY),
     PASSWORD_POLICY_MINIMUM_LIFETIME(
-            "password.policy.minimumLifetime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY),
+            "password.policy.minimumLifetime", PwmSettingSyntax.DURATION, PwmSettingCategory.PASSWORD_POLICY),
     PASSWORD_POLICY_ENABLE_WORDLIST(
             "password.policy.checkWordlist", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),
     PASSWORD_POLICY_AD_COMPLEXITY_LEVEL(

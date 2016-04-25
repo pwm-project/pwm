@@ -294,7 +294,7 @@ table {
 
 #settingSearchPanel {
     animation: fadein 1.5s;
-    background: white none repeat scroll 0 0;
+    background: none repeat scroll 0 0;
     left: 8px;
     position: absolute;
     top: 10px;
@@ -572,4 +572,8 @@ select {
 
 .buttonbar.configguide {
    text-align: center;
+}
+
+.dijitTreeRowSelected {
+    background-color: #eaeaea;
 }

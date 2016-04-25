@@ -310,7 +310,7 @@ PWM_HELPDESK.showRecentVerifications = function() {
             }
 
             html += '</table>';
-            PWM_MAIN.showDialog({'title':'Recent Verifications','text':html,loadFunction:function(){PWM_MAIN.TimestampHandler.initAllElements()}});
+            PWM_MAIN.showDialog({'title':PWM_MAIN.showString('Title_RecentVerifications'),'text':html,loadFunction:function(){PWM_MAIN.TimestampHandler.initAllElements()}});
         }
     };
 
@@ -416,8 +416,7 @@ PWM_HELPDESK.deleteUser = function() {
 };
 
 PWM_HELPDESK.validateOtpCode = function(userKey) {
-    var dialogText = 'Instruct the user to load their mobile authentication app and share the current pass code.';
-
+    var dialogText = PWM_MAIN.showString('Display_HelpdeskOtpValidation');
     PWM_HELPDESK.validateCode({userKey:userKey, processAction:'validateOtpCode', dialogText:dialogText});
 };
 
@@ -492,7 +491,7 @@ PWM_HELPDESK.validateCode = function(options) {
     PWM_MAIN.showDialog({
         showClose:true,
         allowMove:true,
-        title:'Validate Code',
+        title:PWM_MAIN.showString('Title_ValidateCode'),
         text:text,
         loadFunction:function(){
             PWM_MAIN.addEventHandler('button-checkCode','click',function(){
@@ -518,7 +517,7 @@ PWM_HELPDESK.sendVerificationToken = function(userKey, methods) {
             var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "sendVerificationToken");
             var loadFunction = function(data) {
                 if (!data['error']) {
-                    var text = '<table><tr><td>Token Destination</td><td>' + data['data']['destination'] + '</td></tr></table>';
+                    var text = '<table><tr><td>' + PWM_MAIN.showString('Display_TokenDestination') + '</td><td>' + data['data']['destination'] + '</td></tr></table>';
                     var returnExtraData = function() { return data['data']; };
                     PWM_HELPDESK.validateCode({userKey:userKey, processAction:'verifyVerificationToken',dialogText:text,extraPayload:returnExtraData});
                 } else {

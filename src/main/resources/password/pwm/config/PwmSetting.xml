@@ -103,6 +103,9 @@
         </default>
     </setting>
     <setting hidden="false" key="idleTimeoutSeconds" level="1" required="true">
+        <properties>
+            <property key="Minimum">60</property>
+        </properties>
         <default>
             <value>300</value>
         </default>

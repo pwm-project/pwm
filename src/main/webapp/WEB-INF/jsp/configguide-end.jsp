@@ -144,8 +144,7 @@
 
                 htmlBody += '<br/><br/><table><tr><td colspan="3" class="title">URLs</td></tr>';
                 htmlBody += '<tr><td class="key">Application</td><td> <a href="<pwm:context/>"><pwm:context/></a></td></tr>';
-                htmlBody += '<tr><td class="key">Configuration Manager</td><td> <a href="<pwm:context/><pwm:context/><%=PwmServletDefinition.ConfigManager.servletUrl()%>"><pwm:context/><pwm:context/><%=PwmServletDefinition.ConfigManager.servletUrl()%></a></td></tr>';
-                htmlBody += '<tr><td class="key">Configuration Editor</td><td> <a href="<pwm:context/><pwm:context/><%=PwmServletDefinition.ConfigEditor.servletUrl()%>"><pwm:context/><pwm:context/><%=PwmServletDefinition.ConfigEditor.servletUrl()%></a></td></tr>';
+                htmlBody += '<tr><td class="key">Configuration</td><td> <a href="<pwm:context/>/private/config"><pwm:context/>/private/config</a></td></tr>';
                 htmlBody += '</table>';
 
                 PWM_MAIN.showConfirmDialog({text:htmlBody,okAction:function(){
