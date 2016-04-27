@@ -93,4 +93,13 @@ public abstract class AbstractCliCommand implements CliCommand  {
         }
         return password;
     }
+
+    String getOptionalPassword() {
+        final String optionName = CliParameters.OPTIONAL_PASSWORD.getName();
+        if (cliEnvironment.getOptions().containsKey(optionName)) {
+            return (String)cliEnvironment.getOptions().get(optionName);
+        } else {
+            return promptForPassword();
+        }
+    }
 }

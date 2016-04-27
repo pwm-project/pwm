@@ -34,6 +34,7 @@ import password.pwm.util.logging.PwmLogger;
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -51,6 +52,8 @@ public class SecureEngine {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SecureEngine.class);
 
     private static final int HASH_BUFFER_SIZE = 1024 * 4;
+
+    private static final NonceGenerator AES_GCM_NONCE_GENERATOR = new NonceGenerator(8,8);
 
     private SecureEngine() {
     }
@@ -80,20 +83,33 @@ public class SecureEngine {
     }
 
 
+    static final int GCM_TAG_LENGTH = 16; // in bytes
+
     public static byte[] encryptToBytes(
             final String value,
             final PwmSecurityKey key,
             final PwmBlockAlgorithm blockAlgorithm
     )
-            throws PwmUnrecoverableException {
+            throws PwmUnrecoverableException
+    {
         try {
             if (value == null || value.length() < 1) {
                 return null;
             }
 
             final SecretKey aesKey = key.getKey(blockAlgorithm.getBlockKey());
-            final Cipher cipher = Cipher.getInstance(blockAlgorithm.getAlgName());
-            cipher.init(Cipher.ENCRYPT_MODE, aesKey, cipher.getParameters());
+            final byte[] nonce;
+            final Cipher cipher;
+            if (blockAlgorithm == PwmBlockAlgorithm.AES128_GCM) {
+                nonce = AES_GCM_NONCE_GENERATOR.nextValue();
+                GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, nonce);
+                cipher = Cipher.getInstance(blockAlgorithm.getAlgName());
+                cipher.init(Cipher.ENCRYPT_MODE, aesKey, spec);
+            } else {
+                cipher = Cipher.getInstance(blockAlgorithm.getAlgName());
+                cipher.init(Cipher.ENCRYPT_MODE, aesKey, cipher.getParameters());
+                nonce = null;
+            }
             final byte[] encryptedBytes = cipher.doFinal(value.getBytes(PwmConstants.DEFAULT_CHARSET));
 
             final byte[] output;
@@ -101,7 +117,13 @@ public class SecureEngine {
                 final byte[] hashChecksum = computeHmacToBytes(blockAlgorithm.getHmacAlgorithm(), key, encryptedBytes);
                 output = appendByteArrays(blockAlgorithm.getPrefix(), hashChecksum, encryptedBytes);
             } else {
-                output = appendByteArrays(blockAlgorithm.getPrefix(), encryptedBytes);
+                if (nonce == null) {
+                    output = appendByteArrays(blockAlgorithm.getPrefix(), encryptedBytes);
+                } else {
+                    final byte[] nonceLength = new byte[1];
+                    nonceLength[0] = (byte)nonce.length;
+                    output = appendByteArrays(blockAlgorithm.getPrefix(), nonceLength, nonce, encryptedBytes);
+                }
             }
             return output;
 
@@ -165,8 +187,22 @@ public class SecureEngine {
                 }
                 value = inputPayload;
             }
-            final Cipher cipher = Cipher.getInstance(blockAlgorithm.getAlgName());
-            cipher.init(Cipher.DECRYPT_MODE, aesKey);
+            final Cipher cipher;
+            if (blockAlgorithm == PwmBlockAlgorithm.AES128_GCM) {
+                final int nonceLength = value[0];
+                value = Arrays.copyOfRange(value,1,value.length);
+                if (value.length <= nonceLength) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, "incoming " + blockAlgorithm.toString()  + " data is missing nonce"));
+                }
+                final byte[] nonce = Arrays.copyOfRange(value, 0, nonceLength);
+                value = Arrays.copyOfRange(value, nonceLength, value.length);
+                GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, nonce);
+                cipher = Cipher.getInstance(blockAlgorithm.getAlgName());
+                cipher.init(Cipher.DECRYPT_MODE, aesKey, spec);
+            } else {
+                cipher = Cipher.getInstance(blockAlgorithm.getAlgName());
+                cipher.init(Cipher.DECRYPT_MODE, aesKey);
+            }
             final byte[] decrypted = cipher.doFinal(value);
             return new String(decrypted, PwmConstants.DEFAULT_CHARSET);
         } catch (Exception e) {
@@ -335,7 +371,7 @@ public class SecureEngine {
         }
         byte[] inputPrefix = Arrays.copyOf(input, definedPrefix.length);
         if (!Arrays.equals(definedPrefix, inputPrefix)) {
-            final String errorMsg = "value is missing valid prefix for decrpyption type";
+            final String errorMsg = "value is missing valid prefix for decryption type";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
@@ -343,4 +379,31 @@ public class SecureEngine {
         return Arrays.copyOfRange(input,definedPrefix.length,input.length);
     }
 
+    static class NonceGenerator {
+        private final byte[] value;
+
+        private final int fixedComponentLength;
+
+        public NonceGenerator(final int fixedComponentLength, final int counterComponentLength) {
+            this.fixedComponentLength = fixedComponentLength;
+            value = new byte[fixedComponentLength + counterComponentLength];
+            PwmRandom.getInstance().nextBytes(value);
+        }
+
+        public synchronized byte[] nextValue() {
+            increment(value.length - 1);
+            return Arrays.copyOf(value, value.length);
+        }
+
+        private void increment(final int index) {
+            if (value[index] == Byte.MAX_VALUE) {
+                value[index] = 0;
+                if(index > fixedComponentLength) {
+                    increment(index - 1);
+                }
+            } else {
+                value[index]++;
+            }
+        }
+    }
 }

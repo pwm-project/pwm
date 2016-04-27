@@ -121,6 +121,11 @@ public class LdapConnectionService implements PwmService {
         } catch (PwmUnrecoverableException e) {
             setLastLdapFailure(ldapProfile,e.getErrorInformation());
             throw e;
+        } catch (Exception e) {
+            final String errorMsg = "unexpected error creating new proxy ldap connection: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            LOGGER.error(errorInformation);
+            throw new PwmUnrecoverableException(errorInformation);
         }
     }
 

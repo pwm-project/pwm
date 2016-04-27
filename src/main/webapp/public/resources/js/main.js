@@ -161,16 +161,17 @@ PWM_MAIN.initPage = function() {
         });
     }
 
-    PWM_MAIN.showTooltip({
-        id: ['header-warning-message'],
-        position: ['below', 'above'],
-        text: '<pwm:display key="HealthMessage_Config_ConfigMode" bundle="Health"/>',
-        width: 500
+    PWM_MAIN.addEventHandler('icon-configModeHelp','click',function(){
+        PWM_MAIN.showDialog({title:'Notice - Configuration Mode',text:PWM_MAIN.showString('Display_ConfigOpenInfo',{bundle:'Config'})});
     });
 
-    PWM_MAIN.addEventHandler('icon-configModeHelp','click',function(){
-        PWM_MAIN.showDialog({title:'Notice - Configuration Status: Open',text:PWM_CONFIG.showString('Display_ConfigOpenInfo')});
-    });
+    if (PWM_GLOBAL['applicationMode'] == 'CONFIGURATION') {
+        var configModeNoticeSeen = PWM_MAIN.Preferences.readSessionStorage('configModeNoticeSeen');
+        if (!configModeNoticeSeen) {
+            PWM_MAIN.Preferences.writeSessionStorage('configModeNoticeSeen',true);
+            PWM_MAIN.showDialog({title:'Notice - Configuration Mode',text:PWM_MAIN.showString('Display_ConfigOpenInfo',{bundle:'Config'})});
+        }
+    }
 
     if (PWM_GLOBAL['pageLeaveNotice'] > 0) {
         require(["dojo","dojo/on"], function(dojo,on){
@@ -1446,6 +1447,8 @@ ShowHidePasswordHandler.hide = function(nodeName) {
     ShowHidePasswordHandler.changeInputTypeField(PWM_MAIN.getObject(nodeName),'password');
     ShowHidePasswordHandler.setupTooltip(nodeName);
     ShowHidePasswordHandler.renderIcon(nodeName);
+    var node = PWM_MAIN.getObject(nodeName);
+    node.focus();
 };
 
 ShowHidePasswordHandler.show = function(nodeName) {
@@ -1455,6 +1458,7 @@ ShowHidePasswordHandler.show = function(nodeName) {
     ShowHidePasswordHandler.renderIcon(nodeName);
 
     var node = PWM_MAIN.getObject(nodeName);
+    node.focus();
     require(["dojo/dom-construct", "dojo/on", "dojo/dom-attr"], function(domConstruct, on, attr) {
         var defaultType = attr.get(nodeName, "data-originalType");
         if (defaultType == 'password') {
@@ -1491,7 +1495,7 @@ ShowHidePasswordHandler.changeInputTypeField = function(object, type) {
             if (object.readonly) newObject.readonly = object.readonly;
             if (object.data) newObject.data = object.data;
         } else {
-            newObject = lang.clone(object);
+            newObject = object;
             attr.set(newObject, "type", type);
         }
 

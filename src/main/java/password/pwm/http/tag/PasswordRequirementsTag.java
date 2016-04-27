@@ -23,8 +23,6 @@
 package password.pwm.http.tag;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
-import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.NewUserProfile;
@@ -44,7 +42,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -83,11 +80,10 @@ public class PasswordRequirementsTag extends TagSupport {
 
         {
             int value = ruleHelper.readIntValue(PwmPasswordRule.MinimumLength);
-            if (ADPolicyLevel == ADPolicyComplexity.AD2003) {
-                value = 6;
-            }
-            if (value == 0 && ADPolicyLevel == ADPolicyComplexity.AD2008) {
-                value = 6;
+            if (ADPolicyLevel == ADPolicyComplexity.AD2003 || ADPolicyLevel == ADPolicyComplexity.AD2008) {
+                if (value < 6) {
+                    value = 6;
+                }
             }
             if (value > 0) {
                 returnValues.add(getLocalString(Message.Requirement_MinLength, value, locale, config));

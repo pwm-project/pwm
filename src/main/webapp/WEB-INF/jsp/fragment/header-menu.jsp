@@ -42,8 +42,7 @@
             <pwm:if test="<%=PwmIfTest.trialMode%>" negate="true">
                 <pwm:if test="<%=PwmIfTest.configurationOpen%>">
                     <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
-
-                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span id="icon-configModeHelp" class="btn-icon pwm-icon pwm-icon-question-circle"></span></pwm:if>
+                    <span id="icon-configModeHelp" class="btn-icon pwm-icon pwm-icon-question-circle"></span>
                 </pwm:if>
                 <pwm:if test="<%=PwmIfTest.configurationOpen%>" negate="true">
                     <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">

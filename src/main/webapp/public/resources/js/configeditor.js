@@ -804,10 +804,6 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
             + '<button class="btn" id="button-test-SMS"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>Test SMS Settings</button>'
             + '</div>';
-    } else if (category == 'HTTPS_SERVER') {
-        htmlSettingBody += '<div style="width: 100%; text-align: center">'
-            + '<button class="btn" id="button-test-HTTPS_SERVER"><span class="btn-icon pwm-icon pwm-icon-bolt"></span>View Certificate Info</button>'
-            + '</div>';
     }
 
     PWM_VAR['skippedSettingCount'] = 0;
@@ -969,6 +965,10 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
 
         case 'X509CERT':
             X509CertificateHandler.init(settingKey);
+            break;
+
+        case 'PRIVATE_KEY':
+            PrivateKeyHandler.init(settingKey);
             break;
 
         case 'FILE':

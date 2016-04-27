@@ -77,29 +77,11 @@ public class PwmSecurityKey {
             throws PwmUnrecoverableException {
         switch (keyType) {
             case AES: {
-                try {
-                    final int KEY_LENGTH = 16;
-                    final byte[] sha1Hash = SecureEngine.computeHashToBytes(new ByteArrayInputStream(keyData), PwmHashAlgorithm.SHA1);
-                    final byte[] key = Arrays.copyOfRange(sha1Hash,0,KEY_LENGTH);
-                    return new SecretKeySpec(key, "AES");
-                } catch (Exception e) {
-                    final String errorMsg = "unexpected error generating simple crypto key: " + e.getMessage();
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);
-                    throw new PwmUnrecoverableException(errorInformation);
-                }
+                return shaBasedKey("AES", PwmHashAlgorithm.SHA1, 16);
             }
 
             case AES_256: {
-                try {
-                    final int KEY_LENGTH = 32;
-                    final byte[] sha2Hash = SecureEngine.computeHashToBytes(new ByteArrayInputStream(keyData), PwmHashAlgorithm.SHA256);
-                    final byte[] key = Arrays.copyOfRange(sha2Hash,0,KEY_LENGTH);
-                    return new SecretKeySpec(key, "AES");
-                } catch (Exception e) {
-                    final String errorMsg = "unexpected error generating simple crypto key: " + e.getMessage();
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);
-                    throw new PwmUnrecoverableException(errorInformation);
-                }
+                return shaBasedKey("AES", PwmHashAlgorithm.SHA256, 32);
             }
 
             case HMAC_256: {
@@ -112,5 +94,17 @@ public class PwmSecurityKey {
         }
 
         throw new IllegalStateException("unknown key type: " + keyType);
+    }
+
+    private SecretKey shaBasedKey(final String keySpecName, final PwmHashAlgorithm pwmHashAlgorithm, final int keyLength) throws PwmUnrecoverableException {
+        try {
+            final byte[] sha1Hash = SecureEngine.computeHashToBytes(new ByteArrayInputStream(keyData), pwmHashAlgorithm);
+            final byte[] key = Arrays.copyOfRange(sha1Hash,0,keyLength);
+            return new SecretKeySpec(key, keySpecName);
+        } catch (Exception e) {
+            final String errorMsg = "unexpected error generating simple crypto key: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CRYPT_ERROR, errorMsg);
+            throw new PwmUnrecoverableException(errorInformation);
+        }
     }
 }

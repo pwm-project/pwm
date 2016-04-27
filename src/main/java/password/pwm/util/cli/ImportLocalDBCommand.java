@@ -31,8 +31,6 @@ import java.io.File;
 import java.util.Collections;
 
 public class ImportLocalDBCommand extends AbstractCliCommand {
-    protected static final String INPUT_FILE_OPTIONNAME = "inputFile";
-
     @Override
     void doCommand()
             throws Exception
@@ -50,7 +48,7 @@ public class ImportLocalDBCommand extends AbstractCliCommand {
         }
 
         final LocalDBUtility pwmDBUtility = new LocalDBUtility(localDB);
-        final File inputFile = (File)cliEnvironment.getOptions().get(INPUT_FILE_OPTIONNAME);
+        final File inputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName());
         try {
             pwmDBUtility.importLocalDB(inputFile, System.out);
         } catch (PwmOperationalException e) {
@@ -61,27 +59,10 @@ public class ImportLocalDBCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        final CliParameters.Option outputFileOption = new CliParameters.Option() {
-            public boolean isOptional()
-            {
-                return false;
-            }
-
-            public type getType()
-            {
-                return type.EXISTING_FILE;
-            }
-
-            public String getName()
-            {
-                return INPUT_FILE_OPTIONNAME;
-            }
-        };
-
         CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ImportLocalDB";
         cliParameters.description = "Import the entire LocalDB contents from a backup file";
-        cliParameters.options = Collections.singletonList(outputFileOption);
+        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_EXISTING_INPUT_FILE);
 
         cliParameters.needsLocalDB = true;
         cliParameters.readOnly = false;

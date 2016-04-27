@@ -24,12 +24,13 @@ package password.pwm.http.servlet.helpdesk;
 
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.HelpdeskUIMode;
-import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.IdentityVerificationMethod;
+import password.pwm.config.option.MessageSendMethod;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class HelpdeskClientDataBean implements Serializable {
@@ -40,6 +41,7 @@ public class HelpdeskClientDataBean implements Serializable {
     private MessageSendMethod helpdesk_setting_tokenSendMethod;
     private Map<String, ActionInformation> actions = new HashMap<>();
     private Map<String, Collection<IdentityVerificationMethod>> verificationMethods = new HashMap<>();
+    private List<FormInformation> verificationForm;
 
     public Map<String, String> getHelpdesk_search_columns() {
         return helpdesk_search_columns;
@@ -97,6 +99,14 @@ public class HelpdeskClientDataBean implements Serializable {
         this.verificationMethods = verificationMethods;
     }
 
+    public List getVerificationForm() {
+        return verificationForm;
+    }
+
+    public void setVerificationForm(List verificationForm) {
+        this.verificationForm = verificationForm;
+    }
+
     public static class ActionInformation implements Serializable {
         private String name;
         private String description;
@@ -115,6 +125,27 @@ public class HelpdeskClientDataBean implements Serializable {
 
         public void setDescription(String description) {
             this.description = description;
+        }
+    }
+
+    public static class FormInformation implements Serializable {
+        private String name;
+        private String label;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public void setLabel(String label) {
+            this.label = label;
         }
     }
 }

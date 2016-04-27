@@ -49,8 +49,23 @@ public class PwmEnvironment implements Serializable {
     private final File configurationFile;
     private final ContextManager contextManager;
     private final Collection<ApplicationFlag> flags;
+    private final Map<ApplicationParameter,String> parameters;
 
     private final FileLocker fileLocker;
+
+    public enum ApplicationParameter {
+        AutoExportHttpsKeyStoreFile,
+        AutoExportHttpsKeyStorePassword,
+        AutoExportHttpsKeyStoreAlias,
+        AutoWriteTomcatConfSourceFile,
+        AutoWriteTomcatConfOutputFile,
+
+        ;
+
+        public static ApplicationParameter forString(final String input) {
+            return Helper.readEnumFromString(ApplicationParameter.class, null, input);
+        }
+    }
 
     public enum ApplicationFlag {
         Appliance,
@@ -62,18 +77,14 @@ public class PwmEnvironment implements Serializable {
         ;
 
         public static ApplicationFlag forString(final String input) {
-            for (final ApplicationFlag flag : ApplicationFlag.values()) {
-                if (flag.toString().equals(input) || flag.toString().toUpperCase().equals(input)) {
-                    return flag;
-                }
-            }
-            return null;
+            return Helper.readEnumFromString(ApplicationFlag.class, null, input);
         }
     }
 
     public enum EnvironmentParameter {
         applicationPath,
         applicationFlags,
+        applicationParamFile,
 
         ;
 
@@ -119,7 +130,8 @@ public class PwmEnvironment implements Serializable {
             final boolean internalRuntimeInstance,
             final File configurationFile,
             final ContextManager contextManager,
-            final Collection<ApplicationFlag> flags
+            final Collection<ApplicationFlag> flags,
+            final Map<ApplicationParameter,String> parameters
     ) {
         this.applicationMode = applicationMode == null ? PwmApplicationMode.ERROR : applicationMode;
         this.config = config;
@@ -128,6 +140,7 @@ public class PwmEnvironment implements Serializable {
         this.configurationFile = configurationFile;
         this.contextManager = contextManager;
         this.flags = flags == null ? Collections.<ApplicationFlag>emptySet() : Collections.unmodifiableSet(new HashSet<>(flags));
+        this.parameters = parameters == null ? Collections.<ApplicationParameter, String>emptyMap() : Collections.unmodifiableMap(parameters);
 
         this.fileLocker = new FileLocker();
 
@@ -162,6 +175,10 @@ public class PwmEnvironment implements Serializable {
         return flags;
     }
 
+    public Map<ApplicationParameter, String> getParameters() {
+        return parameters;
+    }
+
     private void verify() {
 
     }
@@ -183,36 +200,6 @@ public class PwmEnvironment implements Serializable {
         if (applicationPathIsWebInfPath) {
             LOGGER.trace("applicationPath appears to be servlet /WEB-INF directory");
         }
-
-        /* scheduled for demolition....
-        if (webInfPath != null) {
-            final File infoFile = new File(webInfPath.getAbsolutePath() + File.separator + PwmConstants.APPLICATION_PATH_INFO_FILE);
-            if (applicationPathIsWebInfPath) {
-                if (this.getApplicationPathType() == PwmEnvironment.ApplicationPathType.derived) {
-                    LOGGER.trace("checking " + infoFile.getAbsolutePath() + " status, (applicationPathType=" + PwmEnvironment.ApplicationPathType.derived + ")");
-                    if (infoFile.exists()) {
-                        final String errorMsg = "The file " + infoFile.getAbsolutePath() + " exists, and an applicationPath was not explicitly specified."
-                                + "  This happens when an applicationPath was previously configured, but is not now being specified."
-                                + "  An explicit applicationPath parameter must be specified, or the file can be removed if the applicationPath should be changed to the default /WEB-INF directory.";
-                        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR, errorMsg));
-                    } else {
-                        LOGGER.trace("marker file " + infoFile.getAbsolutePath() + " does not exist");
-                    }
-                }
-            } else {
-                if (this.getApplicationPathType() == PwmEnvironment.ApplicationPathType.specified) {
-                    try {
-                        final FileOutputStream fos = new FileOutputStream(infoFile);
-                        final Properties outputProperties = new Properties();
-                        outputProperties.setProperty("lastApplicationPath", applicationPath.getAbsolutePath());
-                        outputProperties.store(fos, "Marker file to record a previously configured applicationPath");
-                    } catch (IOException e) {
-                        LOGGER.warn("unable to write applicationPath marker properties file " + infoFile.getAbsolutePath() + "");
-                    }
-                }
-            }
-        }
-        */
     }
 
     public PwmEnvironment makeRuntimeInstance(
@@ -269,6 +256,13 @@ public class PwmEnvironment implements Serializable {
             return Collections.emptyList();
         }
 
+        public static Map<ApplicationParameter,String> readApplicationParmsFromSystem(final String contextName) {
+            final String rawValue = readValueFromSystem(EnvironmentParameter.applicationParamFile, contextName);
+            if (rawValue != null) {
+                return parseApplicationParamValueParameter(rawValue);
+            }
+            return Collections.emptyMap();
+        }
 
         public static String readValueFromSystem(PwmEnvironment.EnvironmentParameter parameter, final String contextName) {
             final List<String> namePossibilities = parameter.possibleNames(contextName);
@@ -322,6 +316,41 @@ public class PwmEnvironment implements Serializable {
             }
             return returnFlags;
         }
+
+        public static Map<ApplicationParameter,String> parseApplicationParamValueParameter(final String input) {
+            if (input == null) {
+                return Collections.emptyMap();
+            }
+
+            Properties propValues = null;
+            try {
+                final Properties newProps = new Properties();
+                newProps.load(new FileInputStream(new File(input)));
+                propValues = newProps;
+            } catch (Exception e) {
+                LOGGER.warn("error reading properties file '" + input + "' specified by environment setting " + EnvironmentParameter.applicationParamFile.toString() + ", error: " + e.getMessage());
+            }
+
+            if (propValues != null) {
+                try {
+                    final Map<ApplicationParameter, String> returnParams = new HashMap<>();
+                    for (final Object key : propValues.keySet()) {
+
+                        final ApplicationParameter param = ApplicationParameter.forString(key.toString());
+                        if (param != null) {
+                            returnParams.put(param, propValues.getProperty(key.toString()));
+                        } else {
+                            LOGGER.warn("unknown " + EnvironmentParameter.applicationParamFile.toString() + " value: " + input);
+                        }
+                    }
+                    return Collections.unmodifiableMap(returnParams);
+                } catch (Exception e) {
+                    LOGGER.warn("unable to parse jason value of " + EnvironmentParameter.applicationParamFile.toString() + ", error: " + e.getMessage());
+                }
+            }
+
+            return Collections.emptyMap();
+        }
     }
 
 
@@ -334,6 +363,7 @@ public class PwmEnvironment implements Serializable {
         private File configurationFile;
         private ContextManager contextManager;
         private Collection<ApplicationFlag> flags = new HashSet<>();
+        private Map<ApplicationParameter,String> params = new HashMap<>();
 
         public Builder(final PwmEnvironment pwmEnvironment) {
             this.applicationMode         = pwmEnvironment.applicationMode;
@@ -343,6 +373,7 @@ public class PwmEnvironment implements Serializable {
             this.configurationFile       = pwmEnvironment.configurationFile;
             this.contextManager          = pwmEnvironment.contextManager;
             this.flags                   = pwmEnvironment.flags;
+            this.params                  = pwmEnvironment.parameters;
         }
 
         public Builder(Configuration config, File applicationPath) {
@@ -378,6 +409,14 @@ public class PwmEnvironment implements Serializable {
             return this;
         }
 
+        public Builder setParams(Map<ApplicationParameter,String> params) {
+            this.params.clear();
+            if (params != null) {
+                this.params.putAll(params);
+            }
+            return this;
+        }
+
         public Builder setConfig(Configuration config) {
             this.config = config;
             return this;
@@ -391,7 +430,8 @@ public class PwmEnvironment implements Serializable {
                     internalRuntimeInstance,
                     configurationFile,
                     contextManager,
-                    flags
+                    flags,
+                    params
             );
         }
     }

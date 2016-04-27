@@ -451,7 +451,7 @@ public class RequestInitializationFilter implements Filter {
             pwmRequest.getPwmSession().setLocale(pwmRequest.getPwmApplication(), localeCookie);
         } else {
             final List<Locale> knownLocales = pwmRequest.getConfig().getKnownLocales();
-            final Locale userLocale = LocaleHelper.localeResolver(pwmRequest.getLocale(), knownLocales);
+            final Locale userLocale = LocaleHelper.localeResolver(pwmRequest.getHttpServletRequest().getLocale(), knownLocales);
             pwmRequest.getPwmSession().getSessionStateBean().setLocale(userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale);
             LOGGER.trace(pwmRequest, "user locale set to '" + pwmRequest.getLocale() + "'");
         }

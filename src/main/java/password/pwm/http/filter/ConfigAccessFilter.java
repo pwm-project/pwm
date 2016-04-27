@@ -76,7 +76,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         }
 
         final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ConfigManagerBean.class);
-        if (!checkAuthentication(pwmRequest, configManagerBean)) {
+        if (checkAuthentication(pwmRequest, configManagerBean) == ProcessStatus.Continue) {
             filterChain.doFilter();
         }
     }
@@ -86,7 +86,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         return pwmURL.isConfigManagerURL();
     }
 
-    static boolean checkAuthentication(
+    static ProcessStatus checkAuthentication(
             final PwmRequest pwmRequest,
             final ConfigManagerBean configManagerBean
     )
@@ -110,7 +110,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
             if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED);
                 pwmRequest.respondWithError(errorInformation);
-                return true;
+                return ProcessStatus.Halt;
             }
 
             if (pwmSession.getLoginInfoBean().getType() != AuthenticationType.AUTHENTICATED) {
@@ -124,18 +124,18 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         }
 
         if (!authRequired) {
-            return false;
+            return ProcessStatus.Continue;
         }
 
         if (!storedConfig.hasPassword()) {
             final String errorMsg = "config file does not have a configuration password";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg,new String[]{errorMsg});
             pwmRequest.respondWithError(errorInformation, true);
-            return true;
+            return ProcessStatus.Halt;
         }
 
         if (configManagerBean.isPasswordVerified()) {
-            return false;
+            return ProcessStatus.Continue;
         }
 
         String persistentLoginValue = null;
@@ -234,9 +234,9 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                 final String originalUrl = configManagerBean.getPrePasswordEntryUrl();
                 configManagerBean.setPrePasswordEntryUrl(null);
                 pwmRequest.getPwmResponse().sendRedirect(originalUrl);
-                return true;
+                return ProcessStatus.Halt;
             }
-            return false;
+            return ProcessStatus.Continue;
         }
 
         if (configManagerBean.getPrePasswordEntryUrl() == null) {
@@ -244,7 +244,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         }
 
         forwardToJsp(pwmRequest);
-        return true;
+        return ProcessStatus.Halt;
     }
 
     private static void forwardToJsp(final PwmRequest pwmRequest)

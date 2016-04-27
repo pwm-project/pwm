@@ -37,7 +37,6 @@
         <p>
             <span class="panel-login-display-message"><pwm:display key="Display_Login"/></span>
         </p>
-
         <form action="<pwm:current-url/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login" autocomplete="off">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
@@ -116,21 +115,6 @@
                     </pwm:if>
                 </table>
             </pwm:if>
-        </pwm:if>
-        <pwm:if test="<%=PwmIfTest.configurationOpen%>">
-            <table class="noborder">
-                <tr>
-                    <td class="menubutton_key">
-                        <a class="menubutton" id="configmanager-user" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ConfigManager.servletUrl()%>'/>">
-                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-gears"></span></pwm:if>
-                            <pwm:display key="Title_ConfigManager" bundle="Config"/>
-                        </a>
-                    </td>
-                    <td>
-                        <pwm:display key="HealthMessage_Config_ConfigMode" bundle="Health"/>
-                    </td>
-                </tr>
-            </table>
         </pwm:if>
     </div>
     <div class="push"></div>

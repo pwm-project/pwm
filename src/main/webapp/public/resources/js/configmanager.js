@@ -73,6 +73,7 @@ PWM_CONFIG.waitForRestart=function(options) {
         console.log('Waiting for server restart, unable to contact server: ' + error);
     };
     var url = PWM_GLOBAL['url-restservice'] + "/app-data/client?checkForRestart=true";
+    url = PWM_MAIN.addParamToUrl(url,'pageUrl',window.location.href);
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET'});
 };
 
@@ -125,6 +126,8 @@ PWM_CONFIG.uploadLocalDB=function() {
 
 PWM_CONFIG.closeHeaderWarningPanel = function() {
     console.log('action closeHeader');
+    PWM_CONFIG.headerResizeListener.pause();
+
     PWM_MAIN.setStyle('header-warning','display','none');
     PWM_MAIN.setStyle('header-warning-backdrop','display','none');
     PWM_MAIN.setStyle('button-openHeader','display','inherit');
@@ -132,6 +135,7 @@ PWM_CONFIG.closeHeaderWarningPanel = function() {
 
 PWM_CONFIG.openHeaderWarningPanel = function() {
     console.log('action openHeader');
+    PWM_CONFIG.headerResizeListener.resume();
 
     require(['dojo/dom','dijit/place','dojo/on'], function(dom, place, on) {
         place.around(dom.byId("header-warning"), dom.byId("header-menu-wrapper"), ["below-alt"], false);
@@ -290,6 +294,7 @@ PWM_CONFIG.heartbeatCheck = function() {
         handleErrorFunction('I/O error communicating with server.');
     };
     var url = PWM_GLOBAL['url-restservice'] + "/app-data/client?heartbeat=true";
+    url = PWM_MAIN.addParamToUrl(url,'pageUrl',window.location.href);
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET'});
 };
 
@@ -298,7 +303,7 @@ PWM_CONFIG.initConfigHeader = function() {
         PWM_CONFIG.openLogViewer(null)
     });
     PWM_MAIN.addEventHandler('panel-header-healthData','click',function(){
-        PWM_MAIN.goto('/private/config/ConfigManager');
+        PWM_MAIN.goto('/private/config/manager');
     });
     PWM_MAIN.addEventHandler('button-closeHeader','click',function(){
         PWM_CONFIG.closeHeaderWarningPanel();
@@ -310,8 +315,14 @@ PWM_CONFIG.initConfigHeader = function() {
         PWM_CONFIG.openHeaderWarningPanel();
     });
 
-    require(["dojo/dom-construct", "dojo/_base/window"], function(domConstruct, win){
+    require(["dojo/dom-construct", "dojo/_base/window", "dojo/dom", "dijit/place", "dojo/on"], function(domConstruct, win, dom, place, on){
         domConstruct.create("div", { id: "header-warning-backdrop" }, win.body());
+
+        PWM_CONFIG.headerResizeListener = on.pausable(window, "resize", function () {
+            place.around(dom.byId("header-warning"), dom.byId("header-menu-wrapper"), ["below-alt"], false);
+        });
+
+        PWM_CONFIG.headerResizeListener.pause();
     });
 
     PWM_CONFIG.showHeaderHealth();

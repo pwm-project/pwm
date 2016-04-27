@@ -56,6 +56,7 @@ import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistManager;
 import password.pwm.util.*;
+import password.pwm.util.cli.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
@@ -68,11 +69,12 @@ import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.queue.EmailQueueManager;
 import password.pwm.util.queue.SmsQueueManager;
+import password.pwm.util.secure.HttpsServerCertificateManager;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.SecureService;
 
-import java.io.File;
-import java.io.Serializable;
+import java.io.*;
+import java.security.KeyStore;
 import java.util.*;
 
 /**
@@ -190,8 +192,8 @@ public class PwmApplication {
 
 
         LOGGER.info("initializing, application mode=" + getApplicationMode()
-                        + ", applicationPath=" + (pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath().getAbsolutePath())
-                        + ", pwmEnvironment.getConfig()File=" + (pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath())
+                + ", applicationPath=" + (pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath().getAbsolutePath())
+                + ", pwmEnvironment.getConfig()File=" + (pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath())
         );
 
         if (!pwmEnvironment.isInternalRuntimeInstance()) {
@@ -214,6 +216,9 @@ public class PwmApplication {
         // read the pwm installation date
         installTime = fetchInstallDate(startupTime);
         LOGGER.debug("this application instance first installed on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(installTime));
+
+        LOGGER.debug("application environment flags: " + JsonUtil.serializeCollection(pwmEnvironment.getFlags()));
+        LOGGER.debug("application environment parameters: " + JsonUtil.serializeMap(pwmEnvironment.getParameters()));
 
         pwmServiceManager.initAllServices();
 
@@ -299,10 +304,84 @@ public class PwmApplication {
         try {
             this.getIntruderManager().clear(RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME);
         } catch (Exception e) {
-            LOGGER.debug("error while clearing configmanager-intruder-username from intruder table: " + e.getMessage());
+            LOGGER.warn("error while clearing configmanager-intruder-username from intruder table: " + e.getMessage());
+        }
+
+        if (!pwmEnvironment.isInternalRuntimeInstance()) {
+            try {
+                outputKeystore(this);
+            } catch (Exception e) {
+                LOGGER.debug("error while generating keystore output: " + e.getMessage());
+            }
+
+            try {
+                outputTomcatConf(this);
+            } catch (Exception e) {
+                LOGGER.debug("error while generating tomcat conf output: " + e.getMessage());
+            }
         }
 
         LOGGER.trace("completed post init tasks in " + TimeDuration.fromCurrent(startTime).asCompactString());
+    }
+
+    private static void outputKeystore(final PwmApplication pwmApplication) throws Exception {
+        final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = pwmApplication.getPwmEnvironment().getParameters();
+        final String keystoreFileString = applicationParams.get(PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStoreFile);
+        if (keystoreFileString != null && !keystoreFileString.isEmpty()) {
+            LOGGER.trace("attempting to output keystore as configured by environment parameters to " + keystoreFileString);
+            final File keyStoreFile = new File(keystoreFileString);
+            final String password = applicationParams.get(PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStorePassword);
+            final String alias = applicationParams.get(PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStoreAlias);
+            final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication(pwmApplication, new PasswordData(password), alias);
+            final ByteArrayOutputStream outputContents = new ByteArrayOutputStream();
+            keyStore.store(outputContents, password.toCharArray());
+            if (keyStoreFile.exists()) {
+                LOGGER.trace("deleting existing keystore file " + keyStoreFile.getAbsolutePath());
+                if (keyStoreFile.delete()) {
+                    LOGGER.trace("deleted existing keystore file: " + keyStoreFile.getAbsolutePath());
+                }
+            }
+            new FileOutputStream(keyStoreFile).write(outputContents.toByteArray());
+            LOGGER.info("successfully exported application https key to keystore file " + keyStoreFile.getAbsolutePath());
+        }
+    }
+
+    private static void outputTomcatConf(final PwmApplication pwmApplication) throws IOException {
+        final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = pwmApplication.getPwmEnvironment().getParameters();
+        final String tomcatOutputFileStr = applicationParams.get(PwmEnvironment.ApplicationParameter.AutoWriteTomcatConfOutputFile);
+        if (tomcatOutputFileStr != null && !tomcatOutputFileStr.isEmpty()) {
+            LOGGER.trace("attempting to output tomcat configuration file as configured by environment parameters to " + tomcatOutputFileStr);
+            final File tomcatOutputFile = new File(tomcatOutputFileStr);
+            final File tomcatSourceFile;
+            {
+                final String tomcatSourceFileStr = applicationParams.get(PwmEnvironment.ApplicationParameter.AutoWriteTomcatConfSourceFile);
+                if (tomcatSourceFileStr != null && !tomcatSourceFileStr.isEmpty()) {
+                    tomcatSourceFile = new File(tomcatSourceFileStr);
+                    if (!tomcatSourceFile.exists()) {
+                        LOGGER.error("can not output tomcat configuration file, source file does not exist: " + tomcatSourceFile.getAbsolutePath());
+                        return;
+                    }
+                } else {
+                    LOGGER.error("can not output tomcat configuration file, source file parameter '" + PwmEnvironment.ApplicationParameter.AutoWriteTomcatConfSourceFile.toString() + "' is not specified.");
+                    return;
+                }
+            }
+
+            final ByteArrayOutputStream outputContents = new ByteArrayOutputStream();
+            ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
+                    pwmApplication.getConfig(),
+                    new FileInputStream(tomcatSourceFile),
+                    outputContents
+            );
+            if (tomcatOutputFile.exists()) {
+                LOGGER.trace("deleting existing tomcat configuration file " + tomcatOutputFile.getAbsolutePath());
+                if (tomcatOutputFile.delete()) {
+                    LOGGER.trace("deleted existing tomcat configuration file: " + tomcatOutputFile.getAbsolutePath());
+                }
+            }
+            new FileOutputStream(tomcatOutputFile).write(outputContents.toByteArray());
+            LOGGER.info("successfully wrote tomcat configuration to file " + tomcatOutputFile.getAbsolutePath());
+        }
     }
 
     public String getInstanceID() {
@@ -515,7 +594,9 @@ public class PwmApplication {
                     getInstanceID()
             );
             try {
-                getAuditManager().submit(auditRecord);
+                if (getAuditManager() != null) {
+                    getAuditManager().submit(auditRecord);
+                }
             } catch (PwmException e) {
                 LOGGER.warn("unable to submit alert event " + JsonUtil.serialize(auditRecord));
             }

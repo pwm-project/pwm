@@ -723,12 +723,12 @@ PWM_ADMIN.makeHealthHtml = function(healthData, showTimestamp, showRefresh) {
     if (showTimestamp || showRefresh) {
         htmlBody += '<div class="healthTable-footer">';
         if (showTimestamp) {
-            htmlBody += '<span id="healthCheckTimestamp" class="timestamp">';
+            htmlBody += 'Last Updated <span id="healthCheckTimestamp" class="timestamp">';
             htmlBody += (healthData['timestamp']);
             htmlBody += '</span>';
         }
         if (showRefresh) {
-            htmlBody += '&nbsp;&nbsp;&nbsp;&nbsp;<span id="button-refreshHealth" class="pwm-icon btn-icon pwm-icon-refresh"></span>';
+           // htmlBody += '&nbsp;&nbsp;&nbsp;&nbsp;<span id="button-refreshHealth" class="pwm-icon btn-icon pwm-icon-refresh" title="Refresh"></span>';
         }
         htmlBody += "</div>";
     }

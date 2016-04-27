@@ -24,6 +24,7 @@
   --%>
 
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_IDLE_TIMEOUT); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -40,9 +41,9 @@
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
         <p>
-            <% if (!JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Appliance)) { %>
-            Application Configuration Path: <code><%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath())%></code>
-            <% } %>
+            <pwm:if test="<%=PwmIfTest.appliance%>" negate="true">
+                Application Configuration Path: <code><%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath())%></code>
+            </pwm:if>
         </p>
 
         <br/>
@@ -99,10 +100,10 @@
             PWM_MAIN.addEventHandler('button-manualConfig', 'click', function () {
                 if (PWM_GLOBAL['setting-displayEula']) {
                     PWM_MAIN.showEula(true,function(){
-                        skipWizard();
+                        PWM_GUIDE.skipGuide();
                     });
                 } else {
-                    skipWizard();
+                    PWM_GUIDE.skipGuide();
                 }
             });
             PWM_MAIN.addEventHandler('button-uploadConfig', 'click', function () {
@@ -116,18 +117,8 @@
             });
 
         });
-
-        function skipWizard() {
-            PWM_MAIN.showConfirmDialog({text:'<pwm:display key="Confirm_SkipGuide" bundle="Config"/>',okAction:function() {
-                PWM_GUIDE.gotoStep('FINISH');
-            }});
-        }
     </script>
 </pwm:script>
-<pwm:script-ref url="/public/resources/js/configguide.js"/>
-<pwm:script-ref url="/public/resources/js/configmanager.js"/>
-<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
-<pwm:script-ref url="/public/resources/js/admin.js"/>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -302,7 +302,13 @@ UILibrary.editLdapDN = function(nextFunction, options) {
 UILibrary.uploadFileDialog = function(options) {
     options = options === undefined ? {} : options;
 
-    var body = '<div id="uploadFormWrapper">';
+    var body = '';
+
+    if ('text' in options) {
+        body += options['text'];
+    }
+
+    body += '<div id="uploadFormWrapper">';
     body += '<div id="fileList"></div>';
     body += '<input style="width:80%" class="btn" name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
     body += '<div class="buttonbar">';
@@ -323,6 +329,7 @@ UILibrary.uploadFileDialog = function(options) {
 
 
     var completeFunction = function(data){
+        console.log('upload dialog completeFunction() starting');
         if (data['error'] == true) {
             var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
             PWM_MAIN.showErrorDialog(data,{text:errorText,okAction:function(){
@@ -371,49 +378,271 @@ UILibrary.uploadFileDialog = function(options) {
             alert('File is not selected.');
             return;
         }
+
+        if ('urlUpdateFunction' in options) {
+            uploadUrl = options['urlUpdateFunction'](uploadUrl);
+        }
+
         var xhr = new XMLHttpRequest();
         var fd = new FormData();
         xhr.onreadystatechange = function() {
-            console.log('on ready state change');
+            console.log('upload handler onreadystate change: ' + xhr.readyState);
             if (xhr.readyState == 4) {
+                xhr.upload.onprogress = null;
                 if( xhr.status == 200) {
                     // Every thing ok, file uploaded
                     console.log(xhr.responseText); // handle response.
-                    completeFunction(xhr.responseText);
+                    try {
+                        var response = JSON.parse(xhr.response);
+                        setTimeout(function(){
+                            completeFunction(response);
+                        },1000);
+                    } catch (e) {
+                        console.log('error parsing upload response log: ' + e)
+                    }
                 } else {
                     errorFunction(xhr.status, xhr.statusText)
                 }
             }
         };
+
         xhr.upload.addEventListener('progress',progressFunction,false);
         xhr.upload.onprogress = progressFunction;
         xhr.open("POST", uploadUrl, true);
+        xhr.setRequestHeader('Accept',"application/json");
         fd.append("fileUpload", files[0]);
         xhr.send(fd);
         PWM_GLOBAL['inhibitHealthUpdate'] = true;
         PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
-        PWM_MAIN.getObject('centerbody').innerHTML = 'Upload in progress...';
+        if (PWM_MAIN.getObject('centerbody')) {
+            PWM_MAIN.getObject('centerbody').innerHTML = 'Upload in progress...';
+        }
         PWM_MAIN.showWaitDialog({title:'Uploading...'});
     };
 
     completeFunction = 'completeFunction' in options ? options['completeFunction'] : completeFunction;
 
+    var supportAjaxUploadWithProgress = function() {
+        var supportFileAPI = function () {
+            var fi = document.createElement('INPUT');
+            fi.type = 'file';
+            return 'files' in fi;
+        };
 
-    require(["dojo"],function(dojo){
+        var supportAjaxUploadProgressEvents = function() {
+            var xhr = new XMLHttpRequest();
+            return !! (xhr && ('upload' in xhr) && ('onprogress' in xhr.upload));
+        };
 
-        if(dojo.isIE <= 10){ // IE10 and below no workie
-            PWM_MAIN.showDialog({title:PWM_MAIN.showString("Title_Error"),text:PWM_CONFIG.showString("Warning_UploadIE9")});
-            return;
+        var supportFormData = function() {
+            return !! window.FormData;
+        };
+
+        return supportFileAPI() && supportAjaxUploadProgressEvents() && supportFormData();
+    };
+    
+    if(!supportAjaxUploadWithProgress()){
+        PWM_MAIN.showDialog('This browser does not support HTML5 file uploads.');
+        return;
+    }
+
+    PWM_MAIN.showDialog({
+        title:title,
+        showClose:true,
+        showOk:false,
+        text:body,
+        loadFunction:function(){
+            PWM_MAIN.addEventHandler('uploadButton','click',uploadFunction);
         }
-
-        PWM_MAIN.showDialog({
-            title:title,
-            showClose:true,
-            showOk:false,
-            text:body,
-            loadFunction:function(){
-                PWM_MAIN.addEventHandler('uploadButton','click',uploadFunction);
-            }
-        });
     });
 };
+
+
+UILibrary.passwordDialogPopup = function(options, state) {
+    options = options === undefined ? {} : options;
+    state = state === undefined ? {} : state;
+
+    var option_title = 'title' in options ? options['title'] : 'Set Password';
+    var option_writeFunction = 'writeFunction' in options ? options['writeFunction'] : function() {alert('No Password Write Function')};
+    var option_minLength = 'minimumLength' in options ? options['minimumLength'] : 1;
+    var option_showRandomGenerator = 'showRandomGenerator' in options ? options['showRandomGenerator'] : false;
+    var option_showValues = 'showValues' in options ? options['showValues'] : false;
+    var option_randomLength = 'randomLength' in options ? options['randomLength'] : 25;
+    option_randomLength = option_randomLength < option_minLength ? option_minLength : option_randomLength;
+
+    state['p1'] = 'p1' in state ? state['p1'] : '';
+    state['p2'] = 'p2' in state ? state['p2'] : '';
+    state['randomLength'] = 'randomLength' in state ? state['randomLength'] : option_randomLength;
+
+    var markConfirmationCheckFunction = function(matchStatus) {
+        if (matchStatus == "MATCH") {
+            PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'visible';
+            PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'hidden';
+            PWM_MAIN.getObject("confirmCheckMark").width = '15';
+            PWM_MAIN.getObject("confirmCrossMark").width = '0';
+        } else if (matchStatus == "NO_MATCH") {
+            PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'hidden';
+            PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'visible';
+            PWM_MAIN.getObject("confirmCheckMark").width = '0';
+            PWM_MAIN.getObject("confirmCrossMark").width = '15';
+        } else {
+            PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'hidden';
+            PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'hidden';
+            PWM_MAIN.getObject("confirmCheckMark").width = '0';
+            PWM_MAIN.getObject("confirmCrossMark").width = '0';
+        }
+    };
+
+    var generateRandomFunction = function() {
+        var length = state['randomLength'];
+        var special = state['showSpecial'];
+
+        if (!state['showFields']) {
+            state['showFields'] = true;
+        }
+
+        var charMap = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        if (special) {
+            charMap += '~`!@#$%^&*()_-+=;:,.[]{}';
+        }
+        var postData = { };
+        postData.maxLength = length;
+        postData.minLength = length;
+        postData.chars = charMap;
+        postData.noUser = true;
+        PWM_MAIN.getObject('button-storePassword').disabled = true;
+
+        var url = PWM_GLOBAL['url-restservice'] + "/randompassword";
+        var loadFunction = function(data) {
+            state['p1'] = data['data']['password'];
+            state['p2'] = '';
+            UILibrary.passwordDialogPopup(options,state);
+        };
+
+        PWM_MAIN.showWaitDialog({loadFunction:function(){
+            PWM_MAIN.ajaxRequest(url,loadFunction,{content:postData});
+        }});
+    };
+
+
+    var validateFunction = function() {
+        var password1 = state['p1'];
+        var password2 = state['p2'];
+
+        var matchStatus = "";
+
+        PWM_MAIN.getObject('field-password-length').innerHTML = password1.length;
+        PWM_MAIN.getObject('button-storePassword').disabled = true;
+
+        if (option_minLength > 1 && password1.length < option_minLength) {
+            PWM_MAIN.addCssClass('field-password-length','invalid-value');
+        } else {
+            PWM_MAIN.removeCssClass('field-password-length','invalid-value');
+            if (password2.length > 0) {
+                if (password1 == password2) {
+                    matchStatus = "MATCH";
+                    PWM_MAIN.getObject('button-storePassword').disabled = false;
+                } else {
+                    matchStatus = "NO_MATCH";
+                }
+            }
+        }
+
+        markConfirmationCheckFunction(matchStatus);
+    };
+
+    var bodyText = '';
+    if (option_minLength > 1) {
+        bodyText += 'Minimum Length: ' + option_minLength + '</span><br/><br/>'
+    }
+    bodyText += '<table class="noborder">'
+        + '<tr><td><span class="formFieldLabel">' + PWM_MAIN.showString('Field_NewPassword') + '</span></td></tr>'
+        + '<tr><td>';
+
+    if (state['showFields']) {
+        bodyText += '<textarea name="password1" id="password1" class="configStringInput" style="width: 400px; max-width: 400px; max-height:100px; overflow-y: auto" autocomplete="off">' + state['p1'] + '</textarea>';
+    } else {
+        bodyText += '<input name="password1" id="password1" class="configStringInput" type="password" style="width: 400px;" autocomplete="off" value="' + state['p1'] + '"></input>';
+    }
+
+    bodyText += '</td></tr>'
+        + '<tr><td><span class="formFieldLabel">' + PWM_MAIN.showString('Field_ConfirmPassword') + '</span></td></tr>'
+        + '<tr><td>';
+
+    if (state['showFields']) {
+        bodyText += '<textarea name="password2" id="password2" class="configStringInput" style="width: 400px; max-width: 400px; max-height:100px; overflow-y: auto" autocomplete="off">' + state['p2'] + '</textarea>';
+    } else {
+        bodyText += '<input name="password2" type="password" id="password2" class="configStringInput" style="width: 400px;" autocomplete="off" value="' + state['p2'] + '"></input>';
+    }
+
+    bodyText += '</td>'
+        + '<td><div style="margin:0;">'
+        + '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/greenCheck.png">'
+        + '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png">'
+        + '</div></td>'
+        + '</tr></table>';
+
+    bodyText += '<br/>Length: <span id="field-password-length">-</span><br/><br/>';
+
+    if (option_showRandomGenerator) {
+        bodyText += '<div class="dialogSection" style="width: 400px"><span class="formFieldLabel">Generate Random Password </span><br/>'
+            + '<label class="checkboxWrapper"><input id="input-special" type="checkbox"' + (state['showSpecial'] ? ' checked' : '') + '>Specials</input></label>'
+            + '&nbsp;&nbsp;&nbsp;&nbsp;<input id="input-randomLength" type="number" min="10" max="1000" value="' + state['randomLength'] + '" style="width:45px">Length'
+            + '&nbsp;&nbsp;&nbsp;&nbsp;<button id="button-generateRandom" name="button-generateRandom"><span class="pwm-icon pwm-icon-random btn-icon"></span>Generate Random</button>'
+            + '</div><br/><br/>';
+    }
+
+
+    bodyText += '<button name="button-storePassword" class="btn" id="button-storePassword" disabled="true"/>'
+        + '<span class="pwm-icon pwm-icon-forward btn-icon"></span>Store Password</button>';
+
+    if (option_showValues) {
+        bodyText += '&nbsp;&nbsp;'
+            + '<label class="checkboxWrapper"><input id="show" type="checkbox"' + (state['showFields'] ? ' checked' : '') + '>Show Passwords</input></label>'
+            + '</div><br/><br/>';
+    }
+
+    PWM_MAIN.showDialog({
+        title: option_title,
+        text: bodyText,
+        showOk: false,
+        showClose: true,
+        loadFunction:function(){
+            ShowHidePasswordHandler.init('password1');
+            ShowHidePasswordHandler.init('password2');
+
+            PWM_MAIN.addEventHandler('button-storePassword','click',function() {
+                var passwordValue = PWM_MAIN.getObject('password1').value;
+                PWM_MAIN.closeWaitDialog();
+                option_writeFunction(passwordValue);
+            });
+            PWM_MAIN.addEventHandler('button-generateRandom','click',function() {
+                generateRandomFunction();
+            });
+            PWM_MAIN.addEventHandler('password1','input',function(){
+                state['p1'] = PWM_MAIN.getObject('password1').value;
+                PWM_MAIN.getObject('password2').value = '';
+                validateFunction();
+            });
+            PWM_MAIN.addEventHandler('password2','input',function(){
+                state['p2'] = PWM_MAIN.getObject('password2').value;
+                validateFunction();
+            });
+            PWM_MAIN.addEventHandler('show','change',function(){
+                state['showFields'] = PWM_MAIN.getObject('show').checked;
+                UILibrary.passwordDialogPopup(options, state);
+            });
+            PWM_MAIN.addEventHandler('input-special','change',function(){
+                state['showSpecial'] = PWM_MAIN.getObject('input-special').checked;
+                UILibrary.passwordDialogPopup(options, state);
+            });
+            PWM_MAIN.addEventHandler('input-randomLength','change',function(){
+                state['randomLength'] = PWM_MAIN.getObject('input-randomLength').value;
+            });
+            PWM_MAIN.getObject('password1').focus();
+            validateFunction();
+        }
+    });
+
+};
+

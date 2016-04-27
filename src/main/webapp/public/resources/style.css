@@ -317,6 +317,10 @@ input[type=password]::-ms-reveal{display: none;}
     margin-bottom: 5px;
 }
 
+.tile-image > .btn-icon {
+    margin-right: 0;
+}
+
 .tile-image.password-image:before {
     content: "\f084";
 }
@@ -364,8 +368,6 @@ input[type=password]::-ms-reveal{display: none;}
 .tile-title {
     color: #434c50;
     font-size: 16px;
-    line-height: 18px;
-    max-height: 34px;
     overflow: hidden;
     margin-bottom: 2px;
     text-overflow: ellipsis;
@@ -932,7 +934,23 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 
 /* begin peoplesearch section */
 
-.icon-peoplesearch-orgChart { background-image: url("orgChart.png"); position: absolute; top:5px; right:5px; height:30px; width:30px; cursor: pointer; }
+.icon-peoplesearch-orgChart {
+    background-image: url("orgChart.png");
+    border: 1px solid #d8e2e2;
+    cursor: pointer;
+    height: 30px;
+    padding: 2px;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 30px;
+}
+
+.icon-peoplesearch-orgChart:hover {
+    background-color: rgb(246, 246, 246);
+    border-color: #949494;
+}
+
 .panel-peoplesearch-userDetailPhoto { display: inline;  }
 .img-peoplesearch-userDetailPhoto { width: auto; height: 80px; border-radius: 3px; border: 1px solid #dae1e1; }
 .panel-peoplesearch-person { margin-left:5px; background: #eaeaea; position: relative; padding: 6px; width: auto; height: 83px; margin-right: 5px; margin-bottom: 10px; border:  1px solid transparent; }

@@ -35,6 +35,7 @@ import password.pwm.http.PwmURL;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -62,6 +63,8 @@ public class AdminServlet extends AbstractPwmServlet {
         downloadUserReportCsv(HttpMethod.POST),
         downloadUserSummaryCsv(HttpMethod.POST),
         downloadStatisticsLogCsv(HttpMethod.POST),
+        clearIntruderTable(HttpMethod.POST),
+
         ;
 
         private final Collection<HttpMethod> method;
@@ -123,6 +126,10 @@ public class AdminServlet extends AbstractPwmServlet {
 
                 case downloadStatisticsLogCsv:
                     downloadStatisticsLogCsv(pwmRequest);
+                    return;
+
+                case clearIntruderTable:
+                    processClearIntruderTable(pwmRequest);
                     return;
             }
         }
@@ -218,6 +225,24 @@ public class AdminServlet extends AbstractPwmServlet {
             outputStream.close();
         }
     }
+
+    private void processClearIntruderTable(
+            final PwmRequest pwmRequest
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
+        if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
+            LOGGER.info(pwmRequest, "unable to execute clear intruder records");
+            return;
+        }
+
+        //pwmApplication.getIntruderManager().clear();
+
+        RestResultBean restResultBean = new RestResultBean();
+        pwmRequest.outputJsonResult(restResultBean);
+    }
+
+
 
     public void forwardToJsp(final PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException {
         final Page currentPage = Page.forUrl(pwmRequest.getURL());

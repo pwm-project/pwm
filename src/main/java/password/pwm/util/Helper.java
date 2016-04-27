@@ -439,9 +439,11 @@ public class
         }
 
         try {
-            Method valueOfMethod = enumClass.getMethod("valueOf",String.class);
-            Object result = valueOfMethod.invoke(null,input);
-            return (E)result;
+            Method valueOfMethod = enumClass.getMethod("valueOf", String.class);
+            Object result = valueOfMethod.invoke(null, input);
+            return (E) result;
+        } catch (IllegalArgumentException e) {
+            LOGGER.trace("input=" + input + " does not exist in enumClass=" + enumClass.getSimpleName());
         } catch (Exception e) {
             LOGGER.warn("unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName());
         }

@@ -30,6 +30,7 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.X509Utils;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.security.cert.X509Certificate;
@@ -179,9 +180,9 @@ public class ActionValue extends AbstractValue implements StoredValue {
         for (final Map<String,Object> mapObj : tempObj) {
             ActionConfiguration actionConfiguration = forName((String)mapObj.get("name"));
             if (actionConfiguration != null && actionConfiguration.getCertificates() != null) {
-                final List<Map<String,Object>> certificateInfos = new ArrayList<>();
+                final List<Map<String,String>> certificateInfos = new ArrayList<>();
                 for (final X509Certificate certificate : actionConfiguration.getCertificates()) {
-                    certificateInfos.add(X509CertificateValue.toInfoMap(certificate,true));
+                    certificateInfos.add(X509Utils.makeDebugInfoMap(certificate, X509Utils.DebugInfoFlag.IncludeCertificateDetail));
                 }
                 mapObj.put("certificateInfos", certificateInfos);
             }

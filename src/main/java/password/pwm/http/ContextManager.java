@@ -181,6 +181,7 @@ public class ContextManager implements Serializable {
         LOGGER.debug("configuration file was loaded from " + (configurationFile == null ? "null" : configurationFile.getAbsoluteFile()));
 
         final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = readApplicationFlags();
+        final Map<PwmEnvironment.ApplicationParameter,String> applicationParams = readApplicationParams();
 
         try {
             final PwmEnvironment pwmEnvironment= new PwmEnvironment.Builder(configuration, applicationPath)
@@ -188,6 +189,7 @@ public class ContextManager implements Serializable {
                     .setConfigurationFile(configurationFile)
                     .setContextManager(this)
                     .setFlags(applicationFlags)
+                    .setParams(applicationParams)
                     .createPwmEnvironment();
             pwmApplication = new PwmApplication(pwmEnvironment);
         } catch (Exception e) {
@@ -422,19 +424,29 @@ public class ContextManager implements Serializable {
     }
 
     public Collection<PwmEnvironment.ApplicationFlag> readApplicationFlags() {
+        final String contextAppFlagsValue = servletContext.getInitParameter(
+                PwmEnvironment.EnvironmentParameter.applicationFlags.toString()
+        );
 
-        {
-            final String contextAppFlagsSetting = servletContext.getInitParameter(
-                    PwmEnvironment.EnvironmentParameter.applicationFlags.toString()
-            );
-
-            if (contextAppFlagsSetting != null && !contextAppFlagsSetting.isEmpty()) {
-                return PwmEnvironment.ParseHelper.parseApplicationFlagValueParameter(contextAppFlagsSetting);
-            }
-
-            final String contextPath = servletContext.getContextPath().replace("/","");
-            return PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(contextPath);
+        if (contextAppFlagsValue != null && !contextAppFlagsValue.isEmpty()) {
+            return PwmEnvironment.ParseHelper.parseApplicationFlagValueParameter(contextAppFlagsValue);
         }
+
+        final String contextPath = servletContext.getContextPath().replace("/","");
+        return PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(contextPath);
+    }
+
+    public Map<PwmEnvironment.ApplicationParameter,String> readApplicationParams() {
+        final String contextAppParamsValue = servletContext.getInitParameter(
+                PwmEnvironment.EnvironmentParameter.applicationParamFile.toString()
+        );
+
+        if (contextAppParamsValue != null && !contextAppParamsValue.isEmpty()) {
+            return PwmEnvironment.ParseHelper.parseApplicationParamValueParameter(contextAppParamsValue);
+        }
+
+        final String contextPath = servletContext.getContextPath().replace("/","");
+        return PwmEnvironment.ParseHelper.readApplicationParmsFromSystem(contextPath);
     }
 
     static void outputError(String outputText) {

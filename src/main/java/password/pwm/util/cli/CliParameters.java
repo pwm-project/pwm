@@ -63,4 +63,38 @@ public class CliParameters {
             return "outputFile";
         }
     };
+
+    public static final CliParameters.Option REQUIRED_EXISTING_INPUT_FILE = new CliParameters.Option() {
+        public boolean isOptional()
+        {
+            return false;
+        }
+
+        public type getType()
+        {
+            return type.EXISTING_FILE;
+        }
+
+        public String getName()
+        {
+            return "inputFile";
+        }
+    };
+
+    public static final CliParameters.Option OPTIONAL_PASSWORD = new CliParameters.Option() {
+        public boolean isOptional()
+        {
+            return true;
+        }
+
+        public type getType()
+        {
+            return type.STRING;
+        }
+
+        public String getName()
+        {
+            return "password";
+        }
+    };
 }

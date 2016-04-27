@@ -20,17 +20,26 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http;
+package password.pwm.bean;
 
-public enum PwmRequestFlag {
-    HIDE_LOCALE,
-    HIDE_IDLE,
-    HIDE_FOOTER_TEXT,
-    HIDE_HEADER_BUTTONS,
-    HIDE_HEADER_WARNINGS,
-    NO_REQ_COUNTER,
-    NO_IDLE_TIMEOUT,
-    NO_MOBILE_CSS,
-    ALWAYS_EXPAND_MESSAGE_TEXT,
-    INCLUDE_CONFIG_CSS,
+import java.io.Serializable;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+
+public class PrivateKeyCertificate implements Serializable {
+    final private X509Certificate[] certificates;
+    final private PrivateKey key;
+
+    public PrivateKeyCertificate(X509Certificate certificates[], PrivateKey key) {
+        this.certificates = certificates;
+        this.key = key;
+    }
+
+    public X509Certificate[] getCertificates() {
+        return certificates;
+    }
+
+    public PrivateKey getKey() {
+        return key;
+    }
 }

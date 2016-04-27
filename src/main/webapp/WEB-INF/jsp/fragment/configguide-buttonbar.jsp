@@ -21,7 +21,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<div class="buttonbar">
+<div class="buttonbar configguide">
     <button class="btn" id="button_previous">
         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
         <pwm:display key="Button_Previous" bundle="Config"/>

@@ -94,8 +94,8 @@ public class RestAppDataServer extends AbstractRestServer {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doGetAppAuditData(
             @QueryParam("maximum") int maximum
-    ) 
-            throws ChaiUnavailableException, PwmUnrecoverableException 
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException
     {
         maximum = maximum > 0 ? maximum : 10 * 1000;
 
@@ -109,7 +109,7 @@ public class RestAppDataServer extends AbstractRestServer {
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
-        
+
         final ArrayList<UserAuditRecord> userRecords = new ArrayList<>();
         final ArrayList<HelpdeskAuditRecord> helpdeskRecords = new ArrayList<>();
         final ArrayList<SystemAuditRecord> systemRecords = new ArrayList<>();
@@ -162,7 +162,12 @@ public class RestAppDataServer extends AbstractRestServer {
         }
 
         final ArrayList<SessionStateInfoBean> gridData = new ArrayList<>();
-        gridData.addAll(restRequestBean.getPwmApplication().getSessionTrackService().getSessionList(maximum));
+        int counter = 0;
+        final Iterator<SessionStateInfoBean> infos = restRequestBean.getPwmApplication().getSessionTrackService().getSessionInfoIterator();
+        while (counter < maximum && infos.hasNext()) {
+            gridData.add(infos.next());
+            counter++;
+        }
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(gridData);
         return restResultBean.asJsonResponse();
@@ -344,12 +349,16 @@ public class RestAppDataServer extends AbstractRestServer {
 
         {
             long idleSeconds = config.readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
-            try {
-                final PwmURL pwmURL = new PwmURL(new URI(pageUrl), request.getContextPath());
-                final TimeDuration maxIdleTime = IdleTimeoutCalculator.idleTimeoutForRequest(pwmURL, pwmApplication, pwmSession);
-                idleSeconds = maxIdleTime.getTotalSeconds();
-            } catch (Exception e) {
-                LOGGER.error(pwmSession, "error determining idle timeout time for request: " + e.getMessage());
+            if (pageUrl == null || pageUrl.isEmpty()) {
+                LOGGER.warn(pwmSession, "request to /client data did not incliude pageUrl");
+            } else {
+                try {
+                    final PwmURL pwmURL = new PwmURL(new URI(pageUrl), request.getContextPath());
+                    final TimeDuration maxIdleTime = IdleTimeoutCalculator.idleTimeoutForRequest(pwmURL, pwmApplication, pwmSession);
+                    idleSeconds = maxIdleTime.getTotalSeconds();
+                } catch (Exception e) {
+                    LOGGER.error(pwmSession, "error determining idle timeout time for request: " + e.getMessage());
+                }
             }
             settingMap.put("MaxInactiveInterval", idleSeconds);
         }
@@ -442,7 +451,7 @@ public class RestAppDataServer extends AbstractRestServer {
     }
 
     public static String makeClientEtag(
-            final PwmApplication pwmApplication, 
+            final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final HttpServletRequest httpServletRequest
     )

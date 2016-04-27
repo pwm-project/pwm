@@ -64,6 +64,6 @@
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/responses.js"/>
 <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
-4<%@ include file="fragment/footer.jsp" %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

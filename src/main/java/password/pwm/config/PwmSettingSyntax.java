@@ -46,6 +46,7 @@ public enum PwmSettingSyntax {
     FILE(FileValue.factory()),
     PROFILE(StringArrayValue.factory()),
     VERIFICATION_METHOD(VerificationMethodValue.factory()),
+    PRIVATE_KEY(PrivateKeyValue.factory()),
 
     ;
 

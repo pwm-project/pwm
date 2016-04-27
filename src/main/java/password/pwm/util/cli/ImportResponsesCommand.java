@@ -42,15 +42,13 @@ import java.io.InputStreamReader;
 import java.util.Collections;
 
 public class ImportResponsesCommand extends AbstractCliCommand {
-    protected static final String INPUT_FILE_OPTIONNAME = "inputFile";
-
     @Override
     void doCommand()
             throws Exception
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
-        final File inputFile = (File)cliEnvironment.getOptions().get(INPUT_FILE_OPTIONNAME);
+        final File inputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName());
         final BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile),PwmConstants.DEFAULT_CHARSET.toString()));
         out("importing stored responses from " + inputFile.getAbsolutePath() + "....");
 
@@ -89,27 +87,11 @@ public class ImportResponsesCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        final CliParameters.Option outputFileOption = new CliParameters.Option() {
-            public boolean isOptional()
-            {
-                return false;
-            }
-
-            public type getType()
-            {
-                return type.EXISTING_FILE;
-            }
-
-            public String getName()
-            {
-                return INPUT_FILE_OPTIONNAME;
-            }
-        };
 
         CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ImportResponses";
         cliParameters.description = "Import responses from file";
-        cliParameters.options = Collections.singletonList(outputFileOption);
+        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_EXISTING_INPUT_FILE);
 
         cliParameters.needsPwmApplication= true;
         cliParameters.readOnly = false;

@@ -22,7 +22,7 @@
 
 package password.pwm.util.cli;
 
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.PasswordData;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 
 import java.io.File;
@@ -32,7 +32,7 @@ import java.util.Arrays;
 
 public class ExportHttpsKeyStoreCommand extends AbstractCliCommand {
 
-    protected static final String PASSWORD_OPTIONNAME = "password";
+    static final String ALIAS_OPTIONNAME = "alias";
 
     @Override
     void doCommand()
@@ -44,27 +44,10 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand {
             return;
         }
 
-        final String password;
-        if (cliEnvironment.getOptions().containsKey(PASSWORD_OPTIONNAME)) {
-            password = (String)cliEnvironment.getOptions().get(PASSWORD_OPTIONNAME);
-        } else {
-            password = promptForPassword();
-        }
+        final String password = getOptionalPassword();
+        final String alias = (String)cliEnvironment.getOptions().get(ALIAS_OPTIONNAME);
 
-        final HttpsServerCertificateManager httpsCertificateManager = new HttpsServerCertificateManager(this.cliEnvironment.pwmApplication);
-        KeyStore keyStore = null;
-        try {
-            keyStore = httpsCertificateManager.configToKeystore();
-            out("output configured https certificates");
-        } catch (PwmUnrecoverableException e) {
-            out("unable to load configured https certificate: " + e.getMessage());
-        }
-
-        if (keyStore == null) {
-            keyStore = httpsCertificateManager.makeSelfSignedCert(password);
-            out("output self-signed certificate");
-        }
-
+        final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication(cliEnvironment.getPwmApplication(), new PasswordData(password), alias);
         final FileOutputStream fos = new FileOutputStream(outputFile);
         keyStore.store(fos,password.toCharArray());
         fos.close();
@@ -73,28 +56,31 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-
-        final CliParameters.Option passwordValueOption = new CliParameters.Option() {
-            public boolean isOptional()
-            {
-                return true;
+        final CliParameters.Option aliasValueOption = new CliParameters.Option() {
+            @Override
+            public boolean isOptional() {
+                return false;
             }
 
-            public type getType()
-            {
+            @Override
+            public type getType() {
                 return type.STRING;
             }
 
-            public String getName()
-            {
-                return PASSWORD_OPTIONNAME;
+            @Override
+            public String getName() {
+                return ALIAS_OPTIONNAME;
             }
         };
 
         CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportHttpsKeyStore";
-        cliParameters.description = "Export configured HTTPS certificate to Java KeyStore file";
-        cliParameters.options = Arrays.asList(CliParameters.REQUIRED_NEW_OUTPUT_FILE, passwordValueOption);
+        cliParameters.description = "Export configured or auto-generated HTTPS certificate to Java KeyStore file";
+        cliParameters.options = Arrays.asList(
+                CliParameters.REQUIRED_NEW_OUTPUT_FILE,
+                aliasValueOption,
+                CliParameters.OPTIONAL_PASSWORD
+        );
 
         cliParameters.needsLocalDB = false;
         cliParameters.needsPwmApplication = true;

@@ -278,52 +278,66 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
     }
 
     private static void initTable(final Connection connection, final DatabaseTable table, final DBConfiguration dbConfiguration) throws DatabaseException {
+        boolean tableExists = false;
         try {
             checkIfTableExists(connection, table);
             LOGGER.trace("table " + table + " appears to exist");
+            tableExists = true;
         } catch (SQLException e) { // assume error was due to table missing;
-            {
-                final StringBuilder sqlString = new StringBuilder();
-                sqlString.append("CREATE table ").append(table.toString()).append(" (").append("\n");
-                sqlString.append("  " + KEY_COLUMN + " ").append(dbConfiguration.getColumnTypeKey()).append("(").append(
-                        KEY_COLUMN_LENGTH).append(") NOT NULL PRIMARY KEY,").append("\n");
-                sqlString.append("  " + VALUE_COLUMN + " ").append(dbConfiguration.getColumnTypeValue()).append(" ");
-                sqlString.append("\n");
-                sqlString.append(")").append("\n");
+            LOGGER.trace("error while checking for table: " + e.getMessage() + ", assuming due to table non-existence");
+        }
 
-                LOGGER.trace("attempting to execute the following sql statement:\n " + sqlString.toString());
+        if (!tableExists) {
+            createTable(connection, table, dbConfiguration);
+        }
+    }
 
-                Statement statement = null;
-                try {
-                    statement = connection.createStatement();
-                    statement.execute(sqlString.toString());
-                    LOGGER.debug("created table " + table.toString());
-                } catch (SQLException ex) {
-                    LOGGER.error("error creating new table " + table.toString() + ": " + ex.getMessage());
-                } finally {
-                    close(statement);
-                }
+    private static void createTable(final Connection connection, final DatabaseTable table, final DBConfiguration dbConfiguration) throws DatabaseException {
+        {
+            final StringBuilder sqlString = new StringBuilder();
+            sqlString.append("CREATE table ").append(table.toString()).append(" (").append("\n");
+            sqlString.append("  " + KEY_COLUMN + " ").append(dbConfiguration.getColumnTypeKey()).append("(").append(
+                    KEY_COLUMN_LENGTH).append(") NOT NULL PRIMARY KEY,").append("\n");
+            sqlString.append("  " + VALUE_COLUMN + " ").append(dbConfiguration.getColumnTypeValue()).append(" ");
+            sqlString.append("\n");
+            sqlString.append(")").append("\n");
+
+            LOGGER.trace("attempting to execute the following sql statement:\n " + sqlString.toString());
+
+            Statement statement = null;
+            try {
+                statement = connection.createStatement();
+                statement.execute(sqlString.toString());
+                LOGGER.debug("created table " + table.toString());
+            } catch (SQLException ex) {
+                final String errorMsg = "error creating new table " + table.toString() + ": " + ex.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, errorMsg);
+                throw new DatabaseException(errorInformation);
+            } finally {
+                close(statement);
             }
+        }
 
-            {
-                final String indexName = table.toString() + "_IDX";
-                final StringBuilder sqlString = new StringBuilder();
-                sqlString.append("CREATE index ").append(indexName);
-                sqlString.append(" ON ").append(table.toString());
-                sqlString.append(" (").append(KEY_COLUMN).append(")");
-                Statement statement = null;
+        {
+            final String indexName = table.toString() + "_IDX";
+            final StringBuilder sqlString = new StringBuilder();
+            sqlString.append("CREATE index ").append(indexName);
+            sqlString.append(" ON ").append(table.toString());
+            sqlString.append(" (").append(KEY_COLUMN).append(")");
+            Statement statement = null;
 
-                LOGGER.trace("attempting to execute the following sql statement:\n " + sqlString.toString());
+            LOGGER.trace("attempting to execute the following sql statement:\n " + sqlString.toString());
 
-                try {
-                    statement = connection.createStatement();
-                    statement.execute(sqlString.toString());
-                    LOGGER.debug("created index " + indexName);
-                } catch (SQLException ex) {
-                    LOGGER.error("error creating new index " + indexName + ": " + ex.getMessage());
-                } finally {
-                    close(statement);
-                }
+            try {
+                statement = connection.createStatement();
+                statement.execute(sqlString.toString());
+                LOGGER.debug("created index " + indexName);
+            } catch (SQLException ex) {
+                final String errorMsg = "error creating new index " + indexName + ": " + ex.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE, errorMsg);
+                throw new DatabaseException(errorInformation);
+            } finally {
+                close(statement);
             }
         }
     }

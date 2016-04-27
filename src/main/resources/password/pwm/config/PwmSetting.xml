@@ -103,6 +103,9 @@
         </default>
     </setting>
     <setting hidden="false" key="idleTimeoutSeconds" level="1" required="true">
+        <properties>
+            <property key="Minimum">60</property>
+        </properties>
         <default>
             <value>300</value>
         </default>
@@ -1414,8 +1417,9 @@
     </setting>
     <setting hidden="false" key="security.cspHeader" level="2">
         <default>
-            <value><![CDATA[]]></value>
-            <!--<value><![CDATA[default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'nonce-%NONCE%' www.google.com/recaptcha]]></value>-->
+            <!--<value><![CDATA[]]></value>-->
+            <value><![CDATA[default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'unsafe-inline' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/csp-report]]></value>
+            <!-- 'unsafe-inline' on script-src is included for backward compatibilty of CSP Level1 browsers.  CSP2 and future ignore it when the nonce is specified -->
         </default>
     </setting>
     <setting hidden="false" key="email.adminAlert.toAddress" level="1">
@@ -1470,6 +1474,8 @@
             <value>HELPDESK_VERIFY_OTP_INCORRECT</value>
             <value>HELPDESK_VERIFY_TOKEN</value>
             <value>HELPDESK_VERIFY_TOKEN_INCORRECT</value>
+            <value>HELPDESK_VERIFY_ATTRIBUTES</value>
+            <value>HELPDESK_VERIFY_ATTRIBUTES_INCORRECT</value>
         </default>
         <options>
             <option value="AUTHENTICATE">Authenticate</option>
@@ -1497,6 +1503,8 @@
             <option value="HELPDESK_VERIFY_OTP_INCORRECT">Helpdesk Incorrect Verify OTP</option>
             <option value="HELPDESK_VERIFY_TOKEN">Helpdesk Verify Token</option>
             <option value="HELPDESK_VERIFY_TOKEN_INCORRECT">Helpdesk Incorrect Verify Token</option>
+            <option value="HELPDESK_VERIFY_ATTRIBUTES">Helpdesk Verify Attributes</option>
+            <option value="HELPDESK_VERIFY_ATTRIBUTES_INCORRECT">Helpdesk Incorrect Verify Attributes</option>
         </options>
     </setting>
     <setting hidden="false" key="audit.syslog.servers" level="1" required="false">
@@ -3164,10 +3172,17 @@
             <value>{"methodSettings":{},"minOptionalRequired":0}</value>
         </default>
         <options>
-            <!--<option value="ATTRIBUTES">LDAP Attributes</option>-->
+            <option value="ATTRIBUTES">LDAP Attributes</option>
             <option value="TOKEN">SMS/Email Token Verification</option>
             <option value="OTP">OTP (Mobile Device) Verification</option>
         </options>
+    </setting>
+    <setting hidden="false" key="helpdesk.verification.form" level="1" required="false">
+        <flag>Form_HideOptions</flag>
+        <ldapPermission actor="helpdesk" access="read"/>
+        <default>
+            <value>{"name":"postalCode","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Postal Code"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
     </setting>
     <setting hidden="false" key="pwmDb.location" level="2" required="true">
         <default>
@@ -3416,10 +3431,7 @@
             <option value="VOICE">Voice</option>
         </options>
     </setting>
-    <setting hidden="false" key="https.server.cert.pkcs12" level="1">
-        <default/>
-    </setting>
-    <setting hidden="false" key="https.server.cert.password" level="1">
+    <setting hidden="false" key="https.server.cert" level="1">
         <default/>
     </setting>
     <setting hidden="false" key="https.server.tls.protocols" level="1">

@@ -22,15 +22,13 @@
 
 package password.pwm.util.cli;
 
+import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TLSVersion;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -38,15 +36,16 @@ import java.util.Set;
 
 public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand {
 
-    private static final String TOKEN_TLS_PROTOCOLS = "%TLS_PROTOCOLS%";
-    private static final String TOKEN_TLS_CIPHERS   = "%TLS_CIPHERS%";
-
     @Override
     void doCommand() throws Exception {
         final File sourceFile = (File)cliEnvironment.options.get("sourceFile");
         final File outputFile = (File)cliEnvironment.options.get("outputFile");
         try {
-            writeOutputFile(sourceFile,outputFile);
+            TomcatConfigWriter.writeOutputFile(
+                    cliEnvironment.getConfig(),
+                    new FileInputStream(sourceFile),
+                    new FileOutputStream(outputFile)
+            );
         } catch (IOException e) {
             out("error during tomcat config file export: " + e.getMessage());
         }
@@ -91,36 +90,39 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand {
         return cliParameters;
     }
 
-    void writeOutputFile(final File sourceFile, final File outputFile) throws IOException {
-        String fileValue = fileToString(sourceFile);
-        fileValue = fileValue.replace(TOKEN_TLS_PROTOCOLS, getTlsProtocolsValue());
-        final String tlsCiphers = cliEnvironment.getConfig().readSettingAsString(PwmSetting.HTTPS_CIPHERS);
-        fileValue = fileValue.replace(TOKEN_TLS_CIPHERS, tlsCiphers);
-        stringToFile(fileValue, outputFile);
-    }
 
+    public static class TomcatConfigWriter {
 
-    String getTlsProtocolsValue() {
-        final Configuration config = cliEnvironment.getConfig();
-        final Set<TLSVersion> tlsVersions = config.readSettingAsOptionList(PwmSetting.HTTPS_PROTOCOLS, TLSVersion.class);
-        final StringBuilder output = new StringBuilder();
-        for (final Iterator<TLSVersion> versionIterator = tlsVersions.iterator(); versionIterator.hasNext(); ) {
-            final TLSVersion tlsVersion = versionIterator.next();
-            output.append(tlsVersion.getTomcatValueName());
-            if (versionIterator.hasNext()) {
-                output.append(", ");
-            }
+        private static final String TOKEN_TLS_PROTOCOLS = "%TLS_PROTOCOLS%";
+        private static final String TOKEN_TLS_CIPHERS   = "%TLS_CIPHERS%";
+
+        public static void writeOutputFile(
+                final Configuration configuration,
+                final InputStream sourceFile,
+                final OutputStream outputFile
+        )
+                throws IOException
+        {
+            String fileContents = IOUtils.toString(sourceFile, PwmConstants.DEFAULT_CHARSET.toString());
+            fileContents = fileContents.replace(TOKEN_TLS_PROTOCOLS, getTlsProtocolsValue(configuration));
+            final String tlsCiphers = configuration.readSettingAsString(PwmSetting.HTTPS_CIPHERS);
+            fileContents = fileContents.replace(TOKEN_TLS_CIPHERS, tlsCiphers);
+            outputFile.write(fileContents.getBytes());
         }
-        return output.toString();
-    }
 
-    static String fileToString(final File file) throws IOException {
-        byte[] encoded = Files.readAllBytes(file.toPath());
-        return new String(encoded, PwmConstants.DEFAULT_CHARSET);
-    }
 
-    static void stringToFile(final String string, final File file) throws IOException {
-        final byte[] outputBytes= string.getBytes(PwmConstants.DEFAULT_CHARSET);
-        Files.write( file.toPath(), outputBytes, StandardOpenOption.CREATE);
+        private static String getTlsProtocolsValue(final Configuration configuration) {
+            final Set<TLSVersion> tlsVersions = configuration.readSettingAsOptionList(PwmSetting.HTTPS_PROTOCOLS, TLSVersion.class);
+            final StringBuilder output = new StringBuilder();
+            for (final Iterator<TLSVersion> versionIterator = tlsVersions.iterator(); versionIterator.hasNext(); ) {
+                final TLSVersion tlsVersion = versionIterator.next();
+                output.append(tlsVersion.getTomcatValueName());
+                if (versionIterator.hasNext()) {
+                    output.append(", ");
+                }
+            }
+            return output.toString();
+        }
+
     }
 }

@@ -201,7 +201,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
 
         // Initialize response.
         response.reset();
-        response.setDateHeader("Expires", System.currentTimeMillis() + (resourceConfiguration.getCacheExpireSeconds() * 1000));
+        addExpirationHeaders(resourceConfiguration, response);
         response.setHeader("ETag", resourceConfiguration.getNonceValue());
         response.setContentType(contentType);
 
@@ -368,12 +368,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
      * @param resource The resource to be closed.
      */
     private static void close(final Closeable resource) {
-        if (resource != null) {
-            try {
-                resource.close();
-            } catch (IOException ignore) {
-            }
-        }
+        IOUtils.closeQuietly(resource);
     }
 
     static FileResource resolveRequestedFile(
@@ -487,8 +482,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         final String bodyText = pwmApplication.getConfig().readSettingAsString(pwmSetting);
         try {
             response.setContentType("text/css");
-            response.setDateHeader("Expires", System.currentTimeMillis() + (resourceServletConfiguration.getCacheExpireSeconds() * 1000));
-            response.setHeader("Cache-Control", "public, max-age=" + resourceServletConfiguration.getCacheExpireSeconds());
+            addExpirationHeaders(resourceServletConfiguration, response);
             if (bodyText != null && bodyText.length() > 0) {
                 response.setIntHeader("Content-Length", bodyText.length());
                 copy(new ByteArrayInputStream(bodyText.getBytes()), response.getOutputStream());
@@ -571,5 +565,10 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         }
 
         return null;
+    }
+
+    private void addExpirationHeaders(final ResourceServletConfiguration resourceServletConfiguration, final HttpServletResponse httpResponse) {
+        httpResponse.setDateHeader("Expires", System.currentTimeMillis() + (resourceServletConfiguration.getCacheExpireSeconds() * 1000));
+        httpResponse.setHeader("Cache-Control", "private, max-age=" + resourceServletConfiguration.getCacheExpireSeconds() + ")");
     }
 }

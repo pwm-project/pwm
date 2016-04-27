@@ -412,7 +412,7 @@ public enum PwmSetting {
     PASSWORD_POLICY_MAXIMUM_OLD_PASSWORD_CHARS(
             "password.policy.maximumOldPasswordChars", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY),
     PASSWORD_POLICY_MINIMUM_LIFETIME(
-            "password.policy.minimumLifetime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY),
+            "password.policy.minimumLifetime", PwmSettingSyntax.DURATION, PwmSettingCategory.PASSWORD_POLICY),
     PASSWORD_POLICY_ENABLE_WORDLIST(
             "password.policy.checkWordlist", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),
     PASSWORD_POLICY_AD_COMPLEXITY_LEVEL(
@@ -940,7 +940,8 @@ public enum PwmSetting {
             "helpdesk.setPassword.maskValue", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
     HELPDESK_VERIFICATION_METHODS(
             "helpdesk.verificationMethods", PwmSettingSyntax.VERIFICATION_METHOD, PwmSettingCategory.HELPDESK_PROFILE),
-
+    HELPDESK_VERIFICATION_FORM(
+            "helpdesk.verification.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_PROFILE),
 
 
     // Database
@@ -1050,10 +1051,8 @@ public enum PwmSetting {
             "naaf.requiredMethods", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.NAAF),
 
     //appliance
-    HTTPS_CERT_PKCS12(
-            "https.server.cert.pkcs12", PwmSettingSyntax.FILE, PwmSettingCategory.HTTPS_SERVER),
-    HTTPS_CERT_PASSWORD(
-            "https.server.cert.password", PwmSettingSyntax.PASSWORD, PwmSettingCategory.HTTPS_SERVER),
+    HTTPS_CERT(
+            "https.server.cert", PwmSettingSyntax.PRIVATE_KEY, PwmSettingCategory.HTTPS_SERVER),
     HTTPS_PROTOCOLS(
             "https.server.tls.protocols", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.HTTPS_SERVER),
     HTTPS_CIPHERS(

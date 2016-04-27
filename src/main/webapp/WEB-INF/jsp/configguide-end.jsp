@@ -140,15 +140,11 @@
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.addEventHandler('button_next','click',function(){
-                var htmlBody = '<p>After saving the configuration, the application will be automatically restarted.</p>'
-                        + '<p>The application will then be in open configuration mode.  While in open configuration mode, the configuration can be accessed '
-                        + 'without LDAP authentication.  Once you have completed any LDAP configuration changes you may wish to make, close the configuration so that '
-                        + 'LDAP authentication will be required. </p>';
+                var htmlBody = '<p>After saving the configuration, the application will be automatically restarted.</p>';
 
                 htmlBody += '<br/><br/><table><tr><td colspan="3" class="title">URLs</td></tr>';
                 htmlBody += '<tr><td class="key">Application</td><td> <a href="<pwm:context/>"><pwm:context/></a></td></tr>';
-                htmlBody += '<tr><td class="key">Configuration Manager</td><td> <a href="<pwm:context/><pwm:context/><%=PwmServletDefinition.ConfigManager.servletUrl()%>"><pwm:context/><pwm:context/><%=PwmServletDefinition.ConfigManager.servletUrl()%></a></td></tr>';
-                htmlBody += '<tr><td class="key">Configuration Editor</td><td> <a href="<pwm:context/><pwm:context/><%=PwmServletDefinition.ConfigEditor.servletUrl()%>"><pwm:context/><pwm:context/><%=PwmServletDefinition.ConfigEditor.servletUrl()%></a></td></tr>';
+                htmlBody += '<tr><td class="key">Configuration</td><td> <a href="<pwm:context/>/private/config"><pwm:context/>/private/config</a></td></tr>';
                 htmlBody += '</table>';
 
                 PWM_MAIN.showConfirmDialog({text:htmlBody,okAction:function(){
@@ -160,9 +156,6 @@
         });
     </script>
 </pwm:script>
-<pwm:script-ref url="/public/resources/js/configguide.js"/>
-<pwm:script-ref url="/public/resources/js/configmanager.js"/>
-<pwm:script-ref url="/public/resources/js/admin.js"/>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -29,14 +29,10 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
-import password.pwm.config.function.HttpsCertParseFunction;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.ValueMetaData;
-import password.pwm.config.value.ActionValue;
-import password.pwm.config.value.FileValue;
-import password.pwm.config.value.ValueFactory;
-import password.pwm.config.value.X509CertificateValue;
+import password.pwm.config.value.*;
 import password.pwm.error.*;
 import password.pwm.health.*;
 import password.pwm.http.HttpMethod;
@@ -54,11 +50,13 @@ import password.pwm.util.*;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.queue.SmsQueueManager;
+import password.pwm.util.secure.HttpsServerCertificateManager;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.bean.HealthData;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
@@ -85,7 +83,6 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         resetSetting(HttpMethod.POST),
         ldapHealthCheck(HttpMethod.POST),
         databaseHealthCheck(HttpMethod.POST),
-        httpsCertificateView(HttpMethod.POST),
         smsHealthCheck(HttpMethod.POST),
         finishEditing(HttpMethod.POST),
         executeSettingFunction(HttpMethod.POST),
@@ -161,8 +158,6 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
     {
         final ConfigManagerBean configManagerBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ConfigManagerBean.class);
 
-        pwmRequest.setAttribute(PwmRequest.Attribute.ThemeOverride, pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_THEME));
-
         if (configManagerBean.getStoredConfiguration() == null) {
             final StoredConfigurationImpl loadedConfig = ConfigManagerServlet.readCurrentConfiguration(pwmRequest);
             configManagerBean.setConfiguration(loadedConfig);
@@ -192,10 +187,6 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
 
                 case databaseHealthCheck:
                     restDatabaseHealthCheck(pwmRequest, configManagerBean);
-                    return;
-
-                case httpsCertificateView:
-                    restHttpsCertificateView(pwmRequest, configManagerBean);
                     return;
 
                 case smsHealthCheck:
@@ -350,6 +341,10 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
 
                 case X509CERT:
                     returnValue = ((X509CertificateValue) storedConfig.readSetting(theSetting, profile)).toInfoMap(true);
+                    break;
+
+                case PRIVATE_KEY:
+                    returnValue = ((PrivateKeyValue) storedConfig.readSetting(theSetting, profile)).toInfoMap(true);
                     break;
 
                 case ACTION:
@@ -665,22 +660,6 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         LOGGER.debug(pwmRequest, "completed restDatabaseHealthCheck in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
 
-    private void restHttpsCertificateView(
-            final PwmRequest pwmRequest,
-            final ConfigManagerBean configManagerBean
-    )
-            throws IOException, PwmUnrecoverableException {
-        final Date startTime = new Date();
-        LOGGER.debug(pwmRequest, "beginning restHttpsCertificateView");
-        final HttpsCertParseFunction httpsCertParseFunction = new HttpsCertParseFunction();
-        final String output = httpsCertParseFunction.provideFunction(pwmRequest, configManagerBean.getStoredConfiguration(),null,null, null);
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(output);
-        pwmRequest.outputJsonResult(restResultBean);
-        LOGGER.debug(pwmRequest, "completed restHttpsCertificateView in " + TimeDuration.fromCurrent(startTime).asCompactString());
-    }
-
-
     private void restSmsHealthCheck(
             final PwmRequest pwmRequest,
             final ConfigManagerBean configManagerBean
@@ -722,6 +701,41 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final String key = pwmRequest.readParameterAsString("key");
         final PwmSetting setting = PwmSetting.forKey(key);
         final int maxFileSize = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_JDBC_JAR_SIZE));
+
+
+        if (setting == PwmSetting.HTTPS_CERT) {
+            try {
+                final PasswordData passwordData = pwmRequest.readParameterAsPassword("password");
+                if (passwordData == null) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, "missing password value", new String[]{"password"}));
+                }
+                final String alias = pwmRequest.readParameterAsString("alias");
+                final HttpsServerCertificateManager.KeyStoreFormat keyStoreFormat;
+                try {
+                    keyStoreFormat = HttpsServerCertificateManager.KeyStoreFormat.valueOf(pwmRequest.readParameterAsString("format"));
+                } catch (IllegalArgumentException e) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, "unknown format type: " + e.getMessage(), new String[]{"format"}));
+                }
+
+                final Map<String, PwmRequest.FileUploadItem> fileUploads = pwmRequest.readFileUploads(maxFileSize, 1);
+                final ByteArrayInputStream fileIs = new ByteArrayInputStream(fileUploads.get(PwmConstants.PARAM_FILE_UPLOAD).getContent());
+
+                HttpsServerCertificateManager.importKey(
+                        configManagerBean.getStoredConfiguration(),
+                        keyStoreFormat,
+                        fileIs,
+                        passwordData,
+                        alias
+                );
+
+                pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
+                return;
+            } catch (PwmException e) {
+                LOGGER.error(pwmRequest, "error during https certificate upload: " + e.getMessage());
+                pwmRequest.respondWithError(e.getErrorInformation(),false);
+                return;
+            }
+        }
 
         final FileValue fileValue = readFileUploadToSettingValue(pwmRequest, maxFileSize);
         if (fileValue != null) {

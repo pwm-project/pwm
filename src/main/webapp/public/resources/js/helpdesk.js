@@ -310,7 +310,7 @@ PWM_HELPDESK.showRecentVerifications = function() {
             }
 
             html += '</table>';
-            PWM_MAIN.showDialog({'title':'Recent Verifications','text':html,loadFunction:function(){PWM_MAIN.TimestampHandler.initAllElements()}});
+            PWM_MAIN.showDialog({'title':PWM_MAIN.showString('Title_RecentVerifications'),'text':html,loadFunction:function(){PWM_MAIN.TimestampHandler.initAllElements()}});
         }
     };
 
@@ -416,23 +416,32 @@ PWM_HELPDESK.deleteUser = function() {
 };
 
 PWM_HELPDESK.validateOtpCode = function(userKey) {
-    var dialogText = 'Instruct the user to load their mobile authentication app and share the current pass code.';
-
-    PWM_HELPDESK.validateCode(userKey, 'validateOtpCode', dialogText, {})
+    var dialogText = PWM_MAIN.showString('Display_HelpdeskOtpValidation');
+    PWM_HELPDESK.validateCode({userKey:userKey, processAction:'validateOtpCode', dialogText:dialogText});
 };
 
 var PARAM_VERIFICATION_STATE = 'verificationState';
-var PREF_KEY_VERIFICATION_STATE = 'verificiationState';
+var PREF_KEY_VERIFICATION_STATE = 'verificationState';
 
-PWM_HELPDESK.validateCode = function(userKey, processAction, dialogText, extraPayload) {
+PWM_HELPDESK.validateCode = function(options) {
+    options = options === undefined ? {} : options;
+
+    var userKey = options['userKey'];
+    var processAction = options['processAction'];
+    var dialogText = options['dialogText'];
+    var extraPayload = options['extraPayload'];
+    var showInputField = 'showInputField' in options ? options['showInputField '] : true;
+
     var validateOtpCodeFunction = function(){
         PWM_MAIN.getObject('icon-working').style.display = 'inherit';
         PWM_MAIN.getObject('icon-cross').style.display = 'none';
         PWM_MAIN.getObject('icon-check').style.display = 'none';
-        var content = extraPayload === undefined ? {} : extraPayload;
+        var content = extraPayload === undefined ? {} : extraPayload();
 
         content['userKey'] = userKey;
-        content['code'] = PWM_MAIN.getObject('code').value;
+        if (PWM_MAIN.getObject('code')) {
+            content['code'] = PWM_MAIN.getObject('code').value;
+        }
         content[PARAM_VERIFICATION_STATE] = PWM_MAIN.Preferences.readSessionStorage(PREF_KEY_VERIFICATION_STATE);
         var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", processAction);
         var loadFunction = function(data) {
@@ -454,18 +463,25 @@ PWM_HELPDESK.validateCode = function(userKey, processAction, dialogText, extraPa
                 PWM_MAIN.getObject('button-checkCode').disabled = true;
             } else {
                 PWM_MAIN.getObject('icon-cross').style.display = 'inherit';
-                PWM_MAIN.getObject('code').value = '';
-                PWM_MAIN.getObject('code').focus();
+                if (PWM_MAIN.getObject('code')) {
+                    PWM_MAIN.getObject('code').value = '';
+                    PWM_MAIN.getObject('code').focus();
+                }
             }
         };
         PWM_MAIN.ajaxRequest(url,loadFunction,{content:content});
     };
-    var text = '<div>' + dialogText + '</div><br/><div><table class="noborder"><tr><td style="width: 100px"><input style="width: 100px" id="code" name="code"/></td><td style="width:40px">'
-        + '<span style="display:none;color:green" id="icon-check" class="btn-icon pwm-icon pwm-icon-lg pwm-icon-check"></span>'
+
+    var text = '<div>' + dialogText + '</div><br/><div><table class="noborder"><tr>';
+    if (showInputField) {
+        text += '<td style="width: 100px"><input style="width: 100px" id="code" name="code"/></td>';
+    }
+
+    text += '<td style="width:40px"><span style="display:none;color:green" id="icon-check" class="btn-icon pwm-icon pwm-icon-lg pwm-icon-check"></span>'
         + '<span style="display:none;color:red" id="icon-cross" class="btn-icon pwm-icon pwm-icon-lg pwm-icon-times"></span>'
         + '<span style="display:none;" id="icon-working" class="pwm-icon pwm-icon-lg pwm-icon-spin pwm-icon-spinner"></span></td><td>'
-        + '<button type="button" class="btn" id="button-checkCode"><span class="btn-icon pwm-icon pwm-icon-check"></span>' + PWM_MAIN.showString('Button_CheckCode') + '</button>'
-        + '</td></table></div>';
+        + '<button type="button" class="btn" id="button-checkCode"><span class="btn-icon pwm-icon pwm-icon-check"></span>' + PWM_MAIN.showString('Button_Verify') + '</button>'
+        + '</tr></td></table></div>';
 
     var successFunction = function() {
         if (PWM_MAIN.getObject('application-info').getAttribute('data-jsp-name') == 'helpdesk.jsp') {
@@ -475,7 +491,7 @@ PWM_HELPDESK.validateCode = function(userKey, processAction, dialogText, extraPa
     PWM_MAIN.showDialog({
         showClose:true,
         allowMove:true,
-        title:'Validate Code',
+        title:PWM_MAIN.showString('Title_ValidateCode'),
         text:text,
         loadFunction:function(){
             PWM_MAIN.addEventHandler('button-checkCode','click',function(){
@@ -501,8 +517,9 @@ PWM_HELPDESK.sendVerificationToken = function(userKey, methods) {
             var url = PWM_MAIN.addParamToUrl(window.location.href,"processAction", "sendVerificationToken");
             var loadFunction = function(data) {
                 if (!data['error']) {
-                    var text = '<table><tr><td>Token Destination</td><td>' + data['data']['destination'] + '</td></tr></table>';
-                    PWM_HELPDESK.validateCode(userKey, 'verifyVerificationToken',text,data['data']);
+                    var text = '<table><tr><td>' + PWM_MAIN.showString('Display_TokenDestination') + '</td><td>' + data['data']['destination'] + '</td></tr></table>';
+                    var returnExtraData = function() { return data['data']; };
+                    PWM_HELPDESK.validateCode({userKey:userKey, processAction:'verifyVerificationToken',dialogText:text,extraPayload:returnExtraData});
                 } else {
                     PWM_MAIN.showErrorDialog(data);
                 }
@@ -513,6 +530,10 @@ PWM_HELPDESK.sendVerificationToken = function(userKey, methods) {
 
     var dialogText = '<div>' + PWM_MAIN.showString('Long_Title_VerificationSend') + "</div><br/>";
     dialogText += '<div style="text-align:center"><br/>';
+    if (PWM_MAIN.JSLibrary.arrayContains(methods,'ATTRIBUTES')) {
+        dialogText += '<br/><br/><button class="btn" type="button" name="attributesChoiceButton" id="attributesChoiceButton">'
+            + '<span class="btn-icon pwm-icon pwm-icon-database "></span>' + PWM_MAIN.showString('Button_Attributes') + '</button><br/>';
+    }
     if (PWM_MAIN.JSLibrary.arrayContains(methods,'TOKEN')) {
         if (tokenChoiceFlag || sendMethodSetting == 'EMAILONLY') {
             dialogText += '<br/><button class="btn" type="button" name="emailChoiceButton" id="emailChoiceButton">'
@@ -530,6 +551,7 @@ PWM_HELPDESK.sendVerificationToken = function(userKey, methods) {
     dialogText += '</div>';
 
     var dialogLoadFunction = function() {
+        PWM_MAIN.addEventHandler('attributesChoiceButton','click',function(){PWM_HELPDESK.validateAttributes(userKey)});
         PWM_MAIN.addEventHandler('emailChoiceButton','click',function(){sendTokenAction('email')});
         PWM_MAIN.addEventHandler('smsChoiceButton','click',function(){sendTokenAction('sms')});
         PWM_MAIN.addEventHandler('otpChoiceButton','click',function(){PWM_HELPDESK.validateOtpCode(userKey)});
@@ -545,6 +567,41 @@ PWM_HELPDESK.sendVerificationToken = function(userKey, methods) {
         },
         loadFunction:dialogLoadFunction
     });
+};
+
+PWM_HELPDESK.validateAttributes = function(userKey) {
+    var bodyText = '';
+    bodyText += '<div><table>';
+    var formItems = PWM_VAR['verificationForm'];
+
+    for (var i in formItems) {
+        var name = formItems[i]['name'];
+        var label = formItems[i]['label'];
+        bodyText += '<tr><td>' + label + '</td><td>' + '<input id="input-' + name + '"/>' + '</td></tr>';
+    }
+    bodyText += '</table></div>';
+    
+    var extraData = function() {
+        var formData = {};
+        for (var i in formItems) {
+            (function(item){
+                var name = item['name'];
+                formData[name] = PWM_MAIN.getObject('input-' + name).value;
+            }(formItems[i]));
+        }
+
+        return formData;
+    };
+    
+    var options = {
+        userKey:userKey,
+        processAction:'validateAttributes',
+        dialogText:bodyText,
+        showInputField:false,
+        extraPayload:extraData
+
+    };
+    PWM_HELPDESK.validateCode(options);
 };
 
 PWM_HELPDESK.initHelpdeskSearchPage = function() {

@@ -176,6 +176,9 @@ html {
 
 .menubutton.important {
     color: red;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-weight: bold;
 }
 
 .text {
@@ -291,7 +294,7 @@ table {
 
 #settingSearchPanel {
     animation: fadein 1.5s;
-    background: white none repeat scroll 0 0;
+    background: none repeat scroll 0 0;
     left: 8px;
     position: absolute;
     top: 10px;
@@ -566,3 +569,11 @@ select {
     box-shadow: 0 0 0 0 white, 0 0 0 0 white, 9px 0 12px -4px #B2B1B9, -9px 0 12px -4px #B2B1B9;
 }
 
+
+.buttonbar.configguide {
+   text-align: center;
+}
+
+.dijitTreeRowSelected {
+    background-color: #eaeaea;
+}
