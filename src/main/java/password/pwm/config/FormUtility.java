@@ -333,7 +333,7 @@ public class FormUtility {
                 for (final String objectClassValue : objectClasses) {
                     sb.append("(objectclass=");
                     sb.append(objectClassValue);
-                    sb.append("(");
+                    sb.append(")");
                 }
                 sb.append(")");
             }
