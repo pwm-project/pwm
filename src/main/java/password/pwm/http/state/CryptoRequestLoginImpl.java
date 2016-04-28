@@ -25,6 +25,7 @@ package password.pwm.http.state;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.http.IdleTimeoutCalculator;
@@ -125,35 +126,46 @@ class CryptoRequestLoginImpl implements SessionLoginProvider {
 
         final LoginInfoBean localLoginCookie = pwmRequest.getPwmSession().getLoginInfoBean();
 
-        if (remoteLoginCookie.isAuthenticated() && !localLoginCookie.isAuthenticated()) {
-            LOGGER.debug(pwmRequest, "triggering authentication because request contains an authenticated session but local session is unauthenticated");
-            final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
-                    pwmRequest.getPwmApplication(),
-                    pwmRequest.getPwmSession(),
-                    remoteLoginCookie.getAuthSource()
-            );
-            try {
-                if (remoteLoginCookie.getUserIdentity() == null) {
-                    sessionAuthenticator.authUserWithUnknownPassword(
-                            remoteLoginCookie.getUserIdentity(),
-                            remoteLoginCookie.getType()
-                    );
+        if (remoteLoginCookie.isAuthenticated()) {
 
-                } else {
-                    sessionAuthenticator.authenticateUser(
-                            remoteLoginCookie.getUserIdentity(),
-                            remoteLoginCookie.getUserCurrentPassword()
+            if (localLoginCookie.isAuthenticated()) {
+                // should never get here unless one of container session and app session key are swapped between users.
+                final UserIdentity remoteIdentity = remoteLoginCookie.getUserIdentity();
+                final UserIdentity localIdentity = localLoginCookie.getUserIdentity();
+                if (remoteIdentity != null && localIdentity != null && !remoteIdentity.equals(localIdentity)) {
+                    throw new PwmUnrecoverableException(
+                            new ErrorInformation(PwmError.ERROR_BAD_SESSION,"remote and local session identities differ")
                     );
                 }
-                remoteLoginCookie.getAuthFlags().add(AuthenticationType.AUTH_FROM_REQ_COOKIE);
-                LOGGER.debug(pwmRequest, "logged in using encrypted request cookie = " + JsonUtil.serialize(remoteLoginCookie));
-            } catch (Exception e) {
-                final String errorMsg = "unexpected error reading session cookie: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-                LOGGER.error(pwmRequest, errorInformation);
-                throw new PwmUnrecoverableException(errorInformation);
-            }
+            } else {
+                LOGGER.debug(pwmRequest, "triggering authentication because request contains an authenticated session but local session is unauthenticated");
+                final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
+                        pwmRequest.getPwmApplication(),
+                        pwmRequest.getPwmSession(),
+                        remoteLoginCookie.getAuthSource()
+                );
+                try {
+                    if (remoteLoginCookie.getUserIdentity() == null) {
+                        sessionAuthenticator.authUserWithUnknownPassword(
+                                remoteLoginCookie.getUserIdentity(),
+                                remoteLoginCookie.getType()
+                        );
 
+                    } else {
+                        sessionAuthenticator.authenticateUser(
+                                remoteLoginCookie.getUserIdentity(),
+                                remoteLoginCookie.getUserCurrentPassword()
+                        );
+                    }
+                    remoteLoginCookie.getAuthFlags().add(AuthenticationType.AUTH_FROM_REQ_COOKIE);
+                    LOGGER.debug(pwmRequest, "logged in using encrypted request cookie = " + JsonUtil.serialize(remoteLoginCookie));
+                } catch (Exception e) {
+                    final String errorMsg = "unexpected error reading session cookie: " + e.getMessage();
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                    LOGGER.error(pwmRequest, errorInformation);
+                    throw new PwmUnrecoverableException(errorInformation);
+                }
+            }
         }
 
         if (pwmRequest.getConfig().isDevDebugMode()) {

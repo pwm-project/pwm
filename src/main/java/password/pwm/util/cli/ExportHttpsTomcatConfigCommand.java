@@ -107,7 +107,7 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand {
             fileContents = fileContents.replace(TOKEN_TLS_PROTOCOLS, getTlsProtocolsValue(configuration));
             final String tlsCiphers = configuration.readSettingAsString(PwmSetting.HTTPS_CIPHERS);
             fileContents = fileContents.replace(TOKEN_TLS_CIPHERS, tlsCiphers);
-            outputFile.write(fileContents.getBytes());
+            outputFile.write(fileContents.getBytes(PwmConstants.DEFAULT_CHARSET));
         }
 
 
