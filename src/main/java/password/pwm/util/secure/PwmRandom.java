@@ -91,4 +91,10 @@ public class PwmRandom {
     public UUID randomUUID() {
         return UUID.randomUUID();
     }
+
+    public byte[] newBytes(final int length) {
+        final byte[] newBytes = new byte[length];
+        nextBytes(newBytes);
+        return newBytes;
+    }
 }

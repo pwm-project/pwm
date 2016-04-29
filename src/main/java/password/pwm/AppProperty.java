@@ -98,6 +98,7 @@ public enum AppProperty {
     HTTP_HEADER_SEND_XCONTENTTYPEOPTIONS            ("http.header.sendXContentTypeOptions"),
     HTTP_HEADER_SEND_XXSSPROTECTION                 ("http.header.sendXXSSProtection"),
     HTTP_HEADER_NOISE_LENGTH                        ("http.header.noise.length"),
+    HTTP_HEADER_CSP_NONCE_BYTES                     ("http.header.csp.nonce.bytes"),
     HTTP_PARAM_NAME_FORWARD_URL                     ("http.parameter.forward"),
     HTTP_PARAM_NAME_LOGOUT_URL                      ("http.parameter.logout"),
     HTTP_PARAM_NAME_THEME                           ("http.parameter.theme"),

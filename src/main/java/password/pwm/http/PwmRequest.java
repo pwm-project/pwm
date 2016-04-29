@@ -26,6 +26,7 @@ import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
@@ -39,6 +40,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.util.StringUtil;
 import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
@@ -68,7 +70,6 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     private final PwmResponse pwmResponse;
     private transient PwmApplication pwmApplication;
     private transient PwmSession pwmSession;
-    private final String cspNonce;
 
     private final Set<PwmRequestFlag> flags = new HashSet<>();
 
@@ -78,12 +79,12 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     )
             throws PwmUnrecoverableException
     {
-        PwmRequest pwmRequest = (PwmRequest) request.getAttribute(Attribute.PwmRequest.toString());
+        PwmRequest pwmRequest = (PwmRequest) request.getAttribute(PwmRequest.Attribute.PwmRequest.toString());
         if (pwmRequest == null) {
             final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(request);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
             pwmRequest = new PwmRequest(request, response, pwmApplication, pwmSession);
-            request.setAttribute(Attribute.PwmRequest.toString(), pwmRequest);
+            request.setAttribute(PwmRequest.Attribute.PwmRequest.toString(), pwmRequest);
         }
         return pwmRequest;
     }
@@ -100,7 +101,6 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         this.pwmResponse = new PwmResponse(httpServletResponse, this, pwmApplication.getConfig());
         this.pwmSession = pwmSession;
         this.pwmApplication = pwmApplication;
-        this.cspNonce = PwmRandom.getInstance().alphaNumericString(10);
     }
 
     public PwmApplication getPwmApplication()
@@ -262,6 +262,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         PageTitle,
         ModuleBean,
         ModuleBean_String,
+        CspNonce,
 
         FormConfiguration,
         FormReadOnly,
@@ -398,14 +399,14 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
 
     public void setResponseError(final ErrorInformation errorInformation) {
-        setAttribute(Attribute.PwmErrorInfo, errorInformation);
+        setAttribute(PwmRequest.Attribute.PwmErrorInfo, errorInformation);
     }
 
-    public void setAttribute(final Attribute name, final Serializable value) {
+    public void setAttribute(final PwmRequest.Attribute name, final Serializable value) {
         this.getHttpServletRequest().setAttribute(name.toString(),value);
     }
 
-    public Serializable getAttribute(final Attribute name) {
+    public Serializable getAttribute(final PwmRequest.Attribute name) {
         return (Serializable)this.getHttpServletRequest().getAttribute(name.toString());
     }
 
@@ -539,9 +540,15 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return ssBean.getLogoutURL() == null ? pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL();
     }
 
-    public String getCspNonce()
+    public synchronized String getCspNonce()
     {
-        return cspNonce;
+        if (getAttribute(PwmRequest.Attribute.CspNonce) == null) {
+            final int nonceLength = Integer.parseInt(getConfig().readAppProperty(AppProperty.HTTP_HEADER_CSP_NONCE_BYTES));
+            final byte[] cspNonce = PwmRandom.getInstance().newBytes(nonceLength);
+            final String cspString = StringUtil.base64Encode(cspNonce);
+            setAttribute(PwmRequest.Attribute.CspNonce, cspString);
+        }
+        return (String)getAttribute(PwmRequest.Attribute.CspNonce);
     }
 
     public <T extends Serializable> T readEncryptedCookie(final String cookieName, Class<T> returnClass)
@@ -582,10 +589,10 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
                 ? new LinkedHashMap<FormConfiguration,String>()
                 : new LinkedHashMap<>(formDataMap);
 
-        this.setAttribute(Attribute.FormConfiguration, new ArrayList<>(formConfiguration));
-        this.setAttribute(Attribute.FormData, formDataMapValue);
-        this.setAttribute(Attribute.FormReadOnly, readOnly);
-        this.setAttribute(Attribute.FormShowPasswordFields, showPasswordFields);
+        this.setAttribute(PwmRequest.Attribute.FormConfiguration, new ArrayList<>(formConfiguration));
+        this.setAttribute(PwmRequest.Attribute.FormData, formDataMapValue);
+        this.setAttribute(PwmRequest.Attribute.FormReadOnly, readOnly);
+        this.setAttribute(PwmRequest.Attribute.FormShowPasswordFields, showPasswordFields);
     }
 
     public void invalidateSession() {
