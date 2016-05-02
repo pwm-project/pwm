@@ -227,6 +227,7 @@ public enum AppProperty {
     SECURITY_INPUT_PASSWORD_TRIM                    ("security.input.password.trim"),
     SECURITY_INPUT_THEME_MATCH_REGEX                ("security.input.themeMatchRegex"),
     SECURITY_WS_REST_CLIENT_KEY_LENGTH              ("security.ws.rest.clientKeyLength"),
+    SECURITY_WS_REST_SERVER_SECRET_HEADER           ("security.ws.rest.server.secretKeyHeader"),
     SECURITY_SHAREDHISTORY_HASH_ITERATIONS          ("security.sharedHistory.hashIterations"),
     SECURITY_SHAREDHISTORY_HASH_NAME                ("security.sharedHistory.hashName"),
     SECURITY_SHAREDHISTORY_CASE_INSENSITIVE         ("security.sharedHistory.caseInsensitive"),

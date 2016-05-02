@@ -26,7 +26,9 @@
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 
-<% if (!JspUtility.isFlag(request, PwmRequestFlag.HIDE_HEADER_WARNINGS)) { %><%@ include file="header-menu.jsp" %><% } %>
+<pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.HIDE_HEADER_WARNINGS%>" negate="true">
+    <%@ include file="header-menu.jsp" %>
+</pwm:if>
 <div id="header">
     <div id="header-company-logo">
     </div>
