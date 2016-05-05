@@ -293,11 +293,6 @@
         </dependency>
         <dependency>
             <groupId>com.novell.security.nmas</groupId>
-            <artifactId>jsso</artifactId>
-            <version>2003.05.06</version>
-        </dependency>
-        <dependency>
-            <groupId>com.novell.security.nmas</groupId>
             <artifactId>ldap</artifactId>
             <version>2013.04.26</version>
         </dependency>
