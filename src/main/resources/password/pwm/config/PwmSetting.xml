@@ -415,7 +415,7 @@
     <setting hidden="false" key="ldap.proxy.username" level="0" required="false">
         <flag>ldapDNsyntax</flag>
         <example>cn=@PwmAppName@-Proxy,o=example</example>
-        <example template="AD">CN=@PwmAppName@-Proxy,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</example>
+        <example template="AD">CN=@PwmAppName@-Proxy,CN=Users,DC=ad,DC=site,DC=example,DC=com</example>
         <example template="ORACLE_DS">cn=@PwmAppName@-Proxy,cn=Administrators,cn=config</example>
         <example template="OPEN_LDAP">cn=@PwmAppName@-Proxy,dc=example,dc=com</example>
         <default/>
@@ -435,7 +435,7 @@
     <setting hidden="false" key="ldap.testuser.username" level="0">
         <flag>ldapDNsyntax</flag>
         <example>cn=@PwmAppName@-Testuser,o=example</example>
-        <example template="AD">CN=@PwmAppName@-Testuser,CN=Users,DC=ad,DC=DC=site,DC=example,DC=com</example>
+        <example template="AD">CN=@PwmAppName@-Testuser,CN=Users,DC=ad,DC=site,DC=example,DC=com</example>
         <example template="ORACLE_DS">cn=@PwmAppName@-Testuser,cn=Administrators,cn=config</example>
         <example template="OPEN_LDAP">cn=@PwmAppName@-Testuser,dc=example,dc=com</example>
         <default>
