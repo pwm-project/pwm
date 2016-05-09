@@ -333,7 +333,7 @@ public class PwmPasswordRuleValidator {
         // check if the password is in the dictionary.
         if (ruleHelper.readBooleanValue(PwmPasswordRule.EnableWordlist)) {
             if (pwmApplication != null) {
-                if (pwmApplication.getWordlistManager().status() == PwmService.STATUS.OPEN) {
+                if (pwmApplication.getWordlistManager() != null && pwmApplication.getWordlistManager().status() == PwmService.STATUS.OPEN) {
                     final boolean found = pwmApplication.getWordlistManager().containsWord(passwordString);
 
                     if (found) {

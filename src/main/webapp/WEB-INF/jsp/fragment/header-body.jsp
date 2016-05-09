@@ -26,7 +26,7 @@
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 
-<pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.HIDE_HEADER_WARNINGS%>" negate="true">
+<pwm:if test="<%=PwmIfTest.headerMenuIsVisible%>">
     <%@ include file="header-menu.jsp" %>
 </pwm:if>
 <div id="header">
@@ -45,28 +45,19 @@
 
         <div id="header-center-right">
             <div id="header-menu-wrapper">
-                <pwm:if test="<%=PwmIfTest.headerMenuIsVisible%>">
                     <div id="header-menu">
-                    <pwm:if test="<%=PwmIfTest.healthWarningsPresent%>">
-                        <div id="header-menu-alert" class="m-icon icon_m_message-error-red-fill"></div>
-                    </pwm:if>
-                    <pwm:if test="<%=PwmIfTest.usernameHasValue%>">
+                        <pwm:if test="<%=PwmIfTest.healthWarningsVisible%>">
+                            <div id="header-menu-alert" class="m-icon icon_m_message-error-red-fill" title="<pwm:display key="Header_HealthWarningsPresent" bundle="Admin"/>"></div>
+                        </pwm:if>
                         <div id="header-username-group">
-                            <div id="header-username"><pwm:value name="<%=PwmValue.username%>"/></div>
+                            <pwm:if test="<%=PwmIfTest.authenticated%>">
+                                <div id="header-username"><pwm:display key="Display_UsernameHeader"/></div>
+                            </pwm:if>
+                            <pwm:if test="<%=PwmIfTest.headerMenuIsVisible%>">
                             <div id="header-username-caret" class="m-icon icon_m_down"></div>
+                            </pwm:if>
                         </div>
-                    </pwm:if>
-                    <pwm:if test="<%=PwmIfTest.usernameHasValue%>" negate="true">
-                        <div id="header-menu-icon" class="m-icon icon_m_circle-horz-menu"></div>
-                    </pwm:if>
                     </div>
-                </pwm:if>
-
-                <pwm:if test="<%=PwmIfTest.headerMenuIsVisible%>" negate="true">
-                    <pwm:if test="<%=PwmIfTest.usernameHasValue%>">
-                        <div id="header-username"><pwm:value name="<%=PwmValue.username%>"/></div>
-                    </pwm:if>
-                </pwm:if>
 
                 <% if (!JspUtility.isFlag(request, PwmRequestFlag.HIDE_HEADER_BUTTONS)) { %>
                 <pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">

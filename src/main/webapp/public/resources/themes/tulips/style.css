@@ -115,14 +115,12 @@ p {
 }
 
 #centerbody {
-    background-color: white;
+    background-color: rgba(255,255,255,0.8);
     color: black;
     padding: 10px 10px 40px 10px;
     border: 0;
     border-radius: 5px;
     filter:alpha(opacity=80);
-    opacity: 0.8;
-
 }
 
 #footer {
@@ -235,4 +233,15 @@ table td.key {
 #header-menu-icon::after {
   content: "\f141";
   font: 12px FontAwesome;
+}
+
+.tile {
+    transition: box-shadow 0.3s, background-color 2.5s;
+    background-color: rgba(255,255,255,0.8);
+}
+
+.tile:hover {
+    border: 1px solid #E8E1F6;
+    box-shadow: 0 0 0 0 white, 0 0 0 0 white, 9px 0 12px -4px #b9526c, -9px 0 12px -4px #b9526c;
+    background-color: rgba(255, 255, 255, 1);
 }

@@ -30,7 +30,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.tag.value.PwmValue;
+import password.pwm.http.PwmRequestFlag;
 import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
 
@@ -72,8 +72,7 @@ public enum PwmIfTest {
     trialMode(new TrialModeTest()),
     appliance(new EnvironmentFlagTest(PwmEnvironment.ApplicationFlag.Appliance)),
 
-    healthWarningsPresent(new HealthWarningsPresentTest()),
-    usernameHasValue(new UsernameHasValueTest()),
+    healthWarningsVisible(new HealthWarningsVisibileTest()),
 
     headerMenuIsVisible(new HeaderMenuIsVisibleTest()),
 
@@ -296,24 +295,29 @@ public enum PwmIfTest {
     }
 
 
-    private static class HealthWarningsPresentTest implements Test {
+    private static class HealthWarningsVisibileTest implements Test {
         @Override
         public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
-            final HealthMonitor healthMonitor = pwmRequest.getPwmApplication().getHealthMonitor();
-            if (healthMonitor != null && healthMonitor.status() == PwmService.STATUS.OPEN) {
-                if (healthMonitor.getMostSevereHealthStatus(HealthMonitor.CheckTimeliness.NeverBlock) == HealthStatus.WARN) {
-                    return true;
+            if (pwmRequest.isFlag(PwmRequestFlag.HIDE_HEADER_WARNINGS)) {
+                return false;
+            }
+
+            final PwmApplicationMode mode = pwmRequest.getPwmApplication().getApplicationMode();
+
+            if (mode == PwmApplicationMode.CONFIGURATION) {
+                return true;
+            }
+
+            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN);
+            if (adminUser) {
+                final HealthMonitor healthMonitor = pwmRequest.getPwmApplication().getHealthMonitor();
+                if (healthMonitor != null && healthMonitor.status() == PwmService.STATUS.OPEN) {
+                    if (healthMonitor.getMostSevereHealthStatus(HealthMonitor.CheckTimeliness.NeverBlock) == HealthStatus.WARN) {
+                        return true;
+                    }
                 }
             }
             return false;
-        }
-    }
-
-    private static class UsernameHasValueTest implements Test {
-        @Override
-        public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
-            final String usernameValue = PwmValue.username.getValueOutput().valueOutput(pwmRequest, null);
-            return usernameValue != null && !usernameValue.isEmpty();
         }
     }
 
@@ -323,6 +327,10 @@ public enum PwmIfTest {
         public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
             if (PwmConstants.TRIAL_MODE) {
                 return true;
+            }
+
+            if (pwmRequest.isFlag(PwmRequestFlag.HIDE_HEADER_WARNINGS)) {
+                return false;
             }
 
             if (pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING) {

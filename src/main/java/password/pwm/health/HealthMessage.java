@@ -34,7 +34,7 @@ public enum HealthMessage {
     LDAP_Ad_History_Asn_Missing             (HealthStatus.WARN,     HealthTopic.LDAP),
     LDAP_AD_Unsecure                        (HealthStatus.WARN,     HealthTopic.LDAP),
     LDAP_AD_StaticIP                        (HealthStatus.WARN,     HealthTopic.LDAP),
-    LDAP_ProxyTestSameUser                  (HealthStatus.CAUTION,  HealthTopic.Configuration),
+    LDAP_ProxyTestSameUser                  (HealthStatus.WARN,     HealthTopic.Configuration),
     LDAP_TestUserUnavailable                (HealthStatus.CAUTION,  HealthTopic.LDAP),
     LDAP_TestUserUnexpected                 (HealthStatus.WARN,     HealthTopic.LDAP),
     LDAP_TestUserError                      (HealthStatus.WARN,     HealthTopic.LDAP),

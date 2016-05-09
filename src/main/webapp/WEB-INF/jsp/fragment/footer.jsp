@@ -32,7 +32,7 @@
         <div id="footer-content">
             <pwm:if test="<%=PwmIfTest.authenticated%>">
                 <span class="footer-segment">
-                    <span id="session-username"><pwm:value name="<%=PwmValue.username%>"/></span>
+                    <span id="session-username"><pwm:display key="Display_UsernameFooter"/></span>
                 </span>
             </pwm:if>
             <pwm:if test="<%=PwmIfTest.booleanSetting%>" setting="<%=PwmSetting.DISPLAY_IDLE_TIMEOUT%>">

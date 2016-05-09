@@ -460,6 +460,15 @@ div.progress-container > div {
   top: 10px;
 }
 
+#header-menu-alert {
+    display: inline-block;
+    animation: blink 2s steps(5, start) infinite;
+}
+
+#header-menu-wrapper {
+    display: inline-block;
+}
+
 .header-button {
     text-align: center;
     width: auto;
@@ -470,7 +479,6 @@ div.progress-container > div {
     margin: 4px 0 4px 8px;
     cursor: pointer;
     background: white;
-    float: right;
     text-decoration: none;
     white-space: nowrap;
     border-radius: 2px;

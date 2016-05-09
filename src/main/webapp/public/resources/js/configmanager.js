@@ -138,7 +138,7 @@ PWM_CONFIG.openHeaderWarningPanel = function() {
     PWM_CONFIG.headerResizeListener.resume();
 
     require(['dojo/dom','dijit/place','dojo/on'], function(dom, place, on) {
-        place.around(dom.byId("header-warning"), dom.byId("header-menu-wrapper"), ["below-alt"], false);
+        place.around(dom.byId("header-warning"), dom.byId("header-username-caret"), ["below-alt"], false);
 
         on.once(dom.byId("header-warning-backdrop"), "click", function(event) {
             PWM_CONFIG.closeHeaderWarningPanel();

@@ -52,7 +52,6 @@ public enum PwmValue {
     currentJspFilename(new CurrentJspFilenameOutput()),
     instanceID(new InstanceIDOutput()),
     headerMenuNotice(new HeaderMenuNoticeOutput()),
-    username(new UsernameOutput()),
     clientETag(new ClientETag()),
     restClientKey(new RestClientKey()),
     localeCode(new LocaleCodeOutput()),
@@ -176,20 +175,6 @@ public enum PwmValue {
             } else if (pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
                 return LocaleHelper.getLocalizedMessage(pwmRequest.getLocale(), "Header_AdminUser", pwmRequest.getConfig(), Admin.class, new String[]{PwmConstants.PWM_APP_NAME});
 
-            }
-
-            return "";
-        }
-    }
-
-    static class UsernameOutput implements ValueOutput {
-        @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
-            if (pwmRequest.isAuthenticated()) {
-                final String usernameField = pwmRequest.getPwmSession().getUserInfoBean().getUsername();
-                if (usernameField != null && !usernameField.isEmpty()) {
-                    return usernameField;
-                }
             }
 
             return "";

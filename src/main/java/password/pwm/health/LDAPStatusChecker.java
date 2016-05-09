@@ -25,7 +25,10 @@ package password.pwm.health;
 import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.*;
+import com.novell.ldapchai.exception.ChaiError;
+import com.novell.ldapchai.exception.ChaiErrors;
+import com.novell.ldapchai.exception.ChaiException;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
@@ -47,6 +50,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserStatusReader;
+import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.TimeDuration;
@@ -160,9 +164,11 @@ public class LDAPStatusChecker implements HealthChecker {
                 ));
                 return returnRecords;
             } catch (Throwable e) {
+                final String msgString = e.getMessage();
+                LOGGER.trace(PwmConstants.HEALTH_SESSION_LABEL, "unexpected error while testing test user (during object creation): message=" + msgString + " debug info: " + Helper.readHostileExceptionMessage(e));
                 returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnexpected,
                         PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
-                        e.getMessage()
+                        msgString
                 ));
                 return returnRecords;
             }
@@ -199,16 +205,18 @@ public class LDAPStatusChecker implements HealthChecker {
                                 pwmApplication);
                         theUser.setPassword(newPassword.getStringValue());
                         userPassword = newPassword;
-                    } catch (ChaiPasswordPolicyException e) {
+                    } catch (ChaiException e) {
                         returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserPolicyError,
                                 PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
                                 e.getMessage()
                         ));
                         return returnRecords;
                     } catch (Exception e) {
+                        final String msg = "error setting test user password: " + Helper.readHostileExceptionMessage(e);
+                        LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL, msg, e);
                         returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnexpected,
                                 PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
-                                e.getMessage()
+                                msg
                         ));
                         return returnRecords;
                     }
