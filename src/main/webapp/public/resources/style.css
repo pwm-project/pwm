@@ -998,8 +998,38 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 .panel-orgChart-footer {clear: both; margin-bottom: 10px; }
 /* end peoplesearch org chart section */
 
+#centerbody.attribution-centerbody {
+    background-color: #f6f9f8;
+}
 
+.licenseBlock {
+    background-color: #eef2f2;
+    border: 1px solid #dae1e1;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    padding: 10px 5px;
+}
 
-.footer-segment:after { padding: 10px; content: '\2022'; filter: brightness(50%); }
-.footer-segment:last-child:after { content: ""; }​
+.licenseBlock a {
+    color: #0088ce;
+    font-weight: normal;
+    text-decoration: none;
+}
+
+.licenseBlock .dependency-name {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.licenseBlock > div {
+    padding: 1px;
+}
+
+.attribution-centerbody .page-title {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.footer-segment::after { padding: 10px; content: '\2022'; filter: brightness(50%); }
+.footer-segment::last-child:after { content: ""; }​
 
