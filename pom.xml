@@ -232,7 +232,7 @@
             <plugin>
                 <groupId>com.github.jinnovations</groupId>
                 <artifactId>attribution-maven-plugin</artifactId>
-                <version>0.9.2</version>
+                <version>0.9.3</version>
                 <executions>
                     <execution>
                         <goals>
