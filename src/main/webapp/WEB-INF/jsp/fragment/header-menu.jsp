@@ -37,7 +37,7 @@
     <div id="header-warning" style="display: none">
         <div id="header-warning-message" class="header-warning-row header-warning-message">
             <pwm:if test="<%=PwmIfTest.trialMode%>">
-                <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
+                <pwm:display key="Header_TrialMode" bundle="Admin"/>
             </pwm:if>
             <pwm:if test="<%=PwmIfTest.trialMode%>" negate="true">
                 <pwm:if test="<%=PwmIfTest.configurationOpen%>">

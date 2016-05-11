@@ -1033,3 +1033,6 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 .footer-segment::after { padding: 10px; content: '\2022'; filter: brightness(50%); }
 .footer-segment::last-child:after { content: ""; }​
 
+.center { text-align: center; }
+
+

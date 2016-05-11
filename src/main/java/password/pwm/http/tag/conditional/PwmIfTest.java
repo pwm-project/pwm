@@ -37,6 +37,7 @@ import password.pwm.util.Helper;
 public enum PwmIfTest {
     authenticated(new AuthenticatedTest()),
     configurationOpen(new ConfigurationOpen()),
+    endUserFunctionalityAvaiable(new EndUserFunctionalityTest()),
     showIcons(new BooleanAppPropertyTest(AppProperty.CLIENT_JSP_SHOW_ICONS)),
     showCancel(new BooleanPwmSettingTest(PwmSetting.DISPLAY_CANCEL_BUTTON)),
     showHome(new BooleanPwmSettingTest(PwmSetting.DISPLAY_HOME_BUTTON)),
@@ -383,6 +384,14 @@ public enum PwmIfTest {
         public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
             return pwmRequest.getPwmApplication().getPwmEnvironment().getFlags().contains(flag);
         }
+    }
+
+    private static class EndUserFunctionalityTest implements Test {
+        @Override
+        public boolean test(PwmRequest pwmRequest, PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
+            return pwmRequest.endUserFunctionalityAvailable();
+        }
+
     }
 
 }

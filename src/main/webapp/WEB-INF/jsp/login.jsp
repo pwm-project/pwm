@@ -58,7 +58,7 @@
                 </div>
             </div>
         </form>
-        <pwm:if test="<%=PwmIfTest.configurationOpen%>" negate="true">
+        <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvaiable%>">
             <pwm:if test="<%=PwmIfTest.showLoginOptions%>">
                 <table class="noborder">
                     <pwm:if test="<%=PwmIfTest.forgottenPasswordEnabled%>">

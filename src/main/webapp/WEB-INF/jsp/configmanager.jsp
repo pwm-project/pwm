@@ -119,9 +119,15 @@
         <table style="width: 550px">
             <tr><td colspan="2" class="title">Configuration Activities</td></tr>
             <pwm:if test="<%=PwmIfTest.configurationOpen%>">
-                <tr class="buttonrow">
-                    <td class="buttoncell" colspan="2">
-                        <% String configFileName = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigFilename); %>
+            <tr class="buttonrow">
+                <td class="buttoncell" colspan="2">
+                    <% String configFileName = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigFilename); %>
+                    <pwm:if test="<%=PwmIfTest.trialMode%>">
+                        <div  style="text-align: center" class="center">
+                        <span><pwm:display key="Notice_TrialRestrictConfig" bundle="Admin"/></span>
+                        </div>
+                    </pwm:if>
+                    <pwm:if test="<%=PwmIfTest.trialMode%>" negate="true">
                         <a class="menubutton important" id="MenuItem_LockConfig" title="<pwm:display key="MenuDisplay_LockConfig" value1="<%=configFileName%>" bundle="Config"/>">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-lock"></span></pwm:if>
                             <pwm:display key="MenuItem_LockConfig" bundle="Config"/>
@@ -135,9 +141,10 @@
                                 });
                             </script>
                         </pwm:script>
-                    </td>
-                </tr>
-            </pwm:if>
+                    </pwm:if>
+                    </pwm:if>
+                </td>
+            </tr>
             <tr class="buttonrow">
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_UploadConfig"  title="<pwm:display key="MenuDisplay_UploadConfig" bundle="Config"/>">

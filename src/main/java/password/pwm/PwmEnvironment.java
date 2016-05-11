@@ -382,7 +382,12 @@ public class PwmEnvironment implements Serializable {
         }
 
         public Builder setApplicationMode(PwmApplicationMode applicationMode) {
-            this.applicationMode = applicationMode;
+            if (PwmConstants.TRIAL_MODE && applicationMode == PwmApplicationMode.RUNNING) {
+                LOGGER.info("application is in trial mode");
+                this.applicationMode = PwmApplicationMode.CONFIGURATION;
+            } else {
+                this.applicationMode = applicationMode;
+            }
             return this;
         }
 
@@ -536,6 +541,11 @@ public class PwmEnvironment implements Serializable {
                     lock.release();
                 } catch (IOException e) {
                     LOGGER.error("error releasing file lock: " + e.getMessage());
+                }
+                try {
+                    lockfile.delete();
+                } catch (Exception e) {
+                    LOGGER.error("error deleting lock file: " + e.getMessage());
                 }
                 lock = null;
                 LOGGER.debug("released file lock on file " + lockfile.getAbsolutePath());

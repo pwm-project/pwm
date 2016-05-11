@@ -35,7 +35,8 @@
 <div id="wrapper">
     <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
-        <%=PwmConstants.PWM_APP_NAME_VERSION%>
+        <span><%=PwmConstants.PWM_APP_NAME_VERSION%></span>
+        <pwm:if test="<%=PwmIfTest.trialMode%>"><span><pwm:display key="Header_TrialMode" bundle="Admin"/></span></pwm:if>
         <br/>
         <pwm:display key="Display_ConfigManagerNew" bundle="Config" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>

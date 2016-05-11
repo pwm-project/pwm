@@ -25,10 +25,12 @@ package password.pwm.i18n;
 public enum Admin implements PwmDisplayBundle {
 
 
+    Notice_TrialRestrictConfig,
+
     ;
 
     @Override
     public String getKey() {
-        return null;
+        return this.toString();
     }
 }

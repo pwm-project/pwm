@@ -28,6 +28,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.SessionLabel;
@@ -639,5 +640,19 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         }
 
         return sb.toString();
+    }
+
+    public boolean endUserFunctionalityAvailable() {
+        final PwmApplicationMode mode = pwmApplication.getApplicationMode();
+        if (mode == PwmApplicationMode.NEW) {
+            return false;
+        }
+        if (PwmConstants.TRIAL_MODE) {
+            return true;
+        }
+        if (mode == PwmApplicationMode.RUNNING) {
+            return true;
+        }
+        return false;
     }
 }

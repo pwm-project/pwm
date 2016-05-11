@@ -39,6 +39,7 @@ import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.configguide.ConfigGuideServlet;
+import password.pwm.i18n.Admin;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
@@ -206,7 +207,8 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         if (PwmConstants.TRIAL_MODE) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_TRIAL_VIOLATION,"configuration lock not available in trial");
+            final String msg = LocaleHelper.getLocalizedMessage(Admin.Notice_TrialRestrictConfig, pwmRequest);
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_TRIAL_VIOLATION, msg);
             final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
             LOGGER.debug(pwmSession, errorInfo);
             pwmRequest.outputJsonResult(restResultBean);
