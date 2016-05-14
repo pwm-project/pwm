@@ -22,6 +22,7 @@
 
 package password.pwm.util;
 
+import com.novell.ldapchai.ChaiConstant;
 import password.pwm.config.*;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
@@ -40,9 +41,13 @@ import java.util.*;
 public class LDAPPermissionCalculator implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LDAPPermissionCalculator.class);
 
+    private final StoredConfigurationImpl storedConfiguration;
+    private final Configuration configuration;
     private final Collection<PermissionRecord> permissionRecords;
 
     public LDAPPermissionCalculator(final StoredConfigurationImpl storedConfiguration) throws PwmUnrecoverableException {
+        this.storedConfiguration = storedConfiguration;
+        this.configuration = new Configuration(storedConfiguration);
         permissionRecords = figureRecords(storedConfiguration);
     }
 
@@ -63,31 +68,31 @@ public class LDAPPermissionCalculator implements Serializable {
                 returnObj.get(permissionRecord.getAttribute()).get(permissionRecord.getAccess()).add(permissionRecord);
             }
         }
-        return returnObj;
+        return Collections.unmodifiableMap(returnObj);
     }
 
-    private static Collection<PermissionRecord> figureRecords(final StoredConfigurationImpl storedConfiguration) throws PwmUnrecoverableException {
+    private Collection<PermissionRecord> figureRecords(final StoredConfigurationImpl storedConfiguration) throws PwmUnrecoverableException {
         final List<PermissionRecord> permissionRecords = new ArrayList<>();
 
         for (final PwmSetting pwmSetting : PwmSetting.values()) {
             if (pwmSetting.getCategory().hasProfiles()) {
                 final List<String> profiles = StoredConfigurationUtil.profilesForSetting(pwmSetting, storedConfiguration);
                 for (final String profile : profiles) {
-                    permissionRecords.addAll(figureRecord(storedConfiguration, pwmSetting, profile));
+                    permissionRecords.addAll(figureRecord(pwmSetting, profile));
                 }
             } else {
-                permissionRecords.addAll(figureRecord(storedConfiguration, pwmSetting, null));
+                permissionRecords.addAll(figureRecord(pwmSetting, null));
             }
         }
 
-        permissionRecords.addAll(permissionsForUserPassword(storedConfiguration));
-
+        permissionRecords.addAll(permissionsForUserPassword());
+        permissionRecords.addAll(figureStaticRecords());
         return permissionRecords;
     }
 
-    private static Collection<PermissionRecord> figureRecord(final StoredConfigurationImpl storedConfiguration, PwmSetting pwmSetting, final String profile) throws PwmUnrecoverableException {
+    private Collection<PermissionRecord> figureRecord(PwmSetting pwmSetting, final String profile) throws PwmUnrecoverableException {
         final List<PermissionRecord> permissionRecords = new ArrayList<>();
-        final Collection<LDAPPermissionInfo> permissionInfos = figurePermissionInfos(storedConfiguration, pwmSetting, profile);
+        final Collection<LDAPPermissionInfo> permissionInfos = figurePermissionInfos(pwmSetting, profile);
         if (permissionInfos == null) {
             return Collections.emptyList();
         }
@@ -146,7 +151,6 @@ public class LDAPPermissionCalculator implements Serializable {
                 case USER_PERMISSION:
                 {
                     final List<UserPermission> userPermissions = (List<UserPermission>) storedConfiguration.readSetting(pwmSetting, profile).toNativeObject();
-                    final Configuration configuration = new Configuration(storedConfiguration);
                     if (configuration.getLdapProfiles() != null && !configuration.getLdapProfiles().isEmpty()) {
                         for (LdapProfile ldapProfile : configuration.getLdapProfiles().values()) {
                             final String groupAttribute = ldapProfile.readSettingAsString(PwmSetting.LDAP_USER_GROUP_ATTRIBUTE);
@@ -172,12 +176,23 @@ public class LDAPPermissionCalculator implements Serializable {
         return permissionRecords;
     }
 
-    private static Collection<LDAPPermissionInfo> figurePermissionInfos(final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile) {
+    private Collection<LDAPPermissionInfo> figurePermissionInfos(final PwmSetting pwmSetting, final String profile) {
         switch (pwmSetting.getCategory()) {
             case PEOPLE_SEARCH:
             {
                 if (!(Boolean)storedConfiguration.readSetting(PwmSetting.PEOPLE_SEARCH_ENABLE).toNativeObject()) {
                     return Collections.emptyList();
+                }
+                final boolean proxyOverride = (Boolean)storedConfiguration.readSetting(PwmSetting.PEOPLE_SEARCH_USE_PROXY, profile).toNativeObject()
+                        || (Boolean)storedConfiguration.readSetting(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC, profile).toNativeObject();
+
+                if (proxyOverride) {
+                    final Collection<LDAPPermissionInfo> configuredRecords = pwmSetting.getLDAPPermissionInfo();
+                    final Collection<LDAPPermissionInfo> returnRecords = new ArrayList<>();
+                    for (final LDAPPermissionInfo ldapPermissionInfo : configuredRecords) {
+                        returnRecords.add(new LDAPPermissionInfo(ldapPermissionInfo.getAccess(), LDAPPermissionInfo.Actor.proxy));
+                    }
+                    return returnRecords;
                 }
             }
             break;
@@ -247,10 +262,9 @@ public class LDAPPermissionCalculator implements Serializable {
         switch (pwmSetting) {
             case CHALLENGE_USER_ATTRIBUTE:
             {
-                final Configuration config = new Configuration(storedConfiguration);
                 final Set<DataStorageMethod> storageMethods = new HashSet<>();
-                storageMethods.addAll(config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE));
-                storageMethods.addAll(config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE));
+                storageMethods.addAll(configuration.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE));
+                storageMethods.addAll(configuration.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE));
                 if (!storageMethods.contains(DataStorageMethod.LDAP)) {
                     return Collections.emptyList();
                 }
@@ -260,8 +274,7 @@ public class LDAPPermissionCalculator implements Serializable {
 
             case OTP_SECRET_LDAP_ATTRIBUTE:
             {
-                final Configuration config = new Configuration(storedConfiguration);
-                if (!config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)) {
+                if (!configuration.readSettingAsBoolean(PwmSetting.OTP_ENABLED)) {
                     return Collections.emptyList();
                 }
             }
@@ -269,8 +282,7 @@ public class LDAPPermissionCalculator implements Serializable {
 
             case SMS_USER_PHONE_ATTRIBUTE:
             {
-                final Configuration config = new Configuration(storedConfiguration);
-                if (!SmsQueueManager.smsIsConfigured(config)) {
+                if (!SmsQueueManager.smsIsConfigured(configuration)) {
                     return Collections.emptyList();
                 }
             }
@@ -280,9 +292,8 @@ public class LDAPPermissionCalculator implements Serializable {
         return pwmSetting.getLDAPPermissionInfo();
     }
 
-    public static Collection<PermissionRecord> permissionsForUserPassword(final StoredConfigurationImpl storedConfiguration) {
+    private Collection<PermissionRecord> permissionsForUserPassword() {
         final String userPasswordAttributeName = LocaleHelper.getLocalizedMessage("Label_UserPasswordAttribute",null,Config.class);
-        final Configuration configuration = new Configuration(storedConfiguration);
         final Collection<PermissionRecord> records = new ArrayList<>();
 
         // user set password
@@ -312,6 +323,44 @@ public class LDAPPermissionCalculator implements Serializable {
 
 
         return records;
+    }
+
+    final private static Set<PwmSettingTemplate> EDIR_INTERESTED_TEMPLATES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            new PwmSettingTemplate[]{ PwmSettingTemplate.NOVL, PwmSettingTemplate.NOVL_IDM}
+    )));
+
+    private Collection<PermissionRecord> figureStaticRecords() {
+
+        final List<PermissionRecord> permissionRecords = new ArrayList<>();
+
+        final PwmSettingTemplateSet templateSet =  storedConfiguration.getTemplateSet();
+
+        { //
+
+            if (!Collections.disjoint(templateSet.getTemplates(), EDIR_INTERESTED_TEMPLATES)) {
+                if (configuration.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
+                    final String[] ldapAttributes = new String[] {
+                            ChaiConstant.ATTR_LDAP_LOCKED_BY_INTRUDER,
+                            ChaiConstant.ATTR_LDAP_LOGIN_INTRUDER_ATTEMPTS,
+                            ChaiConstant.ATTR_LDAP_LOGIN_INTRUDER_RESET_TIME,
+                            ChaiConstant.ATTR_LDAP_LOGIN_GRACE_LIMIT,
+                            ChaiConstant.ATTR_LDAP_LOGIN_GRACE_REMAINING,
+                    };
+
+                    for (final String ldapAttribute : ldapAttributes) {
+                        permissionRecords.add(new PermissionRecord(
+                                ldapAttribute,
+                                PwmSetting.FORGOTTEN_PASSWORD_ENABLE,
+                                null,
+                                LDAPPermissionInfo.Access.write,
+                                LDAPPermissionInfo.Actor.proxy
+                        ));
+                    }
+                }
+            }
+        }
+
+        return permissionRecords;
     }
 
     public static class PermissionRecord implements Serializable {
@@ -349,5 +398,4 @@ public class LDAPPermissionCalculator implements Serializable {
             return actor;
         }
     }
-
 }

@@ -134,6 +134,8 @@ public abstract class PwmConstants {
     public static final String DOWNLOAD_FILENAME_USER_REPORT_SUMMARY_CSV = "UserReportSummary.csv";
     public static final String DOWNLOAD_FILENAME_USER_REPORT_RECORDS_CSV = "UserReportRecords.csv";
     public static final String DOWNLOAD_FILENAME_AUDIT_RECORDS_CSV = "AuditRecords.csv";
+    public static final String DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV = "LDAPPermissionRecommendations.csv";
+
 
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle("log.removedValue");
 

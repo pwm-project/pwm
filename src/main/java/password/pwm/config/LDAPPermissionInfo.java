@@ -54,6 +54,7 @@ public class LDAPPermissionInfo implements Serializable {
     public enum Actor {
         proxy,
         self,
+        self_other,
         helpdesk,
         guestManager,
 

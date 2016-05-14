@@ -23,7 +23,9 @@
 package password.pwm.http.servlet.configmanager;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.IOUtils;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -43,6 +45,7 @@ import password.pwm.i18n.Admin;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
+import password.pwm.util.Helper;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
@@ -77,6 +80,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         summary(HttpMethod.GET),
         permissions(HttpMethod.GET),
         viewLog(HttpMethod.GET),
+        downloadPermissionCsv(HttpMethod.GET),
 
         ;
 
@@ -139,6 +143,10 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
 
                 case permissions:
                     showPermissions(pwmRequest);
+                    return;
+
+                case downloadPermissionCsv:
+                    downloadPermissionReportCsv(pwmRequest);
                     return;
             }
             return;
@@ -403,5 +411,38 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         }
     }
 
+    private void downloadPermissionReportCsv(
+            final PwmRequest pwmRequest
+    )
+            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    {
+        pwmRequest.getPwmResponse().markAsDownload(PwmConstants.ContentTypeValue.csv, PwmConstants.DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV);
+
+        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(pwmRequest.getPwmResponse().getOutputStream());
+        try {
+
+            final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
+            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(storedConfiguration);
+
+            for (final LDAPPermissionCalculator.PermissionRecord permissionRecord : ldapPermissionCalculator.getPermissionRecords()) {
+                final String settingTxt = permissionRecord.getPwmSetting() == null
+                        ? LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, pwmRequest)
+                        : permissionRecord.getPwmSetting().toMenuLocationDebug(permissionRecord.getProfile(), pwmRequest.getLocale());
+                csvPrinter.printRecord(
+                        permissionRecord.getActor().getLabel(pwmRequest.getLocale(), pwmRequest.getConfig()),
+                        permissionRecord.getAttribute(),
+                        permissionRecord.getAccess().toString(),
+                        settingTxt
+                );
+            }
+
+        } catch (Exception e) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
+            LOGGER.error(pwmRequest, errorInformation);
+            pwmRequest.respondWithError(errorInformation);
+        } finally {
+            IOUtils.closeQuietly(csvPrinter);
+        }
+    }
 }
 

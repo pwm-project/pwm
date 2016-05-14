@@ -70,6 +70,7 @@
     <script type="text/javascript">
         function handleFormActivity() {
             PWM_GUIDE.updateForm();
+            checkIfNextEnabled();
         }
 
         PWM_GLOBAL['startupFunctions'].push(function(){
@@ -78,8 +79,19 @@
             PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
 
             PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
+
+            checkIfNextEnabled();
         });
 
+        function checkIfNextEnabled() {
+            var siteUrlInput = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_APP_SITEURL%>');
+            var passed = siteUrlInput.value.length > 1 && new RegExp(siteUrlInput.getAttribute('pattern')).test(siteUrlInput.value);
+            if (passed) {
+                PWM_MAIN.getObject('button_next').disabled = false;
+            } else {
+                PWM_MAIN.getObject('button_next').disabled = true;
+            }
+        }
     </script>
 </pwm:script>
 <%@ include file="fragment/footer.jsp" %>

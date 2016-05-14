@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.Config" %>
+<%@ page import="password.pwm.http.servlet.configmanager.ConfigManagerServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -37,6 +38,13 @@
 <body class="nihilo">
 <div style="padding: 10px">
     <div id="page-content-title"><pwm:display key="Title_LDAPPermissionRecommendations" bundle="Config" displayIfMissing="true"/></div>
+    <div>
+        <a class="menubutton pwm-basic-link" id="MenuItem_DownloadBundle" title="<pwm:display key="Button_DownloadCSV" bundle="Admin"/>"
+           href="manager?processAction=<%=ConfigManagerServlet.ConfigManagerAction.downloadPermissionCsv.toString()%>">
+            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
+            <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
+        </a>
+    </div>
     <jsp:include page="fragment/ldap-permissions.jsp"/>
 </div>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

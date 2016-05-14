@@ -2674,13 +2674,13 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.queryMatch" level="1" required="true">
-        <ldapPermission actor="proxy" access="read"/>
+        <ldapPermission actor="self_other" access="read"/>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value>{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}</value>
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.searchAttributes" level="1" required="false">
-        <ldapPermission actor="proxy" access="read"/>
+        <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>givenName</value>
             <value>sn</value>
@@ -2697,7 +2697,7 @@
     </setting>
     <setting hidden="false" key="peopleSearch.result.form" level="1" required="true">
         <flag>Form_HideOptions</flag>
-        <ldapPermission actor="proxy" access="read"/>
+        <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2709,7 +2709,7 @@
     <setting hidden="false" key="peopleSearch.detail.form" level="1" required="true">
         <flag>Form_HideStandardOptions</flag>
         <flag>Form_ShowMultiValueOption</flag>
-        <ldapPermission actor="proxy" access="read"/>
+        <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2769,7 +2769,7 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.photo.ldapAttribute" level="2">
-        <ldapPermission actor="proxy" access="read"/>
+        <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>photo</value>
         </default>
@@ -2799,7 +2799,7 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.orgChart.childAttribute" level="1">
-        <ldapPermission actor="proxy" access="read"/>
+        <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>directReports</value>
         </default>

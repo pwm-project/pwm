@@ -51,7 +51,7 @@
     <tr>
         <td class="title">Attribute Name</td>
         <td class="title">Access</td>
-        <td class="title">Configuration Setting</td>
+        <td class="title">Associated Configuration Setting</td>
     </tr>
     <% for (final String attribute : baseMap.keySet()) { %>
     <% for (final LDAPPermissionInfo.Access access : baseMap.get(attribute).keySet()) { %>

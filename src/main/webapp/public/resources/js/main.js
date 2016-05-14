@@ -246,6 +246,11 @@ PWM_MAIN.applyFormAttributes = function() {
         });
 
         PWM_MAIN.doQuery('a:not([target])',function(linkElement) {
+            try {
+                if (linkElement.classList.contains('pwm-basic-link')) {
+                    return;
+                }
+            } catch (e) { /* ignore for browsers that don't support classList */ }
             var hrefValue = linkElement.getAttribute('href');
             if (hrefValue && hrefValue.charAt(0) != '#') {
                 on(linkElement, "click", function (event) {
