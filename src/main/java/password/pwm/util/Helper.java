@@ -43,6 +43,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.URI;
@@ -440,11 +441,16 @@ public class
 
         try {
             Method valueOfMethod = enumClass.getMethod("valueOf", String.class);
-            Object result = valueOfMethod.invoke(null, input);
-            return (E) result;
+            try {
+                Object result = valueOfMethod.invoke(null, input);
+                return (E) result;
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
         } catch (IllegalArgumentException e) {
-            LOGGER.trace("input=" + input + " does not exist in enumClass=" + enumClass.getSimpleName());
-        } catch (Exception e) {
+            /* noop */
+            //LOGGER.trace("input=" + input + " does not exist in enumClass=" + enumClass.getSimpleName());
+        } catch (Throwable e) {
             LOGGER.warn("unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName());
         }
 

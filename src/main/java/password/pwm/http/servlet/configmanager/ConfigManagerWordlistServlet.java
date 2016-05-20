@@ -45,6 +45,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -186,6 +187,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
             throws IOException
     {
         final LinkedHashMap<WordlistType,WordlistDataBean> outputData = new LinkedHashMap<>();
+        final NumberFormat numberFormat = NumberFormat.getNumberInstance(pwmRequest.getLocale());
         for (WordlistType wordlistType : WordlistType.values()) {
 
             final StoredWordlistDataBean storedWordlistDataBean = wordlistType.forType(pwmRequest.getPwmApplication()).readMetadata();
@@ -194,7 +196,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
             presentableValues.put("Population Status", storedWordlistDataBean.isCompleted() ? "Completed" : "In-Progress");
             if (storedWordlistDataBean.isCompleted()) {
                 presentableValues.put("Wordlist Type", storedWordlistDataBean.isBuiltin() ? "Built-In" : "Uploaded");
-                presentableValues.put("Word Count", String.valueOf(storedWordlistDataBean.getSize()));
+                presentableValues.put("Word Count", String.valueOf(numberFormat.format(storedWordlistDataBean.getSize())));
                 if (!storedWordlistDataBean.isBuiltin()) {
                     presentableValues.put("Population Timestamp", PwmConstants.DEFAULT_DATETIME_FORMAT.format(storedWordlistDataBean.getStoreDate()));
                 }

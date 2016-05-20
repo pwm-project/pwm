@@ -120,6 +120,7 @@ public enum AppProperty {
     HTTP_DOWNLOAD_BUFFER_SIZE                       ("http.download.buffer.size"),
     HTTP_SESSION_RECYCLE_AT_AUTH                    ("http.session.recycleAtAuth"),
     HTTP_SESSION_VALIDATION_KEY_LENGTH              ("http.session.validationKeyLength"),
+    LOCALDB_AGGRESSIVE_COMPACT_ENABLED              ("localdb.aggressiveCompact.enabled"),
     LOCALDB_COMPRESSION_ENABLED                     ("localdb.compression.enabled"),
     LOCALDB_DECOMPRESSION_ENABLED                   ("localdb.decompression.enabled"),
     LOCALDB_COMPRESSION_MINSIZE                     ("localdb.compression.minSize"),

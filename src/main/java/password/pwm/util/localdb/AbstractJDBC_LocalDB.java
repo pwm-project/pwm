@@ -24,11 +24,13 @@ package password.pwm.util.localdb;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.sql.*;
 import java.util.*;
+import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -57,6 +59,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
 
     protected LocalDB.Status status = LocalDB.Status.NEW;
     protected boolean readOnly = false;
+    protected boolean aggressiveCompact = false;
 
 
 // -------------------------- STATIC METHODS --------------------------
@@ -67,6 +70,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             LOGGER.trace("table " + db + " appears to exist");
         } catch (LocalDBException e) { // assume error was due to table missing;
             {
+                final Date startTime = new Date();
                 final StringBuilder sqlString = new StringBuilder();
                 sqlString.append("CREATE table ").append(db.toString()).append(" (").append("\n");
                 sqlString.append("  " + KEY_COLUMN + " VARCHAR(").append(WIDTH_KEY).append(") NOT NULL PRIMARY KEY,").append("\n");
@@ -79,7 +83,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
                     statement = connection.createStatement();
                     statement.execute(sqlString.toString());
                     connection.commit();
-                    LOGGER.debug("created table " + db.toString());
+                    LOGGER.debug("created table " + db.toString() + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
                 } catch (SQLException ex) {
                     LOGGER.error("error creating new table " + db.toString() + ": " + ex.getMessage());
                 } finally {
@@ -88,6 +92,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             }
 
             {
+                final Date startTime = new Date();
                 final String indexName = db.toString() + "_IDX";
                 final StringBuilder sqlString = new StringBuilder();
                 sqlString.append("CREATE index ").append(indexName);
@@ -99,7 +104,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
                     statement = connection.createStatement();
                     statement.execute(sqlString.toString());
                     connection.commit();
-                    LOGGER.debug("created index " + indexName);
+                    LOGGER.debug("created index " + indexName + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
                 } catch (SQLException ex) {
                     LOGGER.error("error creating new index " + indexName + ex.getMessage());
                 } finally {
@@ -214,7 +219,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
         return null;
     }
 
-    public void init(final File dbDirectory, final Map<String, String> initParams, final boolean readOnly)
+    public void init(final File dbDirectory, final Map<String, String> initParams, final Map<Parameter,String> parameters)
             throws LocalDBException {
         this.dbDirectory = dbDirectory;
 
@@ -224,7 +229,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             initTable(dbConnection, db);
         }
 
-        this.readOnly = readOnly;
+        this.readOnly = LocalDBUtility.hasBooleanParameter(Parameter.readOnly, parameters);
         this.status = LocalDB.Status.OPEN;
     }
 
@@ -382,6 +387,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             throws LocalDBException
     {
         preCheck(true);
+        final Date startTime = new Date();
         final StringBuilder sqlText = new StringBuilder();
         sqlText.append("DROP TABLE ").append(db.toString());
 
@@ -399,6 +405,8 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             statement = dbConnection.prepareStatement(sqlText.toString());
             statement.executeUpdate();
             dbConnection.commit();
+            LOGGER.debug("truncated table " + db.toString() + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
+
             initTable(dbConnection, db);
         } catch (SQLException ex) {
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));

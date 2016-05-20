@@ -69,22 +69,22 @@ public class H2_LocalDB extends AbstractJDBC_LocalDB {
             throws SQLException
     {
 
-        CallableStatement statement = null;
-        try {
-            LOCK.writeLock().lock();
-            final java.util.Date start = new java.util.Date();
-            LOGGER.trace("beginning shutdown compact");
-            statement = dbConnection.prepareCall("SHUTDOWN COMPACT");
-            statement.execute();
-            LOGGER.trace("completed shutdown compact in " + TimeDuration.fromCurrent(start).asCompactString());
-        } catch (SQLException ex) {
-            LOGGER.error("error during shutdown compact: " + ex.getMessage());
-        } finally {
-            close(statement);
-            LOCK.writeLock().unlock();
+        if (aggressiveCompact) {
+            CallableStatement statement = null;
+            try {
+                LOCK.writeLock().lock();
+                final java.util.Date start = new java.util.Date();
+                LOGGER.trace("beginning shutdown compact");
+                statement = dbConnection.prepareCall("SHUTDOWN COMPACT");
+                statement.execute();
+                LOGGER.trace("completed shutdown compact in " + TimeDuration.fromCurrent(start).asCompactString());
+            } catch (SQLException ex) {
+                LOGGER.error("error during shutdown compact: " + ex.getMessage());
+            } finally {
+                close(statement);
+                LOCK.writeLock().unlock();
+            }
         }
-
-
 
         try {
             connection.close();
@@ -104,12 +104,12 @@ public class H2_LocalDB extends AbstractJDBC_LocalDB {
             final Map<String,String> initParams
     ) throws LocalDBException {
         final String filePath = databaseDirectory.getAbsolutePath() + File.separator + "localdb-h2";
-        final String baseConnectionURL = "jdbc:h2:" + filePath + ";" + makeInitStringParams(initParams);
+        final String connectionString = "jdbc:h2:split:" + filePath + ";" + makeInitStringParams(initParams);
 
         try {
             driver = (Driver)Class.forName(H2_CLASSPATH).newInstance();
             final Properties connectionProps = new Properties();
-            final Connection connection = driver.connect(baseConnectionURL, connectionProps);
+            final Connection connection = driver.connect(connectionString, connectionProps);
             connection.setAutoCommit(true);
             return connection;
         } catch (Throwable e) {

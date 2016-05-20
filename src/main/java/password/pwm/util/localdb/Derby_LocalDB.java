@@ -46,8 +46,6 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
     private static final String DERBY_CLASSPATH = "org.apache.derby.jdbc.EmbeddedDriver";
     private static final String DERBY_DEFAULT_SCHEMA = "APP";
 
-    private static final String OPTION_KEY_RECLAIM_SPACE = "reclaimAllSpace";
-
     private Driver driver;
 
     Derby_LocalDB()
@@ -112,7 +110,7 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
             final Connection connection = driver.connect(connectionURL, new Properties());
             connection.setAutoCommit(false);
 
-            if (initOptions != null && initOptions.containsKey(OPTION_KEY_RECLAIM_SPACE) && Boolean.parseBoolean(initOptions.get(OPTION_KEY_RECLAIM_SPACE))) {
+            if (aggressiveCompact) {
                 reclaimAllSpace(connection);
             }
 

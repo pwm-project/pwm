@@ -102,8 +102,9 @@ public class Memory_LocalDB implements LocalDBProvider {
     }
 
     @LocalDB.WriteOperation
-    public void init(final File dbDirectory, final Map<String, String> initParameters, final boolean readOnly)
+    public void init(final File dbDirectory, final Map<String, String> initParameters, Map<LocalDBProvider.Parameter,String> parameters)
             throws LocalDBException {
+        boolean readOnly = LocalDBUtility.hasBooleanParameter(Parameter.readOnly, parameters);
         if (readOnly) {
             maps = Collections.unmodifiableMap(maps);
         }

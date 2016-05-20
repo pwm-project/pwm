@@ -25,6 +25,8 @@ package password.pwm.util.localdb;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.util.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.StringUtil;
@@ -33,6 +35,8 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -71,13 +75,13 @@ public class LocalDBFactory {
             initParameters = StringUtil.convertStringListToNameValuePair(Arrays.asList(initStrings.split(";;;")), "=");
         }
 
-
+        final Map<LocalDBProvider.Parameter,String> parameters = makeParameterMap(pwmApplication.getConfig(), readonly);
         final LocalDBProvider dbProvider = createInstance(className);
         LOGGER.debug("initializing " + className + " localDBProvider instance");
 
         LocalDB localDB = new LocalDBAdaptor(dbProvider, pwmApplication);
 
-        initInstance(dbProvider, dbDirectory, initParameters, className, readonly);
+        initInstance(dbProvider, dbDirectory, initParameters, className, parameters);
         final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
 
         localDB = wrapWithCompressor(localDB,config);
@@ -117,24 +121,34 @@ public class LocalDBFactory {
                 throw new Exception("unable to createSharedHistoryManager new LocalDB, " + className + " is not instance of " + LocalDBProvider.class.getName());
             }
             localDB = (LocalDBProvider) impl;
-        } catch (Exception e) {
-            LOGGER.warn("error creating new LocalDB instance: " + e.getClass().getName() + ":" + e.getMessage());
-            throw new Exception("error creating new LocalDB instance: " + e.getMessage(), e);
+        } catch (Throwable e) {
+            final String errorMsg = "error creating new LocalDB instance: " + e.getClass().getName() + ":" + e.getMessage();
+            LOGGER.error(errorMsg,e);
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg));
         }
 
         return localDB;
     }
 
-    private static void initInstance(final LocalDBProvider pwmDBProvider, final File dbFileLocation, final Map<String, String> initParameters, final String theClass, final boolean readonly)
+    private static void initInstance(
+            final LocalDBProvider pwmDBProvider,
+            final File dbFileLocation,
+            final Map<String, String> initParameters,
+            final String theClass,
+            final Map<LocalDBProvider.Parameter,String> parameters
+    )
             throws Exception {
         try {
             if (dbFileLocation.mkdir()) {
                 LOGGER.trace("created directory at " + dbFileLocation.getAbsolutePath());
             }
-            pwmDBProvider.init(dbFileLocation, initParameters, readonly);
+
+
+            pwmDBProvider.init(dbFileLocation, initParameters, parameters);
         } catch (Exception e) {
-            LOGGER.warn("error while initializing LocalDB instance: " + e.getMessage());
-            throw e;
+            final String errorMsg = "error creating new LocalDB instance: " + e.getClass().getName() + ":" + e.getMessage();
+            LOGGER.error(errorMsg,e);
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg));
         }
 
         LOGGER.trace("db init completed for " + theClass);
@@ -154,5 +168,16 @@ public class LocalDBFactory {
         }
 
         return localDB;
+    }
+
+    private static Map<LocalDBProvider.Parameter, String> makeParameterMap(final Configuration configuration, final boolean readOnly) {
+        final Map<LocalDBProvider.Parameter,String> parameters = new HashMap<>();
+        if (readOnly) {
+            parameters.put(LocalDBProvider.Parameter.readOnly, Boolean.TRUE.toString());
+        }
+        if (Boolean.parseBoolean(configuration.readAppProperty(AppProperty.LOCALDB_AGGRESSIVE_COMPACT_ENABLED))) {
+            parameters.put(LocalDBProvider.Parameter.aggressiveCompact, Boolean.TRUE.toString());
+        }
+        return Collections.unmodifiableMap(parameters);
     }
 }

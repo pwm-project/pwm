@@ -82,8 +82,8 @@ public class LocalDBAdaptor implements LocalDB {
     }
 
     @WriteOperation
-    public void init(final File dbDirectory, final Map<String, String> initParameters, boolean readOnly) throws LocalDBException {
-        innerDB.init(dbDirectory, initParameters, readOnly);
+    public void init(final File dbDirectory, final Map<String, String> initParameters, Map<LocalDBProvider.Parameter,String> parameters) throws LocalDBException {
+        innerDB.init(dbDirectory, initParameters, parameters);
     }
 
     public LocalDBIterator<String> iterator(final DB db) throws LocalDBException {

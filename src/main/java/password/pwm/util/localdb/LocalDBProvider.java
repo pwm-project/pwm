@@ -27,6 +27,12 @@ import java.util.Collection;
 import java.util.Map;
 
 public interface LocalDBProvider {
+
+    enum Parameter {
+        readOnly,
+        aggressiveCompact,
+    }
+
     @LocalDB.WriteOperation
     void close()
             throws LocalDBException;
@@ -40,7 +46,7 @@ public interface LocalDBProvider {
             throws LocalDBException;
 
     @LocalDB.WriteOperation
-    void init(File dbDirectory, Map<String, String> initParameters, boolean readOnly)
+    void init(File dbDirectory, Map<String, String> initParameters, Map<Parameter,String> parameters)
             throws LocalDBException;
 
     LocalDB.LocalDBIterator<String> iterator(LocalDB.DB db)
