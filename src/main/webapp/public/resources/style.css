@@ -302,6 +302,7 @@ input[type=password]::-ms-reveal{display: none;}
     height: 170px;
     overflow: hidden;
     z-index: 600;
+    font-weight: normal;
 }
 
 .tile:hover {

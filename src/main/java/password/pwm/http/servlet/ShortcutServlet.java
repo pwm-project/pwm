@@ -54,19 +54,16 @@ public class ShortcutServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ShortcutServlet.class);
 
-    enum ShortcutAction implements AbstractPwmServlet.ProcessAction {
-        selectShortcut,
-        ;
+    public enum ShortcutAction implements AbstractPwmServlet.ProcessAction {
+        selectShortcut,;
 
-        public Collection<HttpMethod> permittedMethods()
-        {
-            return Collections.singletonList(HttpMethod.POST);
+        public Collection<HttpMethod> permittedMethods() {
+            return Collections.singletonList(HttpMethod.GET);
         }
     }
 
     protected ShortcutAction readProcessAction(final PwmRequest request)
-            throws PwmUnrecoverableException
-    {
+            throws PwmUnrecoverableException {
         try {
             return ShortcutAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
         } catch (IllegalArgumentException e) {
@@ -75,8 +72,7 @@ public class ShortcutServlet extends AbstractPwmServlet {
     }
 
     protected void processAction(final PwmRequest pwmRequest)
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
-    {
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
@@ -108,8 +104,7 @@ public class ShortcutServlet extends AbstractPwmServlet {
     }
 
     private void forwardToJsp(final PwmRequest pwmRequest, final ShortcutsBean shortcutsBean)
-            throws ServletException, PwmUnrecoverableException, IOException
-    {
+            throws ServletException, PwmUnrecoverableException, IOException {
         final ArrayList<ShortcutItem> shortcutItems = new ArrayList<>();
         shortcutItems.addAll(shortcutsBean.getVisibleItems().values());
         pwmRequest.setAttribute(PwmRequest.Attribute.ShortcutItems, shortcutItems);
@@ -122,13 +117,12 @@ public class ShortcutServlet extends AbstractPwmServlet {
     private static Map<String, ShortcutItem> figureVisibleShortcuts(
             final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
-    {
+            throws PwmUnrecoverableException, ChaiUnavailableException {
         final Collection<String> configValues = pwmRequest.getConfig().readSettingAsLocalizedStringArray(PwmSetting.SHORTCUT_ITEMS, pwmRequest.getLocale());
 
         final Set<String> labelsFromHeader = new HashSet<>();
         {
-            final Map<String,List<String>> headerValueMap = pwmRequest.readHeaderValuesMap();
+            final Map<String, List<String>> headerValueMap = pwmRequest.readHeaderValuesMap();
             final List<String> interestedHeaderNames = pwmRequest.getConfig().readSettingAsStringArray(PwmSetting.SHORTCUT_HEADER_NAMES);
 
             for (final String headerName : headerValueMap.keySet()) {
@@ -173,8 +167,7 @@ public class ShortcutServlet extends AbstractPwmServlet {
             final PwmRequest pwmRequest,
             final ShortcutsBean shortcutsBean
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
-    {
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 

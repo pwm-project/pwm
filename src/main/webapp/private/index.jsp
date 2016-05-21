@@ -43,7 +43,7 @@
     </pwm:if>
         <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvaiable%>">
             <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.CHANGE_PASSWORD%>">
-                <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ChangePassword.servletUrl()%>'/>" style="font-weight: normal;">
+                <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ChangePassword.servletUrl()%>'/>">
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image password-image"></div>
@@ -56,7 +56,7 @@
 
             <pwm:if test="<%=PwmIfTest.peopleSearchEnabled%>">
                 <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PEOPLE_SEARCH%>">
-                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>" style="font-weight: normal;">
+                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>">
                         <div class="tile">
                             <div class="tile-content">
                                 <div class="tile-image search-image"></div>
@@ -70,7 +70,7 @@
 
             <pwm:if test="<%=PwmIfTest.setupChallengeEnabled%>">
                 <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.SETUP_RESPONSE%>">
-                    <a id="button_SetupResponses" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupResponses.servletUrl()%>'/>" style="font-weight: normal;">
+                    <a id="button_SetupResponses" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupResponses.servletUrl()%>'/>">
                         <div class="tile">
                             <div class="tile-content">
                                 <div class="tile-image security-image"></div>
@@ -84,7 +84,7 @@
 
             <pwm:if test="<%=PwmIfTest.otpEnabled%>">
                 <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.SETUP_OTP_SECRET%>">
-                    <a id="button_SetupOtpSecret" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupOtp.servletUrl()%>'/>" style="font-weight: normal;">
+                    <a id="button_SetupOtpSecret" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SetupOtp.servletUrl()%>'/>">
                         <div class="tile">
                             <div class="tile-content">
                                 <div class="tile-image mobile-image"></div>
@@ -97,7 +97,7 @@
             </pwm:if>
 
             <pwm:if test="<%=PwmIfTest.updateProfileAvailable%>">
-                <a id="button_UpdateProfile" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.UpdateProfile.servletUrl()%>'/>" style="font-weight: normal;">
+                <a id="button_UpdateProfile" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.UpdateProfile.servletUrl()%>'/>">
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image profile-image"></div>
@@ -109,7 +109,7 @@
             </pwm:if>
 
             <pwm:if test="<%=PwmIfTest.shortcutsEnabled%>">
-                <a id="button_Shortcuts" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Shortcuts.servletUrl()%>'/>" style="font-weight: normal;">
+                <a id="button_Shortcuts" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Shortcuts.servletUrl()%>'/>">
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image shortcut-image"></div>
@@ -121,7 +121,7 @@
             </pwm:if>
 
             <pwm:if test="<%=PwmIfTest.accountInfoEnabled%>">
-                <a id="button_UserInformation" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.AccountInformation.servletUrl()%>'/>" style="font-weight: normal;">
+                <a id="button_UserInformation" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.AccountInformation.servletUrl()%>'/>">
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image user-image"></div>
@@ -133,7 +133,7 @@
             </pwm:if>
 
             <pwm:if test="<%=PwmIfTest.helpdeskAvailable%>">
-                <a id="button_Helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Helpdesk.servletUrl()%>'/>" style="font-weight: normal;">
+                <a id="button_Helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.Helpdesk.servletUrl()%>'/>">
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image support-image"></div>
@@ -145,7 +145,7 @@
             </pwm:if>
 
             <pwm:if test="<%=PwmIfTest.guestRegistrationAvailable%>">
-                <a id="button_GuestRegistration" href="<pwm:url url='<%=PwmServletDefinition.GuestRegistration.servletUrl()%>' addContext="true"/>" style="font-weight: normal;">
+                <a id="button_GuestRegistration" href="<pwm:url url='<%=PwmServletDefinition.GuestRegistration.servletUrl()%>' addContext="true"/>">
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image guest-image"></div>
@@ -157,7 +157,7 @@
             </pwm:if>
         </pwm:if>
         <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">
-            <a id="button_Admin" href="<pwm:url url='<%=PwmServletDefinition.Admin.servletUrl()%>' addContext="true"/> " style="font-weight: normal;">
+            <a id="button_Admin" href="<pwm:url url='<%=PwmServletDefinition.Admin.servletUrl()%>' addContext="true"/> ">
                 <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image admin-image"></div>

@@ -26,6 +26,8 @@
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.http.servlet.ShortcutServlet" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -48,20 +50,17 @@
         <p>No shortcuts</p>
         <% } else { %>
         <% for (final ShortcutItem item : shortcutItems) { %>
-        <form action="<pwm:current-url/>" method="post" name="form-shortcuts-<%=item%>" enctype="application/x-www-form-urlencoded" id="form-shortcuts-<%=item%>" <%=newWindow ? " target=\"_blank\"" : ""%>>
-            <input type="hidden" name="processAction" value="selectShortcut">
-            <input type="hidden" name="link" value="<%=item.getLabel()%>">
-            <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-            <div type="submit" class="tile">
+        <a href="<pwm:current-url/>?processAction=<%=ShortcutServlet.ShortcutAction.selectShortcut%>&link=<%=StringUtil.escapeHtml(item.getLabel())%>&pwmFormID=<pwm:FormID/>" id="form-shortcuts-<%=StringUtil.escapeHtml(item.getLabel())%>" <%=newWindow ? " target=\"_blank\"" : ""%>>
+            <div class="tile">
                 <div class="tile-content">
                     <div class="tile-image">
-                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-external-link"></span></pwm:if>
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-external-link"></span></pwm:if>
                     </div>
                     <div class="tile-title" title="<%=item.getLabel()%>"><%=item.getLabel()%></div>
                     <div class="tile-subtitle" title="<%=item.getDescription()%>"><%=item.getDescription()%></div>
                 </div>
             </div>
-        </form>
+        </a>
         <% } %>
         <% } %>
     </div>
