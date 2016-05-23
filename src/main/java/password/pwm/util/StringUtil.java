@@ -305,4 +305,19 @@ public abstract class StringUtil {
         }
         return sb.toString();
     }
+
+    public static int[] toCodePointArray(String str) {
+        if (str != null) {
+            int len = str.length();
+            int[] acp = new int[str.codePointCount(0, len)];
+
+            for (int i = 0, j = 0; i < len; i = str.offsetByCodePoints(i, 1)) {
+                acp[j++] = str.codePointAt(i);
+            }
+
+            return acp;
+        }
+
+        return new int[0];
+    }
 }
