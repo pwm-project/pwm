@@ -24,7 +24,6 @@ package password.pwm.http.servlet.configmanager;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
@@ -44,7 +43,6 @@ import password.pwm.http.servlet.configguide.ConfigGuideServlet;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
-import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.LocaleHelper;
@@ -53,9 +51,7 @@ import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.zip.ZipOutputStream;
@@ -133,10 +129,6 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
                     ConfigGuideServlet.restUploadConfig(pwmRequest);
                     return;
 
-                case uploadWordlist:
-                    restUploadWordlist(pwmRequest);
-                    return;
-
                 case summary:
                     showSummary(pwmRequest);
                     return;
@@ -171,34 +163,6 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
             pwmRequest.setAttribute(PwmRequest.Attribute.ConfigLastModified, output);
         }
         pwmRequest.setAttribute(PwmRequest.Attribute.ConfigHasPassword, LocaleHelper.booleanString(configurationReader.getStoredConfiguration().hasPassword(), pwmRequest.getLocale(), pwmRequest.getConfig()));
-    }
-
-    void restUploadWordlist(final PwmRequest pwmRequest)
-            throws IOException, ServletException, PwmUnrecoverableException
-
-    {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-
-        if (!ServletFileUpload.isMultipartContent(req)) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"no file found in upload");
-            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
-            LOGGER.error(pwmRequest, "error during import: " + errorInformation.toDebugStr());
-            return;
-        }
-
-        final InputStream inputStream = pwmRequest.readFileUploadStream(PwmConstants.PARAM_FILE_UPLOAD);
-        try {
-            pwmApplication.getWordlistManager().populate(inputStream);
-        } catch (PwmUnrecoverableException e) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNKNOWN, e.getMessage());
-            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
-            LOGGER.debug(pwmRequest, errorInfo.toDebugStr());
-            pwmRequest.outputJsonResult(restResultBean);
-            return;
-        }
-
-        pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
     }
 
 

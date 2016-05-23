@@ -33,6 +33,7 @@ public enum AppProperty {
 
     APPLICATION_FILELOCK_FILENAME                   ("application.fileLock.filename"),
     APPLICATION_FILELOCK_WAIT_SECONDS               ("application.fileLock.waitSeconds"),
+    APPLICATION_WORDLIST_RETRY_SECONDS              ("application.wordlistRetryImportSeconds"),
     AUDIT_EVENTS_EMAILFROM                          ("audit.events.emailFrom"),
     AUDIT_EVENTS_EMAILSUBJECT                       ("audit.events.emailSubject"),
     AUDIT_VAULT_MAX_RECORDS                         ("audit.vault.maxRecords"),
@@ -86,6 +87,10 @@ public enum AppProperty {
     HTTP_COOKIE_LOGIN_NAME                          ("http.cookie.login.name"),
     HTTP_BASIC_AUTH_CHARSET                         ("http.basicAuth.charset"),
     HTTP_BODY_MAXREAD_LENGTH                        ("http.body.maxReadLength"),
+    HTTP_CLIENT_SOCKET_TIMEOUT_MS                   ("http.client.socketTimeoutMs"),
+    HTTP_CLIENT_CONNECT_TIMEOUT_MS                  ("http.client.connectTimeoutMs"),
+    HTTP_CLIENT_REQUEST_TIMEOUT_MS                  ("http.client.requestTimeoutMs"),
+    HTTP_CLIENT_PROMISCUOUS_WORDLIST_ENABLE         ("http.client.promiscuous.wordlist.enable"),
     HTTP_ENABLE_GZIP                                ("http.gzip.enable"),
     HTTP_ERRORS_ALLOW_HTML                          ("http.errors.allowHtml"),
     HTTP_HEADER_SERVER                              ("http.header.server"),
@@ -132,10 +137,10 @@ public enum AppProperty {
     NAAF_SECRET                                     ("naaf.secret"),
     NAAF_SALT_LENGTH                                ("naaf.salt.length"),
 
-    
+
     /** Time intruder records exist in the intruder table before being deleted. */
     INTRUDER_RETENTION_TIME_MS                      ("intruder.retentionTimeMS"),
-    
+
     /** How often to cleanup the intruder table. */
     INTRUDER_CLEANUP_FREQUENCY_MS                   ("intruder.cleanupFrequencyMS"),
     INTRUDER_MIN_DELAY_PENALTY_MS                   ("intruder.minimumDelayPenaltyMS"),
@@ -184,10 +189,10 @@ public enum AppProperty {
 
     /* Allows one older TOTP token - compensate for clock out of sync */
     TOTP_PAST_INTERVALS                             ("otp.totp.pastIntervals"),
-    
+
     /* Allows one newer TOTP token - compensate for clock out of sync */
     TOTP_FUTURE_INTERVALS                           ("otp.totp.futureIntervals"),
-    
+
     TOTP_INTERVAL                                   ("otp.totp.intervalSeconds"),
     OTP_TOKEN_LENGTH                                ("otp.token.length"),
     OTP_SALT_CHARLENGTH                             ("otp.salt.charLength"),
@@ -244,7 +249,7 @@ public enum AppProperty {
     TOKEN_REMOVAL_DELAY_MS                          ("token.removalDelayMS"),
     TOKEN_PURGE_BATCH_SIZE                          ("token.purgeBatchSize"),
     TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS                ("token.maxUniqueCreateAttempts"),
-    
+
     /** Regular expression to be used for matching URLs to be shortened by the URL Shortening Service Class. */
     URL_SHORTNER_URL_REGEX                          ("urlshortener.url.regex"),
     WORDLIST_BUILTIN_PATH                           ("wordlist.builtin.path"),

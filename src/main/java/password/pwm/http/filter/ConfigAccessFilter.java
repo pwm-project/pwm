@@ -39,7 +39,6 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigManagerBean;
-import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
@@ -111,11 +110,6 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED);
                 pwmRequest.respondWithError(errorInformation);
                 return ProcessStatus.Halt;
-            }
-
-            if (pwmSession.getLoginInfoBean().getType() != AuthenticationType.AUTHENTICATED) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,
-                        "Username/Password authentication is required to edit configuration.  This session has not been authenticated using a user password (SSO or other method used)."));
             }
         }
 

@@ -34,5 +34,7 @@
     display: block;
     margin-left: auto;
     margin-right: auto;
-
+}
+.menubutton:hover {
+    border:none;
 }

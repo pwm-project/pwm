@@ -120,9 +120,10 @@ public class MapDB_LocalDB implements LocalDBProvider {
         }
     }
 
-    public void init(final File dbDirectory, final Map<String, String> initParameters, final boolean readOnly)
+    public void init(final File dbDirectory, final Map<String, String> initParameters, final Map<Parameter,String> parameters)
             throws LocalDBException {
-        if (readOnly) {
+
+        if (LocalDBUtility.hasBooleanParameter(Parameter.readOnly, parameters)) {
             throw new UnsupportedOperationException("readOnly not supported");
         }
 

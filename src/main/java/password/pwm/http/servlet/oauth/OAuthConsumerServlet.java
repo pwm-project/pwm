@@ -398,7 +398,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
             if (certs == null || certs.length == 0) {
                 httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig()).execute(httpPost);
             } else {
-                httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig(), new PwmHttpClientConfiguration(certs)).execute(httpPost);
+                httpResponse = PwmHttpClient.getHttpClient(pwmRequest.getConfig(), new PwmHttpClientConfiguration.Builder().setCertificate(certs).create()).execute(httpPost);
             }
             bodyResponse = EntityUtils.toString(httpResponse.getEntity());
         } catch (PwmException | IOException e) {

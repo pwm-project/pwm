@@ -351,14 +351,22 @@ public enum PwmSetting {
             "password.sharedHistory.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_GLOBAL),
     PASSWORD_SHAREDHISTORY_MAX_AGE(
             "password.sharedHistory.age", PwmSettingSyntax.DURATION, PwmSettingCategory.PASSWORD_GLOBAL),
-    WORDLIST_CASE_SENSITIVE(
-            "wordlistCaseSensitive", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_GLOBAL),
-    PASSWORD_WORDLIST_WORDSIZE(
-            "password.wordlist.wordSize", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_GLOBAL),
     PASSWORD_POLICY_CASE_SENSITIVITY(
             "password.policy.caseSensitivity", PwmSettingSyntax.SELECT, PwmSettingCategory.PASSWORD_GLOBAL),
     PASSWORD_PROFILE_LIST(
             "password.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.PASSWORD_GLOBAL),
+
+
+    // wordlist settings
+    WORDLIST_FILENAME(
+            "pwm.wordlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.WORDLISTS),
+    WORDLIST_CASE_SENSITIVE(
+            "wordlistCaseSensitive", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WORDLISTS),
+    PASSWORD_WORDLIST_WORDSIZE(
+            "password.wordlist.wordSize", PwmSettingSyntax.NUMERIC, PwmSettingCategory.WORDLISTS),
+    SEEDLIST_FILENAME(
+            "pwm.seedlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.WORDLISTS),
+
 
     // password policy profile settings
     PASSWORD_POLICY_QUERY_MATCH(
@@ -1062,10 +1070,6 @@ public enum PwmSetting {
     // deprecated.
     UPDATE_PROFILE_CHECK_QUERY_MATCH(
             "updateAttributes.check.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UPDATE_PROFILE),
-    WORDLIST_FILENAME(
-            "pwm.wordlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.PASSWORD_GLOBAL),
-    SEEDLIST_FILENAME(
-            "pwm.seedlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.CHANGE_PASSWORD),
     PASSWORD_POLICY_AD_COMPLEXITY(
             "password.policy.ADComplexity", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),
     CHALLENGE_REQUIRE_RESPONSES(

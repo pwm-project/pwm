@@ -22,6 +22,7 @@
 
 package password.pwm.svc.wordlist;
 
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
 
@@ -41,6 +42,10 @@ public interface Wordlist extends PwmService {
     void populate(InputStream inputStream)
             throws IOException, PwmUnrecoverableException;
 
-    void populateBuiltIn()
+    void clear()
                     throws IOException, PwmUnrecoverableException;
+
+    WordlistConfiguration getConfiguration();
+
+    ErrorInformation getAutoImportError();
 }

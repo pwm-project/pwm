@@ -22,34 +22,16 @@
 
 package password.pwm.http.client;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.*;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -64,7 +46,6 @@ import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
-
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -74,9 +55,27 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpMethod;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.X509Utils;
 import password.pwm.util.logging.PwmLogger;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class PwmHttpClient {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmHttpClient.class);
@@ -90,7 +89,7 @@ public class PwmHttpClient {
     public PwmHttpClient(PwmApplication pwmApplication, SessionLabel sessionLabel) {
         this.pwmApplication = pwmApplication;
         this.sessionLabel = sessionLabel;
-        this.pwmHttpClientConfiguration = new PwmHttpClientConfiguration(null);
+        this.pwmHttpClientConfiguration = new PwmHttpClientConfiguration.Builder().setCertificate(null).create();
     }
 
     public PwmHttpClient(PwmApplication pwmApplication, SessionLabel sessionLabel, final PwmHttpClientConfiguration pwmHttpClientConfiguration) {
@@ -102,17 +101,18 @@ public class PwmHttpClient {
     public static HttpClient getHttpClient(final Configuration configuration)
             throws PwmUnrecoverableException
     {
-        return getHttpClient(configuration, new PwmHttpClientConfiguration(null));
+        return getHttpClient(configuration, new PwmHttpClientConfiguration.Builder().setCertificate(null).create());
     }
 
     public static HttpClient getHttpClient(final Configuration configuration, final PwmHttpClientConfiguration pwmHttpClientConfiguration)
-    throws PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         HttpClientBuilder clientBuilder = HttpClientBuilder.create();
         clientBuilder.setUserAgent(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION);
+        final boolean httpClientPromiscuousEnable = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE));
 
         try {
-            if (Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE))) {
+            if (httpClientPromiscuousEnable || (pwmHttpClientConfiguration != null && pwmHttpClientConfiguration.isPromiscuous())) {
                 clientBuilder.setSSLContext(promiscuousSSLContext());
                 clientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE);
             } else if (pwmHttpClientConfiguration != null && pwmHttpClientConfiguration.getCertificates() != null) {
@@ -153,8 +153,13 @@ public class PwmHttpClient {
             }
         }
 
-        HttpClient httpClient = clientBuilder.build();
-        return httpClient;
+        clientBuilder.setDefaultRequestConfig(RequestConfig.copy(RequestConfig.DEFAULT)
+                .setSocketTimeout(Integer.parseInt(configuration.readAppProperty(AppProperty.HTTP_CLIENT_SOCKET_TIMEOUT_MS)))
+                .setConnectTimeout(Integer.parseInt(configuration.readAppProperty(AppProperty.HTTP_CLIENT_CONNECT_TIMEOUT_MS)))
+                .setConnectionRequestTimeout(Integer.parseInt(configuration.readAppProperty(AppProperty.HTTP_CLIENT_REQUEST_TIMEOUT_MS)))
+                .build());
+
+        return clientBuilder.build();
     }
 
     static String entityToDebugString(
@@ -191,16 +196,47 @@ public class PwmHttpClient {
         final Date startTime = new Date();
         final int counter = classCounter++;
 
+        LOGGER.trace(sessionLabel, "preparing to send (id=" + counter + ") " + clientRequest.toDebugString());
+
+        final HttpResponse httpResponse = executeRequest(clientRequest);
+        final String responseBody = EntityUtils.toString(httpResponse.getEntity());
+        final Map<String, String> responseHeaders = new LinkedHashMap<>();
+        if (httpResponse.getAllHeaders() != null) {
+            for (final Header header : httpResponse.getAllHeaders()) {
+                responseHeaders.put(header.getName(), header.getValue());
+            }
+        }
+
+        final PwmHttpClientResponse httpClientResponse = new PwmHttpClientResponse(
+                httpResponse.getStatusLine().getStatusCode(),
+                httpResponse.getStatusLine().getReasonPhrase(),
+                responseHeaders,
+                responseBody
+        );
+
+        final TimeDuration duration = TimeDuration.fromCurrent(startTime);
+        LOGGER.trace(sessionLabel, "received response (id=" + counter + ") in " + duration.asCompactString() + ": " + httpClientResponse.toDebugString());
+        return httpClientResponse;
+    }
+
+    private HttpResponse executeRequest(final PwmHttpClientRequest clientRequest)
+            throws IOException, PwmUnrecoverableException {
         final String requestBody = clientRequest.getBody();
 
         final HttpRequestBase httpRequest;
         switch (clientRequest.getMethod()) {
             case POST:
-                httpRequest = new HttpPost(new URI(clientRequest.getUrl()).toString());
-                if (requestBody != null && !requestBody.isEmpty()) {
-                    ((HttpPost) httpRequest).setEntity(new StringEntity(requestBody, PwmConstants.DEFAULT_CHARSET));
+            {
+                try {
+                    httpRequest = new HttpPost(new URI(clientRequest.getUrl()).toString());
+                    if (requestBody != null && !requestBody.isEmpty()) {
+                        ((HttpPost) httpRequest).setEntity(new StringEntity(requestBody, PwmConstants.DEFAULT_CHARSET));
+                    }
+                } catch (URISyntaxException e) {
+                    throw PwmUnrecoverableException.newException(PwmError.ERROR_UNKNOWN, "malformed url: " + clientRequest.getUrl() + ", error: " + e.getMessage());
                 }
-                break;
+            }
+            break;
 
             case PUT:
                 httpRequest = new HttpPut(clientRequest.getUrl());
@@ -229,27 +265,7 @@ public class PwmHttpClient {
         }
 
         final HttpClient httpClient = getHttpClient(pwmApplication.getConfig(), pwmHttpClientConfiguration);
-        LOGGER.trace(sessionLabel, "preparing to send (id=" + counter + ") " + clientRequest.toDebugString());
-
-        final HttpResponse httpResponse = httpClient.execute(httpRequest);
-        final String responseBody = EntityUtils.toString(httpResponse.getEntity());
-        final Map<String, String> responseHeaders = new LinkedHashMap<>();
-        if (httpResponse.getAllHeaders() != null) {
-            for (final Header header : httpResponse.getAllHeaders()) {
-                responseHeaders.put(header.getName(), header.getValue());
-            }
-        }
-
-        final PwmHttpClientResponse httpClientResponse = new PwmHttpClientResponse(
-                httpResponse.getStatusLine().getStatusCode(),
-                httpResponse.getStatusLine().getReasonPhrase(),
-                responseHeaders,
-                responseBody
-        );
-
-        final TimeDuration duration = TimeDuration.fromCurrent(startTime);
-        LOGGER.trace(sessionLabel, "received response (id=" + counter + ") in " + duration.asCompactString() + ": " + httpClientResponse.toDebugString());
-        return httpClientResponse;
+        return httpClient.execute(httpRequest);
     }
 
     protected static SSLContext promiscuousSSLContext() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
@@ -258,6 +274,35 @@ public class PwmHttpClient {
                 return true;
             }
         }).build();
+    }
+
+    public InputStream streamForUrl(final String inputUrl)
+            throws IOException, PwmUnrecoverableException {
+        final URL url = new URL(inputUrl);
+        if ("file".equals(url.getProtocol())) {
+            return url.openStream();
+        }
+
+        if ("http".equals(url.getProtocol()) || "https".equals(url.getProtocol())) {
+            final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
+                    HttpMethod.GET,
+                    inputUrl,
+                    null,
+                    null,
+                    null
+            );
+
+            final HttpResponse httpResponse = executeRequest(pwmHttpClientRequest);
+            if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                final String errorMsg = "error retrieving stream for url '" + inputUrl + "', remote response: " + httpResponse.getStatusLine().toString();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_REMOTE_ERROR_VALUE, errorMsg);
+                LOGGER.error(errorInformation);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+            return httpResponse.getEntity().getContent();
+        }
+
+        throw new IllegalArgumentException("unknown protocol type: " + url.getProtocol());
     }
 }
 

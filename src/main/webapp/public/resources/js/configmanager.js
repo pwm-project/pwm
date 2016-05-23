@@ -354,7 +354,11 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
                         var loadFunction = function (data) {
                             PWM_MAIN.showDialog({
                                 text: data['successMessage'], okAction: function () {
-                                    PWM_MAIN.goto('wordlists');
+                                    PWM_MAIN.showWaitDialog({
+                                        loadFunction: function(){
+                                            PWM_MAIN.goto('wordlists');
+                                        }
+                                    });
                                 }
                             });
                         };
@@ -396,25 +400,34 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
         };
         var updateWordlistActionButtons = function (data) {
             var disabled;
-            disabled = !data['WORDLIST']['completed'];
+            disabled = !data['WORDLIST']['allowUpload'];
             PWM_MAIN.setStyle('MenuItem_UploadWordlist','visibility', disabled ? 'hidden' : 'visible');
 
-            disabled = !(data['WORDLIST']['completed'] && !(data['WORDLIST']['builtIn']));
+            disabled = !data['WORDLIST']['allowClear'];
             PWM_MAIN.setStyle('MenuItem_ClearWordlist','visibility', disabled ? 'hidden' : 'visible');
 
-            disabled = !data['SEEDLIST']['completed'];
+            disabled = !data['SEEDLIST']['allowUpload'];
             PWM_MAIN.setStyle('MenuItem_UploadSeedlist','visibility', disabled ? 'hidden' : 'visible');
 
-            disabled = !(data['SEEDLIST']['completed'] && !(data['SEEDLIST']['builtIn']));
+            disabled = !data['SEEDLIST']['allowClear'];
             PWM_MAIN.setStyle('MenuItem_ClearSeedlist','visibility', disabled ? 'hidden' : 'visible');
         };
         var dataHandler = function (data) {
-            PWM_MAIN.getObject('table-wordlistInfo').innerHTML = makeTableData(data['data']['WORDLIST']['presentableData'], 'Wordlist');
-            PWM_MAIN.getObject('table-seedlistInfo').innerHTML = makeTableData(data['data']['SEEDLIST']['presentableData'], 'Seedlist');
+            PWM_MAIN.getObject('table-wordlistInfo').innerHTML = makeTableData(
+                data['data']['WORDLIST']['presentableData'],
+                PWM_CONFIG.showString('Label_Wordlist')
+            );
+            PWM_MAIN.getObject('table-seedlistInfo').innerHTML = makeTableData(
+                data['data']['SEEDLIST']['presentableData'],
+                PWM_CONFIG.showString('Label_Seedlist')
+            );
             PWM_MAIN.TimestampHandler.initAllElements();
             updateWordlistActionButtons(data['data']);
         };
-        PWM_MAIN.ajaxRequest('wordlists?processAction=readWordlistData', dataHandler);
+        var errorHandler = function(data) {
+            console.log('error during info refresh: ' + data);
+        };
+        PWM_MAIN.ajaxRequest('wordlists?processAction=readWordlistData', dataHandler,{errorFunction:errorHandler});
     }
 };
 

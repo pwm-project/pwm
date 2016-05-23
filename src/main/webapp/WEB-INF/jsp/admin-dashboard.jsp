@@ -373,7 +373,7 @@
                     <table class="nomargin">
                         <tr>
                             <td class="key">
-                                Wordlist Dictionary Size
+                                Word List Dictionary Size
                             </td>
                             <td>
                                 <%= numberFormat.format(dashboard_pwmApplication.getWordlistManager().size()) %>
@@ -381,7 +381,7 @@
                         </tr>
                         <tr>
                             <td class="key">
-                                Seedlist Size
+                                Seed List Size
                             </td>
                             <td>
                                 <%= numberFormat.format(dashboard_pwmApplication.getSeedlistManager().size()) %>

@@ -25,8 +25,8 @@ package password.pwm.svc.wordlist;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
-import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
@@ -37,11 +37,10 @@ import java.util.Map;
 
 public class SeedlistManager extends AbstractWordlist implements Wordlist {
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass(SeedlistManager.class);
-
     private int initialPopulationCounter = 0;
 
     public SeedlistManager() {
+        LOGGER = PwmLogger.forClass(SeedlistManager.class);
     }
 
     public String randomSeed() {
@@ -77,18 +76,10 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
 
     public void init(final PwmApplication pwmApplication) throws PwmException {
         super.init(pwmApplication);
-        final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(true, 0);
-
+        final String seedlistUrl = readAutoImportUrl();
+        this.wordlistConfiguration = new WordlistConfiguration(true, 0, seedlistUrl);
         this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Seedist";
-
-        final Thread t = new Thread(new Runnable() {
-            public void run() {
-                LOGGER.debug(DEBUG_LABEL + " starting up in background thread");
-                startup(pwmApplication.getLocalDB(), wordlistConfiguration);
-            }
-        }, Helper.makeThreadName(pwmApplication,SeedlistManager.class));
-
-        t.start();
+        backgroundStartup();
     }
 
     @Override
@@ -104,5 +95,10 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
     @Override
     protected AppProperty getBuiltInWordlistLocationProperty() {
         return AppProperty.SEEDLIST_BUILTIN_PATH;
+    }
+
+    @Override
+    protected PwmSetting getWordlistFileSetting() {
+        return PwmSetting.SEEDLIST_FILENAME;
     }
 }

@@ -34,10 +34,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmSession;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.http.client.*;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -168,7 +165,7 @@ public class ActionExecutor {
             final PwmHttpClient client;
             {
                 if (actionConfiguration.getCertificates() != null) {
-                    final PwmHttpClientConfiguration clientConfiguration = new PwmHttpClientConfiguration(actionConfiguration.getCertificates());
+                    final PwmHttpClientConfiguration clientConfiguration = new PwmHttpClientConfiguration.Builder().setCertificate(actionConfiguration.getCertificates()).create();
                     client = new PwmHttpClient(pwmApplication, pwmSession.getLabel(), clientConfiguration);
                 } else {
                     client = new PwmHttpClient(pwmApplication, pwmSession.getLabel());

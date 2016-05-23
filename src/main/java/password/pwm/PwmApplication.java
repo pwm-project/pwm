@@ -692,7 +692,7 @@ public class PwmApplication {
             final String strValue = localDB.get(LocalDB.DB.PWM_META, appAttribute.getKey());
             return JsonUtil.deserialize(strValue, returnClass);
         } catch (Exception e) {
-            LOGGER.error("error retrieving key '" + appAttribute.getKey() + "' installation date from localDB: " + e.getMessage());
+            LOGGER.error("error retrieving key '" + appAttribute.getKey() + "' value from localDB: " + e.getMessage());
         }
         return null;
     }

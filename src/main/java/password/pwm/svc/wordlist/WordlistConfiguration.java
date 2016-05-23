@@ -27,13 +27,16 @@ import java.io.Serializable;
 public class WordlistConfiguration implements Serializable {
     final private boolean caseSensitive;
     final private int checkSize;
+    final private String autoImportUrl;
 
     public WordlistConfiguration(
             final boolean caseSensitive,
-            final int checkSize
+            final int checkSize,
+            final String autoImportUrl
     ) {
         this.caseSensitive = caseSensitive;
         this.checkSize = checkSize;
+        this.autoImportUrl = autoImportUrl;
     }
 
     public boolean isCaseSensitive() {
@@ -42,5 +45,9 @@ public class WordlistConfiguration implements Serializable {
 
     public int getCheckSize() {
         return checkSize;
+    }
+
+    public String getAutoImportUrl() {
+        return autoImportUrl;
     }
 }

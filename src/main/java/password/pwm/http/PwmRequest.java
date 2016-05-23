@@ -124,6 +124,9 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     }
 
     public Locale getLocale() {
+        if (isFlag(PwmRequestFlag.INCLUDE_CONFIG_CSS)) {
+            return PwmConstants.DEFAULT_LOCALE;
+        }
         return pwmSession.getSessionStateBean().getLocale();
     }
 

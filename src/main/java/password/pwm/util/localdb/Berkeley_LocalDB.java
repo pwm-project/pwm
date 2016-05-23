@@ -234,11 +234,11 @@ public class Berkeley_LocalDB implements LocalDBProvider {
         }
     }
 
-    public void init(final File dbDirectory, final Map<String, String> initParameters, final boolean readOnly)
+    public void init(final File dbDirectory, final Map<String, String> initParameters, final Map<Parameter,String> parameters)
             throws LocalDBException {
         LOGGER.trace("begin initialization");
 
-        this.readOnly = readOnly;
+        this.readOnly = LocalDBUtility.hasBooleanParameter(Parameter.readOnly, parameters);
         try {
             environment = openEnvironment(dbDirectory, initParameters, readOnly);
 

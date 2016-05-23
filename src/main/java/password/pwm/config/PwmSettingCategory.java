@@ -84,6 +84,7 @@ public enum PwmSettingCategory {
     APP_SECURITY                (SECURITY),
     WEB_SECURITY                (SECURITY),
 
+    WORDLISTS                   (SETTINGS),
 
     TOKEN                       (SETTINGS),
     OTP                         (SETTINGS),

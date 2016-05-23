@@ -30,10 +30,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmURL;
-import password.pwm.http.client.PwmHttpClient;
-import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.http.client.PwmHttpClientRequest;
-import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.http.client.*;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
@@ -74,7 +71,7 @@ public class NAAFEndPoint {
         this.salt = PwmRandom.getInstance().alphaNumericString(saltLength);
 
         final X509Certificate[] naafWsCerts = config.readSettingAsCertificate(PwmSetting.NAAF_WS_CERTIFICATE);
-        final PwmHttpClientConfiguration pwmHttpClientConfiguration = new PwmHttpClientConfiguration(naafWsCerts);
+        final PwmHttpClientConfiguration pwmHttpClientConfiguration = new PwmHttpClientConfiguration.Builder().setCertificate(naafWsCerts).create();
         this.pwmHttpClient = new PwmHttpClient(pwmApplication, null, pwmHttpClientConfiguration);
         establishEndpointSession();
     }

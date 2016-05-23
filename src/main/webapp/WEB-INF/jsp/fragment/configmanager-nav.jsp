@@ -33,7 +33,7 @@
   <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager_Wordlists.servletUrl()%>" method="get">
     <button type="submit" class="navbutton">
       <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-book"></span></pwm:if>
-      Wordlists
+      Word Lists
     </button>
   </form>
   <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager_LocalDB.servletUrl()%>" method="get">

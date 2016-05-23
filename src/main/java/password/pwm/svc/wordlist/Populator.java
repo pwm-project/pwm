@@ -22,6 +22,7 @@
 
 package password.pwm.svc.wordlist;
 
+import org.apache.commons.io.IOUtils;
 import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -59,6 +60,7 @@ class Populator {
     private static final NumberFormat PERCENT_FORMAT = DecimalFormat.getPercentInstance();
 
     private final ZipReader zipFileReader;
+    private final StoredWordlistDataBean.Source source;
 
     private volatile boolean running;
     private volatile boolean abortFlag;
@@ -83,11 +85,13 @@ class Populator {
 
     public Populator(
             final InputStream inputStream,
+            final StoredWordlistDataBean.Source source,
             final AbstractWordlist rootWordlist,
             final PwmApplication pwmApplication
     )
             throws Exception
     {
+        this.source = source;
         this.checksumInputStream = new ChecksumInputStream(AbstractWordlist.CHECKSUM_HASH_ALG, inputStream);
         this.zipFileReader = new ZipReader(checksumInputStream);
         this.localDB = pwmApplication.getLocalDB();
@@ -125,7 +129,7 @@ class Populator {
 
     void populate() throws IOException, LocalDBException, PwmUnrecoverableException {
         try {
-            rootWordlist.writeMetadata(new StoredWordlistDataBean());
+            rootWordlist.writeMetadata(new StoredWordlistDataBean.Builder().setSource(source).create());
             running = true;
             init();
 
@@ -156,9 +160,8 @@ class Populator {
                 populationComplete();
             }
         } finally {
-
             running = false;
-            checksumInputStream.close();
+            IOUtils.closeQuietly(checksumInputStream);
         }
     }
 
@@ -227,13 +230,13 @@ class Populator {
         sb.append(" population complete, added ").append(wordlistSize);
         sb.append(" total words in ").append(new TimeDuration(overallStats.getElapsedSeconds() * 1000).asCompactString());
         {
-            StoredWordlistDataBean storedWordlistDataBean = new StoredWordlistDataBean();
-            storedWordlistDataBean.setSha1hash(Helper.binaryArrayToHex(checksumInputStream.closeAndFinalChecksum()));
-            storedWordlistDataBean.setSize(wordlistSize);
-            storedWordlistDataBean.setStoreDate(new Date());
-            if (!abortFlag) {
-                storedWordlistDataBean.setCompleted(true);
-            }
+            final StoredWordlistDataBean storedWordlistDataBean = new StoredWordlistDataBean.Builder()
+                    .setSha1hash(Helper.binaryArrayToHex(checksumInputStream.closeAndFinalChecksum()))
+                    .setSize(wordlistSize)
+                    .setStoreDate(new Date())
+                    .setSource(source)
+                    .setCompleted(!abortFlag)
+                    .create();
             rootWordlist.writeMetadata(storedWordlistDataBean);
         }
         LOGGER.info(sb.toString());

@@ -82,6 +82,7 @@ public enum HealthMessage {
     ServiceClosed_LocalDBUnavail            (HealthStatus.CAUTION,  HealthTopic.Application),
     ServiceClosed_AppReadOnly               (HealthStatus.CAUTION,  HealthTopic.Application),
     SMS_SendFailure                         (HealthStatus.WARN,     HealthTopic.SMS),
+    Wordlist_AutoImportFailure              (HealthStatus.WARN,     HealthTopic.Configuration),
 
     ;
 

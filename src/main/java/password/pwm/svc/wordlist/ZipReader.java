@@ -54,6 +54,9 @@ class ZipReader {
     {
         zipStream = new ZipInputStream(inputStream);
         nextZipEntry();
+        if (zipEntry == null) {
+            throw new IllegalStateException("input stream does not contain any zip file entries");
+        }
     }
 
     private void nextZipEntry()
