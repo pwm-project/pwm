@@ -538,17 +538,17 @@
         <dependency>
             <groupId>org.webjars.bower</groupId>
             <artifactId>dojo</artifactId>
-            <version>1.10.4</version>
+            <version>1.11.1</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.bower</groupId>
             <artifactId>dijit</artifactId>
-            <version>1.10.4</version>
+            <version>1.11.1</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.bower</groupId>
             <artifactId>dojox</artifactId>
-            <version>1.10.4</version>
+            <version>1.11.1</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.bower</groupId>
