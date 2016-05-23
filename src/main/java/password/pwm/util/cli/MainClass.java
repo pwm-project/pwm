@@ -422,7 +422,6 @@ public class MainClass {
                 .setApplicationMode(mode)
                 .setConfigurationFile(configurationFile)
                 .setFlags(applicationFlags)
-                .setInternalRuntimeInstance(true)
                 .createPwmEnvironment();
         final PwmApplication pwmApplication = new PwmApplication(pwmEnvironment);
         final PwmApplicationMode runningMode = pwmApplication.getApplicationMode();

@@ -24,40 +24,19 @@ package password.pwm.util.cli;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.stored.ConfigurationReader;
-import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.util.Helper;
 
-import java.io.Console;
-import java.io.File;
 import java.util.Collections;
 
 public class TokenInfoCommand extends AbstractCliCommand {
-    protected static final String TOKEN_KEY_OPTIONNAME = "tokenKey";
+    protected static final String TOKEN_KEY_OPTIONNAME = "token";
 
     public void doCommand()
             throws Exception
     {
-        final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
-        final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
-
-
-        final String tokenKey;
-        if (cliEnvironment.getOptions().containsKey(TOKEN_KEY_OPTIONNAME)) {
-            tokenKey = (String)cliEnvironment.getOptions().get(TOKEN_KEY_OPTIONNAME);
-        } else {
-            final Console console = System.console();
-            console.writer().write("enter tokenKey:");
-            console.writer().flush();
-            tokenKey = console.readLine();
-        }
-        storedConfiguration.setPassword(tokenKey);
-        configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), PwmConstants.CLI_SESSION_LABEL);
-        out("success");
-
-
+        final String tokenKey = (String)cliEnvironment.getOptions().get(TOKEN_KEY_OPTIONNAME);
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
         final TokenService tokenService = pwmApplication.getTokenService();
@@ -69,38 +48,33 @@ public class TokenInfoCommand extends AbstractCliCommand {
             lookupError = e;
         }
 
-        pwmApplication.shutdown();
-        Helper.pause(1000);
-
-        final StringBuilder output = new StringBuilder();
-        output.append("\n");
-        output.append("token: ").append(tokenKey);
-        output.append("\n");
-
+        out(" token: " + tokenKey);
         if (lookupError != null) {
-            output.append("result: error during token lookup: ").append(lookupError.toString());
+            out("result: error during token lookup: " + lookupError.toString());
         } else if (tokenPayload == null) {
-            output.append("result: token not found");
-            return;
+            out("result: token not found");
         } else {
-            output.append("  name: ").append(tokenPayload.getName());
-            output.append("  user: ").append(tokenPayload.getUserIdentity());
-            output.append("issued: ").append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(tokenPayload.getDate()));
+            out("  name: " + tokenPayload.getName());
+            out("  user: " + tokenPayload.getUserIdentity());
+            out("issued: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(tokenPayload.getDate()));
             for (final String key : tokenPayload.getData().keySet()) {
                 final String value = tokenPayload.getData().get(key);
-                output.append("  payload key: ").append(key).append(", value:").append(value);
+                out("  payload key: " + key);
+                out("        value: " + value);
             }
         }
-        out(output.toString());
-   }
+
+        pwmApplication.shutdown();
+        Helper.pause(1000);
+    }
 
     @Override
     public CliParameters getCliParameters()
     {
-        final CliParameters.Option passwordValueOption = new CliParameters.Option() {
+        final CliParameters.Option tokenValue = new CliParameters.Option() {
             public boolean isOptional()
             {
-                return true;
+                return false;
             }
 
             public type getType()
@@ -117,7 +91,7 @@ public class TokenInfoCommand extends AbstractCliCommand {
         CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "TokenInfo";
         cliParameters.description = "Get information about an issued token";
-        cliParameters.options = Collections.singletonList(passwordValueOption);
+        cliParameters.options = Collections.singletonList(tokenValue);
         cliParameters.needsPwmApplication = true;
         cliParameters.readOnly = false;
         return cliParameters;

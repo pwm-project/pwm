@@ -188,8 +188,9 @@ public class PwmApplication {
         }
 
         // get file lock
-        pwmEnvironment.waitForFileLock();;
-
+        if (!pwmEnvironment.isInternalRuntimeInstance()) {
+            pwmEnvironment.waitForFileLock();
+        }
 
         LOGGER.info("initializing, application mode=" + getApplicationMode()
                 + ", applicationPath=" + (pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath().getAbsolutePath())
@@ -222,25 +223,24 @@ public class PwmApplication {
 
         pwmServiceManager.initAllServices();
 
-        if (!pwmEnvironment.isInternalRuntimeInstance()) {
-            if (pwmEnvironment.getFlags().contains(PwmEnvironment.ApplicationFlag.CommandLineInstance)) {
-                postInitTasks();
-            } else {
-                final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
-                LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
-                StatisticsManager.incrementStat(this, Statistic.PWM_STARTUPS);
-                LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE);
+        final boolean skipPostInit = pwmEnvironment.isInternalRuntimeInstance()
+                || pwmEnvironment.getFlags().contains(PwmEnvironment.ApplicationFlag.CommandLineInstance);
 
-                final Thread postInitThread = new Thread() {
-                    @Override
-                    public void run() {
-                        postInitTasks();
-                    }
-                };
-                postInitThread.setDaemon(true);
-                postInitThread.setName(Helper.makeThreadName(this, PwmApplication.class));
-                postInitThread.start();
-            }
+        if (!skipPostInit) {
+            final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
+            LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
+            StatisticsManager.incrementStat(this, Statistic.PWM_STARTUPS);
+            LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE);
+
+            final Thread postInitThread = new Thread() {
+                @Override
+                public void run() {
+                    postInitTasks();
+                }
+            };
+            postInitThread.setDaemon(true);
+            postInitThread.setName(Helper.makeThreadName(this, PwmApplication.class));
+            postInitThread.start();
         }
     }
 
