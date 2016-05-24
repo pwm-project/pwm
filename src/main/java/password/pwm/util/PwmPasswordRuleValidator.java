@@ -775,41 +775,36 @@ public class PwmPasswordRuleValidator {
         // check consecutive characters
         {
             final int maximumConsecutive = ruleHelper.readIntValue(PwmPasswordRule.MaximumConsecutive);
-            if (maximumConsecutive > 0 && passwordLength >= maximumConsecutive) {
-                final char[] lowerPassCharArray = password.toLowerCase().toCharArray();
-                boolean violated = false;
-                for (int position = 0; (position+maximumConsecutive <= lowerPassCharArray.length && !violated); position++) {
-                    int violationCharCount = 1;
-                    int direction = 0;
-                    int previousCharPoint = Character.codePointAt(lowerPassCharArray,position);
-
-                    for (int distance = 1; violationCharCount >= 0 && !violated; distance++) {
-                        int nextCharPoint = Character.codePointAt(lowerPassCharArray, position + distance);
-
-                        if ((direction == 0 || direction == 1) && (previousCharPoint == nextCharPoint +1)) {
-                            direction = 1;
-                            violationCharCount++;
-                        } else if ((direction == 0 || direction == -1) && (previousCharPoint == nextCharPoint -1)) {
-                            direction = -1;
-                            violationCharCount++;
-                        } else {
-                            violationCharCount = -1;
-                        }
-
-                        if (violationCharCount > maximumConsecutive) {
-                            violated= true;
-                        } else {
-                            previousCharPoint = nextCharPoint;
-                        }
-                    }
-                }
-                if (violated) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_CONSECUTIVE));
-                }
+            if (tooManyConsecutiveChars(password, maximumConsecutive)) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_CONSECUTIVE));
             }
-
         }
 
         return errorList;
+    }
+
+    public static boolean tooManyConsecutiveChars(final String str, final int maximumConsecutive) {
+        if (str != null && maximumConsecutive > 1 && str.length() >= maximumConsecutive) {
+            final int[] codePoints = StringUtil.toCodePointArray(str.toLowerCase());
+
+            int lastCodePoint = -1;
+            int consecutiveCharCount = 1;
+
+            for (int i=0; i<codePoints.length; i++) {
+                if (codePoints[i] == lastCodePoint+1) {
+                    consecutiveCharCount++;
+                } else {
+                    consecutiveCharCount = 1;
+                }
+
+                lastCodePoint = codePoints[i];
+
+                if (consecutiveCharCount == maximumConsecutive) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
