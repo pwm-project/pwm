@@ -2152,7 +2152,7 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
             dialogBody += '<br/>Max Question Chars';
 
             dialogBody += '</td><td>';
-            dialogBody += '<label class="checkboxWrapper"><input type="checkbox" id="value-wordlist-' + inputID + '" disabled/>Apply Wordlist</label>';
+            dialogBody += '<label class="checkboxWrapper"><input type="checkbox" id="value-wordlist-' + inputID + '" disabled/>Apply Word List</label>';
 
             dialogBody += '</td></tr>';
             dialogBody += '</table></td><td style="border:0; vertical-align: top">';

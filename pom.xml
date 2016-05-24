@@ -2,6 +2,10 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <prerequisites>
+        <maven>3.2</maven>
+    </prerequisites>
+
     <groupId>org.pwm-project</groupId>
     <artifactId>pwm</artifactId>
     <version>1.8.0-SNAPSHOT</version>
@@ -397,7 +401,7 @@
 
         <dependency>
             <groupId>com.github.ldapchai</groupId>
-            <version>0.6.7</version>
+            <version>0.6.8</version>
             <artifactId>ldapchai</artifactId>
         </dependency>
         <dependency>
