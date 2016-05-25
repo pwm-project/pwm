@@ -1617,11 +1617,11 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
                 });
                 if (value['type'] == 'webservice') {
                     PWM_MAIN.addEventHandler('select-' + inputID + '-method','change',function(){
-                        var value = PWM_MAIN.getObject('select-' + inputID + '-method').value;
-                        if (value == 'get') {
+                        var methodValue = PWM_MAIN.getObject('select-' + inputID + '-method').value;
+                        if (methodValue == 'get') {
                             value['body'] = '';
                         }
-                        value['method'] = value;
+                        value['method'] = methodValue;
                         ActionHandler.write(keyName, function(){ ActionHandler.showOptionsDialog(keyName,iteration)});
                     });
                     PWM_MAIN.addEventHandler('input-' + inputID + '-url','input',function(){
@@ -2149,7 +2149,7 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
 
             dialogBody += '</td><td>';
             dialogBody += '<input type="number" id="button-maxQuestionCharsInAnswer-' + inputID + '" style="width:50px" class="configNumericInput" min="0" max="100" value="' + multiValues[rowKey]['maxQuestionCharsInAnswer'] + '"/>';
-            dialogBody += '<br/>Max Question Chars';
+            dialogBody += '<br/>Max Question Characters';
 
             dialogBody += '</td><td>';
             dialogBody += '<label class="checkboxWrapper"><input type="checkbox" id="value-wordlist-' + inputID + '" disabled/>Apply Word List</label>';
