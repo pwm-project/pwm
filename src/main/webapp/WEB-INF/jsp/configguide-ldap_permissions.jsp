@@ -1,5 +1,3 @@
-<%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
-<%@ page import="password.pwm.ldap.schema.SchemaOperationResult" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -26,18 +24,6 @@
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<%
-    ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);
-    boolean existingSchemaGood = false;
-    String schemaActivityLog = "";
-    try {
-        SchemaOperationResult schemaManager = ConfigGuideServlet.extendSchema(configGuideBean,false);
-        existingSchemaGood = schemaManager.isSuccess();
-        schemaActivityLog = schemaManager.getOperationLog();
-    } catch (Exception e) {
-        schemaActivityLog = "unable to check schema: " + e.getMessage();
-    }
-%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>

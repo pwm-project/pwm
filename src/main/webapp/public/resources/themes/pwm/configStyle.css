@@ -577,3 +577,9 @@ select {
 .dijitTreeRowSelected {
     background-color: #eaeaea;
 }
+
+
+.overflow-panel-medium {
+    max-height: 350px;
+    overflow-y: auto
+}

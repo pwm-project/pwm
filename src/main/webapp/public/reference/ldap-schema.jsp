@@ -1,4 +1,7 @@
 <%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.ldap.schema.SchemaDefinition" %>
+<%@ page import="java.text.NumberFormat" %>
+<%@ page import="java.util.List" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -35,18 +38,23 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Reference Library"/>
+        <jsp:param name="pwm.PageName" value="Localization Report"/>
     </jsp:include>
     <div id="centerbody">
-        <ul>
-            <li><a href="environment.jsp">Environment</a></li>
-            <li><a href="settings.jsp">Settings</a></li>
-            <li><a href="license.jsp">License</a></li>
-            <li><a href="displaystrings.jsp">Display Strings</a></li>
-            <li><a href="rest.jsp">REST Services</a></li>
-            <li><a href="tables.jsp">Errors, Audit Events and Statistics</a></li>
-            <li><a href="ldap-schema.jsp">LDAP Schema Definition</a></li>
-        </ul>
+        <%@ include file="reference-nav.jsp"%>
+        <p>Below is the default LDAP schema definition.</p>
+        <%List<SchemaDefinition> schemaDefinitions = SchemaDefinition.getPwmSchemaDefinitions();%>
+        <div class="border">
+            <code>
+                <% for (SchemaDefinition defintion : schemaDefinitions) { %>
+                Type: <%=defintion.getSchemaType()%><br/>
+                Name: <%=defintion.getName()%><br/>
+                Definition: <%=defintion.getDefinition()%><br/>
+                <br/><br/>
+                <% } %>
+            </code>
+        </div>
+        <br/><br/><br/><br/>
     </div>
 </div>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

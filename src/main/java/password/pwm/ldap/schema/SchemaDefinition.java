@@ -27,7 +27,7 @@ import password.pwm.util.JsonUtil;
 import java.io.Serializable;
 import java.util.*;
 
-class SchemaDefinition implements Serializable {
+public class SchemaDefinition implements Serializable {
     private SchemaType schemaType;
     private String name;
     private String definition;
