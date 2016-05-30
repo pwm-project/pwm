@@ -156,8 +156,8 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 
                 case reset:
                     pwmApplication.getSessionStateService().clearBean(pwmRequest, ActivateUserBean.class);
-                    advanceToNextStage(pwmRequest);
-                    break;
+                    forwardToActivateUserForm(pwmRequest);
+                    return;
 
                 case agree:
                     handleAgreeRequest(pwmRequest, activateUserBean);

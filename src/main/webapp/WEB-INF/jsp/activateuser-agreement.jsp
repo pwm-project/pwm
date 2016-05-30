@@ -57,7 +57,10 @@
             </form>
             <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" style="display: inline;">
                 <input type="hidden" name="processAction" value="reset"/>
-                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
+                <button type="submit" name="button" class="btn" id="button_reset">
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
+                    <pwm:display key="Button_Cancel"/>
+                </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>
@@ -83,7 +86,6 @@
         });
     </script>
 </pwm:script>
-<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
