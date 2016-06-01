@@ -95,32 +95,40 @@ PWM_CONFIG.startNewConfigurationEditor=function(template) {
 };
 
 PWM_CONFIG.uploadConfigDialog=function() {
-    var uploadOptions = {};
-    uploadOptions['url'] = window.location.pathname + '?processAction=uploadConfig';
-    uploadOptions['title'] = 'Upload Configuration';
-    uploadOptions['nextFunction'] = function() {
-        PWM_MAIN.showWaitDialog({title:'Save complete, restarting application...',loadFunction:function(){
-            PWM_CONFIG.waitForRestart({location:'/'});
-        }});
-    };
-    UILibrary.uploadFileDialog(uploadOptions);
+    PWM_MAIN.preloadAll(function() {
+        var uploadOptions = {};
+        uploadOptions['url'] = window.location.pathname + '?processAction=uploadConfig';
+        uploadOptions['title'] = 'Upload Configuration';
+        uploadOptions['nextFunction'] = function () {
+            PWM_MAIN.showWaitDialog({
+                title: 'Save complete, restarting application...', loadFunction: function () {
+                    PWM_CONFIG.waitForRestart({location: '/'});
+                }
+            });
+        };
+        UILibrary.uploadFileDialog(uploadOptions);
+    });
 };
 
 PWM_CONFIG.uploadLocalDB=function() {
-    PWM_MAIN.showConfirmDialog({
-        text:PWM_CONFIG.showString('Confirm_UploadLocalDB'),
-        okAction:function(){
-            var uploadOptions = {};
-            uploadOptions['url'] = 'localdb?processAction=importLocalDB';
-            uploadOptions['title'] = 'Upload and Import LocalDB Archive';
-            uploadOptions['nextFunction'] = function() {
-                PWM_MAIN.showWaitDialog({title:'Save complete, restarting application...',loadFunction:function(){
-                    PWM_CONFIG.waitForRestart({location:'/'});
-                }});
-            };
-            PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
-            UILibrary.uploadFileDialog(uploadOptions);
-        }
+    PWM_MAIN.preloadAll(function() {
+        PWM_MAIN.showConfirmDialog({
+            text: PWM_CONFIG.showString('Confirm_UploadLocalDB'),
+            okAction: function () {
+                var uploadOptions = {};
+                uploadOptions['url'] = 'localdb?processAction=importLocalDB';
+                uploadOptions['title'] = 'Upload and Import LocalDB Archive';
+                uploadOptions['nextFunction'] = function () {
+                    PWM_MAIN.showWaitDialog({
+                        title: 'Save complete, restarting application...', loadFunction: function () {
+                            PWM_CONFIG.waitForRestart({location: '/'});
+                        }
+                    });
+                };
+                PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
+                UILibrary.uploadFileDialog(uploadOptions);
+            }
+        });
     });
 };
 
