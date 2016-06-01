@@ -75,7 +75,9 @@ public class LocalDBFactory {
             initParameters = StringUtil.convertStringListToNameValuePair(Arrays.asList(initStrings.split(";;;")), "=");
         }
 
-        final Map<LocalDBProvider.Parameter,String> parameters = makeParameterMap(pwmApplication.getConfig(), readonly);
+        final Map<LocalDBProvider.Parameter,String> parameters = pwmApplication == null
+                ? Collections.<LocalDBProvider.Parameter, String>emptyMap()
+                : makeParameterMap(pwmApplication.getConfig(), readonly);
         final LocalDBProvider dbProvider = createInstance(className);
         LOGGER.debug("initializing " + className + " localDBProvider instance");
 

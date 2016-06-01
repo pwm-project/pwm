@@ -1688,7 +1688,7 @@
             <value>1000000</value>
         </default>
         <properties>
-            <property key="Minimum">1</property>
+            <property key="Minimum">0</property>
             <property key="Maximum">1000000000</property>
         </properties>
     </setting>

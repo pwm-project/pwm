@@ -23,45 +23,42 @@
 package password.pwm.tests;
 
 import junit.framework.TestCase;
+import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.svc.stats.EventRateMeter;
-import password.pwm.util.FileSystemUtility;
-import password.pwm.util.Helper;
-import password.pwm.util.Percent;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
-import password.pwm.util.logging.LocalDBLogger;
-import password.pwm.util.logging.LocalDBLoggerSettings;
-import password.pwm.util.logging.PwmLogEvent;
-import password.pwm.util.logging.PwmLogLevel;
+import password.pwm.util.logging.*;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.File;
+import java.io.Serializable;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class LocalDBLoggerTest extends TestCase {
 
-    private static final int BULK_EVENT_COUNT = 150 * 1000 * 1000;
+    private final NumberFormat numberFormat = NumberFormat.getNumberInstance();
 
     private LocalDBLogger localDBLogger;
     private LocalDB localDB;
     private Configuration config;
 
-
     private final AtomicInteger eventsAdded = new AtomicInteger(0);
-    private final AtomicInteger eventsRemaining = new AtomicInteger(0);
-    final StringBuffer randomValue = new StringBuffer();
-    final Random random = new Random();
 
     private EventRateMeter eventRateMeter = new EventRateMeter(new TimeDuration(60 * 1000));
 
+    private Settings settings;
+    private Date startTime;
 
 
     @Override
@@ -80,101 +77,155 @@ public class LocalDBLoggerTest extends TestCase {
                 config
         );
 
-
-        final int maxEvents = (int)reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
-        final long maxAgeMs = reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * (long)1000;
-        final LocalDBLoggerSettings settings = new LocalDBLoggerSettings(maxEvents, new TimeDuration(maxAgeMs), Collections.<LocalDBLoggerSettings.Flag>emptySet());
-
-        localDBLogger = new LocalDBLogger(null, localDB, settings);
-
-        {
-            final int randomLength = 84000;
-            while (randomValue.length() < randomLength) {
-                randomValue.append(PwmRandom.getInstance().nextChar());
-            }
+        { // open localDBLogger based on configuration settings;
+            final int maxEvents = (int) reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
+            final long maxAgeMs = reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * (long) 1000;
+            final LocalDBLoggerSettings settings = new LocalDBLoggerSettings.Builder().setMaxEvents(maxEvents).setMaxAge(new TimeDuration(maxAgeMs)).setFlags(Collections.<LocalDBLoggerSettings.Flag>emptySet()).createLocalDBLoggerSettings();
+            localDBLogger = new LocalDBLogger(null, localDB, settings);
         }
+
+        settings = new Settings();
+        settings.threads = 10;
+        settings.testDuration = new TimeDuration(1, TimeUnit.HOURS);
+        settings.valueLength = 5000;
+        settings.batchSize = 100;
     }
 
-    public void testBulkAddEvents() {
-        final int startingSize = localDBLogger.getStoredEventCount();
-        eventsRemaining.addAndGet(BULK_EVENT_COUNT);
+    private void out(String output) {
+        System.out.println(PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())+ " " + output);
+    }
+
+    public void testBulkAddEvents() throws InterruptedException {
+        out("starting bulk add...  ");
+        out("settings=" + JsonUtil.serialize(settings));
+        startTime = new Date();
         final Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new DebugOutputTimerTask(),5 * 1000, 5 * 1000);
 
-        for (int loopCount = 0; loopCount < 5; loopCount++) {
-            final Thread populatorThread = new PopulatorThread();
-            populatorThread.start();
+        final int threadCount = settings.threads;
+        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+                threadCount,
+                threadCount,
+                1,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<Runnable>(threadCount + 1)
+        );
+
+        timer.scheduleAtFixedRate(new DebugOutputTimerTask(),5 * 1000, 30 * 1000);
+
+        for (int loopCount = 0; loopCount < threadCount; loopCount++) {
+            threadPoolExecutor.execute(new PopulatorThread());
         }
 
-        while (eventsRemaining.get() > 0) {
-            Helper.pause(5);
-        }
-
-        final long startWaitTime = System.currentTimeMillis();
-        while (TimeDuration.fromCurrent(startWaitTime).isShorterThan(new TimeDuration(10, TimeUnit.HOURS)) && eventsRemaining.get() > 0) {
-            Helper.pause(500);
-        }
-        Helper.pause(5000);
-
+        threadPoolExecutor.shutdown();
+        threadPoolExecutor.awaitTermination(1, TimeUnit.DAYS);
         timer.cancel();
+        out("bulk operations completed");
+        out("settings=" + JsonUtil.serialize(settings));
+        out(" results=" + JsonUtil.serialize(makeResults()));
+        outputDebugInfo();
     }
 
 
     private class PopulatorThread extends Thread {
         public void run() {
-            int loopCount = 3;
-            while (eventsRemaining.get() > 0) {
-                final Collection<PwmLogEvent> events = makeEvents(loopCount);
+            final RandomValueMaker randomValueMaker = new RandomValueMaker(settings.valueLength);
+            while (TimeDuration.fromCurrent(startTime).isShorterThan(settings.testDuration)) {
+                final Collection<PwmLogEvent> events = makeEvents(randomValueMaker);
                 for (final PwmLogEvent logEvent : events) {
                     localDBLogger.writeEvent(logEvent);
                     eventRateMeter.markEvents(1);
-                    eventsRemaining.decrementAndGet();
                     eventsAdded.incrementAndGet();
                 }
             }
         }
     }
 
-    private Collection<PwmLogEvent> makeEvents(final int count) {
+    private Collection<PwmLogEvent> makeEvents(final RandomValueMaker randomValueMaker) {
+        final int count = settings.batchSize;
         final Collection<PwmLogEvent> events = new ArrayList<>();
-
         for (int i = 0; i < count; i++) {
-            events.add(makeEvent());
+            final String description = randomValueMaker.next();
+            PwmLogEvent event = PwmLogEvent.createPwmLogEvent(
+                    new Date(),
+                    LocalDBLogger.class.getName(),
+                    description, "", "", null, null, PwmLogLevel.TRACE);
+            events.add(event);
         }
 
-        //System.out.println("made "  + size + " events in " + TimeDuration.fromCurrent(startTime).asCompactString());
         return events;
     }
 
-    private PwmLogEvent makeEvent() {
-        final int randomPos = random.nextInt(randomValue.length() - 1);
-        randomValue.replace(randomPos, randomPos + 1,String.valueOf(random.nextInt(9)));
+    private void outputDebugInfo() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("added ").append(numberFormat.format(eventsAdded.get()));
+        sb.append(", size: ").append(Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
+        sb.append(", eventsInDb: ").append(figureEventsInDbStat());
+        sb.append(", free: ").append(Helper.formatDiskSize(
+                FileSystemUtility.diskSpaceRemaining(localDB.getFileLocation())));
+        sb.append(", eps: ").append(eventRateMeter.readEventRate().setScale(0, RoundingMode.UP));
+        sb.append(", remain: ").append(settings.testDuration.subtract(TimeDuration.fromCurrent(startTime)).asCompactString());
+        sb.append(", tail: ").append(TimeDuration.fromCurrent(localDBLogger.getTailDate()).asCompactString());
+        out(sb.toString());
+    }
 
-        final int startPos = random.nextInt(randomValue.length() - 100);
-        final int endPos = startPos + random.nextInt(randomValue.length() - startPos);
+    private String figureEventsInDbStat() {
+        final long maxEvents = config.readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
+        final long eventCount = localDBLogger.getStoredEventCount();
+        final Percent percent = new Percent(eventCount,maxEvents);
+        return numberFormat.format(localDBLogger.getStoredEventCount()) + "/" + numberFormat.format(maxEvents)
+                +  " (" + percent.pretty(2) + ")";
+    }
 
-        final String description = randomValue.substring(startPos,endPos);
-        return PwmLogEvent.createPwmLogEvent(
-                new Date(System.currentTimeMillis()),
-                LocalDBLogger.class.getName(),
-                description, "", "", null, null, PwmLogLevel.TRACE);
+    private Results makeResults() {
+        Results results = new Results();
+        results.dbClass = config.readAppProperty(AppProperty.LOCALDB_IMPLEMENTATION);
+        results.duration = TimeDuration.fromCurrent(startTime).asCompactString();
+        results.recordsAdded = eventsAdded.get();
+        results.dbSize = Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation()));
+        results.eventsInDb = figureEventsInDbStat();
+        return results;
     }
 
     private class DebugOutputTimerTask extends TimerTask {
         public void run() {
-            final StringBuilder sb = new StringBuilder();
-            final long maxEvents = config.readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
-            final long eventCount = localDBLogger.getStoredEventCount();
-            final Percent percent = new Percent(eventCount,maxEvents);
-            sb.append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-            sb.append(", added ").append(eventsAdded);
-            sb.append(", db size: ").append(Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
-            sb.append(", events: ").append(localDBLogger.getStoredEventCount()).append("/").append(maxEvents);
-            sb.append(" (").append(percent.pretty(3)).append(")");
-            sb.append(", free space: ").append(Helper.formatDiskSize(
-                    FileSystemUtility.diskSpaceRemaining(localDB.getFileLocation())));
-            sb.append(", eps: ").append(eventRateMeter.readEventRate().setScale(0, RoundingMode.UP));
-            System.out.println(sb);
+            outputDebugInfo();
+        }
+    }
+
+    private static class Settings implements Serializable {
+        private TimeDuration testDuration;
+        private int threads;
+        private int valueLength;
+        private int batchSize;
+    }
+
+    private static class Results implements Serializable {
+        private String dbClass;
+        private String duration;
+        private int recordsAdded;
+        private String dbSize;
+        private String eventsInDb;
+    }
+
+    private static class RandomValueMaker {
+        private int outputLength;
+        final StringBuffer randomValue = new StringBuffer();
+        final Random random = new Random();
+
+        public RandomValueMaker(final int outputLength) {
+            this.outputLength = outputLength;
+            randomValue.append(PwmRandom.getInstance().alphaNumericString(outputLength * 50));
+        }
+
+        public String next() {
+            final int randomPos = random.nextInt(randomValue.length() - 1);
+            randomValue.replace(randomPos, randomPos + 1,String.valueOf(random.nextInt(9)));
+
+            final int startPos = random.nextInt(randomValue.length() - outputLength);
+            final int endPos = startPos + outputLength;
+
+
+            return randomValue.substring(startPos,endPos);
         }
     }
 }

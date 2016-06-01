@@ -193,13 +193,13 @@
                 <groupId>org.jasig.mojo.jspc</groupId>
                 <artifactId>jspc-maven-plugin</artifactId>
                 <version>2.0.0</version>
-				<dependencies>
-				    <dependency>
+                <dependencies>
+                    <dependency>
                         <groupId>org.jasig.mojo.jspc</groupId>
                         <artifactId>jspc-compiler-tomcat7</artifactId>
                         <version>2.0.0</version>
                     </dependency>
-				</dependencies>
+                </dependencies>
                 <configuration>
                     <includeInProject>false</includeInProject>
                 </configuration>
@@ -228,7 +228,7 @@
                                 <fileset>
                                     <directory>target/classes/jsp</directory>
                                 </fileset>
-                              </filesets>
+                            </filesets>
                         </configuration>
                     </execution>
                 </executions>
@@ -401,8 +401,8 @@
 
         <dependency>
             <groupId>com.github.ldapchai</groupId>
-            <version>0.6.8</version>
             <artifactId>ldapchai</artifactId>
+            <version>0.6.8</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -534,6 +534,11 @@
             <artifactId>UserAgentUtils</artifactId>
             <version>1.18</version>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains.xodus</groupId>
+            <artifactId>xodus-environment</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
 
 
 
@@ -589,6 +594,13 @@
             <id>project.local</id>
             <name>project</name>
             <url>file:///${project.basedir}/local-maven-repo</url>
+        </repository>
+        <repository>
+            <id>maven-public</id> <!-- used by xodus -->
+            <url>https://oss.sonatype.org/content/groups/public</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>oracleReleases</id>
