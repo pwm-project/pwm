@@ -104,18 +104,25 @@
                     <td style="border:0; width:10%">&nbsp;</td>
                 </tr>
             </table>
-            <div class="buttonbar" style="width:100%">
-                <input type="hidden" name="processAction" value="change"/>
-                <button type="submit" name="change" class="btn" id="password_button">
-                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
-                    <pwm:display key="Button_ChangePassword"/>
-                </button>
-                <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
-                <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
-                <% } %>
-                <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
-            </div>
+
+            <input type="hidden" name="processAction" value="change"/>
+            <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
         </form>
+
+        <div class="buttonbar" style="width:100%">
+            <button type="submit" name="change" class="btn" id="password_button" form="changePasswordForm">
+                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                <pwm:display key="Button_ChangePassword"/>
+            </button>
+            <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
+                <form action="<pwm:url addContext='true' url='/' />" method="GET">
+                    <button type="submit" name="change" class="btn">
+                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                        <pwm:display key="Button_Cancel"/>
+                    </button>
+                </form>
+            <% } %>
+        </div>
     </div>
     <div class="push"></div>
 </div>
@@ -126,7 +133,6 @@
     });
 </script>
 </pwm:script>
-<%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <pwm:script-ref url="/public/resources/js/changepassword.js"/>
 <%@ include file="fragment/footer.jsp" %>
 </body>

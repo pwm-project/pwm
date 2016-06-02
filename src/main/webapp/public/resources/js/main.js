@@ -269,6 +269,7 @@ PWM_MAIN.applyFormAttributes = function() {
         console.log('added event handler for submit button with form attribute ' + element.id);
         PWM_MAIN.addEventHandler(element,'click',function(e){
             PWM_MAIN.stopEvent(e);
+            PWM_VAR['dirtyPageLeaveFlag'] = false;
             var formID = element.getAttribute('form');
             PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject(formID));
         });
