@@ -903,17 +903,17 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
     }
 
     private void restConfigSettingData(final PwmRequest pwmRequest, final ConfigManagerBean configManagerBean)
-            throws IOException
-    {
+            throws IOException, PwmUnrecoverableException {
         final PwmSettingTemplateSet template = configManagerBean.getStoredConfiguration().getTemplateSet();
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
         final Locale locale = pwmRequest.getLocale();
+        final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
         {
             final LinkedHashMap<String, Object> settingMap = new LinkedHashMap<>();
             for (final PwmSetting setting : PwmSetting.values()) {
                 final SettingInfo settingInfo = new SettingInfo();
                 settingInfo.key = setting.getKey();
-                settingInfo.description = setting.getDescription(locale);
+                settingInfo.description = macroMachine.expandMacros(setting.getDescription(locale));
                 settingInfo.level = setting.getLevel();
                 settingInfo.label = setting.getLabel(locale);
                 settingInfo.syntax = setting.getSyntax();

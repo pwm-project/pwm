@@ -152,22 +152,22 @@
         </default>
     </setting>
     <setting hidden="false" key="interface.theme" level="1" required="true">
+        <flag>Select_AllowUserInput</flag>
         <default>
             <value><![CDATA[pwm]]></value>
         </default>
         <options>
-            <option value="basic">Basic</option>
-            <option value="pwm">PWM</option>
-            <option value="autumn">Autumn</option>
-            <option value="blue">Blue</option>
-            <option value="matrix">Matrix</option>
-            <option value="midnight">Midnight</option>
-            <option value="red">Red</option>
-            <option value="sterile">Sterile</option>
-            <option value="tulips">Tulips</option>
-            <option value="water">Water</option>
-            <option value="custom">Custom</option>
-            <option value="embed">Embedded</option>
+            <option value="basic">basic</option>
+            <option value="pwm">pwm</option>
+            <option value="autumn">autumn</option>
+            <option value="blue">blue</option>
+            <option value="matrix">matrix</option>
+            <option value="midnight">midnight</option>
+            <option value="red">red</option>
+            <option value="sterile">sterile</option>
+            <option value="tulips">tulips</option>
+            <option value="water">water</option>
+            <option value="embed">-Embedded-</option>
         </options>
     </setting>
     <setting hidden="false" key="password.showAutoGen" level="1" required="true">
@@ -282,12 +282,12 @@
             <value>true</value>
         </default>
     </setting>
-    <setting hidden="false" key="display.css.customStyleLocation" level="2">
+    <setting hidden="true" key="display.css.customStyleLocation" level="2">
         <default>
             <value><![CDATA[]]></value>
         </default>
     </setting>
-    <setting hidden="false" key="display.css.customMobileStyleLocation" level="2">
+    <setting hidden="true" key="display.css.customMobileStyleLocation" level="2">
         <default>
             <value><![CDATA[]]></value>
         </default>

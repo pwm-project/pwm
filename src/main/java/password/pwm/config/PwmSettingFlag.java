@@ -32,6 +32,8 @@ public enum PwmSettingFlag {
     /* No Default - Makes the setting UI act as if there is not a default to reset to */
     NoDefault,
 
+    Select_AllowUserInput,
+
     Permission_HideGroups,
     Permission_HideMatch,
 

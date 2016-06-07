@@ -49,6 +49,11 @@
         </ul>
     </div>
 </div>
+<pwm:script-ref url="/public/resources/js/configmanager.js"/>
+<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
+<pwm:script-ref url="/public/resources/js/configeditor.js"/>
+<pwm:script-ref url="/public/resources/js/configeditor-settings.js"/>
+<pwm:script-ref url="/public/resources/js/admin.js"/>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

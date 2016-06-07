@@ -22,9 +22,12 @@
 
 package password.pwm.util.macro;
 
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmEnvironment;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
+import password.pwm.http.ContextManager;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
@@ -43,6 +46,7 @@ public abstract class InternalMacros {
         defaultMacros.put(ResponseSetupTimeMacro.class, MacroImplementation.Scope.Static);
         defaultMacros.put(PwmSettingReference.class, MacroImplementation.Scope.Static);
         defaultMacros.put(PwmAppName.class, MacroImplementation.Scope.Static);
+        defaultMacros.put(PwmContextPath.class, MacroImplementation.Scope.System);
         INTERNAL_MACROS = Collections.unmodifiableMap(defaultMacros);
     }
 
@@ -108,6 +112,33 @@ public abstract class InternalMacros {
             return setting.toMenuLocationDebug(null, PwmConstants.DEFAULT_LOCALE);
         }
     }
+
+    public static class PwmContextPath extends InternalAbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@PwmContextPath@" );
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(String matchValue, MacroRequestInfo macroRequestInfo)
+                throws MacroParseException
+        {
+            String contextName = "[context]";
+            final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
+            if (pwmApplication != null) {
+                final PwmEnvironment pwmEnvironment = pwmApplication.getPwmEnvironment();
+                if (pwmEnvironment != null) {
+                    final ContextManager contextManager = pwmEnvironment.getContextManager();
+                    if (contextManager != null && contextManager.getContextPath() != null) {
+                        contextName = contextManager.getContextPath();
+                    }
+                }
+            }
+            return contextName;
+        }
+    }
+
+
 
 
     public static class PwmAppName extends InternalAbstractMacro {
