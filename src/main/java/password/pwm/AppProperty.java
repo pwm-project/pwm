@@ -168,6 +168,8 @@ public enum AppProperty {
     LDAP_PROMISCUOUS_ENABLE                         ("ldap.promiscuousEnable"),
     LDAP_PASSWORD_REPLICA_CHECK_INIT_DELAY_MS       ("ldap.password.replicaCheck.initialDelayMS"),
     LDAP_PASSWORD_REPLICA_CHECK_CYCLE_DELAY_MS      ("ldap.password.replicaCheck.cycleDelayMS"),
+    LDAP_PASSWORD_CHANGE_SELF_ENABLE                ("ldap.password.change.self.enable"),
+    LDAP_PASSWORD_CHANGE_HELPDESK_ENABLE            ("ldap.password.change.helpdesk.enable"),
     LDAP_GUID_PATTERN                               ("ldap.guid.pattern"),
     LDAP_BROWSER_MAX_ENTRIES                        ("ldap.browser.maxEntries"),
     LDAP_SEARCH_PAGING_ENABLE                       ("ldap.search.paging.enable"),
