@@ -39,7 +39,9 @@
     </jsp:include>
     <div id="centerbody">
         <ul>
+            <pwm:if test="<%=PwmIfTest.appliance%>" negate="true">
             <li><a href="environment.jsp">Environment</a></li>
+            </pwm:if>
             <li><a href="settings.jsp">Settings</a></li>
             <li><a href="license.jsp">License</a></li>
             <li><a href="displaystrings.jsp">Display Strings</a></li>

@@ -55,11 +55,11 @@ public class PwmURL {
     }
 
     public boolean isResourceURL() {
-        return checkIfStartsWithURL("/public/resources/") || isReferenceURL();
+        return checkIfStartsWithURL(PwmConstants.URL_PREFIX_PUBLIC + "/resources/") || isReferenceURL();
     }
 
     public boolean isReferenceURL() {
-        return checkIfStartsWithURL("/public/reference/");
+        return checkIfMatchesURL(PwmConstants.URL_PREFIX_PUBLIC + "/reference") || checkIfStartsWithURL(PwmConstants.URL_PREFIX_PUBLIC + "/reference/");
     }
 
     public boolean isLogoutURL() {
@@ -118,11 +118,11 @@ public class PwmURL {
     }
 
     public boolean isWebServiceURL() {
-        return checkIfStartsWithURL("/public/rest/");
+        return checkIfStartsWithURL(PwmConstants.URL_PREFIX_PUBLIC + "/rest/");
     }
 
     public boolean isConfigManagerURL() {
-        return checkIfStartsWithURL("/private/config/");
+        return checkIfStartsWithURL(PwmConstants.URL_PREFIX_PRIVATE + "/config/");
     }
 
     public boolean isConfigGuideURL() {

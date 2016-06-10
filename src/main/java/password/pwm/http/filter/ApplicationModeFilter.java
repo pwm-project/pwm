@@ -93,7 +93,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
                 return ProcessStatus.Continue;
             }
 
-            if (pwmURL.isConfigGuideURL()) {
+            if (pwmURL.isConfigGuideURL() || pwmURL.isReferenceURL()) {
                 return ProcessStatus.Continue;
             } else {
                 LOGGER.debug("unable to find a valid configuration, redirecting " + pwmURL + " to ConfigGuide");
