@@ -163,12 +163,12 @@ public enum Message implements PwmDisplayBundle {
 
     private final Message pluralMessage;
 
-    public static String getLocalizedMessage(final Locale locale, final Message message, final Configuration config, final String... fieldValue) {
-        return LocaleHelper.getLocalizedMessage(locale, message.getKey(), config, Message.class, fieldValue);
-    }
-
     Message(final Message pluralMessage) {
         this.pluralMessage = pluralMessage;
+    }
+
+    public static String getLocalizedMessage(final Locale locale, final Message message, final Configuration config, final String... fieldValue) {
+        return LocaleHelper.getLocalizedMessage(locale, message.getKey(), config, Message.class, fieldValue);
     }
 
     public Message getPluralMessage() {

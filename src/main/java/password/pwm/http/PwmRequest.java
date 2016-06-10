@@ -74,6 +74,20 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     private final Set<PwmRequestFlag> flags = new HashSet<>();
 
+    private PwmRequest(
+            final HttpServletRequest httpServletRequest,
+            final HttpServletResponse httpServletResponse,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws PwmUnrecoverableException
+    {
+        super(httpServletRequest, pwmApplication.getConfig());
+        this.pwmResponse = new PwmResponse(httpServletResponse, this, pwmApplication.getConfig());
+        this.pwmSession = pwmSession;
+        this.pwmApplication = pwmApplication;
+    }
+
     public static PwmRequest forRequest(
             HttpServletRequest request,
             HttpServletResponse response
@@ -88,20 +102,6 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             request.setAttribute(PwmRequest.Attribute.PwmRequest.toString(), pwmRequest);
         }
         return pwmRequest;
-    }
-
-    private PwmRequest(
-            final HttpServletRequest httpServletRequest,
-            final HttpServletResponse httpServletResponse,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
-    )
-            throws PwmUnrecoverableException
-    {
-        super(httpServletRequest, pwmApplication.getConfig());
-        this.pwmResponse = new PwmResponse(httpServletResponse, this, pwmApplication.getConfig());
-        this.pwmSession = pwmSession;
-        this.pwmApplication = pwmApplication;
     }
 
     public PwmApplication getPwmApplication()

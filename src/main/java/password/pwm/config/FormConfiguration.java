@@ -60,6 +60,13 @@ public class FormConfiguration implements Serializable {
     private String javascript;
     private Map<String,String> selectOptions = Collections.emptyMap();
 
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    public FormConfiguration() {
+        labels = Collections.singletonMap("","");
+        regexErrors = Collections.singletonMap("","");
+    }
+
 // -------------------------- STATIC METHODS --------------------------
 
     public static FormConfiguration parseOldConfigString(final String config)
@@ -137,13 +144,6 @@ public class FormConfiguration implements Serializable {
                 throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{" field '" + this.getName() + " ' is type select, but no select options are defined"}));
             }
         }
-    }
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    public FormConfiguration() {
-        labels = Collections.singletonMap("","");
-        regexErrors = Collections.singletonMap("","");
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------

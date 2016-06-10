@@ -71,6 +71,23 @@ public class PwmPasswordPolicy implements Profile,Serializable {
     private List<UserPermission> userPermissions;
     private String ruleText;
 
+    private PwmPasswordPolicy(
+            final Map<String, String> policyMap,
+            final ChaiPasswordPolicy chaiPasswordPolicy
+    ) {
+        if (policyMap != null) {
+            this.policyMap.putAll(policyMap);
+        }
+        if (chaiPasswordPolicy != null) {
+            if (Boolean.parseBoolean(chaiPasswordPolicy.getValue(ChaiPasswordRule.ADComplexity))) {
+                this.policyMap.put(PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2003.toString());
+            } else if (Boolean.parseBoolean(chaiPasswordPolicy.getValue(ChaiPasswordRule.ADComplexity2008))) {
+                this.policyMap.put(PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2008.toString());
+            }
+        }
+        this.chaiPasswordPolicy = chaiPasswordPolicy;
+    }
+
     public static PwmPasswordPolicy createPwmPasswordPolicy(
             final Map<String, String> policyMap,
             final ChaiPasswordPolicy chaiPasswordPolicy
@@ -104,24 +121,6 @@ public class PwmPasswordPolicy implements Profile,Serializable {
 
     public static PwmPasswordPolicy defaultPolicy() {
         return defaultPolicy;
-    }
-
-
-    private PwmPasswordPolicy(
-            final Map<String, String> policyMap,
-            final ChaiPasswordPolicy chaiPasswordPolicy
-    ) {
-        if (policyMap != null) {
-            this.policyMap.putAll(policyMap);
-        }
-        if (chaiPasswordPolicy != null) {
-            if (Boolean.parseBoolean(chaiPasswordPolicy.getValue(ChaiPasswordRule.ADComplexity))) {
-                this.policyMap.put(PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2003.toString());
-            } else if (Boolean.parseBoolean(chaiPasswordPolicy.getValue(ChaiPasswordRule.ADComplexity2008))) {
-                this.policyMap.put(PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2008.toString());
-            }
-        }
-        this.chaiPasswordPolicy = chaiPasswordPolicy;
     }
 
     @Override

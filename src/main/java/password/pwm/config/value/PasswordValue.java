@@ -44,10 +44,10 @@ import java.util.Locale;
 public class PasswordValue implements StoredValue {
     private PasswordData value;
 
+    boolean requiresStoredUpdate;
+
     PasswordValue() {
     }
-
-    boolean requiresStoredUpdate;
 
     public PasswordValue(PasswordData passwordData) {
         value = passwordData;

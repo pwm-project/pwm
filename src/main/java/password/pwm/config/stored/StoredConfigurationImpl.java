@@ -63,6 +63,13 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     private boolean locked = false;
     private boolean setting_writeLabels = true;
     private final ReentrantReadWriteLock domModifyLock = new ReentrantReadWriteLock();
+    private PwmSecurityKey cachedKey = null;
+
+    public StoredConfigurationImpl() throws PwmUnrecoverableException {
+        ConfigurationCleaner.cleanup(this);
+        final String createTime = PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
+        document.getRootElement().setAttribute(XML_ATTRIBUTE_CREATE_TIME,createTime);
+    }
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -146,13 +153,6 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             }
         }
     }
-
-    public StoredConfigurationImpl() throws PwmUnrecoverableException {
-        ConfigurationCleaner.cleanup(this);
-        final String createTime = PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
-        document.getRootElement().setAttribute(XML_ATTRIBUTE_CREATE_TIME,createTime);
-    }
-
 
     @Override
     public String readConfigProperty(final ConfigurationProperty propertyName) {
@@ -1201,7 +1201,6 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         return changeLog.changeLogAsDebugString(locale, asHtml);
     }
 
-    private PwmSecurityKey cachedKey = null;
     public PwmSecurityKey getKey() throws PwmUnrecoverableException {
         if (cachedKey == null) {
             cachedKey = new PwmSecurityKey(createTime() + "StoredConfiguration");

@@ -43,6 +43,20 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
     private static final PwmLogger LOGGER = PwmLogger.forClass(X509CertificateValue.class);
     private X509Certificate[] certificates;
 
+    public X509CertificateValue(X509Certificate[] certificates) {
+        if (certificates == null) {
+            throw new NullPointerException("certificates cannot be null");
+        }
+        this.certificates = certificates;
+    }
+
+    public X509CertificateValue(Collection<X509Certificate> certificates) {
+        if (certificates == null) {
+            throw new NullPointerException("certificates cannot be null");
+        }
+        this.certificates = certificates.toArray(new X509Certificate[certificates.size()]);
+    }
+
     public static StoredValueFactory factory() {
         return new StoredValueFactory() {
             public X509CertificateValue fromXmlElement(final Element settingElement, final PwmSecurityKey key) {
@@ -65,22 +79,8 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
         };
     }
 
-    public X509CertificateValue(X509Certificate[] certificates) {
-        if (certificates == null) {
-            throw new NullPointerException("certificates cannot be null");
-        }
-        this.certificates = certificates;
-    }
-
     public boolean hasCertificates() {
         return certificates != null && certificates.length > 0;
-    }
-
-    public X509CertificateValue(Collection<X509Certificate> certificates) {
-        if (certificates == null) {
-            throw new NullPointerException("certificates cannot be null");
-        }
-        this.certificates = certificates.toArray(new X509Certificate[certificates.size()]);
     }
 
 

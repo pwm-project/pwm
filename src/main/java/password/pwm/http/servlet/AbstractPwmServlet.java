@@ -46,6 +46,8 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(AbstractPwmServlet.class);
 
+    public static final Collection<HttpMethod> GET_AND_POST_METHODS;
+
     public void doGet(
             final HttpServletRequest req,
             final HttpServletResponse resp
@@ -254,8 +256,6 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
     public interface ProcessAction {
         Collection<HttpMethod> permittedMethods();
     }
-
-    public static final Collection<HttpMethod> GET_AND_POST_METHODS;
 
     static {
         final HashSet<HttpMethod> methods = new HashSet<>();

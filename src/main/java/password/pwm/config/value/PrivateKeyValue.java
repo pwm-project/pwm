@@ -49,6 +49,10 @@ public class PrivateKeyValue extends AbstractValue {
 
     private PrivateKeyCertificate privateKeyCertificate;
 
+    public PrivateKeyValue(PrivateKeyCertificate privateKeyCertificate) {
+        this.privateKeyCertificate = privateKeyCertificate;
+    }
+
     public static StoredValue.StoredValueFactory factory() {
         return new StoredValue.StoredValueFactory() {
             public PrivateKeyValue fromXmlElement(final Element settingElement, final PwmSecurityKey key) {
@@ -94,10 +98,6 @@ public class PrivateKeyValue extends AbstractValue {
                 return new X509CertificateValue(new X509Certificate[0]);
             }
         };
-    }
-
-    public PrivateKeyValue(PrivateKeyCertificate privateKeyCertificate) {
-        this.privateKeyCertificate = privateKeyCertificate;
     }
 
 
