@@ -82,7 +82,7 @@ public class StringValue extends AbstractValue implements StoredValue {
         final Pattern pattern = pwmSetting.getRegExPattern();
         if (pattern != null && value != null) {
             final Matcher matcher = pattern.matcher(value);
-            if (value != null && value.length() > 0 && !matcher.matches()) {
+            if (value.length() > 0 && !matcher.matches()) {
                 return Collections.singletonList("incorrect value format for value '" + value + "'");
             }
         }
