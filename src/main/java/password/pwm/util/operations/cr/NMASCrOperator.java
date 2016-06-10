@@ -501,7 +501,7 @@ public class NMASCrOperator implements CrOperator {
                 super(lcmenvironment, lcmregistry);
             }
 
-            public void handle(final Callback callbacks[]) throws UnsupportedCallbackException
+            public void handle(final Callback[] callbacks) throws UnsupportedCallbackException
             {
                 for (final Callback callback : callbacks) {
                     if (callback instanceof NMASCompletionCallback) {

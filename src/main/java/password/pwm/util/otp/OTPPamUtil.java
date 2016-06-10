@@ -47,7 +47,7 @@ public class OTPPamUtil {
     public static List<String> splitLines(String text) {
         List<String> list = new ArrayList<>();
         if (text != null) {
-            String lines[] = text.split("\r?\n|\r");
+            String[] lines = text.split("\r?\n|\r");
             list.addAll(Arrays.asList(lines));
         }
         return list;

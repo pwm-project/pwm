@@ -273,7 +273,7 @@ public class SyslogAuditService {
                 throw new IllegalArgumentException("input cannot be null");
             }
 
-            final String parts[] = input.split(",");
+            final String[] parts = input.split(",");
             if (parts.length != 3) {
                 throw new IllegalArgumentException("input must have three comma separated parts.");
             }
