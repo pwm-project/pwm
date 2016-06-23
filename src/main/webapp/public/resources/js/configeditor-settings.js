@@ -662,9 +662,9 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
             htmlRow += '<select id="' + inputID + 'type">';
             for (var optionItem in options) {
                 //if (optionList[optionItem] != 'userDN' || userDNtypeAllowed) {
-                    var optionName = options[optionItem];
-                    var selected = (optionName == PWM_VAR['clientSettingCache'][settingKey][iteration]['type']);
-                    htmlRow += '<option value="' + optionName + '"' + (selected ? " selected" : "") + '>' + optionName + '</option>';
+                var optionName = options[optionItem];
+                var selected = (optionName == PWM_VAR['clientSettingCache'][settingKey][iteration]['type']);
+                htmlRow += '<option value="' + optionName + '"' + (selected ? " selected" : "") + '>' + optionName + '</option>';
                 //}
             }
             htmlRow += '</select>';
@@ -1646,13 +1646,13 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
                                     X509CertificateHandler.certHtmlActions(certificate,keyName,i);
                                 }
                             };
-                           PWM_MAIN.showDialog({
-                               title:'Certificate Detail',
-                               dialogClass: 'wide',
-                               text:bodyText,
-                               okAction:cancelFunction,
-                               loadFunction:loadFunction
-                           });
+                            PWM_MAIN.showDialog({
+                                title:'Certificate Detail',
+                                dialogClass: 'wide',
+                                text:bodyText,
+                                okAction:cancelFunction,
+                                loadFunction:loadFunction
+                            });
                         });
                         PWM_MAIN.addEventHandler('button-' + inputID + '-clearCertificates','click',function() {
                             PWM_MAIN.showConfirmDialog({okAction:function(){
@@ -2730,13 +2730,18 @@ var SelectValueHandler = {};
 SelectValueHandler.init = function(settingKey) {
     var parentDiv = 'table_setting_' + settingKey;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
+    var allowUserInput = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'],'Select_AllowUserInput');
 
     var htmlBody = '<select id="setting_' + settingKey + '" disabled="true">'
         + '<option value="' + PWM_MAIN.showString('Display_PleaseWait') + '">' + PWM_MAIN.showString('Display_PleaseWait') + '</option></select>';
+
+    if (allowUserInput) {
+        htmlBody += '<button class="btn" id="button_selectOverride_' + settingKey + '">'
+        + '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Set Value</button>';
+
+    }
+
     parentDivElement.innerHTML = htmlBody;
-
-
-
 
     PWM_MAIN.addEventHandler('setting_' + settingKey,'change',function(){
         var settingElement = PWM_MAIN.getObject('setting_' + settingKey);
@@ -2758,11 +2763,32 @@ SelectValueHandler.init = function(settingKey) {
             changeFunction();
         }
     });
+
+    PWM_MAIN.addEventHandler('button_selectOverride_' + settingKey,'click',function() {
+        var changeFunction = function(value){
+            PWM_CFGEDIT.writeSetting(settingKey,value,function(){
+                SelectValueHandler.init(settingKey);
+            });
+        };
+        UILibrary.stringEditorDialog({
+            title:'Set Value',
+            value:'',
+            completeFunction:function(value){
+                changeFunction(value);
+            }
+        });
+    });
+
+
     PWM_CFGEDIT.readSetting(settingKey, function(dataValue) {
         var settingElement = PWM_MAIN.getObject('setting_' + settingKey);
 
         var optionsHtml = '';
         var options = PWM_SETTINGS['settings'][settingKey]['options'];
+
+        if (dataValue && dataValue.length > 0 && !(dataValue in options)) {
+            optionsHtml += '<option value="' + dataValue + '">' + dataValue + '</option>'
+        }
         for (var option in options) {
             var optionValue = options[option];
             optionsHtml += '<option value="' + option + '">' + optionValue + '</option>'
@@ -3136,7 +3162,7 @@ PrivateKeyHandler.draw = function(keyName) {
         text += '<tr><td class="key">Alias</td><td><input type="text" class="configInput" id="input-certificateUpload-alias"/><br/><span class="footnote">Alias only required if file has multiple aliases</span></td></tr>';
         text += '</table></form>';
         options['text'] = text;
-        
+
         var urlUpdateFunction = function(url) {
             var formatSelect = PWM_MAIN.getObject('input-certificateUpload-format');
             url = PWM_MAIN.addParamToUrl(url,'format',formatSelect.options[formatSelect.selectedIndex].value);

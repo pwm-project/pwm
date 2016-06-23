@@ -282,10 +282,16 @@ public class PasswordUtility {
             final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserIdentity().getUserDN(), provider);
             final boolean boundAsSelf = theUser.getEntryDN().equals(provider.getChaiConfiguration().getSetting(ChaiSetting.BIND_DN));
             LOGGER.trace(pwmSession, "preparing to setActorPassword for '" + theUser.getEntryDN() + "', bindAsSelf=" + boundAsSelf + ", authType=" + pwmSession.getLoginInfoBean().getType());
-            if (setPasswordWithoutOld) {
-                theUser.setPassword(newPassword.getStringValue(), true);
+
+            final boolean setting_enableChange = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE));
+            if (setting_enableChange) {
+                if (setPasswordWithoutOld) {
+                    theUser.setPassword(newPassword.getStringValue(), true);
+                } else {
+                    theUser.changePassword(oldPassword.getStringValue(), newPassword.getStringValue());
+                }
             } else {
-                theUser.changePassword(oldPassword.getStringValue(), newPassword.getStringValue());
+                LOGGER.debug(pwmSession, "skipping actual ldap password change operation due to app property " + AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE.getKey() + "=false");
             }
         } catch (ChaiPasswordPolicyException e) {
             final String errorMsg = "error setting password for user '" + uiBean.getUserIdentity() + "'' " + e.toString();
@@ -396,8 +402,13 @@ public class PasswordUtility {
             throw new PwmOperationalException(errorInformation);
         }
 
+        final boolean setting_enableChange = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_PASSWORD_CHANGE_HELPDESK_ENABLE));
         try {
-            chaiUser.setPassword(newPassword.getStringValue());
+            if (setting_enableChange) {
+                chaiUser.setPassword(newPassword.getStringValue());
+            } else {
+                LOGGER.debug(pwmSession, "skipping actual ldap password change operation due to app property " + AppProperty.LDAP_PASSWORD_CHANGE_HELPDESK_ENABLE.getKey() + "=false");
+            }
         } catch (ChaiPasswordPolicyException e) {
             final String errorMsg = "error setting password for user '" + chaiUser.getEntryDN() + "'' " + e.toString();
             final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());

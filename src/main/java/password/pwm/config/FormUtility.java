@@ -38,6 +38,7 @@ import password.pwm.ldap.UserSearchEngine;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
 import password.pwm.util.Validator;
@@ -48,6 +49,10 @@ import java.util.*;
 public class FormUtility {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(FormUtility.class);
+
+    public enum Flag {
+        ReturnEmptyValues
+    }
 
     final private static String NEGATIVE_CACHE_HIT = "NEGATIVE_CACHE_HIT";
 
@@ -375,10 +380,12 @@ public class FormUtility {
     public static Map<FormConfiguration, List<String>> populateFormMapFromLdap(
             final List<FormConfiguration> formFields,
             final SessionLabel sessionLabel,
-            final UserDataReader userDataReader
+            final UserDataReader userDataReader,
+            final Flag... flags
     )
             throws PwmUnrecoverableException
     {
+        final boolean includeNulls = Helper.enumArrayContainsValue(flags, Flag.ReturnEmptyValues);
         final List<String> formFieldNames = FormConfiguration.convertToListOfNames(formFields);
         LOGGER.trace(sessionLabel, "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection(formFieldNames));
         final Map<String,List<String>> dataFromLdap = new LinkedHashMap<>();
@@ -387,12 +394,12 @@ public class FormUtility {
                 final String attribute = formConfiguration.getName();
                 if (formConfiguration.isMultivalue()) {
                     final List<String> values = userDataReader.readMultiStringAttribute(attribute, UserDataReader.Flag.ignoreCache);
-                    if (values != null && !values.isEmpty()) {
+                    if (includeNulls || (values != null && !values.isEmpty())) {
                         dataFromLdap.put(attribute, values);
                     }
                 } else {
                     final String value = userDataReader.readStringAttribute(attribute);
-                    if (value != null) {
+                    if (includeNulls || (value != null)) {
                         dataFromLdap.put(attribute, Collections.singletonList(value));
                     }
                 }
@@ -424,6 +431,18 @@ public class FormUtility {
 
                 returnMap.put(formItem, values);
             }
+        }
+        return returnMap;
+    }
+
+    public static Map<FormConfiguration, String> multiValueMapToSingleValue(final Map<FormConfiguration, List<String>> input) {
+        final Map<FormConfiguration, String> returnMap = new LinkedHashMap<>();
+        for (final FormConfiguration formConfiguration : input.keySet()) {
+            final List<String> listValue = input.get(formConfiguration);
+            final String value = listValue != null && !listValue.isEmpty()
+                    ? listValue.iterator().next()
+                    : null;
+            returnMap.put(formConfiguration, value);
         }
         return returnMap;
     }

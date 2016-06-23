@@ -261,6 +261,19 @@ public class UserStatusReader {
 
         uiBean.setUserIdentity(userIdentity.canonicalized(pwmApplication));
 
+        // read authenticated profiles
+        for (final ProfileType profileType : ProfileType.values()) {
+            if (profileType.isAuthenticated()) {
+                final String profileID = ProfileUtility.discoverProfileIDforUser(pwmApplication, sessionLabel, userIdentity, profileType);
+                uiBean.getProfileIDs().put(profileType, profileID);
+                if (profileID != null) {
+                    LOGGER.debug(sessionLabel, "assigned " + profileType.toString() + " profileID \"" + profileID + "\" to " + userIdentity.toDisplayString());
+                } else {
+                    LOGGER.debug(sessionLabel, profileType.toString() + " has no matching profiles for user " + userIdentity.toDisplayString());
+                }
+            }
+        }
+
         populateLocaleSpecificUserInfoBean(uiBean, userLocale);
 
         //populate OTP data
@@ -364,19 +377,6 @@ public class UserStatusReader {
             uiBean.setAccountExpirationTime(theUser.readAccountExpirationDate());
         } catch (Exception e) {
             LOGGER.error(sessionLabel, "error reading account expired date for user '" + userIdentity + "', " + e.getMessage());
-        }
-
-        // read authenticated profiles
-        for (final ProfileType profileType : ProfileType.values()) {
-            if (profileType.isAuthenticated()) {
-                final String profileID = ProfileUtility.discoverProfileIDforUser(pwmApplication, sessionLabel, userIdentity, profileType);
-                uiBean.getProfileIDs().put(profileType, profileID);
-                if (profileID != null) {
-                    LOGGER.debug(sessionLabel, "assigned " + profileType.toString() + " profileID \"" + profileID + "\" to " + userIdentity.toDisplayString());
-                } else {
-                    LOGGER.debug(sessionLabel, profileType.toString() + " has no matching profiles for user " + userIdentity.toDisplayString());
-                }
-            }
         }
 
         // update report engine.
@@ -489,13 +489,22 @@ public class UserStatusReader {
             return false;
         }
 
-        final List<UserPermission> updateProfilePermission = updateAttributesProfile.readSettingAsUserPermission(PwmSetting.UPDATE_PROFILE_QUERY_MATCH);
-        if (!LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, uiBean.getUserIdentity(),updateProfilePermission)) {
-            LOGGER.debug(sessionLabel,
-                    "checkProfiles: " + userIdentity.toString() + " is not eligible for checkProfile due to query match");
+        final List<FormConfiguration> updateFormFields = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+
+        // populate the map from ldap
+
+        try {
+            final Map<FormConfiguration, List<String>> valueMap = FormUtility.populateFormMapFromLdap(updateFormFields, sessionLabel, userDataReader, FormUtility.Flag.ReturnEmptyValues);
+            final Map<FormConfiguration, String> singleValueMap = FormUtility.multiValueMapToSingleValue(valueMap);
+            FormUtility.validateFormValues(configuration, singleValueMap, locale);
+            LOGGER.debug(sessionLabel, "checkProfile: " + userIdentity + " has value for attributes, update profile will not be required");
             return false;
+        } catch (PwmDataValidationException e) {
+            LOGGER.debug(sessionLabel, "checkProfile: " + userIdentity + " does not have good attributes (" + e.getMessage() + "), update profile will be required");
+            return true;
         }
 
+        /*
         final List<UserPermission> checkProfileQueryMatch = updateAttributesProfile.readSettingAsUserPermission(PwmSetting.UPDATE_PROFILE_CHECK_QUERY_MATCH);
         if (checkProfileQueryMatch != null && !checkProfileQueryMatch.isEmpty()) {
             if (LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, userIdentity, checkProfileQueryMatch)) {
@@ -529,6 +538,7 @@ public class UserStatusReader {
                 return true;
             }
         }
+        */
     }
 
     public boolean checkIfOtpUpdateNeeded(

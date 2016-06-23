@@ -39,7 +39,9 @@
     </jsp:include>
     <div id="centerbody">
         <ul>
+            <pwm:if test="<%=PwmIfTest.appliance%>" negate="true">
             <li><a href="environment.jsp">Environment</a></li>
+            </pwm:if>
             <li><a href="settings.jsp">Settings</a></li>
             <li><a href="license.jsp">License</a></li>
             <li><a href="displaystrings.jsp">Display Strings</a></li>
@@ -49,6 +51,11 @@
         </ul>
     </div>
 </div>
+<pwm:script-ref url="/public/resources/js/configmanager.js"/>
+<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
+<pwm:script-ref url="/public/resources/js/configeditor.js"/>
+<pwm:script-ref url="/public/resources/js/configeditor-settings.js"/>
+<pwm:script-ref url="/public/resources/js/admin.js"/>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

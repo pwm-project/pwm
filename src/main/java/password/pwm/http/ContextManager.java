@@ -59,6 +59,8 @@ public class ContextManager implements Serializable {
     private int restartCount = 0;
     private final String instanceGuid;
 
+    private String contextPath;
+
     private enum ContextParameter {
         applicationPath,
         configurationFile,
@@ -69,6 +71,7 @@ public class ContextManager implements Serializable {
     public ContextManager(ServletContext servletContext) {
         this.servletContext = servletContext;
         this.instanceGuid = PwmRandom.getInstance().randomUUID().toString();
+        this.contextPath = servletContext.getContextPath();
     }
 
     // -------------------------- STATIC METHODS --------------------------
@@ -457,6 +460,10 @@ public class ContextManager implements Serializable {
 
     public String getInstanceGuid() {
         return instanceGuid;
+    }
+
+    public String getContextPath() {
+        return contextPath;
     }
 
     public InputStream getResourceAsStream(String path)

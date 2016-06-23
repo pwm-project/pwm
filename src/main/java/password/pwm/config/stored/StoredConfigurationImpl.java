@@ -145,6 +145,11 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
                 }
             }
         }
+
+        final String pwdHash = this.readConfigProperty(ConfigurationProperty.PASSWORD_HASH);
+        if (pwdHash != null && !pwdHash.isEmpty()) {
+            this.writeConfigProperty(ConfigurationProperty.PASSWORD_HASH, comment);
+        }
     }
 
     public StoredConfigurationImpl() throws PwmUnrecoverableException {
