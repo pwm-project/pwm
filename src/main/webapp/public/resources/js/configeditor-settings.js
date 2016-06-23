@@ -2406,7 +2406,8 @@ UserPermissionHandler.draw = function(keyName) {
 
                 var currentBaseValue = ('ldapBase' in resultValue[rowKey]) ? resultValue[rowKey]['ldapBase'] : "";
                 var baseEditor = function(){
-                    UILibrary.editLdapDN(function(value) {
+                    UILibrary.editLdapDN(function(value, ldapProfileID) {
+                        PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapProfileID'] = ldapProfileID;
                         PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapBase'] = value;
                         UserPermissionHandler.write(keyName,true);
                     });
