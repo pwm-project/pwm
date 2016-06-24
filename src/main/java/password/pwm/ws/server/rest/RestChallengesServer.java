@@ -39,6 +39,7 @@ import password.pwm.error.*;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
@@ -333,7 +334,7 @@ public class RestChallengesServer extends AbstractRestServer {
                 userGUID = restRequestBean.getPwmSession().getUserInfoBean().getUserGuid();
 
                 // mark the event log
-                final UserAuditRecord auditRecord = restRequestBean.getPwmApplication().getAuditManager().createUserAuditRecord(
+                final UserAuditRecord auditRecord = new AuditRecordFactory(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession()).createUserAuditRecord(
                         AuditEvent.CLEAR_RESPONSES,
                         restRequestBean.getPwmSession().getUserInfoBean(),
                         restRequestBean.getPwmSession()
@@ -352,7 +353,7 @@ public class RestChallengesServer extends AbstractRestServer {
                         false);
 
                 // mark the event log
-                final HelpdeskAuditRecord auditRecord = restRequestBean.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
+                final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession()).createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_CLEAR_RESPONSES,
                         restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(),
                         null,

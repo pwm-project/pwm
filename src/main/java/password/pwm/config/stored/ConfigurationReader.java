@@ -34,7 +34,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.event.AuditEvent;
-import password.pwm.svc.event.SystemAuditRecord;
+import password.pwm.svc.event.AuditRecord;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.util.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
@@ -210,11 +211,11 @@ public class ConfigurationReader {
                 if (sessionLabel != null && sessionLabel.getUserIdentity() != null) {
                     modifyMessage += " by " + sessionLabel.getUserIdentity().toDisplayString();
                 }
-                pwmApplication.getAuditManager().submit(SystemAuditRecord.create(
+                final AuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createSystemAuditRecord(
                         AuditEvent.MODIFY_CONFIGURATION,
-                        modifyMessage,
-                        pwmApplication.getInstanceID()
-                ));
+                        modifyMessage
+                );
+                pwmApplication.getAuditManager().submit(auditRecord);
             }
 
             if (backupDirectory != null) {

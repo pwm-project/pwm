@@ -1443,8 +1443,8 @@
             <option value="SHUTDOWN">Shutdown</option>
             <option value="FATAL_EVENT">Fatal Event</option>
             <option value="MODIFY_CONFIGURATION">Modify Configuration</option>
-            <option value="INTRUDER_ATTEMPT">Intruder Attempt</option>
-            <option value="INTRUDER_LOCK">Intruder Lock</option>
+            <option value="INTRUDER_ATTEMPT">Non-User Intruder Attempt</option>
+            <option value="INTRUDER_LOCK">Non-User Intruder Lock</option>
         </options>
     </setting>
     <setting hidden="false" key="audit.userEvent.toAddress" level="1">
@@ -1463,7 +1463,7 @@
             <value>ACTIVATE_USER</value>
             <value>CREATE_USER</value>
             <value>UPDATE_PROFILE</value>
-            <value>INTRUDER_USER</value>
+            <value>INTRUDER_USER_LOCK</value>
             <value>TOKEN_ISSUED</value>
             <value>TOKEN_CLAIMED</value>
             <value>CLEAR_RESPONSES</value>
@@ -1492,7 +1492,8 @@
             <option value="ACTIVATE_USER">Activate User</option>
             <option value="CREATE_USER">New User</option>
             <option value="UPDATE_PROFILE">Update Profile</option>
-            <option value="INTRUDER_USER">Intruder Lock User</option>
+            <option value="INTRUDER_USER_LOCK">Intruder User Lock</option>
+            <option value="INTRUDER_USER_ATTEMPT">Intruder User Attempt</option>
             <option value="TOKEN_ISSUED">Token Issued</option>
             <option value="TOKEN_CLAIMED">Token Claimed</option>
             <option value="CLEAR_RESPONSES">Clear Responses</option>
@@ -1748,7 +1749,7 @@
             <value>ACTIVATE_USER</value>
             <value>CREATE_USER</value>
             <value>UPDATE_PROFILE</value>
-            <value>INTRUDER_USER</value>
+            <value>INTRUDER_USER_LOCK</value>
             <value>CLEAR_RESPONSES</value>
             <value>HELPDESK_SET_PASSWORD</value>
             <value>HELPDESK_UNLOCK_PASSWORD</value>
@@ -1768,7 +1769,8 @@
             <option value="ACTIVATE_USER">Activate User</option>
             <option value="CREATE_USER">New User</option>
             <option value="UPDATE_PROFILE">Update Profile</option>
-            <option value="INTRUDER_USER">Intruder Lock User</option>
+            <option value="INTRUDER_USER_LOCK">Intruder User Lock</option>
+            <option value="INTRUDER_USER_ATTEMPT">Intruder User Attempt</option>
             <option value="TOKEN_ISSUED">Token Issued</option>
             <option value="TOKEN_CLAIMED">Token Claimed</option>
             <option value="CLEAR_RESPONSES">Clear Responses</option>

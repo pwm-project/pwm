@@ -34,6 +34,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.util.Validator;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserInfoBean;
@@ -211,7 +212,7 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
             pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, SetupResponsesBean.class);
 
             // mark the event log
-            final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
+            final UserAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
                     AuditEvent.CLEAR_RESPONSES,
                     pwmSession.getUserInfoBean(),
                     pwmSession

@@ -53,32 +53,6 @@ public class UserAuditRecord extends AuditRecord implements Serializable {
         this.sourceHost = sourceHost;
     }
 
-    static UserAuditRecord create(
-            final AuditEvent eventCode,
-            final String perpetratorID,
-            final String perpetratorDN,
-            final String perpetratorLdapProfile,
-            final String message,
-            final String sourceAddress,
-            final String sourceHost
-    )
-    {
-        return new UserAuditRecord(new Date(), eventCode, perpetratorID, perpetratorDN, perpetratorLdapProfile, message, sourceAddress, sourceHost);
-    }
-
-    static UserAuditRecord create(
-            final Date timestamp,
-            final AuditEvent eventCode,
-            final String perpetratorID,
-            final String perpetratorDN,
-            final String perpetratorLdapProfile,
-            final String message,
-            final String sourceAddress,
-            final String sourceHost
-    )
-    {
-        return new UserAuditRecord(timestamp, eventCode, perpetratorID, perpetratorDN, perpetratorLdapProfile, message, sourceAddress, sourceHost);
-    }
 
     public String getPerpetratorID() {
         return perpetratorID;

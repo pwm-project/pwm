@@ -42,6 +42,8 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecord;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
@@ -51,6 +53,7 @@ import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
 
 import java.util.Collections;
@@ -256,13 +259,16 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         debugMsg.append(", using proxy connection: ").append(useProxy);
         debugMsg.append(", returning bind dn: ").append(returnProvider == null ? "none" : returnProvider.getChaiConfiguration().getSetting(ChaiSetting.BIND_DN));
         log(PwmLogLevel.INFO, debugMsg);
-        pwmApplication.getAuditManager().submit(pwmApplication.getAuditManager().createUserAuditRecord(
+
+        final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, sessionLabel, userIdentity);
+        final AuditRecord auditRecord = new AuditRecordFactory(pwmApplication, macroMachine).createUserAuditRecord(
                 AuditEvent.AUTHENTICATE,
                 this.userIdentity,
                 makeAuditLogMessage(returnAuthType),
                 sessionLabel.getSrcAddress(),
                 sessionLabel.getSrcHostname()
-        ));
+        );
+        pwmApplication.getAuditManager().submit(auditRecord);
 
         return authenticationResult;
     }

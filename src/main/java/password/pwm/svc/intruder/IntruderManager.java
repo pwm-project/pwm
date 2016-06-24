@@ -43,6 +43,7 @@ import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.SystemAuditRecord;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
@@ -307,12 +308,21 @@ public class IntruderManager implements Serializable, PwmService {
         final RecordManager manager = recordManagers.get(recordType);
         manager.markSubject(subject);
 
-        { // send intruder attempt audit event
+        if (recordType == RecordType.USER_ID) {
+            final UserIdentity userIdentity = UserIdentity.fromKey(subject, pwmApplication);
+            final UserAuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createUserAuditRecord(
+                    AuditEvent.INTRUDER_USER_ATTEMPT,
+                    userIdentity,
+                    sessionLabel
+            );
+            pwmApplication.getAuditManager().submit(auditRecord);
+            sendAlert(manager.readIntruderRecord(subject), sessionLabel);
+        } else { // send intruder attempt audit event
             final Map<String,Object> messageObj = new LinkedHashMap<>();
             messageObj.put("type", recordType);
             messageObj.put("subject", subject);
             final String message = JsonUtil.serializeMap(messageObj);
-            final SystemAuditRecord auditRecord = pwmApplication.getAuditManager().createSystemAuditRecord(AuditEvent.INTRUDER_ATTEMPT,message);
+            final SystemAuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createSystemAuditRecord(AuditEvent.INTRUDER_ATTEMPT,message);
             pwmApplication.getAuditManager().submit(auditRecord);
         }
 
@@ -320,25 +330,24 @@ public class IntruderManager implements Serializable, PwmService {
             check(recordType, subject);
         } catch (PwmUnrecoverableException e) {
             if (!manager.isAlerted(subject) ) {
-                { // send intruder attempt lock event
-                    final Map<String,Object> messageObj = new LinkedHashMap<>();
-                    messageObj.put("type", recordType);
-                    messageObj.put("subject", subject);
-                    final String message = JsonUtil.serializeMap(messageObj);
-                    final SystemAuditRecord auditRecord = pwmApplication.getAuditManager().createSystemAuditRecord(AuditEvent.INTRUDER_LOCK,message);
-                    pwmApplication.getAuditManager().submit(auditRecord);
-                }
-
                 if (recordType == RecordType.USER_ID) {
                     final UserIdentity userIdentity = UserIdentity.fromKey(subject, pwmApplication);
-                    final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
-                            AuditEvent.INTRUDER_USER,
+                    final UserAuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createUserAuditRecord(
+                            AuditEvent.INTRUDER_USER_LOCK,
                             userIdentity,
                             sessionLabel
                     );
                     pwmApplication.getAuditManager().submit(auditRecord);
                     sendAlert(manager.readIntruderRecord(subject), sessionLabel);
+                } else {  // send intruder attempt lock event
+                    final Map<String,Object> messageObj = new LinkedHashMap<>();
+                    messageObj.put("type", recordType);
+                    messageObj.put("subject", subject);
+                    final String message = JsonUtil.serializeMap(messageObj);
+                    final SystemAuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createSystemAuditRecord(AuditEvent.INTRUDER_LOCK,message);
+                    pwmApplication.getAuditManager().submit(auditRecord);
                 }
+
 
                 manager.markAlerted(subject);
                 final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();

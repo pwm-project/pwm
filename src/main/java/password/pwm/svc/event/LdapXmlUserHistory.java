@@ -309,7 +309,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
         }
 
         public UserAuditRecord asAuditRecord(final UserInfoBean userInfoBean) {
-            return UserAuditRecord.create(
+            return new UserAuditRecord(
                     new Date(this.getTimestamp()),
                     this.getAuditEvent(),
                     null,

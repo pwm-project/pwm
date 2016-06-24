@@ -22,9 +22,10 @@
 
 package password.pwm.svc.event;
 
+import password.pwm.util.secure.PwmRandom;
+
 import java.io.Serializable;
 import java.util.Date;
-import java.util.UUID;
 
 public abstract class AuditRecord implements Serializable {
     protected AuditEvent.Type type;
@@ -32,6 +33,7 @@ public abstract class AuditRecord implements Serializable {
     protected String guid;
     protected Date timestamp = new Date();
     protected String message;
+    protected String narrative;
 
     protected AuditRecord(
             final Date timestamp,
@@ -43,7 +45,7 @@ public abstract class AuditRecord implements Serializable {
         this.message = message;
 
         this.timestamp = timestamp;
-        this.guid = UUID.randomUUID().toString();
+        this.guid = PwmRandom.getInstance().randomUUID().toString();
     }
 
 
@@ -69,5 +71,9 @@ public abstract class AuditRecord implements Serializable {
 
     public String getGuid() {
         return guid;
+    }
+
+    public String getNarrative() {
+        return narrative;
     }
 }

@@ -25,14 +25,15 @@ package password.pwm.util.logging;
 import org.apache.log4j.RollingFileAppender;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.bean.LoginInfoBean;
 import password.pwm.svc.event.AuditEvent;
-import password.pwm.svc.event.SystemAuditRecord;
+import password.pwm.svc.event.AuditRecord;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.util.JsonUtil;
 
 import java.io.IOException;
@@ -164,11 +165,11 @@ public class PwmLogger {
                     messageInfo.put("errorMessage",logEvent.getMessage());
 
                     final String messageInfoStr = JsonUtil.serializeMap(messageInfo);
-                    pwmApplication.getAuditManager().submit(SystemAuditRecord.create(
+                    final AuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createSystemAuditRecord(
                             AuditEvent.FATAL_EVENT,
-                            messageInfoStr,
-                            pwmApplication.getInstanceID()
-                    ));
+                            messageInfoStr
+                    );
+                    pwmApplication.getAuditManager().submit(auditRecord);
                 }
             }
         } catch (Exception e2) {

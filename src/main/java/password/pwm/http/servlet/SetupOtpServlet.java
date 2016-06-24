@@ -42,6 +42,7 @@ import password.pwm.http.bean.SetupOtpBean;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.JsonUtil;
@@ -210,7 +211,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                 otpBean.setWritten(true);
 
                 // mark the event log
-                final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
+                final UserAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
                         AuditEvent.SET_OTP_SECRET,
                         pwmSession.getUserInfoBean(),
                         pwmSession

@@ -29,7 +29,7 @@ public class HelpdeskAuditRecord extends UserAuditRecord {
     protected String targetDN;
     protected String targetLdapProfile;
 
-    private HelpdeskAuditRecord(
+    HelpdeskAuditRecord(
             final Date timestamp,
             final AuditEvent eventCode,
             final String perpetratorID,
@@ -53,41 +53,6 @@ public class HelpdeskAuditRecord extends UserAuditRecord {
         this.sourceHost = sourceHost;
     }
 
-
-    static HelpdeskAuditRecord create(
-            final AuditEvent eventCode,
-            final String perpetratorID,
-            final String perpetratorDN,
-            final String perpetratorLdapProfile,
-            final String message,
-            final String targetID,
-            final String targetDN,
-            final String targetLdapProfile,
-            final String sourceAddress,
-            final String sourceHost
-    )
-    {
-        return new HelpdeskAuditRecord(new Date(), eventCode, perpetratorID, perpetratorDN, perpetratorLdapProfile, message, targetID, targetDN,
-                targetLdapProfile, sourceAddress, sourceHost);
-    }
-
-    static UserAuditRecord create(
-            final Date timestamp,
-            final AuditEvent eventCode,
-            final String perpetratorID,
-            final String perpetratorDN,
-            final String perpetratorLdapProfile,
-            final String message,
-            final String targetID,
-            final String targetDN,
-            final String targetLdapProfile,
-            final String sourceAddress,
-            final String sourceHost
-    )
-    {
-        return new HelpdeskAuditRecord(timestamp, eventCode, perpetratorID, perpetratorDN, perpetratorLdapProfile, message, targetID, targetDN,
-                targetLdapProfile, sourceAddress, sourceHost);
-    }
 
     public String getTargetID() {
         return targetID;

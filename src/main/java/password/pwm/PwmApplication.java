@@ -42,6 +42,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditService;
 import password.pwm.svc.event.SystemAuditRecord;
 import password.pwm.svc.intruder.IntruderManager;
@@ -258,10 +259,9 @@ public class PwmApplication {
                 LOGGER.warn("configuration checksum does not match previously seen checksum, configuration has been modified since last startup");
                 if (this.getAuditManager() != null) {
                     final String modifyMessage = "configuration was modified directly (not using ConfigEditor UI)";
-                    this.getAuditManager().submit(SystemAuditRecord.create(
+                    this.getAuditManager().submit(new AuditRecordFactory(this).createSystemAuditRecord(
                             AuditEvent.MODIFY_CONFIGURATION,
-                            modifyMessage,
-                            this.getInstanceID()
+                            modifyMessage
                     ));
                 }
             }
@@ -283,15 +283,14 @@ public class PwmApplication {
         }
 
         // send system audit event
-        final SystemAuditRecord auditRecord = SystemAuditRecord.create(
-                AuditEvent.STARTUP,
-                null,
-                getInstanceID()
-        );
         try {
+            final SystemAuditRecord auditRecord = new AuditRecordFactory(this).createSystemAuditRecord(
+                    AuditEvent.STARTUP,
+                    null
+            );
             getAuditManager().submit(auditRecord);
         } catch (PwmException e) {
-            LOGGER.warn("unable to submit alert event " + JsonUtil.serialize(auditRecord));
+            LOGGER.warn("unable to submit start alert event " + e.getMessage());
         }
 
         try {
@@ -588,17 +587,16 @@ public class PwmApplication {
         LOGGER.warn("shutting down");
         {
             // send system audit event
-            final SystemAuditRecord auditRecord = SystemAuditRecord.create(
-                    AuditEvent.SHUTDOWN,
-                    null,
-                    getInstanceID()
-            );
             try {
+                final SystemAuditRecord auditRecord = new AuditRecordFactory(this).createSystemAuditRecord(
+                        AuditEvent.SHUTDOWN,
+                        null
+                );
                 if (getAuditManager() != null) {
                     getAuditManager().submit(auditRecord);
                 }
             } catch (PwmException e) {
-                LOGGER.warn("unable to submit alert event " + JsonUtil.serialize(auditRecord));
+                LOGGER.warn("unable to submit shutdown alert event " + e.getMessage());
             }
         }
 

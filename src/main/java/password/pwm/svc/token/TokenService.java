@@ -41,6 +41,8 @@ import password.pwm.http.PwmSession;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecord;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -209,13 +211,13 @@ public class TokenService implements PwmService {
 
         LOGGER.trace(sessionLabel, "generated token type=" + tokenPayload.getName());
 
-        pwmApplication.getAuditManager().submit(pwmApplication.getAuditManager().createUserAuditRecord(
+        final AuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createUserAuditRecord(
                 AuditEvent.TOKEN_ISSUED,
                 tokenPayload.getUserIdentity(),
                 sessionLabel,
                 JsonUtil.serialize(tokenPayload)
-        ));
-
+        );
+        pwmApplication.getAuditManager().submit(auditRecord);
         return tokenKey;
     }
 
@@ -232,13 +234,14 @@ public class TokenService implements PwmService {
         if (tokenPayload == null || tokenPayload.getUserIdentity() == null) {
             return;
         }
-
-        pwmApplication.getAuditManager().submit(pwmApplication.getAuditManager().createUserAuditRecord(
+        final AuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createUserAuditRecord(
                 AuditEvent.TOKEN_CLAIMED,
                 tokenPayload.getUserIdentity(),
                 pwmSession.getLabel(),
                 JsonUtil.serialize(tokenPayload)
-        ));
+        );
+        pwmApplication.getAuditManager().submit(auditRecord);
+
 
         StatisticsManager.incrementStat(pwmApplication, Statistic.TOKENS_PASSSED);
     }

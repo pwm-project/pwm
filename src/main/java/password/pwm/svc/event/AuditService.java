@@ -29,7 +29,6 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -40,7 +39,6 @@ import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
-import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.PwmService;
 import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
@@ -67,116 +65,6 @@ public class AuditService implements PwmService {
 
     public AuditService() {
     }
-
-    public HelpdeskAuditRecord createHelpdeskAuditRecord(
-            final AuditEvent eventCode,
-            final UserIdentity perpetrator,
-            final String message,
-            final UserIdentity target,
-            final String sourceAddress,
-            final String sourceHost
-    )
-    {
-        String perpUserDN = null, perpUserID = null, perpLdapProfile = null, targetUserDN = null, targetUserID = null, targetLdapProfile = null;
-        if (perpetrator != null) {
-            perpUserDN = perpetrator.getUserDN();
-            perpLdapProfile = perpetrator.getLdapProfileID();
-            try {
-                perpUserID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,perpetrator);
-            } catch (Exception e) {
-                LOGGER.error("unable to read userID for " + perpetrator + ", error: " + e.getMessage());
-            }
-        }
-        if (target != null) {
-            targetUserDN = target.getUserDN();
-            targetLdapProfile = target.getLdapProfileID();
-            try {
-                targetUserID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,target);
-            } catch (Exception e) {
-                LOGGER.error("unable to read userID for " + perpetrator + ", error: " + e.getMessage());
-            }
-        }
-
-        return HelpdeskAuditRecord.create(eventCode, perpUserID, perpUserDN, perpLdapProfile, message, targetUserID, targetUserDN,
-                targetLdapProfile, sourceAddress, sourceHost);
-    }
-
-    public UserAuditRecord createUserAuditRecord(
-            final AuditEvent eventCode,
-            final UserIdentity perpetrator,
-            final String message,
-            final String sourceAddress,
-            final String sourceHost
-    )
-    {
-        String perpUserDN = null, perpUserID = null, perpLdapProfile = null, targetUserDN = null, targetUserID = null, targetLdapProfile = null;
-        if (perpetrator != null) {
-            perpUserDN = perpetrator.getUserDN();
-            perpLdapProfile = perpetrator.getLdapProfileID();
-            try {
-                perpUserID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,perpetrator);
-            } catch (Exception e) {
-                LOGGER.error("unable to read userID for " + perpetrator + ", error: " + e.getMessage());
-            }
-        }
-
-        return HelpdeskAuditRecord.create(eventCode, perpUserID, perpUserDN, perpLdapProfile, message, targetUserID, targetUserDN,
-                targetLdapProfile, sourceAddress, sourceHost);
-    }
-
-    public SystemAuditRecord createSystemAuditRecord(
-            final AuditEvent eventCode,
-            final String message
-    )
-    {
-        return SystemAuditRecord.create(eventCode, message, pwmApplication.getInstanceID());
-    }
-
-    public UserAuditRecord createUserAuditRecord(
-            final AuditEvent eventCode,
-            final UserIdentity perpetrator,
-            final SessionLabel sessionLabel
-    )
-    {
-        return createUserAuditRecord(
-                eventCode,
-                perpetrator,
-                sessionLabel,
-                null
-        );
-    }
-
-    public UserAuditRecord createUserAuditRecord(
-            final AuditEvent eventCode,
-            final UserIdentity perpetrator,
-            final SessionLabel sessionLabel,
-            final String message
-    )
-    {
-        return createUserAuditRecord(
-                eventCode,
-                perpetrator,
-                message,
-                sessionLabel != null ? sessionLabel.getSrcAddress() : null,
-                sessionLabel != null ? sessionLabel.getSrcHostname() : null
-        );
-    }
-
-    public UserAuditRecord createUserAuditRecord(
-            final AuditEvent eventCode,
-            final UserInfoBean userInfoBean,
-            final PwmSession pwmSession
-    )
-    {
-        return createUserAuditRecord(
-                eventCode,
-                userInfoBean.getUserIdentity(),
-                null,
-                pwmSession.getSessionStateBean().getSrcAddress(),
-                pwmSession.getSessionStateBean().getSrcHostname()
-        );
-    }
-
 
     public STATUS status() {
         return status;
@@ -368,7 +256,8 @@ public class AuditService implements PwmService {
     public void submit(final AuditEvent auditEvent, final UserInfoBean userInfoBean, final PwmSession pwmSession)
             throws PwmUnrecoverableException
     {
-        final UserAuditRecord auditRecord = createUserAuditRecord(auditEvent, userInfoBean, pwmSession);
+        final AuditRecordFactory auditRecordFactory = new AuditRecordFactory(pwmApplication, pwmSession.getSessionManager().getMacroMachine(pwmApplication));
+        final UserAuditRecord auditRecord = auditRecordFactory.createUserAuditRecord(auditEvent, userInfoBean, pwmSession);
         submit(auditRecord);
     }
 

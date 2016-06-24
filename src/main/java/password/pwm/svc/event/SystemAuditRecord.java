@@ -28,22 +28,13 @@ public class SystemAuditRecord extends AuditRecord implements Serializable {
 
     protected String instance;
 
-    private SystemAuditRecord(
+    SystemAuditRecord(
             final AuditEvent eventCode,
             final String message,
             final String instance
             ) {
         super(eventCode, message);
         this.instance = instance;
-    }
-
-    public static SystemAuditRecord create(
-            final AuditEvent eventCode,
-            final String message,
-            final String instance
-    )
-    {
-        return new SystemAuditRecord(eventCode, message, instance);
     }
 
     public String getInstance() {

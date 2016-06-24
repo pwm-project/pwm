@@ -404,7 +404,8 @@ PWM_ADMIN.auditUserHeaders = function() {
         "message": PWM_ADMIN.showString('Field_Audit_Message'),
         "sourceAddress": PWM_ADMIN.showString('Field_Audit_SourceAddress'),
         "sourceHost": PWM_ADMIN.showString('Field_Audit_SourceHost'),
-        "guid": PWM_ADMIN.showString('Field_Audit_GUID')
+        "guid": PWM_ADMIN.showString('Field_Audit_GUID'),
+        "narrative": PWM_ADMIN.showString('Field_Audit_Narrative')   
     };
 };
 
@@ -421,7 +422,8 @@ PWM_ADMIN.auditHelpdeskHeaders = function() {
         "targetLdapProfile": PWM_ADMIN.showString('Field_Audit_TargetLdapProfile'),
         "sourceAddress": PWM_ADMIN.showString('Field_Audit_SourceAddress'),
         "sourceHost": PWM_ADMIN.showString('Field_Audit_SourceHost'),
-        "guid": PWM_ADMIN.showString('Field_Audit_GUID')
+        "guid": PWM_ADMIN.showString('Field_Audit_GUID'),
+        "narrative": PWM_ADMIN.showString('Field_Audit_Narrative')
     };
 };
 
@@ -431,7 +433,8 @@ PWM_ADMIN.auditSystemHeaders = function() {
         "eventCode":PWM_ADMIN.showString('Field_Audit_EventCode'),
         "message":PWM_ADMIN.showString('Field_Audit_Message'),
         "instance":PWM_ADMIN.showString('Field_Audit_Instance'),
-        "guid":PWM_ADMIN.showString('Field_Audit_GUID')
+        "guid":PWM_ADMIN.showString('Field_Audit_GUID'),
+        "narrative":PWM_ADMIN.showString('Field_Audit_Narrative')
     };
 };
 
@@ -452,6 +455,7 @@ PWM_ADMIN.initAuditGrid=function() {
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-message').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-sourceHost').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-guid').click();
+            PWM_MAIN.getObject('auditUserGrid-hider-menu-check-narrative').click();
 
             PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-perpetratorDN').click();
             PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-perpetratorLdapProfile').click();
@@ -460,9 +464,11 @@ PWM_ADMIN.initAuditGrid=function() {
             PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-targetLdapProfile').click();
             PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-sourceHost').click();
             PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-guid').click();
+            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-narrative').click();
 
             PWM_MAIN.getObject('auditSystemGrid-hider-menu-check-instance').click();
             PWM_MAIN.getObject('auditSystemGrid-hider-menu-check-guid').click();
+            PWM_MAIN.getObject('auditSystemGrid-hider-menu-check-narrative').click();
             PWM_ADMIN.refreshAuditGridData();
 
             PWM_VAR['auditUserGrid'].on(".dgrid-row:click", function(evt){

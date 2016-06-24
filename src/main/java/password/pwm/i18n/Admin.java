@@ -27,6 +27,44 @@ public enum Admin implements PwmDisplayBundle {
 
     Notice_TrialRestrictConfig,
 
+    EventLog_Narrative_Startup,
+    EventLog_Narrative_Shutdown,
+    EventLog_Narrative_FatalEvent,
+    EventLog_Narrative_ModifyConfiguration,
+    EventLog_Narrative_IntruderAttempt,
+    EventLog_Narrative_IntruderLockout,
+
+    EventLog_Narrative_Authenticate,
+    EventLog_Narrative_AgreementPassed,
+    EventLog_Narrative_ChangePassword,
+    EventLog_Narrative_UnlockPassword,
+    EventLog_Narrative_RecoverPassword,
+    EventLog_Narrative_SetupResponses,
+    Eventlog_Narrative_SetupOtpSecret,
+    EventLog_Narrative_ActivateUser,
+    EventLog_Narrative_CreateUser,
+    EventLog_Narrative_UpdateProfile,
+    EventLog_Narrative_IntruderUserLock,
+    EventLog_Narrative_IntruderUserAttempt,
+    EventLog_Narrative_TokenIssued,
+    EventLog_Narrative_TokenClaimed,
+    EventLog_Narrative_ClearResponses,
+    EventLog_Narrative_HelpdeskSetPassword,
+    EventLog_Narrative_HelpdeskUnlockPassword,
+    EventLog_Narrative_HelpdeskClearResponses,
+    EventLog_Narrative_HelpdeskClearOtpSecret,
+    EventLog_Narrative_HelpdeskAction,
+    EventLog_Narrative_HelpdeskDeleteUser,
+    EventLog_Narrative_HelpdeskViewDetail,
+    EventLog_Narrative_HelpdeskVerifyOtp,
+    EventLog_Narrative_HelpdeskVerifyOtpIncorrect,
+    EventLog_Narrative_HelpdeskVerifyToken,
+    EventLog_Narrative_HelpdeskVerifyTokenIncorrect,
+    EventLog_Narrative_HelpdeskVerifyAttributes,
+    EventLog_Narrative_HelpdeskVerifyAttributesIncorrect,
+
+
+
     ;
 
     @Override

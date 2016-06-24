@@ -51,6 +51,7 @@ import password.pwm.ldap.PasswordChangeProgressChecker;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
@@ -261,7 +262,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         LOGGER.debug(pwmRequest, "user accepted password change agreement");
         if (!cpb.isAgreementPassed()) {
             cpb.setAgreementPassed(true);
-            AuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createUserAuditRecord(
+            AuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getSessionLabel(),

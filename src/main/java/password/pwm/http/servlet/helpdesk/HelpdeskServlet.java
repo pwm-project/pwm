@@ -47,6 +47,7 @@ import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.*;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.stats.Statistic;
@@ -322,7 +323,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
 
             // mark the event log
             {
-                final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
+                final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_ACTION,
                         pwmSession.getUserInfoBean().getUserIdentity(),
                         action.getName(),
@@ -383,7 +384,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
 
         // mark the event log
         {
-            final HelpdeskAuditRecord auditRecord = pwmApplication.getAuditManager().createHelpdeskAuditRecord(
+            final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_DELETE_USER,
                     pwmSession.getUserInfoBean().getUserIdentity(),
                     null,
@@ -415,7 +416,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
 
         final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication()).canonicalized(pwmRequest.getPwmApplication());
         processDetailRequest(pwmRequest, helpdeskProfile, userIdentity);
-        final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
+        final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                 AuditEvent.HELPDESK_VIEW_DETAIL,
                 pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity(),
                 null,
@@ -653,7 +654,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
             chaiUser.unlockPassword();
             {
                 // mark the event log
-                final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
+                final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_UNLOCK_PASSWORD,
                         pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity(),
                         null,
@@ -724,7 +725,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
 
             if (passed) {
                 final PwmSession pwmSession = pwmRequest.getPwmSession();
-                final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
+                final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_VERIFY_OTP,
                         pwmSession.getUserInfoBean().getUserIdentity(),
                         null,
@@ -738,7 +739,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
                 verificationStateBean.addRecord(userIdentity, IdentityVerificationMethod.OTP);
             } else {
                 final PwmSession pwmSession = pwmRequest.getPwmSession();
-                final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
+                final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_VERIFY_OTP_INCORRECT,
                         pwmSession.getUserInfoBean().getUserIdentity(),
                         null,
@@ -908,7 +909,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
 
         if (passed) {
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
+            final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_VERIFY_TOKEN,
                     pwmSession.getUserInfoBean().getUserIdentity(),
                     null,
@@ -920,7 +921,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
             verificationStateBean.addRecord(userIdentity, IdentityVerificationMethod.TOKEN);
         } else {
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
+            final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_VERIFY_TOKEN_INCORRECT,
                     pwmSession.getUserInfoBean().getUserIdentity(),
                     null,
@@ -968,7 +969,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
             service.clearOTPUserConfiguration(pwmRequest.getPwmSession(), userIdentity);
             {
                 // mark the event log
-                final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
+                final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_CLEAR_OTP_SECRET,
                         pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity(),
                         null,
@@ -1152,7 +1153,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
 
         if (passed) {
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
+            final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_VERIFY_ATTRIBUTES,
                     pwmSession.getUserInfoBean().getUserIdentity(),
                     null,
@@ -1164,7 +1165,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
             verificationStateBean.addRecord(userIdentity, IdentityVerificationMethod.ATTRIBUTES);
         } else {
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final HelpdeskAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
+            final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_VERIFY_ATTRIBUTES_INCORRECT,
                     pwmSession.getUserInfoBean().getUserIdentity(),
                     null,
