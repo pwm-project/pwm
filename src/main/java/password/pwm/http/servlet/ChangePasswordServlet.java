@@ -25,8 +25,6 @@ package password.pwm.http.servlet;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.impl.oracleds.entry.OracleDSEntries;
-import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -506,73 +504,31 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             final ChangePasswordBean changePasswordBean,
             final UserInfoBean userInfoBean
     )
-            throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
         if (changePasswordBean.isNextAllowedTimePassed()) {
             return;
         }
 
-        // for oracle DS; this check is also handled in UserAuthenticator.
-        if (ChaiProvider.DIRECTORY_VENDOR.ORACLE_DS == pwmSession.getSessionManager().getChaiProvider().getDirectoryVendor()) {
-            try {
-                final String oracleDS_PrePasswordAllowChangeTime = pwmSession.getSessionManager().getActor(pwmApplication).readStringAttribute(
-                        "passwordAllowChangeTime");
-                if (oracleDS_PrePasswordAllowChangeTime != null && !oracleDS_PrePasswordAllowChangeTime.isEmpty()) {
-                    final Date date = OracleDSEntries.convertZuluToDate(oracleDS_PrePasswordAllowChangeTime);
-                    if (new Date().before(date)) {
-                        LOGGER.debug("discovered oracleds allowed change time is set to: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(date) + ", won't permit password change");
-                        final String errorMsg = "change not permitted until " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(date);
-                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.PASSWORD_TOO_SOON, errorMsg);
-                        throw new PwmUnrecoverableException(errorInformation);
-                    }
-                }
-            } catch (ChaiOperationException e) {
-                LOGGER.debug(pwmSession, "unexpected error reading OracleDS password allow modification time: " + e.getMessage());
-            }
-            changePasswordBean.setNextAllowedTimePassed(true);
-            return;
-        }
-
-        final int minimumLifetime = userInfoBean.getPasswordPolicy().getRuleHelper().readIntValue(PwmPasswordRule.MinimumLifetime);
-        if (minimumLifetime < 1) {
-            return;
-        }
-
-        final Date lastModified = userInfoBean.getPasswordLastModifiedTime();
-        if (lastModified == null || lastModified.after(new Date())) {
-            LOGGER.debug(pwmSession, "skipping minimum lifetime check, password last set time is unknown");
-            changePasswordBean.setNextAllowedTimePassed(true);
-            return;
-        }
-
-        final TimeDuration passwordAge = TimeDuration.fromCurrent(lastModified);
-        final boolean passwordTooSoon = passwordAge.getTotalSeconds() < minimumLifetime;
-        if (!passwordTooSoon) {
-            changePasswordBean.setNextAllowedTimePassed(true);
-            return;
-        }
-
-        final PasswordStatus passwordStatus = userInfoBean.getPasswordState();
-        if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isWarnPeriod()) {
-            LOGGER.debug(pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check because current password is expired");
-            changePasswordBean.setNextAllowedTimePassed(true);
-            return;
-        }
-
-        final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
-        if (!enforceFromForgotten) {
-            if (userInfoBean.isRequiresNewPassword()) {
-                LOGGER.debug(pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check because user authenticated with unknown password");
-                changePasswordBean.setNextAllowedTimePassed(true);
-                return;
+        try {
+            PasswordUtility.checkIfPasswordWithinMinimumLifetime(
+                    pwmSession.getSessionManager().getActor(pwmApplication),
+                    pwmSession.getLabel(),
+                    userInfoBean
+            );
+        } catch (PwmOperationalException e) {
+            final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
+            if (!enforceFromForgotten && userInfoBean.isRequiresNewPassword()) {
+                LOGGER.debug(pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check due to setting "
+                        + PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug(null, pwmSession.getSessionStateBean().getLocale()));
+            } else {
+                throw e;
             }
         }
 
-        final Date allowedChangeDate = new Date(System.currentTimeMillis() + (minimumLifetime * 1000));
-        final String errorMsg = "last password change is too recent, password cannot be changed until after " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(allowedChangeDate);
-        final ErrorInformation errorInformation = new ErrorInformation(PwmError.PASSWORD_TOO_SOON,errorMsg);
-        throw new PwmOperationalException(errorInformation);
+        changePasswordBean.setNextAllowedTimePassed(true);
     }
+
 
     private void restCheckProgress(
             final PwmRequest pwmRequest,
