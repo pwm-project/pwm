@@ -256,7 +256,12 @@ UILibrary.editLdapDN = function(nextFunction, options) {
             PWM_MAIN.doQuery(".selectableDN",function(element){
                 var dnValue = element.getAttribute("data-dn");
                 PWM_MAIN.addEventHandler(element,'click',function(){
-                    nextFunction(dnValue);
+                    var ldapProfileID = "default";
+                    if (document.getElementById("select-profileList")) {
+                        ldapProfileID = document.getElementById("select-profileList").value;
+                    }
+
+                    nextFunction(dnValue, ldapProfileID);
                     PWM_MAIN.closeWaitDialog();
                 });
             });
