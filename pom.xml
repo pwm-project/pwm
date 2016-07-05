@@ -537,7 +537,7 @@
         <dependency>
             <groupId>org.jetbrains.xodus</groupId>
             <artifactId>xodus-environment</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
 
 
@@ -594,13 +594,6 @@
             <id>project.local</id>
             <name>project</name>
             <url>file:///${project.basedir}/local-maven-repo</url>
-        </repository>
-        <repository>
-            <id>maven-public</id> <!-- used by xodus -->
-            <url>https://oss.sonatype.org/content/groups/public</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
         </repository>
         <repository>
             <id>oracleReleases</id>
