@@ -1,15 +1,15 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<prerequisites>
-		<maven>3.2</maven>
-	</prerequisites>
+    <prerequisites>
+        <maven>3.2</maven>
+    </prerequisites>
 
-	<groupId>org.pwm-project</groupId>
-	<artifactId>pwm</artifactId>
-	<version>1.8.0-SNAPSHOT</version>
-	<packaging>war</packaging>
+    <groupId>org.pwm-project</groupId>
+    <artifactId>pwm</artifactId>
+    <version>1.8.0-SNAPSHOT</version>
+    <packaging>war</packaging>
 
     <name>PWM Password Self Service</name>
 
@@ -21,10 +21,10 @@
         </license>
     </licenses>
 
-	<organization>
-		<name>Pwm Project</name>
-		<url>http://www.pwm-project.org</url>
-	</organization>
+    <organization>
+        <name>Pwm Project</name>
+        <url>http://www.pwm-project.org</url>
+    </organization>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -186,6 +186,13 @@
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <version>2.2</version>
+                <!-- See http://tomcat.apache.org/tomcat-7.0-doc/ssl-howto.html#Configuration 
+                	if you want to configure this Use the hostname as the first/last name field -->
+                <configuration>
+                    <httpsPort>8443</httpsPort>
+                    <keystorePass>changeit</keystorePass>
+                    <warSourceDirectory>${project.build.directory}/${project.build.finalName}</warSourceDirectory>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -585,20 +592,20 @@
             <scope>test</scope>
         </dependency>
 
-		<!-- container dependencies -->
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<version>3.0.1</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet.jsp</groupId>
-			<artifactId>jsp-api</artifactId>
-			<version>2.2</version>
-			<scope>provided</scope>
-		</dependency>
-		<!-- / container dependencies -->
+        <!-- container dependencies -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet.jsp</groupId>
+            <artifactId>jsp-api</artifactId>
+            <version>2.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- / container dependencies -->
 
         <!-- NMAS jars (not available from a maven repo) -->
         <dependency>
