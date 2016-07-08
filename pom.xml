@@ -1,15 +1,15 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
+	<modelVersion>4.0.0</modelVersion>
 
-    <prerequisites>
-        <maven>3.2</maven>
-    </prerequisites>
+	<prerequisites>
+		<maven>3.2</maven>
+	</prerequisites>
 
-    <groupId>org.pwm-project</groupId>
-    <artifactId>pwm</artifactId>
-    <version>1.8.0-SNAPSHOT</version>
-    <packaging>war</packaging>
+	<groupId>org.pwm-project</groupId>
+	<artifactId>pwm</artifactId>
+	<version>1.8.0-SNAPSHOT</version>
+	<packaging>war</packaging>
 
     <name>PWM Password Self Service</name>
 
@@ -21,10 +21,10 @@
         </license>
     </licenses>
 
-    <organization>
-        <name>Pwm Project</name>
-        <url>http://www.pwm-project.org</url>
-    </organization>
+	<organization>
+		<name>Pwm Project</name>
+		<url>http://www.pwm-project.org</url>
+	</organization>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -35,6 +35,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <build.number>0</build.number>  <!-- default in case not set on command line -->
         <build.revision>0</build.revision>  <!-- default in case not set on command line -->
+		<!-- Properties used for CAS configuration -->
+		<cas.server>https://cas.localdomain.local:8443/cas/</cas.server>
+		<pwm.server>https://pwm.localdomain.local:8443</pwm.server>
     </properties>
 
     <profiles>
@@ -96,6 +99,64 @@
                 <jspc.skip>true</jspc.skip>
             </properties>
         </profile>
+		<!-- Enables CAS configuration -->
+		<profile>
+			<id>cas</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-war-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>prepare-exploded-war</id>
+								<goals>
+									<goal>exploded</goal>
+								</goals>
+								<phase>prepare-package</phase>
+							</execution>
+							<execution>
+								<id>default-war</id>
+								<configuration>
+									<webXml>${project.build.directory}/${project.build.finalName}-cas/WEB-INF/web.xml</webXml>
+									<filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Replaces web.xml -->
+					<plugin>
+						<groupId>com.google.code.maven-replacer-plugin</groupId>
+						<artifactId>replacer</artifactId>
+						<version>1.5.3</version>
+						<executions>
+							<execution>
+								<id>enable-cas</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>replace</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<ignoreErrors>true</ignoreErrors>
+							<file>${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml</file>
+							<outputDir>${project.build.directory}/${project.build.finalName}-cas/WEB-INF/</outputDir>
+							<preserveDir>false</preserveDir>
+							<replacements>
+								<replacement>
+									<token><![CDATA[<!-- uncomment and set parameters for CAS integration]]></token>
+									<value><![CDATA[<!-- uncomment and set parameters for CAS integration -->]]></value>
+								</replacement>
+								<replacement>
+									<token><![CDATA[ End CAS Config -->]]></token>
+									<value><![CDATA[<!--    End CAS Config -->]]></value>
+								</replacement>
+							</replacements>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
     </profiles>
 
     <build>
@@ -524,20 +585,20 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- container dependencies -->
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet.jsp</groupId>
-            <artifactId>jsp-api</artifactId>
-            <version>2.2</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- / container dependencies -->
+		<!-- container dependencies -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet.jsp</groupId>
+			<artifactId>jsp-api</artifactId>
+			<version>2.2</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- / container dependencies -->
 
         <!-- NMAS jars (not available from a maven repo) -->
         <dependency>
@@ -692,8 +753,6 @@
             <artifactId>slf4j-nop</artifactId>
             <version>1.7.21</version>
         </dependency>
-
-
 
         <!-- client webjar dependencies -->
         <!-- changes in client dependencies require updating AppProperty.properties:http.resources.webjarMappings -->
