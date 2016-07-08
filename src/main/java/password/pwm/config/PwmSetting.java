@@ -1012,7 +1012,10 @@ public enum PwmSetting {
     // CAS SSO
     CAS_CLEAR_PASS_URL(
             "cas.clearPassUrl", PwmSettingSyntax.STRING, PwmSettingCategory.CAS_SSO),
-
+    CAS_CLEARPASS_KEY(
+            "cas.clearPass.key", PwmSettingSyntax.FILE, PwmSettingCategory.CAS_SSO),
+    CAS_CLEARPASS_ALGORITHM(
+            "cas.clearPass.alg", PwmSettingSyntax.STRING, PwmSettingCategory.CAS_SSO),
     // http sso
     SSO_AUTH_HEADER_NAME(
             "security.sso.authHeaderName", PwmSettingSyntax.STRING, PwmSettingCategory.HTTP_SSO),
