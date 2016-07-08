@@ -3408,6 +3408,16 @@
             <value />
         </default>
     </setting>
+    <setting hidden="false" key="cas.clearPass.key" level="2">
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting hidden="false" key="cas.clearPass.alg" level="2">
+        <default>
+            <value />
+        </default>
+    </setting>
     <setting hidden="false" key="urlshortener.classname" level="2">
         <default>
             <value />
