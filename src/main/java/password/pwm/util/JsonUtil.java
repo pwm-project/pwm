@@ -73,6 +73,10 @@ public class JsonUtil {
         return JsonUtil.getGson().fromJson(jsonString, typeToken.getType());
     }
 
+    public static <T> T deserialize(final String jsonString, final Type type) {
+        return JsonUtil.getGson().fromJson(jsonString, type);
+    }
+
     public static List<String> deserializeStringList(final String jsonString) {
         return JsonUtil.getGson().fromJson(jsonString, new TypeToken<List<Object>>() {
         }.getType());

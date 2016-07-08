@@ -164,7 +164,12 @@ public class RequestInitializationFilter implements Filter {
             }
 
         } catch (Throwable e) {
-            LOGGER.error("can't init request: " + e.getMessage(),e);
+            final String logMsg = "can't init request: " + e.getMessage();
+            if (e instanceof PwmException && ((PwmException) e).getError() != PwmError.ERROR_UNKNOWN) {
+                LOGGER.error(logMsg);
+            } else {
+                LOGGER.error(logMsg,e);
+            }
             if (!(new PwmURL(req).isResourceURL())) {
                 ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE);
                 try {
