@@ -45,10 +45,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.TimeDuration;
-import password.pwm.util.X509Utils;
+import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
@@ -67,33 +64,20 @@ public class SyslogAuditService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SyslogAuditService.class);
 
     private static final int WARNING_WINDOW_MS = 30 * 60 * 1000;
-    private static final String QUEUE_STORAGE_DELIMINATOR = "###";
     private static final String SYSLOG_INSTANCE_NAME = "syslog-audit";
 
-    private final int MAX_QUEUE_SIZE;
-    private final long MAX_AGE_MS;
-    private final long RETRY_TIMEOUT_MS;
-    private final LocalDBStoredQueue syslogQueue;
-
-    private volatile Date lastSendError;
     private SyslogIF syslogInstance = null;
     private ErrorInformation lastError = null;
     private X509Certificate[] certificates = null;
 
+    private WorkQueueProcessor<AuditRecord> workQueueProcessor;
+
+
     private final Configuration configuration;
-    private final Timer timer;
 
     public SyslogAuditService(final PwmApplication pwmApplication)
             throws LocalDBException
     {
-        timer = new Timer(Helper.makeThreadName(pwmApplication,SyslogAuditService.class),true);
-
-        MAX_QUEUE_SIZE = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_COUNT));
-        MAX_AGE_MS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_AGE_MS));
-        RETRY_TIMEOUT_MS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS));
-
-        syslogQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE);
-
         this.configuration = pwmApplication.getConfig();
         this.certificates = configuration.readSettingAsCertificate(PwmSetting.AUDIT_SYSLOG_CERTIFICATES);
 
@@ -102,10 +86,30 @@ public class SyslogAuditService {
         try {
             syslogConfig = SyslogConfig.fromConfigString(syslogConfigString);
             syslogInstance = makeSyslogInstance(syslogConfig);
-            timer.schedule(new WriterTask(),1000);
             LOGGER.trace("queued service running for " + syslogConfig);
         } catch (IllegalArgumentException e) {
             LOGGER.error("error parsing syslog configuration for '" + syslogConfigString + "', error: " + e.getMessage());
+        }
+
+        final WorkQueueProcessor.Settings settings = new WorkQueueProcessor.Settings();
+        settings.setMaxEvents(Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_COUNT)));
+        settings.setRetryDiscardAge(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_AGE_MS))));
+        settings.setRetryInterval(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS))));
+
+        final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE);
+
+        workQueueProcessor = new WorkQueueProcessor<>(pwmApplication, localDBStoredQueue, settings, new SyslogItemProcessor(), this.getClass());
+    }
+
+    private class SyslogItemProcessor implements WorkQueueProcessor.ItemProcessor<AuditRecord> {
+        @Override
+        public WorkQueueProcessor.ProcessResult process(AuditRecord workItem) {
+            return processEvent(workItem);
+        }
+
+        @Override
+        public String convertToDebugString(AuditRecord workItem) {
+            return JsonUtil.serialize(workItem);
         }
     }
 
@@ -150,16 +154,11 @@ public class SyslogAuditService {
     }
 
     public void add(AuditRecord event) throws PwmOperationalException {
-        if (syslogQueue.size() >= MAX_QUEUE_SIZE) {
-            final String errorMsg = "dropping audit record event due to queue full " + event.toString() + ", queue length=" + syslogQueue.size();
-            LOGGER.warn(errorMsg);
-            throw new PwmOperationalException(PwmError.ERROR_SYSLOG_WRITE_ERROR,errorMsg);
+        try {
+            workQueueProcessor.submit(event);
+        } catch (PwmOperationalException e) {
+            LOGGER.warn("unable to add email to queue: " + e.getMessage());
         }
-
-        final String prefix = event.getClass().getCanonicalName();
-        final String jsonValue = prefix + QUEUE_STORAGE_DELIMINATOR + JsonUtil.serialize(event);
-        syslogQueue.offerLast(jsonValue);
-        timer.schedule(new WriterTask(),1);
     }
 
     public List<HealthRecord> healthCheck() {
@@ -174,72 +173,29 @@ public class SyslogAuditService {
         return healthRecords;
     }
 
-    private class WriterTask extends TimerTask {
-        @Override
-        public void run() {
-            if (lastSendError != null) {
-                if (TimeDuration.fromCurrent(lastSendError).isLongerThan(RETRY_TIMEOUT_MS)) {
-                    lastSendError = null;
-                }
-            }
-
-            while (!syslogQueue.isEmpty() && lastSendError == null) {
-                AuditRecord record = null;
-                try {
-                    final String storedString = syslogQueue.peekFirst();
-                    final String[] splitString = storedString.split(QUEUE_STORAGE_DELIMINATOR,2);
-                    final String className = splitString[0];
-                    final String jsonString = splitString[1];
-                    record = (AuditRecord) JsonUtil.deserialize(jsonString,Class.forName(className));
-                } catch (Exception e) {
-                    LOGGER.error("error decoding stored syslog event, discarding; error: " + e.getMessage());
-                    syslogQueue.removeFirst();
-                }
-                if (record != null) {
-                    final TimeDuration recordAge = TimeDuration.fromCurrent(record.getTimestamp());
-                    if (recordAge.isLongerThan(MAX_AGE_MS)) {
-                        LOGGER.info("discarding syslog audit event, maximum queued age exceeded: " + JsonUtil.serialize(record));
-                        syslogQueue.removeFirst();
-                    } else {
-                        boolean sendSuccess = processEvent(record);
-                        if (sendSuccess) {
-                            syslogQueue.removeFirst();
-                            lastSendError = null;
-                        } else {
-                            lastSendError = new Date();
-                            timer.schedule(new WriterTask(),RETRY_TIMEOUT_MS + 1);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private boolean processEvent(final AuditRecord auditRecord) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(PwmConstants.PWM_APP_NAME);
-        sb.append(" ");
-        sb.append(JsonUtil.serialize(auditRecord));
+    private WorkQueueProcessor.ProcessResult processEvent(final AuditRecord auditRecord) {
+        final String syslogEventString = JsonUtil.serialize(auditRecord);
 
         final SyslogIF syslogIF = syslogInstance;
         try {
-            syslogIF.info(sb.toString());
-            LOGGER.trace("delivered syslog audit event: " + sb.toString());
+            syslogIF.info(syslogEventString);
+            LOGGER.trace("delivered syslog audit event: " + syslogEventString);
             lastError = null;
-            return true;
+            return WorkQueueProcessor.ProcessResult.SUCCESS;
         } catch (Exception e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, e.getMessage(), new String[]{e.getMessage()});
+            final String errorMsg = "error while sending syslog message to remote service: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, errorMsg, new String[]{e.getMessage()});
             lastError = errorInformation;
             LOGGER.error(errorInformation.toDebugStr());
         }
 
-        return false;
+        return WorkQueueProcessor.ProcessResult.RETRY;
     }
 
     public void close() {
         final SyslogIF syslogIF = syslogInstance;
         syslogIF.shutdown();
-        timer.cancel();
+        workQueueProcessor.close();
         syslogInstance = null;
     }
 
@@ -301,7 +257,7 @@ public class SyslogAuditService {
     }
 
     public int queueSize() {
-        return syslogQueue != null ? syslogQueue.size() : 0;
+        return workQueueProcessor.queueSize();
     }
 
     private class LocalTrustSyslogWriterClass extends SSLTCPNetSyslogWriter {

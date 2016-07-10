@@ -37,6 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * A work item queue manager.   Items submitted to the queue will eventually be worked on by the client side @code {@link ItemProcessor}.
@@ -89,6 +90,7 @@ public class WorkQueueProcessor<W extends Serializable> {
         if (!queue.isEmpty()) {
             LOGGER.debug("opening with " + queue.size() + " items in work queue");
         }
+        LOGGER.trace("initializing worker thread with settings " + JsonUtil.serialize(settings));
 
         this.workerThread = new WorkerThread();
         workerThread.setDaemon(true);
@@ -123,7 +125,8 @@ public class WorkQueueProcessor<W extends Serializable> {
             final String errorMsg = this.getClass().getName() + " has been closed, unable to submit new item";
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
         }
-        final ItemWrapper<W> itemWrapper = new ItemWrapper<W>(new Date(), workItem, idGenerator.nextID());
+
+        final ItemWrapper<W> itemWrapper = new ItemWrapper<>(new Date(), workItem, idGenerator.nextID());
         final String asString = JsonUtil.serialize(itemWrapper);
 
         if (settings.getMaxEvents() > 0) {
@@ -152,7 +155,7 @@ public class WorkQueueProcessor<W extends Serializable> {
         return eldestItem;
     }
 
-    private String makeDebugText(ItemWrapper itemWrapper) throws PwmOperationalException {
+    private String makeDebugText(ItemWrapper<W> itemWrapper) throws PwmOperationalException {
         final int itemsInQueue = WorkQueueProcessor.this.queueSize();
         String traceMsg = "[" + itemWrapper.toDebugString(itemProcessor) + "]";
         if (itemsInQueue > 0) {
@@ -165,7 +168,7 @@ public class WorkQueueProcessor<W extends Serializable> {
 
         private final AtomicBoolean running = new AtomicBoolean(false);
         private final AtomicBoolean shutdownFlag = new AtomicBoolean(false);
-        private final AtomicBoolean pendingWork = new AtomicBoolean(true);
+        private final AtomicBoolean notifyWorkFlag = new AtomicBoolean(true);
 
         private Date retryWakeupTime;
 
@@ -181,43 +184,52 @@ public class WorkQueueProcessor<W extends Serializable> {
                 LOGGER.error("unexpected error processing work item queue: " + Helper.readHostileExceptionMessage(t), t);
             }
 
-            try {
-                final Date shutdownStartTime = new Date();
-                while (retryWakeupTime == null && !queue.isEmpty() && TimeDuration.fromCurrent(shutdownStartTime).isLongerThan(settings.getMaxShutdownWaitTime())) {
-                    processNextItem();
+            LOGGER.trace("worker thread beginning shutdown...");
+
+            if (!queue.isEmpty()) {
+                LOGGER.trace("processing remaining " + queue.size() + " items");
+
+                try {
+                    final Date shutdownStartTime = new Date();
+                    while (retryWakeupTime == null && !queue.isEmpty() && TimeDuration.fromCurrent(shutdownStartTime).isLongerThan(settings.getMaxShutdownWaitTime())) {
+                        processNextItem();
+                    }
+                } catch (Throwable t) {
+                    LOGGER.error("unexpected error processing work item queue: " + Helper.readHostileExceptionMessage(t), t);
                 }
-            } catch (Throwable t) {
-                LOGGER.error("unexpected error processing work item queue: " + Helper.readHostileExceptionMessage(t), t);
             }
+
+            LOGGER.trace("thread exiting...");
             running.set(false);
         }
 
         void flushQueueAndClose() {
             shutdownFlag.set(true);
+            LOGGER.trace("shutdown flag set");
+            notifyWorkPending();
         }
 
         void notifyWorkPending() {
-            pendingWork.set(true);
+            notifyWorkFlag.set(true);
+            LockSupport.unpark(this);
         }
 
         private void waitForWork() {
-            if (queue.isEmpty()) {
-                pendingWork.set(false);
-                eldestItem = null;
-                if (queue.isEmpty()) { // extra queue check in case submit() comes in after the pendingWork is set to false here;
-                    pendingWork.set(true);
-                }
-                while (!shutdownFlag.get() && !pendingWork.get()) { // sleep until shutdown or work arrives.
-                    Helper.pause(103);
+            if (!shutdownFlag.get()) {
+                if (retryWakeupTime != null) {
+                    while (retryWakeupTime.after(new Date()) && !shutdownFlag.get()) {
+                        LockSupport.parkUntil(this, retryWakeupTime.getTime());
+                    }
+                    retryWakeupTime = null;
+                } else {
+                    if (queue.isEmpty() && !notifyWorkFlag.get()) {
+                        eldestItem = null;
+                        LockSupport.park(this);
+                    }
                 }
             }
 
-            if (retryWakeupTime != null) {
-                while (!shutdownFlag.get() && new Date().before(retryWakeupTime)) {
-                    Helper.pause(103);
-                }
-                retryWakeupTime = null;
-            }
+            notifyWorkFlag.set(false);
         }
 
         public boolean isRunning() {

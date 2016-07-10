@@ -41,21 +41,21 @@
     <form action="<%=AdminServlet.Page.dashboard%>" method="get" id="dashboard" name="dashboard">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-dashboard"></span></pwm:if>
-            Dashboard
+            <pwm:display key="Title_Dashboard" bundle="Admin"/>
         </button>
     </form>
     <% selected = currentPage == AdminServlet.Page.activity; %>
     <form action="<%=AdminServlet.Page.activity%>" method="get" id="activity" name="activity">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-users"></span></pwm:if>
-            User Activity
+            <pwm:display key="Title_UserActivity" bundle="Admin"/>
         </button>
     </form>
     <% selected = currentPage == AdminServlet.Page.analysis; %>
     <form action="<%=AdminServlet.Page.analysis%>" method="get" id="analysis" name="analysis">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-bar-chart-o"></span></pwm:if>
-            Data Analysis
+            <pwm:display key="Title_DataAnalysis" bundle="Admin"/>
         </button>
     </form>
     <div style="display: inline" id="admin-nav-menu-container">

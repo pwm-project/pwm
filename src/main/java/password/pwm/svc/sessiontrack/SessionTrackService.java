@@ -25,8 +25,8 @@ package password.pwm.svc.sessiontrack;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
-import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
@@ -38,7 +38,7 @@ import java.util.*;
 public class SessionTrackService implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SessionTrackService.class);
 
-    private Set<PwmSession> pwmSessions = Collections.newSetFromMap(new WeakHashMap<PwmSession, Boolean>());
+    private final Set<PwmSession> pwmSessions = Collections.newSetFromMap(new WeakHashMap<PwmSession, Boolean>());
 
     private PwmApplication pwmApplication;
 
@@ -54,7 +54,9 @@ public class SessionTrackService implements PwmService {
 
     @Override
     public void close() {
-        pwmSessions.clear();
+        synchronized (pwmSessions) {
+            pwmSessions.clear();
+        }
     }
 
     @Override
@@ -74,16 +76,27 @@ public class SessionTrackService implements PwmService {
     }
 
     public void addSessionData(final PwmSession pwmSession) {
-        pwmSessions.add(pwmSession);
+        synchronized (pwmSession) {
+            pwmSessions.add(pwmSession);
+        }
     }
 
     public void removeSessionData(final PwmSession pwmSession) {
-        pwmSessions.add(pwmSession);
+        synchronized (pwmSession) {
+            pwmSessions.add(pwmSession);
+        }
+    }
+
+    private Set<PwmSession> copyOfSessionSet() {
+        synchronized (pwmSessions) {
+            return new HashSet<>(pwmSessions);
+        }
+
     }
 
     public Map<DebugKey, String> getDebugData() {
         try {
-            final Collection<PwmSession> sessionCopy = new HashSet<>(pwmSessions);
+            final Collection<PwmSession> sessionCopy = copyOfSessionSet();
             int sessionCounter = 0;
             long sizeTotal = 0;
             for (final PwmSession pwmSession : sessionCopy) {
@@ -130,7 +143,7 @@ public class SessionTrackService implements PwmService {
 
     private Set<PwmSession> currentValidSessionSet() {
         final Set<PwmSession> returnSet = new HashSet<>();
-        for (final PwmSession pwmSession : new HashSet<>(pwmSessions)) {
+        for (final PwmSession pwmSession : copyOfSessionSet()) {
             if (pwmSession != null) {
                 returnSet.add(pwmSession);
             }

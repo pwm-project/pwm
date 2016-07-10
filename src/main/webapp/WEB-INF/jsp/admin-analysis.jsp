@@ -60,7 +60,7 @@
         <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
     <div id="centerbody" class="wide">
-        <div id="page-content-title"><pwm:display key="Title_DataAnalysis" bundle="Admin" displayIfMissing="true"/></div>
+        <div id="page-content-title"><pwm:display key="Title_DataAnalysis" bundle="Admin"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
         <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true" id="analysis-topLevelTab">
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
