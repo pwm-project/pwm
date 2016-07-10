@@ -26,6 +26,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.codec.binary.Base32;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -132,7 +133,7 @@ public class OtpService implements PwmService {
     }
 
     private List<String> createRawRecoveryCodes(final int numRecoveryCodes, final SessionLabel sessionLabel)
-            throws PwmUnrecoverableException 
+            throws PwmUnrecoverableException
     {
         final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmApplication, sessionLabel);
         final String configuredTokenMacro = settings.getRecoveryTokenMacro();
@@ -278,13 +279,18 @@ public class OtpService implements PwmService {
                         LOGGER.error(sessionLabel, "unexpected error reading stored otp configuration from " + location + " for user " + userIdentity + ", error: " + e.getMessage());
                     }
                 } else {
-                    LOGGER.warn(sessionLabel,String.format("Storage location %s not implemented", location.toString()));
+                    LOGGER.warn(sessionLabel,String.format("storage location %s not implemented", location.toString()));
                 }
             }
         }
 
-        LOGGER.trace(sessionLabel,"readOTPUserConfiguration completed in " + TimeDuration.fromCurrent(
-                methodStartTime).asCompactString());
+        LOGGER.trace(sessionLabel,"readOTPUserConfiguration completed in "
+                + TimeDuration.fromCurrent(methodStartTime).asCompactString()
+                + (otpConfig == null
+                ? ", no otp record found"
+                : ", recordType=" + otpConfig.getType() + ", identifier=" + otpConfig.getIdentifier() + ", timestamp="
+                + PwmConstants.DEFAULT_DATETIME_FORMAT.format(otpConfig.getTimestamp()))
+        );
         return otpConfig;
     }
 
@@ -408,7 +414,7 @@ public class OtpService implements PwmService {
         }
         return userGUID;
     }
-    
+
     public static class OtpSettings implements Serializable {
         private OTPStorageFormat otpStorageFormat;
         private OTPUserRecord.Type otpType = OTPUserRecord.Type.TOTP;
@@ -463,7 +469,7 @@ public class OtpService implements PwmService {
 
         public static OtpSettings fromConfig(final Configuration config) {
             final OtpSettings otpSettings = new OtpSettings();
-            
+
             otpSettings.otpStorageFormat = config.readSettingAsEnum(PwmSetting.OTP_SECRET_STORAGEFORMAT,OTPStorageFormat.class);
             otpSettings.recoveryCodesCount = (int)config.readSettingAsLong(PwmSetting.OTP_RECOVERY_CODES);
             otpSettings.totpPastIntervals = Integer.parseInt(config.readAppProperty(AppProperty.TOTP_PAST_INTERVALS));

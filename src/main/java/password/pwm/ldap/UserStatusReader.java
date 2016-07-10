@@ -547,29 +547,32 @@ public class UserStatusReader {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
+        LOGGER.trace(sessionLabel, "checkOtp: beginning process to check if user OTP setup is required");
 
         final UserIdentity userIdentity = uiBean.getUserIdentity();
 
-        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) {
+            LOGGER.trace(sessionLabel, "checkOtp: OTP is not enabled, user OTP setup is not required");
             return false;
         }
 
         final boolean hasStoredOtp = otpUserRecord != null && otpUserRecord.getSecret() != null;
 
         if (hasStoredOtp) {
+            LOGGER.trace(sessionLabel, "checkOtp: user has existing valid otp record, user OTP setup is not required");
             return false;
         }
 
         final List<UserPermission> setupOtpPermission = pwmApplication.getConfig().readSettingAsUserPermission(PwmSetting.OTP_SETUP_USER_PERMISSION);
         if (!LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, uiBean.getUserIdentity(), setupOtpPermission)) {
-            LOGGER.debug(sessionLabel,
-                    "checkOtp: " + userIdentity.toString() + " is not eligible for checkOtp due to query match");
+            LOGGER.trace(sessionLabel, "checkOtp: " + userIdentity.toString() + " is not eligible for checkOtp due to query match");
             return false;
         }
 
         final ForceSetupPolicy policy = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.OTP_FORCE_SETUP,ForceSetupPolicy.class);
 
         // hasStoredOtp is always true at this point, so if forced then update needed
+        LOGGER.debug(sessionLabel, "checkOtp: user does not have existing valid otp record, user OTP setup is required");
         return policy == ForceSetupPolicy.FORCE || policy == ForceSetupPolicy.FORCE_ALLOW_SKIP;
     }
 
