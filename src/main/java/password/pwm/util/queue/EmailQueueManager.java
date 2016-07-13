@@ -74,6 +74,13 @@ public class EmailQueueManager implements PwmService {
         status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
         javaMailProps = makeJavaMailProps(pwmApplication.getConfig());
+
+        if (pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN) {
+            LOGGER.warn("localdb is not open, EmailQueueManager will remain closed");
+            status = STATUS.CLOSED;
+            return;
+        }
+
         final WorkQueueProcessor.Settings settings = new WorkQueueProcessor.Settings();
         settings.setMaxEvents(Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_MAX_COUNT)));
         settings.setRetryDiscardAge(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_MAX_AGE_MS))));
