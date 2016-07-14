@@ -3658,4 +3658,8 @@
     </category>
     <category hidden="true" key="NAAF">
     </category>
+    <category hidden="false" key="MODULES_PUBLIC">
+    </category>
+    <category hidden="false" key="MODULES_PRIVATE">
+    </category>
 </settings>

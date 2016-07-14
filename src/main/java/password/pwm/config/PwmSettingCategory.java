@@ -39,6 +39,8 @@ public enum PwmSettingCategory {
     SETTINGS                    (null),
     PROFILES                    (null),
     MODULES                     (null),
+    MODULES_PUBLIC              (MODULES),
+    MODULES_PRIVATE             (MODULES),
 
     LDAP_PROFILE                (LDAP),
     LDAP_SETTINGS               (LDAP),
@@ -59,8 +61,9 @@ public enum PwmSettingCategory {
 
     AUDITING                    (SETTINGS),
     AUDIT_CONFIG                (AUDITING),
-    USER_HISTORY                (AUDITING),
     AUDIT_FORWARD               (AUDITING),
+
+    USER_HISTORY                (SETTINGS),
 
     CAPTCHA                     (SETTINGS),
 
@@ -86,6 +89,8 @@ public enum PwmSettingCategory {
 
     WORDLISTS                   (SETTINGS),
 
+    PASSWORD_GLOBAL             (SETTINGS),
+
     TOKEN                       (SETTINGS),
     OTP                         (SETTINGS),
     LOGGING                     (SETTINGS),
@@ -106,39 +111,42 @@ public enum PwmSettingCategory {
     REST_SERVER                 (WEB_SERVICES),
     REST_CLIENT                 (WEB_SERVICES),
 
-    PASSWORD_GLOBAL             (PROFILES),
     PASSWORD_POLICY             (PROFILES),
-    CHALLENGE                   (PROFILES),
     CHALLENGE_POLICY            (PROFILES),
 
-    ADMINISTRATION              (MODULES),
+    HTTPS_SERVER                (SETTINGS),
 
-    ACCOUNT_INFO                (MODULES),
-    CHANGE_PASSWORD             (MODULES),
-    RECOVERY                    (MODULES),
+    ADMINISTRATION              (MODULES_PRIVATE),
+
+    ACCOUNT_INFO                (MODULES_PRIVATE),
+    CHANGE_PASSWORD             (MODULES_PRIVATE),
+    CHALLENGE                   (MODULES_PRIVATE),
+
+    RECOVERY                    (MODULES_PUBLIC),
     RECOVERY_SETTINGS           (RECOVERY),
     RECOVERY_PROFILE            (RECOVERY),
 
-    FORGOTTEN_USERNAME          (MODULES),
-    
-    NEWUSER                     (MODULES),
+    FORGOTTEN_USERNAME          (MODULES_PUBLIC),
+
+    ACTIVATION                  (MODULES_PUBLIC),
+
+    NEWUSER                     (MODULES_PUBLIC),
     NEWUSER_SETTINGS            (NEWUSER),
     NEWUSER_PROFILE             (NEWUSER),
 
-    UPDATE                      (MODULES),
+    UPDATE                      (MODULES_PRIVATE),
     UPDATE_SETTINGS             (UPDATE),
     UPDATE_PROFILE              (UPDATE),
 
-    GUEST                       (MODULES),
-    ACTIVATION                  (MODULES),
-    SHORTCUT                    (MODULES),
-    PEOPLE_SEARCH               (MODULES),
+    GUEST                       (MODULES_PRIVATE),
+    SHORTCUT                    (MODULES_PRIVATE),
+    PEOPLE_SEARCH               (MODULES_PRIVATE),
 
-    HELPDESK                    (MODULES),
+    HELPDESK                    (MODULES_PRIVATE),
     HELPDESK_PROFILE            (HELPDESK),
     HELPDESK_SETTINGS           (HELPDESK),
 
-    HTTPS_SERVER                (SETTINGS),
+
 
     ;
 
