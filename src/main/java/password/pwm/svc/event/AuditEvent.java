@@ -26,8 +26,9 @@ import password.pwm.config.Configuration;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmDisplayBundle;
+import password.pwm.util.JsonUtil;
 
-import java.util.Locale;
+import java.util.*;
 
 public enum AuditEvent {
 
@@ -35,11 +36,11 @@ public enum AuditEvent {
     STARTUP(                        Message.EventLog_Startup,                           Admin.EventLog_Narrative_Startup,                          Type.SYSTEM),
     SHUTDOWN(                       Message.EventLog_Shutdown,                          Admin.EventLog_Narrative_Shutdown,                         Type.SYSTEM),
     FATAL_EVENT(                    Message.EventLog_FatalEvent,                        Admin.EventLog_Narrative_FatalEvent,                       Type.SYSTEM),
-    MODIFY_CONFIGURATION(           Message.EventLog_ModifyConfiguration,               Admin.EventLog_Narrative_ModifyConfiguration,              Type.SYSTEM),
     INTRUDER_LOCK(                  Message.EventLog_IntruderLockout,                   Admin.EventLog_Narrative_IntruderLockout,                  Type.SYSTEM),
     INTRUDER_ATTEMPT(               Message.EventLog_IntruderAttempt,                   Admin.EventLog_Narrative_IntruderAttempt,                  Type.SYSTEM),
 
     // user events not stored in user event history
+    MODIFY_CONFIGURATION(           Message.EventLog_ModifyConfiguration,               Admin.EventLog_Narrative_ModifyConfiguration,              Type.USER),
     AUTHENTICATE(                   Message.EventLog_Authenticate,                      Admin.EventLog_Narrative_Authenticate,                     Type.USER),
     AGREEMENT_PASSED(               Message.EventLog_AgreementPassed,                   Admin.EventLog_Narrative_AgreementPassed,                  Type.USER),
     TOKEN_ISSUED(                   Message.EventLog_TokenIssued,                       Admin.EventLog_Narrative_TokenIssued,                      Type.USER),
@@ -76,14 +77,24 @@ public enum AuditEvent {
 
     ;
 
+    private static final String JSON_KEY_XDAS_TAXONOMY = "xdasTaxonomy";
+    private static final String JSON_KEY_XDAS_OUTCOME = "xdasOutcome";
+
+
     final private Message message;
     final private PwmDisplayBundle narrative;
+
+    private String xdasTaxonomy;
+    private String xdasOutcome;
+
     private Type type;
 
     AuditEvent(final Message message, final PwmDisplayBundle narrative, final Type type) {
         this.message = message;
         this.type = type;
         this.narrative = narrative;
+        this.xdasTaxonomy = getResourceData().get(JSON_KEY_XDAS_TAXONOMY);
+        this.xdasOutcome = getResourceData().get(JSON_KEY_XDAS_OUTCOME);
     }
 
     public Message getMessage() {
@@ -123,5 +134,19 @@ public enum AuditEvent {
         USER,
         SYSTEM,
         HELPDESK,
+    }
+
+    public String getXdasTaxonomy() {
+        return xdasTaxonomy;
+    }
+
+    public String getXdasOutcome() {
+        return xdasOutcome;
+    }
+
+    private Map<String,String> getResourceData() {
+        final ResourceBundle resourceBundle = ResourceBundle.getBundle(AuditEvent.class.getName());
+        final String jsonObj = resourceBundle.getString(this.toString());
+        return JsonUtil.deserializeStringMap(jsonObj);
     }
 }

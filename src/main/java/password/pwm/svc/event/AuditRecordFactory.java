@@ -52,28 +52,42 @@ public class AuditRecordFactory {
             final String sourceHost
     )
     {
-        String perpUserDN = null, perpUserID = null, perpLdapProfile = null, targetUserDN = null, targetUserID = null, targetLdapProfile = null;
-        if (perpetrator != null) {
-            perpUserDN = perpetrator.getUserDN();
-            perpLdapProfile = perpetrator.getLdapProfileID();
-            try {
-                perpUserID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,perpetrator);
-            } catch (Exception e) {
-                LOGGER.error("unable to read userID for " + perpetrator + ", error: " + e.getMessage());
-            }
-        }
-        if (target != null) {
-            targetUserDN = target.getUserDN();
-            targetLdapProfile = target.getLdapProfileID();
-            try {
-                targetUserID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,target);
-            } catch (Exception e) {
-                LOGGER.error("unable to read userID for " + perpetrator + ", error: " + e.getMessage());
-            }
-        }
 
-        final HelpdeskAuditRecord record = new HelpdeskAuditRecord(new Date(), eventCode, perpUserID, perpUserDN, perpLdapProfile, message, targetUserID, targetUserDN,
-                targetLdapProfile, sourceAddress, sourceHost);
+        final AuditUserDefinition targetAuditUserDefintition = userIdentityToUserDefinition(target);
+        return createHelpdeskAuditRecord(
+                eventCode,
+                perpetrator,
+                message,
+                targetAuditUserDefintition,
+                sourceAddress,
+                sourceHost
+        );
+    }
+
+    public HelpdeskAuditRecord createHelpdeskAuditRecord(
+            final AuditEvent eventCode,
+            final UserIdentity perpetrator,
+            final String message,
+            final AuditUserDefinition target,
+            final String sourceAddress,
+            final String sourceHost
+    )
+    {
+        final AuditUserDefinition perpAuditUserDefintition = userIdentityToUserDefinition(perpetrator);
+
+        final HelpdeskAuditRecord record = new HelpdeskAuditRecord(
+                new Date(),
+                eventCode,
+                perpAuditUserDefintition.getUserID(),
+                perpAuditUserDefintition.getUserDN(),
+                perpAuditUserDefintition.getLdapProfile(),
+                message,
+                target.getUserID(),
+                target.getUserDN(),
+                target.getLdapProfile(),
+                sourceAddress,
+                sourceHost
+        );
         record.narrative = makeNarrativeString(record);
         return record;
     }
@@ -86,18 +100,18 @@ public class AuditRecordFactory {
             final String sourceHost
     )
     {
-        String perpUserDN = null, perpUserID = null, perpLdapProfile = null;
-        if (perpetrator != null) {
-            perpUserDN = perpetrator.getUserDN();
-            perpLdapProfile = perpetrator.getLdapProfileID();
-            try {
-                perpUserID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,perpetrator);
-            } catch (Exception e) {
-                LOGGER.error("unable to read userID for " + perpetrator + ", error: " + e.getMessage());
-            }
-        }
+        final AuditUserDefinition perpAuditUserDefintition = userIdentityToUserDefinition(perpetrator);
 
-        final UserAuditRecord record = new UserAuditRecord(new Date(), eventCode, perpUserID, perpUserDN, perpLdapProfile, message, sourceAddress, sourceHost);
+        final UserAuditRecord record = new UserAuditRecord(
+                new Date(),
+                eventCode,
+                perpAuditUserDefintition.getUserID(),
+                perpAuditUserDefintition.getUserDN(),
+                perpAuditUserDefintition.getLdapProfile(),
+                message,
+                sourceAddress,
+                sourceHost
+        );
         record.narrative = this.makeNarrativeString(record);
         return record;
     }
@@ -175,5 +189,45 @@ public class AuditRecordFactory {
         }
 
         return outputString;
+    }
+
+    private AuditUserDefinition userIdentityToUserDefinition(final UserIdentity userIdentity) {
+        String userDN = null, userID = null, ldapProfile = null;
+
+        if (userIdentity != null) {
+            userDN = userIdentity.getUserDN();
+            ldapProfile = userIdentity.getLdapProfileID();
+            try {
+                userID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,userIdentity);
+            } catch (Exception e) {
+                LOGGER.warn("unable to read userID for " + userIdentity + ", error: " + e.getMessage() );
+            }
+        }
+
+        return new AuditUserDefinition(userID, userDN, ldapProfile);
+    }
+
+    public static class AuditUserDefinition {
+        private String userID;
+        private String userDN;
+        private String ldapProfile;
+
+        public AuditUserDefinition(final String userID, final String userDN, final String ldapProfile) {
+            this.userID = userID;
+            this.userDN = userDN;
+            this.ldapProfile = ldapProfile;
+        }
+
+        public String getUserID() {
+            return userID;
+        }
+
+        public String getUserDN() {
+            return userDN;
+        }
+
+        public String getLdapProfile() {
+            return ldapProfile;
+        }
     }
 }

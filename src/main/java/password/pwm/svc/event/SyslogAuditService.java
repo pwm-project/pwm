@@ -174,7 +174,7 @@ public class SyslogAuditService {
     }
 
     private WorkQueueProcessor.ProcessResult processEvent(final AuditRecord auditRecord) {
-        final String syslogEventString = JsonUtil.serialize(auditRecord);
+        final String syslogEventString = PwmConstants.PWM_APP_NAME + " " + JsonUtil.serialize(auditRecord);
 
         final SyslogIF syslogIF = syslogInstance;
         try {

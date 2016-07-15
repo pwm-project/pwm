@@ -43,6 +43,10 @@ import password.pwm.http.servlet.configguide.ConfigGuideServlet;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
+import password.pwm.svc.PwmService;
+import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecord;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.util.Helper;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.LocaleHelper;
@@ -251,7 +255,24 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
 
         try {
             ContextManager contextManager = ContextManager.getContextManager(pwmRequest.getHttpServletRequest().getSession().getServletContext());
-            contextManager.getConfigReader().saveConfiguration(storedConfiguration, contextManager.getPwmApplication(), pwmRequest.getSessionLabel());
+            contextManager.getConfigReader().saveConfiguration(
+                    storedConfiguration,
+                    contextManager.getPwmApplication(),
+                    pwmRequest.getSessionLabel()
+            );
+
+            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+            if (pwmApplication.getAuditManager() != null && pwmApplication.getAuditManager().status() == PwmService.STATUS.OPEN) {
+                final String modifyMessage = "Configuration Changes: " + storedConfiguration.changeLogAsDebugString(PwmConstants.DEFAULT_LOCALE, false);
+                final AuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createUserAuditRecord(
+                        AuditEvent.MODIFY_CONFIGURATION,
+                        pwmRequest.getUserInfoIfLoggedIn(),
+                        pwmRequest.getSessionLabel(),
+                        modifyMessage
+                );
+                pwmApplication.getAuditManager().submit(auditRecord);
+            }
+
             contextManager.requestPwmApplicationRestart();
         } catch (Exception e) {
             final String errorString = "error saving file: " + e.getMessage();

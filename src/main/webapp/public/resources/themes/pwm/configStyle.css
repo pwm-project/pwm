@@ -111,7 +111,7 @@ html {
 .centerbody-config {
     bottom: 0;
     left: 0;
-    margin-left: auto;
+    margin-left: 0;
     margin-right: auto;
     min-width: 870px;
     position: absolute;
@@ -128,8 +128,8 @@ html {
 }
 
 #header-center-wide {
-    width: 850px;
-    margin: 0 auto;
+    width: 100%;
+    ;
     position:relative;
     padding:4px;
 }

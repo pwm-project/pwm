@@ -366,6 +366,14 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         // check if user should be seen by actor
         checkIfUserIdentityViewable(pwmRequest, helpdeskProfile, userIdentity);
 
+        // read the userID for later logging.
+        String userID = null;
+        try {
+            userID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication, userIdentity);
+        } catch (ChaiOperationException e) {
+            LOGGER.warn(pwmSession, "unable to read username of deleted user while creating audit record");
+        }
+
         // execute user delete operation
         ChaiProvider provider = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY)
                 ? pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID())
@@ -384,11 +392,18 @@ public class HelpdeskServlet extends AbstractPwmServlet {
 
         // mark the event log
         {
+            //normally the audit record builder reads the userID while constructing the record, but because the target user is already deleted,
+            //it will be included here explicitly.
+            final AuditRecordFactory.AuditUserDefinition auditUserDefinition = new AuditRecordFactory.AuditUserDefinition(
+                    userID,
+                    userIdentity.getUserDN(),
+                    userIdentity.getLdapProfileID()
+            );
             final HelpdeskAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_DELETE_USER,
                     pwmSession.getUserInfoBean().getUserIdentity(),
                     null,
-                    userIdentity,
+                    auditUserDefinition,
                     pwmSession.getSessionStateBean().getSrcAddress(),
                     pwmSession.getSessionStateBean().getSrcHostname()
             );

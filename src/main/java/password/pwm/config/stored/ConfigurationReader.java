@@ -33,9 +33,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.svc.event.AuditEvent;
-import password.pwm.svc.event.AuditRecord;
-import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.util.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
@@ -161,7 +158,7 @@ public class ConfigurationReader {
             final StoredConfigurationImpl storedConfiguration,
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel
-    )
+            )
             throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
         File backupDirectory = null;
@@ -204,18 +201,6 @@ public class ConfigurationReader {
             if (pwmApplication != null) {
                 final String actualChecksum = storedConfiguration.settingChecksum();
                 pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.CONFIG_HASH, actualChecksum);
-            }
-
-            if (pwmApplication != null && pwmApplication.getAuditManager() != null) {
-                String modifyMessage = storedConfiguration.changeLogAsDebugString(PwmConstants.DEFAULT_LOCALE, false);
-                if (sessionLabel != null && sessionLabel.getUserIdentity() != null) {
-                    modifyMessage += " by " + sessionLabel.getUserIdentity().toDisplayString();
-                }
-                final AuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createSystemAuditRecord(
-                        AuditEvent.MODIFY_CONFIGURATION,
-                        modifyMessage
-                );
-                pwmApplication.getAuditManager().submit(auditRecord);
             }
 
             if (backupDirectory != null) {

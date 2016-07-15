@@ -259,8 +259,10 @@ public class PwmApplication {
                 LOGGER.warn("configuration checksum does not match previously seen checksum, configuration has been modified since last startup");
                 if (this.getAuditManager() != null) {
                     final String modifyMessage = "configuration was modified directly (not using ConfigEditor UI)";
-                    this.getAuditManager().submit(new AuditRecordFactory(this).createSystemAuditRecord(
+                    this.getAuditManager().submit(new AuditRecordFactory(this).createUserAuditRecord(
                             AuditEvent.MODIFY_CONFIGURATION,
+                            null,
+                            null,
                             modifyMessage
                     ));
                 }

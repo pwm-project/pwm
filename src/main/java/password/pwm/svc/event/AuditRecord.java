@@ -34,6 +34,9 @@ public abstract class AuditRecord implements Serializable {
     protected Date timestamp = new Date();
     protected String message;
     protected String narrative;
+    protected String xdasTaxonomy;
+    protected String xdasOutcome;
+
 
     protected AuditRecord(
             final Date timestamp,
@@ -51,6 +54,8 @@ public abstract class AuditRecord implements Serializable {
 
     protected AuditRecord(final AuditEvent eventCode, final String message) {
         this(new Date(), eventCode, message);
+        this.xdasOutcome = eventCode.getXdasOutcome();
+        this.xdasTaxonomy = eventCode.getXdasTaxonomy();
     }
 
     public AuditEvent.Type getType() {
@@ -75,5 +80,13 @@ public abstract class AuditRecord implements Serializable {
 
     public String getNarrative() {
         return narrative;
+    }
+
+    public String getXdasTaxonomy() {
+        return xdasTaxonomy;
+    }
+
+    public String getXdasOutcome() {
+        return xdasOutcome;
     }
 }
