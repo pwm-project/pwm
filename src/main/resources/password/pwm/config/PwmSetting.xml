@@ -2807,17 +2807,6 @@
             <value>directReports</value>
         </default>
     </setting>
-    <setting hidden="false" key="ldap.edirectory.enableNmas" level="1" required="true">
-        <default>
-            <value>false</value>
-        </default>
-        <default template="NOVL">
-            <value>true</value>
-        </default>
-        <default template="NOVL_IDM">
-            <value>true</value>
-        </default>
-    </setting>
     <setting hidden="false" key="ldap.edirectory.storeNmasResponses" level="1" required="true">
         <default>
             <value>false</value>

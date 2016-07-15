@@ -855,8 +855,6 @@ public enum PwmSetting {
 
 
     // edirectory settings
-    EDIRECTORY_ENABLE_NMAS(
-            "ldap.edirectory.enableNmas", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS),
     EDIRECTORY_STORE_NMAS_RESPONSES(
             "ldap.edirectory.storeNmasResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS),
     EDIRECTORY_USE_NMAS_RESPONSES(

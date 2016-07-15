@@ -348,7 +348,10 @@ public class LdapOperationsHelper {
         final ChaiConfiguration chaiConfig = new ChaiConfiguration(ldapURLs, userDN, userPassword == null ? null : userPassword.getStringValue());
 
         chaiConfig.setSetting(ChaiSetting.PROMISCUOUS_SSL, config.readAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE));
-        chaiConfig.setSetting(ChaiSetting.EDIRECTORY_ENABLE_NMAS, Boolean.toString(config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS)));
+        {
+            final boolean enableNmasExtensions = Boolean.parseBoolean(config.readAppProperty(AppProperty.LDAP_EXTENSIONS_NMAS_ENABLE));
+            chaiConfig.setSetting(ChaiSetting.EDIRECTORY_ENABLE_NMAS, Boolean.toString(enableNmasExtensions));
+        }
 
         chaiConfig.setSetting(ChaiSetting.CR_CHAI_STORAGE_ATTRIBUTE, config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
         chaiConfig.setSetting(ChaiSetting.CR_ALLOW_DUPLICATE_RESPONSES, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_DUPLICATE_RESPONSES)));
