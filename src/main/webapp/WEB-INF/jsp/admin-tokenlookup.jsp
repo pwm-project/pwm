@@ -47,7 +47,7 @@
         <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_TokenLookup" bundle="PageName" displayIfMissing="true"/></div>
+        <div id="page-content-title"><pwm:display key="Title_TokenLookup" bundle="Admin" displayIfMissing="true"/></div>
         <%@ include file="fragment/admin-nav.jsp" %>
         <% final String tokenKey = tokenlookup_pwmRequest.readParameterAsString("token");%>
         <% if (tokenKey != null && tokenKey.length() > 0) { %>
@@ -165,7 +165,7 @@
             <div class="buttonbar">
                 <button type="submit" name="submitBtn" class="btn" type="submit">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
-                    Lookup Token
+                    <pwm:display key="Button_Search"/>
                 </button>
             </div>
             <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
