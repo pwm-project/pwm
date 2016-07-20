@@ -31,14 +31,14 @@ PWM_ADMIN.initAdminNavMenu = function() {
             function(DropDownButton, DropDownMenu, Menu, MenuItem, PopupMenuItem, dom, MenuSeparator){
                 var pMenu = new DropDownMenu({ style: "display: none;"});
                 pMenu.addChild(new MenuItem({
-                    label: 'Event Log',
+                    label: PWM_ADMIN.showString('Title_LogViewer'),
                     id: 'eventLog_dropitem',
                     onClick: function() {
                         PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/logs');
                     }
                 }));
                 pMenu.addChild(new MenuItem({
-                    label: 'Token Lookup',
+                    label: PWM_ADMIN.showString('Title_TokenLookup'),
                     id: 'tokenLookup_dropitem',
                     onClick: function() {
                         PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/tokens');
@@ -46,7 +46,7 @@ PWM_ADMIN.initAdminNavMenu = function() {
                 }));
 
                 pMenu.addChild(new MenuItem({
-                    label: 'URL Reference',
+                    label: PWM_ADMIN.showString('Title_URLReference'),
                     id: 'urlReference_dropitem',
                     onClick: function() {
                         PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/admin/urls');
@@ -405,7 +405,7 @@ PWM_ADMIN.auditUserHeaders = function() {
         "sourceAddress": PWM_ADMIN.showString('Field_Audit_SourceAddress'),
         "sourceHost": PWM_ADMIN.showString('Field_Audit_SourceHost'),
         "guid": PWM_ADMIN.showString('Field_Audit_GUID'),
-        "narrative": PWM_ADMIN.showString('Field_Audit_Narrative')   
+        "narrative": PWM_ADMIN.showString('Field_Audit_Narrative')
     };
 };
 

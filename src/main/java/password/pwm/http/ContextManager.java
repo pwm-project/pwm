@@ -61,11 +61,6 @@ public class ContextManager implements Serializable {
 
     private String contextPath;
 
-    private enum ContextParameter {
-        applicationPath,
-        configurationFile,
-    }
-
     private final static String UNSPECIFIED_VALUE = "unspecified";
 
     public ContextManager(ServletContext servletContext) {
@@ -146,9 +141,10 @@ public class ContextManager implements Serializable {
         PwmApplicationMode mode = PwmApplicationMode.ERROR;
 
 
+        final ParameterReader parameterReader = new ParameterReader(servletContext);
         final File applicationPath;
         {
-            final String applicationPathStr = readApplicationPath();
+            final String applicationPathStr = parameterReader.readApplicationPath();
             if (applicationPathStr == null || applicationPathStr.isEmpty()) {
                 startupErrorInformation = new ErrorInformation(PwmError.ERROR_ENVIRONMENT_ERROR,"application path is not specified");
                 return;
@@ -183,8 +179,8 @@ public class ContextManager implements Serializable {
         }
         LOGGER.debug("configuration file was loaded from " + (configurationFile == null ? "null" : configurationFile.getAbsoluteFile()));
 
-        final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = readApplicationFlags();
-        final Map<PwmEnvironment.ApplicationParameter,String> applicationParams = readApplicationParams();
+        final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = parameterReader.readApplicationFlags();
+        final Map<PwmEnvironment.ApplicationParameter,String> applicationParams = parameterReader.readApplicationParams();
 
         try {
             final PwmEnvironment pwmEnvironment= new PwmEnvironment.Builder(configuration, applicationPath)
@@ -371,26 +367,7 @@ public class ContextManager implements Serializable {
     public File locateConfigurationFile(final File applicationPath)
             throws Exception
     {
-        String configurationFileSetting = servletContext.getInitParameter(
-                ContextParameter.configurationFile.toString());
-
-        if (configurationFileSetting == null
-                || configurationFileSetting.trim().isEmpty()
-                || UNSPECIFIED_VALUE.equalsIgnoreCase(configurationFileSetting.trim())
-                ) {
-            configurationFileSetting = PwmConstants.DEFAULT_CONFIG_FILE_FILENAME;
-        }
-
-        try {
-            File file = new File(configurationFileSetting);
-            if (file.isAbsolute()) {
-                return file;
-            }
-        } catch (Exception e) {
-            outputError("error testing context " + ContextParameter.configurationFile.toString() + " parameter to verify if it is a valid file path: " + e.getMessage());
-        }
-
-        return new File(applicationPath.getAbsolutePath() + File.separator + configurationFileSetting);
+        return new File(applicationPath.getAbsolutePath() + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
     }
 
     public File locateWebInfFilePath() {
@@ -406,52 +383,6 @@ public class ContextManager implements Serializable {
         return null;
     }
 
-    public String readApplicationPath() {
-
-        {
-            final String contextAppPathSetting = servletContext.getInitParameter(
-                    ContextParameter.applicationPath.toString());
-
-            if (contextAppPathSetting != null && !contextAppPathSetting.isEmpty()) {
-                if (!UNSPECIFIED_VALUE.equalsIgnoreCase(contextAppPathSetting)) {
-                    return contextAppPathSetting;
-                }
-            }
-
-            final String contextPath = servletContext.getContextPath().replace("/","");
-            return PwmEnvironment.ParseHelper.readValueFromSystem(
-                    PwmEnvironment.EnvironmentParameter.applicationPath,
-                    contextPath
-            );
-        }
-    }
-
-    public Collection<PwmEnvironment.ApplicationFlag> readApplicationFlags() {
-        final String contextAppFlagsValue = servletContext.getInitParameter(
-                PwmEnvironment.EnvironmentParameter.applicationFlags.toString()
-        );
-
-        if (contextAppFlagsValue != null && !contextAppFlagsValue.isEmpty()) {
-            return PwmEnvironment.ParseHelper.parseApplicationFlagValueParameter(contextAppFlagsValue);
-        }
-
-        final String contextPath = servletContext.getContextPath().replace("/","");
-        return PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(contextPath);
-    }
-
-    public Map<PwmEnvironment.ApplicationParameter,String> readApplicationParams() {
-        final String contextAppParamsValue = servletContext.getInitParameter(
-                PwmEnvironment.EnvironmentParameter.applicationParamFile.toString()
-        );
-
-        if (contextAppParamsValue != null && !contextAppParamsValue.isEmpty()) {
-            return PwmEnvironment.ParseHelper.parseApplicationParamValueParameter(contextAppParamsValue);
-        }
-
-        final String contextPath = servletContext.getContextPath().replace("/","");
-        return PwmEnvironment.ParseHelper.readApplicationParmsFromSystem(contextPath);
-    }
-
     static void outputError(String outputText) {
         final String msg = PwmConstants.PWM_APP_NAME + " " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()) + " " + outputText;
         System.out.println(msg);
@@ -462,12 +393,70 @@ public class ContextManager implements Serializable {
         return instanceGuid;
     }
 
+    public InputStream getResourceAsStream(String path)
+    {
+        return servletContext.getResourceAsStream(path);
+    }
+
+    private static class ParameterReader {
+        private final ServletContext servletContext;
+
+
+        ParameterReader(ServletContext servletContext) {
+            this.servletContext = servletContext;
+        }
+
+        String readApplicationPath() {
+            final String contextAppPathSetting = readEnvironmentParameter(PwmEnvironment.EnvironmentParameter.applicationPath);
+            if (contextAppPathSetting != null) {
+                return contextAppPathSetting;
+            }
+
+            final String contextPath = servletContext.getContextPath().replace("/","");
+            return PwmEnvironment.ParseHelper.readValueFromSystem(
+                    PwmEnvironment.EnvironmentParameter.applicationPath,
+                    contextPath
+            );
+        }
+
+        Collection<PwmEnvironment.ApplicationFlag> readApplicationFlags() {
+            final String contextAppFlagsValue = readEnvironmentParameter(PwmEnvironment.EnvironmentParameter.applicationFlags);
+
+            if (contextAppFlagsValue != null && !contextAppFlagsValue.isEmpty()) {
+                return PwmEnvironment.ParseHelper.parseApplicationFlagValueParameter(contextAppFlagsValue);
+            }
+
+            final String contextPath = servletContext.getContextPath().replace("/","");
+            return PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(contextPath);
+        }
+
+        Map<PwmEnvironment.ApplicationParameter,String> readApplicationParams() {
+            final String contextAppParamsValue = readEnvironmentParameter(PwmEnvironment.EnvironmentParameter.applicationParamFile);
+
+            if (contextAppParamsValue != null && !contextAppParamsValue.isEmpty()) {
+                return PwmEnvironment.ParseHelper.parseApplicationParamValueParameter(contextAppParamsValue);
+            }
+
+            final String contextPath = servletContext.getContextPath().replace("/","");
+            return PwmEnvironment.ParseHelper.readApplicationParmsFromSystem(contextPath);
+        }
+
+
+        private String readEnvironmentParameter(final PwmEnvironment.EnvironmentParameter environmentParameter) {
+            final String value = servletContext.getInitParameter(
+                    environmentParameter.toString());
+
+            if (value != null && !value.isEmpty()) {
+                if (!UNSPECIFIED_VALUE.equalsIgnoreCase(value)) {
+                    return value;
+                }
+            }
+
     public String getContextPath() {
         return contextPath;
     }
 
-    public InputStream getResourceAsStream(String path)
-    {
-        return servletContext.getResourceAsStream(path);
+            return null;
+        }
     }
 }

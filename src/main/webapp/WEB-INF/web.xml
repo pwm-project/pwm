@@ -30,18 +30,9 @@
     <description>Password Management Servlet</description>
     <context-param>
         <description>
-            Explicit location of application working directory. If a relative path is specified, it is relative to the
-            deployed applications base directory.
+            Explicit location of application path working directory or the literal value "unspecified".  See the environment documentation at /public/reference/environment.jsp for more information.
         </description>
         <param-name>applicationPath</param-name>
-        <param-value>unspecified</param-value>
-    </context-param>
-    <context-param>
-        <description>
-            Name of configuration XML file file. If a relative path is specified, it is relative to the applicationPath
-            param.  If blank, the default config file name will be used relative to the application path.
-        </description>
-        <param-name>configurationFile</param-name>
         <param-value>unspecified</param-value>
     </context-param>
     <welcome-file-list>
