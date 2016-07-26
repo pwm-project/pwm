@@ -233,7 +233,6 @@ public class LDAPStatusChecker implements HealthChecker {
             try {
                 final UserIdentity userIdentity = new UserIdentity(theUser.getEntryDN(),ldapProfile.getIdentifier());
                 final UserStatusReader.Settings readerSettings = new UserStatusReader.Settings();
-                readerSettings.setSkipReportUpdate(true);
                 final UserStatusReader userStatusReader = new UserStatusReader(
                         pwmApplication,
                         PwmConstants.HEALTH_SESSION_LABEL,

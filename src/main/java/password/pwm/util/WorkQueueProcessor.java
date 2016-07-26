@@ -45,6 +45,9 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class WorkQueueProcessor<W extends Serializable> {
 
+    private static final TimeDuration SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL = new TimeDuration(100, TimeUnit.MILLISECONDS);
+    private static final TimeDuration CLOSE_RETRY_CYCLE_INTERVAL = new TimeDuration(100, TimeUnit.MILLISECONDS);
+
     private final Deque<String> queue;
     private final Settings settings;
     private final ItemProcessor<W> itemProcessor;
@@ -112,7 +115,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             LOGGER.debug("attempting to flush queue prior to shutdown, items in queue=" + queueSize());
         }
         while (localWorkerThread.isRunning() && TimeDuration.fromCurrent(shutdownStartTime).isLongerThan(settings.getMaxShutdownWaitTime())) {
-            Helper.pause(100);
+            Helper.pause(CLOSE_RETRY_CYCLE_INTERVAL.getTotalMilliseconds());
         }
 
         if (!queue.isEmpty()) {
@@ -137,7 +140,7 @@ public class WorkQueueProcessor<W extends Serializable> {
                             + ", item=" + itemProcessor.convertToDebugString(workItem);
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
                 }
-                Helper.pause(100);
+                Helper.pause(SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.getTotalMilliseconds());
             }
 
             eldestItem = itemWrapper.getDate();
@@ -250,7 +253,7 @@ public class WorkQueueProcessor<W extends Serializable> {
                     removeQueueTop();
                     return;
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 LOGGER.error("error reading queued item: " + e.getMessage(), e);
                 removeQueueTop();
                 return;
@@ -286,8 +289,8 @@ public class WorkQueueProcessor<W extends Serializable> {
                             throw new IllegalStateException("unexpected processResult type " + processResult);
                     }
                 }
-            } catch(PwmOperationalException e){
-                LOGGER.error("unexpected error while processing work queue: " + e.getErrorInformation());
+            } catch(Throwable e) {
+                LOGGER.error("unexpected error while processing work queue: " + e.getMessage());
                 removeQueueTop();
             }
 
@@ -351,7 +354,7 @@ public class WorkQueueProcessor<W extends Serializable> {
 
     public static class Settings implements Serializable {
         private int maxEvents = 1000;
-        private TimeDuration maxSubmitWaitTime = new TimeDuration(20, TimeUnit.SECONDS);
+        private TimeDuration maxSubmitWaitTime = new TimeDuration(5, TimeUnit.SECONDS);
         private TimeDuration retryInterval = new TimeDuration(30, TimeUnit.SECONDS);
         private TimeDuration retryDiscardAge = new TimeDuration(1, TimeUnit.HOURS);
         private TimeDuration maxShutdownWaitTime = new TimeDuration(30, TimeUnit.SECONDS);

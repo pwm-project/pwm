@@ -43,7 +43,6 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
@@ -379,15 +378,6 @@ public class UserStatusReader {
             LOGGER.error(sessionLabel, "error reading account expired date for user '" + userIdentity + "', " + e.getMessage());
         }
 
-        // update report engine.
-        if (!settings.isSkipReportUpdate()) {
-            try {
-                pwmApplication.getReportService().updateCachedRecordFromLdap(uiBean);
-            } catch (LocalDBException e) {
-                LOGGER.error(sessionLabel, "error updating report cache data ldap login time: " + e.getMessage());
-            }
-        }
-
         LOGGER.trace(sessionLabel, "populateUserInfoBean for " + userIdentity + " completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
     }
 
@@ -442,18 +432,6 @@ public class UserStatusReader {
     }
 
     public static class Settings implements Serializable {
-        private boolean skipReportUpdate;
-
-        public boolean isSkipReportUpdate()
-        {
-            return skipReportUpdate;
-        }
-
-        public void setSkipReportUpdate(boolean skipReportUpdate)
-        {
-            this.skipReportUpdate = skipReportUpdate;
-        }
-
         private Settings copy() {
             return JsonUtil.deserialize(JsonUtil.serialize(this),this.getClass());
         }

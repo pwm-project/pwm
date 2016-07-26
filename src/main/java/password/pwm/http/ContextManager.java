@@ -412,7 +412,7 @@ public class ContextManager implements Serializable {
                 return contextAppPathSetting;
             }
 
-            final String contextPath = servletContext.getContextPath().replace("/","");
+            final String contextPath = servletContext.getContextPath().replace("/", "");
             return PwmEnvironment.ParseHelper.readValueFromSystem(
                     PwmEnvironment.EnvironmentParameter.applicationPath,
                     contextPath
@@ -426,18 +426,18 @@ public class ContextManager implements Serializable {
                 return PwmEnvironment.ParseHelper.parseApplicationFlagValueParameter(contextAppFlagsValue);
             }
 
-            final String contextPath = servletContext.getContextPath().replace("/","");
+            final String contextPath = servletContext.getContextPath().replace("/", "");
             return PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem(contextPath);
         }
 
-        Map<PwmEnvironment.ApplicationParameter,String> readApplicationParams() {
+        Map<PwmEnvironment.ApplicationParameter, String> readApplicationParams() {
             final String contextAppParamsValue = readEnvironmentParameter(PwmEnvironment.EnvironmentParameter.applicationParamFile);
 
             if (contextAppParamsValue != null && !contextAppParamsValue.isEmpty()) {
                 return PwmEnvironment.ParseHelper.parseApplicationParamValueParameter(contextAppParamsValue);
             }
 
-            final String contextPath = servletContext.getContextPath().replace("/","");
+            final String contextPath = servletContext.getContextPath().replace("/", "");
             return PwmEnvironment.ParseHelper.readApplicationParmsFromSystem(contextPath);
         }
 
@@ -451,12 +451,12 @@ public class ContextManager implements Serializable {
                     return value;
                 }
             }
+            return null;
+        }
+    }
 
     public String getContextPath() {
         return contextPath;
     }
 
-            return null;
-        }
-    }
 }

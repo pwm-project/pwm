@@ -308,17 +308,6 @@ public class ReportService implements PwmService {
         }
     }
 
-    public boolean updateCachedRecordFromLdap(final UserInfoBean uiBean)
-            throws LocalDBException, PwmUnrecoverableException, ChaiUnavailableException
-    {
-        if (status != STATUS.OPEN) {
-            return false;
-        }
-
-        final UserCacheService.StorageKey storageKey = UserCacheService.StorageKey.fromUserInfoBean(uiBean);
-        return updateCachedRecordFromLdap(uiBean.getUserIdentity(), uiBean, storageKey);
-    }
-
     private boolean updateCachedRecordFromLdap(final UserIdentity userIdentity)
             throws ChaiUnavailableException, PwmUnrecoverableException, LocalDBException
     {
@@ -369,7 +358,6 @@ public class ReportService implements PwmService {
             } else {
                 newUserBean = new UserInfoBean();
                 final UserStatusReader.Settings readerSettings = new UserStatusReader.Settings();
-                readerSettings.setSkipReportUpdate(true);
                 final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
                 final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication,PwmConstants.REPORTING_SESSION_LABEL,readerSettings);
                 userStatusReader.populateUserInfoBean(

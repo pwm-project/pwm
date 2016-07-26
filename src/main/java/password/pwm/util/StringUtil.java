@@ -289,6 +289,10 @@ public abstract class StringUtil {
         return chunks.toArray(new String[numOfChunks]);
     }
 
+    public static String mapToString(final Map map) {
+        return mapToString(map, "=", ",");
+    }
+
     public static String mapToString(final Map map, final String keyValueSeparator, final String recordSeparator) {
         final StringBuilder sb = new StringBuilder();
         for (final Iterator iterator = map.keySet().iterator(); iterator.hasNext(); ) {

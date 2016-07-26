@@ -65,6 +65,29 @@
         <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true" id="analysis-topLevelTab">
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
                 <% if (analysis_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) { %>
+                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_ReportEngineStatus" bundle="Admin"/>" class="tabContent">
+                    <table style="width:450px" id="statusTable">
+                        <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
+                    </table>
+                    <table style="width:450px;">
+                        <tr><td style="text-align: center; cursor: pointer">
+                            <button id="reportStartButton" class="btn">
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-play">&nbsp;</span></pwm:if>
+                                <pwm:display key="Button_Report_Start" bundle="Admin"/>
+                            </button>
+                            &nbsp;&nbsp;
+                            <button id="reportStopButton" class="btn">
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-stop">&nbsp;</span></pwm:if>
+                                <pwm:display key="Button_Report_Stop" bundle="Admin"/>
+                            </button>
+                            &nbsp;&nbsp;
+                            <button id="reportClearButton" class="btn">
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-trash-o">&nbsp;</span></pwm:if>
+                                <pwm:display key="Button_Report_Clear" bundle="Admin"/>
+                            </button>
+                        </td></tr>
+                    </table>
+                </div>
                 <div data-dojo-type="dijit.layout.ContentPane" title="Summary" class="tabContent">
                     <div style="max-height: 500px; overflow-y: auto" id="summaryTableWrapper">
                         <table id="summaryTable">
@@ -126,29 +149,6 @@
                             });
                         </script>
                     </pwm:script>
-                </div>
-                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_ReportEngineStatus" bundle="Admin"/>" class="tabContent">
-                    <table style="width:450px" id="statusTable">
-                        <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
-                    </table>
-                    <table style="width:450px;">
-                        <tr><td style="text-align: center; cursor: pointer">
-                            <button id="reportStartButton" class="btn">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-play">&nbsp;</span></pwm:if>
-                                <pwm:display key="Button_Report_Start" bundle="Admin"/>
-                            </button>
-                            &nbsp;&nbsp;
-                            <button id="reportStopButton" class="btn">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-stop">&nbsp;</span></pwm:if>
-                                <pwm:display key="Button_Report_Stop" bundle="Admin"/>
-                            </button>
-                            &nbsp;&nbsp;
-                            <button id="reportClearButton" class="btn">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-trash-o">&nbsp;</span></pwm:if>
-                                <pwm:display key="Button_Report_Clear" bundle="Admin"/>
-                            </button>
-                        </td></tr>
-                    </table>
                 </div>
                 <% } else { %>
                 <div>

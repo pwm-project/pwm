@@ -39,10 +39,12 @@ import password.pwm.error.*;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.client.PwmHttpClient;
+import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
@@ -54,7 +56,7 @@ import java.util.regex.Pattern;
 /**
  * @author Menno Pieters, Jason D. Rivard
  */
-public class SmsQueueManager extends AbstractQueueManager {
+public class SmsQueueManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SmsQueueManager.class);
 
 // ------------------------------ FIELDS ------------------------------
@@ -85,38 +87,73 @@ public class SmsQueueManager extends AbstractQueueManager {
 
     private SmsSendEngine smsSendEngine;
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    private WorkQueueProcessor<SmsItemBean> workQueueProcessor;
+    private PwmApplication pwmApplication;
+    private STATUS status = STATUS.NEW;
+    private ErrorInformation lastError;
 
     public SmsQueueManager() {
     }
-// ------------------------ INTERFACE METHODS ------------------------
-
-// --------------------- Interface PwmService ---------------------
 
     public void init(
             final PwmApplication pwmApplication
     )
             throws PwmException
     {
-        super.LOGGER = PwmLogger.forClass(SmsQueueManager.class);
-        final Settings settings = new Settings(
-                new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_AGE_MS))),
-                new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_RETRY_TIMEOUT_MS))),
-                Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_COUNT)),
-                EmailQueueManager.class.getSimpleName()
-        );
-        super.init(
-                pwmApplication,
-                LocalDB.DB.SMS_QUEUE,
-                settings,
-                PwmApplication.AppAttribute.SMS_ITEM_COUNTER,
-                SmsQueueManager.class.getSimpleName()
-        );
+        status = STATUS.OPENING;
+        this.pwmApplication = pwmApplication;
+        if (pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN) {
+            LOGGER.warn("localdb is not open,  will remain closed");
+            status = STATUS.CLOSED;
+            return;
+        }
+
+        final WorkQueueProcessor.Settings settings = new WorkQueueProcessor.Settings();
+        settings.setMaxEvents(Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_COUNT)));
+        settings.setRetryDiscardAge(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_AGE_MS))));
+        settings.setRetryInterval(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_RETRY_TIMEOUT_MS))));
+        final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SMS_QUEUE);
+
+        workQueueProcessor = new WorkQueueProcessor<>(pwmApplication, localDBStoredQueue, settings, new SmsItemProcessor(), this.getClass());
+
         smsSendEngine = new SmsSendEngine(pwmApplication.getConfig());
+
+        status = STATUS.OPEN;
     }
 
+    private class SmsItemProcessor implements WorkQueueProcessor.ItemProcessor<SmsItemBean> {
+        @Override
+        public WorkQueueProcessor.ProcessResult process(SmsItemBean workItem) {
+            try {
+                for (final String msgPart : splitMessage(workItem.getMessage())) {
+                    smsSendEngine.sendSms(workItem.getTo(), msgPart);
+                }
+                StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_SUCCESSES);
+                lastError = null;
+            } catch (PwmUnrecoverableException e) {
+                StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_DISCARDS);
+                StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_FAILURES);
+                LOGGER.error("discarding sms message due to permanent failure: " + e.getErrorInformation().toDebugStr());
+                lastError = e.getErrorInformation();
+                return WorkQueueProcessor.ProcessResult.FAILED;
+            } catch (PwmOperationalException e) {
+                StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_FAILURES);
+                lastError = e.getErrorInformation();
+                return WorkQueueProcessor.ProcessResult.RETRY;
+            }
 
-// -------------------------- OTHER METHODS --------------------------
+            return WorkQueueProcessor.ProcessResult.SUCCESS;
+        }
+
+        @Override
+        public String convertToDebugString(SmsItemBean workItem) {
+            final Map<String,Object> debugOutputMap = new LinkedHashMap<>();
+
+            debugOutputMap.put("to", workItem.getTo());
+
+            return JsonUtil.serializeMap(debugOutputMap);
+        }
+    }
 
     public void addSmsToQueue(final SmsItemBean smsItem)
             throws PwmUnrecoverableException
@@ -127,7 +164,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         }
 
         try {
-            add(smsItem);
+            workQueueProcessor.submit(smsItem);
         } catch (Exception e) {
             LOGGER.error("error writing to LocalDB queue, discarding sms send request: " + e.getMessage());
         }
@@ -158,7 +195,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         return true;
     }
 
-    protected boolean determineIfItemCanBeDelivered(final SmsItemBean smsItem) {
+    boolean determineIfItemCanBeDelivered(final SmsItemBean smsItem) {
         final Configuration config = pwmApplication.getConfig();
         if (!smsIsConfigured(config)) {
             return false;
@@ -177,23 +214,34 @@ public class SmsQueueManager extends AbstractQueueManager {
         return true;
     }
 
-    void sendItem(final String item) throws PwmOperationalException {
-        final SmsItemBean smsItemBean = JsonUtil.deserialize(item, SmsItemBean.class);
-        try {
-            for (final String msgPart : splitMessage(smsItemBean.getMessage())) {
-                smsSendEngine.sendSms(smsItemBean.getTo(), msgPart);
-            }
-            StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_SUCCESSES);
-        } catch (PwmUnrecoverableException e) {
-            StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_FAILURES);
-            LOGGER.error("discarding sms message due to permanent failure: " + e.getErrorInformation().toDebugStr());
-        }
+    @Override
+    public STATUS status() {
+        return status;
     }
 
     @Override
-    List<HealthRecord> failureToHealthRecord(FailureInfo failureInfo) {
-        return Collections.singletonList(HealthRecord.forMessage(HealthMessage.SMS_SendFailure, failureInfo.getErrorInformation().toDebugStr()));
+    public void close() {
+        if (workQueueProcessor != null) {
+            workQueueProcessor.close();
+        }
+        workQueueProcessor = null;
+
+        status = STATUS.CLOSED;
     }
+
+    @Override
+    public List<HealthRecord> healthCheck() {
+        if (lastError != null) {
+            return Collections.singletonList(HealthRecord.forMessage(HealthMessage.SMS_SendFailure, lastError.toDebugStr()));
+        }
+        return null;
+    }
+
+    @Override
+    public ServiceInfo serviceInfo() {
+        return null;
+    }
+
 
     private List<String> splitMessage(final String input) {
         final int size = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH);
@@ -281,7 +329,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         ));
     }
 
-    protected static String formatSmsNumber(final Configuration config, final String smsNumber) {
+    static String formatSmsNumber(final Configuration config, final String smsNumber) {
         final long ccLong = config.readSettingAsLong(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
         String countryCodeNumber = "";
         if (ccLong > 0) {
@@ -336,24 +384,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         return returnValue;
     }
 
-    @Override
-    protected String queueItemToDebugString(QueueEvent queueEvent)
-    {
-        final Map<String,Object> debugOutputMap = new LinkedHashMap<>();
-        debugOutputMap.put("itemID", queueEvent.getItemID());
-        debugOutputMap.put("timestamp", queueEvent.getTimestamp());
-        final SmsItemBean smsItemBean = JsonUtil.deserialize(queueEvent.getItem(), SmsItemBean.class);
 
-        debugOutputMap.put("to", smsItemBean.getTo());
-
-        return JsonUtil.serializeMap(debugOutputMap);
-    }
-
-    @Override
-    protected void noteDiscardedItem(QueueEvent queueEvent)
-    {
-        StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_DISCARDS);
-    }
 
     private static class SmsSendEngine {
         private static final PwmLogger LOGGER = PwmLogger.forClass(SmsSendEngine.class);
@@ -377,7 +408,6 @@ public class SmsQueueManager extends AbstractQueueManager {
                 throws PwmUnrecoverableException, PwmOperationalException
         {
             lastResponseBody = null;
-            final long startTime = System.currentTimeMillis();
 
             final String gatewayUser = config.readSettingAsString(PwmSetting.SMS_GATEWAY_USER);
             final PasswordData gatewayPass = config.readSettingAsPassword(PwmSetting.SMS_GATEWAY_PASSWORD);
@@ -494,4 +524,13 @@ public class SmsQueueManager extends AbstractQueueManager {
         smsSendEngine.sendSms(smsItemBean.getTo(), smsItemBean.getMessage());
         return smsSendEngine.getLastResponseBody();
     }
+
+    public int queueSize() {
+        return workQueueProcessor.queueSize();
+    }
+
+    public Date eldestItem() {
+        return workQueueProcessor.eldestItem();
+    }
+
 }
