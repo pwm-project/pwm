@@ -91,6 +91,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         form(HttpMethod.POST),
         agree(HttpMethod.POST),
         warnResponse(HttpMethod.POST),
+        reset(HttpMethod.POST),
 
         ;
 
@@ -178,6 +179,15 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
 
                 case agree:
                     handleAgreeRequest(pwmRequest, changePasswordBean);
+
+                case reset:
+                    if (pwmSession.getUserInfoBean().isRequiresNewPassword()) {
+                        // Must have gotten here from the "Forgotton Password" link.  Better clear out the temporary authentication
+                        pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
+                    }
+
+                    pwmRequest.sendRedirect(pwmRequest.getHttpServletRequest().getContextPath());
+                    break;
             }
         }
 
