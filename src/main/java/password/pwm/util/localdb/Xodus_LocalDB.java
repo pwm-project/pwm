@@ -27,29 +27,35 @@ import jetbrains.exodus.bindings.StringBinding;
 import jetbrains.exodus.env.*;
 import jetbrains.exodus.management.Statistics;
 import org.jetbrains.annotations.NotNull;
+import password.pwm.util.ConditionalTaskExecutor;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 
 public class Xodus_LocalDB implements LocalDBProvider {
     private static final PwmLogger LOGGER = PwmLogger.forClass(Xodus_LocalDB.class);
+    private static final TimeDuration STATS_OUTPUT_INTERVAL = new TimeDuration(24, TimeUnit.HOURS);
 
     private Environment environment;
-    private Map<LocalDB.DB,Store> stores = new HashMap<>();
     private File fileLocation;
 
     private LocalDB.Status status = LocalDB.Status.NEW;
 
-    private final ReadWriteLock LOCK = new ReentrantReadWriteLock();
+    private final Map<LocalDB.DB,Store> cachedStoreObjects = new HashMap<>();
+
+    private final ConditionalTaskExecutor outputLogExecutor = new ConditionalTaskExecutor(new Runnable() {
+        @Override
+        public void run() {
+            outputStats();
+        }
+    },new ConditionalTaskExecutor.TimeDurationConditional(STATS_OUTPUT_INTERVAL));
+
 
     @Override
     public void init(File dbDirectory, Map<String, String> initParameters, Map<Parameter,String> parameters) throws LocalDBException {
@@ -61,18 +67,27 @@ public class Xodus_LocalDB implements LocalDBProvider {
         final EnvironmentConfig environmentConfig = new EnvironmentConfig();
         environmentConfig.setLogDurableWrite(true);
         environmentConfig.setGcEnabled(true);
+        environmentConfig.setEnvCloseForcedly(true);
+        environmentConfig.setFullFileReadonly(false);
 
         for (final String key : initParameters.keySet()) {
             final String value = initParameters.get(key);
-            LOGGER.trace("setting environment config key=" + key + ", value=" + value);
             environmentConfig.setSetting(key,value);
         }
+
+        LOGGER.trace("preparing to open with configuration " + JsonUtil.serializeMap(environmentConfig.getSettings()));
         environment = Environments.newInstance(dbDirectory.getAbsolutePath() + File.separator + "xodus", environmentConfig);
         LOGGER.trace("environment open (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
 
-        for (final LocalDB.DB db : LocalDB.DB.values()) {
-            stores.put(db, openStore(db));
-        }
+        environment.executeInTransaction(new TransactionalExecutable() {
+            @Override
+            public void execute(@NotNull Transaction txn) {
+                for (final LocalDB.DB db : LocalDB.DB.values()) {
+                    final Store store = initStore(db, txn);
+                    cachedStoreObjects.put(db,store);
+                }
+            }
+        });
 
         status = LocalDB.Status.OPEN;
 
@@ -83,53 +98,42 @@ public class Xodus_LocalDB implements LocalDBProvider {
 
     @Override
     public void close() throws LocalDBException {
-        LOCK.writeLock().lock();
-        try {
-            environment.close();
-            status = LocalDB.Status.CLOSED;
-            LOGGER.debug("closed");
-        } finally {
-            LOCK.writeLock().unlock();
-        }
+        environment.close();
+        status = LocalDB.Status.CLOSED;
+        LOGGER.debug("closed");
     }
 
     @Override
     public int size(final LocalDB.DB db) throws LocalDBException {
-        LOCK.readLock().lock();
-        try {
-            return environment.computeInReadonlyTransaction(new TransactionalComputable<Integer>() {
-                @Override
-                public Integer compute(@NotNull Transaction transaction) {
-                    return (int) stores.get(db).count(transaction);
-                }
-            });
-        } finally {
-            LOCK.readLock().unlock();
-        }
+        checkStatus();
+        return environment.computeInReadonlyTransaction(new TransactionalComputable<Integer>() {
+            @Override
+            public Integer compute(@NotNull Transaction transaction) {
+                final Store store = getStore(db);
+                return (int) store.count(transaction);
+            }
+        });
     }
     @Override
     public boolean contains(LocalDB.DB db, String key) throws LocalDBException {
+        checkStatus();
         return get(db, key) != null;
     }
 
     @Override
     public String get(final LocalDB.DB db, final String key) throws LocalDBException {
-        LOCK.readLock().lock();
-        try {
-            final Store store = stores.get(db);
-            return environment.computeInTransaction(new TransactionalComputable<String>() {
-                @Override
-                public String compute(@NotNull Transaction transaction) {
-                    final ByteIterable returnValue = store.get(transaction,StringBinding.stringToEntry(key));
-                    if (returnValue != null) {
-                        return StringBinding.entryToString(returnValue);
-                    }
-                    return null;
+        checkStatus();
+        return environment.computeInReadonlyTransaction(new TransactionalComputable<String>() {
+            @Override
+            public String compute(@NotNull Transaction transaction) {
+                final Store store = getStore(db);
+                final ByteIterable returnValue = store.get(transaction,StringBinding.stringToEntry(key));
+                if (returnValue != null) {
+                    return StringBinding.entryToString(returnValue);
                 }
-            });
-        } finally {
-            LOCK.readLock().unlock();
-        }
+                return null;
+            }
+        });
     }
 
     @Override
@@ -146,11 +150,12 @@ public class Xodus_LocalDB implements LocalDBProvider {
 
         InnerIterator(final LocalDB.DB db) {
             this.transaction = environment.beginReadonlyTransaction();
-            this.cursor = stores.get(db).openCursor(transaction);
+            this.cursor = getStore(db).openCursor(transaction);
             doNext();
         }
 
         private void doNext() {
+            checkStatus();
             try {
                 if (closed) {
                     return;
@@ -211,110 +216,85 @@ public class Xodus_LocalDB implements LocalDBProvider {
 
     @Override
     public void putAll(final LocalDB.DB db, final Map<String, String> keyValueMap) throws LocalDBException {
-        LOCK.readLock().lock();
-        try {
-            final Store store = stores.get(db);
-            environment.executeInTransaction(new TransactionalExecutable() {
-                @Override
-                public void execute(@NotNull Transaction transaction) {
-                    for (final String key : keyValueMap.keySet()) {
-                        final String value = keyValueMap.get(key);
-                        final ByteIterable k = StringBinding.stringToEntry(key);
-                        final ByteIterable v = StringBinding.stringToEntry(value);
-                        store.put(transaction,k,v);
-                    }
+        checkStatus();
+        environment.executeInTransaction(new TransactionalExecutable() {
+            @Override
+            public void execute(@NotNull Transaction transaction) {
+                final Store store = getStore(db);
+                for (final String key : keyValueMap.keySet()) {
+                    final String value = keyValueMap.get(key);
+                    final ByteIterable k = StringBinding.stringToEntry(key);
+                    final ByteIterable v = StringBinding.stringToEntry(value);
+                    store.put(transaction,k,v);
                 }
-            });
-        } finally {
-            LOCK.readLock().unlock();
-        }
+            }
+        });
+        outputLogExecutor.conditionallyExecuteTask();
     }
 
 
     @Override
     public boolean put(final LocalDB.DB db, final String key, final String value) throws LocalDBException {
-        LOCK.readLock().lock();
-        try {
-            final Store store = stores.get(db);
-            return environment.computeInTransaction(new TransactionalComputable<Boolean>() {
-                @Override
-                public Boolean compute(@NotNull Transaction transaction) {
-                    final ByteIterable k = StringBinding.stringToEntry(key);
-                    final ByteIterable v = StringBinding.stringToEntry(value);
-                    return store.put(transaction,k,v);
-                }
-            });
-        } finally {
-            LOCK.readLock().unlock();
-        }
+        checkStatus();
+        outputLogExecutor.conditionallyExecuteTask();
+        return environment.computeInTransaction(new TransactionalComputable<Boolean>() {
+            @Override
+            public Boolean compute(@NotNull Transaction transaction) {
+                final ByteIterable k = StringBinding.stringToEntry(key);
+                final ByteIterable v = StringBinding.stringToEntry(value);
+                final Store store = getStore(db);
+                return store.put(transaction,k,v);
+            }
+        });
     }
 
     @Override
     public boolean remove(final LocalDB.DB db, final String key) throws LocalDBException {
-        LOCK.readLock().lock();
-        try {
-            final Store store = stores.get(db);
-            return environment.computeInTransaction(new TransactionalComputable<Boolean>() {
-                @Override
-                public Boolean compute(@NotNull Transaction transaction) {
-                    return store.delete(transaction,StringBinding.stringToEntry(key));
-                }
-            });
-        } finally {
-            LOCK.readLock().unlock();
-        }
+        checkStatus();
+        outputLogExecutor.conditionallyExecuteTask();
+        return environment.computeInTransaction(new TransactionalComputable<Boolean>() {
+            @Override
+            public Boolean compute(@NotNull Transaction transaction) {
+                final Store store = getStore(db);
+                return store.delete(transaction,StringBinding.stringToEntry(key));
+            }
+        });
     }
 
     @Override
     public void removeAll(final LocalDB.DB db, final Collection<String> keys) throws LocalDBException {
-        LOCK.readLock().lock();
-        try {
-            final Store store = stores.get(db);
-            environment.executeInTransaction(new TransactionalExecutable() {
-                @Override
-                public void execute(@NotNull Transaction transaction) {
-                    for (final String key : keys) {
-                        store.delete(transaction, StringBinding.stringToEntry(key));
-                    }
+        checkStatus();
+        environment.executeInTransaction(new TransactionalExecutable() {
+            @Override
+            public void execute(@NotNull Transaction transaction) {
+                final Store store = getStore(db);
+                for (final String key : keys) {
+                    store.delete(transaction, StringBinding.stringToEntry(key));
                 }
-            });
-        } finally {
-            LOCK.readLock().unlock();
-        }
+            }
+        });
+        outputLogExecutor.conditionallyExecuteTask();
     }
 
 
     @Override
     public void truncate(final LocalDB.DB db) throws LocalDBException {
-        LOGGER.trace("being truncate of " + db.toString() + ", size=" + this.size(db));
+        LOGGER.trace("begin truncate of " + db.toString() + ", size=" + this.size(db));
         final Date startDate = new Date();
-        LOCK.writeLock().lock();
-        try {
-            stores.remove(db);
 
-            environment.executeInTransaction(new TransactionalExecutable() {
-                @Override
-                public void execute(@NotNull Transaction transaction) {
-                    environment.removeStore(db.toString(), transaction);
-                }
-            });
+        environment.executeInTransaction(new TransactionalExecutable() {
+            @Override
+            public void execute(@NotNull Transaction transaction) {
+                environment.truncateStore(db.toString(), transaction);
+                final Store newStoreReference = environment.openStore(db.toString(), StoreConfig.USE_EXISTING, transaction);
+                cachedStoreObjects.put(db, newStoreReference);
+            }
+        });
 
-            stores.put(db, openStore(db));
-        } finally {
-            LOCK.writeLock().unlock();
-        }
         LOGGER.trace("completed truncate of " + db.toString()
                 + " (" + TimeDuration.fromCurrent(startDate).asCompactString() + ")"
                 + ", size=" + this.size(db));
-    }
-
-    private Store openStore(final LocalDB.DB db) {
-        return environment.computeInTransaction(new TransactionalComputable<Store>() {
-            @Override
-            public Store compute(@NotNull Transaction txn) {
-                return environment.openStore(db.toString(), StoreConfig.WITHOUT_DUPLICATES, txn);
-            }
-        });
+        outputLogExecutor.conditionallyExecuteTask();
     }
 
     @Override
@@ -327,12 +307,27 @@ public class Xodus_LocalDB implements LocalDBProvider {
         return status;
     }
 
+    private Store getStore(final LocalDB.DB db) {
+        return cachedStoreObjects.get(db);
+    }
+
+    private Store initStore(final LocalDB.DB db, final Transaction txn) {
+        return environment.openStore(db.toString(), StoreConfig.WITHOUT_DUPLICATES, txn);
+    }
+
+
+    private void checkStatus() {
+        if (status != LocalDB.Status.OPEN) {
+            throw new IllegalStateException("cannot perform operation, this instance is not open");
+        }
+    }
+
     private void outputStats() {
-        Statistics statistics = environment.getStatistics();
-        final Map<String,String> outputStats = new HashMap<>();
-        outputStats.put(EnvironmentStatistics.BYTES_READ, Long.toString(statistics.getStatisticsItem(EnvironmentStatistics.BYTES_READ).getTotal()));
-        outputStats.put(EnvironmentStatistics.BYTES_WRITTEN, Long.toString(statistics.getStatisticsItem(EnvironmentStatistics.BYTES_WRITTEN).getTotal()));
-        outputStats.put(EnvironmentStatistics.TRANSACTIONS, Long.toString(statistics.getStatisticsItem(EnvironmentStatistics.TRANSACTIONS).getTotal()));
-        LOGGER.trace("stats: " + JsonUtil.serializeMap(outputStats));
+        final Statistics statistics = environment.getStatistics();
+        final Map<String,String> outputStats = new LinkedHashMap<>();
+        for (final String name : statistics.getItemNames()) {
+            outputStats.put(name, String.valueOf(statistics.getStatisticsItem(name).getTotal()));
+        }
+        LOGGER.trace("xodus environment stats: " + StringUtil.mapToString(outputStats));
     }
 }
