@@ -629,7 +629,7 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
     var refreshUrl = inputOpts['sourceUrl'] || PWM_GLOBAL['url-restservice'] + "/health";
     var showRefresh = inputOpts['showRefresh'];
     var showTimestamp = inputOpts['showTimestamp'];
-    var refreshTime = inputOpts['refreshTime'] || 10 * 1000;
+    var refreshTime = inputOpts['refreshTime'] || 60 * 1000;
     var finishFunction = inputOpts['finishFunction'];
 
     console.log('starting showPwmHealth: refreshTime=' + refreshTime);

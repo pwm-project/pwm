@@ -39,10 +39,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.UserPermission;
+import password.pwm.config.*;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.ErrorInformation;
@@ -117,6 +114,8 @@ public class LDAPStatusChecker implements HealthChecker {
         returnRecords.addAll(checkVendorSameness(pwmApplication));
 
         returnRecords.addAll(checkUserPermissionValues(pwmApplication));
+
+        returnRecords.addAll(checkLdapDNSyntaxValues(pwmApplication));
 
         return returnRecords;
     }
@@ -571,6 +570,43 @@ public class LDAPStatusChecker implements HealthChecker {
         return returnList;
     }
 
+    private static List<HealthRecord> checkLdapDNSyntaxValues(final PwmApplication pwmApplication) {
+        final List<HealthRecord> returnList = new ArrayList<>();
+        final Configuration config = pwmApplication.getConfig();
+
+        try {
+            for (final PwmSetting pwmSetting : PwmSetting.values()) {
+                if (!pwmSetting.isHidden() && pwmSetting.getCategory() == PwmSettingCategory.LDAP_PROFILE && pwmSetting.getFlags().contains(PwmSettingFlag.ldapDNsyntax)) {
+                    for (final String profile : config.getLdapProfiles().keySet()) {
+                        if (pwmSetting.getSyntax() == PwmSettingSyntax.STRING) {
+                            final String value = config.getLdapProfiles().get(profile).readSettingAsString(pwmSetting);
+                            if (value != null && !value.isEmpty()) {
+                                final String errorMsg = validateDN(pwmApplication, value, profile);
+                                if (errorMsg != null) {
+                                    returnList.add(HealthRecord.forMessage(HealthMessage.Config_DNValueValidity, pwmSetting.toMenuLocationDebug(profile, PwmConstants.DEFAULT_LOCALE), errorMsg));
+                                }
+                            }
+                        } else if (pwmSetting.getSyntax() == PwmSettingSyntax.STRING_ARRAY) {
+                            final List<String> values = config.getLdapProfiles().get(profile).readSettingAsStringArray(pwmSetting);
+                            if (values != null) {
+                                for (String value : values) {
+                                    final String errorMsg = validateDN(pwmApplication, value, profile);
+                                    if (errorMsg != null) {
+                                        returnList.add(HealthRecord.forMessage(HealthMessage.Config_DNValueValidity, pwmSetting.toMenuLocationDebug(profile, PwmConstants.DEFAULT_LOCALE), errorMsg));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.warn("error while checking DN ldap syntax values: " + e.getMessage());
+        }
+
+        return returnList;
+    }
+
     private static List<HealthRecord> checkUserPermission(
             final PwmApplication pwmApplication,
             final UserPermission userPermission,
@@ -639,7 +675,8 @@ public class LDAPStatusChecker implements HealthChecker {
                 } else {
                     final String canonicalDN = baseDNEntry.readCanonicalDN();
                     if (!dnValue.equals(canonicalDN)) {
-                        return "DN '" + dnValue + "' is not the correct canonical value";
+                        return "DN '" + dnValue + "' is not the correct canonical value, the server reports the canonical value as '"
+                                + canonicalDN + "'";
                     }
                 }
             }
