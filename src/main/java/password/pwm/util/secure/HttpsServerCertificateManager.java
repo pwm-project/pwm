@@ -310,10 +310,11 @@ public class HttpsServerCertificateManager
             final PasswordData password,
             final String alias
     ) throws PwmUnrecoverableException {
+        final char[] charPassword = password == null ? new char[0] : password.getStringValue().toCharArray();
         final PrivateKeyCertificate privateKeyCertificate;
         try {
             final KeyStore keyStore = KeyStore.getInstance(keyStoreFormat.toString());
-            keyStore.load(inputStream, password.getStringValue().toCharArray());
+            keyStore.load(inputStream, charPassword);
 
             final String effectiveAlias;
             {
@@ -325,7 +326,7 @@ public class HttpsServerCertificateManager
                 effectiveAlias = allAliases.size() == 1 ? allAliases.iterator().next() : alias;
             }
 
-            final KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(password.getStringValue().toCharArray());
+            final KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(charPassword);
             final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(effectiveAlias, passwordProtection);
             if (entry == null) {
                 final String errorMsg = "unable to import https key entry with alias '" + alias + "'";

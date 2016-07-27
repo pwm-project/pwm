@@ -706,9 +706,6 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         if (setting == PwmSetting.HTTPS_CERT) {
             try {
                 final PasswordData passwordData = pwmRequest.readParameterAsPassword("password");
-                if (passwordData == null) {
-                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, "missing password value", new String[]{"password"}));
-                }
                 final String alias = pwmRequest.readParameterAsString("alias");
                 final HttpsServerCertificateManager.KeyStoreFormat keyStoreFormat;
                 try {

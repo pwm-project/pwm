@@ -3158,7 +3158,7 @@ PrivateKeyHandler.draw = function(keyName) {
 
         var text = '<form autocomplete="off"><table class="noborder">';
         text += '<tr><td class="key">File Format</td><td><select id="input-certificateUpload-format"><option value="PKCS12">PKCS12 / PFX</option><option value="JKS">Java Keystore (JKS)</option></select></td></tr>';
-        text += '<tr><td class="key">Password</td><td><input required type="password" class="configInput" id="input-certificateUpload-password"/></td></tr>';
+        text += '<tr><td class="key">Password</td><td><input type="password" class="configInput" id="input-certificateUpload-password"/></td></tr>';
         text += '<tr><td class="key">Alias</td><td><input type="text" class="configInput" id="input-certificateUpload-alias"/><br/><span class="footnote">Alias only required if file has multiple aliases</span></td></tr>';
         text += '</table></form>';
         options['text'] = text;
