@@ -115,7 +115,9 @@
                 <pwm:display key="Button_ChangePassword"/>
             </button>
             <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
-                <form action="<pwm:url addContext='true' url='/' />" method="GET">
+                <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" style="display: inline;">
+                    <input type="hidden" name="processAction" value="reset"/>
+                    <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
                     <button type="submit" name="change" class="btn">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                         <pwm:display key="Button_Cancel"/>
