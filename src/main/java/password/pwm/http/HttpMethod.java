@@ -27,6 +27,7 @@ public enum HttpMethod {
     GET(true),
     DELETE(false),
     PUT(false),
+    PATCH(false),
 
     ;
 

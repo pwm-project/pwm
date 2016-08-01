@@ -245,6 +245,13 @@ public class PwmHttpClient {
                 }
                 break;
 
+            case PATCH:
+                httpRequest = new HttpPatch(clientRequest.getUrl());
+                if (clientRequest.getBody() != null && !clientRequest.getBody().isEmpty()) {
+                    ((HttpPatch) httpRequest).setEntity(new StringEntity(requestBody, PwmConstants.DEFAULT_CHARSET));
+                }
+                break;
+
             case GET:
                 httpRequest = new HttpGet(clientRequest.getUrl());
                 break;
