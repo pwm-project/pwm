@@ -1398,7 +1398,8 @@ ActionHandler.httpMethodOptions = [
     { label: "Delete", value: "delete" },
     { label: "Get", value: "get" },
     { label: "Post", value: "post" },
-    { label: "Put", value: "put" }
+    { label: "Put", value: "put" },
+    { label: "Patch", value: "patch" }
 ];
 ActionHandler.ldapMethodOptions = [
     { label: "Replace (Remove all existing values)", value: "replace" },

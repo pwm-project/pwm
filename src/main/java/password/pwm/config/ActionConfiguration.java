@@ -34,7 +34,7 @@ import java.util.Map;
 public class ActionConfiguration implements Serializable {
 
     public enum Type { webservice, ldap }
-    public enum WebMethod { delete, get, post, put }
+    public enum WebMethod { delete, get, post, put, patch }
     public enum LdapMethod { replace, add, remove }
 
     private String name;
