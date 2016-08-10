@@ -186,6 +186,8 @@ public abstract class PwmConstants {
         RECOVER_PASSWORD_ENTER_OTP("forgottenpassword-enterotp.jsp"),
         RECOVER_PASSWORD_NAAF("forgottenpassword-naaf.jsp"),
         RECOVER_PASSWORD_REMOTE("forgottenpassword-remote.jsp"),
+        SELF_DELETE_AGREE("deleteaccount-agreement.jsp"),
+        SELF_DELETE_CONFIRM("deleteaccount-confirm.jsp"),
         SETUP_RESPONSES("setupresponses.jsp"),
         SETUP_RESPONSES_CONFIRM("setupresponses-confirm.jsp"),
         SETUP_RESPONSES_HELPDESK("setupresponses-helpdesk.jsp"),

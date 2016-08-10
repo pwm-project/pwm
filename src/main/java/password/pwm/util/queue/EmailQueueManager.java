@@ -273,6 +273,8 @@ public class EmailQueueManager implements PwmService {
                         new String[]{ emailItemToDebugString(emailItemBean), Helper.readHostileExceptionMessage(e)}
                 );
             }
+
+            lastError = errorInformation;
             LOGGER.error(errorInformation);
 
             if (sendIsRetryable(e)) {

@@ -62,6 +62,7 @@ public enum PwmIfTest {
 
     updateProfileAvailable(new BooleanPwmSettingTest(PwmSetting.UPDATE_PROFILE_ENABLE), new ActorHasProfileTest(ProfileType.UpdateAttributes)),
     helpdeskAvailable(new BooleanPwmSettingTest(PwmSetting.HELPDESK_ENABLE), new ActorHasProfileTest(ProfileType.Helpdesk)),
+    DeleteAccountAvailalable(new BooleanPwmSettingTest(PwmSetting.DELETE_ACCOUNT_ENABLE), new ActorHasProfileTest(ProfileType.DeleteAccount)),
     guestRegistrationAvailable(new BooleanPwmSettingTest(PwmSetting.GUEST_ENABLE), new BooleanPermissionTest(Permission.GUEST_REGISTRATION)),
 
     booleanSetting(new BooleanPwmSettingTest(null)),

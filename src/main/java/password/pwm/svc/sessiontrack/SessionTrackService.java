@@ -34,11 +34,12 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionTrackService implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SessionTrackService.class);
 
-    private final Set<PwmSession> pwmSessions = Collections.newSetFromMap(new WeakHashMap<PwmSession, Boolean>());
+    private final transient Map<PwmSession,Boolean> pwmSessions = new ConcurrentHashMap<>();
 
     private PwmApplication pwmApplication;
 
@@ -54,9 +55,7 @@ public class SessionTrackService implements PwmService {
 
     @Override
     public void close() {
-        synchronized (pwmSessions) {
-            pwmSessions.clear();
-        }
+        pwmSessions.clear();
     }
 
     @Override
@@ -76,21 +75,17 @@ public class SessionTrackService implements PwmService {
     }
 
     public void addSessionData(final PwmSession pwmSession) {
-        synchronized (pwmSession) {
-            pwmSessions.add(pwmSession);
-        }
+        pwmSessions.put(pwmSession,Boolean.FALSE);
     }
 
     public void removeSessionData(final PwmSession pwmSession) {
-        synchronized (pwmSession) {
-            pwmSessions.add(pwmSession);
-        }
+        pwmSessions.remove(pwmSession);
     }
 
     private Set<PwmSession> copyOfSessionSet() {
-        synchronized (pwmSessions) {
-            return new HashSet<>(pwmSessions);
-        }
+        final Set<PwmSession> newSet = new HashSet<>();
+        newSet.addAll(pwmSessions.keySet());
+        return newSet;
 
     }
 

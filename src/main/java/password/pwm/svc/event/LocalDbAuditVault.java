@@ -57,6 +57,11 @@ public class LocalDbAuditVault implements AuditVault {
     }
 
     @Override
+    public Date oldestRecord() {
+        return oldestRecord;
+    }
+
+    @Override
     public int size() {
         return auditDB.size();
     }

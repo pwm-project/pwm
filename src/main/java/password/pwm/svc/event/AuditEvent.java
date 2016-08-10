@@ -46,6 +46,7 @@ public enum AuditEvent {
     TOKEN_ISSUED(                   Message.EventLog_TokenIssued,                       Admin.EventLog_Narrative_TokenIssued,                      Type.USER),
     TOKEN_CLAIMED(                  Message.EventLog_TokenClaimed,                      Admin.EventLog_Narrative_TokenClaimed,                     Type.USER),
     CLEAR_RESPONSES(                Message.EventLog_ClearResponses,                    Admin.EventLog_Narrative_ClearResponses,                   Type.USER),
+    DELETE_ACCOUNT (                Message.EventLog_DeleteAccount,                     Admin.EventLog_Narrative_DeleteAccount,                    Type.USER),
 
     // user events stored in user event history
     CHANGE_PASSWORD(                Message.EventLog_ChangePassword,                    Admin.EventLog_Narrative_ChangePassword,                   Type.USER),

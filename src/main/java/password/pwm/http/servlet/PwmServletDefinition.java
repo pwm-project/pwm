@@ -53,6 +53,7 @@ public enum PwmServletDefinition {
     Shortcuts(password.pwm.http.servlet.ShortcutServlet.class),
     PeopleSearch(password.pwm.http.servlet.peoplesearch.PeopleSearchServlet.class),
     GuestRegistration(password.pwm.http.servlet.GuestRegistrationServlet.class),
+    SelfDelete(DeleteAccountServlet.class),
 
     Admin(password.pwm.http.servlet.AdminServlet.class),
     ConfigGuide(ConfigGuideServlet.class),

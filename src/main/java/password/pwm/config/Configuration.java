@@ -818,6 +818,10 @@ public class Configuration implements Serializable, SettingReader {
                 newProfile = UpdateAttributesProfile.makeFromStoredConfiguration(storedConfiguration, profileID);
                 break;
 
+            case DeleteAccount:
+                newProfile = DeleteAccountProfile.makeFromStoredConfiguration(storedConfiguration, profileID);
+                break;
+
             default: throw new IllegalArgumentException("unknown profile type: " + profileType.toString());
         }
 

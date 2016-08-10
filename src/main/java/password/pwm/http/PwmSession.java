@@ -40,6 +40,8 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.*;
@@ -284,6 +286,13 @@ public class PwmSession implements Serializable {
     }
 
     public int size() {
-        return JsonUtil.serialize(this).length();
+        try {
+            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            final ObjectOutputStream out = new ObjectOutputStream(byteArrayOutputStream);
+            out.writeObject(this);
+            return byteArrayOutputStream.size();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }

@@ -44,6 +44,7 @@ public enum Admin implements PwmDisplayBundle {
     EventLog_Narrative_ActivateUser,
     EventLog_Narrative_CreateUser,
     EventLog_Narrative_UpdateProfile,
+    EventLog_Narrative_DeleteAccount,
     EventLog_Narrative_IntruderUserLock,
     EventLog_Narrative_IntruderUserAttempt,
     EventLog_Narrative_TokenIssued,
@@ -62,8 +63,6 @@ public enum Admin implements PwmDisplayBundle {
     EventLog_Narrative_HelpdeskVerifyTokenIncorrect,
     EventLog_Narrative_HelpdeskVerifyAttributes,
     EventLog_Narrative_HelpdeskVerifyAttributesIncorrect,
-
-
 
     ;
 

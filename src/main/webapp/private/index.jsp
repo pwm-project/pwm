@@ -144,6 +144,19 @@
                 </a>
             </pwm:if>
 
+
+            <pwm:if test="<%=PwmIfTest.DeleteAccountAvailalable%>">
+                <a id="button_Helpdesk" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.SelfDelete.servletUrl()%>'/>">
+                    <div class="tile">
+                        <div class="tile-content">
+                            <div class="tile-image selfdelete-image"></div>
+                            <div class="tile-title" title="<pwm:display key='Title_SelfDelete'/>"><pwm:display key="Title_DeleteAccount"/></div>
+                            <div class="tile-subtitle" title="<pwm:display key='Long_Title_SelfDelete'/>"><pwm:display key="Long_Title_DeleteAccount"/></div>
+                        </div>
+                    </div>
+                </a>
+            </pwm:if>
+
             <pwm:if test="<%=PwmIfTest.guestRegistrationAvailable%>">
                 <a id="button_GuestRegistration" href="<pwm:url url='<%=PwmServletDefinition.GuestRegistration.servletUrl()%>' addContext="true"/>">
                     <div class="tile">

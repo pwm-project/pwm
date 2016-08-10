@@ -366,6 +366,10 @@ input[type=password]::-ms-reveal{display: none;}
     content: "\f085";
 }
 
+.tile-image.selfdelete-image:before {
+    content: "\f235";
+}
+
 .tile-title {
     color: #434c50;
     font-size: 16px;

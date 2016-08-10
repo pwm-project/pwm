@@ -262,6 +262,48 @@
             <option value="UserSMS">User SMS</option>
         </options>
     </setting>
+    <setting hidden="false" key="deleteAccount.enable" level="1" required="false">
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="deleteAccount.profile.list" level="1" required="false">
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <properties>
+            <property key="Minimum">1</property>
+        </properties>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="deleteAccount.permission" level="1" required="false">
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="deleteAccount.agreement" level="1" required="false">
+        <flag>MacroSupport</flag>
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="deleteAccount.deleteEntry" level="1" required="false">
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="deleteAccount.actions" level="1" required="false">
+        <flag>MacroSupport</flag>
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting hidden="false" key="deleteAccount.nextUrl" level="1" required="false">
+        <flag>MacroSupport</flag>
+        <default>
+            <value/>
+        </default>
+    </setting>
     <setting hidden="false" key="display.showLoginPageOptions" level="1" required="true">
         <default>
             <value>true</value>
@@ -1463,6 +1505,7 @@
             <value>ACTIVATE_USER</value>
             <value>CREATE_USER</value>
             <value>UPDATE_PROFILE</value>
+            <value>DELETE_ACCOUNT</value>
             <value>INTRUDER_USER_LOCK</value>
             <value>TOKEN_ISSUED</value>
             <value>TOKEN_CLAIMED</value>
@@ -1492,6 +1535,7 @@
             <option value="ACTIVATE_USER">Activate User</option>
             <option value="CREATE_USER">New User</option>
             <option value="UPDATE_PROFILE">Update Profile</option>
+            <option value="DELETE_ACCOUNT">Delete Account</option>
             <option value="INTRUDER_USER_LOCK">Intruder User Lock</option>
             <option value="INTRUDER_USER_ATTEMPT">Intruder User Attempt</option>
             <option value="TOKEN_ISSUED">Token Issued</option>
@@ -3650,5 +3694,12 @@
     <category hidden="false" key="MODULES_PUBLIC">
     </category>
     <category hidden="false" key="MODULES_PRIVATE">
+    </category>
+    <category hidden="false" key="DELETE_ACCOUNT">
+    </category>
+    <category hidden="false" key="DELETE_ACCOUNT_SETTINGS">
+    </category>
+    <category hidden="false" key="DELETE_ACCOUNT_PROFILE">
+        <profile setting="deleteAccount.profile.list"/>
     </category>
 </settings>

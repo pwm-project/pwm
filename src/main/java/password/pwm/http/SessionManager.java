@@ -32,10 +32,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
-import password.pwm.config.profile.HelpdeskProfile;
-import password.pwm.config.profile.Profile;
-import password.pwm.config.profile.ProfileType;
-import password.pwm.config.profile.UpdateAttributesProfile;
+import password.pwm.config.profile.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -275,5 +272,9 @@ public class SessionManager implements Serializable {
 
     public UpdateAttributesProfile getUpdateAttributeProfile(final PwmApplication pwmApplication) {
         return (UpdateAttributesProfile)getProfile(pwmApplication, ProfileType.UpdateAttributes);
+    }
+
+    public DeleteAccountProfile getSelfDeleteProfile(final PwmApplication pwmApplication) {
+        return (DeleteAccountProfile) getProfile(pwmApplication, ProfileType.DeleteAccount);
     }
 }

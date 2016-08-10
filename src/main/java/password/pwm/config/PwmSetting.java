@@ -172,6 +172,23 @@ public enum PwmSetting {
     ACCOUNT_INFORMATION_VIEW_STATUS_VALUES(
             "accountInfo.viewStatusValues", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.ACCOUNT_INFO),
 
+    // delete info
+    DELETE_ACCOUNT_PROFILE_LIST(
+            "deleteAccount.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
+    DELETE_ACCOUNT_ENABLE(
+            "deleteAccount.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.DELETE_ACCOUNT_SETTINGS),
+    DELETE_ACCOUNT_PERMISSION(
+            "deleteAccount.permission", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.DELETE_ACCOUNT_PROFILE),
+    DELETE_ACCOUNT_AGREEMENT(
+            "deleteAccount.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.DELETE_ACCOUNT_PROFILE),
+    DELETE_ACCOUNT_DELETE_USER_ENTRY(
+            "deleteAccount.deleteEntry", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.DELETE_ACCOUNT_PROFILE),
+    DELETE_ACCOUNT_ACTIONS(
+            "deleteAccount.actions", PwmSettingSyntax.ACTION, PwmSettingCategory.DELETE_ACCOUNT_PROFILE),
+    DELETE_ACCOUNT_NEXT_URL(
+            "deleteAccount.nextUrl", PwmSettingSyntax.STRING, PwmSettingCategory.DELETE_ACCOUNT_PROFILE),
+
+
     //ldap directories
     LDAP_SERVER_URLS(
             "ldap.serverUrls", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_PROFILE),

@@ -83,6 +83,7 @@
                 Error: attribution file not found: attribution.xml
             </div>
         <% } %>
+        <span class="footnote">nanos gigantum humeris insidentes</span>
     </div>
     <div class="push"></div>
 </div>

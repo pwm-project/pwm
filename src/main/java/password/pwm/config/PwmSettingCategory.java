@@ -146,7 +146,9 @@ public enum PwmSettingCategory {
     HELPDESK_PROFILE            (HELPDESK),
     HELPDESK_SETTINGS           (HELPDESK),
 
-
+    DELETE_ACCOUNT              (MODULES_PRIVATE),
+    DELETE_ACCOUNT_SETTINGS     (DELETE_ACCOUNT),
+    DELETE_ACCOUNT_PROFILE      (DELETE_ACCOUNT)
 
     ;
 

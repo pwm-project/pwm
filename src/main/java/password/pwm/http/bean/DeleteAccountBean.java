@@ -20,42 +20,29 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.event;
+package password.pwm.http.bean;
 
-import password.pwm.util.TimeDuration;
+import java.util.Collections;
+import java.util.Set;
 
-import java.util.Date;
-import java.util.Iterator;
+public class DeleteAccountBean extends PwmSessionBean {
 
-public interface AuditVault {
+    private boolean agreementPassed;
 
-    void init(Settings settings);
+    public boolean isAgreementPassed() {
+        return agreementPassed;
+    }
 
-    int size();
+    public void setAgreementPassed(boolean agreementPassed) {
+        this.agreementPassed = agreementPassed;
+    }
 
-    Date oldestRecord();
+    public Type getType() {
+        return Type.PUBLIC;
+    }
 
-    Iterator<AuditRecord> readVault();
-
-    void add(AuditRecord record);
-
-    class Settings {
-        private int maxRecordCount;
-        private TimeDuration maxRecordAge;
-
-
-        public Settings(int maxRecordCount, TimeDuration maxRecordAge) {
-            this.maxRecordCount = maxRecordCount;
-            this.maxRecordAge = maxRecordAge;
-        }
-
-        public int getMaxRecordCount() {
-            return maxRecordCount;
-        }
-
-        public TimeDuration getMaxRecordAge() {
-            return maxRecordAge;
-        }
+    public Set<Flag> getFlags() {
+        return Collections.emptySet();
     }
 
 }

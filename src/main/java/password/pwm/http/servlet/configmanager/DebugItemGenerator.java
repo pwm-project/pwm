@@ -37,6 +37,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.svc.PwmService;
 import password.pwm.util.*;
+import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
@@ -67,6 +68,7 @@ public class DebugItemGenerator {
             LogDebugItemGenerator.class,
             LdapDebugItemGenerator.class,
             LDAPPermissionItemGenerator.class,
+            LocalDBDebugGenerator.class,
             SessionDataGenerator.class
     ));
 
@@ -493,6 +495,24 @@ public class DebugItemGenerator {
         }
     }
 
+    static class LocalDBDebugGenerator implements Generator {
+        @Override
+        public String getFilename() {
+            return "localDBDebug.json";
+        }
+
+        @Override
+        public void outputItem(
+                final PwmApplication pwmApplication,
+                final PwmRequest pwmRequest,
+                final OutputStream outputStream
+        ) throws Exception {
+            final LocalDB localDB = pwmApplication.getLocalDB();
+            final Map<String,Serializable> serializableMap = localDB.debugInfo();
+            outputStream.write(JsonUtil.serializeMap(serializableMap, JsonUtil.Flag.PrettyPrint).getBytes(PwmConstants.DEFAULT_CHARSET));
+        }
+    }
+
     static class SessionDataGenerator implements Generator {
         @Override
         public String getFilename() {
@@ -555,4 +575,5 @@ public class DebugItemGenerator {
                 OutputStream outputStream
         ) throws Exception;
     }
+
 }

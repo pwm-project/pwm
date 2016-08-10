@@ -24,6 +24,8 @@ package password.pwm.util;
 
 import password.pwm.util.logging.PwmLogger;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Executes a predefined task if a conditional has occurred.  Both the task and the conditional must be supplied by the caller.
  * All processing occurs in the current thread, no new threads will be created.
@@ -67,7 +69,16 @@ public class ConditionalTaskExecutor {
 
         public TimeDurationConditional(TimeDuration timeDuration) {
             this.timeDuration = timeDuration;
-            nextExecuteTimestamp = System.currentTimeMillis();
+            nextExecuteTimestamp = System.currentTimeMillis() + timeDuration.getTotalMilliseconds();
+        }
+
+        public TimeDurationConditional(long value, TimeUnit unit) {
+            this(new TimeDuration(value, unit));
+        }
+
+        public TimeDurationConditional setNextTimeFromNow(final long value, TimeUnit unit) {
+            nextExecuteTimestamp = System.currentTimeMillis() + unit.toMillis(value);
+            return this;
         }
 
         @Override

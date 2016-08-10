@@ -72,6 +72,7 @@ public enum Message implements PwmDisplayBundle {
     EventLog_ActivateUser(null),
     EventLog_CreateUser(null),
     EventLog_UpdateProfile(null),
+    EventLog_DeleteAccount(null),
     EventLog_IntruderUserLock(null),
     EventLog_IntruderUserAttempt(null),
     EventLog_TokenIssued(null),

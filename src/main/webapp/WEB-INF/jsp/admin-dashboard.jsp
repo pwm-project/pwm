@@ -429,6 +429,18 @@
                         </tr>
                         <tr>
                             <td class="key">
+                                Oldest Local Audit Records
+                            </td>
+                            <td>
+                                <% Date eldestAuditRecord = dashboard_pwmApplication.getAuditManager().eldestValutRecord(); %>
+                                <%= eldestAuditRecord != null
+                                        ? TimeDuration.fromCurrent(eldestAuditRecord).asLongString()
+                                        : JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
+                                %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">
                                 Log Events in LocalDB
                             </td>
                             <td>
@@ -441,7 +453,7 @@
                             </td>
                             <td>
                                 <%= dashboard_pwmApplication.getLocalDBLogger() != null
-                                        ? TimeDuration.fromCurrent(dashboard_pwmApplication.getLocalDBLogger().getTailDate()).asCompactString()
+                                        ? TimeDuration.fromCurrent(dashboard_pwmApplication.getLocalDBLogger().getTailDate()).asLongString()
                                         : JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                                 %>
                             </td>

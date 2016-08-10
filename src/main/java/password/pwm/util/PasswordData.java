@@ -33,20 +33,22 @@ import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
+import java.io.Serializable;
+
 /*
  * A in-memory password value wrapper.  Instances of this class cannot be serialized.  The actual password value is encrypted using a
  * a per-jvm instance key.
  *
  */
-public class PasswordData {
+public class PasswordData implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PasswordData.class);
 
     private final byte[] passwordData;
     private final String keyHash; // not a secure value, used to detect if key is same over time.
 
-    private static final PwmSecurityKey staticKey;
-    private static final String staticKeyHash;
-    private static final ErrorInformation initializationError;
+    private static final transient PwmSecurityKey staticKey;
+    private static final transient String staticKeyHash;
+    private static final transient ErrorInformation initializationError;
 
     private String passwordHashCache;
 

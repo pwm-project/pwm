@@ -253,6 +253,14 @@ public class AuditService implements PwmService {
         return auditVault.size();
     }
 
+    public Date eldestValutRecord() {
+        if (status != STATUS.OPEN || auditVault == null) {
+            return null;
+        }
+
+        return auditVault.oldestRecord();
+    }
+
     public void submit(final AuditEvent auditEvent, final UserInfoBean userInfoBean, final PwmSession pwmSession)
             throws PwmUnrecoverableException
     {
