@@ -6,6 +6,7 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -151,6 +152,11 @@ public class H2MV_LocalDB implements LocalDBProvider {
         }
     }
 
+    @Override
+    public Map<String, Serializable> debugInfo() {
+        return Collections.emptyMap();
+    }
+
     private void compact(boolean full) {
         if (full) {
             executorService.schedule(new Runnable() {
@@ -176,5 +182,10 @@ public class H2MV_LocalDB implements LocalDBProvider {
                 }
             }, 0, TimeUnit.MILLISECONDS);
         }
+    }
+
+    @Override
+    public Set<Flag> flags() {
+        return Collections.emptySet();
     }
 }

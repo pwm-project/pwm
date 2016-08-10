@@ -27,6 +27,7 @@ import password.pwm.error.PwmError;
 import password.pwm.util.Helper;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -180,10 +181,11 @@ public class Memory_LocalDB implements LocalDBProvider {
         return state;
     }
 
-    // -------------------------- ENUMERATIONS --------------------------
+    @Override
+    public Map<String, Serializable> debugInfo() {
+        return Collections.emptyMap();
+    }
 
-
-// -------------------------- INNER CLASSES --------------------------
 
     private class DbIterator<K> implements LocalDB.LocalDBIterator<String> {
         private final Iterator<String> iterator;
@@ -210,5 +212,10 @@ public class Memory_LocalDB implements LocalDBProvider {
 
     public File getFileLocation() {
         return null;
+    }
+
+    @Override
+    public Set<Flag> flags() {
+        return Collections.emptySet();
     }
 }

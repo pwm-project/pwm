@@ -22,6 +22,7 @@
 
 package password.pwm.util.localdb;
 
+import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.bindings.StringBinding;
 import jetbrains.exodus.env.*;
@@ -33,9 +34,16 @@ import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterOutputStream;
 
 
 public class Xodus_LocalDB implements LocalDBProvider {
@@ -54,7 +62,9 @@ public class Xodus_LocalDB implements LocalDBProvider {
         public void run() {
             outputStats();
         }
-    },new ConditionalTaskExecutor.TimeDurationConditional(STATS_OUTPUT_INTERVAL));
+    },new ConditionalTaskExecutor.TimeDurationConditional(STATS_OUTPUT_INTERVAL).setNextTimeFromNow(1, TimeUnit.MINUTES));
+
+    private final static BindMachine bindMachine = new BindMachine(false);
 
 
     @Override
@@ -69,6 +79,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
         environmentConfig.setGcEnabled(true);
         environmentConfig.setEnvCloseForcedly(true);
         environmentConfig.setFullFileReadonly(false);
+        environmentConfig.setMemoryUsage(50 * 1024 * 1024);
 
         for (final String key : initParameters.keySet()) {
             final String value = initParameters.get(key);
@@ -116,7 +127,6 @@ public class Xodus_LocalDB implements LocalDBProvider {
     }
     @Override
     public boolean contains(LocalDB.DB db, String key) throws LocalDBException {
-        checkStatus();
         return get(db, key) != null;
     }
 
@@ -127,9 +137,9 @@ public class Xodus_LocalDB implements LocalDBProvider {
             @Override
             public String compute(@NotNull Transaction transaction) {
                 final Store store = getStore(db);
-                final ByteIterable returnValue = store.get(transaction,StringBinding.stringToEntry(key));
+                final ByteIterable returnValue = store.get(transaction, bindMachine.keyToEntry(key));
                 if (returnValue != null) {
-                    return StringBinding.entryToString(returnValue);
+                    return bindMachine.entryToValue(returnValue);
                 }
                 return null;
             }
@@ -165,12 +175,12 @@ public class Xodus_LocalDB implements LocalDBProvider {
                     close();
                     return;
                 }
-                final ByteIterable value = cursor.getKey();
-                if (value == null || value.getLength() == 0) {
+                final ByteIterable nextKey = cursor.getKey();
+                if (nextKey == null || nextKey.getLength() == 0) {
                     close();
                     return;
                 }
-                final String decodedValue = StringBinding.entryToString(value);
+                final String decodedValue = bindMachine.entryToKey(nextKey);
                 if (decodedValue == null) {
                     close();
                     return;
@@ -223,8 +233,8 @@ public class Xodus_LocalDB implements LocalDBProvider {
                 final Store store = getStore(db);
                 for (final String key : keyValueMap.keySet()) {
                     final String value = keyValueMap.get(key);
-                    final ByteIterable k = StringBinding.stringToEntry(key);
-                    final ByteIterable v = StringBinding.stringToEntry(value);
+                    final ByteIterable k = bindMachine.keyToEntry(key);
+                    final ByteIterable v = bindMachine.valueToEntry(value);
                     store.put(transaction,k,v);
                 }
             }
@@ -240,8 +250,8 @@ public class Xodus_LocalDB implements LocalDBProvider {
         return environment.computeInTransaction(new TransactionalComputable<Boolean>() {
             @Override
             public Boolean compute(@NotNull Transaction transaction) {
-                final ByteIterable k = StringBinding.stringToEntry(key);
-                final ByteIterable v = StringBinding.stringToEntry(value);
+                final ByteIterable k = bindMachine.keyToEntry(key);
+                final ByteIterable v = bindMachine.valueToEntry(value);
                 final Store store = getStore(db);
                 return store.put(transaction,k,v);
             }
@@ -256,7 +266,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
             @Override
             public Boolean compute(@NotNull Transaction transaction) {
                 final Store store = getStore(db);
-                return store.delete(transaction,StringBinding.stringToEntry(key));
+                return store.delete(transaction, bindMachine.keyToEntry(key));
             }
         });
     }
@@ -269,7 +279,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
             public void execute(@NotNull Transaction transaction) {
                 final Store store = getStore(db);
                 for (final String key : keys) {
-                    store.delete(transaction, StringBinding.stringToEntry(key));
+                    store.delete(transaction, bindMachine.keyToEntry(key));
                 }
             }
         });
@@ -323,11 +333,97 @@ public class Xodus_LocalDB implements LocalDBProvider {
     }
 
     private void outputStats() {
+        LOGGER.trace("xodus environment stats: " + StringUtil.mapToString(debugInfo()));
+    }
+
+    @Override
+    public Map<String, Serializable> debugInfo() {
         final Statistics statistics = environment.getStatistics();
-        final Map<String,String> outputStats = new LinkedHashMap<>();
+        final Map<String,Serializable> outputStats = new LinkedHashMap<>();
         for (final String name : statistics.getItemNames()) {
             outputStats.put(name, String.valueOf(statistics.getStatisticsItem(name).getTotal()));
         }
-        LOGGER.trace("xodus environment stats: " + StringUtil.mapToString(outputStats));
+        return outputStats;
+    }
+
+    private static class BindMachine {
+        private static final Deflater DEFLATER = new Deflater();
+        private static final Inflater INFLATER = new Inflater();
+        private static final byte COMPRESSED_PREFIX = 98;
+        private static final byte UNCOMPRESSED_PREFIX = 99;
+        private static final int minCompressionLength = 50;
+
+        private final boolean enableCompression;
+
+        BindMachine(boolean enableCompression) {
+            this.enableCompression = enableCompression;
+        }
+
+        ByteIterable keyToEntry(final String key) {
+            return StringBinding.stringToEntry(key);
+        }
+
+        String entryToKey(final ByteIterable entry) {
+            return StringBinding.entryToString(entry);
+        }
+
+        ByteIterable valueToEntry(final String value) {
+            if (!enableCompression || value == null || value.length() < minCompressionLength) {
+                final ByteIterable byteIterable = StringBinding.stringToEntry(value);
+                return new ArrayByteIterable(UNCOMPRESSED_PREFIX, byteIterable);
+            }
+
+            final ByteIterable byteIterable = StringBinding.stringToEntry(value);
+            final byte[] rawArray = byteIterable.getBytesUnsafe();
+            final byte[] compressedArray = compressData(rawArray);
+
+            if (compressedArray.length < rawArray.length) {
+                return new ArrayByteIterable(COMPRESSED_PREFIX, new ArrayByteIterable(compressedArray));
+            } else {
+                return new ArrayByteIterable(UNCOMPRESSED_PREFIX, byteIterable);
+            }
+        }
+
+        String entryToValue(final ByteIterable value) {
+            final byte[] rawValue = value.getBytesUnsafe();
+            final byte[] strippedArray = new byte[rawValue.length -1];
+            System.arraycopy(rawValue,1,strippedArray,0,rawValue.length -1);
+            if (rawValue[0] == UNCOMPRESSED_PREFIX) {
+                return StringBinding.entryToString(new ArrayByteIterable(strippedArray));
+            } else if (rawValue[0] == COMPRESSED_PREFIX) {
+                final byte[] decompressedValue = decompressData(strippedArray);
+                return StringBinding.entryToString(new ArrayByteIterable(decompressedValue));
+            }
+            throw new IllegalStateException("unknown value prefix " + Byte.toString(rawValue[0]));
+        }
+
+        static byte[] compressData(byte[] data) {
+            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            final DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(byteArrayOutputStream, DEFLATER);
+            try {
+                deflaterOutputStream.write(data);
+                deflaterOutputStream.close();
+            } catch (IOException e) {
+                throw new IllegalStateException("unexpected exception compressing data stream", e);
+            }
+            return byteArrayOutputStream.toByteArray();
+        }
+
+        static byte[] decompressData(byte[] data) {
+            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            final InflaterOutputStream inflaterOutputStream = new InflaterOutputStream(byteArrayOutputStream, INFLATER);
+            try {
+                inflaterOutputStream.write(data);
+                inflaterOutputStream.close();
+            } catch (IOException e) {
+                throw new IllegalStateException("unexpected exception decompressing data stream", e);
+            }
+            return byteArrayOutputStream.toByteArray();
+        }
+    }
+
+    @Override
+    public Set<Flag> flags() {
+        return Collections.emptySet();
     }
 }

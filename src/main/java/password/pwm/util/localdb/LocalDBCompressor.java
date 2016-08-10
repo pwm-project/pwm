@@ -28,6 +28,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -166,4 +167,9 @@ public class LocalDBCompressor implements LocalDB {
 
         return input;
     }
+
+    public Map<String,Serializable> debugInfo() {
+        return innerLocalDB.debugInfo();
+    }
+
 }

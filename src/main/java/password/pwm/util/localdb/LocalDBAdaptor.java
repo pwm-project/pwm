@@ -30,6 +30,7 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,13 +41,19 @@ public class LocalDBAdaptor implements LocalDB {
 
     private final LocalDBProvider innerDB;
 
-    private final SizeCacheManager SIZE_CACHE_MANAGER = new SizeCacheManager();
+    private final SizeCacheManager SIZE_CACHE_MANAGER;
     private final PwmApplication pwmApplication;
 
     LocalDBAdaptor(final LocalDBProvider innerDB, final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
         if (innerDB == null) {
             throw new IllegalArgumentException("innerDB can not be null");
+        }
+
+        if (innerDB.flags().contains(LocalDBProvider.Flag.SlowSizeOperations)) {
+            SIZE_CACHE_MANAGER = new SizeCacheManager();
+        } else {
+            SIZE_CACHE_MANAGER = null;
         }
 
         this.innerDB = innerDB;
@@ -113,10 +120,12 @@ public class LocalDBAdaptor implements LocalDB {
 
         public void remove() {
             innerIterator.remove();
-            try {
-                SIZE_CACHE_MANAGER.decrementSize(db);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            if (SIZE_CACHE_MANAGER != null) {
+                try {
+                    SIZE_CACHE_MANAGER.decrementSize(db);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
 
@@ -124,6 +133,10 @@ public class LocalDBAdaptor implements LocalDB {
         public void close() {
             innerIterator.close();
         }
+    }
+
+    public Map<String,Serializable> debugInfo() {
+        return innerDB.debugInfo();
     }
 
     @WriteOperation
@@ -143,7 +156,9 @@ public class LocalDBAdaptor implements LocalDB {
         try {
             innerDB.putAll(db, keyValueMap);
         } finally {
-            SIZE_CACHE_MANAGER.clearSize(db);
+            if (SIZE_CACHE_MANAGER != null) {
+                SIZE_CACHE_MANAGER.clearSize(db);
+            }
         }
 
         markWrite(keyValueMap.size());
@@ -157,7 +172,9 @@ public class LocalDBAdaptor implements LocalDB {
 
         final boolean preExisting = innerDB.put(db, key, value);
         if (!preExisting) {
-            SIZE_CACHE_MANAGER.incrementSize(db);
+            if (SIZE_CACHE_MANAGER != null) {
+                SIZE_CACHE_MANAGER.incrementSize(db);
+            }
         }
 
         markWrite(1);
@@ -171,7 +188,9 @@ public class LocalDBAdaptor implements LocalDB {
 
         final boolean result = innerDB.remove(db, key);
         if (result) {
-            SIZE_CACHE_MANAGER.decrementSize(db);
+            if (SIZE_CACHE_MANAGER != null) {
+                SIZE_CACHE_MANAGER.decrementSize(db);
+            }
         }
 
         markWrite(1);
@@ -195,7 +214,9 @@ public class LocalDBAdaptor implements LocalDB {
             try {
                 innerDB.removeAll(db, keys);
             } finally {
-                SIZE_CACHE_MANAGER.clearSize(db);
+                if (SIZE_CACHE_MANAGER != null) {
+                    SIZE_CACHE_MANAGER.clearSize(db);
+                }
             }
         } else {
             for (final String key : keys) {
@@ -208,7 +229,11 @@ public class LocalDBAdaptor implements LocalDB {
 
     public int size(final DB db) throws LocalDBException {
         ParameterValidator.validateDBValue(db);
-        return SIZE_CACHE_MANAGER.getSizeForDB(db, innerDB);
+        if (SIZE_CACHE_MANAGER != null) {
+            return SIZE_CACHE_MANAGER.getSizeForDB(db, innerDB);
+        } else {
+            return innerDB.size(db);
+        }
     }
 
     @WriteOperation
@@ -217,7 +242,9 @@ public class LocalDBAdaptor implements LocalDB {
         try {
             innerDB.truncate(db);
         } finally {
-            SIZE_CACHE_MANAGER.clearSize(db);
+            if (SIZE_CACHE_MANAGER != null) {
+                SIZE_CACHE_MANAGER.clearSize(db);
+            }
         }
     }
 

@@ -23,10 +23,16 @@
 package password.pwm.util.localdb;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 public interface LocalDBProvider {
+
+    enum Flag {
+        SlowSizeOperations,
+    }
 
     enum Parameter {
         readOnly,
@@ -80,5 +86,7 @@ public interface LocalDBProvider {
 
     LocalDB.Status getStatus();
 
+    Map<String,Serializable> debugInfo();
 
+    Set<Flag> flags();
 }

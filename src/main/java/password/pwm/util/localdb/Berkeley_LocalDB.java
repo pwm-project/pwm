@@ -25,6 +25,8 @@ package password.pwm.util.localdb;
 import com.sleepycat.bind.tuple.TupleBinding;
 import com.sleepycat.collections.StoredMap;
 import com.sleepycat.je.*;
+import com.sleepycat.je.utilint.StatDefinition;
+import com.sleepycat.je.utilint.StatGroup;
 import com.sleepycat.util.RuntimeExceptionWrapper;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -33,6 +35,7 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -448,4 +451,24 @@ public class Berkeley_LocalDB implements LocalDBProvider {
         }
     }
 
+    @Override
+    public Map<String, Serializable> debugInfo() {
+        final StatsConfig statsConfig = new StatsConfig();
+        final EnvironmentStats environmentStats = environment.getStats(statsConfig);
+        final Map<String,Serializable> outputStats = new LinkedHashMap<>();
+        for (final StatGroup statGroup : environmentStats.getStatGroups()) {
+            for (final StatDefinition stat : statGroup.getStats().keySet()) {
+                final String name = stat.getName();
+                final String value = statGroup.getStat(stat).toStringVerbose();
+                outputStats.put(name,value);
+
+            }
+        }
+        return outputStats;
+    }
+
+    @Override
+    public Set<Flag> flags() {
+        return Collections.singleton(Flag.SlowSizeOperations);
+    }
 }

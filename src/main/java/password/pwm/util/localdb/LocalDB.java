@@ -107,6 +107,8 @@ public interface LocalDB {
 
     File getFileLocation();
 
+    Map<String,Serializable> debugInfo();
+
 // -------------------------- ENUMERATIONS --------------------------
 
     enum DB {

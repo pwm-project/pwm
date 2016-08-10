@@ -31,10 +31,8 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.io.Serializable;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -282,7 +280,10 @@ public class MapDB_LocalDB implements LocalDBProvider {
                 .open();
     }
 
-// -------------------------- INNER CLASSES --------------------------
+    @Override
+    public Map<String, Serializable> debugInfo() {
+        return Collections.emptyMap();
+    }
 
     private class MapDBIterator<K> implements LocalDB.LocalDBIterator<String> {
         private Iterator<String> theIterator;
@@ -317,4 +318,8 @@ public class MapDB_LocalDB implements LocalDBProvider {
         }
     }
 
+    @Override
+    public Set<Flag> flags() {
+        return Collections.emptySet();
+    }
 }
