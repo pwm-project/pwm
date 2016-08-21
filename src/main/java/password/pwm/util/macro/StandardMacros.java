@@ -22,6 +22,7 @@
 
 package password.pwm.util.macro;
 
+import org.apache.commons.codec.digest.Md5Crypt;
 import com.novell.ldapchai.exception.ChaiException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -43,6 +44,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.io.UnsupportedEncodingException;
 
 public abstract class StandardMacros {
     private static final PwmLogger LOGGER = PwmLogger.forClass(StandardMacros.class);
@@ -416,6 +418,41 @@ public abstract class StandardMacros {
 
         public MacroDefinitionFlag[] flags() {
             return new MacroDefinitionFlag[] { MacroDefinitionFlag.SensitiveValue };
+        }
+    }
+
+    public static class UserPasswordMacromd5 extends AbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@User:Passwordmd5@");
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(
+                final String matchValue,
+                final MacroImplementation.MacroRequestInfo macroRequestInfo
+        ) {
+            final LoginInfoBean loginInfoBean = macroRequestInfo.getLoginInfoBean();
+
+            try {
+                if (loginInfoBean == null || loginInfoBean.getUserCurrentPassword() == null) {
+                    return "";
+                }
+                
+                //Get bytes array of password                
+                byte[] bytesOfMessage = loginInfoBean.getUserCurrentPassword().getStringValue().getBytes("UTF-8");
+                //Get hashed password
+                String passHash = Md5Crypt.md5Crypt(bytesOfMessage);
+                //Return the hashed from Apache md5crypt
+                return passHash;
+            } catch ( PwmUnrecoverableException | UnsupportedEncodingException e) {
+                LOGGER.error("error decrypting in memory password during macro replacement: " + e.getMessage());
+                return "";
+            }
+        }
+
+        public MacroImplementation.MacroDefinitionFlag[] flags() {
+            return new MacroImplementation.MacroDefinitionFlag[] { MacroImplementation.MacroDefinitionFlag.SensitiveValue };
         }
     }
 
