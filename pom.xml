@@ -333,6 +333,25 @@
         </plugins>
     </build>
 
+    <reporting>
+        <!-- 
+        Note: to run these reports, you can execute the maven command: "mvn site",
+        then you can view the results by opening the file: target/site/project-reports.html in your browser.
+         -->
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.4</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.6</version>
+            </plugin>
+        </plugins>
+    </reporting>
+
     <dependencies>
         <!-- Test dependencies -->
         <dependency>
