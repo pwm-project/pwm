@@ -41,6 +41,7 @@ import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
@@ -235,10 +236,10 @@ public class UserSearchEngine {
                 if (!skipProfile) {
                     try {
                         returnMap.putAll(performMultiUserSearchImpl(
-                                        ldapProfile,
-                                        searchConfiguration,
-                                        maxResults - returnMap.size(),
-                                        returnAttributes)
+                                ldapProfile,
+                                searchConfiguration,
+                                maxResults - returnMap.size(),
+                                returnAttributes)
                         );
                     } catch (PwmUnrecoverableException e) {
                         if (e.getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE) {
@@ -247,11 +248,11 @@ public class UserSearchEngine {
                                 errors.add(e.getErrorInformation().getDetailedErrorMsg());
                                 if (errors.size() >= ldapProfiles.size()) {
                                     final String errorMsg = "all ldap profiles are unreachable; errors: " + JsonUtil.serializeCollection(errors);
-                                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorMsg));
+                                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, errorMsg));
                                 }
-                            } else {
-                                throw e;
                             }
+                        } else {
+                            throw e;
                         }
                     }
                 }
@@ -336,17 +337,31 @@ public class UserSearchEngine {
         final Map<UserIdentity,Map<String,String>> returnMap;
         returnMap = new LinkedHashMap<>();
         for (final String loopContext : searchContexts) {
-            final Map<UserIdentity,Map<String,String>> singleContextResults;
-            singleContextResults = doSingleContextSearch(
-                    ldapProfile,
-                    searchFilter,
-                    loopContext,
-                    returnAttributes,
-                    maxResults - returnMap.size(),
-                    chaiProvider,
-                    timeLimitMS
-            );
-            returnMap.putAll(singleContextResults);
+            try {
+                final Map<UserIdentity, Map<String, String>> singleContextResults = doSingleContextSearch(
+                        ldapProfile,
+                        searchFilter,
+                        loopContext,
+                        returnAttributes,
+                        maxResults - returnMap.size(),
+                        chaiProvider,
+                        timeLimitMS
+                );
+                returnMap.putAll(singleContextResults);
+            } catch (Throwable t) {
+                final ErrorInformation errorInformation;
+                if (t instanceof PwmException) {
+                    errorInformation = new ErrorInformation(((PwmException) t).getError(), "unexpected error during ldap search ("
+                            + "profile=" + ldapProfile.getIdentifier() + ")"
+                            + ", error: " + t.getMessage());
+                } else {
+                    errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected error during ldap search ("
+                            + "profile=" + ldapProfile.getIdentifier() + ")"
+                            + ", error: " + Helper.readHostileExceptionMessage(t));
+                }
+                LOGGER.error(sessionLabel, "error during user search: " + errorInformation.toDebugStr());
+                throw new PwmUnrecoverableException(errorInformation);
+            }
             if (returnMap.size() >= maxResults) {
                 break;
             }

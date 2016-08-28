@@ -68,7 +68,13 @@ public class Xodus_LocalDB implements LocalDBProvider {
 
 
     @Override
-    public void init(File dbDirectory, Map<String, String> initParameters, Map<Parameter,String> parameters) throws LocalDBException {
+    public void init(
+            final File dbDirectory,
+            final Map<String, String> initParameters,
+            final Map<Parameter,String> parameters
+    )
+            throws LocalDBException
+    {
         this.fileLocation = dbDirectory;
 
         LOGGER.trace("begin environment open");
@@ -79,6 +85,8 @@ public class Xodus_LocalDB implements LocalDBProvider {
         environmentConfig.setGcEnabled(true);
         environmentConfig.setEnvCloseForcedly(true);
         environmentConfig.setFullFileReadonly(false);
+        environmentConfig.setGcStartIn(0);
+        environmentConfig.setGcUtilizationFromScratch(true);
         environmentConfig.setMemoryUsage(50 * 1024 * 1024);
 
         for (final String key : initParameters.keySet()) {

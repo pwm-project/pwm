@@ -151,7 +151,7 @@ public class LocalDbAuditVault implements AuditVault {
                 auditDB.removeFirst();
                 workActions++;
             } else {
-                return;
+                break;
             }
         }
 

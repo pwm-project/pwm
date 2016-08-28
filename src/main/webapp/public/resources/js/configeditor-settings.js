@@ -3126,7 +3126,7 @@ PrivateKeyHandler.draw = function(keyName) {
         htmlBody += '<tr><td>Format</td><td><div class="setting_table_value">' + key['format'] + '</div></td></tr>';
         htmlBody += '<tr><td>Algorithm</td><td><div class="setting_table_value">' + key['algorithm'] + '</div></td></tr>';
         htmlBody += '</table></div>';
-        htmlBody += '<button id="' + keyName + '_ClearButton" class="btn"><span class="btn-icon pwm-icon pwm-icon-times"></span>Clear</button>'
+        htmlBody += '<button id="' + keyName + '_ClearButton" class="btn"><span class="btn-icon pwm-icon pwm-icon-times"></span>Remove Certificate</button>'
     } else {
         htmlBody += '<div>No Key Present</div><br/>';
     }

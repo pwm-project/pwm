@@ -432,7 +432,7 @@
                                 Oldest Local Audit Records
                             </td>
                             <td>
-                                <% Date eldestAuditRecord = dashboard_pwmApplication.getAuditManager().eldestValutRecord(); %>
+                                <% Date eldestAuditRecord = dashboard_pwmApplication.getAuditManager().eldestVaultRecord(); %>
                                 <%= eldestAuditRecord != null
                                         ? TimeDuration.fromCurrent(eldestAuditRecord).asLongString()
                                         : JspUtility.getMessage(pageContext, Display.Value_NotApplicable)

@@ -60,7 +60,6 @@ public class DebugItemGenerator {
             AboutItemGenerator.class,
             EnvironmentItemGenerator.class,
             AppPropertiesItemGenerator.class,
-            AuditDebugItemGenerator.class,
             InfoDebugItemGenerator.class,
             HealthDebugItemGenerator.class,
             ThreadDumpDebugItemGenerator.class,
@@ -254,21 +253,6 @@ public class DebugItemGenerator {
 
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
             outputProps.store(baos,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-            outputStream.write(baos.toByteArray());
-        }
-    }
-
-    static class AuditDebugItemGenerator implements Generator {
-        @Override
-        public String getFilename() {
-            return "audit.csv";
-        }
-
-        @Override
-        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
-        {
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            pwmApplication.getAuditManager().outputVaultToCsv(baos, pwmRequest.getLocale(), true);
             outputStream.write(baos.toByteArray());
         }
     }

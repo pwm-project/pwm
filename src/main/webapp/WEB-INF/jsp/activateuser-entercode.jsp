@@ -51,7 +51,7 @@
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <pwm:if test="<%=PwmIfTest.showCancel%>">
-                <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" style="display: inline;">
+                <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" class="something">
                     <input type="hidden" name="processAction" value="reset"/>
                     <button type="submit" name="button" class="btn" id="buttonCancel">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span>&nbsp</pwm:if>

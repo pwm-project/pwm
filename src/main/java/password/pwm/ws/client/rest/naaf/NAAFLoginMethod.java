@@ -29,7 +29,7 @@ public enum NAAFLoginMethod {
     EMAIL_OTP("EMAIL_OTP:1",NAAFMethods.NAAFEmailOTPMethodHandler.class),
     SMS_OTP("SMS_OTP:1",NAAFMethods.NAAFSMSOTPMethodHandler.class),
     SMARTPHONE("SMARTPHONE:1",NAAFMethods.NAAFSmartphoneMethodHandler.class),
-    RADIUS("RADIUS:1",NAAFMethods.NAAFSmartphoneMethodHandler.class),
+    RADIUS("RADIUS:1",NAAFMethods.NAAFRadiusMethodHandler.class),
     TOTP("TOTP:1",NAAFMethods.NAAFTOTPMethodHandler.class),
     HOTP("HOTP:1",NAAFMethods.NAAFHOTPMethodHandler.class),
 

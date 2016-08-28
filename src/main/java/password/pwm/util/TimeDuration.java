@@ -382,6 +382,36 @@ public class TimeDuration implements Comparable, Serializable {
         return "TimeDuration[" + this.asCompactString() + "]";
     }
 
+    /**
+     * Pause the calling thread the specified amount of time.
+     *
+     * @param sleepTimeMS - a time duration in milliseconds
+     * @return time actually spent sleeping
+     */
+    public static TimeDuration pause(final long sleepTimeMS) {
+        final long startTime = System.currentTimeMillis();
+        do {
+            try {
+                final long sleepTime = sleepTimeMS - (System.currentTimeMillis() - startTime);
+                Thread.sleep(sleepTime > 0 ? sleepTime : 5);
+            } catch (InterruptedException e) {
+                //who cares
+            }
+        } while ((System.currentTimeMillis() - startTime) < sleepTimeMS);
+
+        return TimeDuration.fromCurrent(startTime);
+    }
+
+    /**
+     * Pause the calling thread the specified amount of time.
+     *
+     * @return time actually spent sleeping
+     */
+    public TimeDuration pause() {
+        return pause(this.getTotalMilliseconds());
+    }
+
+
     // -------------------------- INNER CLASSES --------------------------
 
     private static class TimeDetail implements Serializable {

@@ -1853,9 +1853,19 @@
             <value>true</value>
         </default>
     </setting>
+
     <setting hidden="false" key="events.audit.maxAge" level="2" required="true">
         <default>
             <value>15552000</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="events.audit.maxEvents" level="2" required="true">
+        <properties>
+            <property key="Minimum">0</property>
+            <property key="Maximum">100000000</property>
+        </properties>
+        <default>
+            <value>1000000</value>
         </default>
     </setting>
     <setting hidden="false" key="challenge.enable" level="1">

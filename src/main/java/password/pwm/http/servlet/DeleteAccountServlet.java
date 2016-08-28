@@ -218,6 +218,14 @@ public class DeleteAccountServlet extends AbstractPwmServlet {
         // mark the event log
         pwmApplication.getAuditManager().submit(AuditEvent.DELETE_ACCOUNT, pwmRequest.getPwmSession().getUserInfoBean(), pwmRequest.getPwmSession());
 
+        final String nextUrl = profile.readSettingAsString(PwmSetting.DELETE_ACCOUNT_NEXT_URL);
+        if (nextUrl != null && !nextUrl.isEmpty()) {
+            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmApplication);
+            final String macroedUrl = macroMachine.expandMacros(nextUrl);
+            LOGGER.debug(pwmRequest, "settinging forward url to post-delete next url: " + macroedUrl);
+            pwmRequest.getPwmSession().getSessionStateBean().setForwardURL(macroedUrl);
+        }
+
         // perform ldap entry delete.
         if (deleteAccountProfile.readSettingAsBoolean(PwmSetting.DELETE_ACCOUNT_DELETE_USER_ENTRY)) {
             final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser(pwmRequest.getUserInfoIfLoggedIn());
@@ -233,19 +241,8 @@ public class DeleteAccountServlet extends AbstractPwmServlet {
         // clear the delete bean
         pwmApplication.getSessionStateService().clearBean(pwmRequest, DeleteAccountBean.class);
 
-        final String nextUrl = profile.readSettingAsString(PwmSetting.DELETE_ACCOUNT_NEXT_URL);
-        if (nextUrl != null && !nextUrl.isEmpty()) {
-            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmApplication);
-            final String macroedUrl = macroMachine.expandMacros(nextUrl);
-            LOGGER.debug(pwmRequest, "settinging forward url to post-delete next url: " + macroedUrl);
-            pwmRequest.getPwmSession().getSessionStateBean().setForwardURL(macroedUrl);
-        }
-
         // delete finished, so logout and redirect.
         pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
         pwmRequest.sendRedirectToContinue();
     }
-
-
-
 }

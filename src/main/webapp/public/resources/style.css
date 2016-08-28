@@ -1041,3 +1041,6 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 .center { text-align: center; }
 
 
+.something {
+    display: none;
+}

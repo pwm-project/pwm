@@ -542,11 +542,13 @@ public class PwmEnvironment implements Serializable {
                 } catch (IOException e) {
                     LOGGER.error("error releasing file lock: " + e.getMessage());
                 }
+                /*
                 try {
                     lockfile.delete();
                 } catch (Exception e) {
                     LOGGER.error("error deleting lock file: " + e.getMessage());
                 }
+                */
                 lock = null;
                 LOGGER.debug("released file lock on file " + lockfile.getAbsolutePath());
             }

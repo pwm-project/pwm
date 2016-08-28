@@ -136,15 +136,22 @@ public class AuditService implements PwmService {
         }
         {
             final TimeDuration maxRecordAge = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_AUDIT_MAX_AGE) * 1000);
-            final int maxRecords = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_VAULT_MAX_RECORDS));
+            final long maxRecords = pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_AUDIT_MAX_EVENTS);
             final AuditVault.Settings settings = new AuditVault.Settings(
                     maxRecords,
                     maxRecordAge
             );
 
             if (pwmApplication.getLocalDB() != null && pwmApplication.getApplicationMode() != PwmApplicationMode.READ_ONLY) {
-                auditVault = new LocalDbAuditVault(pwmApplication, pwmApplication.getLocalDB());
-                auditVault.init(settings);
+                if (maxRecords < 1) {
+                    LOGGER.debug("localDB audit vault will remain closed due to max records setting");
+                    pwmApplication.getLocalDB().truncate(LocalDB.DB.AUDIT_EVENTS);
+                } else {
+                    auditVault = new LocalDbAuditVault(pwmApplication, pwmApplication.getLocalDB());
+                    auditVault.init(settings);
+                }
+            } else {
+                LOGGER.debug("localDB audit vault will remain closed due to application mode");
             }
         }
 
@@ -253,7 +260,7 @@ public class AuditService implements PwmService {
         return auditVault.size();
     }
 
-    public Date eldestValutRecord() {
+    public Date eldestVaultRecord() {
         if (status != STATUS.OPEN || auditVault == null) {
             return null;
         }

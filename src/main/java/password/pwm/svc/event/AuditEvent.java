@@ -33,7 +33,13 @@ import java.util.*;
 public enum AuditEvent {
 
     // system events
-    STARTUP(                        Message.EventLog_Startup,                           Admin.EventLog_Narrative_Startup,                          Type.SYSTEM),
+    STARTUP(
+            Message.EventLog_Startup,
+            Admin.EventLog_Narrative_Startup,
+            Type.SYSTEM
+    ),
+
+
     SHUTDOWN(                       Message.EventLog_Shutdown,                          Admin.EventLog_Narrative_Shutdown,                         Type.SYSTEM),
     FATAL_EVENT(                    Message.EventLog_FatalEvent,                        Admin.EventLog_Narrative_FatalEvent,                       Type.SYSTEM),
     INTRUDER_LOCK(                  Message.EventLog_IntruderLockout,                   Admin.EventLog_Narrative_IntruderLockout,                  Type.SYSTEM),

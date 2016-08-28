@@ -614,6 +614,8 @@ public enum PwmSetting {
             "audit.user.eventList", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.AUDIT_CONFIG),
     EVENTS_AUDIT_MAX_AGE(
             "events.audit.maxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.AUDIT_CONFIG),
+    EVENTS_AUDIT_MAX_EVENTS(
+            "events.audit.maxEvents", PwmSettingSyntax.NUMERIC, PwmSettingCategory.AUDIT_CONFIG),
 
     EVENTS_USER_STORAGE_METHOD(
             "events.user.storageMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.USER_HISTORY),

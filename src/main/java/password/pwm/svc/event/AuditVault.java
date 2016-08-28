@@ -40,16 +40,16 @@ public interface AuditVault {
     void add(AuditRecord record);
 
     class Settings {
-        private int maxRecordCount;
+        private long maxRecordCount;
         private TimeDuration maxRecordAge;
 
 
-        public Settings(int maxRecordCount, TimeDuration maxRecordAge) {
+        public Settings(long maxRecordCount, TimeDuration maxRecordAge) {
             this.maxRecordCount = maxRecordCount;
             this.maxRecordAge = maxRecordAge;
         }
 
-        public int getMaxRecordCount() {
+        public long getMaxRecordCount() {
             return maxRecordCount;
         }
 

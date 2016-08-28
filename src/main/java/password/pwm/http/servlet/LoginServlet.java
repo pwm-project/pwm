@@ -169,7 +169,9 @@ public class LoginServlet extends AbstractPwmServlet {
         try {
             handleLoginRequest(pwmRequest, username, password, context, ldapProfile, passwordOnly);
         } catch (PwmOperationalException e) {
-            pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest));
+            final ErrorInformation errorInformation = e.getErrorInformation();
+            LOGGER.trace(pwmRequest, "returning rest login error to client: " + errorInformation.toDebugStr());
+            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
             return;
         }
 
