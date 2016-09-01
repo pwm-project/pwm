@@ -51,6 +51,11 @@ public class ReportServiceTest {
                     public void close() {}
 
                     @Override
+                    public void remove() {
+                        userCacheRecordIterator.remove();
+                    }
+
+                    @Override
                     public boolean hasNext() {
                         return userCacheRecordIterator.hasNext();
                     }
