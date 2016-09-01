@@ -1,0 +1,49 @@
+[{
+    "userDN": "cn=fflintstone,ou=users,o=novell",
+    "ldapProfile": "Fred's LDAP profile",
+    "username": "fflintstone",
+    "cacheTimestamp": "2016-08-30T17:29:46Z",
+    "email": "fflintstone@flintstones.tv",
+    "userGUID": "FRED1234",
+    "lastLoginTime": "2016-08-30T17:01:46Z",
+    "passwordExpirationTime": "2016-08-30T17:02:46Z",
+    "passwordChangeTime": "2016-08-30T17:03:46Z",
+    "responseSetTime": "2016-08-30T17:04:46Z",
+    "hasResponses": true,
+    "hasHelpdeskResponses": false,
+    "responseStorageMethod": "AUTO",
+    "responseFormatType": "TEXT",
+    "passwordStatus": {
+        "expired": true,
+        "preExpired": false,
+        "violatesPolicy": true,
+        "warnPeriod": false
+    },
+    "requiresPasswordUpdate": true,
+    "requiresResponseUpdate": false,
+    "requiresProfileUpdate": true
+}, {
+    "userDN": "cn=brubble,ou=users,o=novell",
+    "ldapProfile": "Barney's LDAP profile",
+    "username": "brubble",
+    "cacheTimestamp": "2016-08-30T18:29:46Z",
+    "email": "fflintstone@flintstones.tv",
+    "userGUID": "BARNEY1234",
+    "lastLoginTime": "2016-08-30T18:01:46Z",
+    "passwordExpirationTime": "2016-08-30T18:02:46Z",
+    "passwordChangeTime": "2016-08-30T18:03:46Z",
+    "responseSetTime": "2016-08-30T18:04:46Z",
+    "hasResponses": false,
+    "hasHelpdeskResponses": true,
+    "responseStorageMethod": "LDAP",
+    "responseFormatType": "HELPDESK",
+    "passwordStatus": {
+        "expired": false,
+        "preExpired": true,
+        "violatesPolicy": false,
+        "warnPeriod": true
+    },
+    "requiresPasswordUpdate": false,
+    "requiresResponseUpdate": true,
+    "requiresProfileUpdate": false
+}]

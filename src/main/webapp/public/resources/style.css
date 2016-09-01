@@ -1044,3 +1044,7 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 .something {
     display: none;
 }
+
+#grid-hider-menu {
+    width: 200px;
+}

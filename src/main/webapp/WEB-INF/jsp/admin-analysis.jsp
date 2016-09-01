@@ -122,7 +122,7 @@
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh">&nbsp;</span></pwm:if>
                             <pwm:display key="Button_Refresh" bundle="Admin"/>
                         </button>
-                        <form action="<pwm:current-url/>" method="post">
+                        <form id="downloadUserReportCsvForm" action="<pwm:current-url/>" method="post">
                             <button type="submit" class="btn" id="button-downloadUserReportCsv">
                                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
@@ -135,11 +135,14 @@
                                             text: '<pwm:display key="Tooltip_DownloadReportRecords" bundle="Admin"/>',
                                             width: 350
                                         });
+
+                                        PWM_ADMIN.initDownloadUserReportCsvForm();
                                     });
                                 </script>
                             </pwm:script>
                             <input type="hidden" name="processAction" value="downloadUserReportCsv"/>
                             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                            <input type="hidden" name="selectedColumns" value="" />
                         </form>
                     </div>
                     <pwm:script>

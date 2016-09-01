@@ -112,6 +112,7 @@ PWM_ADMIN.reportDataHeaders = function() {
         "username":PWM_ADMIN.showString("Field_Report_Username"),
         "userDN":PWM_ADMIN.showString("Field_Report_UserDN"),
         "ldapProfile":PWM_ADMIN.showString("Field_Report_LDAP_Profile"),
+        "email":PWM_ADMIN.showString("Field_Report_Email"),
         "userGUID":PWM_ADMIN.showString("Field_Report_UserGuid"),
         "accountExpirationTime":PWM_ADMIN.showString("Field_Report_AccountExpireTime"),
         "passwordExpirationTime":PWM_ADMIN.showString("Field_Report_PwdExpireTime"),
@@ -122,6 +123,10 @@ PWM_ADMIN.reportDataHeaders = function() {
         "hasHelpdeskResponses":PWM_ADMIN.showString("Field_Report_HasHelpdeskResponses"),
         "responseStorageMethod":PWM_ADMIN.showString("Field_Report_ResponseStorageMethod"),
         "responseFormatType":PWM_ADMIN.showString("Field_Report_ResponseFormatType"),
+        "passwordStatusExpired":PWM_ADMIN.showString("Field_Report_PwdExpired"),
+        "passwordStatusPreExpired":PWM_ADMIN.showString("Field_Report_PwdPreExpired"),
+        "passwordStatusViolatesPolicy":PWM_ADMIN.showString("Field_Report_PwdViolatesPolicy"),
+        "passwordStatusWarnPeriod":PWM_ADMIN.showString("Field_Report_PwdWarnPeriod"),
         "requiresPasswordUpdate":PWM_ADMIN.showString("Field_Report_RequiresPasswordUpdate"),
         "requiresResponseUpdate":PWM_ADMIN.showString("Field_Report_RequiresResponseUpdate"),
         "requiresProfileUpdate":PWM_ADMIN.showString("Field_Report_RequiresProfileUpdate"),
@@ -145,17 +150,37 @@ PWM_ADMIN.initReportDataGrid=function() {
             // unclick superfluous fields
             PWM_MAIN.getObject('grid-hider-menu-check-cacheTimestamp').click();
             PWM_MAIN.getObject('grid-hider-menu-check-ldapProfile').click();
+            PWM_MAIN.getObject('grid-hider-menu-check-email').click();
             PWM_MAIN.getObject('grid-hider-menu-check-userGUID').click();
             PWM_MAIN.getObject('grid-hider-menu-check-responseStorageMethod').click();
             PWM_MAIN.getObject('grid-hider-menu-check-responseFormatType').click();
             PWM_MAIN.getObject('grid-hider-menu-check-userDN').click();
             PWM_MAIN.getObject('grid-hider-menu-check-hasHelpdeskResponses').click();
+            PWM_MAIN.getObject('grid-hider-menu-check-passwordStatusExpired').click();
+            PWM_MAIN.getObject('grid-hider-menu-check-passwordStatusPreExpired').click();
+            PWM_MAIN.getObject('grid-hider-menu-check-passwordStatusViolatesPolicy').click();
+            PWM_MAIN.getObject('grid-hider-menu-check-passwordStatusWarnPeriod').click();
 
             PWM_VAR['reportGrid'].on(".dgrid-row:click", function(evt){
                 PWM_ADMIN.detailView(evt, PWM_ADMIN.reportDataHeaders(), PWM_VAR['reportGrid']);
             });
         });
 };
+
+PWM_ADMIN.initDownloadUserReportCsvForm = function() {
+    require(["dojo/on", "dojo/query"], function(on, query) {
+        query("#downloadUserReportCsvForm").on("click", function(e) {
+            var selectedColumns = [];
+
+            query("#grid-hider-menu input:checked").forEach(function(node, index, nodeList) {
+                selectedColumns.push(node.id.replace('grid-hider-menu-check-', ''));
+            });
+
+            console.log("Selected columns: " + selectedColumns);
+            downloadUserReportCsvForm.selectedColumns.value = selectedColumns;
+        });
+    });
+}
 
 PWM_ADMIN.refreshReportDataGrid=function() {
     if (PWM_MAIN.getObject('button-refreshReportDataGrid')) {
@@ -172,7 +197,21 @@ PWM_ADMIN.refreshReportDataGrid=function() {
             PWM_MAIN.showErrorDialog(data);
             return;
         }
-        PWM_VAR['reportGrid'].renderArray(data['data']['users']);
+
+        var users = data['data']['users'];
+
+        // "Flatten out" the nested properties, so they can be displayed in the grid
+        for (var i = 0, len = users.length; i < len; i++) {
+            var user = users[i];
+            if (user.hasOwnProperty("passwordStatus")) {
+                user["passwordStatusExpired"] = user["passwordStatus"]["expired"];
+                user["passwordStatusPreExpired"] = user["passwordStatus"]["preExpired"];
+                user["passwordStatusViolatesPolicy"] = user["passwordStatus"]["violatesPolicy"];
+                user["passwordStatusWarnPeriod"] = user["passwordStatus"]["warnPeriod"];
+            }
+        }
+
+        PWM_VAR['reportGrid'].renderArray(users);
     };
     PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
 };
