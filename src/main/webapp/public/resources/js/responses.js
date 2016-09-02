@@ -44,7 +44,12 @@ PWM_RESPONSES.validateResponses=function() {
             return domForm.toObject('form-setupResponses');
         };
         validationProps['processResultsFunction'] = function(data){
-            PWM_RESPONSES.updateDisplay(data['data']);
+            if (data) {
+                PWM_RESPONSES.updateDisplay(data['data']);
+            } else {
+                console.log('did not receive valid response for validation check from server');
+                PWM_MAIN.getObject("button-setResponses").disabled = false;
+            }
         };
 
         PWM_MAIN.pwmFormValidator(validationProps);
