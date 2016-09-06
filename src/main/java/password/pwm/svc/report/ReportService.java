@@ -420,56 +420,56 @@ public class ReportService implements PwmService {
         return returnList;
     }
 
-    public RecordIterator<UserCacheRecord> iterator() {
-        return new RecordIterator<>(userCacheService.<UserCacheService.StorageKey>iterator());
+    public interface RecordIterator<K> extends ClosableIterator<UserCacheRecord> {
     }
 
-    public class RecordIterator<K> implements ClosableIterator<UserCacheRecord> {
+    public RecordIterator<UserCacheRecord> iterator() {
+        return new RecordIterator<UserCacheRecord>() {
+            private UserCacheService.UserStatusCacheBeanIterator<UserCacheService.StorageKey> storageKeyIterator = userCacheService.iterator();
 
-        private UserCacheService.UserStatusCacheBeanIterator<UserCacheService.StorageKey> storageKeyIterator;
-
-        public RecordIterator(UserCacheService.UserStatusCacheBeanIterator<UserCacheService.StorageKey> storageKeyIterator) {
-            this.storageKeyIterator = storageKeyIterator;
-        }
-
-        public boolean hasNext() {
-            return this.storageKeyIterator.hasNext();
-        }
-
-        public UserCacheRecord next()
-        {
-            try {
-                UserCacheRecord returnBean = null;
-                while (returnBean == null && this.storageKeyIterator.hasNext()) {
-                    UserCacheService.StorageKey key = this.storageKeyIterator.next();
-                    returnBean = userCacheService.readStorageKey(key);
-                    if (returnBean != null) {
-                        if (returnBean.getCacheTimestamp() == null) {
-                            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"purging record due to missing cache timestamp: " + JsonUtil.serialize(returnBean));
-                            userCacheService.removeStorageKey(key);
-                        } else if (TimeDuration.fromCurrent(returnBean.getCacheTimestamp()).isLongerThan(settings.getMaxCacheAge())) {
-                            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"purging record due to old age timestamp: " + JsonUtil.serialize(returnBean));
-                            userCacheService.removeStorageKey(key);
-                        } else {
-                            return returnBean;
-                        }
-                    }
-
-                }
-            } catch (LocalDBException e) {
-                throw new IllegalStateException("unexpected iterator traversal error while reading LocalDB: " + e.getMessage());
+            @Override
+            public boolean hasNext() {
+                return this.storageKeyIterator.hasNext();
             }
-            return null;
-        }
 
-        public void remove()
-        {
+            @Override
+            public UserCacheRecord next()
+            {
+                try {
+                    UserCacheRecord returnBean = null;
+                    while (returnBean == null && this.storageKeyIterator.hasNext()) {
+                        UserCacheService.StorageKey key = this.storageKeyIterator.next();
+                        returnBean = userCacheService.readStorageKey(key);
+                        if (returnBean != null) {
+                            if (returnBean.getCacheTimestamp() == null) {
+                                LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"purging record due to missing cache timestamp: " + JsonUtil.serialize(returnBean));
+                                userCacheService.removeStorageKey(key);
+                            } else if (TimeDuration.fromCurrent(returnBean.getCacheTimestamp()).isLongerThan(settings.getMaxCacheAge())) {
+                                LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"purging record due to old age timestamp: " + JsonUtil.serialize(returnBean));
+                                userCacheService.removeStorageKey(key);
+                            } else {
+                                return returnBean;
+                            }
+                        }
 
-        }
+                    }
+                } catch (LocalDBException e) {
+                    throw new IllegalStateException("unexpected iterator traversal error while reading LocalDB: " + e.getMessage());
+                }
+                return null;
+            }
 
-        public void close() {
-            storageKeyIterator.close();
-        }
+            @Override
+            public void remove()
+            {
+
+            }
+
+            @Override
+            public void close() {
+                storageKeyIterator.close();
+            }
+        };
     }
 
     public void outputSummaryToCsv(final OutputStream outputStream, final Locale locale)
@@ -490,34 +490,53 @@ public class ReportService implements PwmService {
     }
 
     public void outputToCsv(final OutputStream outputStream, final boolean includeHeader, final Locale locale)
+    throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+    {
+        final Configuration config = pwmApplication.getConfig();
+        final ReportColumnFilter columnFilter = new ReportColumnFilter();
+
+        outputToCsv(outputStream, includeHeader, locale, config, columnFilter);
+    }
+
+    public void outputToCsv(final OutputStream outputStream, final boolean includeHeader, final Locale locale, final ReportColumnFilter columnFilter)
+    throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+    {
+        final Configuration config = pwmApplication.getConfig();
+        outputToCsv(outputStream, includeHeader, locale, config, columnFilter);
+    }
+
+    public void outputToCsv(final OutputStream outputStream, final boolean includeHeader, final Locale locale, final Configuration config, final ReportColumnFilter columnFilter)
             throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
     {
         final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
-        final Configuration config = pwmApplication.getConfig();
         final Class localeClass = password.pwm.i18n.Admin.class;
         if (includeHeader) {
             final List<String> headerRow = new ArrayList<>();
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_UserDN", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_LDAP_Profile", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_Username", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_Email", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_UserGuid", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_LastLogin", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdExpireTime", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdChangeTime", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseSaveTime", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_HasResponses", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_HasHelpdeskResponses", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseStorageMethod", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseFormatType", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdExpired", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdPreExpired", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdViolatesPolicy", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdWarnPeriod", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresPasswordUpdate", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresResponseUpdate", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresProfileUpdate", config, localeClass));
-            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RecordCacheTime", config, localeClass));
+
+            if (columnFilter.isUsernameVisible())                     headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_Username", config, localeClass));
+            if (columnFilter.isUserDnVisible())                       headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_UserDN", config, localeClass));
+            if (columnFilter.isLdapProfileVisible())                  headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_LDAP_Profile", config, localeClass));
+            if (columnFilter.isEmailVisible())                        headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_Email", config, localeClass));
+            if (columnFilter.isUserGuidVisible())                     headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_UserGuid", config, localeClass));
+            if (columnFilter.isAccountExpirationTimeVisible())        headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_AccountExpireTime", config, localeClass));
+            if (columnFilter.isPasswordExpirationTimeVisible())       headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdExpireTime", config, localeClass));
+            if (columnFilter.isPasswordChangeTimeVisible())           headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdChangeTime", config, localeClass));
+            if (columnFilter.isResponseSetTimeVisible())              headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseSaveTime", config, localeClass));
+            if (columnFilter.isLastLoginTimeVisible())                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_LastLogin", config, localeClass));
+            if (columnFilter.isHasResponsesVisible())                 headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_HasResponses", config, localeClass));
+            if (columnFilter.isHasHelpdeskResponsesVisible())         headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_HasHelpdeskResponses", config, localeClass));
+            if (columnFilter.isResponseStorageMethodVisible())        headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseStorageMethod", config, localeClass));
+            if (columnFilter.isResponseFormatTypeVisible())           headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseFormatType", config, localeClass));
+            if (columnFilter.isPasswordStatusExpiredVisible())        headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdExpired", config, localeClass));
+            if (columnFilter.isPasswordStatusPreExpiredVisible())     headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdPreExpired", config, localeClass));
+            if (columnFilter.isPasswordStatusViolatesPolicyVisible()) headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdViolatesPolicy", config, localeClass));
+            if (columnFilter.isPasswordStatusWarnPeriodVisible())     headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdWarnPeriod", config, localeClass));
+            if (columnFilter.isRequiresPasswordUpdateVisible())       headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresPasswordUpdate", config, localeClass));
+            if (columnFilter.isRequiresResponseUpdateVisible())       headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresResponseUpdate", config, localeClass));
+            if (columnFilter.isRequiresProfileUpdateVisible())        headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresProfileUpdate", config, localeClass));
+            if (columnFilter.isCacheTimestampVisible())               headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RecordCacheTime", config, localeClass));
+
+
             csvPrinter.printRecord(headerRow);
         }
 
@@ -526,7 +545,7 @@ public class ReportService implements PwmService {
             cacheBeanIterator = this.iterator();
             while (cacheBeanIterator.hasNext()) {
                 final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
-                outputRecordRow(config, locale, userCacheRecord, csvPrinter);
+                outputRecordRow(config, locale, userCacheRecord, csvPrinter, columnFilter);
             }
         } finally {
             if (cacheBeanIterator != null) {
@@ -541,7 +560,8 @@ public class ReportService implements PwmService {
             final Configuration config,
             final Locale locale,
             final UserCacheRecord userCacheRecord,
-            final CSVPrinter csvPrinter
+            final CSVPrinter csvPrinter,
+            final ReportColumnFilter columnFilter
     )
             throws IOException
     {
@@ -549,32 +569,45 @@ public class ReportService implements PwmService {
         final String falseField = Display.getLocalizedMessage(locale, Display.Value_False, config);
         final String naField = Display.getLocalizedMessage(locale, Display.Value_NotApplicable, config);
         final List<String> csvRow = new ArrayList<>();
-        csvRow.add(userCacheRecord.getUserDN());
-        csvRow.add(userCacheRecord.getLdapProfile());
-        csvRow.add(userCacheRecord.getUsername());
-        csvRow.add(userCacheRecord.getEmail());
-        csvRow.add(userCacheRecord.getUserGUID());
-        csvRow.add(userCacheRecord.getLastLoginTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
-                userCacheRecord.getLastLoginTime()));
-        csvRow.add(userCacheRecord.getPasswordExpirationTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
-                userCacheRecord.getPasswordExpirationTime()));
-        csvRow.add(userCacheRecord.getPasswordChangeTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
-                userCacheRecord.getPasswordChangeTime()));
-        csvRow.add(userCacheRecord.getResponseSetTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
-                userCacheRecord.getResponseSetTime()));
-        csvRow.add(userCacheRecord.isHasResponses() ? trueField : falseField);
-        csvRow.add(userCacheRecord.isHasHelpdeskResponses() ? trueField : falseField);
-        csvRow.add(userCacheRecord.getResponseStorageMethod() == null ? naField : userCacheRecord.getResponseStorageMethod().toString());
-        csvRow.add(userCacheRecord.getResponseFormatType() == null ? naField : userCacheRecord.getResponseFormatType().toString());
-        csvRow.add(userCacheRecord.getPasswordStatus().isExpired() ? trueField : falseField);
-        csvRow.add(userCacheRecord.getPasswordStatus().isPreExpired() ? trueField : falseField);
-        csvRow.add(userCacheRecord.getPasswordStatus().isViolatesPolicy() ? trueField : falseField);
-        csvRow.add(userCacheRecord.getPasswordStatus().isWarnPeriod() ? trueField : falseField);
-        csvRow.add(userCacheRecord.isRequiresPasswordUpdate() ? trueField : falseField);
-        csvRow.add(userCacheRecord.isRequiresResponseUpdate() ? trueField : falseField);
-        csvRow.add(userCacheRecord.isRequiresProfileUpdate() ? trueField : falseField);
-        csvRow.add(userCacheRecord.getCacheTimestamp() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
-                userCacheRecord.getCacheTimestamp()));
+        if (columnFilter.isUsernameVisible())                     csvRow.add(userCacheRecord.getUsername());
+        if (columnFilter.isUserDnVisible())                       csvRow.add(userCacheRecord.getUserDN());
+        if (columnFilter.isLdapProfileVisible())                  csvRow.add(userCacheRecord.getLdapProfile());
+        if (columnFilter.isEmailVisible())                        csvRow.add(userCacheRecord.getEmail());
+        if (columnFilter.isUserGuidVisible())                     csvRow.add(userCacheRecord.getUserGUID());
+        if (columnFilter.isAccountExpirationTimeVisible())        csvRow.add(userCacheRecord.getAccountExpirationTime() == null ? naField : 
+            PwmConstants.DEFAULT_DATETIME_FORMAT.format(userCacheRecord.getAccountExpirationTime()));
+
+        if (columnFilter.isPasswordExpirationTimeVisible())       csvRow.add(userCacheRecord.getPasswordExpirationTime() == null ? naField : 
+            PwmConstants.DEFAULT_DATETIME_FORMAT.format(userCacheRecord.getPasswordExpirationTime()));
+
+        if (columnFilter.isPasswordChangeTimeVisible())           csvRow.add(userCacheRecord.getPasswordChangeTime() == null ? naField : 
+            PwmConstants.DEFAULT_DATETIME_FORMAT.format(userCacheRecord.getPasswordChangeTime()));
+
+        if (columnFilter.isResponseSetTimeVisible())              csvRow.add(userCacheRecord.getResponseSetTime() == null ? naField : 
+            PwmConstants.DEFAULT_DATETIME_FORMAT.format(userCacheRecord.getResponseSetTime()));
+
+        if (columnFilter.isLastLoginTimeVisible())                csvRow.add(userCacheRecord.getLastLoginTime() == null ? naField : 
+            PwmConstants.DEFAULT_DATETIME_FORMAT.format(userCacheRecord.getLastLoginTime()));
+
+        if (columnFilter.isHasResponsesVisible())                 csvRow.add(userCacheRecord.isHasResponses() ? trueField : falseField);
+        if (columnFilter.isHasHelpdeskResponsesVisible())         csvRow.add(userCacheRecord.isHasHelpdeskResponses() ? trueField : falseField);
+
+        if (columnFilter.isResponseStorageMethodVisible())        csvRow.add(userCacheRecord.getResponseStorageMethod() == null ? naField : 
+            userCacheRecord.getResponseStorageMethod().toString());
+
+        if (columnFilter.isResponseFormatTypeVisible())           csvRow.add(userCacheRecord.getResponseFormatType() == null ? naField : 
+            userCacheRecord.getResponseFormatType().toString());
+
+        if (columnFilter.isPasswordStatusExpiredVisible())        csvRow.add(userCacheRecord.getPasswordStatus().isExpired() ? trueField : falseField);
+        if (columnFilter.isPasswordStatusPreExpiredVisible())     csvRow.add(userCacheRecord.getPasswordStatus().isPreExpired() ? trueField : falseField);
+        if (columnFilter.isPasswordStatusViolatesPolicyVisible()) csvRow.add(userCacheRecord.getPasswordStatus().isViolatesPolicy() ? trueField : falseField);
+        if (columnFilter.isPasswordStatusWarnPeriodVisible())     csvRow.add(userCacheRecord.getPasswordStatus().isWarnPeriod() ? trueField : falseField);
+        if (columnFilter.isRequiresPasswordUpdateVisible())       csvRow.add(userCacheRecord.isRequiresPasswordUpdate() ? trueField : falseField);
+        if (columnFilter.isRequiresResponseUpdateVisible())       csvRow.add(userCacheRecord.isRequiresResponseUpdate() ? trueField : falseField);
+        if (columnFilter.isRequiresProfileUpdateVisible())        csvRow.add(userCacheRecord.isRequiresProfileUpdate() ? trueField : falseField);
+
+        if (columnFilter.isCacheTimestampVisible())               csvRow.add(userCacheRecord.getCacheTimestamp() == null ? naField : 
+            PwmConstants.DEFAULT_DATETIME_FORMAT.format(userCacheRecord.getCacheTimestamp()));
 
         csvPrinter.printRecord(csvRow);
     }
