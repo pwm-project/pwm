@@ -909,6 +909,10 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
             EmailTableHandler.init(settingKey);
             break;
 
+        case 'EMAIL_ADDRESS':
+            StringValueHandler.init(settingKey);
+            break;
+
         case 'ACTION':
             ActionHandler.init(settingKey);
             break;
