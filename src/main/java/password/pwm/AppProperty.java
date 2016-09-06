@@ -36,6 +36,8 @@ public enum AppProperty {
     APPLICATION_WORDLIST_RETRY_SECONDS              ("application.wordlistRetryImportSeconds"),
     AUDIT_EVENTS_EMAILFROM                          ("audit.events.emailFrom"),
     AUDIT_EVENTS_EMAILSUBJECT                       ("audit.events.emailSubject"),
+    AUDIT_SYSLOG_MAX_MESSAGE_LENGTH                 ("audit.syslog.message.length"),
+    AUDIT_SYSLOG_TRUNCATE_MESSAGE                   ("audit.syslog.message.truncateMsg"),
     BACKUP_LOCATION                                 ("backup.path"),
     BACKUP_CONFIG_COUNT                             ("backup.config.count"),
     BACKUP_LOCALDB_COUNT                            ("backup.localdb.count"),

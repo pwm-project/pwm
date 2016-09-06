@@ -34,8 +34,8 @@ public abstract class AuditRecord implements Serializable {
     protected Date timestamp = new Date();
     protected String message;
     protected String narrative;
-    protected String xdasTaxonomy;
-    protected String xdasOutcome;
+    protected final String xdasTaxonomy;
+    protected final String xdasOutcome;
 
 
     protected AuditRecord(
@@ -49,13 +49,13 @@ public abstract class AuditRecord implements Serializable {
 
         this.timestamp = timestamp;
         this.guid = PwmRandom.getInstance().randomUUID().toString();
+        this.xdasOutcome = eventCode.getXdasOutcome();
+        this.xdasTaxonomy = eventCode.getXdasTaxonomy();
     }
 
 
     protected AuditRecord(final AuditEvent eventCode, final String message) {
         this(new Date(), eventCode, message);
-        this.xdasOutcome = eventCode.getXdasOutcome();
-        this.xdasTaxonomy = eventCode.getXdasTaxonomy();
     }
 
     public AuditEvent.Type getType() {

@@ -44,8 +44,10 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
-import password.pwm.health.HealthTopic;
-import password.pwm.util.*;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.WorkQueueProcessor;
+import password.pwm.util.X509Utils;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
@@ -58,7 +60,11 @@ import java.io.Serializable;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static password.pwm.health.HealthTopic.Audit;
 
 public class SyslogAuditService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SyslogAuditService.class);
@@ -70,7 +76,7 @@ public class SyslogAuditService {
     private ErrorInformation lastError = null;
     private X509Certificate[] certificates = null;
 
-    private WorkQueueProcessor<AuditRecord> workQueueProcessor;
+    private WorkQueueProcessor<String> workQueueProcessor;
 
 
     private final Configuration configuration;
@@ -92,23 +98,23 @@ public class SyslogAuditService {
         }
 
         final WorkQueueProcessor.Settings settings = new WorkQueueProcessor.Settings();
-        settings.setMaxEvents(Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_COUNT)));
-        settings.setRetryDiscardAge(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_AGE_MS))));
-        settings.setRetryInterval(new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS))));
+        settings.setMaxEvents(Integer.parseInt(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_COUNT)));
+        settings.setRetryDiscardAge(new TimeDuration(Long.parseLong(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_AGE_MS))));
+        settings.setRetryInterval(new TimeDuration(Long.parseLong(configuration.readAppProperty(AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS))));
 
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE);
 
         workQueueProcessor = new WorkQueueProcessor<>(pwmApplication, localDBStoredQueue, settings, new SyslogItemProcessor(), this.getClass());
     }
 
-    private class SyslogItemProcessor implements WorkQueueProcessor.ItemProcessor<AuditRecord> {
+    private class SyslogItemProcessor implements WorkQueueProcessor.ItemProcessor<String> {
         @Override
-        public WorkQueueProcessor.ProcessResult process(AuditRecord workItem) {
+        public WorkQueueProcessor.ProcessResult process(String workItem) {
             return processEvent(workItem);
         }
 
         @Override
-        public String convertToDebugString(AuditRecord workItem) {
+        public String convertToDebugString(String workItem) {
             return JsonUtil.serialize(workItem);
         }
     }
@@ -144,8 +150,11 @@ public class SyslogAuditService {
                 throw new IllegalArgumentException("unknown protocol type");
         }
 
+        final int maxLength = Integer.parseInt(configuration.readAppProperty(AppProperty.AUDIT_SYSLOG_MAX_MESSAGE_LENGTH));
+
         syslogConfigIF.setThreaded(false);
         syslogConfigIF.setMaxQueueSize(0);
+        syslogConfigIF.setMaxMessageLength(maxLength);
         syslogConfigIF.setThrowExceptionOnWrite(true);
         syslogConfigIF.setHost(syslogConfig.getHost());
         syslogConfigIF.setPort(syslogConfig.getPort());
@@ -155,7 +164,8 @@ public class SyslogAuditService {
 
     public void add(AuditRecord event) throws PwmOperationalException {
         try {
-            workQueueProcessor.submit(event);
+            final String syslogMsg = convertAuditRecordToSyslogMessage(event, configuration);
+            workQueueProcessor.submit(syslogMsg);
         } catch (PwmOperationalException e) {
             LOGGER.warn("unable to add email to queue: " + e.getMessage());
         }
@@ -166,20 +176,19 @@ public class SyslogAuditService {
         if (lastError != null) {
             final ErrorInformation errorInformation = lastError;
             if (TimeDuration.fromCurrent(errorInformation.getDate()).isShorterThan(WARNING_WINDOW_MS)) {
-                healthRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.Audit,
+                healthRecords.add(new HealthRecord(HealthStatus.WARN, Audit,
                         errorInformation.toUserStr(PwmConstants.DEFAULT_LOCALE, configuration)));
             }
         }
         return healthRecords;
     }
 
-    private WorkQueueProcessor.ProcessResult processEvent(final AuditRecord auditRecord) {
-        final String syslogEventString = PwmConstants.PWM_APP_NAME + " " + JsonUtil.serialize(auditRecord);
+    private WorkQueueProcessor.ProcessResult processEvent(final String auditRecord) {
 
         final SyslogIF syslogIF = syslogInstance;
         try {
-            syslogIF.info(syslogEventString);
-            LOGGER.trace("delivered syslog audit event: " + syslogEventString);
+            syslogIF.info(auditRecord);
+            LOGGER.trace("delivered syslog audit event: " + auditRecord);
             lastError = null;
             return WorkQueueProcessor.ProcessResult.SUCCESS;
         } catch (Exception e) {
@@ -197,6 +206,59 @@ public class SyslogAuditService {
         syslogIF.shutdown();
         workQueueProcessor.close();
         syslogInstance = null;
+    }
+
+    private static String convertAuditRecordToSyslogMessage(
+            final AuditRecord auditRecord,
+            final Configuration configuration
+    )
+    {
+        final int maxLength = Integer.parseInt(configuration.readAppProperty(AppProperty.AUDIT_SYSLOG_MAX_MESSAGE_LENGTH));
+        final StringBuilder message = new StringBuilder();
+        message.append(PwmConstants.PWM_APP_NAME);
+        message.append(" ");
+
+        final String jsonValue = JsonUtil.serialize(auditRecord);
+
+        if (message.length() + jsonValue.length() <= maxLength) {
+            message.append(jsonValue);
+        } else {
+            final AuditRecord inputRecord = JsonUtil.cloneUsingJson(auditRecord, auditRecord.getClass());
+            inputRecord.message = inputRecord.message == null ? "" : inputRecord.message;
+            inputRecord.narrative= inputRecord.narrative == null ? "" : inputRecord.narrative;
+
+            final String truncateMessage = configuration.readAppProperty(AppProperty.AUDIT_SYSLOG_TRUNCATE_MESSAGE);
+            final AuditRecord copiedRecord = JsonUtil.cloneUsingJson(auditRecord, auditRecord.getClass());
+            copiedRecord.message = "";
+            copiedRecord.narrative = "";
+            final int shortenedMessageLength = message.length()
+                    + JsonUtil.serialize(copiedRecord).length()
+                    + truncateMessage.length();
+            final int maxMessageAndNarrativeLength = maxLength - (shortenedMessageLength + (truncateMessage.length() * 2));
+            int maxMessageLength = inputRecord.getMessage().length();
+            int maxNarrativeLength = inputRecord.getNarrative().length();
+
+            {
+                int top = maxMessageAndNarrativeLength;
+                while (maxMessageLength + maxNarrativeLength > maxMessageAndNarrativeLength) {
+                    top--;
+                    maxMessageLength = Math.min(maxMessageLength, top);
+                    maxNarrativeLength = Math.min(maxNarrativeLength, top);
+                }
+            }
+
+            copiedRecord.message = inputRecord.getMessage().length() > maxMessageLength
+                    ? inputRecord.message.substring(0, maxMessageLength) + truncateMessage
+                    : inputRecord.message;
+
+            copiedRecord.narrative = inputRecord.getNarrative().length() > maxNarrativeLength
+                    ? inputRecord.narrative.substring(0, maxNarrativeLength) + truncateMessage
+                    : inputRecord.narrative;
+
+            message.append(JsonUtil.serialize(copiedRecord));
+        }
+
+        return message.toString();
     }
 
     public static class SyslogConfig implements Serializable {
