@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.tests;
+package password.pwm.manual;
 
 import junit.framework.TestCase;
 import password.pwm.AppProperty;
@@ -64,9 +64,9 @@ public class LocalDBLoggerTest extends TestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
-        password.pwm.tests.TestHelper.setupLogging();
-        final File localDBPath = new File(password.pwm.tests.TestHelper.getParameter("localDBPath"));
-        final File configFile = new File(password.pwm.tests.TestHelper.getParameter("configurationFile"));
+        TestHelper.setupLogging();
+        final File localDBPath = new File(TestHelper.getParameter("localDBPath"));
+        final File configFile = new File(TestHelper.getParameter("configurationFile"));
         final ConfigurationReader reader = new ConfigurationReader(configFile);
         config = reader.getConfiguration();
 
@@ -77,6 +77,10 @@ public class LocalDBLoggerTest extends TestCase {
                 config
         );
 
+        //localDB.truncate(LocalDB.DB.EVENTLOG_EVENTS);
+        //System.out.println(localDB.size(LocalDB.DB.EVENTLOG_EVENTS));
+        //new TimeDuration(1,TimeUnit.HOURS).pause();
+
         { // open localDBLogger based on configuration settings;
             final int maxEvents = (int) reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
             final long maxAgeMs = reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * (long) 1000;
@@ -86,8 +90,8 @@ public class LocalDBLoggerTest extends TestCase {
 
         settings = new Settings();
         settings.threads = 10;
-        settings.testDuration = new TimeDuration(1, TimeUnit.HOURS);
-        settings.valueLength = 5000;
+        settings.testDuration = new TimeDuration(3, TimeUnit.HOURS);
+        settings.valueLength = 500;
         settings.batchSize = 100;
     }
 

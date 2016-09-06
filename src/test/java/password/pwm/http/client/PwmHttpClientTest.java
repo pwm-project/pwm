@@ -1,30 +1,30 @@
 package password.pwm.http.client;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import java.io.InputStream;
-import java.security.KeyStore;
-import java.security.cert.X509Certificate;
-
-import javax.net.ssl.SSLHandshakeException;
-
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.junit.Rule;
 import org.junit.Test;
-
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.error.PwmUnrecoverableException;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import javax.net.ssl.SSLHandshakeException;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.cert.X509Certificate;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.*;
 
 public class PwmHttpClientTest {
     @Rule public WireMockRule wm = new WireMockRule(wireMockConfig()
@@ -32,8 +32,11 @@ public class PwmHttpClientTest {
         .dynamicHttpsPort());
 
     // Create a few mock objects, in case they're needed by the tests
-    private Configuration configuration = mock(Configuration.class);
+    private Configuration configuration = spy(new Configuration(StoredConfigurationImpl.newStoredConfiguration()));
     private PwmHttpClientConfiguration pwmHttpClientConfiguration = mock(PwmHttpClientConfiguration.class);
+
+    public PwmHttpClientTest() throws PwmUnrecoverableException {
+    }
 
     /**
      * Test making a simple HTTP request from the client returned by PwmHttpClient.getHttpClient(...)

@@ -1,9 +1,10 @@
 package password.pwm.util;
 
-import static org.assertj.core.api.Assertions.*;
-import static password.pwm.util.PwmPasswordRuleValidator.*;
-
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static password.pwm.util.PwmPasswordRuleValidator.containsDisallowedValue;
+import static password.pwm.util.PwmPasswordRuleValidator.tooManyConsecutiveChars;
 
 public class PwmPasswordRuleValidatorTest {
     @Test

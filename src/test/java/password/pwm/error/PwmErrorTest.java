@@ -1,9 +1,9 @@
 /*
  * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
+ * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2016 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,23 +20,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.tests;
+package password.pwm.error;
 
 import junit.framework.TestCase;
-import password.pwm.error.PwmError;
+import org.junit.Test;
+import password.pwm.PwmConstants;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class PwmEnumTest extends TestCase {
+public class PwmErrorTest extends TestCase {
 
+    @Test
     public void testPwmErrorNumbers() throws Exception {
-        final Set<Integer> seenErrorNumbers = new HashSet<Integer>();
+        final Set<Integer> seenErrorNumbers = new HashSet<>();
         for (final PwmError loopError : PwmError.values()) {
             if (seenErrorNumbers.contains(loopError.getErrorCode())) {
                 throw new Exception("duplicate error code: " + loopError.getErrorCode() + " " + loopError.toString());
             }
             seenErrorNumbers.add(loopError.getErrorCode());
+        }
+    }
+
+    public void testLocalizedMessage() {
+        for (final PwmError pwmError : PwmError.values()) {
+            pwmError.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, null);
         }
     }
 }

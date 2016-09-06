@@ -58,7 +58,6 @@ public class OTPPamUtilTest {
      */
     @Test
     public void testSplitLines() {
-        System.out.println("splitLines");
         String text = "TUC2JMV7BLJVV6YX\r\n\" WINDOW_SIZE -1\r\n\" TOTP_AUTH\r\n72706699\r\n";
         List<String> result = OTPPamUtil.splitLines(text);
         assertEquals(4, result.size());
