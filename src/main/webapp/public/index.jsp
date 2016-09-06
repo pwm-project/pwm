@@ -24,8 +24,7 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <% final PwmRequest index_pwmRequest = JspUtility.getPwmRequest(pageContext); %>
@@ -35,85 +34,72 @@
     <jsp:include page="../WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_MainPage"/>
     </jsp:include>
-    <div id="centerbody">
-        <table class="noborder">
-            <tr>
-                <td class="menubutton_key">
-                    <a class="menubutton" id="Button_Login" href="<pwm:context/><pwm:url url='/private'/>">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-sign-in"></span></pwm:if>
-                        <pwm:display key="Button_Login"/>
-                    </a>
-                </td>
-                <td style="border: 0">
-                    <p><pwm:display key="Display_Login"/></p>
-                </td>
-            </tr>
-            <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
-            <tr>
-                <td class="menubutton_key">
-                    <a class="menubutton" id="Title_ForgottenPassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenPassword.servletUrl()%>'/>">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
-                        <pwm:display key="Title_ForgottenPassword"/>
-                    </a>
-                </td>
-                <td style="border: 0">
-                    <p><pwm:display key="Long_Title_ForgottenPassword"/></p>
-                </td>
-            </tr>
-            <% } %>
-            <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
-            <tr>
-                <td class="menubutton_key">
-                    <a class="menubutton" id="Title_ForgottenUsername" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenUsername.servletUrl()%>'/>">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-unlock"></span></pwm:if>
-                        <pwm:display key="Title_ForgottenUsername"/>
-                    </a>
-                </td>
-                <td style="border: 0">
-                    <p><pwm:display key="Long_Title_ForgottenUsername"/></p>
-                </td>
-            </tr>
-            <% } %>
-            <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
-            <tr>
-                <td class="menubutton_key">
-                    <a class="menubutton" id="Title_ActivateUser" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ActivateUser.servletUrl()%>'/>">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-graduation-cap"></span></pwm:if>
-                        <pwm:display key="Title_ActivateUser"/>
-                    </a>
-                </td>
-                <td style="border: 0">
-                    <p><pwm:display key="Long_Title_ActivateUser"/></p>
-                </td>
-            </tr>
-            <% } %>
-            <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
-            <tr>
-                <td class="menubutton_key">
-                    <a class="menubutton" id="Title_NewUser" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.NewUser.servletUrl()%>'/>">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-text-o"></span></pwm:if>
-                        <pwm:display key="Title_NewUser"/>
-                    </a>
-                </td>
-                <td style="border: 0">
-                    <p><pwm:display key="Long_Title_NewUser"/></p>
-                </td>
-            </tr>
-            <% } %>
-            <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC)) { %>
-            <tr>
-                <td class="menubutton_key">
-                    <a class="menubutton" href="<pwm:url addContext="true" url='<%=PwmConstants.URL_PREFIX_PUBLIC + "/" + PwmServletDefinition.PeopleSearch.servletUrlName()%>'/>">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
-                        <pwm:display key="Title_PeopleSearch"/>
-                    </a>
-                </td>
-                <td>
-                    <p><pwm:display key="Long_Title_PeopleSearch"/></p>
-                </td>
-            </tr>
-            <% } %>
-        </table>
+
+    <div id="centerbody" class="tile-centerbody">
+        <a id="Button_Login" href="<pwm:url addContext="true" url='/private'/>">
+            <div class="tile">
+                <div class="tile-content">
+                    <div class="tile-image pwm-icon-sign-in"></div>
+                    <div class="tile-title" title="<pwm:display key='Button_Login'/>"><pwm:display key="Button_Login"/></div>
+                    <div class="tile-subtitle" title="<pwm:display key='Title_Application'/>"><pwm:display key="Title_Application"/></div>
+                </div>
+            </div>
+        </a>
+        <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
+        <a id="Button_ForgottenPassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenPassword.servletUrl()%>'/>">
+            <div class="tile">
+                <div class="tile-content">
+                    <div class="tile-image pwm-icon-unlock"></div>
+                    <div class="tile-title" title="<pwm:display key='Title_ForgottenPassword'/>"><pwm:display key="Title_ForgottenPassword"/></div>
+                    <div class="tile-subtitle" title="<pwm:display key='Long_Title_ForgottenPassword'/>"><pwm:display key="Long_Title_ForgottenPassword"/></div>
+                </div>
+            </div>
+        </a>
+        <% } %>
+        <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
+        <a id="Button_ForgottenUsername" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenUsername.servletUrl()%>'/>">
+            <div class="tile">
+                <div class="tile-content">
+                    <div class="tile-image pwm-icon-unlock"></div>
+                    <div class="tile-title" title="<pwm:display key='Title_ForgottenUsername'/>"><pwm:display key="Title_ForgottenUsername"/></div>
+                    <div class="tile-subtitle" title="<pwm:display key='Long_Title_ForgottenUsername'/>"><pwm:display key="Long_Title_ForgottenUsername"/></div>
+                </div>
+            </div>
+        </a>
+        <% } %>
+        <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
+        <a id="Button_ActivateUser" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ActivateUser.servletUrl()%>'/>">
+            <div class="tile">
+                <div class="tile-content">
+                    <div class="tile-image pwm-icon-graduation-cap"></div>
+                    <div class="tile-title" title="<pwm:display key='Title_ActivateUser'/>"><pwm:display key="Title_ActivateUser"/></div>
+                    <div class="tile-subtitle" title="<pwm:display key='Long_Title_ActivateUser'/>"><pwm:display key="Long_Title_ActivateUser"/></div>
+                </div>
+            </div>
+        </a>
+        <% } %>
+        <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
+        <a id="Button_NewUser" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.NewUser.servletUrl()%>'/>">
+            <div class="tile">
+                <div class="tile-content">
+                    <div class="tile-image pwm-icon-file-text-o"></div>
+                    <div class="tile-title" title="<pwm:display key='Title_NewUser'/>"><pwm:display key="Title_NewUser"/></div>
+                    <div class="tile-subtitle" title="<pwm:display key='Long_Title_NewUser'/>"><pwm:display key="Long_Title_NewUser"/></div>
+                </div>
+            </div>
+        </a>
+        <% } %>
+        <% if (index_pwmRequest.getConfig() != null && index_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC)) { %>
+        <a id="Button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>">
+            <div class="tile">
+                <div class="tile-content">
+                    <div class="tile-image pwm-icon-search"></div>
+                    <div class="tile-title" title="<pwm:display key='Title_PeopleSearch'/>"><pwm:display key="Title_PeopleSearch"/></div>
+                    <div class="tile-subtitle" title="<pwm:display key='Long_Title_PeopleSearch'/>"><pwm:display key="Long_Title_PeopleSearch"/></div>
+                </div>
+            </div>
+        </a>
+        <% } %>
     </div>
     <div class="push"></div>
 </div>
