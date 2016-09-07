@@ -108,7 +108,7 @@
                 <td class="title">Health</td>
             </tr>
             <tr><td>
-                <div id="healthBody" class="health-body" style="border: 0; padding: 0">
+                <div id="healthBody" class="health-body noborder nopadding">
                     <div class="WaitDialogBlank"></div>
                 </div>
             </td></tr>

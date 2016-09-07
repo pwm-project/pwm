@@ -85,9 +85,9 @@
             </script>
         </pwm:script>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <table style="border:0">
+        <table class="noborder">
             <tr>
-                <td style="border:0; width: 600px; max-width:600px; vertical-align: top">
+                <td class="noborder" style="width: 600px; max-width:600px; vertical-align: top">
                     <div id="panel-helpdesk-detail" data-dojo-type="dijit.layout.TabContainer" style="max-width: 600px; height: 100%;" data-dojo-props="doLayout: false, persist: true" >
                         <div id="Field_Profile" data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Field_Profile"/>" class="tabContent">
                             <div style="max-height: 400px; overflow: auto;">
@@ -517,8 +517,8 @@
                     <br/>
                     <div class="footnote"><div class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></div></div>
                 </td>
-                <td style="border:0; width: 200px; max-width:200px; text-align: left; vertical-align: top">
-                    <div style="border:0; margin-top: 25px; margin-left: 5px">
+                <td class="noborder" style="width: 200px; max-width:200px; text-align: left; vertical-align: top">
+                    <div class="noborder" style="margin-top: 25px; margin-left: 5px">
                         <button name="button_continue" class="helpdesk-detail-btn btn" id="button_continue" autofocus>
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                             <pwm:display key="Button_GoBack"/>

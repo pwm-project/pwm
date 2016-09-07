@@ -55,7 +55,7 @@
             </tr>
             <tr>
                 <td colspan="10"  style="margin:0; padding:0">
-                    <div id="healthBody" style="border:0; margin:0; padding:0">
+                    <div id="healthBody" class="noborder nomargin nopadding">
                         <div class="WaitDialogBlank"></div>
                     </div>
                 </td>

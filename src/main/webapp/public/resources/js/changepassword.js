@@ -236,15 +236,15 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
         dialogBody += PWM_MAIN.showString('Display_PasswordGeneration');
     }
     dialogBody += "<br/><br/>";
-    dialogBody += '<table style="border: 0">';
+    dialogBody += '<table class="noborder">';
 
     for (var i = 0; i < 20; i++) {
-        dialogBody += '<tr style="border: 0">';
+        dialogBody += '<tr class="noborder">';
         for (var j = 0; j < 2; j++) {
             i = i + j;
             (function(index) {
                 var elementID = "randomGen" + index;
-                dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><div style="visibility:hidden" class="link-randomPasswordValue" href="#" id="' + elementID + '">&nbsp;</div></td>';
+                dialogBody += '<td class="noborder" style="padding-bottom: 5px;" width="20%"><div style="visibility:hidden" class="link-randomPasswordValue" href="#" id="' + elementID + '">&nbsp;</div></td>';
                 eventHandlers.push(function(){
                     PWM_MAIN.addEventHandler(elementID,'click',function(){
                         var value = PWM_MAIN.getObject(elementID).innerHTML;
@@ -257,9 +257,9 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
     }
     dialogBody += "</table><br/><br/>";
 
-    dialogBody += '<table style="border: 0">';
-    dialogBody += '<tr style="border: 0"><td style="border: 0"><button class="btn" id="moreRandomsButton" disabled="true"><span class="btn-icon pwm-icon pwm-icon-refresh"></span>' + PWM_MAIN.showString('Button_More') + '</button></td>';
-    dialogBody += '<td style="border: 0; text-align:right;"><button class="btn" id="cancelRandomsButton"><span class="btn-icon pwm-icon pwm-icon-times"></span>' + PWM_MAIN.showString('Button_Cancel') + '</button></td></tr>';
+    dialogBody += '<table class="noborder">';
+    dialogBody += '<tr class="noborder"><td class="noborder"><button class="btn" id="moreRandomsButton" disabled="true"><span class="btn-icon pwm-icon pwm-icon-refresh"></span>' + PWM_MAIN.showString('Button_More') + '</button></td>';
+    dialogBody += '<td class="noborder" style="text-align:right;"><button class="btn" id="cancelRandomsButton"><span class="btn-icon pwm-icon pwm-icon-times"></span>' + PWM_MAIN.showString('Button_Cancel') + '</button></td></tr>';
     dialogBody += "</table>";
 
     randomConfig['dialogBody'] = dialogBody;

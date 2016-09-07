@@ -57,9 +57,9 @@
         <br/>
         <%@ include file="fragment/message.jsp" %>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" id="changePasswordForm" autocomplete="off">
-            <table style="border:0">
+            <table class="noborder">
                 <tr>
-                    <td style="border:0;">
+                    <td class="noborder">
                         <div style="width: 100%">
                             <h2 style="display: inline">
                                 <label style="" for="password1"><pwm:display key="Field_NewPassword"/></label>
@@ -73,7 +73,7 @@
                         </div>
                         <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password1" id="password1" class="changepasswordfield passwordfield" <pwm:autofocus/>/>
                     </td>
-                    <td style="border:0; width:15%">
+                    <td class="noborder" style="width:15%">
                         <pwm:if test="<%=PwmIfTest.showStrengthMeter%>">
                         <div id="strengthBox" style="visibility:hidden;">
                             <div id="strengthLabel" style="padding-top:40px;">
@@ -85,14 +85,14 @@
                         </div>
                         </pwm:if>
                     </td>
-                    <td style="border:0; width:10%">&nbsp;</td>
+                    <td class="noborder" style="width:10%">&nbsp;</td>
                 </tr>
                 <tr>
-                    <td style="border:0; width:75%">
+                    <td class="noborder" style="width:75%">
                         <h2 style="display: inline"><label for="password2"><pwm:display key="Field_ConfirmPassword"/></label></h2>
                         <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password2" id="password2" class="changepasswordfield passwordfield"/>
                     </td>
-                    <td style="border:0; width:15%">
+                    <td class="noborder" style="width:15%">
                         <%-- confirmation mark [not shown initially, enabled by javascript; see also changepassword.js:markConfirmationMark() --%>
                         <div style="padding-top:45px;">
                             <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"
@@ -101,7 +101,7 @@
                                  src="<pwm:context/><pwm:url url='/public/resources/redX.png'/>">
                         </div>
                     </td>
-                    <td style="border:0; width:10%">&nbsp;</td>
+                    <td class="noborder" style="width:10%">&nbsp;</td>
                 </tr>
             </table>
 

@@ -380,7 +380,7 @@ PWM_MAIN.handleLoginFormSubmit = function(form, event) {
             options['content'] = domForm.toObject(form);
             delete options['content']['processAction'];
             delete options['content']['pwmFormID'];
-            var url = 'Login?processAction=restLogin';
+            var url = 'login?processAction=restLogin';
             var loadFunction = function(data) {
                 if (data['error'] == true) {
                     PWM_MAIN.getObject('password').value = '';

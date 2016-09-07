@@ -872,7 +872,7 @@ PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo, options) {
             + settingInfo['description'] + '</div>';
     }
 
-    htmlBody += '<div class="pane-settingValue" id="table_setting_' + settingKey + '" style="border:0 none">'
+    htmlBody += '<div class="pane-settingValue noborder" id="table_setting_' + settingKey + '">'
         + '</div>' // close setting;
         + '</div>' // close body
         + '<div class="footnote" style="width:100%"><span id="panel-' + settingKey + '-modifyTime"></span></div>'
@@ -1264,14 +1264,14 @@ PWM_CFGEDIT.applyGotoSettingHandlers = function() {
 
 PWM_CFGEDIT.closeMenuPanel = function() {
     console.log('action closeHeader');
-    PWM_MAIN.setStyle('header-warning','display','none');
-    PWM_MAIN.setStyle('button-openMenu','display','inherit');
+    PWM_MAIN.addCssClass('header-warning','nodisplay');
+    PWM_MAIN.removeCssClass('button-openMenu','nodisplay');
 };
 
 PWM_CFGEDIT.openMenuPanel = function() {
     console.log('action openHeader');
-    PWM_MAIN.setStyle('header-warning','display','inherit');
-    PWM_MAIN.setStyle('button-openMenu','display','none');
+    PWM_MAIN.removeCssClass('header-warning','nodisplay');
+    PWM_MAIN.addCssClass('button-openMenu','nodisplay');
 };
 
 

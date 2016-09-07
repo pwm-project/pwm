@@ -52,7 +52,7 @@
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             <table style="">
                 <tr style="width:0">
-                    <td class="key" style="border:0">
+                    <td class="key" class="noborder">
                         <label for="level">Level</label>
                         <br/>
                         <%--
@@ -83,7 +83,7 @@
                         </select>
 
                     </td>
-                    <td class="key" style="border: 0">
+                    <td class="key" class="noborder">
                         <label for="type">Type</label>
                         <br/>
                         <% final String selectedType = pwmRequest.readParameterAsString("type", "Both");%>
@@ -94,19 +94,19 @@
                             <option value="Both" <%= "Both".equals(selectedType) ? "selected=\"selected\"" : "" %>>Both</option>
                         </select>
                     </td>
-                    <td class="key" style="border: 0">
+                    <td class="key" class="noborder">
                         Username
                         <br/>
                         <input name="username" type="text"
                                value="<%=pwmRequest.readParameterAsString("username")%>"/>
                     </td>
-                    <td class="key" style="border: 0">
+                    <td class="key" class="noborder">
                         Containing text
                         <br/>
                         <input name="text" type="text"
                                value="<%=pwmRequest.readParameterAsString("text")%>"/>
                     </td>
-                    <td class="key" style="border: 0">
+                    <td class="key" class="noborder">
                         Max Count
                         <br/>
                         <% final String selectedCount = pwmRequest.readParameterAsString("count");%>
@@ -123,7 +123,7 @@
                             </option>
                         </select>
                     </td>
-                    <td class="key" style="border: 0">
+                    <td class="key" class="noborder">
                         Max Time
                         <br/>
                         <% final String selectedTime = pwmRequest.readParameterAsString("maxTime");%>
@@ -138,7 +138,7 @@
                             </option>
                         </select>
                     </td>
-                    <td class="key" style="border: 0">
+                    <td class="key" class="noborder">
                         <label for="displayText">Display</label>
                         <br/>
                         <% final String displayText = pwmRequest.readParameterAsString("displayText", "Both");%>
@@ -147,7 +147,7 @@
                             <option value="true" <%= "true".equals(displayText) ? "selected=\"selected\"" : "" %>>Text</option>
                         </select>
                     </td>
-                    <td class="key" style="border: 0; vertical-align: middle">
+                    <td class="key noborder" style="vertical-align: middle">
                         <button type="submit" name="submit_button" id="submit_button" class="btn">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-search"></span></pwm:if>
                             Search

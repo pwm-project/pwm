@@ -48,37 +48,37 @@
         </p>
 
         <br/>
-        <table style="border:0">
-            <tr style="border:0">
-                <td style="border:0" class="menubutton_key">
+        <table class="noborder">
+            <tr class="noborder">
+                <td class="noborder" class="menubutton_key">
                     <a class="menubutton" id="button-startConfigGuide">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-rocket"></span></pwm:if>
                         <pwm:display key="MenuItem_StartConfigGuide" bundle="Config"/>
                     </a>
                 </td>
-                <td style="border:0">
+                <td class="noborder">
                     <p><pwm:display key="MenuDisplay_StartConfigGuide" bundle="Config"/></p>
                 </td>
             </tr>
-            <tr style="border:0">
-                <td style="border:0" class="menubutton_key">
+            <tr class="noborder">
+                <td class="noborder" class="menubutton_key">
                     <a class="menubutton" id="button-manualConfig">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-cogs"></span></pwm:if>
                         <pwm:display key="MenuItem_ManualConfig" bundle="Config"/>
                     </a>
                 </td>
-                <td style="border:0">
+                <td class="noborder">
                     <p><pwm:display key="MenuDisplay_ManualConfig" bundle="Config"/></p>
                 </td>
             </tr>
-            <tr style="border:0">
-                <td style="border:0" class="menubutton_key">
+            <tr class="noborder">
+                <td class="noborder" class="menubutton_key">
                     <a class="menubutton" id="button-uploadConfig">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
                         <pwm:display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
                 </td>
-                <td style="border:0">
+                <td class="noborder">
                     <p><pwm:display key="MenuDisplay_UploadConfig" bundle="Config"/></p>
                 </td>
             </tr>

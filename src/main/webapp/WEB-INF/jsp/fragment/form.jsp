@@ -164,12 +164,12 @@
         <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>" form="newuser"/>
     </ul>
 </div>
-<table style="border:0; margin: 0; padding: 0">
-    <tr style="border:0; margin: 0; padding: 0">
-        <td style="border:0; margin: 0; padding: 0; width:60%">
+<table class="noborder nomargin nopadding">
+    <tr class="noborder nomargin nopadding">
+        <td class="noborder nomargin nopadding" style="width:60%">
             <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" onkeypress="PWM_MAIN.getObject('password2').value=''" style="margin-left:5px"/>
         </td>
-        <td style="border:0;">
+        <td class="noborder">
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
             <div id="strengthBox" style="visibility:hidden;">
                 <div id="strengthLabel">
@@ -192,13 +192,13 @@
             </pwm:script>
             <% } %>
         </td>
-        <td style="border:0; width:10%">&nbsp;</td>
+        <td class="noborder" style="width:10%">&nbsp;</td>
     </tr>
-    <tr style="border:0; margin: 0; padding: 0">
-        <td style="border:0; margin: 0; padding: 0">
+    <tr class="noborder nomargin nopadding">
+        <td class="noborder nomargin nopadding">
             <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password2" id="password2" class="changepasswordfield passwordfield" style="margin-left:5px"/>
         </td>
-        <td style="border:0">
+        <td class="noborder">
             <%-- confirmation mark [not shown initially, enabled by javascript; see also changepassword.js:markConfirmationMark() --%>
             <div style="padding-top:10px;">
                 <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"
@@ -207,7 +207,7 @@
                      src="<pwm:context/><pwm:url url='/public/resources/redX.png'/>">
             </div>
         </td>
-        <td style="border:0; width:10%">&nbsp;</td>
+        <td class="noborder" style="width:10%">&nbsp;</td>
     </tr>
 </table>
 <% } %>

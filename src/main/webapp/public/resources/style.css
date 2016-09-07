@@ -197,6 +197,14 @@ table td.key {
       border-collapse: collapse;
   }
 
+.nopadding {
+    padding: 0;
+}
+
+.nodisplay {
+    display: none;
+}
+
 /* disable ie password reveal */
 input[type=password]::-ms-reveal{display: none;}
 

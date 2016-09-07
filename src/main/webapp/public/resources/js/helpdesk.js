@@ -159,7 +159,7 @@ PWM_HELPDESK.generatePasswordPopup = function() {
 PWM_HELPDESK.changePasswordPopup = function() {
     var bodyText = '';
     bodyText += '<span id="message" class="message message-info" style="width: 400px">' + PWM_MAIN.showString('Display_PasswordPrompt') + '</span>';
-    bodyText += '<table style="border: 0"><tr style="border: 0"><td style="border: 0">';
+    bodyText += '<table class="noborder"><tr class="noborder"><td class="noborder">';
     if (PWM_VAR['helpdesk_setting_maskPasswords']) {
         bodyText += '<input type="password" name="password1" id="password1" class="passwordfield" style="width: 260px" autocomplete="off"/>';
     } else {
@@ -167,14 +167,14 @@ PWM_HELPDESK.changePasswordPopup = function() {
     }
     bodyText += '</td>';
     if (PWM_GLOBAL['setting-showStrengthMeter']) {
-        bodyText += '<td style="border:0"><div id="strengthBox" style="visibility:hidden;">';
+        bodyText += '<td class="noborder"><div id="strengthBox" style="visibility:hidden;">';
         bodyText += '<div id="strengthLabel">' + PWM_MAIN.showString('Display_StrengthMeter') + '</div>';
         bodyText += '<div class="progress-container" style="margin-bottom:10px">';
         bodyText += '<div id="strengthBar" style="width:0">&nbsp;</div></div></div></td>';
     }
-    bodyText += '</tr><tr style="border: 0">';
+    bodyText += '</tr><tr class="noborder">';
 
-    bodyText += '<td style="border: 0">';
+    bodyText += '<td class="noborder">';
     if (PWM_VAR['helpdesk_setting_maskPasswords']) {
         bodyText += '<input type="password" name="password2" id="password2" class="passwordfield" style="width: 260px" autocomplete="off"/>';
     } else {
@@ -182,7 +182,7 @@ PWM_HELPDESK.changePasswordPopup = function() {
     }
     bodyText += '</td>';
 
-    bodyText += '<td style="border: 0"><div style="margin:0;">';
+    bodyText += '<td class="noborder"><div style="margin:0;">';
     bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/greenCheck.png">';
     bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png">';
     bodyText += '</div></td>';

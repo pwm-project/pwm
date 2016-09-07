@@ -273,27 +273,27 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
 
     if (syntax == 'PROFILE') {
         var copyButtonID = 'button-' + settingKey + '-' + iteration + '-copy';
-        rowHtml += '<td style="border:0; padding:0; width:10px" title="Copy">';
+        rowHtml += '<td class="noborder nopadding" style="width:10px" title="Copy">';
         rowHtml += '<span id="' + copyButtonID + '" class="action-icon pwm-icon pwm-icon-copy"></span>';
         rowHtml += '</td>';
     }
 
     var downButtonID = 'button-' + settingKey + '-' + iteration + '-moveDown';
-    rowHtml += '<td style="border:0; padding:0; width:10px" title="Move Down">';
+    rowHtml += '<td class="noborder nopadding" style="width:10px" title="Move Down">';
     if (itemCount > 1 && iteration != (itemCount -1)) {
         rowHtml += '<span id="' + downButtonID + '" class="action-icon pwm-icon pwm-icon-chevron-down"></span>';
     }
     rowHtml += '</td>';
 
     var upButtonID = 'button-' + settingKey + '-' + iteration + '-moveUp';
-    rowHtml += '<td style="border:0; padding:0; width:10px" title="Move Up">';
+    rowHtml += '<td class="noborder nopadding" style="width:10px" title="Move Up">';
     if (itemCount > 1 && iteration != 0) {
         rowHtml += '<span id="' + upButtonID + '" class="action-icon pwm-icon pwm-icon-chevron-up"></span>';
     }
     rowHtml += '</td>';
 
     var deleteButtonID = 'button-' + settingKey + '-' + iteration + '-delete';
-    rowHtml += '<td style="border:0; padding:0; width:10px" title="Delete">';
+    rowHtml += '<td class="noborder nopadding" style="width:10px" title="Delete">';
 
     if (itemCount > 1 || (!settingInfo['required'])) {
         rowHtml += '<span id="' + deleteButtonID + '" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
@@ -673,7 +673,7 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
 
         var hideOptions = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'], 'Form_HideOptions');
         if (!hideOptions) {
-            htmlRow += '<td style="min-width:90px; border:0"><button id="' + inputID + 'optionsButton"><span class="btn-icon pwm-icon pwm-icon-sliders"/> Options</button></td>';
+            htmlRow += '<td class="noborder" style="min-width:90px;"><button id="' + inputID + 'optionsButton"><span class="btn-icon pwm-icon pwm-icon-sliders"/> Options</button></td>';
         }
 
         htmlRow += '<td style="width:10px">';
@@ -1067,7 +1067,7 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
         var value = PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][optionName];
         var optionID = inputID + optionName;
         bodyText += '<td>' + optionName + '</td><td>' + value + '</td>';
-        bodyText += '<td style="border:0; width:15px">';
+        bodyText += '<td class="noborder" style="width:15px">';
         bodyText += '<span id="' + optionID + '-removeButton" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
         bodyText += '</td>';
         bodyText += '</tr><tr>';
@@ -1556,7 +1556,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
         if (value['type'] == 'webservice') {
             titleText = 'Web Service options for ' + value['name'];
             bodyText += '<tr>';
-            bodyText += '<td class="key">HTTP Method</td><td style="border:0;"><select id="select-' + inputID + '-method">';
+            bodyText += '<td class="key">HTTP Method</td><td class="noborder" ><select id="select-' + inputID + '-method">';
 
             for (var optionItem in ActionHandler.httpMethodOptions) {
                 var label = ActionHandler.httpMethodOptions[optionItem]['label'];
@@ -1589,7 +1589,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
             bodyText += '<td class="key">Attribute Value</td><td><input style="width:300px" class="configStringInput" type="text" id="input-' + inputID + '-attributeValue' + '" value="' + value['attributeValue'] + '"/></td>';
             bodyText += '</tr>';
             bodyText += '<tr>';
-            bodyText += '<td class="key">Operation Type</td><td style="border:0;"><select id="select-' + inputID + '-ldapMethod' + '">';
+            bodyText += '<td class="key">Operation Type</td><td class="noborder"><select id="select-' + inputID + '-ldapMethod' + '">';
 
             for (var optionItem in ActionHandler.ldapMethodOptions) {
                 var label = ActionHandler.ldapMethodOptions[optionItem]['label'];
@@ -1846,7 +1846,7 @@ EmailTableHandler.drawRowHtml = function(settingKey, localeName) {
     var localeLabel = localeName == '' ? 'Default Locale' : PWM_GLOBAL['localeInfo'][localeName] + " (" + localeName + ")";
     var idPrefix = "setting-" + localeName + "-" + settingKey;
     var htmlBody = '';
-    htmlBody += '<table style="border:0"><tr ><td style="border:0">';
+    htmlBody += '<table class="noborder"><tr ><td class="noborder">';
     htmlBody += '<table>';
     if (PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) > 1) {
         htmlBody += '<tr><td colspan="5" class="title" style="font-size:100%; font-weight:normal">' + localeLabel + '</td></tr>';
@@ -1863,7 +1863,7 @@ EmailTableHandler.drawRowHtml = function(settingKey, localeName) {
     outputFunction('Plain Body', 'bodyPlain');
     outputFunction('HTML Body', 'bodyHtml');
 
-    htmlBody += '</table></td><td style="width:20px; border:0; vertical-align:top">';
+    htmlBody += '</table></td><td class="noborder" style="width:20px; vertical-align:top">';
     if (localeName != '' || PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) < 2) { // add remove locale x
         htmlBody += '<div id="button-deleteRow-' + idPrefix + '" style="vertical-align:top" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></div>';
     }
@@ -2057,7 +2057,7 @@ ChallengeSettingHandler.draw = function(settingKey) {
             }
             bodyText += '</td></tr>';
 
-            bodyText += '</table></td><td style="width:20px; border:0; vertical-align:top">';
+            bodyText += '</table></td><td class="noborder" style="width:20px; vertical-align:top">';
             if (localeName != '' || PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) < 2) { // add remove locale x
                 bodyText += '<div id="button-deleteRow-' + settingKey + '-' + localeKey + '" style="vertical-align:top" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></div>';
             }
@@ -2156,7 +2156,7 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
             dialogBody += '<label class="checkboxWrapper"><input type="checkbox" id="value-wordlist-' + inputID + '" disabled/>Apply Word List</label>';
 
             dialogBody += '</td></tr>';
-            dialogBody += '</table></td><td style="border:0; vertical-align: top">';
+            dialogBody += '</table></td><td class="noborder" style="vertical-align: top">';
             if (PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][keyName][localeKey]) > 1) { // add remove locale x
 
                 dialogBody += '<div class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="button-deleteRow-' + inputID + '"/>';

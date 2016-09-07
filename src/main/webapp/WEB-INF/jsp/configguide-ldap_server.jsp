@@ -88,7 +88,7 @@
             </div>
         </form>
         <br/>
-        <div id="healthBody" style="border:0; margin:0; padding:0; cursor: pointer">
+        <div id="healthBody" class="noborder nomargin nopadding" style="cursor: pointer">
             <div style="text-align: center">
                 <button class="menubutton" style="margin-left: auto; margin-right: auto">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-check"></span></pwm:if>
