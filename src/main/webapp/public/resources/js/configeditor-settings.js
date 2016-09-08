@@ -1467,6 +1467,7 @@ ActionHandler.drawRow = function(settingKey, iteration, value) {
         var selected = optionList[optionItem] == PWM_VAR['clientSettingCache'][settingKey][iteration]['type'];
         htmlRow += '<option value="' + optionList[optionItem] + '"' + (selected ? ' selected' : '') + '>' + optionList[optionItem] + '</option>';
     }
+    htmlRow += '</select>';
     htmlRow += '</td><td>';
     htmlRow += '<button id="button-' + inputID + '-options"><span class="btn-icon pwm-icon pwm-icon-sliders"/> Options</button>';
     htmlRow += '</td>';

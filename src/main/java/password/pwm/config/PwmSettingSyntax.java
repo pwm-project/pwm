@@ -40,6 +40,7 @@ public enum PwmSettingSyntax {
     FORM(FormValue.factory()),
     ACTION(ActionValue.factory()),
     EMAIL(EmailValue.factory()),
+    EMAIL_ADDRESS(EmailAddressValue.factory()),
     X509CERT(X509CertificateValue.factory()),
     CHALLENGE(ChallengeValue.factory()),
     OPTIONLIST(OptionListValue.factory()),

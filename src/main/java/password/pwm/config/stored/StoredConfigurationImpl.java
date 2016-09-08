@@ -455,7 +455,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
                     try {
                         final List<String> errors = loopValue.validateValue(loopSetting);
                         for (final String loopError : errors) {
-                            errorStrings.add(loopSetting.toMenuLocationDebug(profile,PwmConstants.DEFAULT_LOCALE) + " " + loopError);
+                            errorStrings.add(loopSetting.toMenuLocationDebug(profile,PwmConstants.DEFAULT_LOCALE) + " - " + loopError);
                         }
                     } catch (Exception e) {
                         LOGGER.error("unexpected error during validate value for " + loopSetting.toMenuLocationDebug(profile,PwmConstants.DEFAULT_LOCALE) + ", error: " + e.getMessage(),e);
@@ -467,7 +467,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
                 try {
                     final List<String> errors = loopValue.validateValue(loopSetting);
                     for (final String loopError : errors) {
-                        errorStrings.add(loopSetting.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE) + loopError);
+                        errorStrings.add(loopSetting.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE) + " - " + loopError);
                     }
                 } catch (Exception e) {
                     LOGGER.error("unexpected error during validate value for " + loopSetting.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE) + ", error: " + e.getMessage(),e);

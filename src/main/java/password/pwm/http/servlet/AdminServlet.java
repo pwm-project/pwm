@@ -22,7 +22,17 @@
 
 package password.pwm.http.servlet;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -32,18 +42,12 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
+import password.pwm.svc.report.ReportColumnFilter;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.reports.ReportUtils;
 import password.pwm.ws.server.RestResultBean;
-
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 
 @WebServlet(
         name = "AdminServlet",
@@ -176,8 +180,11 @@ public class AdminServlet extends AbstractPwmServlet {
 
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try {
+            final String selectedColumns = pwmRequest.readParameterAsString("selectedColumns", "");
+
             final ReportService userReport = pwmApplication.getReportService();
-            userReport.outputToCsv(outputStream, true, pwmRequest.getLocale());
+            final ReportColumnFilter columnFilter = ReportUtils.toReportColumnFilter(selectedColumns);
+            userReport.outputToCsv(outputStream, true, pwmRequest.getLocale(), columnFilter);
         } catch (Exception e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
             pwmRequest.respondWithError(errorInformation);
