@@ -1,6 +1,5 @@
 package password.pwm.svc.report;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -24,6 +23,7 @@ import com.google.gson.reflect.TypeToken;
 
 import password.pwm.config.Configuration;
 import password.pwm.svc.report.ReportService.RecordIterator;
+import password.pwm.tests.TestHelper;
 import password.pwm.util.JsonUtil;
 
 public class ReportServiceTest {
@@ -82,9 +82,9 @@ public class ReportServiceTest {
         reportService.outputToCsv(new WriterOutputStream(outputWriter), true, Locale.ENGLISH, configuration, columnFilter);
 
         // Verify the results
-        String actual = outputWriter.toString();
-        String expected = IOUtils.toString(getClass().getResourceAsStream("allUserRecordsReport.csv"));
-        assertThat(actual).isEqualTo(expected);
+        String actual = outputWriter.toString().replaceAll("\r", "");
+        String expected = IOUtils.toString(getClass().getResourceAsStream("allUserRecordsReport.csv")).replaceAll("\r", "");
+        TestHelper.assertEqualsIgnoreLineEndings(actual, expected);
     }
 
     @Test
@@ -99,9 +99,9 @@ public class ReportServiceTest {
         reportService.outputToCsv(new WriterOutputStream(outputWriter), true, Locale.ENGLISH, configuration, columnFilter);
 
         // Verify the results
-        String actual = outputWriter.toString();
-        String expected = IOUtils.toString(getClass().getResourceAsStream("allUserRecordsReport-noUserDnColumn.csv"));
-        assertThat(actual).isEqualTo(expected);
+        String actual = outputWriter.toString().replaceAll("\r", "");
+        String expected = IOUtils.toString(getClass().getResourceAsStream("allUserRecordsReport-noUserDnColumn.csv")).replaceAll("\r", "");
+        TestHelper.assertEqualsIgnoreLineEndings(actual, expected);
     }
 
     @Test
@@ -115,9 +115,9 @@ public class ReportServiceTest {
         reportService.outputToCsv(new WriterOutputStream(outputWriter), true, Locale.ENGLISH, configuration, columnFilter);
 
         // Verify the results
-        String actual = outputWriter.toString();
-        String expected = IOUtils.toString(getClass().getResourceAsStream("allUserRecordsReport-onlyUserDnColumn.csv"));
-        assertThat(actual).isEqualTo(expected);
+        String actual = outputWriter.toString().replaceAll("\r", "");
+        String expected = IOUtils.toString(getClass().getResourceAsStream("allUserRecordsReport-onlyUserDnColumn.csv")).replaceAll("\r", "");
+        TestHelper.assertEqualsIgnoreLineEndings(actual, expected);
     }
 
     private void setAllTrue(ReportColumnFilter columnFilter) throws Exception {
@@ -127,4 +127,5 @@ public class ReportServiceTest {
             }
         }
     }
+
 }

@@ -26,6 +26,8 @@ import com.novell.ldapchai.ChaiUser;
 import org.apache.log4j.*;
 import password.pwm.PwmApplication;
 
+import static org.assertj.core.api.Assertions.*;
+
 import java.util.ResourceBundle;
 
 public class TestHelper {
@@ -47,5 +49,17 @@ public class TestHelper {
         pwmPackageLogger.setLevel(level);
         chaiPackageLogger.addAppender(consoleAppender);
         chaiPackageLogger.setLevel(level);
+    }
+
+    public static void assertEqualsIgnoreLineEndings(String actual, String expected) {
+        if (actual != null) {
+            actual = actual.replaceAll("\r\n", "\n");
+        }
+
+        if (expected !=null) {
+            expected = expected.replaceAll("\r\n", "\n");
+        }
+
+        assertThat(actual).isEqualTo(expected);
     }
 }
