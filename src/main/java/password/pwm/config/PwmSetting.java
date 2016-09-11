@@ -255,7 +255,7 @@ public enum PwmSetting {
     EMAIL_SERVER_PORT(
             "email.smtp.port", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_DEFAULT_FROM_ADDRESS(
-            "email.default.fromAddress", PwmSettingSyntax.EMAIL_ADDRESS, PwmSettingCategory.EMAIL_SETTINGS),
+            "email.default.fromAddress", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_USERNAME(
             "email.smtp.username", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_PASSWORD(

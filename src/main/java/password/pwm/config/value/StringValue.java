@@ -24,7 +24,9 @@ package password.pwm.config.value;
 
 import org.jdom2.CDATA;
 import org.jdom2.Element;
+import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.StoredValue;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -84,6 +86,14 @@ public class StringValue extends AbstractValue implements StoredValue {
             final Matcher matcher = pattern.matcher(value);
             if (value != null && value.length() > 0 && !matcher.matches()) {
                 return Collections.singletonList("incorrect value format for value '" + value + "'");
+            }
+        }
+
+        if (pwmSetting.getFlags().contains(PwmSettingFlag.emailSyntax)) {
+            if (value != null) {
+                if (!FormConfiguration.testEmailAddress(null, value)) {
+                    return Collections.singletonList("Invalid email address format: '" + value + "'");
+                }
             }
         }
 

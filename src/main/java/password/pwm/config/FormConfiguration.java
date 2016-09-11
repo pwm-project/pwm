@@ -22,6 +22,7 @@
 
 package password.pwm.config;
 
+import org.apache.commons.validator.routines.EmailValidator;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.error.*;
@@ -314,10 +315,22 @@ public class FormConfiguration implements Serializable {
         return returnList;
     }
 
+    /**
+     * Return false if an invalid email address is issued.
+     * @param config
+     * @param address
+     * @return
+     */
     public static boolean testEmailAddress(final Configuration config, final String address) {
-        final String patternStr = config.readAppProperty(AppProperty.FORM_EMAIL_REGEX);
-        final Pattern pattern = Pattern.compile(patternStr);
-        final Matcher matcher = pattern.matcher(address);
-        return matcher.matches();
+        if (config != null) {
+            final String patternStr = config.readAppProperty(AppProperty.FORM_EMAIL_REGEX);
+            if (patternStr != null && !patternStr.isEmpty()) {
+                final Pattern pattern = Pattern.compile(patternStr);
+                final Matcher matcher = pattern.matcher(address);
+                return matcher.matches();
+            }
+        }
+
+        return EmailValidator.getInstance(true, true).isValid(address);
     }
 }

@@ -24,6 +24,11 @@ package password.pwm.config;
 
 import password.pwm.config.value.*;
 
+/**
+ * Setting syntax definitions.  Each syntax listed here corresponds to some type of native Java object.  The factory specified includes
+ * methods for marshaling to and from XML and JSON formats.  For user-facing syntactical differences in format, see the
+ * {@link PwmSetting#getRegExPattern()} or use a {@link PwmSettingFlag} type.
+ */
 public enum PwmSettingSyntax {
     STRING(StringValue.factory()),
     USER_PERMISSION(UserPermissionValue.factory()),
@@ -40,7 +45,6 @@ public enum PwmSettingSyntax {
     FORM(FormValue.factory()),
     ACTION(ActionValue.factory()),
     EMAIL(EmailValue.factory()),
-    EMAIL_ADDRESS(EmailAddressValue.factory()),
     X509CERT(X509CertificateValue.factory()),
     CHALLENGE(ChallengeValue.factory()),
     OPTIONLIST(OptionListValue.factory()),

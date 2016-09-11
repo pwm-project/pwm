@@ -670,6 +670,7 @@
         </properties>
     </setting>
     <setting hidden="false" key="email.default.fromAddress" level="1">
+        <flag>emailSyntax</flag>
         <default>
             <value>noreply@example.org</value>
         </default>
@@ -1469,6 +1470,7 @@
         </default>
     </setting>
     <setting hidden="false" key="email.adminAlert.toAddress" level="1">
+        <flag>emailSyntax</flag>
         <default/>
         <example><![CDATA[admin@example.com]]></example>
     </setting>
@@ -1490,6 +1492,7 @@
         </options>
     </setting>
     <setting hidden="false" key="audit.userEvent.toAddress" level="1">
+        <flag>emailSyntax</flag>
         <default/>
         <example><![CDATA[admin@example.com]]></example>
     </setting>
