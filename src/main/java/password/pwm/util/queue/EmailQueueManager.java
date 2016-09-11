@@ -298,7 +298,7 @@ public class EmailQueueManager implements PwmService {
         final boolean hasHtml = emailItemBean.getBodyHtml() != null && emailItemBean.getBodyHtml().length() > 0;
         final String subjectEncodingCharset = config.readAppProperty(AppProperty.SMTP_SUBJECT_ENCODING_CHARSET);
 
-        // create a new Session object for the message
+        // create a new Session object for the messagejavamail
         final javax.mail.Session session = javax.mail.Session.getInstance(javaMailProps, null);
 
         String emailTo = emailItemBean.getTo();
@@ -306,7 +306,6 @@ public class EmailQueueManager implements PwmService {
             InternetAddress[] recipients = InternetAddress.parse(emailTo);
             for (InternetAddress recipient : recipients) {
                 final MimeMessage message = new MimeMessage(session);
-                message.setFrom();
                 message.setFrom(makeInternetAddress(emailItemBean.getFrom()));
                 message.setRecipient(Message.RecipientType.TO, recipient);
                 {
