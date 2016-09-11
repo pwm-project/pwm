@@ -1,7 +1,15 @@
 package password.pwm.svc.report;
 
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import com.google.gson.reflect.TypeToken;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.mortbay.io.WriterOutputStream;
+import password.pwm.config.Configuration;
+import password.pwm.svc.report.ReportService.RecordIterator;
+import password.pwm.util.JsonUtil;
 
 import java.io.OutputStream;
 import java.io.StringWriter;
@@ -12,19 +20,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.mortbay.io.WriterOutputStream;
-
-import com.google.gson.reflect.TypeToken;
-
-import password.pwm.config.Configuration;
-import password.pwm.svc.report.ReportService.RecordIterator;
-import password.pwm.tests.TestHelper;
-import password.pwm.util.JsonUtil;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Mockito.*;
 
 public class ReportServiceTest {
     private static final Type USER_CACHE_RECORD_LIST_TYPE = new TypeToken<ArrayList<UserCacheRecord>>(){}.getType();
@@ -84,7 +83,7 @@ public class ReportServiceTest {
         // Verify the results
         String actual = outputWriter.toString().replaceAll("\r", "");
         String expected = IOUtils.toString(getClass().getResourceAsStream("allUserRecordsReport.csv")).replaceAll("\r", "");
-        TestHelper.assertEqualsIgnoreLineEndings(actual, expected);
+        assertEqualsIgnoreLineEndings(actual, expected);
     }
 
     @Test
@@ -101,7 +100,7 @@ public class ReportServiceTest {
         // Verify the results
         String actual = outputWriter.toString().replaceAll("\r", "");
         String expected = IOUtils.toString(getClass().getResourceAsStream("allUserRecordsReport-noUserDnColumn.csv")).replaceAll("\r", "");
-        TestHelper.assertEqualsIgnoreLineEndings(actual, expected);
+        assertEqualsIgnoreLineEndings(actual, expected);
     }
 
     @Test
@@ -117,7 +116,7 @@ public class ReportServiceTest {
         // Verify the results
         String actual = outputWriter.toString().replaceAll("\r", "");
         String expected = IOUtils.toString(getClass().getResourceAsStream("allUserRecordsReport-onlyUserDnColumn.csv")).replaceAll("\r", "");
-        TestHelper.assertEqualsIgnoreLineEndings(actual, expected);
+        assertEqualsIgnoreLineEndings(actual, expected);
     }
 
     private void setAllTrue(ReportColumnFilter columnFilter) throws Exception {
@@ -127,5 +126,18 @@ public class ReportServiceTest {
             }
         }
     }
+
+    public static void assertEqualsIgnoreLineEndings(String actual, String expected) {
+        if (actual != null) {
+            actual = actual.replaceAll("\r\n", "\n");
+        }
+
+        if (expected !=null) {
+            expected = expected.replaceAll("\r\n", "\n");
+        }
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
 
 }

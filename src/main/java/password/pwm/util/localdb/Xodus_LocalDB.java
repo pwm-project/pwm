@@ -28,10 +28,7 @@ import jetbrains.exodus.bindings.StringBinding;
 import jetbrains.exodus.env.*;
 import jetbrains.exodus.management.Statistics;
 import org.jetbrains.annotations.NotNull;
-import password.pwm.util.ConditionalTaskExecutor;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.StringUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayOutputStream;
@@ -53,6 +50,23 @@ public class Xodus_LocalDB implements LocalDBProvider {
     private Environment environment;
     private File fileLocation;
 
+    private enum Property {
+        Compression_Enabled("xodus.compression.enabled"),
+        Compression_MinLength("xodus.compression.minLength"),
+
+        ;
+
+        private final String keyName;
+
+        Property(String keyName) {
+            this.keyName = keyName;
+        }
+
+        public String getKeyName() {
+            return keyName;
+        }
+    }
+
     private LocalDB.Status status = LocalDB.Status.NEW;
 
     private final Map<LocalDB.DB,Store> cachedStoreObjects = new HashMap<>();
@@ -64,7 +78,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
         }
     },new ConditionalTaskExecutor.TimeDurationConditional(STATS_OUTPUT_INTERVAL).setNextTimeFromNow(1, TimeUnit.MINUTES));
 
-    private final static BindMachine bindMachine = new BindMachine(false);
+    private BindMachine bindMachine = new BindMachine(BindMachine.DEFAULT_enableCompression, BindMachine.DEFAULT_minCompressionLength);
 
 
     @Override
@@ -92,6 +106,18 @@ public class Xodus_LocalDB implements LocalDBProvider {
         for (final String key : initParameters.keySet()) {
             final String value = initParameters.get(key);
             environmentConfig.setSetting(key,value);
+        }
+
+        {
+            final boolean compressionEnabled = initParameters.containsKey(Property.Compression_Enabled.getKeyName())
+                    ? Boolean.parseBoolean(initParameters.get(Property.Compression_Enabled.getKeyName()))
+                    : BindMachine.DEFAULT_enableCompression;
+
+            final int compressionMinLength = initParameters.containsKey(Property.Compression_MinLength.getKeyName())
+                    ? Integer.parseInt(initParameters.get(Property.Compression_MinLength.getKeyName()))
+                    : BindMachine.DEFAULT_minCompressionLength;
+
+            bindMachine = new BindMachine(compressionEnabled, compressionMinLength);
         }
 
         LOGGER.trace("preparing to open with configuration " + JsonUtil.serializeMap(environmentConfig.getSettings()));
@@ -355,16 +381,18 @@ public class Xodus_LocalDB implements LocalDBProvider {
     }
 
     private static class BindMachine {
-        private static final Deflater DEFLATER = new Deflater();
-        private static final Inflater INFLATER = new Inflater();
         private static final byte COMPRESSED_PREFIX = 98;
         private static final byte UNCOMPRESSED_PREFIX = 99;
-        private static final int minCompressionLength = 50;
 
+        static final int DEFAULT_minCompressionLength = 16;
+        static final boolean DEFAULT_enableCompression = false;
+
+        private final int minCompressionLength;
         private final boolean enableCompression;
 
-        BindMachine(boolean enableCompression) {
+        BindMachine(boolean enableCompression, final int minCompressionLength) {
             this.enableCompression = enableCompression;
+            this.minCompressionLength = minCompressionLength;
         }
 
         ByteIterable keyToEntry(final String key) {
@@ -407,24 +435,24 @@ public class Xodus_LocalDB implements LocalDBProvider {
 
         static byte[] compressData(byte[] data) {
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            final DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(byteArrayOutputStream, DEFLATER);
+            final DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(byteArrayOutputStream, new Deflater());
             try {
                 deflaterOutputStream.write(data);
                 deflaterOutputStream.close();
             } catch (IOException e) {
-                throw new IllegalStateException("unexpected exception compressing data stream", e);
+                throw new IllegalStateException("unexpected exception compressing data stream: " + e.getMessage(), e);
             }
             return byteArrayOutputStream.toByteArray();
         }
 
         static byte[] decompressData(byte[] data) {
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            final InflaterOutputStream inflaterOutputStream = new InflaterOutputStream(byteArrayOutputStream, INFLATER);
+            final InflaterOutputStream inflaterOutputStream = new InflaterOutputStream(byteArrayOutputStream, new Inflater());
             try {
                 inflaterOutputStream.write(data);
                 inflaterOutputStream.close();
             } catch (IOException e) {
-                throw new IllegalStateException("unexpected exception decompressing data stream", e);
+                throw new IllegalStateException("unexpected exception decompressing data stream: " + e.getMessage(), e);
             }
             return byteArrayOutputStream.toByteArray();
         }

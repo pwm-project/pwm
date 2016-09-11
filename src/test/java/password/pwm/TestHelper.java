@@ -20,13 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.manual;
+package password.pwm;
 
 import com.novell.ldapchai.ChaiUser;
 import org.apache.log4j.*;
-import password.pwm.PwmApplication;
-
-import static org.assertj.core.api.Assertions.*;
 
 import java.util.ResourceBundle;
 
@@ -51,15 +48,7 @@ public class TestHelper {
         chaiPackageLogger.setLevel(level);
     }
 
-    public static void assertEqualsIgnoreLineEndings(String actual, String expected) {
-        if (actual != null) {
-            actual = actual.replaceAll("\r\n", "\n");
-        }
+    public static void t() {
 
-        if (expected !=null) {
-            expected = expected.replaceAll("\r\n", "\n");
-        }
-
-        assertThat(actual).isEqualTo(expected);
     }
 }

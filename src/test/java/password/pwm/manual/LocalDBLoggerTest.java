@@ -25,6 +25,7 @@ package password.pwm.manual;
 import junit.framework.TestCase;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
+import password.pwm.TestHelper;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationReader;
