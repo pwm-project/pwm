@@ -210,6 +210,9 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                 );
                 otpBean.setWritten(true);
 
+                // Update the current user info bean, so the user can check the code right away
+                pwmSession.getUserInfoBean().setOtpUserRecord(otpBean.getOtpUserRecord());
+
                 // mark the event log
                 final UserAuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
                         AuditEvent.SET_OTP_SECRET,
