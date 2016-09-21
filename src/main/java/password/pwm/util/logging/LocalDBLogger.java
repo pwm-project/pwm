@@ -408,7 +408,7 @@ public class LocalDBLogger implements PwmService {
         public void run() {
             try {
                 int cleanupCount = 1;
-                while (cleanupCount > 0 && (status == STATUS.OPEN  && localDBListQueue.getPwmDB().status() == LocalDB.Status.OPEN)) {
+                while (cleanupCount > 0 && (status == STATUS.OPEN  && localDBListQueue.getLocalDB().status() == LocalDB.Status.OPEN)) {
                     cleanupCount = determineTailRemovalCount();
                     if (cleanupCount > 0) {
                         cleanOnWriteFlag.set(true);

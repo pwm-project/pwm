@@ -183,13 +183,16 @@ public class LDAPPermissionCalculator implements Serializable {
                 if (!(Boolean)storedConfiguration.readSetting(PwmSetting.PEOPLE_SEARCH_ENABLE).toNativeObject()) {
                     return Collections.emptyList();
                 }
-                final boolean proxyOverride = (Boolean)storedConfiguration.readSetting(PwmSetting.PEOPLE_SEARCH_USE_PROXY, profile).toNativeObject()
-                        || (Boolean)storedConfiguration.readSetting(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC, profile).toNativeObject();
+                final boolean proxyOverride = (Boolean)storedConfiguration.readSetting(PwmSetting.PEOPLE_SEARCH_USE_PROXY, profile).toNativeObject();
+                final boolean publicOverride = (Boolean)storedConfiguration.readSetting(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC, profile).toNativeObject();
 
-                if (proxyOverride) {
+                if (proxyOverride || publicOverride) {
                     final Collection<LDAPPermissionInfo> configuredRecords = pwmSetting.getLDAPPermissionInfo();
                     final Collection<LDAPPermissionInfo> returnRecords = new ArrayList<>();
                     for (final LDAPPermissionInfo ldapPermissionInfo : configuredRecords) {
+                        if (!(proxyOverride && publicOverride)) {
+                            returnRecords.add(ldapPermissionInfo);  // include regular self-other permission
+                        }
                         returnRecords.add(new LDAPPermissionInfo(ldapPermissionInfo.getAccess(), LDAPPermissionInfo.Actor.proxy));
                     }
                     return returnRecords;

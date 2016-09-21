@@ -83,8 +83,6 @@ public enum PwmSetting {
             "knownLocales", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LOCALIZATION),
     LOCALE_COOKIE_MAX_AGE(
             "locale.cookie.age", PwmSettingSyntax.DURATION, PwmSettingCategory.LOCALIZATION),
-    PWMDB_LOCATION(
-            "pwmDb.location", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     HTTP_PROXY_URL(
             "http.proxy.url", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     APP_PROPERTY_OVERRIDES(
@@ -1095,6 +1093,8 @@ public enum PwmSetting {
             "recovery.require.otp", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS),
     HELPDESK_ENABLE_OTP_VERIFY(
             "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+    PWMDB_LOCATION(
+            "pwmDb.location", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
 
 
 

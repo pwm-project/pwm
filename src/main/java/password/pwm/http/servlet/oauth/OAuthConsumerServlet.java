@@ -421,6 +421,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
         }
 
         debugOutput.append(" body:\n ").append(bodyResponse);
+        LOGGER.trace(pwmRequest, debugOutput.toString());
 
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new PwmUnrecoverableException(new ErrorInformation(
@@ -429,41 +430,42 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
             ));
         }
 
-        LOGGER.trace(pwmRequest, debugOutput.toString());
         return new RestResults(httpResponse, bodyResponse);
     }
 
     public static String figureOauthSelfEndPointUrl(final PwmRequest pwmRequest) {
-        final String inputURI, debugSource;
+        final String debugSource, redirect_uri;
 
         {
             final String returnUrlOverride = pwmRequest.getConfig().readAppProperty(AppProperty.OAUTH_RETURN_URL_OVERRIDE);
             final String siteURL = pwmRequest.getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL);
             if (returnUrlOverride != null && !returnUrlOverride.trim().isEmpty()) {
-                inputURI = returnUrlOverride;
                 debugSource = "AppProperty(\"" + AppProperty.OAUTH_RETURN_URL_OVERRIDE.getKey() + "\")";
+                redirect_uri = returnUrlOverride
+                        + PwmServletDefinition.OAuthConsumer.servletUrl();
             } else if (siteURL != null && !siteURL.trim().isEmpty()) {
-                inputURI = siteURL;
                 debugSource = "SiteURL Setting";
+                redirect_uri = siteURL
+                        + PwmServletDefinition.OAuthConsumer.servletUrl();
             } else {
                 debugSource = "Input Request URL";
-                inputURI = pwmRequest.getHttpServletRequest().getRequestURL().toString();
+                final String inputURI = pwmRequest.getHttpServletRequest().getRequestURL().toString();
+                try {
+                    final URI requestUri = new URI(inputURI);
+                    final int port = requestUri.getPort();
+                    redirect_uri = requestUri.getScheme() + "://" + requestUri.getHost()
+                            + (port > 0 && port != 80 && port != 443 ? ":" + requestUri.getPort() : "")
+                            + pwmRequest.getContextPath()
+                            + PwmServletDefinition.OAuthConsumer.servletUrl();
+                } catch (URISyntaxException e) {
+                    throw new IllegalStateException("unable to parse inbound request uri while generating oauth redirect: " + e.getMessage());
+                }
             }
         }
 
-        final String redirect_uri;
-        try {
-            final URI requestUri = new URI(inputURI);
-            redirect_uri = requestUri.getScheme() + "://" + requestUri.getHost()
-                    + (requestUri.getPort() > 0 ? ":" + requestUri.getPort() : "")
-                    + PwmServletDefinition.OAuthConsumer.servletUrl();
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException("unable to parse inbound request uri while generating oauth redirect: " + e.getMessage());
-        }
         LOGGER.trace("calculated oauth self end point URI as '" + redirect_uri + "' using method " + debugSource);
         return redirect_uri;
     }
-
     static class RestResults {
         final HttpResponse httpResponse;
         final String responseBody;

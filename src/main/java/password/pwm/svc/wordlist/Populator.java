@@ -42,6 +42,7 @@ import java.text.NumberFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Jason D. Rivard
@@ -67,7 +68,14 @@ class Populator {
 
     private final PopulationStats overallStats = new PopulationStats();
     private PopulationStats perReportStats = new PopulationStats();
-    private TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(600, 10, 50 * 1000);
+    private TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
+            new TransactionSizeCalculator.SettingsBuilder()
+                    .setDurationGoal(new TimeDuration(600, TimeUnit.MILLISECONDS))
+                    .setMinTransactions(10)
+                    .setMaxTransactions(50 * 1000)
+                    .createSettings()
+    );
+
     private int loopLines;
 
     private final Map<String,String> bufferedWords = new TreeMap<>();

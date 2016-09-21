@@ -132,9 +132,21 @@ public enum AuditEvent {
     }
 
     public enum Type {
-        USER,
-        SYSTEM,
-        HELPDESK,
+        USER(UserAuditRecord.class),
+        SYSTEM(SyslogAuditService.class),
+        HELPDESK(HelpdeskAuditRecord.class),
+
+        ;
+
+        private final Class clazz;
+
+        Type(Class clazz) {
+            this.clazz = clazz;
+        }
+
+        public Class getDataClass() {
+            return clazz;
+        }
     }
 
     public String getXdasTaxonomy() {

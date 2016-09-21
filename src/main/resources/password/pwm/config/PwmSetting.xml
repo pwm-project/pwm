@@ -2853,7 +2853,7 @@
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.orgChart.parentAttribute" level="1">
-        <ldapPermission actor="proxy" access="read"/>
+        <ldapPermission actor="self_other" access="read"/>
         <default>
             <value>manager</value>
         </default>
@@ -3237,11 +3237,6 @@
             <value>{"name":"postalCode","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Postal Code"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
-    <setting hidden="false" key="pwmDb.location" level="2" required="true">
-        <default>
-            <value><![CDATA[LocalDB]]></value>
-        </default>
-    </setting>
     <setting hidden="false" key="db.classname" level="1">
         <default>
             <value />
@@ -3534,6 +3529,11 @@
     <setting hidden="true" key="helpdesk.otp.verify" level="1">
         <default>
             <value>false</value>
+        </default>
+    </setting>
+    <setting hidden="true" key="pwmDb.location" level="2" required="true">
+        <default>
+            <value><![CDATA[LocalDB]]></value>
         </default>
     </setting>
     <!-- DEPRECATED SETTINGS -->

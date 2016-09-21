@@ -424,7 +424,7 @@
                                 Local Audit Records
                             </td>
                             <td>
-                                <%= numberFormat.format(dashboard_pwmApplication.getAuditManager().vaultSize()) %>
+                                <%= dashboard_pwmApplication.getAuditManager().sizeToDebugString() %>
                             </td>
                         </tr>
                         <tr>

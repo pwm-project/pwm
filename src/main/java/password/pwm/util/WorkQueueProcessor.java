@@ -22,6 +22,7 @@
 
 package password.pwm.util;
 
+import com.google.gson.annotations.SerializedName;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
@@ -63,6 +64,7 @@ public class WorkQueueProcessor<W extends Serializable> {
         SUCCESS,
         FAILED,
         RETRY,
+        NOOP,
     }
 
     private static class IDGenerator {
@@ -254,7 +256,7 @@ public class WorkQueueProcessor<W extends Serializable> {
                     return;
                 }
             } catch (Throwable e) {
-                LOGGER.error("error reading queued item: " + e.getMessage(), e);
+                LOGGER.warn("discarding stored record due to parsing error: " + e.getMessage() + ", record=" + nextStrValue);
                 removeQueueTop();
                 return;
             }
@@ -285,6 +287,10 @@ public class WorkQueueProcessor<W extends Serializable> {
                         }
                         break;
 
+                        case NOOP:
+                            break;
+
+
                         default:
                             throw new IllegalStateException("unexpected processResult type " + processResult);
                     }
@@ -303,20 +309,27 @@ public class WorkQueueProcessor<W extends Serializable> {
     }
 
     private static class ItemWrapper<W extends Serializable> implements Serializable {
-        private final Date date;
+        @SerializedName("t")
+        private final Date timestamp;
+
+        @SerializedName("m")
         private final String item;
+
+        @SerializedName("c")
         private final String className;
+
+        @SerializedName("i")
         private final String id;
 
         ItemWrapper(final Date submitDate, final W workItem, final String itemId) {
-            this.date = submitDate;
+            this.timestamp = submitDate;
             this.item = JsonUtil.serialize(workItem);
             this.className = workItem.getClass().getName();
             this.id = itemId;
         }
 
         Date getDate() {
-            return date;
+            return timestamp;
         }
 
         W getWorkItem() throws PwmOperationalException {

@@ -71,6 +71,8 @@ public class SyslogAuditService {
 
     private static final int WARNING_WINDOW_MS = 30 * 60 * 1000;
     private static final String SYSLOG_INSTANCE_NAME = "syslog-audit";
+    private static final int LENGTH_OVERSIZE = 1024;
+
 
     private SyslogIF syslogInstance = null;
     private ErrorInformation lastError = null;
@@ -154,7 +156,7 @@ public class SyslogAuditService {
 
         syslogConfigIF.setThreaded(false);
         syslogConfigIF.setMaxQueueSize(0);
-        syslogConfigIF.setMaxMessageLength(maxLength);
+        syslogConfigIF.setMaxMessageLength(maxLength + LENGTH_OVERSIZE);
         syslogConfigIF.setThrowExceptionOnWrite(true);
         syslogConfigIF.setHost(syslogConfig.getHost());
         syslogConfigIF.setPort(syslogConfig.getPort());

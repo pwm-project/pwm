@@ -101,6 +101,14 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
     }
 
+    public void removeFirst(final int removalCount) {
+        try {
+            internalQueue.removeFirst(removalCount, false);
+        } catch (LocalDBException e) {
+            throw new IllegalStateException("unexpected localDB error while modifying queue: " + e.getMessage(), e);
+        }
+    }
+
 // ------------------------ INTERFACE METHODS ------------------------
 
 
@@ -247,7 +255,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
 
     public String pollFirst() {
         try {
-            final List<String> values = internalQueue.removeFirst(1);
+            final List<String> values = internalQueue.removeFirst(1, true);
             if (values == null || values.isEmpty()) {
                 return null;
             }
@@ -375,7 +383,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         return this.peekFirst();
     }
 
-    public LocalDB getPwmDB() {
+    public LocalDB getLocalDB() {
         return internalQueue.localDB;
     }
 
@@ -606,7 +614,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
             return tailPosition.distanceToHead(headPosition).intValue() + 1;
         }
 
-        List<String> removeFirst(final int removalCount) throws LocalDBException {
+        List<String> removeFirst(final int removalCount, final boolean returnValues) throws LocalDBException {
             try {
                 LOCK.writeLock().lock();
 
@@ -622,9 +630,11 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                 int removedPositions = 0;
                 while (removedPositions < removalCount) {
                     removalKeys.add(previousHead.toString());
-                    final String loopValue = localDB.get(DB, previousHead.toString());
-                    if (loopValue != null) {
-                        removedValues.add(loopValue);
+                    if (returnValues) {
+                        final String loopValue = localDB.get(DB, previousHead.toString());
+                        if (loopValue != null) {
+                            removedValues.add(loopValue);
+                        }
                     }
                     previousHead = previousHead.equals(tailPosition) ? previousHead : previousHead.previous();
                     removedPositions++;

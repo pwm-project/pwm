@@ -41,6 +41,7 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -185,7 +186,13 @@ public class LocalDBUtility {
         writeStringToOut(out, "beginning localdb import...");
 
         final Date startTime = new Date();
-        final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(100, 50, 5 * 1000);
+        final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
+                new TransactionSizeCalculator.SettingsBuilder()
+                        .setDurationGoal(new TimeDuration(100, TimeUnit.MILLISECONDS))
+                        .setMinTransactions(50)
+                        .setMaxTransactions(5 * 1000)
+                        .createSettings()
+        );
 
         final Map<LocalDB.DB,Map<String,String>> transactionMap = new HashMap<>();
         for (final LocalDB.DB loopDB : LocalDB.DB.values()) {

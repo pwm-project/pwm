@@ -102,10 +102,6 @@ public class ConfigurationChecker implements HealthChecker {
             LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL,"error while inspecting site URL setting: " + e.getMessage());
         }
 
-        if (!config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS)) {
-            records.add(HealthRecord.forMessage(HealthMessage.Config_RequireHttps,settingToOutputText(PwmSetting.REQUIRE_HTTPS)));
-        }
-
         if (config.readSettingAsBoolean(PwmSetting.LDAP_ENABLE_WIRE_TRACE)) {
             records.add(HealthRecord.forMessage(HealthMessage.Config_LDAPWireTrace,settingToOutputText(PwmSetting.LDAP_ENABLE_WIRE_TRACE)));
         }

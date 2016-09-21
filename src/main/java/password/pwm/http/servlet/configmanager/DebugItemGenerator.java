@@ -23,10 +23,7 @@
 package password.pwm.http.servlet.configmanager;
 
 import org.apache.commons.csv.CSVPrinter;
-import password.pwm.AppProperty;
-import password.pwm.PwmAboutProperty;
-import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
+import password.pwm.*;
 import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.StoredConfigurationImpl;
@@ -58,7 +55,8 @@ public class DebugItemGenerator {
             ConfigurationDebugJsonItemGenerator.class,
             ConfigurationDebugTextItemGenerator.class,
             AboutItemGenerator.class,
-            EnvironmentItemGenerator.class,
+            SystemEnvironmentItemGenerator.class,
+            AppEnvironmentGenerator.class,
             AppPropertiesItemGenerator.class,
             InfoDebugItemGenerator.class,
             HealthDebugItemGenerator.class,
@@ -212,10 +210,10 @@ public class DebugItemGenerator {
         }
     }
 
-    static class EnvironmentItemGenerator implements Generator {
+    static class SystemEnvironmentItemGenerator implements Generator {
         @Override
         public String getFilename() {
-            return "environment.properties";
+            return "system-environment.properties";
         }
 
         @Override
@@ -231,6 +229,23 @@ public class DebugItemGenerator {
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
             outputProps.store(baos,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
             outputStream.write(baos.toByteArray());
+        }
+    }
+
+    static class AppEnvironmentGenerator implements Generator {
+        @Override
+        public String getFilename() {
+            return "app-environment.json";
+        }
+
+        @Override
+        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        {
+            final PwmEnvironment pwmEnvironment = pwmApplication.getPwmEnvironment();
+
+            // java threads
+            final String output = JsonUtil.serialize(pwmEnvironment);
+            outputStream.write(output.getBytes(PwmConstants.DEFAULT_CHARSET));
         }
     }
 

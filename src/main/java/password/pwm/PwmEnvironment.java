@@ -43,11 +43,11 @@ public class PwmEnvironment implements Serializable {
 
     // data elements
     private final PwmApplicationMode applicationMode;
-    private final Configuration config;
+    private transient final Configuration config;
     private final File applicationPath;
     private final boolean internalRuntimeInstance;
     private final File configurationFile;
-    private final ContextManager contextManager;
+    private transient final ContextManager contextManager;
     private final Collection<ApplicationFlag> flags;
     private final Map<ApplicationParameter,String> parameters;
 

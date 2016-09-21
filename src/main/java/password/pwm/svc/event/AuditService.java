@@ -147,8 +147,8 @@ public class AuditService implements PwmService {
                     LOGGER.debug("localDB audit vault will remain closed due to max records setting");
                     pwmApplication.getLocalDB().truncate(LocalDB.DB.AUDIT_EVENTS);
                 } else {
-                    auditVault = new LocalDbAuditVault(pwmApplication, pwmApplication.getLocalDB());
-                    auditVault.init(settings);
+                    auditVault = new LocalDbAuditVault();
+                    auditVault.init(pwmApplication, pwmApplication.getLocalDB(), settings);
                 }
             } else {
                 LOGGER.debug("localDB audit vault will remain closed due to application mode");
@@ -268,6 +268,10 @@ public class AuditService implements PwmService {
         return auditVault.oldestRecord();
     }
 
+    public String sizeToDebugString() {
+        return auditVault.sizeToDebugString();
+    }
+
     public void submit(final AuditEvent auditEvent, final UserInfoBean userInfoBean, final PwmSession pwmSession)
             throws PwmUnrecoverableException
     {
@@ -302,7 +306,11 @@ public class AuditService implements PwmService {
 
         // add to audit db
         if (auditVault != null) {
-            auditVault.add(auditRecord);
+            try {
+                auditVault.add(auditRecord);
+            } catch (PwmOperationalException e) {
+                LOGGER.warn("discarding audit event due to storage error: " + e.getMessage());
+            }
         }
 
         // email alert

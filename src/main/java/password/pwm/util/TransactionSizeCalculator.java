@@ -22,103 +22,138 @@
 
 package password.pwm.util;
 
+import java.util.concurrent.TimeUnit;
+
 public class TransactionSizeCalculator {
 
-    private final TimeDuration setting_Goal;
-    private final TimeDuration setting_OutOfRange;
-    private final int setting_MaxTransactions;
-    private final int setting_MinTransactions;
-    private final int setting_MaxOutOfRangeCount = 3;
-
-    private final int initialTransactionSize;
+    private final Settings settings;
 
     private volatile int transactionSize;
-    private volatile int outOfRangeCount;
+    private volatile long lastDuration = 1;
 
-    public TransactionSizeCalculator(
-            final long goalTimeMS,
-            final int minTransactions,
-            final int maxTransactions
-    )
-    {
-        this(goalTimeMS, minTransactions, maxTransactions, minTransactions + 1);
-    }
-
-    public TransactionSizeCalculator(
-            final long goalTimeMS,
-            final int minTransactions,
-            final int maxTransactions,
-            final int initialTransactionSize
-    )
-    {
-        this.setting_Goal = new TimeDuration(goalTimeMS);
-        this.setting_OutOfRange = new TimeDuration(setting_Goal.getTotalMilliseconds() * 5);
-        this.setting_MaxTransactions = maxTransactions;
-        this.setting_MinTransactions = minTransactions;
-        {
-            int initialSize = initialTransactionSize;
-            if (initialSize > maxTransactions) {
-                initialSize = maxTransactions;
-            }
-            if (initialSize < minTransactions) {
-                initialSize = minTransactions;
-            }
-            this.initialTransactionSize = initialSize;
-        }
-        transactionSize = initialTransactionSize;
+    public TransactionSizeCalculator(final Settings settings) {
+        this.settings = settings;
+        reset();
     }
 
     public void reset() {
-        transactionSize = initialTransactionSize;
+        transactionSize = settings.getMinTransactions();
+        lastDuration = settings.getDurationGoal().getTotalMilliseconds();
     }
 
     public void recordLastTransactionDuration(final long duration) {
         recordLastTransactionDuration(new TimeDuration(duration));
     }
 
+    public void pause() {
+        Helper.pause(Math.min(lastDuration,settings.getDurationGoal().getTotalMilliseconds() * 2));
+    }
+
     public void recordLastTransactionDuration(final TimeDuration duration)
     {
-        final long difference = Math.abs(duration.getTotalMilliseconds() - setting_Goal.getTotalMilliseconds());
+        lastDuration = duration.getTotalMilliseconds();
+        final long durationGoalMs = settings.getDurationGoal().getTotalMilliseconds();
+        final long difference = Math.abs(duration.getTotalMilliseconds() - durationGoalMs);
+        final int closeThreshold = (int)(durationGoalMs * .15f);
 
         int newTransactionSize;
-        boolean outOfRange = false;
-        if (duration.isShorterThan(setting_Goal)) {
-            if (difference > 100) {
+        if (duration.isShorterThan(settings.getDurationGoal())) {
+            if (difference > closeThreshold) {
                 newTransactionSize = ((int) (transactionSize + (transactionSize * 0.1)) + 1);
             } else {
                 newTransactionSize = transactionSize + 1;
             }
-
-        } else if (duration.isLongerThan(setting_Goal) && duration.isShorterThan(setting_OutOfRange)) {
-            if (difference > 100) {
-            newTransactionSize = ((int) (transactionSize - (transactionSize * 0.1)) - 1);
+        } else if (duration.isLongerThan(settings.getDurationGoal())) {
+            if (difference > (10 * durationGoalMs)) {
+                newTransactionSize = settings.getMinTransactions();
+            } else if (difference > (2 * durationGoalMs)) {
+                newTransactionSize = transactionSize / 2;
+            } else if (difference > closeThreshold) {
+                newTransactionSize = ((int) (transactionSize - (transactionSize * 0.1)) - 1);
             } else {
-            newTransactionSize = transactionSize - 1;
-            }
-
-            if (duration.isLongerThan(setting_OutOfRange)) {
-                outOfRange = true;
+                newTransactionSize = transactionSize - 1;
             }
         } else {
             newTransactionSize = transactionSize;
         }
 
-        if (outOfRange) {
-            outOfRangeCount++;
-            if (outOfRangeCount > setting_MaxOutOfRangeCount) {
-                newTransactionSize = initialTransactionSize;
-                outOfRangeCount = 0;
-            }
-        } else {
-            outOfRangeCount = 0;
-        }
-
-        newTransactionSize = newTransactionSize > setting_MaxTransactions ? setting_MaxTransactions : newTransactionSize;
-        newTransactionSize = newTransactionSize < setting_MinTransactions ? setting_MinTransactions : newTransactionSize;
+        newTransactionSize = Math.min(newTransactionSize, settings.getMaxTransactions());
+        newTransactionSize = Math.max(newTransactionSize, settings.getMinTransactions());
         this.transactionSize = newTransactionSize;
     }
 
     public int getTransactionSize() {
         return transactionSize;
+    }
+
+    public static class Settings {
+        private final TimeDuration durationGoal;
+        private final int maxTransactions;
+        private final int minTransactions;
+
+        private Settings(TimeDuration durationGoal, int maxTransactions, int minTransactions) {
+            this.durationGoal = durationGoal;
+            this.maxTransactions = maxTransactions;
+            this.minTransactions = minTransactions;
+
+            if (minTransactions < 1) {
+                throw new IllegalArgumentException("minTransactions must be a positive integer");
+            }
+
+            if (maxTransactions < 1) {
+                throw new IllegalArgumentException("maxTransactions must be a positive integer");
+            }
+
+            if (minTransactions > maxTransactions) {
+                throw new IllegalArgumentException("minTransactions must be less than maxTransactions");
+            }
+
+            if (durationGoal == null) {
+                throw new IllegalArgumentException("durationGoal must not be null");
+            }
+
+            if (durationGoal.getTotalMilliseconds() < 1) {
+                throw new IllegalArgumentException("durationGoal must be greater than 0ms");
+            }
+        }
+
+
+
+        public TimeDuration getDurationGoal() {
+            return durationGoal;
+        }
+
+        public int getMaxTransactions() {
+            return maxTransactions;
+        }
+
+        public int getMinTransactions() {
+            return minTransactions;
+        }
+    }
+
+    public static class SettingsBuilder {
+        private TimeDuration durationGoal = new TimeDuration(100, TimeUnit.MILLISECONDS);
+        private int maxTransactions = 5003;
+        private int minTransactions = 3;
+
+        public SettingsBuilder setDurationGoal(TimeDuration durationGoal) {
+            this.durationGoal = durationGoal;
+            return this;
+        }
+
+        public SettingsBuilder setMaxTransactions(int maxTransactions) {
+            this.maxTransactions = maxTransactions;
+            return this;
+        }
+
+        public SettingsBuilder setMinTransactions(int minTransactions) {
+            this.minTransactions = minTransactions;
+            return this;
+        }
+
+        public Settings createSettings() {
+            return new Settings(durationGoal, maxTransactions, minTransactions);
+        }
     }
 }

@@ -23,9 +23,9 @@
 package password.pwm.util.cli;
 
 import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.EnhancedPatternLayout;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 import org.apache.log4j.varia.NullAppender;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -53,7 +53,7 @@ import java.util.*;
 public class MainClass {
     private static final PwmLogger LOGGER = PwmLogger.forClass(MainClass.class);
 
-    private static final String LOGGING_PATTERN = "%d{yyyy-MM-dd HH:mm:ss}, %-5p, %c{2}, %m%n";
+    private static final String LOGGING_PATTERN = "%d{yyyy-MM-dd'T'HH:mm:ssX}{GMT}, %-5p, %c{2}, %m%n";
 
     private static MainOptions MAIN_OPTIONS = new MainOptions();
 
@@ -364,7 +364,7 @@ public class MainClass {
             return;
         }
 
-        final Layout patternLayout = new PatternLayout(LOGGING_PATTERN);
+        final Layout patternLayout = new EnhancedPatternLayout(LOGGING_PATTERN);
         final ConsoleAppender consoleAppender = new ConsoleAppender(patternLayout);
         for (final Package logPackage : PwmLogManager.LOGGING_PACKAGES) {
             if (logPackage != null) {

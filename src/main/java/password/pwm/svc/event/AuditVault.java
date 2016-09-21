@@ -22,14 +22,21 @@
 
 package password.pwm.svc.event;
 
+import password.pwm.PwmApplication;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
 
 import java.util.Date;
 import java.util.Iterator;
 
 public interface AuditVault {
 
-    void init(Settings settings);
+    void init(final PwmApplication pwmApplication, final LocalDB localDB, final Settings settings) throws LocalDBException, PwmException;
+
+    void close();
 
     int size();
 
@@ -37,7 +44,8 @@ public interface AuditVault {
 
     Iterator<AuditRecord> readVault();
 
-    void add(AuditRecord record);
+    String sizeToDebugString();
+    void add(AuditRecord record) throws PwmOperationalException;
 
     class Settings {
         private long maxRecordCount;
