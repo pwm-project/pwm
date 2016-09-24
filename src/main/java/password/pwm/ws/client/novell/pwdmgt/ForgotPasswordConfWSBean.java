@@ -86,17 +86,16 @@ public class ForgotPasswordConfWSBean  implements java.io.Serializable {
 
     private java.lang.Object __equalsCalc = null;
     public synchronized boolean equals(java.lang.Object obj) {
+        if (obj == null) return false;
         if (!(obj instanceof ForgotPasswordConfWSBean)) return false;
         ForgotPasswordConfWSBean other = (ForgotPasswordConfWSBean) obj;
-        if (obj == null) return false;
         if (this == obj) return true;
         if (__equalsCalc != null) {
             return (__equalsCalc == obj);
         }
         __equalsCalc = obj;
         boolean _equals;
-        _equals = true && 
-            ((this.configuredRtnLink==null && other.getConfiguredRtnLink()==null) || 
+        _equals = ((this.configuredRtnLink==null && other.getConfiguredRtnLink()==null) ||
              (this.configuredRtnLink!=null &&
               this.configuredRtnLink.equals(other.getConfiguredRtnLink()))) &&
             this.showReturnLink == other.isShowReturnLink();

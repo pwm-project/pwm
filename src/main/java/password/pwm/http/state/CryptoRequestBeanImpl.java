@@ -109,7 +109,7 @@ class CryptoRequestBeanImpl implements SessionBeanProvider {
             return;
         }
         try {
-            if (pwmRequest != null && pwmRequest.getPwmResponse() != null) {
+            if (pwmRequest.getPwmResponse() != null) {
                 final Map<Class<? extends PwmSessionBean>,PwmSessionBean> beansInRequest = getRequestBeanMap(pwmRequest);
                 if (beansInRequest != null) {
                     for (final Class<? extends PwmSessionBean> theClass : beansInRequest.keySet()) {
