@@ -41,18 +41,20 @@ PWM_PS.processPeopleSearch = function() {
         PWM_MAIN.getObject('searchIndicator').style.display = 'none';
     };
     validationProps['processResultsFunction'] = function(data) {
-        var grid = PWM_VAR['peoplesearch_search_grid'];
+        if (PWM_PS.peopleSearchService) PWM_PS.peopleSearchService.updateData(data['data']['searchResults']);
+
+//        var grid = PWM_VAR['peoplesearch_search_grid'];
         if (data['error']) {
-            grid.refresh();
+//            grid.refresh();
             PWM_MAIN.showErrorDialog(data);
         } else {
 
             var gridData = data['data']['searchResults'];
             var sizeExceeded = data['data']['sizeExceeded'];
-            grid.refresh();
-            grid.renderArray(gridData);
-            var sortState = grid.get("sort");
-            grid.set("sort", sortState);
+//            grid.refresh();
+//            grid.renderArray(gridData);
+//            var sortState = grid.get("sort");
+//            grid.set("sort", sortState);
 
 
             if (sizeExceeded) {
@@ -169,7 +171,9 @@ PWM_PS.applyEventHandlersToDetailView = function(data) {
 
     if (data['hasOrgChart']) {
         PWM_MAIN.addEventHandler('button-peoplesearch-orgChart', 'click', function () {
-            PWM_PS.showOrgChartView(data['userKey']);
+            PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/peoplesearch#/orgchart');
+            PWM_MAIN.clearDijitWidget('dialogPopup');
+//            PWM_PS.showOrgChartView(data['userKey']);
         });
     }
 
@@ -369,30 +373,30 @@ PWM_PS.showOrgChartView = function(userKey, asParent) {
 PWM_PS.makeSearchGrid = function(nextFunction) {
     require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
         function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
-            PWM_MAIN.getObject('peoplesearch-searchResultsGrid').innerHTML = '';
+//            PWM_MAIN.getObject('peoplesearch-searchResultsGrid').innerHTML = '';
 
             var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
 
-            PWM_VAR['peoplesearch_search_grid'] = new CustomGrid({
-                columns: PWM_VAR['peoplesearch_search_columns'],
-                queryOptions: {
-                    sort: [{ attribute: "sn" }]
-                }
-            }, "peoplesearch-searchResultsGrid");
+//            PWM_VAR['peoplesearch_search_grid'] = new CustomGrid({
+//                columns: PWM_VAR['peoplesearch_search_columns'],
+//                queryOptions: {
+//                    sort: [{ attribute: "sn" }]
+//                }
+//            }, "peoplesearch-searchResultsGrid");
 
             if (nextFunction) {
                 nextFunction();
             }
 
-            PWM_VAR['peoplesearch_search_grid'].on(".dgrid-row:click", function(evt){
-                PWM_MAIN.stopEvent(evt);
-                evt.preventDefault();
-                var row = PWM_VAR['peoplesearch_search_grid'].row(evt);
-                var userKey = row.data['userKey'];
-                PWM_PS.showUserDetail(userKey);
-            });
+//            PWM_VAR['peoplesearch_search_grid'].on(".dgrid-row:click", function(evt){
+//                PWM_MAIN.stopEvent(evt);
+//                evt.preventDefault();
+//                var row = PWM_VAR['peoplesearch_search_grid'].row(evt);
+//                var userKey = row.data['userKey'];
+//                PWM_PS.showUserDetail(userKey);
+//            });
 
-            PWM_VAR['peoplesearch_search_grid'].set("sort", { attribute : 'sn', descending: true});
+//            PWM_VAR['peoplesearch_search_grid'].set("sort", { attribute : 'sn', descending: true});
 
         }
     );
@@ -418,7 +422,7 @@ PWM_PS.initPeopleSearchPage = function() {
     var applicationData = PWM_MAIN.getObject("application-info");
     var jspName = applicationData ? applicationData.getAttribute("data-jsp-name") : "";
     if ("peoplesearch.jsp" == jspName) {
-        var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','clientData');
+        var url = PWM_MAIN.addParamToUrl(window.location.href.replace(window.location.hash, ''),'processAction','clientData');
         PWM_MAIN.ajaxRequest(url,function(data){
             if (data['error']) {
                 PWM_MAIN.showErrorDialog(data);
@@ -447,8 +451,10 @@ PWM_PS.initPeopleSearchPage = function() {
 
                     PWM_PS.processPeopleSearch();
                 });
-                if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
-                    PWM_PS.processPeopleSearch();
+                if (PWM_MAIN.getObject('username')) {
+                    if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
+                        PWM_PS.processPeopleSearch();
+                    }
                 }
             });
         },{method:"GET"});
@@ -456,5 +462,3 @@ PWM_PS.initPeopleSearchPage = function() {
 };
 
 PWM_PS.initPeopleSearchPage();
-
-

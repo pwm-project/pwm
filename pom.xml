@@ -177,6 +177,24 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>copy-angular-resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/target/${project.artifactId}-${project.version}/public/resources/app</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/angular/src</directory>
+                                    <excludes>
+                                        <exclude>**/*.ts</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>replace-build-properties</id>
                         <phase>process-resources</phase>
                         <goals>
@@ -338,6 +356,48 @@
                         </dependencyOverride>
                     </dependencyOverrides>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.0</version>
+                <configuration>
+                    <nodeVersion>v6.6.0</nodeVersion>
+                    <npmVersion>3.10.8</npmVersion>
+                    <installDirectory>target</installDirectory>
+                    <workingDirectory>${basedir}/src/main/angular</workingDirectory>
+                </configuration>
+                <executions>
+                    <!-- install node & npm -->
+                    <execution>
+                        <id>install</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                    </execution>
+
+                    <!-- install package dependencies -->
+                    <execution>
+                        <id>install-packages</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+
+                    <!-- run TypeScript compiler (You can execute directly using: "mvn frontend:npm@run-tsc") -->
+                    <execution>
+                        <id>run-tsc</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run compile</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -606,6 +666,41 @@
             <groupId>org.webjars.bower</groupId>
             <artifactId>famfamfam-flags</artifactId>
             <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>systemjs</artifactId>
+            <version>0.19.39</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>angular</artifactId>
+            <version>1.5.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>angular-ui-router</artifactId>
+            <version>1.0.0-beta.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>angular-ui-bootstrap</artifactId>
+            <version>2.1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>angular-ui-grid</artifactId>
+            <version>3.2.9</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.webjars.npm</groupId>
+                    <artifactId>angular</artifactId>
+                    <!--
+                    angular-ui-grid tries to force an older version of angular.
+                    See: https://github.com/angular-ui/ui-grid/issues/5070
+                    -->
+                </exclusion>
+            </exclusions> 
         </dependency>
     </dependencies>
 

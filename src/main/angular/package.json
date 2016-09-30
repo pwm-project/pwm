@@ -1,0 +1,34 @@
+{
+  "name": "pwm",
+  "version": "",
+  "description": "",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/angular": "^1.5.16",
+    "@types/angular-mocks": "^1.5.5",
+    "@types/angular-ui-router": "^1.1.34",
+    "@types/jasmine": "^2.5.35",
+    "angular-mocks": "^1.5.8",
+    "concurrently": "^3.1.0",
+    "cpx": "^1.5.0",
+    "jasmine": "^2.5.2",
+    "karma": "^1.3.0",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-commonjs": "^1.0.0",
+    "karma-commonjs-preprocessor": "^0.1.1",
+    "karma-firefox-launcher": "^1.0.0",
+    "karma-jasmine": "^1.0.2",
+    "karma-junit-reporter": "^1.1.0",
+    "karma-phantomjs-launcher": "^1.0.2",
+    "systemjs": "^0.19.39",
+    "typescript": "^2.0.3"
+  },
+  "scripts": {
+    "compile": "tsc -p ./src",
+    "sync": "concurrently \"tsc -p ./src -w\" \"cpx ./src/**/*.* ../webapp/public/resources/app -w -v\"",
+    "test": "karma start karma.conf.js"
+  }
+}

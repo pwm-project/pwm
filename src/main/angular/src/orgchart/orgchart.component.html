@@ -1,0 +1,55 @@
+<div id="page-content-title">Organizational Chart</div>
+<div id="orgchart-close" ng-click="$ctrl.close()"></div>
+
+<div id="orgchart-content" class="ng-cloak">
+    <div class="orgchart-primary-person-connector" class="ng-cloak"></div>
+
+    <div class="orgchart-management-title orgchart-title">Management</div>
+    <div class="orgchart-management" >
+        <div class="orgchart-manager" ng-repeat="manager in $ctrl.person.managementChain">
+            <div class="orgchart-separator" ng-class="{first:$first,last:$last}"></div>
+            <div class="orgchart-picture">
+                <img ng-src="{{ manager.pictureUrl }}" />
+            </div>
+            <div class="orgchart-manager-fields">
+                <div class="orgchart-field orgchart-field-0">{{ manager.fields[0].value }}</div>
+                <div class="orgchart-field orgchart-field-1">{{ manager.fields[1].value }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="orgchart-primary-person">
+        <img class="orgchart-picture" ng-src="{{ $ctrl.person.pictureUrl }}" />
+        <div class="orgchart-num-reports">{{ $ctrl.person.directReports.length }}</div>
+
+        <div class="orgchart-primary-field orgchart-field-0">{{ $ctrl.person.fields[0].value }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-1">{{ $ctrl.person.fields[1].value }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-2 link">{{ $ctrl.person.fields[2].value }}</div>
+        <div class="orgchart-secondary-field orgchart-field orgchart-field-3">
+            <div class="orgchard-field-name">{{ $ctrl.person.fields[3].name }}</div>
+            <div class="orgchard-field-value">{{ $ctrl.person.fields[3].value }}</div>
+        </div>
+        <div class="orgchart-secondary-field orgchart-field orgchart-field-4">
+            <div class="orgchard-field-name">{{ $ctrl.person.fields[4].name }}</div>
+            <div class="orgchard-field-value">{{ $ctrl.person.fields[4].value }}</div>
+        </div>
+        <div class="orgchart-secondary-field orgchart-field orgchart-field-5">
+            <div class="orgchard-field-name">{{ $ctrl.person.fields[5].name }}</div>
+            <div class="orgchard-field-value link">{{ $ctrl.person.fields[5].value }}</div>
+        </div>
+    </div>
+
+    <div class="orgchart-direct-reports-title orgchart-title">Direct Reports</div>
+    <div class="orgchart-direct-reports person-card-list">
+        <div class="person-card" ng-repeat="directReport in $ctrl.person.directReports">
+            <div class="person-card-image"></div>
+            <div class="orgchart-num-reports" ng-if="directReport.numOfReports">{{ directReport.numOfReports }}</div>
+            <div class="person-card-details">
+                <div class="person-card-row-1">{{ directReport.fields[0].value }}</div>
+                <div class="person-card-row-2">{{ directReport.fields[1].value }}</div>
+                <div class="person-card-row-3">{{ directReport.fields[2].value }}</div>
+                <div class="person-card-row-4">{{ directReport.fields[3].value }}</div>
+            </div>
+        </div>
+    </div>
+</div>
