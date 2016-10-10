@@ -80,7 +80,7 @@
             <script type="text/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
                     PWM_VAR["helpdesk_obfuscatedDN"] = '<%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.HelpdeskObfuscatedDN)%>';
-                    PWM_VAR["helpdesk_username"] = '<%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.HelpdeskUsername)%>';
+                    PWM_VAR["helpdesk_username"] = '<%=StringUtil.escapeJS((String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.HelpdeskUsername))%>';
                 });
             </script>
         </pwm:script>
