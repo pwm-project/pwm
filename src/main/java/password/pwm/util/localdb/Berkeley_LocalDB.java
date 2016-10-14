@@ -22,6 +22,7 @@
 
 package password.pwm.util.localdb;
 
+/*
 import com.sleepycat.bind.tuple.TupleBinding;
 import com.sleepycat.collections.StoredMap;
 import com.sleepycat.je.*;
@@ -42,11 +43,18 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static password.pwm.util.localdb.LocalDB.DB;
+*/
 
 /**
+ * Deprecated and unused implementation of BerkeleyDB/Sleepycat LocalDB Provider.  This file is being retained for historical
+ * reference but is not intended to be used in the future.
+ *
  * @author Jason D. Rivard
  */
-public class Berkeley_LocalDB implements LocalDBProvider {
+public class Berkeley_LocalDB {}
+
+
+/*implements LocalDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(Berkeley_LocalDB.class, true);
@@ -472,3 +480,4 @@ public class Berkeley_LocalDB implements LocalDBProvider {
         return Collections.singleton(Flag.SlowSizeOperations);
     }
 }
+*/
