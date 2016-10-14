@@ -23,10 +23,9 @@
 package password.pwm.http.bean;
 
 import password.pwm.bean.TokenVerificationProgress;
+import password.pwm.config.option.SessionBeanMode;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class UpdateProfileBean extends PwmSessionBean {
 
@@ -73,8 +72,9 @@ public class UpdateProfileBean extends PwmSessionBean {
         this.formSubmitted = formSubmitted;
     }
 
-    public Set<Flag> getFlags() {
-        return Collections.emptySet();
+    @Override
+    public Set<SessionBeanMode> supportedModes() {
+        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE)));
     }
 
     public TokenVerificationProgress getTokenVerificationProgress() {

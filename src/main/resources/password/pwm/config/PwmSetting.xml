@@ -517,6 +517,9 @@
     <setting hidden="false" key="passwordLastUpdateAttribute" level="2">
         <ldapPermission actor="proxy" access="write"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default template="AD">
+            <value/>
+        </default>
         <default template="ORACLE_DS">
             <value/>
         </default>
@@ -1465,8 +1468,8 @@
     <setting hidden="false" key="security.cspHeader" level="2">
         <default>
             <!--<value><![CDATA[]]></value>-->
-            <value><![CDATA[default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'unsafe-inline' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/csp-report]]></value>
-            <!-- 'unsafe-inline' on script-src is included for backward compatibilty of CSP Level1 browsers.  CSP2 and future ignore it when the nonce is specified -->
+            <value><![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self 'unsafe-eval' 'unsafe-inline' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/csp-report]]></value>
+            <!-- 'unsafe-inline' on script-src is included for backward compatibility of CSP Level1 browsers.  CSP2 and future ignore it when the nonce is specified -->
         </default>
     </setting>
     <setting hidden="false" key="email.adminAlert.toAddress" level="1">

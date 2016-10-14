@@ -22,6 +22,7 @@
 
 package password.pwm.http.bean;
 
+import password.pwm.config.option.SessionBeanMode;
 import password.pwm.config.value.FileValue;
 import password.pwm.http.servlet.configguide.ConfigGuideForm;
 import password.pwm.http.servlet.configguide.GuideStep;
@@ -93,7 +94,8 @@ public class ConfigGuideBean extends PwmSessionBean {
         return Type.PUBLIC;
     }
 
-    public Set<Flag> getFlags() {
-        return Collections.singleton(Flag.ProhibitCookieSession);
+    @Override
+    public Set<SessionBeanMode> supportedModes() {
+        return Collections.singleton(SessionBeanMode.LOCAL);
     }
 }

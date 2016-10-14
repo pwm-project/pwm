@@ -27,9 +27,11 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
 
 interface SessionBeanProvider {
-    <E extends PwmSessionBean> E getSessionBean(PwmRequest pwmRequest, Class<E> theClass) throws PwmUnrecoverableException;
+    <E extends PwmSessionBean> E getSessionBean(PwmRequest pwmRequest, Class<E> userBeanClass) throws PwmUnrecoverableException;
 
-    void clearSessionBean(PwmRequest pwmRequest, final Class<? extends PwmSessionBean> userBeanClass) throws PwmUnrecoverableException;
+    <E extends PwmSessionBean> void clearSessionBean(PwmRequest pwmRequest, Class<E> userBeanClass) throws PwmUnrecoverableException;
 
     void saveSessionBeans(final PwmRequest pwmRequest);
+
+    String getSessionStateInfo(final PwmRequest pwmRequest) throws PwmUnrecoverableException;
 }

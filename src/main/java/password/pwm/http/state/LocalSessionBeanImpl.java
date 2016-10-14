@@ -23,6 +23,7 @@
 package password.pwm.http.state;
 
 import password.pwm.PwmConstants;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.logging.PwmLogger;
@@ -52,7 +53,7 @@ class LocalSessionBeanImpl implements SessionBeanProvider {
     }
 
     @Override
-    public void clearSessionBean(PwmRequest pwmRequest, Class<? extends PwmSessionBean> userBeanClass) {
+    public <E extends PwmSessionBean> void clearSessionBean(PwmRequest pwmRequest, Class<E> userBeanClass) throws PwmUnrecoverableException {
         final Map<Class<? extends PwmSessionBean>,PwmSessionBean> sessionBeans = getSessionBeanMap(pwmRequest);
         sessionBeans.remove(userBeanClass);
     }
@@ -71,5 +72,10 @@ class LocalSessionBeanImpl implements SessionBeanProvider {
     @Override
     public void saveSessionBeans(PwmRequest pwmRequest) {
 
+    }
+
+    @Override
+    public String getSessionStateInfo(PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        return null;
     }
 }

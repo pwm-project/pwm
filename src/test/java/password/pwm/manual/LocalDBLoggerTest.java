@@ -25,7 +25,6 @@ package password.pwm.manual;
 import junit.framework.TestCase;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
-import password.pwm.TestHelper;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationReader;
@@ -92,7 +91,7 @@ public class LocalDBLoggerTest extends TestCase {
         settings = new Settings();
         settings.threads = 10;
         settings.testDuration = new TimeDuration(3, TimeUnit.HOURS);
-        settings.valueLength = 500;
+        settings.valueLength = 5000;
         settings.batchSize = 100;
     }
 

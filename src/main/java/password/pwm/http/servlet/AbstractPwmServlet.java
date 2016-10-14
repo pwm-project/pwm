@@ -38,6 +38,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -50,8 +52,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException
-    {
+            throws ServletException, IOException {
         this.handleRequest(req, resp, HttpMethod.GET);
     }
 
@@ -59,8 +60,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException
-    {
+            throws ServletException, IOException {
         this.handleRequest(req, resp, HttpMethod.POST);
     }
 
@@ -69,8 +69,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             final HttpServletResponse resp,
             final HttpMethod method
     )
-            throws ServletException, IOException
-    {
+            throws ServletException, IOException {
         try {
             final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
 
@@ -84,7 +83,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                         final ErrorInformation errorInformation = e.getErrorInformation();
                         final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(req);
                         LOGGER.error(pwmSession, errorInformation.toDebugStr());
-                        pwmRequest.respondWithError(errorInformation,false);
+                        pwmRequest.respondWithError(errorInformation, false);
                         return;
                     }
                     throw e;
@@ -159,8 +158,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
 
     private PwmUnrecoverableException convertToPwmUnrecoverableException(
             final Throwable e
-    )
-    {
+    ) {
         if (e instanceof PwmUnrecoverableException) {
             return (PwmUnrecoverableException) e;
         }
@@ -188,8 +186,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             final PwmSession pwmSession,
             final PwmUnrecoverableException e
     )
-            throws IOException
-    {
+            throws IOException {
         switch (e.getError()) {
             case ERROR_DIRECTORY_UNAVAILABLE:
                 LOGGER.fatal(pwmSession, e.getErrorInformation().toDebugStr());
@@ -207,7 +204,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 //store the original requested url
                 try {
                     LOGGER.debug(pwmSession, "user is authenticated without a password, redirecting to login page");
-                    LoginServlet.redirectToLoginServlet(PwmRequest.forRequest(req,resp));
+                    LoginServlet.redirectToLoginServlet(PwmRequest.forRequest(req, resp));
                     return true;
                 } catch (Throwable e1) {
                     LOGGER.error("error while marking pre-login url:" + e1.getMessage());
@@ -233,8 +230,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             final PwmRequest pwmRequest,
             final PwmUnrecoverableException e
     )
-            throws IOException, ServletException
-    {
+            throws IOException, ServletException {
         if (pwmRequest.isJsonRequest()) {
             final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
             pwmRequest.outputJsonResult(restResultBean);
@@ -242,7 +238,6 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             pwmRequest.respondWithError(e.getErrorInformation());
         }
     }
-
 
 
     protected abstract void processAction(PwmRequest request)

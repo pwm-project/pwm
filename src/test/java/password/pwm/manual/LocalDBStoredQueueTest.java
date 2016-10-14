@@ -23,7 +23,6 @@
 package password.pwm.manual;
 
 import junit.framework.TestCase;
-import password.pwm.TestHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;

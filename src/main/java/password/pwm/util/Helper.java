@@ -39,6 +39,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.state.SessionStateService;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -261,10 +262,13 @@ public class
 
 
     static public String buildPwmFormID(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        final SessionStateService sessionStateService = pwmRequest.getPwmApplication().getSessionStateService();
+        final String value = sessionStateService.getSessionStateInfo(pwmRequest);
         final FormNonce formID = new FormNonce(
                 pwmRequest.getPwmSession().getLoginInfoBean().getGuid(),
                 new Date(),
-                pwmRequest.getPwmSession().getLoginInfoBean().getReqCounter()
+                pwmRequest.getPwmSession().getLoginInfoBean().getReqCounter(),
+                value
         );
         return pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(formID);
     }

@@ -22,6 +22,8 @@
 
 package password.pwm.http.bean;
 
+import password.pwm.config.option.SessionBeanMode;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
@@ -30,10 +32,6 @@ public abstract class PwmSessionBean implements Serializable {
     public enum Type {
         PUBLIC,
         AUTHENTICATED,
-    }
-
-    public enum Flag {
-        ProhibitCookieSession,
     }
 
     private String guid;
@@ -57,5 +55,5 @@ public abstract class PwmSessionBean implements Serializable {
 
     public abstract Type getType();
 
-    public abstract Set<Flag> getFlags();
+    public abstract Set<SessionBeanMode> supportedModes();
 }

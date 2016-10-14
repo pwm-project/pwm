@@ -24,6 +24,7 @@ package password.pwm.http.bean;
 
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
+import password.pwm.config.option.SessionBeanMode;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -153,7 +154,9 @@ public class SetupResponsesBean extends PwmSessionBean {
         }
     }
 
-    public Set<Flag> getFlags() {
-        return Collections.singleton(Flag.ProhibitCookieSession);
+    @Override
+    public Set<SessionBeanMode> supportedModes() {
+        return Collections.singleton(SessionBeanMode.LOCAL);
     }
+
 }

@@ -22,126 +22,77 @@
 
 package password.pwm.http.state;
 
-import password.pwm.config.PwmSetting;
-import password.pwm.error.PwmException;
+import password.pwm.PwmConstants;
+import password.pwm.bean.FormNonce;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
-import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.SecureService;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-class CryptoRequestBeanImpl implements SessionBeanProvider {
-
+public class CryptoRequestBeanImpl implements SessionBeanProvider {
     private static final PwmLogger LOGGER = PwmLogger.forClass(CryptoRequestBeanImpl.class);
-
-    private static final PwmHttpResponseWrapper.CookiePath COOKIE_PATH = PwmHttpResponseWrapper.CookiePath.CurrentURL;
+    private static String attrName = "ssi_cache_map";
 
     @Override
     public <E extends PwmSessionBean> E getSessionBean(PwmRequest pwmRequest, Class<E> theClass) throws PwmUnrecoverableException {
-        final Map<Class<? extends PwmSessionBean>,PwmSessionBean> sessionBeans = getRequestBeanMap(pwmRequest);
-
-        if (sessionBeans.containsKey(theClass) && sessionBeans.get(theClass) != null) {
-            return (E)sessionBeans.get(theClass);
+        final Map<Class<E>, E> cachedMap = getBeanMap(pwmRequest);
+        if (cachedMap.containsKey(theClass)) {
+            return cachedMap.get(theClass);
         }
 
+        final String submittedPwmFormID = pwmRequest.readParameterAsString(PwmConstants.PARAM_FORM_ID);
+        if (submittedPwmFormID != null && submittedPwmFormID.length() > 0) {
+            final FormNonce formNonce = pwmRequest.getPwmApplication().getSecureService().decryptObject(
+                    submittedPwmFormID,
+                    FormNonce.class
+            );
+            final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
+            E bean = secureService.decryptObject(formNonce.getPayload(), theClass);
+            cachedMap.put(theClass, bean);
+            return bean;
+        }
         final String sessionGuid = pwmRequest.getPwmSession().getLoginInfoBean().getGuid();
-        final String cookieName = nameForClass(theClass);
-
-        try {
-            final E cookieBean = pwmRequest.readEncryptedCookie(cookieName, theClass);
-            if (validateCookie(pwmRequest, cookieName, cookieBean)) {
-                sessionBeans.put(theClass, cookieBean);
-                return cookieBean;
-            }
-        } catch (PwmException e) {
-            LOGGER.error(pwmRequest, "error reading existing " + cookieName + " cookie bean: " + e.getMessage());
-        }
-
         final E newBean = SessionStateService.newBean(sessionGuid, theClass);
-        sessionBeans.put(theClass, newBean);
+        cachedMap.put(theClass, newBean);
         return newBean;
     }
 
-    private boolean validateCookie(PwmRequest pwmRequest, String cookieName, PwmSessionBean cookieBean) {
-        if (cookieBean == null) {
-            return false;
-        }
-
-        if (cookieBean.getType() == PwmSessionBean.Type.AUTHENTICATED) {
-            if (cookieBean.getGuid() == null) {
-                LOGGER.trace(pwmRequest, "disregarded existing " + cookieName + " cookie bean due to missing guid");
-                return false;
-            }
-
-            final String sessionGuid = pwmRequest.getPwmSession().getLoginInfoBean().getGuid();
-            if (!cookieBean.getGuid().equals(sessionGuid)) {
-                LOGGER.trace(pwmRequest, "disregarded existing " + cookieName + " cookie bean due to session change");
-                return false;
-            }
-        }
-
-        if (cookieBean.getType() == PwmSessionBean.Type.PUBLIC) {
-            if (cookieBean.getTimestamp() == null) {
-                LOGGER.trace(pwmRequest, "disregarded existing " + cookieName + " cookie bean due to missing timestamp");
-                return false;
-            }
-
-            final TimeDuration cookieLifeDuration = TimeDuration.fromCurrent(cookieBean.getTimestamp());
-            final long maxIdleSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
-            if (cookieLifeDuration.isLongerThan(maxIdleSeconds, TimeUnit.SECONDS)) {
-                LOGGER.trace(pwmRequest, "disregarded existing " + cookieName + " cookie bean due to outdated timestamp (" + cookieLifeDuration.asCompactString() + ")");
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-
     public void saveSessionBeans(final PwmRequest pwmRequest) {
-        if (pwmRequest == null || pwmRequest.getPwmResponse().isCommitted()) {
-            return;
-        }
-        try {
-            if (pwmRequest != null && pwmRequest.getPwmResponse() != null) {
-                final Map<Class<? extends PwmSessionBean>,PwmSessionBean> beansInRequest = getRequestBeanMap(pwmRequest);
-                if (beansInRequest != null) {
-                    for (final Class<? extends PwmSessionBean> theClass : beansInRequest.keySet()) {
-                        final String cookieName = nameForClass(theClass);
-                        final PwmSessionBean bean = beansInRequest.get(theClass);
-                        if (bean == null) {
-                            pwmRequest.getPwmResponse().removeCookie(cookieName, COOKIE_PATH);
-                        } else {
-                            pwmRequest.getPwmResponse().writeEncryptedCookie(cookieName, beansInRequest.get(theClass), COOKIE_PATH);
-                        }
-                    }
-                }
-            }
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error(pwmRequest, "error writing cookie bean to response: " + e.getMessage(), e);
-        }
     }
 
     @Override
-    public void clearSessionBean(PwmRequest pwmRequest, Class<? extends PwmSessionBean> userBeanClass) throws PwmUnrecoverableException {
-        final Map<Class<? extends PwmSessionBean>,PwmSessionBean> sessionBeans = getRequestBeanMap(pwmRequest);
-        sessionBeans.put(userBeanClass, null);
-        saveSessionBeans(pwmRequest);
+    public String getSessionStateInfo(PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
+        Map<Class, PwmSessionBean> cachedMap = (Map<Class, PwmSessionBean>)pwmRequest.getHttpServletRequest().getAttribute(attrName);
+        if (cachedMap == null || cachedMap.isEmpty()) {
+            return "";
+        }
+        if (cachedMap.size() > 1) {
+            throw new IllegalStateException("unable to handle multiple session state beans");
+        }
+        final Class beanClass= cachedMap.keySet().iterator().next();
+        final PwmSessionBean bean = cachedMap.values().iterator().next();
+        return secureService.encryptObjectToString(bean);
     }
 
-    private static Map<Class<? extends PwmSessionBean>,PwmSessionBean> getRequestBeanMap(final PwmRequest pwmRequest) {
-        Serializable sessionBeans = pwmRequest.getAttribute(PwmRequest.Attribute.CookieBeanStorage);
-        if (sessionBeans == null) {
-            sessionBeans = new HashMap<>();
-            pwmRequest.setAttribute(PwmRequest.Attribute.CookieBeanStorage, sessionBeans);
+    public <E extends PwmSessionBean> void clearSessionBean(PwmRequest pwmRequest, Class<E> userBeanClass) throws PwmUnrecoverableException {
+        final Map<Class<E>, E> cachedMap = getBeanMap(pwmRequest);
+        if (cachedMap != null) {
+            cachedMap.remove(userBeanClass);
         }
-        return (Map<Class<? extends PwmSessionBean>,PwmSessionBean>)sessionBeans;
+    }
+
+    private static <E extends PwmSessionBean> Map<Class<E>,E> getBeanMap(final PwmRequest pwmRequest) {
+        Map<Class<E>, E> cachedMap = (Map<Class<E>, E>)pwmRequest.getHttpServletRequest().getAttribute(attrName);
+        if (cachedMap == null) {
+            cachedMap = new HashMap<>();
+            pwmRequest.getHttpServletRequest().setAttribute(attrName, cachedMap);
+        }
+        return cachedMap;
     }
 
     private static String nameForClass(final Class<? extends PwmSessionBean> theClass) {

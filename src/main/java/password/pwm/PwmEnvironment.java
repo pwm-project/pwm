@@ -38,16 +38,16 @@ import java.nio.channels.FileLock;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class PwmEnvironment implements Serializable {
+public class PwmEnvironment {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmEnvironment.class);
 
     // data elements
     private final PwmApplicationMode applicationMode;
-    private transient final Configuration config;
+    private final Configuration config;
     private final File applicationPath;
     private final boolean internalRuntimeInstance;
     private final File configurationFile;
-    private transient final ContextManager contextManager;
+    private final ContextManager contextManager;
     private final Collection<ApplicationFlag> flags;
     private final Map<ApplicationParameter,String> parameters;
 

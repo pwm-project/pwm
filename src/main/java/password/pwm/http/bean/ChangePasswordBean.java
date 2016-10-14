@@ -22,11 +22,10 @@
 
 package password.pwm.http.bean;
 
+import password.pwm.config.option.SessionBeanMode;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Jason D. Rivard
@@ -133,8 +132,9 @@ public class ChangePasswordBean extends PwmSessionBean {
         return Type.AUTHENTICATED;
     }
 
-    public Set<Flag> getFlags() {
-        return Collections.emptySet();
+    @Override
+    public Set<SessionBeanMode> supportedModes() {
+        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE, SessionBeanMode.CRYPTREQUEST)));
     }
 }
 

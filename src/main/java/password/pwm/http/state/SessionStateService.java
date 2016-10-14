@@ -66,6 +66,10 @@ public class SessionStateService implements PwmService {
                         break;
 
                     case CRYPTCOOKIE:
+                        sessionBeanProvider = new CryptoCookieBeanImpl();
+                        break;
+
+                    case CRYPTREQUEST:
                         sessionBeanProvider = new CryptoRequestBeanImpl();
                         break;
 
@@ -85,7 +89,7 @@ public class SessionStateService implements PwmService {
                             break;
 
                         case CRYPTCOOKIE:
-                            sessionLoginProvider = new CryptoRequestLoginImpl();
+                            sessionLoginProvider = new CryptoCookieLoginImpl();
                     }
                 }
                 sessionLoginProvider.init(pwmApplication);
@@ -112,18 +116,18 @@ public class SessionStateService implements PwmService {
     }
 
     public <E extends PwmSessionBean> E getBean(PwmRequest pwmRequest, Class<E> theClass) throws PwmUnrecoverableException {
-        if (beanClassHasFlag(theClass, PwmSessionBean.Flag.ProhibitCookieSession)) {
-            return httpSessionProvider.getSessionBean(pwmRequest, theClass);
+        if (beanSupportsMode(theClass, SessionBeanMode.CRYPTCOOKIE)) {
+            return sessionBeanProvider.getSessionBean(pwmRequest, theClass);
         }
-        return sessionBeanProvider.getSessionBean(pwmRequest, theClass);
+        return httpSessionProvider.getSessionBean(pwmRequest, theClass);
     }
 
     public void clearBean(final PwmRequest pwmRequest, final Class<? extends PwmSessionBean> theClass) throws PwmUnrecoverableException {
-        if (beanClassHasFlag(theClass, PwmSessionBean.Flag.ProhibitCookieSession)) {
-            httpSessionProvider.clearSessionBean(pwmRequest, theClass);
+        if (beanSupportsMode(theClass, SessionBeanMode.CRYPTCOOKIE)) {
+            sessionBeanProvider.clearSessionBean(pwmRequest, theClass);
             return;
         }
-        sessionBeanProvider.clearSessionBean(pwmRequest, theClass);
+        httpSessionProvider.clearSessionBean(pwmRequest, theClass);
     }
 
     public void saveSessionBeans(final PwmRequest pwmRequest) {
@@ -142,9 +146,12 @@ public class SessionStateService implements PwmService {
         sessionLoginProvider.readLoginSessionState(pwmRequest);
     }
 
+    public String getSessionStateInfo(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        return sessionBeanProvider.getSessionStateInfo(pwmRequest);
+    }
 
 
-    private boolean beanClassHasFlag(Class<? extends PwmSessionBean> theClass, PwmSessionBean.Flag flag) throws PwmUnrecoverableException {
+    private boolean beanSupportsMode(Class<? extends PwmSessionBean> theClass, SessionBeanMode mode) throws PwmUnrecoverableException {
         if (theClass == null) {
             return false;
         }
@@ -152,7 +159,7 @@ public class SessionStateService implements PwmService {
             beanInstanceCache.put(theClass, newBean(null,theClass));
         }
         try {
-            return theClass.newInstance().getFlags().contains(flag);
+            return theClass.newInstance().supportedModes().contains(mode);
         } catch (InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }

@@ -23,12 +23,11 @@
 package password.pwm.http.bean;
 
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.option.SessionBeanMode;
 import password.pwm.http.servlet.GuestRegistrationServlet;
 import password.pwm.util.FormMap;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Jason D. Rivard, Menno Pieters
@@ -81,8 +80,10 @@ public class GuestRegistrationBean extends PwmSessionBean {
         return Type.AUTHENTICATED;
     }
 
-    public Set<Flag> getFlags() {
-        return Collections.emptySet();
+    @Override
+    public Set<SessionBeanMode> supportedModes() {
+        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE)));
     }
+
 }
 

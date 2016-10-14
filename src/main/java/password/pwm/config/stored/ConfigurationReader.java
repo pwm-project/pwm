@@ -23,6 +23,7 @@
 package password.pwm.config.stored;
 
 import org.apache.commons.io.FileUtils;
+import org.omg.CORBA.UNKNOWN;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -193,14 +194,20 @@ public class ConfigurationReader {
         }
 
         try {
-            LOGGER.info(sessionLabel, "beginning write to configuration file " + configFile.getAbsoluteFile());
+            final File tempWriteFile = new File(configFile.getAbsoluteFile() + ".new");
+            LOGGER.info(sessionLabel, "beginning write to configuration file " + tempWriteFile);
             saveInProgress = true;
 
-            storedConfiguration.toXml(new FileOutputStream(configFile, false));
+            storedConfiguration.toXml(new FileOutputStream(tempWriteFile, false));
             LOGGER.info("saved configuration " + JsonUtil.serialize(storedConfiguration.toJsonDebugObject()));
             if (pwmApplication != null) {
                 final String actualChecksum = storedConfiguration.settingChecksum();
                 pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.CONFIG_HASH, actualChecksum);
+            }
+
+            LOGGER.trace("renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath());
+            if (!tempWriteFile.renameTo(configFile)) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "unable to rename temporary save file to " + configFile.getAbsolutePath()));
             }
 
             if (backupDirectory != null) {
