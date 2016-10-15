@@ -464,13 +464,20 @@ public class PasswordUtility {
             actions.addAll(helpdeskProfile.readSettingAsAction(PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES));
             if (!actions.isEmpty()) {
 
+                final LoginInfoBean loginInfoBean = new LoginInfoBean();
+                loginInfoBean.setUserCurrentPassword(newPassword);
+                final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
+
+                final MacroMachine macroMachine = new MacroMachine(
+                        pwmApplication,
+                        sessionLabel,
+                        userInfoBean,
+                        loginInfoBean,
+                        userDataReader
+                );
+
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, userIdentity)
-                        .setMacroMachine(MacroMachine.forUser(
-                                pwmApplication,
-                                pwmSession.getSessionStateBean().getLocale(),
-                                sessionLabel,
-                                userIdentity
-                        ))
+                        .setMacroMachine(macroMachine)
                         .setExpandPwmMacros(true)
                         .createActionExecutor();
 
