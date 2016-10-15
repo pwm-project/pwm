@@ -45,31 +45,29 @@
 
         <div id="header-center-right">
             <div id="header-menu-wrapper">
-                    <div id="header-menu">
-                        <pwm:if test="<%=PwmIfTest.healthWarningsVisible%>">
-                            <div id="header-menu-alert" class="m-icon icon_m_message-error-red-fill" title="<pwm:display key="Header_HealthWarningsPresent" bundle="Admin"/>"></div>
+                <div id="header-menu">
+                    <div id="header-menu-alert" class="pwm-icon pwm-icon-warning display-none" title="<pwm:display key="Header_HealthWarningsPresent" bundle="Admin"/>"></div>
+                    <div id="header-username-group">
+                        <pwm:if test="<%=PwmIfTest.authenticated%>">
+                            <div id="header-username"><pwm:display key="Display_UsernameHeader"/></div>
                         </pwm:if>
-                        <div id="header-username-group">
-                            <pwm:if test="<%=PwmIfTest.authenticated%>">
-                                <div id="header-username"><pwm:display key="Display_UsernameHeader"/></div>
-                            </pwm:if>
-                            <pwm:if test="<%=PwmIfTest.headerMenuIsVisible%>">
-                            <div id="header-username-caret" class="m-icon icon_m_down"></div>
-                            </pwm:if>
-                        </div>
+                        <pwm:if test="<%=PwmIfTest.headerMenuIsVisible%>">
+                            <div id="header-username-caret" class="pwm-icon pwm-icon-chevron-down"></div>
+                        </pwm:if>
                     </div>
+                </div>
 
                 <% if (!JspUtility.isFlag(request, PwmRequestFlag.HIDE_HEADER_BUTTONS)) { %>
                 <pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">
                     <pwm:if test="<%=PwmIfTest.authenticated%>">
                         <pwm:if test="<%=PwmIfTest.showHome%>">
                             <a class="header-button" href="<pwm:value name="<%=PwmValue.homeURL%>"/>" id="HomeButton">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon icon_m_home" title="<pwm:display key="Button_Home"/>"></span></pwm:if>
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="pwm-icon pwm-icon-home" title="<pwm:display key="Button_Home"/>"></span></pwm:if>
                             </a>
                         </pwm:if>
                         <pwm:if test="<%=PwmIfTest.showLogout%>">
                             <a class="header-button" href="<pwm:url url='<%=PwmServletDefinition.Logout.servletUrl()%>' addContext="true"/>" id="LogoutButton">
-                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon icon_m_signout" title="<pwm:display key="Button_Logout"/>"></span></pwm:if>
+                                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="pwm-icon pwm-icon-sign-out" title="<pwm:display key="Button_Logout"/>"></span></pwm:if>
                             </a>
                         </pwm:if>
                     </pwm:if>

@@ -69,7 +69,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
     public static final String THEME_CSS_CONFIG_PATH = "/themes/%THEME%/configStyle.css";
 
     public static final String TOKEN_THEME = "%THEME%";
-    public static final String EMBED_THEME = "EMBED";
+    public static final String EMBED_THEME = "embed";
 
     public static final String WEBJAR_RESOURCE_PREFIX = "META-INF/resources";
 
@@ -399,16 +399,6 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
             }
         }
 
-        { // check custom (configuration defined) zip file bundles
-            final Map<String,FileResource> customResources = resourceServletConfiguration.getCustomFileBundle();
-            for (final String customFileName : customResources.keySet()) {
-                final String testName = RESOURCE_PATH + "/" + customFileName;
-                if (testName.equals(resourcePathUri)) {
-                    return customResources.get(customFileName);
-                }
-            }
-        }
-
         {// check files system zip files.
             final Map<String,ZipFile> zipResources = resourceServletConfiguration.getZipResources();
             for (final String path : zipResources.keySet()) {
@@ -435,20 +425,36 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         final String parentDirectoryPath = servletContext.getRealPath(RESOURCE_PATH);
         final File parentDirectory = new File(parentDirectoryPath);
 
+        FileResource fileSystemResource = null;
         { //verify the requested page is a child of the servlet resource path.
             int recursions = 0;
             File recurseFile = file.getParentFile();
             while (recurseFile != null && recursions < 100) {
                 if (parentDirectory.equals(recurseFile)) {
-                    return new RealFileResource(file);
+                    fileSystemResource = new RealFileResource(file);
+                    break;
                 }
                 recurseFile = recurseFile.getParentFile();
                 recursions++;
             }
         }
 
-        LOGGER.warn("attempt to access file outside of servlet path " + file.getAbsolutePath());
-        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal file path request"));
+        if (fileSystemResource == null) {
+            LOGGER.warn("attempt to access file outside of servlet path " + file.getAbsolutePath());
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal file path request"));
+        }
+
+        if (!fileSystemResource.exists()) { // check custom (configuration defined) zip file bundles
+            final Map<String,FileResource> customResources = resourceServletConfiguration.getCustomFileBundle();
+            for (final String customFileName : customResources.keySet()) {
+                final String testName = RESOURCE_PATH + "/" + customFileName;
+                if (testName.equals(resourcePathUri)) {
+                    return customResources.get(customFileName);
+                }
+            }
+        }
+
+        return fileSystemResource;
     }
 
     private boolean handleEmbeddedURIs(
@@ -460,10 +466,12 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
             throws PwmUnrecoverableException, IOException, ServletException
     {
         if (requestURI != null) {
-            if (requestURI.startsWith(THEME_CSS_PATH.replace(TOKEN_THEME,EMBED_THEME))) {
+            final String embedThemeUrl = RESOURCE_PATH + THEME_CSS_PATH.replace(TOKEN_THEME,EMBED_THEME);
+            final String embedThemeMobileUrl = RESOURCE_PATH + THEME_CSS_MOBILE_PATH.replace(TOKEN_THEME,EMBED_THEME);
+            if (requestURI.equalsIgnoreCase(embedThemeUrl)) {
                 writeConfigSettingToBody(pwmApplication, PwmSetting.DISPLAY_CSS_EMBED, response, resourceServletConfiguration);
                 return true;
-            } else if (requestURI.startsWith(THEME_CSS_MOBILE_PATH.replace(TOKEN_THEME,EMBED_THEME))) {
+            } else if (requestURI.equalsIgnoreCase(embedThemeMobileUrl)) {
                 writeConfigSettingToBody(pwmApplication, PwmSetting.DISPLAY_CSS_MOBILE_EMBED, response, resourceServletConfiguration);
                 return true;
             }

@@ -153,8 +153,12 @@ public class ResourceServletService implements PwmService {
             return false;
         }
 
+        if (themeName.equals(ResourceFileServlet.EMBED_THEME)) {
+            return true;
+        }
+
         if (!themeName.matches(pwmRequest.getConfig().readAppProperty(AppProperty.SECURITY_INPUT_THEME_MATCH_REGEX))) {
-            LOGGER.warn(pwmRequest, "discarding suspicous theme name in request: " + themeName);
+            LOGGER.warn(pwmRequest, "discarding suspicious theme name in request: " + themeName);
             return false;
         }
 
