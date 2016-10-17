@@ -65,14 +65,6 @@ public class PwmSession implements Serializable {
 
     private transient SessionManager sessionManager;
 
-    public static PwmSession createPwmSession(final PwmApplication pwmApplication)
-            throws PwmUnrecoverableException
-    {
-        synchronized (creationLock) {
-            return new PwmSession(pwmApplication);
-        }
-    }
-
 
     private PwmSession(final PwmApplication pwmApplication)
             throws PwmUnrecoverableException
@@ -105,6 +97,14 @@ public class PwmSession implements Serializable {
 
         settings.restKeyLength = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_WS_REST_CLIENT_KEY_LENGTH));
         LOGGER.trace(this,"created new session");
+    }
+
+    public static PwmSession createPwmSession(final PwmApplication pwmApplication)
+            throws PwmUnrecoverableException
+    {
+        synchronized (creationLock) {
+            return new PwmSession(pwmApplication);
+        }
     }
 
 

@@ -65,6 +65,10 @@ public class Configuration implements Serializable, SettingReader {
 
     private DataCache dataCache = new DataCache();
 
+    private PwmSecurityKey tempInstanceKey = null;
+
+    private Convenience helper = new Convenience();
+
     // --------------------------- CONSTRUCTORS ---------------------------
 
     public Configuration(final StoredConfigurationImpl storedConfiguration) {
@@ -502,7 +506,6 @@ public class Configuration implements Serializable, SettingReader {
         return storedConfiguration.readConfigProperty(ConfigurationProperty.NOTES);
     }
 
-    private PwmSecurityKey tempInstanceKey = null;
     public PwmSecurityKey getSecurityKey() throws PwmUnrecoverableException {
         final PasswordData configValue = readSettingAsPassword(PwmSetting.PWM_SECURITY_KEY);
 
@@ -653,8 +656,6 @@ public class Configuration implements Serializable, SettingReader {
         }
         return property.getDefaultValue();
     }
-
-    private Convenience helper = new Convenience();
 
     public Convenience helper() {
         return helper;
