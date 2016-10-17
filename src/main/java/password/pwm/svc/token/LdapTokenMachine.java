@@ -92,7 +92,7 @@ class LdapTokenMachine implements TokenMachine {
             final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, user);
             final String tokenAttributeValue = userDataReader.readStringAttribute(tokenAttribute);
             if (tokenAttribute != null && tokenAttributeValue.length() > 0) {
-                final String splitString[] = tokenAttributeValue.split(KEY_VALUE_DELIMITER);
+                final String[] splitString = tokenAttributeValue.split(KEY_VALUE_DELIMITER);
                 if (splitString.length != 2) {
                     final String errorMsg = "error parsing ldap stored token, not enough delimited values";
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);

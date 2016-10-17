@@ -565,7 +565,7 @@ public class NMASCrOperator implements CrOperator {
                 super(lcmenvironment, lcmregistry);
             }
 
-            public void handle(final Callback callbacks[]) throws UnsupportedCallbackException
+            public void handle(final Callback[] callbacks) throws UnsupportedCallbackException
             {
                 LOGGER.trace("entering ChalRespCallbackHandler.handle()");
                 for (final Callback callback : callbacks) {

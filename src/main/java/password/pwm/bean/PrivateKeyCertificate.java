@@ -30,7 +30,7 @@ public class PrivateKeyCertificate implements Serializable {
     final private X509Certificate[] certificates;
     final private PrivateKey key;
 
-    public PrivateKeyCertificate(X509Certificate certificates[], PrivateKey key) {
+    public PrivateKeyCertificate(X509Certificate[] certificates, PrivateKey key) {
         this.certificates = certificates;
         this.key = key;
     }
