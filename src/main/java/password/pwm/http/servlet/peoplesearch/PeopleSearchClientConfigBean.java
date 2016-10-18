@@ -23,44 +23,26 @@
 package password.pwm.http.servlet.peoplesearch;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 
-class UserDetailBean implements Serializable {
-    private List<String> displayNames;
-    private String userKey;
-    private Map<String, AttributeDetailBean> detail;
-    private String photoURL;
+public class PeopleSearchClientConfigBean implements Serializable {
 
-    public List<String> getDisplayNames() {
-        return displayNames;
+    private Map<String,String> peoplesearch_search_columns;
+    private boolean peoplesearch_enablePhoto;
+
+    public Map<String, String> getPeoplesearch_search_columns() {
+        return peoplesearch_search_columns;
     }
 
-    public void setDisplayNames(List<String> displayNames) {
-        this.displayNames = displayNames;
+    public void setPeoplesearch_search_columns(Map<String, String> peoplesearch_search_columns) {
+        this.peoplesearch_search_columns = peoplesearch_search_columns;
     }
 
-    public String getUserKey() {
-        return userKey;
+    public boolean isPeoplesearch_enablePhoto() {
+        return peoplesearch_enablePhoto;
     }
 
-    public void setUserKey(String userKey) {
-        this.userKey = userKey;
-    }
-
-    public Map<String, AttributeDetailBean> getDetail() {
-        return detail;
-    }
-
-    public void setDetail(Map<String, AttributeDetailBean> detail) {
-        this.detail = detail;
-    }
-
-    public String getPhotoURL() {
-        return photoURL;
-    }
-
-    public void setPhotoURL(String photoURL) {
-        this.photoURL = photoURL;
+    public void setPeoplesearch_enablePhoto(boolean peoplesearch_enablePhoto) {
+        this.peoplesearch_enablePhoto = peoplesearch_enablePhoto;
     }
 }
