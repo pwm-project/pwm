@@ -338,27 +338,25 @@ public class LDAPPermissionCalculator implements Serializable {
 
         final PwmSettingTemplateSet templateSet =  storedConfiguration.getTemplateSet();
 
-        { //
+        { // edir specific attributes
 
             if (!Collections.disjoint(templateSet.getTemplates(), EDIR_INTERESTED_TEMPLATES)) {
-                if (configuration.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
-                    final String[] ldapAttributes = new String[] {
-                            ChaiConstant.ATTR_LDAP_LOCKED_BY_INTRUDER,
-                            ChaiConstant.ATTR_LDAP_LOGIN_INTRUDER_ATTEMPTS,
-                            ChaiConstant.ATTR_LDAP_LOGIN_INTRUDER_RESET_TIME,
-                            ChaiConstant.ATTR_LDAP_LOGIN_GRACE_LIMIT,
-                            ChaiConstant.ATTR_LDAP_LOGIN_GRACE_REMAINING,
-                    };
+                final Map<String, LDAPPermissionInfo.Access> ldapAttributes = new LinkedHashMap<>();
+                ldapAttributes.put(ChaiConstant.ATTR_LDAP_LOCKED_BY_INTRUDER,LDAPPermissionInfo.Access.write);
+                ldapAttributes.put(ChaiConstant.ATTR_LDAP_LOGIN_INTRUDER_ATTEMPTS,LDAPPermissionInfo.Access.write);
+                ldapAttributes.put(ChaiConstant.ATTR_LDAP_LOGIN_INTRUDER_RESET_TIME,LDAPPermissionInfo.Access.write);
+                ldapAttributes.put(ChaiConstant.ATTR_LDAP_LOGIN_GRACE_LIMIT,LDAPPermissionInfo.Access.write);
+                ldapAttributes.put(ChaiConstant.ATTR_LDAP_LOGIN_GRACE_REMAINING,LDAPPermissionInfo.Access.write);
+                ldapAttributes.put(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME,LDAPPermissionInfo.Access.read);
 
-                    for (final String ldapAttribute : ldapAttributes) {
-                        permissionRecords.add(new PermissionRecord(
-                                ldapAttribute,
-                                PwmSetting.FORGOTTEN_PASSWORD_ENABLE,
-                                null,
-                                LDAPPermissionInfo.Access.write,
-                                LDAPPermissionInfo.Actor.proxy
-                        ));
-                    }
+                for (final String ldapAttribute : ldapAttributes.keySet()) {
+                    permissionRecords.add(new PermissionRecord(
+                            ldapAttribute,
+                            null,
+                            null,
+                            ldapAttributes.get(ldapAttribute),
+                            LDAPPermissionInfo.Actor.proxy
+                    ));
                 }
             }
         }
