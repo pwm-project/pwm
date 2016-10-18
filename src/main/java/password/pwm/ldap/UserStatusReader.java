@@ -96,7 +96,7 @@ public class UserStatusReader {
         LOGGER.trace(sessionLabel, "beginning password status check process for " + userDN);
 
         // check if password meets existing policy.
-        if (passwordPolicy.getRuleHelper().readBooleanValue(PwmPasswordRule.EnforceAtLogin)) {
+        if (userInfoBean != null && passwordPolicy.getRuleHelper().readBooleanValue(PwmPasswordRule.EnforceAtLogin)) {
             if (currentPassword != null) {
                 try {
                     PwmPasswordRuleValidator passwordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, passwordPolicy);

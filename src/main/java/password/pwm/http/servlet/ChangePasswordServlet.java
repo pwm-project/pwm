@@ -519,7 +519,9 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             PasswordUtility.checkIfPasswordWithinMinimumLifetime(
                     pwmSession.getSessionManager().getActor(pwmApplication),
                     pwmSession.getLabel(),
-                    userInfoBean
+                    userInfoBean.getPasswordPolicy(),
+                    userInfoBean.getPasswordLastModifiedTime(),
+                    userInfoBean.getPasswordState()
             );
         } catch (PwmOperationalException e) {
             final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);

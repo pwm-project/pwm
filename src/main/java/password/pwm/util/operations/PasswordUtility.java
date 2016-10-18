@@ -1054,7 +1054,9 @@ public class PasswordUtility {
     public static void checkIfPasswordWithinMinimumLifetime(
             final ChaiUser chaiUser,
             final SessionLabel sessionLabel,
-            final UserInfoBean userInfoBean
+            final PwmPasswordPolicy passwordPolicy,
+            final Date lastModified,
+            final PasswordStatus passwordStatus
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
@@ -1079,12 +1081,11 @@ public class PasswordUtility {
         }
 
 
-        final int minimumLifetime = userInfoBean.getPasswordPolicy().getRuleHelper().readIntValue(PwmPasswordRule.MinimumLifetime);
+        final int minimumLifetime = passwordPolicy.getRuleHelper().readIntValue(PwmPasswordRule.MinimumLifetime);
         if (minimumLifetime < 1) {
             return;
         }
 
-        final Date lastModified = userInfoBean.getPasswordLastModifiedTime();
         if (lastModified == null || lastModified.after(new Date())) {
             LOGGER.debug(sessionLabel, "skipping minimum lifetime check, password last set time is unknown");
             return;
@@ -1096,7 +1097,6 @@ public class PasswordUtility {
             return;
         }
 
-        final PasswordStatus passwordStatus = userInfoBean.getPasswordState();
         if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isWarnPeriod()) {
             LOGGER.debug(sessionLabel, "current password is too young, but skipping enforcement of minimum lifetime check because current password is expired");
             return;
