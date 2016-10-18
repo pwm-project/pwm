@@ -3,8 +3,8 @@
         <div class="person-card-image"></div>
         <div class="person-card-details">
             <div class="person-card-row-1">{{ person.givenName }} {{ person.sn }}</div>
-            <div class="person-card-row-2">Data Analyst</div>
-            <div class="person-card-row-3">(123) 456-7890</div>
+            <div class="person-card-row-2">{{ person.title }}</div>
+            <div class="person-card-row-3">{{ person.telephoneNumber }}</div>
             <div class="person-card-row-4">{{ person.mail }}</div>
         </div>
     </div>

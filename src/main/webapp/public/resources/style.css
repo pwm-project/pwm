@@ -1220,6 +1220,7 @@ org-chart {
 }
 
 .orgchart-primary-person .orgchart-picture {
+    background: rgba(0, 0, 0, 0) url("UserPhoto.png") repeat scroll 0 0 / 65px 65px;
     height: 65px;
     left: 10px;
     position: absolute;

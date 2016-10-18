@@ -171,7 +171,7 @@ PWM_PS.applyEventHandlersToDetailView = function(data) {
 
     if (data['hasOrgChart']) {
         PWM_MAIN.addEventHandler('button-peoplesearch-orgChart', 'click', function () {
-            PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/peoplesearch#/orgchart');
+            PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/peoplesearch#/orgchart/' + data['userKey']);
             PWM_MAIN.clearDijitWidget('dialogPopup');
 //            PWM_PS.showOrgChartView(data['userKey']);
         });

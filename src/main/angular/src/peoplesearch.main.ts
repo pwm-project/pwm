@@ -34,7 +34,7 @@ angular.module('PeopleSearchApp', ['ui.router'])
         $stateProvider.state({ name: 'search', url: '/search', component: 'peopleSearch' });
         $stateProvider.state({ name: 'search.table', url: '/table', component: 'peopleSearchTable' });
         $stateProvider.state({ name: 'search.cards', url: '/cards', component: 'peopleSearchCards' });
-        $stateProvider.state({ name: 'orgchart', url: '/orgchart', component: 'orgChart' });
+        $stateProvider.state({ name: 'orgchart', url: '/orgchart/{userKey}', component: 'orgChart' });
     }]);
 
 // Attach to the page document
