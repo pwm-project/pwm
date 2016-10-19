@@ -167,6 +167,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
         final PeopleSearchClientConfigBean peopleSearchClientConfigBean = new PeopleSearchClientConfigBean();
         peopleSearchClientConfigBean.setPeoplesearch_search_columns(searchColumns);
         peopleSearchClientConfigBean.setPeoplesearch_enablePhoto(peopleSearchConfiguration.isPhotosEnabled());
+        peopleSearchClientConfigBean.setPeoplesearch_orgChartEnabled(peopleSearchConfiguration.isOrgChartEnabled());
 
         final RestResultBean restResultBean = new RestResultBean(peopleSearchClientConfigBean);
         LOGGER.trace(pwmRequest, "returning clientData: " + JsonUtil.serialize(restResultBean));

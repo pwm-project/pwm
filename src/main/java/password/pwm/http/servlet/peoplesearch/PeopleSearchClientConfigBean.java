@@ -29,6 +29,7 @@ public class PeopleSearchClientConfigBean implements Serializable {
 
     private Map<String,String> peoplesearch_search_columns;
     private boolean peoplesearch_enablePhoto;
+    private boolean peoplesearch_orgChartEnabled;
 
     public Map<String, String> getPeoplesearch_search_columns() {
         return peoplesearch_search_columns;
@@ -44,5 +45,13 @@ public class PeopleSearchClientConfigBean implements Serializable {
 
     public void setPeoplesearch_enablePhoto(boolean peoplesearch_enablePhoto) {
         this.peoplesearch_enablePhoto = peoplesearch_enablePhoto;
+    }
+
+    public boolean isPeoplesearch_orgChartEnabled() {
+        return peoplesearch_orgChartEnabled;
+    }
+
+    public void setPeoplesearch_orgChartEnabled(boolean peoplesearch_orgChartEnabled) {
+        this.peoplesearch_orgChartEnabled = peoplesearch_orgChartEnabled;
     }
 }
