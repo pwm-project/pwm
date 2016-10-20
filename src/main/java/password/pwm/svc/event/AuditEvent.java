@@ -133,7 +133,7 @@ public enum AuditEvent {
 
     public enum Type {
         USER(UserAuditRecord.class),
-        SYSTEM(SyslogAuditService.class),
+        SYSTEM(SystemAuditRecord.class),
         HELPDESK(HelpdeskAuditRecord.class),
 
         ;
