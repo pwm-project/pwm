@@ -1,7 +1,8 @@
 [
   {
-    "id": 1,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
+    "userKey": 1,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 3,
     "fields": [
       {
         "fieldId": "name",
@@ -36,400 +37,15 @@
         "value": "Debra McCarthy",
         "type": "person-link",
         "typeMetaData": {
-          "id": 3
+          "userKey": 3
         }
-      }
-    ],
-    "managementChain": [
-      {
-        "id": 3,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Debra McCarthy",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Deputy Chief"
-          }
-        ]
-      },
-      {
-        "id": 4,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Earl Paysinger",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Assistant Chief"
-          }
-        ]
-      },
-      {
-        "id": 5,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Charlie Beck",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Chief of Police"
-          }
-        ]
-      },
-      {
-        "id": 6,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "John W. Mack",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "Commissioner",
-            "value": "CFO"
-          }
-        ]
-      },
-      {
-        "id": 7,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "R. Tefank",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Executive Director"
-          }
-        ]
-      }
-    ],
-    "directReports": [
-      {
-        "id": 8,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "numOfReports": 3,
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Elmer Davis",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Captain III"
-          },
-          {
-            "fieldId": "phone",
-            "value": "(123) 456-7890 x001",
-            "type": "phone"
-          },
-          {
-            "fieldId": "email",
-            "value": "elmer.davis@lapd.gov",
-            "type": "email"
-          }
-        ]
-      },
-      {
-        "id": 9,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "William Hart",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Captain I"
-          },
-          {
-            "fieldId": "phone",
-            "value": "(123) 456-7890 x002",
-            "type": "phone"
-          },
-          {
-            "fieldId": "email",
-            "value": "william.hart@lapd.gov",
-            "type": "email"
-          }
-        ]
-      },
-      {
-        "id": 10,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "numOfReports": 4,
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Bob Ginmala",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Captain III"
-          },
-          {
-            "fieldId": "phone",
-            "value": "(123) 456-7890 x003",
-            "type": "phone"
-          },
-          {
-            "fieldId": "email",
-            "value": "bob.ginmala@lapd.gov",
-            "type": "email"
-          }
-        ]
-      },
-      {
-        "id": 11,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "numOfReports": 8,
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Peter Wittingham",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Captain I"
-          },
-          {
-            "fieldId": "phone",
-            "value": "(123) 456-7890 x004",
-            "type": "phone"
-          },
-          {
-            "fieldId": "email",
-            "value": "peter.wittingham@lapd.gov",
-            "type": "email"
-          }
-        ]
-      },
-      {
-        "id": 12,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Elena Nathan",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Captain III"
-          },
-          {
-            "fieldId": "phone",
-            "value": "(123) 456-7890 x005",
-            "type": "phone"
-          },
-          {
-            "fieldId": "email",
-            "value": "elena.nathan@lapd.gov",
-            "type": "email"
-          }
-        ]
-      },
-      {
-        "id": 13,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Rolphe DeLaTorre",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Captain I"
-          },
-          {
-            "fieldId": "phone",
-            "value": "(123) 456-7890 x006",
-            "type": "phone"
-          },
-          {
-            "fieldId": "email",
-            "value": "rolphe.delatorre@lapd.gov",
-            "type": "email"
-          }
-        ]
-      },
-      {
-        "id": 14,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "numOfReports": 19,
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Mike Blake",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Captain III"
-          },
-          {
-            "fieldId": "phone",
-            "value": "(123) 456-7890 x007",
-            "type": "phone"
-          },
-          {
-            "fieldId": "email",
-            "value": "mike.blake@lapd.gov",
-            "type": "email"
-          }
-        ]
-      },
-      {
-        "id": 15,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "numOfReports": 1,
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Braeden Crump",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Captain I"
-          },
-          {
-            "fieldId": "phone",
-            "value": "(123) 456-7890 x007",
-            "type": "phone"
-          },
-          {
-            "fieldId": "email",
-            "value": "braeden.crump@lapd.gov",
-            "type": "email"
-          }
-        ]
-      },
-      {
-        "id": 16,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Jeremy Peters",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Captain III"
-          },
-          {
-            "fieldId": "phone",
-            "value": "(123) 456-7890 x007",
-            "type": "phone"
-          },
-          {
-            "fieldId": "email",
-            "value": "jeremy.peters@lapd.gov",
-            "type": "email"
-          }
-        ]
-      },
-      {
-        "id": 17,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "numOfReports": 7,
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Jeff West",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Captain I"
-          },
-          {
-            "fieldId": "phone",
-            "value": "(123) 456-7890 x007",
-            "type": "phone"
-          },
-          {
-            "fieldId": "email",
-            "value": "jeff.west@lapd.gov",
-            "type": "email"
-          }
-        ]
-      },
-      {
-        "id": 18,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Paul Fontanetta",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Captain II"
-          },
-          {
-            "fieldId": "phone",
-            "value": "(123) 456-7890 x007",
-            "type": "phone"
-          },
-          {
-            "fieldId": "email",
-            "value": "paul.fontanetta@lapd.gov",
-            "type": "email"
-          }
-        ]
-      },
-      {
-        "id": 19,
-        "photoUrl": "/pwm/public/resources/UserPhoto.png",
-        "numOfReports": 13,
-        "fields": [
-          {
-            "fieldId": "name",
-            "value": "Nadine Lauer",
-            "type": "person-link"
-          },
-          {
-            "fieldId": "title",
-            "value": "Captain II"
-          },
-          {
-            "fieldId": "phone",
-            "value": "(123) 456-7890 x007",
-            "type": "phone"
-          },
-          {
-            "fieldId": "email",
-            "value": "nadine.lauer@lapd.gov",
-            "type": "email"
-          }
-        ]
       }
     ]
   },
   {
-    "id": 3,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
+    "userKey": 3,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": null,
     "fields": [
       {
         "fieldId": "name",
@@ -443,8 +59,9 @@
     ]
   },
   {
-    "id": 4,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
+    "userKey": 4,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 3,
     "fields": [
       {
         "fieldId": "name",
@@ -458,8 +75,9 @@
     ]
   },
   {
-    "id": 5,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
+    "userKey": 5,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 3,
     "fields": [
       {
         "fieldId": "name",
@@ -473,8 +91,9 @@
     ]
   },
   {
-    "id": 6,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
+    "userKey": 6,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 3,
     "fields": [
       {
         "fieldId": "name",
@@ -488,8 +107,9 @@
     ]
   },
   {
-    "id": 7,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
+    "userKey": 7,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 3,
     "fields": [
       {
         "fieldId": "name",
@@ -503,9 +123,9 @@
     ]
   },
   {
-    "id": 8,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
-    "numOfReports": 3,
+    "userKey": 8,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 3,
     "fields": [
       {
         "fieldId": "name",
@@ -529,8 +149,9 @@
     ]
   },
   {
-    "id": 9,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
+    "userKey": 9,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 3,
     "fields": [
       {
         "fieldId": "name",
@@ -554,9 +175,9 @@
     ]
   },
   {
-    "id": 10,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
-    "numOfReports": 4,
+    "userKey": 10,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 3,
     "fields": [
       {
         "fieldId": "name",
@@ -580,9 +201,9 @@
     ]
   },
   {
-    "id": 11,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
-    "numOfReports": 8,
+    "userKey": 11,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 1,
     "fields": [
       {
         "fieldId": "name",
@@ -606,8 +227,9 @@
     ]
   },
   {
-    "id": 12,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
+    "userKey": 12,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 1,
     "fields": [
       {
         "fieldId": "name",
@@ -631,8 +253,9 @@
     ]
   },
   {
-    "id": 13,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
+    "userKey": 13,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 1,
     "fields": [
       {
         "fieldId": "name",
@@ -656,9 +279,9 @@
     ]
   },
   {
-    "id": 14,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
-    "numOfReports": 19,
+    "userKey": 14,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 1,
     "fields": [
       {
         "fieldId": "name",
@@ -682,9 +305,9 @@
     ]
   },
   {
-    "id": 15,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
-    "numOfReports": 1,
+    "userKey": 15,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 1,
     "fields": [
       {
         "fieldId": "name",
@@ -708,8 +331,9 @@
     ]
   },
   {
-    "id": 16,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
+    "userKey": 16,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 1,
     "fields": [
       {
         "fieldId": "name",
@@ -733,9 +357,9 @@
     ]
   },
   {
-    "id": 17,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
-    "numOfReports": 7,
+    "userKey": 17,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 12,
     "fields": [
       {
         "fieldId": "name",
@@ -759,8 +383,9 @@
     ]
   },
   {
-    "id": 18,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
+    "userKey": 18,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 12,
     "fields": [
       {
         "fieldId": "name",
@@ -784,9 +409,9 @@
     ]
   },
   {
-    "id": 19,
-    "photoUrl": "/pwm/public/resources/UserPhoto.png",
-    "numOfReports": 13,
+    "userKey": 19,
+    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "orgChartParentKey": 12,
     "fields": [
       {
         "fieldId": "name",

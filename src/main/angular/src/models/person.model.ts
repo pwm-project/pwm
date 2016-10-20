@@ -2,7 +2,6 @@ export default class Person {
     directReports: Person[];
     fields: string[];
     givenName: string;
-    id: string;
     mail: string;
     managementChain: Person[];
     numOfReports: number;
@@ -11,12 +10,12 @@ export default class Person {
     sn: string;
     telephoneNumber: string;
     title: string;
+    userKey: string;
 
     constructor(options: any) {
         this.directReports = options.directReports;
         this.fields = options.fields;
         this.givenName = options.givenName;
-        this.id = options.id;
         this.mail = options.mail;
         this.managementChain = options.managementChain;
         this.numOfReports = options.numOfReports;
@@ -25,5 +24,6 @@ export default class Person {
         this.sn = options.sn;
         this.telephoneNumber = options.telephoneNumber;
         this.title = options.title;
+        this.userKey = options.userKey;
     }
 }

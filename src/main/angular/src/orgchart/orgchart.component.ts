@@ -1,4 +1,5 @@
 import { Component } from '../component';
+import { IQService } from 'angular';
 import PeopleService from '../services/people.service';
 import Person from '../models/person.model';
 
@@ -9,9 +10,12 @@ var templateUrl = require('orgchart/orgchart.component.html');
 })
 export default class OrgChartComponent {
     private person: Person;
+    private managementChain: Person[];
+    private directReports: Person[];
 
-    static $inject = ['$state', '$stateParams', 'PeopleService'];
+    static $inject = ['$q', '$state', '$stateParams', 'PeopleService'];
     public constructor(
+        private $q: IQService,
         private $state: angular.ui.IStateService,
         private $stateParams: angular.ui.IStateParamsService,
         private peopleService: PeopleService) {
@@ -20,56 +24,22 @@ export default class OrgChartComponent {
     public $onInit() {
         var personId: string = this.$stateParams['personId'];
 
-        // if (personId) {
-        //     this.fetchPerson(personId, (data) => {
-        //         this.setPrimaryPerson(data);
-        //     });
-        // }
+        if (personId) {
+            this.$q.all({
+                directReports: this.peopleService.getDirectReports(personId),
+                managementChain: this.peopleService.getManagementChain(personId),
+                person: this.peopleService.getPerson(personId)
+            })
+            .then((data) => {
+                this.directReports = data['directReports'];
+                this.managementChain = data['managementChain'];
+                this.person = data['person'];
+            })
+            .catch((result) => {
+                console.log(result);
+            });
+        }
     }
-
-    // private setPrimaryPerson(person: Person): void {
-    //     this.primaryPerson = person;
-    //
-    //     this.addManagerRecursive(person.managementChain[0].id);
-    //     this.addDirectReports(person.id);
-    // }
-    //
-    // private addManagerRecursive(managerKey: string) {
-    //     if (managerKey) {
-    //         let manager: Person = { id: managerKey };
-    //
-    //         this.managementChain.push(manager);
-    //
-    //         this.fetchPerson(managerKey, (person: Person) => {
-    //             manager.photoUrl = person.photoUrl;
-    //             manager.fields = person.fields;
-    //
-    //             this.addManagerRecursive(person.managementChain[0].id);
-    //         });
-    //     }
-    // }
-    //
-    // private addDirectReports(personId: string) {
-    //     console.log('Adding direct reports...');
-    //
-    //     this.peopleService.getOrgChartData(personId).then((response) => {
-    //         console.log('Fetched direct reports: ' + response.data);
-    //     }, (response => {
-    //         console.log(response.data);
-    //     }));
-    // }
-    //
-    // private fetchPerson(id, callback) {
-    //     this.peopleService
-    //         .getUserData(id)
-    //         .then(
-    //             (person: Person) => {
-    //                 callback(person);
-    //             },
-    //             (response => {
-    //                 console.log(response.data);
-    //             }));
-    // }
 
     public close() {
         this.$state.go('search.table');

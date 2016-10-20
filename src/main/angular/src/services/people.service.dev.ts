@@ -8,22 +8,36 @@ export default class PeopleService implements IPeopleService {
     private people: Person[];
 
     static $inject = ['$q', '$timeout'];
-    public constructor(private $q: IQService, private $timeout: ITimeoutService) {
+    constructor(private $q: IQService, private $timeout: ITimeoutService) {
         this.people = peopleData.map((person) => new Person(person));
     }
 
-    public getOrgChartDataForUser(id: string): IPromise<Person[]> {
-        return null;
-    }
-
-    public getUserData(id: string): IPromise<Person> {
-        var deferred = this.$q.defer<Person>();
+    getDirectReports(id: string): angular.IPromise<Person[]> {
+        var deferred = this.$q.defer<Person[]>();
 
         this.$timeout(() => {
-            var people = this.people.filter((person: Person) => person.id == id);
+            var people = this.people.filter((person: Person) => person.orgChartParentKey == id);
 
-            if (people.length) {
-                deferred.resolve(people[0]);
+            deferred.resolve(people);
+        });
+
+        return deferred.promise;
+    }
+
+    getManagementChain(id: string): angular.IPromise<Person[]> {
+        var deferred = this.$q.defer<Person[]>();
+
+        this.$timeout(() => {
+            var person = this.findPerson(id);
+
+            if (person) {
+                var managementChain: Person[] = [];
+
+                while (person = this.findPerson(person.orgChartParentKey)) {
+                    managementChain.push(person);
+                }
+
+                deferred.resolve(managementChain);
             }
             else {
                 deferred.reject(`Person with id: "${id}" not found.`);
@@ -31,5 +45,32 @@ export default class PeopleService implements IPeopleService {
         });
 
         return deferred.promise;
+    }
+
+    getPerson(id: string): IPromise<Person> {
+        var deferred = this.$q.defer<Person>();
+
+        this.$timeout(() => {
+            var person = this.findPerson(id);
+
+            if (person) {
+                deferred.resolve(person);
+            }
+            else {
+                deferred.reject(`Person with id: "${id}" not found.`);
+            }
+        });
+
+        return deferred.promise;
+    }
+
+    private findPerson(id: string): Person {
+        var people = this.people.filter((person: Person) => person.userKey == id);
+
+        if (people.length) {
+            return people[0];
+        }
+
+        return null;
     }
 }
