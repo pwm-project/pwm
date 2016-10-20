@@ -387,6 +387,17 @@
                         </configuration>
                     </execution>
 
+                    <!-- clean dist/ folder before build -->
+                    <execution>
+                        <id>clean-ng</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run clean</arguments>
+                        </configuration>
+                    </execution>
+
                     <!-- run TypeScript compiler (You can execute directly using: "mvn frontend:npm@run-tsc") -->
                     <execution>
                         <id>run-tsc</id>
@@ -394,7 +405,7 @@
                             <goal>npm</goal>
                         </goals>
                         <configuration>
-                            <arguments>run compile</arguments>
+                            <arguments>run build</arguments>
                         </configuration>
                     </execution>
                 </executions>

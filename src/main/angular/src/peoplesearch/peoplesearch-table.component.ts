@@ -1,30 +1,30 @@
-declare var PWM_GLOBAL: any;
-declare var PWM_PS: any;
+import { Component } from '../component';
+import PeopleSearchService from './peoplesearch.service';
+import Person from '../models/person.model';
 
-export class PeopleSearchTableComponent {
-    public templateUrl = PWM_GLOBAL['url-context'] + '/public/resources/app/peoplesearch/peoplesearch-table.component.html';
+var templateUrl = require('peoplesearch/peoplesearch-table.component.html');
 
-    public controller = class {
-        data: any;
+@Component({
+    templateUrl: templateUrl
+})
+export default class PeopleSearchTableComponent {
+    people: Person[];
 
-        static $inject = ['$scope', '$timeout', 'peopleSearchService'];
-        public constructor(private $scope, private $timeout, private peopleSearchService) {
-        }
+    static $inject = ['$scope', 'peopleSearchService'];
+    public constructor(
+        private $scope: angular.IScope,
+        private peopleSearchService: PeopleSearchService) {
+    }
 
-        // Available controller life cycle methods are: $onInit, $onDestroy, $onChanges, $postLink
-        public $onInit() {
-            this.peopleSearchService.subscribe(this.$scope, (event, data) => { this.dataChanged(data) });
-        }
+    public $onInit() {
+        // this.peopleSearchService.subscribe(this.$scope, (event, data) => this.dataChanged(data));
+    }
 
-        public $onDestroy() {
-        }
-
-        private dataChanged(newData) {
-            this.data = newData;
-        }
-
-        public selectPerson(userKey) {
-            PWM_PS.showUserDetail(userKey);
-        }
-    };
+    // private dataChanged(data) {
+    //     this.people = data;
+    // }
+    //
+    // public selectPerson(id: string) {
+    //     // PWM_PS.showUserDetail(userKey);
+    // }
 }

@@ -10,7 +10,7 @@
     </thead>
 
     <tbody>
-    <tr ng-repeat="person in $ctrl.data" ng-click="$ctrl.selectPerson(person.userKey)">
+    <tr ng-repeat="person in $ctrl.data" ng-click="$ctrl.selectPerson(person.id)">
         <td>{{ person.givenName }}</td>
         <td>{{ person.sn }}</td>
         <td>{{ person.title }}</td>

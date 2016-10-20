@@ -6,11 +6,11 @@ describe('testing OrgChartComponent', () => {
     });
 
     it('should pass', () => {
-        expect("foo").toEqual("foo");
+        expect('foo').toEqual('foo');
     });
 
     it('should fail', () => {
-        expect("foo").not.toEqual("bar");
-        expect("foo").not.toEqual("bar");
+        expect('foo').not.toEqual('bar');
+        expect('foo').not.toEqual('bar');
     });
 });

@@ -12,23 +12,23 @@
                 <img ng-src="{{ manager.photoUrl }}" />
             </div>
             <div class="orgchart-manager-fields">
-                <div class="orgchart-field orgchart-field-0">{{ manager.displayFields[0] }}</div>
-                <div class="orgchart-field orgchart-field-1">{{ manager.displayFields[1] }}</div>
+                <div class="orgchart-field orgchart-field-0">{{ manager.fields[0].value }}</div>
+                <div class="orgchart-field orgchart-field-1">{{ manager.fields[1].value }}</div>
             </div>
         </div>
     </div>
 
     <div class="orgchart-primary-person">
-        <img class="orgchart-picture" ng-src="{{ $ctrl.primaryPerson.photoUrl }}" />
+        <img class="orgchart-picture" ng-src="{{ $ctrl.person.photoUrl }}" />
         <div class="orgchart-num-reports" ng-if="$ctrl.directReports.length">{{ $ctrl.directReports.length }}</div>
 
-        <div class="orgchart-primary-field orgchart-field-0">{{ $ctrl.primaryPerson.displayFields[0] }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-1">{{ $ctrl.primaryPerson.displayFields[1] }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-2">{{ $ctrl.primaryPerson.displayFields[2] }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-3">{{ $ctrl.primaryPerson.displayFields[3] }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-4">{{ $ctrl.primaryPerson.displayFields[4] }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-5">{{ $ctrl.primaryPerson.displayFields[5] }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-6">{{ $ctrl.primaryPerson.displayFields[6] }}</div>
+        <div class="orgchart-primary-field orgchart-field-0">{{ $ctrl.person.fields[0].value }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-1">{{ $ctrl.person.fields[1].value }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-2">{{ $ctrl.person.fields[2].value }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-3">{{ $ctrl.person.fields[3].value }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-4">{{ $ctrl.person.fields[4].value }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-5">{{ $ctrl.person.fields[5].value }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-6">{{ $ctrl.person.fields[6].value }}</div>
     </div>
 
     <div class="orgchart-direct-reports-title orgchart-title">Direct Reports</div>

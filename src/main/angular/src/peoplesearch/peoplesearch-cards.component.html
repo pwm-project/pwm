@@ -1,5 +1,5 @@
 <div class="person-card-list">
-    <div class="person-card" ng-repeat="person in $ctrl.data" ng-click="$ctrl.selectPerson(person.userKey)">
+    <div class="person-card" ng-repeat="person in $ctrl.people" ng-click="$ctrl.selectPerson(person.id)">
         <div class="person-card-image"></div>
         <div class="person-card-details">
             <div class="person-card-row-1">{{ person.givenName }} {{ person.sn }}</div>

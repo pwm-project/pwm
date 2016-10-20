@@ -1,35 +1,34 @@
-declare var PWM_GLOBAL: any;
+import { Component } from '../component';
 
-export class PeopleSearchComponent {
-    public templateUrl = PWM_GLOBAL['url-context'] + '/public/resources/app/peoplesearch/peoplesearch.component.html';
+var templateUrl = require('peoplesearch/peoplesearch.component.html');
+var stylesheetUrl = require('peoplesearch/peoplesearch.component.scss');
 
-    public controller = class {
-        viewToggleClass: string;
+@Component({
+    templateUrl: templateUrl,
+    stylesheetUrl: stylesheetUrl
+})
+export default class PeopleSearchComponent {
+    viewToggleClass: string;
 
-        static $inject = ['$state'];
-        public constructor(private $state) {
+    static $inject = ['$state'];
+    public constructor(private $state: angular.ui.IStateService) {
+    }
+
+    public $onInit() {
+        if (this.$state.is('search.table')) {
+            this.viewToggleClass = 'fa fa-th-large';
+        } else {
+            this.viewToggleClass = 'fa fa-list-alt';
         }
+    }
 
-        // Available controller life cycle methods are: $onInit, $onDestroy, $onChanges, $postLink
-        public $onInit() {
-            if (this.$state.is('search.table')) {
-                this.viewToggleClass = 'fa fa-th-large';
-            } else {
-                this.viewToggleClass = 'fa fa-list-alt';
-            }
+    private viewToggleClicked() {
+        if (this.$state.is('search.table')) {
+            this.$state.go('search.cards');
+            this.viewToggleClass = 'fa fa-list-alt';
+        } else {
+            this.$state.go('search.table');
+            this.viewToggleClass = 'fa fa-th-large';
         }
-
-        public $onDestroy() {
-        }
-
-        private viewToggleClicked() {
-            if (this.$state.is('search.table')) {
-                this.$state.go('search.cards');
-                this.viewToggleClass = 'fa fa-list-alt';
-            } else {
-                this.$state.go('search.table');
-                this.viewToggleClass = 'fa fa-th-large';
-            }
-        }
-    };
+    }
 }
