@@ -64,6 +64,18 @@ export default class PeopleService implements IPeopleService {
         return deferred.promise;
     }
 
+    search(query: string): angular.IPromise<Person[]> {
+        var deferred = this.$q.defer<Person[]>();
+        var self = this;
+        this.$timeout(() => {
+            var people = self.people.filter((person: Person) => person.userKey.toLowerCase().indexOf(query) === 0 );
+
+            deferred.resolve(people);
+        });
+
+        return deferred.promise;
+    }
+
     private findPerson(id: string): Person {
         var people = this.people.filter((person: Person) => person.userKey == id);
 

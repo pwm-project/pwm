@@ -1,4 +1,5 @@
 import { Component } from '../component';
+import { IScope } from 'angular';
 import PeopleSearchService from './peoplesearch.service';
 import Person from '../models/person.model';
 
@@ -8,23 +9,29 @@ var templateUrl = require('peoplesearch/peoplesearch-cards.component.html');
     templateUrl: templateUrl
 })
 export default class PeopleSearchCardsComponent {
+    private deregistrationCallback: () => void;
     people: Person[];
 
-    static $inject = ['$scope', 'peopleSearchService'];
-    public constructor(
-        private $scope: angular.IScope,
+    static $inject = [ '$scope', 'PeopleSearchService' ];
+    constructor(
+        private $scope: IScope,
         private peopleSearchService: PeopleSearchService) {
     }
 
-    public $onInit() {
-        // this.peopleSearchService.subscribe(this.$scope, (event, data) => this.dataChanged(data) );
+    $onInit() {
+        this.getPeople();
+
+        var self = this;
+        this.deregistrationCallback = this.$scope.$on('people-updated', () => {
+            self.getPeople();
+        });
     }
 
-    // public dataChanged(data) {
-    //     this.people = data;
-    // }
+    $onDestroy() {
+        this.deregistrationCallback();
+    }
 
-    // public selectPerson(id: string) {
-    //     // PWM_PS.showUserDetail(userKey);
-    // }
+    getPeople() {
+        this.people = this.peopleSearchService.people;
+    }
 }

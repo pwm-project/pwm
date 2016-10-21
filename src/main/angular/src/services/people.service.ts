@@ -7,13 +7,13 @@ export interface IPeopleService {
     getDirectReports(personId: string): IPromise<Person[]>;
     getManagementChain(personId: string): IPromise<Person[]>;
     getPerson(id: string): IPromise<Person>;
+    search(query: string): IPromise<Person[]>;
 }
 
 export default class PeopleService implements IPeopleService {
     static $inject = ['$http'];
     constructor(private $http: IHttpService) {
     }
-
     getDirectReports(id: string): angular.IPromise<Person[]> {
         return undefined;
     }
@@ -23,6 +23,10 @@ export default class PeopleService implements IPeopleService {
     }
 
     getPerson(id: string): IHttpPromise<Person> {
+        return undefined;
+    }
+
+    search(query: string): angular.IPromise<Person[]> {
         return undefined;
     }
 }

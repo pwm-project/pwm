@@ -1,7 +1,8 @@
 <div id="page-content-title">People Search</div>
 
 <div id="panel-searchbar" class="searchbar">
-    <input id="username" name="username" placeholder="Search" class="peoplesearch-input-username" autocomplete="off" /> <!-- Auto focus this control -->
+    <input id="username" name="username" placeholder="Search" class="peoplesearch-input-username"
+           autocomplete="off" ng-model="$ctrl.query" /> <!-- Auto focus this control -->
     <div class="searchbar-extras">
         <div id="searchIndicator" style="display: none">
             <span style="" class="pwm-icon pwm-icon-lg pwm-icon-spin pwm-icon-spinner"></span>

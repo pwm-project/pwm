@@ -1,6 +1,6 @@
 [
   {
-    "userKey": 1,
+    "userKey": "1",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
     "fields": [
@@ -37,13 +37,13 @@
         "value": "Debra McCarthy",
         "type": "person-link",
         "typeMetaData": {
-          "userKey": 3
+          "userKey": "3"
         }
       }
     ]
   },
   {
-    "userKey": 3,
+    "userKey": "3",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": null,
     "fields": [
@@ -59,7 +59,7 @@
     ]
   },
   {
-    "userKey": 4,
+    "userKey": "4",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
     "fields": [
@@ -75,7 +75,7 @@
     ]
   },
   {
-    "userKey": 5,
+    "userKey": "5",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
     "fields": [
@@ -91,7 +91,7 @@
     ]
   },
   {
-    "userKey": 6,
+    "userKey": "6",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
     "fields": [
@@ -107,7 +107,7 @@
     ]
   },
   {
-    "userKey": 7,
+    "userKey": "7",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
     "fields": [
@@ -123,7 +123,7 @@
     ]
   },
   {
-    "userKey": 8,
+    "userKey": "8",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
     "fields": [
@@ -149,7 +149,7 @@
     ]
   },
   {
-    "userKey": 9,
+    "userKey": "9",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
     "fields": [
@@ -175,7 +175,7 @@
     ]
   },
   {
-    "userKey": 10,
+    "userKey": "10",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
     "fields": [
@@ -201,7 +201,7 @@
     ]
   },
   {
-    "userKey": 11,
+    "userKey": "11",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 1,
     "fields": [
@@ -227,7 +227,7 @@
     ]
   },
   {
-    "userKey": 12,
+    "userKey": "12",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 1,
     "fields": [
@@ -253,7 +253,7 @@
     ]
   },
   {
-    "userKey": 13,
+    "userKey": "13",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 1,
     "fields": [
@@ -279,7 +279,7 @@
     ]
   },
   {
-    "userKey": 14,
+    "userKey": "14",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 1,
     "fields": [
@@ -305,7 +305,7 @@
     ]
   },
   {
-    "userKey": 15,
+    "userKey": "15",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 1,
     "fields": [
@@ -331,7 +331,7 @@
     ]
   },
   {
-    "userKey": 16,
+    "userKey": "16",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 1,
     "fields": [
@@ -357,7 +357,7 @@
     ]
   },
   {
-    "userKey": 17,
+    "userKey": "17",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 12,
     "fields": [
@@ -383,7 +383,7 @@
     ]
   },
   {
-    "userKey": 18,
+    "userKey": "18",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 12,
     "fields": [
@@ -409,7 +409,7 @@
     ]
   },
   {
-    "userKey": 19,
+    "userKey": "19",
     "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 12,
     "fields": [

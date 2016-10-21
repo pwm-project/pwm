@@ -1,21 +1,20 @@
 <table st-table="rowCollection" class="table table-striped">
     <thead>
-    <tr>
-        <th>First Name</th>
-        <th>Last Name</th>
-        <th>Title</th>
-        <th>Email</th>
-        <th>Telephone</th>
-    </tr>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Title</th>
+            <th>Email</th>
+            <th>Telephone</th>
+        </tr>
     </thead>
-
     <tbody>
-    <tr ng-repeat="person in $ctrl.data" ng-click="$ctrl.selectPerson(person.id)">
-        <td>{{ person.givenName }}</td>
-        <td>{{ person.sn }}</td>
-        <td>{{ person.title }}</td>
-        <td>{{ person.mail }}</td>
-        <td>{{ person.telephoneNumber }}</td>
-    </tr>
+        <tr ng-repeat="person in $ctrl.people" ng-click="$ctrl.selectPerson(person.id)">
+            <td>{{ person.givenName }}</td>
+            <td>{{ person.sn }}</td>
+            <td>{{ person.title }}</td>
+            <td>{{ person.mail }}</td>
+            <td>{{ person.telephoneNumber }}</td>
+        </tr>
     </tbody>
 </table>

@@ -7,7 +7,7 @@ import PeopleSearchCardsComponent from './peoplesearch-cards.component';
 var moduleName = 'people-search';
 
 module(moduleName, [ ])
-    .service('peopleSearchService', PeopleSearchService)
+    .service('PeopleSearchService', PeopleSearchService)
     .component('peopleSearch', PeopleSearchComponent)
     .component('peopleSearchTable', PeopleSearchTableComponent)
     .component('peopleSearchCards', PeopleSearchCardsComponent);

@@ -1,28 +1,37 @@
 import Person from '../models/person.model';
+import { IPeopleService } from '../services/people.service';
+import { IRootScopeService } from 'angular';
+import * as angular from 'angular';
 
 export default class PeopleSearchService {
-    private people: Person[];
+    people: Person[];
 
-    static $inject = ['$rootScope', '$timeout'];
-    public constructor(private $rootScope, private $timeout) {
+    static $inject = ['$rootScope', 'PeopleService'];
+    public constructor(private $rootScope: IRootScopeService, private peopleService: IPeopleService) {
+        this.people = [];
     }
 
-    // public subscribe(subscribersScope, callback) {
-    //     var deregistrationCallback = this.$rootScope.$on('peoplesearch-data-changed', callback);
-    //     subscribersScope.$on('$destroy', deregistrationCallback);
-    //
-    //     if (this.people) {
-    //         this.$timeout(() => this.notifyPeoplesearchDataChangedListeners(this.people));
-    //     }
-    // }
-    //
-    // private notifyPeoplesearchDataChangedListeners(data: any) {
-    //     this.$rootScope.$emit('peoplesearch-data-changed', data);
-    //     this.$rootScope.$apply();
-    // }
-    //
-    // public updateData(data: any) {
-    //     this.people = data;
-    //     this.notifyPeoplesearchDataChangedListeners(data);
-    // }
+    search(query: string) {
+        if (angular.isString(query)) {
+            this.peopleService.search(query)
+                .then((people: Person[]) => {
+                    this.setPeople(people);
+                })
+                .catch((result) => {
+                    console.log(result);
+                });
+        }
+        else {
+            this.setPeople([]);
+        }
+    }
+
+    notify() {
+        this.$rootScope.$broadcast('people-updated');
+    }
+
+    setPeople(people: Person[]) {
+        this.people = people;
+        this.notify();
+    }
 }
