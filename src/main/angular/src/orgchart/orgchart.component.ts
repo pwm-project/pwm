@@ -3,9 +3,11 @@ import { IQService } from 'angular';
 import PeopleService from '../services/people.service';
 import Person from '../models/person.model';
 
+var stylesheetUrl = require('orgchart/orgchart.component.scss');
 var templateUrl = require('orgchart/orgchart.component.html');
 
 @Component({
+    stylesheetUrl: stylesheetUrl,
     templateUrl: templateUrl
 })
 export default class OrgChartComponent {

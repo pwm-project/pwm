@@ -3,9 +3,11 @@ import { IScope } from 'angular';
 import PeopleSearchService from './peoplesearch.service';
 import Person from '../models/person.model';
 
+var stylesheetUrl = require('peoplesearch/peoplesearch-table.component.scss');
 var templateUrl = require('peoplesearch/peoplesearch-table.component.html');
 
 @Component({
+    stylesheetUrl: stylesheetUrl,
     templateUrl: templateUrl
 })
 export default class PeopleSearchTableComponent {

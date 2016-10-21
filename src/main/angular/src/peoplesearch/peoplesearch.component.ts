@@ -2,12 +2,12 @@ import { Component } from '../component';
 import { IScope } from 'angular';
 import PeopleSearchService from './peoplesearch.service';
 
-var templateUrl = require('peoplesearch/peoplesearch.component.html');
 var stylesheetUrl = require('peoplesearch/peoplesearch.component.scss');
+var templateUrl = require('peoplesearch/peoplesearch.component.html');
 
 @Component({
-    templateUrl: templateUrl,
-    stylesheetUrl: stylesheetUrl
+    stylesheetUrl: stylesheetUrl,
+    templateUrl: templateUrl
 })
 export default class PeopleSearchComponent {
     query: string;

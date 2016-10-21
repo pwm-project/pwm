@@ -1,0 +1,235 @@
+org-chart {
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+#orgchart-content {
+  bottom: 0;
+  left: 0;
+  overflow: auto;
+  position: absolute;
+  right: 0;
+  top: 42px;
+}
+
+#orgchart-close {
+  background: gray no-repeat scroll 0 0 / 20px 20px;
+  border: 1px solid transparent;
+  height: 20px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 20px;
+
+  &:hover {
+    background-color: #f6f9f8;
+    border: 1px solid #dae1e1;
+    color: #0088ce;
+  }
+}
+
+.orgchart-direct-reports {
+  border-top: 3px solid #808080;
+  margin-right: 25px;
+  margin-top: 40px;
+  min-width: 700px;
+  padding-top: 0;
+
+  .num-reports {
+    position: absolute;
+    right: 3px;
+    top: 3px;
+  }
+}
+
+.orgchart-direct-reports-title {
+  top: 315px;
+}
+
+.orgchart-num-reports {
+  background-color: #dae1e1;
+  border-radius: 2px;
+  color: #434c50;
+  font-size: 12px;
+  height: 18px;
+  line-height: 18px;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  position: absolute;
+  right: 3px;
+  text-align: center;
+  top: 3px;
+  width: 25px;
+}
+
+.orgchart-primary-person {
+  background: #fff none repeat scroll 0 0;
+  border: 3px solid #808080;
+  border-radius: 3px;
+  float: none;
+  height: 160px;
+  margin: 20px 0 0 120px;
+  position: relative;
+  width: 340px;
+
+  .orgchart-picture {
+    background: gray repeat scroll 0 0 / 65px 65px;
+    height: 65px;
+    left: 10px;
+    position: absolute;
+    top: 10px;
+    width: 65px;
+  }
+
+  .orgchart-primary-field {
+    color: #808080;
+    left: 90px;
+    font-size: 13px;
+    position: absolute;
+  }
+
+  .orgchart-primary-field,
+  .orgchard-field-value {
+    &.link {
+      color: #0088ce;
+    }
+  }
+
+
+  .orgchart-field-0 {
+    color: black;
+    font-size: 14px;
+    top: 10px;
+  }
+
+  .orgchart-field-1 {
+    top: 28px;
+  }
+
+  .orgchart-field-2 {
+    top: 46px;
+  }
+
+  .orgchart-secondary-field {
+    position: absolute;
+    left: 10px;
+
+    .orgchart-field-name {
+      color: #808080;
+      display: inline-block;
+      font-size: 13px;
+      overflow: hidden;
+      width: 100px;
+    }
+
+    .orgchart-field-value {
+      display: inline-block;
+      font-size: 13px;
+      overflow: hidden;
+      width: 215px;
+    }
+  }
+
+  .orgchart-field-3 {
+    border-top: 1px solid #dae1e1;
+    padding-top: 8px;
+    top: 80px;
+  }
+
+  .orgchart-field-4 {
+    top: 111px;
+  }
+
+  .orgchart-field-5 {
+    top: 134px;
+  }
+}
+
+.orgchart-management {
+  margin-left: 90px;
+  min-width: 650px;
+
+  .orgchart-manager {
+    display: inline-block;
+    padding-top: 75px;
+    position: relative;
+    width: 130px;
+
+    .orgchart-separator {
+      background-color: #dae1e1;
+      height: 3px;
+      position: absolute;
+      top: 40px;
+      width: 100%;
+    }
+
+    .orgchart-separator {
+      &.first {
+        margin-left: 50%;
+        width: 50%;
+      }
+
+      &.last {
+        margin-right: 50%;
+        width: 50%;
+      }
+
+      &.first.last {
+        display: none;
+      }
+    }
+
+    .orgchart-field {
+      color: #808080;
+      font-size: 12px;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .orgchart-picture {
+      left: 35px;
+      margin: 0 auto;
+      position: absolute;
+      top: 10px;
+      width: 50%;
+    }
+
+    .orgchart-picture img {
+      border: 3px solid #dae1e1;
+      border-radius: 50%;
+      height: 50px;
+      margin: 3px;
+      width: 50px;
+    }
+  }
+}
+
+.orgchart-manager-fields {
+  background-color: white;
+  padding: 4px;
+}
+
+.orgchart-management-title {
+  top: 25px;
+}
+
+.orgchart-primary-person-connector {
+  background-color: #808080;
+  height: 290px;
+  left: 155px;
+  position: absolute;
+  top: 50px;
+  width: 5px;
+}
+
+.orgchart-title {
+  color: #808080;
+  font-size: 14px;
+  left: 0;
+  position: absolute;
+}

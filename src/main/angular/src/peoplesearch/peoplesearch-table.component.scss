@@ -1,0 +1,29 @@
+people-search-table {
+    border: 1px solid #dae1e1;
+    bottom: 0;
+    left: 0;
+    overflow: auto;
+    position: absolute;
+    right: 0;
+    top: 0;
+
+    > table {
+        border: 0 none;
+        width: 100%;
+
+        th, td {
+            border-bottom: 1px solid #dae1e1;
+            font-weight: normal;
+            overflow: hidden;
+            padding: 5px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #eeeeee;
+            color: #697c87;
+        }
+    }
+}
+
