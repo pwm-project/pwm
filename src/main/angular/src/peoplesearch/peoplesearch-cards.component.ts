@@ -3,12 +3,10 @@ import { IScope } from 'angular';
 import PeopleSearchService from './peoplesearch.service';
 import Person from '../models/person.model';
 
-var stylesheetUrl = require('peoplesearch/peoplesearch-cards.component.scss');
-var templateUrl = require('peoplesearch/peoplesearch-cards.component.html');
 
 @Component({
-    stylesheetUrl: stylesheetUrl,
-    templateUrl: templateUrl
+    stylesheetUrl: require('peoplesearch/peoplesearch-cards.component.scss'),
+    templateUrl: require('peoplesearch/peoplesearch-cards.component.html')
 })
 export default class PeopleSearchCardsComponent {
     private deregistrationCallback: () => void;
