@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "node_modules/webpack/bin/webpack.js --config=webpack.build.js --NODE_ENV=production",
-    "clean": "rm -rf dist",
+    "clean": "node_modules/rimraf/bin.js dist/",
     "test": "node_modules/karma/bin/karma start --NODE_ENV=test",
     "test-single-run": "node_modules/karma/bin/karma start --NODE_ENV=test --singleRun --no-auto-watch",
     "start": "node_modules/webpack-dev-server/bin/webpack-dev-server.js --config=webpack.dev.js --NODE_ENV=dev"
@@ -41,6 +41,7 @@
     "node-sass": "3.10.1",
     "phantomjs": "2.1.7",
     "phantomjs-prebuilt": "2.1.13",
+    "rimraf": "2.5.4",
     "sass-loader": "4.0.2",
     "style-loader": "0.13.1",
     "ts-loader": "0.9.1",

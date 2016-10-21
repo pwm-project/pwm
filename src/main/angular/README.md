@@ -1,3 +1,5 @@
+## Set up
+
 ### Build
 Run the following commands
 1. `npm i`
@@ -19,3 +21,8 @@ the dist/ folder from http://localhost:8080/
 any file changes, rebuild your code, and run unit tests
 * `npm run test-single-run` Builds the code and runs all unit tests a
 one time
+
+## Known Issues
+
+### Visual Studio Code
+* Jasmine global properties not recognized in Typescript. https://github.com/Microsoft/TypeScript/issues/11620
