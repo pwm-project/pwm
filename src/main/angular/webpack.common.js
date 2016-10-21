@@ -1,5 +1,6 @@
 var CopyWebpackPlugin = require('copy-webpack-plugin');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
+var autoPrefixer = require('autoprefixer');
 var path = require('path');
 var webpack = require('webpack');
 
@@ -42,7 +43,7 @@ module.exports = {
             },
             {
                 test: /\.scss$/,
-                loaders: [ 'style', 'css', 'sass' ]
+                loaders: [ 'style', 'css', 'sass', 'postcss' ]
             },
             {
                 test: /\.json/,
@@ -56,16 +57,23 @@ module.exports = {
         path: outDir
     },
     plugins: [
-        new HtmlWebpackPlugin({
-            template: 'index.html',
-            inject: 'body'
-        }),
-
         new CopyWebpackPlugin([
             { from: 'vendor/angular-ui-router.js', to: 'vendor/' },
             { from: 'node_modules/angular/angular.js', to: 'vendor/' }
-        ])
+        ]),
+
+        new HtmlWebpackPlugin({
+            template: 'index.html',
+            inject: 'body'
+        })
     ],
+    postcss: function() {
+        return [
+            autoPrefixer({
+                browsers: ['last 2 versions']
+            })
+        ];
+    },
     resolve: {
         extensions: [ '', '.ts', '.js', '.json' ],
         modulesDirectories: ['./src', './vendor', 'node_modules']
