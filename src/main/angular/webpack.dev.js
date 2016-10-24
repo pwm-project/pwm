@@ -11,7 +11,7 @@ module.exports = webpackMerge(commonConfig, {
         port: 4000
     },
     entry: {
-        'app': './src/main.dev'
+        'peoplesearch.ng': './src/main.dev'
     },
     plugins: [
         // Because we copy the output to another directory, we need file system watch support.

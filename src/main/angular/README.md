@@ -2,12 +2,12 @@
 
 ### Build
 Run the following commands
-1. `npm i`
+1. `npm install`
 2. `npm run build`
 
 ### Setup Development Environment
 Run the following commands
-1. `npm i`
+1. `npm install`
 2. `npm start`
 3. `npm test` (optional)
 

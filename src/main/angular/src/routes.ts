@@ -9,5 +9,5 @@ export default [
         $stateProvider.state('search', { url: '/search', component: 'peopleSearch' });
         $stateProvider.state('search.table', { url: '/table', component: 'peopleSearchTable' });
         $stateProvider.state('search.cards', { url: '/cards', component: 'peopleSearchCards' });
-        $stateProvider.state('orgchart', { url: '/orgchart/{personId}', component: 'orgChart', });
+        $stateProvider.state('orgchart', { url: '/orgchart/{personId}', component: 'orgChart' });
     }];

@@ -3,6 +3,6 @@ var webpackMerge = require('webpack-merge');
 
 module.exports = webpackMerge(commonConfig, {
     entry: {
-        'app': './src/main'
+        'peoplesearch.ng': './src/main'
     }
 });

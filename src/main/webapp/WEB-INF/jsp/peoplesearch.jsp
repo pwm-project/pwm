@@ -39,30 +39,12 @@
 </div>
 
 <%-- TODO: change these to the 'min' versions (i.e. angular.min.js) --%>
-<pwm:script-ref url="/public/resources/systemjs/dist/system.js" />
-
-<%--
-Note: I'd rather access angular from the typescript code using: import "angular", and import "angular-ui-router", but
-angular-ui-router kept having problems, so I just hard coded the paths in script tags here: --%>
 <pwm:script-ref url="/public/resources/angular/angular.js" />
 <pwm:script-ref url="/public/resources/angular-ui-router/release/angular-ui-router.js" />
 
 <%@ include file="fragment/footer.jsp" %>
 <pwm:script-ref url="/public/resources/js/peoplesearch.js" />
-
-<pwm:script>
-    <script>
-    System.config({
-        defaultJSExtensions: true,
-        map: {
-            "angular": "<pwm:url addContext='true' url='/public/resources/angular/angular.js' />",
-            "angular-ui-router": "<pwm:url addContext='true' url='/public/resources/angular-ui-router/release/angular-ui-router.js' />"
-        }
-    });
-
-    System.import("<pwm:url addContext='true' url='/public/resources/app/peoplesearch.main.js' />");
-    </script>
-</pwm:script>
+<pwm:script-ref url="/public/resources/app/peoplesearch.ng.js" />
 
 </body>
 </html>
