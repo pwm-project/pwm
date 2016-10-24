@@ -180,21 +180,19 @@ PWM_CONFIG.showHeaderHealth = function() {
     var headerDiv = PWM_MAIN.getObject('header-warning');
     if (parentDiv && headerDiv) {
         var loadFunction = function(data) {
-            if (data['data'] && data['data']['records']) {
-                var healthRecords = data['data']['records'];
-                var hasWarnTopics = false;
-                for (var i = 0; i < healthRecords.length; i++) {
-                    var healthData = healthRecords[i];
-                    if (healthData['status'] == 'WARN') {
-                        hasWarnTopics = true;
-                    }
-                }
+            if (data['data'] && data['data']['overall']) {
+                var hasWarnTopics = data['data']['overall'] == 'WARN';
+                console.log('has health errors: ' + hasWarnTopics);
                 if (hasWarnTopics) {
-                    parentDiv.innerHTML = '<div id="panel-healthHeaderErrors" class="header-error"><span class="pwm-icon pwm-icon-warning"></span> ' + PWM_ADMIN.showString('Header_HealthWarningsPresent') + '</div>';
+                    PWM_MAIN.removeCssClass('header-menu-alert','display-none');
+                    PWM_MAIN.removeCssClass('panel-header-healthData','display-none');
+                } else {
+                    PWM_MAIN.addCssClass('header-menu-alert','display-none');
+                    PWM_MAIN.addCssClass('panel-header-healthData','display-none');
                 }
                 setTimeout(function () {
                     PWM_CONFIG.showHeaderHealth()
-                }, 60 * 1000);
+                }, 30 * 1000);
             }
         };
         var errorFunction = function(error) {

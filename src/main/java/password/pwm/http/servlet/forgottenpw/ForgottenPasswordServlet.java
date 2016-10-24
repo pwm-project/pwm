@@ -759,10 +759,13 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
             if (enforceFromForgotten) {
                 final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserInfo().getUserIdentity());
+                final UserInfoBean userInfoBean = forgottenPasswordBean.getUserInfo();
                 PasswordUtility.checkIfPasswordWithinMinimumLifetime(
                         theUser,
                         pwmRequest.getSessionLabel(),
-                        forgottenPasswordBean.getUserInfo()
+                        userInfoBean.getPasswordPolicy(),
+                        userInfoBean.getLastLdapLoginTime(),
+                        userInfoBean.getPasswordState()
                 );
             }
         } catch (PwmOperationalException e) {

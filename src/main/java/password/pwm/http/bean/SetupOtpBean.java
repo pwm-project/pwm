@@ -22,16 +22,14 @@
 
 package password.pwm.http.bean;
 
+import password.pwm.config.option.SessionBeanMode;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.otp.OTPUserRecord;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class SetupOtpBean extends PwmSessionBean {
 
@@ -130,7 +128,9 @@ public class SetupOtpBean extends PwmSessionBean {
         return Type.AUTHENTICATED;
     }
 
-    public Set<Flag> getFlags() {
-        return Collections.emptySet();
+    @Override
+    public Set<SessionBeanMode> supportedModes() {
+        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE)));
     }
+
 }

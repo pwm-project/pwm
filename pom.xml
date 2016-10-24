@@ -536,7 +536,7 @@
         <dependency>
             <groupId>org.graylog2</groupId>
             <artifactId>syslog4j</artifactId>
-            <version>0.9.55</version>
+            <version>0.9.57</version>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
@@ -547,11 +547,6 @@
             <groupId>org.apache.axis</groupId>
             <artifactId>axis</artifactId>
             <version>1.4</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sleepycat</groupId>
-            <artifactId>je</artifactId>
-            <version>6.4.9</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
@@ -571,7 +566,7 @@
         <dependency>
             <groupId>org.mapdb</groupId>
             <artifactId>mapdb</artifactId>
-            <version>3.0.1</version>
+            <version>3.0.2</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -586,12 +581,12 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.54</version>
+            <version>1.55</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.54</version>
+            <version>1.55</version>
         </dependency>
         <dependency>
             <groupId>javax.xml</groupId>
@@ -728,12 +723,6 @@
             <id>project.local</id>
             <name>project</name>
             <url>file:///${project.basedir}/local-maven-repo</url>
-        </repository>
-        <repository>
-            <id>oracleReleases</id>
-            <name>Oracle Released Java Packages</name>
-            <url>http://download.oracle.com/maven</url>
-            <layout>default</layout>
         </repository>
     </repositories>
     <pluginRepositories>

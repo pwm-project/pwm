@@ -53,6 +53,7 @@ public abstract class PwmConstants {
 
     private static final String MISSING_VERSION_STRING = readPwmConstantsBundle("missingVersionString");
     public static final String SERVLET_VERSION;
+
     static {
         final String servletVersion =
                 (BUILD_VERSION.length() > 0 ? "v" + BUILD_VERSION : "") +
@@ -249,6 +250,8 @@ public abstract class PwmConstants {
     public static final String PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
     public static final String PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
     public static final String PARAM_FORM_ID = "pwmFormID";
+    public static final String PARAM_SESSION_STATE_INFO = "ssi";
+
     public static final String PARAM_OTP_TOKEN = "otpToken";
     public static final String PARAM_TOKEN = readPwmConstantsBundle("paramName.token");
     public static final String PARAM_USERNAME = "username";

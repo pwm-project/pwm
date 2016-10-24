@@ -464,13 +464,20 @@ public class PasswordUtility {
             actions.addAll(helpdeskProfile.readSettingAsAction(PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES));
             if (!actions.isEmpty()) {
 
+                final LoginInfoBean loginInfoBean = new LoginInfoBean();
+                loginInfoBean.setUserCurrentPassword(newPassword);
+                final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
+
+                final MacroMachine macroMachine = new MacroMachine(
+                        pwmApplication,
+                        sessionLabel,
+                        userInfoBean,
+                        loginInfoBean,
+                        userDataReader
+                );
+
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings(pwmApplication, userIdentity)
-                        .setMacroMachine(MacroMachine.forUser(
-                                pwmApplication,
-                                pwmSession.getSessionStateBean().getLocale(),
-                                sessionLabel,
-                                userIdentity
-                        ))
+                        .setMacroMachine(macroMachine)
                         .setExpandPwmMacros(true)
                         .createActionExecutor();
 
@@ -1047,7 +1054,9 @@ public class PasswordUtility {
     public static void checkIfPasswordWithinMinimumLifetime(
             final ChaiUser chaiUser,
             final SessionLabel sessionLabel,
-            final UserInfoBean userInfoBean
+            final PwmPasswordPolicy passwordPolicy,
+            final Date lastModified,
+            final PasswordStatus passwordStatus
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
@@ -1072,12 +1081,11 @@ public class PasswordUtility {
         }
 
 
-        final int minimumLifetime = userInfoBean.getPasswordPolicy().getRuleHelper().readIntValue(PwmPasswordRule.MinimumLifetime);
+        final int minimumLifetime = passwordPolicy.getRuleHelper().readIntValue(PwmPasswordRule.MinimumLifetime);
         if (minimumLifetime < 1) {
             return;
         }
 
-        final Date lastModified = userInfoBean.getPasswordLastModifiedTime();
         if (lastModified == null || lastModified.after(new Date())) {
             LOGGER.debug(sessionLabel, "skipping minimum lifetime check, password last set time is unknown");
             return;
@@ -1089,7 +1097,6 @@ public class PasswordUtility {
             return;
         }
 
-        final PasswordStatus passwordStatus = userInfoBean.getPasswordState();
         if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isWarnPeriod()) {
             LOGGER.debug(sessionLabel, "current password is too young, but skipping enforcement of minimum lifetime check because current password is expired");
             return;

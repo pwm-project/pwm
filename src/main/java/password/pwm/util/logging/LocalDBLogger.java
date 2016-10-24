@@ -110,6 +110,8 @@ public class LocalDBLogger implements PwmService {
         cleanerService.scheduleAtFixedRate(new CleanupTask(), 0, 1, TimeUnit.MINUTES);
         writerService.scheduleWithFixedDelay(new FlushTask(), 0, 103, TimeUnit.MILLISECONDS);
 
+        cleanOnWriteFlag.set(eventQueue.size() >= settings.getMaxEvents());
+
         final TimeDuration timeDuration = TimeDuration.fromCurrent(startTime);
         LOGGER.info("open in " + timeDuration.asCompactString() + ", " + debugStats());
     }

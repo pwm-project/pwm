@@ -28,10 +28,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.PasswordStatus;
-import password.pwm.bean.LocalSessionStateBean;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.FormUtility;
@@ -43,7 +40,6 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ChangePasswordBean;
-import password.pwm.bean.LoginInfoBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -84,7 +80,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ChangePasswordServlet.class);
 
-    public enum ChangePasswordAction implements AbstractPwmServlet.ProcessAction {
+    private enum ChangePasswordAction implements AbstractPwmServlet.ProcessAction {
         checkProgress(HttpMethod.POST),
         complete(HttpMethod.GET),
         change(HttpMethod.POST),
@@ -119,11 +115,9 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
     }
 
     public void processAction(final PwmRequest pwmRequest)
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
-    {
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         final ChangePasswordBean changePasswordBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ChangePasswordBean.class);
 
         if (pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD) {
@@ -135,7 +129,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             return;
         }
 
-        if (determineIfCurrentPasswordRequired(pwmApplication,pwmSession)) {
+        if (determineIfCurrentPasswordRequired(pwmApplication, pwmSession)) {
             changePasswordBean.setCurrentPasswordRequired(true);
         }
 
@@ -145,7 +139,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         }
 
         try {
-            checkMinimumLifetime(pwmApplication,pwmSession,changePasswordBean,pwmSession.getUserInfoBean());
+            checkMinimumLifetime(pwmApplication, pwmSession, changePasswordBean, pwmSession.getUserInfoBean());
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInformation = e.getErrorInformation();
             LOGGER.error(pwmSession, errorInformation.toDebugStr());
@@ -156,7 +150,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         if (action != null) {
             pwmRequest.validatePwmFormID();
 
-            switch(action) {
+            switch (action) {
                 case checkProgress:
                     restCheckProgress(pwmRequest, changePasswordBean);
                     return;
@@ -179,6 +173,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
 
                 case agree:
                     handleAgreeRequest(pwmRequest, changePasswordBean);
+                    break;
 
                 case reset:
                     if (pwmSession.getUserInfoBean().isRequiresNewPassword()) {
@@ -524,7 +519,9 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             PasswordUtility.checkIfPasswordWithinMinimumLifetime(
                     pwmSession.getSessionManager().getActor(pwmApplication),
                     pwmSession.getLabel(),
-                    userInfoBean
+                    userInfoBean.getPasswordPolicy(),
+                    userInfoBean.getPasswordLastModifiedTime(),
+                    userInfoBean.getPasswordState()
             );
         } catch (PwmOperationalException e) {
             final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);

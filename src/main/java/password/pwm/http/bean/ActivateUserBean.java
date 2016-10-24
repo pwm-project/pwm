@@ -23,6 +23,7 @@
 package password.pwm.http.bean;
 
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.option.SessionBeanMode;
 
 import java.util.Collections;
 import java.util.Set;
@@ -99,7 +100,8 @@ public class ActivateUserBean extends PwmSessionBean {
         return Type.PUBLIC;
     }
 
-    public Set<Flag> getFlags() {
-        return Collections.emptySet();
+    @Override
+    public Set<SessionBeanMode> supportedModes() {
+        return Collections.singleton(SessionBeanMode.LOCAL);
     }
 }

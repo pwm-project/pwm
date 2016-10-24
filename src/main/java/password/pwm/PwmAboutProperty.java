@@ -49,6 +49,8 @@ public enum PwmAboutProperty {
     app_instanceID,
     app_trialMode,
     app_applianceMode,
+    app_applicationPath,
+    app_environmentFlags,
     app_wordlistSize,
     app_seedlistSize,
     app_sharedHistorySize,
@@ -110,7 +112,11 @@ public enum PwmAboutProperty {
         aboutMap.put(app_siteUrl,                  pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL));
         aboutMap.put(app_instanceID,               pwmApplication.getInstanceID());
         aboutMap.put(app_trialMode,                Boolean.toString(PwmConstants.TRIAL_MODE));
-        aboutMap.put(app_applianceMode,            Boolean.toString(pwmApplication.getPwmEnvironment() != null && pwmApplication.getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Appliance)));
+        if (pwmApplication.getPwmEnvironment() != null) {
+            aboutMap.put(app_applianceMode,            Boolean.toString(pwmApplication.getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Appliance)));
+            aboutMap.put(app_applicationPath,          pwmApplication.getPwmEnvironment().getApplicationPath().getAbsolutePath());
+            aboutMap.put(app_environmentFlags,         "");
+        }
         aboutMap.put(app_chaiApiVersion,           PwmConstants.CHAI_API_VERSION);
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {

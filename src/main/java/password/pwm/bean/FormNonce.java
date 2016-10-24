@@ -22,18 +22,30 @@
 
 package password.pwm.bean;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 import java.util.Date;
 
 public class FormNonce implements Serializable {
-    String sessionGUID;
-    Date timestamp;
-    int reqCounter;
 
-    public FormNonce(String sessionGUID, Date timestamp,  int reqCounter) {
+    @SerializedName("g")
+    private final String sessionGUID;
+
+    @SerializedName("t")
+    private final Date timestamp;
+
+    @SerializedName("c")
+    private final int reqCounter;
+
+    @SerializedName("p")
+    private final String payload;
+
+    public FormNonce(String sessionGUID, Date timestamp,  int reqCounter, String payload) {
         this.sessionGUID = sessionGUID;
         this.timestamp = timestamp;
         this.reqCounter = reqCounter;
+        this.payload = payload;
     }
 
     public String getSessionGUID() {
@@ -48,4 +60,7 @@ public class FormNonce implements Serializable {
         return reqCounter;
     }
 
+    public String getPayload() {
+        return payload;
+    }
 }

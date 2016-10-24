@@ -22,6 +22,7 @@
 
 package password.pwm.http.bean;
 
+import password.pwm.config.option.SessionBeanMode;
 import password.pwm.config.stored.StoredConfigurationImpl;
 
 import java.util.Collections;
@@ -76,7 +77,9 @@ public class ConfigManagerBean extends PwmSessionBean {
         this.configUnlockedWarningShown = configUnlockedWarningShown;
     }
 
-    public Set<Flag> getFlags() {
-        return Collections.singleton(Flag.ProhibitCookieSession);
+    @Override
+    public Set<SessionBeanMode> supportedModes() {
+        return Collections.singleton(SessionBeanMode.LOCAL);
     }
+
 }

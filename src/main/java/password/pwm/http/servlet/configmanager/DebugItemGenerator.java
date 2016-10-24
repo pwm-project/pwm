@@ -56,7 +56,6 @@ public class DebugItemGenerator {
             ConfigurationDebugTextItemGenerator.class,
             AboutItemGenerator.class,
             SystemEnvironmentItemGenerator.class,
-            AppEnvironmentGenerator.class,
             AppPropertiesItemGenerator.class,
             InfoDebugItemGenerator.class,
             HealthDebugItemGenerator.class,
@@ -229,23 +228,6 @@ public class DebugItemGenerator {
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
             outputProps.store(baos,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
             outputStream.write(baos.toByteArray());
-        }
-    }
-
-    static class AppEnvironmentGenerator implements Generator {
-        @Override
-        public String getFilename() {
-            return "app-environment.json";
-        }
-
-        @Override
-        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
-        {
-            final PwmEnvironment pwmEnvironment = pwmApplication.getPwmEnvironment();
-
-            // java threads
-            final String output = JsonUtil.serialize(pwmEnvironment);
-            outputStream.write(output.getBytes(PwmConstants.DEFAULT_CHARSET));
         }
     }
 

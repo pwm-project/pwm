@@ -289,6 +289,22 @@ public abstract class StringUtil {
         return chunks.toArray(new String[numOfChunks]);
     }
 
+    public static String collectionToString(final Collection collection, final String recordSeparator) {
+        final StringBuilder sb = new StringBuilder();
+        if (collection != null) {
+            for (final Iterator iterator = collection.iterator(); iterator.hasNext(); ) {
+                final Object obj = iterator.next();
+                if (obj != null) {
+                    sb.append(obj.toString());
+                    if (iterator.hasNext()) {
+                        sb.append(recordSeparator);
+                    }
+                }
+            }
+        }
+        return sb.toString();
+    }
+
     public static String mapToString(final Map map) {
         return mapToString(map, "=", ",");
     }

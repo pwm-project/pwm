@@ -29,21 +29,21 @@ import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiErrors;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiConfiguration;
-import com.novell.ldapchai.provider.ChaiProvider;
-import com.novell.ldapchai.provider.ChaiProviderFactory;
-import com.novell.ldapchai.provider.ChaiSetting;
+import com.novell.ldapchai.provider.*;
 import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserStatusReader;
@@ -182,49 +182,80 @@ public class LDAPStatusChecker implements HealthChecker {
                 return returnRecords;
             }
 
-            PasswordData userPassword = null;
-            {
-                try {
-                    final String passwordFromLdap = theUser.readPassword();
-                    if (passwordFromLdap != null && passwordFromLdap.length() > 0) {
-                        userPassword = new PasswordData(passwordFromLdap);
-                    }
-                } catch (Exception e) {
-                    LOGGER.trace(PwmConstants.HEALTH_SESSION_LABEL,"error retrieving user password from directory, this is probably okay; " + e.getMessage());
-                }
+            LOGGER.trace(PwmConstants.HEALTH_SESSION_LABEL, "beginning process to check ldap test user password read/write operations for profile " + ldapProfile.getIdentifier());
+            try {
+                final boolean readPwdEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_USER_PWD)
+                        && theUser.getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY;
 
-                if (userPassword == null) {
+                if (readPwdEnabled) {
                     try {
-                        final Locale locale = PwmConstants.DEFAULT_LOCALE;
-                        final UserIdentity userIdentity = new UserIdentity(testUserDN, ldapProfile.getIdentifier());
-
-                        final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
-                                pwmApplication, null, userIdentity, theUser, locale);
-                        final PasswordData newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy,
-                                pwmApplication);
-                        theUser.setPassword(newPassword.getStringValue());
-                        userPassword = newPassword;
-                    } catch (ChaiException e) {
-                        returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserPolicyError,
+                        theUser.readPassword();
+                    } catch (Exception e) {
+                        LOGGER.debug(PwmConstants.HEALTH_SESSION_LABEL, "error reading user password from directory " + e.getMessage());
+                        returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserReadPwError,
+                                PwmSetting.EDIRECTORY_READ_USER_PWD.toMenuLocationDebug(null, PwmConstants.DEFAULT_LOCALE),
                                 PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
                                 e.getMessage()
                         ));
                         return returnRecords;
-                    } catch (Exception e) {
-                        final String msg = "error setting test user password: " + Helper.readHostileExceptionMessage(e);
-                        LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL, msg, e);
-                        returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnexpected,
-                                PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
-                                msg
-                        ));
-                        return returnRecords;
+                    }
+                } else {
+                    final Locale locale = PwmConstants.DEFAULT_LOCALE;
+                    final UserIdentity userIdentity = new UserIdentity(testUserDN, ldapProfile.getIdentifier());
+
+                    final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
+                            pwmApplication, null, userIdentity, theUser, locale);
+
+                    boolean doPasswordChange = true;
+                    final int minLifetimeSeconds = passwordPolicy.getRuleHelper().readIntValue(PwmPasswordRule.MinimumLifetime);
+                    if (minLifetimeSeconds > 0) {
+                        final Date pwdLastModified = PasswordUtility.determinePwdLastModified(
+                                pwmApplication,
+                                PwmConstants.HEALTH_SESSION_LABEL,
+                                userIdentity
+                        );
+
+
+                        final PasswordStatus passwordStatus;
+                        {
+                            UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, PwmConstants.HEALTH_SESSION_LABEL);
+                            passwordStatus = userStatusReader.readPasswordStatus(theUser, passwordPolicy, null, null);
+                        }
+
+                        try {
+                            PasswordUtility.checkIfPasswordWithinMinimumLifetime(
+                                    theUser,
+                                    PwmConstants.HEALTH_SESSION_LABEL,
+                                    passwordPolicy,
+                                    pwdLastModified,
+                                    passwordStatus
+                            );
+                        } catch (PwmException e) {
+                            LOGGER.trace(PwmConstants.HEALTH_SESSION_LABEL, "skipping test user password set: " + e.getMessage());
+                            doPasswordChange = false;
+                        }
+                    }
+                    if (doPasswordChange) {
+                        final PasswordData newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy, pwmApplication);
+                        try {
+                            theUser.setPassword(newPassword.getStringValue());
+                            LOGGER.debug(PwmConstants.HEALTH_SESSION_LABEL, "set random password on test user " + userIdentity.toDisplayString());
+                        } catch (ChaiException e) {
+                            returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserWritePwError,
+                                    PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
+                                    e.getMessage()
+                            ));
+                            return returnRecords;
+                        }
+
                     }
                 }
-            }
-
-            if (userPassword == null) {
-                returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserNoTempPass,
-                        PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE)
+            } catch (Exception e) {
+                final String msg = "error setting test user password: " + Helper.readHostileExceptionMessage(e);
+                LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL, msg, e);
+                returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnexpected,
+                        PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
+                        msg
                 ));
                 return returnRecords;
             }

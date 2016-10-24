@@ -27,8 +27,9 @@ import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.FormConfiguration;
-import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.IdentityVerificationMethod;
+import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.option.SessionBeanMode;
 
 import java.io.Serializable;
 import java.util.*;
@@ -265,8 +266,9 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return Type.PUBLIC;
     }
 
-    public Set<Flag> getFlags() {
-        return Collections.singleton(Flag.ProhibitCookieSession);
+    @Override
+    public Set<SessionBeanMode> supportedModes() {
+        return Collections.singleton(SessionBeanMode.LOCAL);
     }
 }
 

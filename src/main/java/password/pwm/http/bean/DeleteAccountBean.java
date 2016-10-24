@@ -22,7 +22,11 @@
 
 package password.pwm.http.bean;
 
+import password.pwm.config.option.SessionBeanMode;
+
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 public class DeleteAccountBean extends PwmSessionBean {
@@ -41,8 +45,8 @@ public class DeleteAccountBean extends PwmSessionBean {
         return Type.PUBLIC;
     }
 
-    public Set<Flag> getFlags() {
-        return Collections.emptySet();
+    @Override
+    public Set<SessionBeanMode> supportedModes() {
+        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE)));
     }
-
 }

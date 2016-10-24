@@ -43,8 +43,8 @@ import password.pwm.util.logging.PwmLogger;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-class CryptoRequestLoginImpl implements SessionLoginProvider {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(CryptoRequestLoginImpl.class);
+class CryptoCookieLoginImpl implements SessionLoginProvider {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(CryptoCookieLoginImpl.class);
 
     private static final PwmResponse.CookiePath COOKIE_PATH = PwmHttpResponseWrapper.CookiePath.Application;
     private String cookieName = "SESSION";

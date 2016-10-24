@@ -128,7 +128,7 @@ table td.key {
 }
 
 .healthTable-wrapper {
-    margin-top:5px; margin-left: 20px; margin-right: 20px; padding:0;
+    margin-top:5px; margin-left: 0; margin-right: 0; padding:0;
     max-height: 300px; overflow-y: auto
 }
 
@@ -306,12 +306,13 @@ input[type=password]::-ms-reveal{display: none;}
     margin-bottom: 5px;
     text-align: center;
     padding: 10px;
-    width: 140px;
-    height: 170px;
+    width: 165px;
+    height: 165px;
     overflow: hidden;
     z-index: 600;
     font-weight: normal;
 }
+
 
 .tile:hover {
     background: #fff;
@@ -474,12 +475,13 @@ div.progress-container > div {
 }
 
 #header-menu-alert {
-    display: inline-block;
     animation: blink 2s steps(5, start) infinite;
+    color: #e50000;
 }
 
 #header-menu-wrapper {
     display: inline-block;
+    margin-right: 20px;
 }
 
 .header-button {
@@ -1048,6 +1050,51 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 
 .center { text-align: center; }
 
+.display-none {
+    display: none;
+}
+
+#header-menu-icon::after {
+    content: "\f141";
+    font: 12px FontAwesome;
+}
+
+#header-username-caret {
+    display: inline-block;
+}
+
+
+#header-username-group, #header-username {
+    display: inline-block;
+}
+
+#header-menu-wrapper > #header-username {
+    display: block;
+}
+
+#header-menu {
+    cursor: pointer;
+    text-align: right;
+}
+
+
+#header-menu:only-child {
+    padding-top: 15px;
+}
+
+#HomeButton span.pwm-icon, #LogoutButton span.pwm-icon, #header-username-caret span.pwm-icon {
+    font: 20px FontAwesome;
+    margin-right: 0px;
+}
+
+
+#header-menu-icon {
+    display: inline-block;
+}
+
+#header {
+    color: white;
+}
 
 .something {
     display: none;

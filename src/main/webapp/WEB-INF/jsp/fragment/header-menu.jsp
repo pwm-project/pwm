@@ -75,7 +75,11 @@
                 </pwm:if>
             </pwm:if>
         </div>
-        <div id="panel-header-healthData" class="header-warning-row header-warning-healthData"></div>
+        <div id="panel-header-healthData" class="header-warning-row header-warning-healthDat display-none">
+            <div id="panel-healthHeaderErrors" class="header-error">
+                <span class="pwm-icon pwm-icon-warning"></span><pwm:display key="Header_HealthWarningsPresent" bundle="Admin"/>
+            </div>
+        </div>
         <div class="header-warning-row header-warning-version"><%=PwmConstants.PWM_APP_NAME_VERSION%></div>
         <div id="button-closeHeader" title="<pwm:display key="Button_Hide"/>"></div>
     </div>
