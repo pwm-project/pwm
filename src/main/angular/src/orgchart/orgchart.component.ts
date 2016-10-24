@@ -13,14 +13,14 @@ export default class OrgChartComponent {
     private directReports: Person[];
 
     static $inject = ['$q', '$state', '$stateParams', 'PeopleService'];
-    public constructor(
+    constructor(
         private $q: IQService,
         private $state: angular.ui.IStateService,
         private $stateParams: angular.ui.IStateParamsService,
         private peopleService: PeopleService) {
     }
 
-    public $onInit() {
+    $onInit() {
         var personId: string = this.$stateParams['personId'];
 
         if (personId) {
@@ -40,7 +40,11 @@ export default class OrgChartComponent {
         }
     }
 
-    public close() {
+    close() {
         this.$state.go('search.table');
+    }
+
+    selectPerson(userKey: string) {
+        this.$state.go('orgchart', { personId: userKey });
     }
 }

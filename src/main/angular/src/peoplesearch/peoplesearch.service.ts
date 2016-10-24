@@ -12,7 +12,7 @@ export default class PeopleSearchService {
     }
 
     search(query: string) {
-        if (angular.isString(query)) {
+        if (query && angular.isString(query)) {
             this.peopleService.search(query)
                 .then((people: Person[]) => {
                     this.setPeople(people);

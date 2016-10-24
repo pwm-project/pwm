@@ -6,7 +6,8 @@
 
     <div class="orgchart-management-title orgchart-title">Management</div>
     <div class="orgchart-management" ng-if="$ctrl.managementChain.length" >
-        <div class="orgchart-manager" ng-repeat="manager in $ctrl.managementChain">
+        <div class="orgchart-manager" ng-repeat="manager in $ctrl.managementChain"
+             ng-click="$ctrl.selectPerson(manager.userKey)">
             <div class="orgchart-separator" ng-class="{first:$first,last:$last}"></div>
             <div class="orgchart-picture">
                 <img ng-src="{{ manager.photoUrl }}" />
@@ -33,7 +34,8 @@
 
     <div class="orgchart-direct-reports-title orgchart-title">Direct Reports</div>
     <div class="orgchart-direct-reports person-card-list" ng-if="$ctrl.directReports.length">
-        <div class="person-card" ng-repeat="directReport in $ctrl.directReports">
+        <div class="person-card" ng-repeat="directReport in $ctrl.directReports"
+            ng-click="$ctrl.selectPerson(directReport.userKey)">
             <div class="person-card-image"><img ng-src="{{ directReport.photoUrl }}" /></div>
             <div class="orgchart-num-reports" ng-if="directReport.numOfReports">{{ directReport.numOfReports }}</div>
             <div class="person-card-details">

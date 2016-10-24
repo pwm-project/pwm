@@ -32,6 +32,11 @@ people-search-cards {
             position: absolute;
             top: 10px;
             width: 50px;
+
+            img {
+                height: 100%;
+                width: 100%;
+            }
         }
 
         .person-card-details {
