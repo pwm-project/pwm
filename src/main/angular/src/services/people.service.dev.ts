@@ -16,7 +16,7 @@ export default class PeopleService implements IPeopleService {
         var deferred = this.$q.defer<Person[]>();
 
         this.$timeout(() => {
-            var people = this.people.filter((person: Person) => person.orgChartParentKey == id);
+            var people = this.people.filter((person: Person) => person.detail.manager.typeMetaData.userKey == id);
 
             deferred.resolve(people);
         });
@@ -33,7 +33,7 @@ export default class PeopleService implements IPeopleService {
             if (person) {
                 var managementChain: Person[] = [];
 
-                while (person = this.findPerson(person.orgChartParentKey)) {
+                while (person = this.findPerson(person.detail.manager.typeMetaData.userKey)) {
                     managementChain.push(person);
                 }
 

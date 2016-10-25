@@ -1,21 +1,27 @@
 [
   {
-    "userKey": "1",
-    "displayNames": [
-      "Andy Smith",
-      "ASST. C/O",
-      "(123) 456-7890",
-      "andy.smith@lapd.gov"
-    ],
+    "userKey": 1,
+    "id": "f5728471-cf90-48d6-a435-6218c58dc7e3",
+    "givenName": "Jean",
+    "sn": "Ryan",
+    "mail": "jryan0@csmonitor.com",
+    "telephoneNumber": "(564)683-6597",
+    "title": "Senior Sales Associate",
+    "managerId": null,
     "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 3,
+    "displayNames": [
+      "Jean Ryan",
+      "jryan0@csmonitor.com",
+      "Senior Sales Associate",
+      "(564)683-6597"
+    ],
     "detail": {
       "sn": {
         "name": "sn",
         "label": "Last Name",
         "type": "text",
         "values": [
-          "Smith"
+          "Ryan"
         ]
       },
       "givenName": {
@@ -23,14 +29,15 @@
         "label": "First Name",
         "type": "text",
         "values": [
-          "Andy"
+          "Jean"
         ]
       },
       "telephoneNumber": {
-        "name": "Phone",
+        "name": "telephoneNumber",
+        "label": "Phone",
         "type": "tel",
         "values": [
-          "(123) 456-7890"
+          "(564)683-6597"
         ]
       },
       "mail": {
@@ -38,753 +45,1357 @@
         "label": "Email Address",
         "type": "email",
         "values": [
-          "andy.smith@lapd.gov"
+          "jryan0@csmonitor.com"
         ]
       },
       "title": {
         "name": "title",
         "label": "Title",
+        "type": "text",
         "values": [
-          "ASST. C/O"
-        ]
-      },
-      "department": {
-        "name": "Department",
-        "values": [
-          "Office of Operations"
+          "Senior Sales Associate"
         ]
       },
       "manager": {
-        "name": "Manager",
-        "values": [
-          "Debra McCarthy"
-        ],
+        "name": "manager",
+        "label": "Manager",
         "type": "person-link",
+        "values": [
+          "#N/A"
+        ],
         "typeMetaData": {
-          "userKey": "3"
+          "userKey": 0
         }
       }
     }
   },
   {
-    "userKey": "3",
-    "displayNames": [
-      "Debra McCarthy",
-      "Deputy Chief"
-    ],
+    "userKey": 2,
+    "id": "75ac8b24-64a4-4df5-8709-b414bc65e63a",
+    "givenName": "Ruby",
+    "sn": "Bowman",
+    "mail": "rbowman1@pinterest.com",
+    "telephoneNumber": "(567)798-6155",
+    "title": "Quality Engineer",
+    "managerId": 1,
     "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": null,
+    "displayNames": [
+      "Ruby Bowman",
+      "rbowman1@pinterest.com",
+      "Quality Engineer",
+      "(567)798-6155"
+    ],
     "detail": {
       "sn": {
         "name": "sn",
-        "values": [
-          "McCarthy"
-        ],
-        "type": "text",
         "label": "Last Name",
-        "searchable": true
-      },
-      "givenName": {
-        "name": "givenName",
-        "values": [
-          "Debra"
-        ],
         "type": "text",
-        "label": "First Name",
-        "searchable": true
-      },
-      "title": {
         "values": [
-          "Deputy Chief"
+          "Bowman"
         ]
-      }
-    }
-  },
-  {
-    "userKey": "4",
-    "displayNames": [
-      "Earl Paysinger",
-      "Assistant Chief"
-    ],
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 3,
-    "detail": {
-      "sn": {
-        "name": "sn",
-        "values": [
-          "Paysinger"
-        ],
-        "type": "text",
-        "label": "Last Name",
-        "searchable": true
       },
       "givenName": {
         "name": "givenName",
-        "values": [
-          "Earl"
-        ],
-        "type": "text",
         "label": "First Name",
-        "searchable": true
-      },
-      "title": {
-        "values": [
-          "Assistant Chief"
-        ]
-      }
-    }
-  },
-  {
-    "userKey": "5",
-    "displayNames": [
-      "Charlie Beck",
-      "Chief of Police"
-    ],
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 3,
-    "detail": {
-      "sn": {
-        "name": "sn",
-        "values": [
-          "Beck"
-        ],
         "type": "text",
-        "label": "Last Name",
-        "searchable": true
-      },
-      "givenName": {
-        "name": "givenName",
         "values": [
-          "Charlie"
-        ],
-        "type": "text",
-        "label": "First Name",
-        "searchable": true
-      },
-      "title": {
-        "values": [
-          "Chief of Police"
-        ]
-      }
-    }
-  },
-  {
-    "userKey": "6",
-    "displayNames": [
-      "John W. Mack",
-      "CFO"
-    ],
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 3,
-    "detail": {
-      "sn": {
-        "name": "sn",
-        "values": [
-          "Mack"
-        ],
-        "type": "text",
-        "label": "Last Name",
-        "searchable": true
-      },
-      "givenName": {
-        "name": "givenName",
-        "values": [
-          "John W. "
-        ],
-        "type": "text",
-        "label": "First Name",
-        "searchable": true
-      },
-      "Commissioner": {
-        "values": [
-          "CFO"
-        ]
-      }
-    }
-  },
-  {
-    "userKey": "7",
-    "displayNames": [
-      "R. Tefank",
-      "Executive Director"
-    ],
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 3,
-    "detail": {
-      "sn": {
-        "name": "sn",
-        "values": [
-          "Tefank"
-        ],
-        "type": "text",
-        "label": "Last Name",
-        "searchable": true
-      },
-      "givenName": {
-        "name": "givenName",
-        "values": [
-          "R."
-        ],
-        "type": "text",
-        "label": "First Name",
-        "searchable": true
-      },
-      "title": {
-        "values": [
-          "Executive Director"
-        ]
-      }
-    }
-  },
-  {
-    "userKey": "8",
-    "displayNames": [
-      "Elmer Davis",
-      "Captain III"
-    ],
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 3,
-    "detail": {
-      "sn": {
-        "name": "sn",
-        "values": [
-          "Davis"
-        ],
-        "type": "text",
-        "label": "Last Name",
-        "searchable": true
-      },
-      "givenName": {
-        "name": "givenName",
-        "values": [
-          "Elmer"
-        ],
-        "type": "text",
-        "label": "First Name",
-        "searchable": true
-      },
-      "title": {
-        "values": [
-          "Captain III"
+          "Ruby"
         ]
       },
       "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
         "values": [
-          "(123) 456-7890 x001"
-        ],
-        "type": "tel"
+          "(567)798-6155"
+        ]
       },
       "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
         "values": [
-          "elmer.davis@lapd.gov"
+          "rbowman1@pinterest.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Quality Engineer"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jean Ryan"
         ],
-        "type": "email"
+        "typeMetaData": {
+          "userKey": 1
+        }
       }
     }
   },
   {
-    "userKey": "9",
-    "displayNames": [
-      "William Hart",
-      "Captain I"
-    ],
+    "userKey": 3,
+    "id": "88a52657-45f5-4e8a-9081-fd8ece607e57",
+    "givenName": "William",
+    "sn": "Carter",
+    "mail": "wcarter2@delicious.com",
+    "telephoneNumber": "(523)622-4293",
+    "title": "Community Outreach Specialist",
+    "managerId": 1,
     "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 3,
+    "displayNames": [
+      "William Carter",
+      "wcarter2@delicious.com",
+      "Community Outreach Specialist",
+      "(523)622-4293"
+    ],
     "detail": {
       "sn": {
         "name": "sn",
-        "values": [
-          "Hart"
-        ],
-        "type": "text",
         "label": "Last Name",
-        "searchable": true
+        "type": "text",
+        "values": [
+          "Carter"
+        ]
       },
       "givenName": {
         "name": "givenName",
+        "label": "First Name",
+        "type": "text",
         "values": [
           "William"
-        ],
-        "type": "text",
-        "label": "First Name",
-        "searchable": true
-      },
-      "title": {
-        "values": [
-          "Captain I"
         ]
       },
       "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
         "values": [
-          "(123) 456-7890 x002"
-        ],
-        "type": "tel"
+          "(523)622-4293"
+        ]
       },
       "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
         "values": [
-          "william.hart@lapd.gov"
+          "wcarter2@delicious.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Community Outreach Specialist"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jean Ryan"
         ],
-        "type": "email"
+        "typeMetaData": {
+          "userKey": 1
+        }
       }
     }
   },
   {
-    "userKey": "10",
-    "displayNames": [
-      "Bob Ginmala",
-      "Captain III"
-    ],
+    "userKey": 4,
+    "id": "5daa7e1b-6c40-45cb-a3bb-9c59f8d189a0",
+    "givenName": "Alan",
+    "sn": "Snyder",
+    "mail": "asnyder3@blinklist.com",
+    "telephoneNumber": "(345)682-1430",
+    "title": "Research Nurse",
+    "managerId": 1,
     "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 3,
+    "displayNames": [
+      "Alan Snyder",
+      "asnyder3@blinklist.com",
+      "Research Nurse",
+      "(345)682-1430"
+    ],
     "detail": {
       "sn": {
         "name": "sn",
-        "values": [
-          "Ginmala"
-        ],
-        "type": "text",
         "label": "Last Name",
-        "searchable": true
+        "type": "text",
+        "values": [
+          "Snyder"
+        ]
       },
       "givenName": {
         "name": "givenName",
-        "values": [
-          "Bob"
-        ],
-        "type": "text",
         "label": "First Name",
-        "searchable": true
-      },
-      "title": {
+        "type": "text",
         "values": [
-          "Captain III"
+          "Alan"
         ]
       },
       "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
         "values": [
-          "(123) 456-7890 x003"
-        ],
-        "type": "tel"
+          "(345)682-1430"
+        ]
       },
       "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
         "values": [
-          "bob.ginmala@lapd.gov"
+          "asnyder3@blinklist.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Research Nurse"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jean Ryan"
         ],
-        "type": "email"
+        "typeMetaData": {
+          "userKey": 1
+        }
       }
     }
   },
   {
-    "userKey": "11",
-    "displayNames": [
-      "Peter Wittingham",
-      "Captain I"
-    ],
+    "userKey": 5,
+    "id": "96637293-860a-4979-a9b9-6c7424f79249",
+    "givenName": "Aaron",
+    "sn": "Alvarez",
+    "mail": "aalvarez4@ezinearticles.com",
+    "telephoneNumber": "(457)877-1797",
+    "title": "Financial Analyst",
+    "managerId": 2,
     "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 1,
+    "displayNames": [
+      "Aaron Alvarez",
+      "aalvarez4@ezinearticles.com",
+      "Financial Analyst",
+      "(457)877-1797"
+    ],
     "detail": {
       "sn": {
         "name": "sn",
-        "values": [
-          "Wittingham"
-        ],
-        "type": "text",
         "label": "Last Name",
-        "searchable": true
+        "type": "text",
+        "values": [
+          "Alvarez"
+        ]
       },
       "givenName": {
         "name": "givenName",
-        "values": [
-          "Peter"
-        ],
-        "type": "text",
         "label": "First Name",
-        "searchable": true
-      },
-      "title": {
+        "type": "text",
         "values": [
-          "Captain I"
+          "Aaron"
         ]
       },
       "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
         "values": [
-          "(123) 456-7890 x004"
-        ],
-        "type": "tel"
+          "(457)877-1797"
+        ]
       },
       "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
         "values": [
-          "peter.wittingham@lapd.gov"
+          "aalvarez4@ezinearticles.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Financial Analyst"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Ruby Bowman"
         ],
-        "type": "email"
+        "typeMetaData": {
+          "userKey": 2
+        }
       }
     }
   },
   {
-    "userKey": "12",
-    "displayNames": [
-      "Elena Nathan",
-      "Captain III"
-    ],
+    "userKey": 6,
+    "id": "3bc65639-ac59-44a2-8dc0-8b1d6c096c3a",
+    "givenName": "Deborah",
+    "sn": "Morrison",
+    "mail": "dmorrison5@nytimes.com",
+    "telephoneNumber": "(268)336-2705",
+    "title": "Accountant II",
+    "managerId": 2,
     "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 1,
+    "displayNames": [
+      "Deborah Morrison",
+      "dmorrison5@nytimes.com",
+      "Accountant II",
+      "(268)336-2705"
+    ],
     "detail": {
       "sn": {
         "name": "sn",
-        "values": [
-          "Nathan"
-        ],
-        "type": "text",
         "label": "Last Name",
-        "searchable": true
+        "type": "text",
+        "values": [
+          "Morrison"
+        ]
       },
       "givenName": {
         "name": "givenName",
-        "values": [
-          "Elena"
-        ],
-        "type": "text",
         "label": "First Name",
-        "searchable": true
-      },
-      "title": {
+        "type": "text",
         "values": [
-          "Captain III"
+          "Deborah"
         ]
       },
       "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
         "values": [
-          "(123) 456-7890 x005"
-        ],
-        "type": "tel"
+          "(268)336-2705"
+        ]
       },
       "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
         "values": [
-          "elena.nathan@lapd.gov"
+          "dmorrison5@nytimes.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Accountant II"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Ruby Bowman"
         ],
-        "type": "email"
+        "typeMetaData": {
+          "userKey": 2
+        }
       }
     }
   },
   {
-    "userKey": "13",
-    "displayNames": [
-      "Rolphe DeLaTorre",
-      "Captain I"
-    ],
+    "userKey": 7,
+    "id": "dc227135-7a34-413f-9a1a-6bbc65fccc52",
+    "givenName": "Mildred",
+    "sn": "Hayes",
+    "mail": "mhayes6@house.gov",
+    "telephoneNumber": "(638)951-3305",
+    "title": "Design Engineer",
+    "managerId": 2,
     "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 1,
+    "displayNames": [
+      "Mildred Hayes",
+      "mhayes6@house.gov",
+      "Design Engineer",
+      "(638)951-3305"
+    ],
     "detail": {
       "sn": {
         "name": "sn",
-        "values": [
-          "DeLaTorre"
-        ],
-        "type": "text",
         "label": "Last Name",
-        "searchable": true
+        "type": "text",
+        "values": [
+          "Hayes"
+        ]
       },
       "givenName": {
         "name": "givenName",
-        "values": [
-          "Rolphe"
-        ],
-        "type": "text",
         "label": "First Name",
-        "searchable": true
-      },
-      "title": {
+        "type": "text",
         "values": [
-          "Captain I"
+          "Mildred"
         ]
       },
       "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
         "values": [
-          "(123) 456-7890 x006"
-        ],
-        "type": "tel"
+          "(638)951-3305"
+        ]
       },
       "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
         "values": [
-          "rolphe.delatorre@lapd.gov"
+          "mhayes6@house.gov"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Design Engineer"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Ruby Bowman"
         ],
-        "type": "email"
+        "typeMetaData": {
+          "userKey": 2
+        }
       }
     }
   },
   {
-    "userKey": "14",
-    "displayNames": [
-      "Mike Blake",
-      "Captain III"
-    ],
+    "userKey": 8,
+    "id": "11ad9dce-2249-4526-8709-b50c5fc2f3e5",
+    "givenName": "Margaret",
+    "sn": "Holmes",
+    "mail": "mholmes7@nbcnews.com",
+    "telephoneNumber": "(564)818-6794",
+    "title": "Structural Engineer",
+    "managerId": 3,
     "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 1,
+    "displayNames": [
+      "Margaret Holmes",
+      "mholmes7@nbcnews.com",
+      "Structural Engineer",
+      "(564)818-6794"
+    ],
     "detail": {
       "sn": {
         "name": "sn",
-        "values": [
-          "Blake"
-        ],
-        "type": "text",
         "label": "Last Name",
-        "searchable": true
+        "type": "text",
+        "values": [
+          "Holmes"
+        ]
       },
       "givenName": {
         "name": "givenName",
-        "values": [
-          "Mike"
-        ],
-        "type": "text",
         "label": "First Name",
-        "searchable": true
-      },
-      "title": {
+        "type": "text",
         "values": [
-          "Captain III"
+          "Margaret"
         ]
       },
       "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
         "values": [
-          "(123) 456-7890 x007"
-        ],
-        "type": "tel"
+          "(564)818-6794"
+        ]
       },
       "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
         "values": [
-          "mike.blake@lapd.gov"
+          "mholmes7@nbcnews.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Structural Engineer"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "William Carter"
         ],
-        "type": "email"
+        "typeMetaData": {
+          "userKey": 3
+        }
       }
     }
   },
   {
-    "userKey": "15",
-    "displayNames": [
-      "Braeden Crump",
-      "Captain I"
-    ],
+    "userKey": 9,
+    "id": "e5ca9428-5319-4a4e-b21f-f4a30b44c4e7",
+    "givenName": "Jack",
+    "sn": "Jackson",
+    "mail": "jjackson8@thetimes.co.uk",
+    "telephoneNumber": "(206)987-9763",
+    "title": "Junior Executive",
+    "managerId": 3,
     "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 1,
+    "displayNames": [
+      "Jack Jackson",
+      "jjackson8@thetimes.co.uk",
+      "Junior Executive",
+      "(206)987-9763"
+    ],
     "detail": {
       "sn": {
         "name": "sn",
-        "values": [
-          "Crump"
-        ],
-        "type": "text",
         "label": "Last Name",
-        "searchable": true
+        "type": "text",
+        "values": [
+          "Jackson"
+        ]
       },
       "givenName": {
         "name": "givenName",
-        "values": [
-          "Braeden"
-        ],
-        "type": "text",
         "label": "First Name",
-        "searchable": true
-      },
-      "title": {
+        "type": "text",
         "values": [
-          "Captain I"
+          "Jack"
         ]
       },
       "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
         "values": [
-          "(123) 456-7890 x007"
-        ],
-        "type": "tel"
+          "(206)987-9763"
+        ]
       },
       "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
         "values": [
-          "braeden.crump@lapd.gov"
+          "jjackson8@thetimes.co.uk"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Junior Executive"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "William Carter"
         ],
-        "type": "email"
+        "typeMetaData": {
+          "userKey": 3
+        }
       }
     }
   },
   {
-    "userKey": "16",
-    "displayNames": [
-      "Jeremy Peters",
-      "Captain III"
-    ],
+    "userKey": 10,
+    "id": "0f3d7561-5c2c-4e71-b716-cab2fbed991d",
+    "givenName": "Judy",
+    "sn": "Butler",
+    "mail": "jbutler9@reference.com",
+    "telephoneNumber": "(751)250-5973",
+    "title": "Chief Design Engineer",
+    "managerId": 3,
     "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 1,
+    "displayNames": [
+      "Judy Butler",
+      "jbutler9@reference.com",
+      "Chief Design Engineer",
+      "(751)250-5973"
+    ],
     "detail": {
       "sn": {
         "name": "sn",
-        "values": [
-          "Peters"
-        ],
-        "type": "text",
         "label": "Last Name",
-        "searchable": true
+        "type": "text",
+        "values": [
+          "Butler"
+        ]
       },
       "givenName": {
         "name": "givenName",
-        "values": [
-          "Jeremy"
-        ],
-        "type": "text",
         "label": "First Name",
-        "searchable": true
-      },
-      "title": {
+        "type": "text",
         "values": [
-          "Captain III"
+          "Judy"
         ]
       },
       "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
         "values": [
-          "(123) 456-7890 x007"
-        ],
-        "type": "tel"
+          "(751)250-5973"
+        ]
       },
       "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
         "values": [
-          "jeremy.peters@lapd.gov"
+          "jbutler9@reference.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Chief Design Engineer"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "William Carter"
         ],
-        "type": "email"
+        "typeMetaData": {
+          "userKey": 3
+        }
       }
     }
   },
   {
-    "userKey": "17",
-    "displayNames": [
-      "Jeff West",
-      "Captain I"
-    ],
+    "userKey": 11,
+    "id": "564e659a-b491-4dc6-820c-524785031d33",
+    "givenName": "Tina",
+    "sn": "Gutierrez",
+    "mail": "tgutierreza@godaddy.com",
+    "telephoneNumber": "(205)653-6795",
+    "title": "Engineer IV",
+    "managerId": 3,
     "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 12,
+    "displayNames": [
+      "Tina Gutierrez",
+      "tgutierreza@godaddy.com",
+      "Engineer IV",
+      "(205)653-6795"
+    ],
     "detail": {
       "sn": {
         "name": "sn",
-        "values": [
-          "West"
-        ],
-        "type": "text",
         "label": "Last Name",
-        "searchable": true
+        "type": "text",
+        "values": [
+          "Gutierrez"
+        ]
       },
       "givenName": {
         "name": "givenName",
-        "values": [
-          "Jeff"
-        ],
-        "type": "text",
         "label": "First Name",
-        "searchable": true
-      },
-      "title": {
+        "type": "text",
         "values": [
-          "Captain I"
+          "Tina"
         ]
       },
       "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
         "values": [
-          "(123) 456-7890 x007"
-        ],
-        "type": "tel"
+          "(205)653-6795"
+        ]
       },
       "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
         "values": [
-          "jeff.west@lapd.gov"
+          "tgutierreza@godaddy.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Engineer IV"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "William Carter"
         ],
-        "type": "email"
+        "typeMetaData": {
+          "userKey": 3
+        }
       }
     }
   },
   {
-    "userKey": "18",
-    "displayNames": [
-      "Paul Fontanetta",
-      "Captain II"
-    ],
+    "userKey": 12,
+    "id": "5203a7f8-a63b-47e9-bd05-1d00fb542eaa",
+    "givenName": "Jose",
+    "sn": "Cox",
+    "mail": "jcoxb@stumbleupon.com",
+    "telephoneNumber": "(816)816-8474",
+    "title": "Human Resources Manager",
+    "managerId": 3,
     "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 12,
+    "displayNames": [
+      "Jose Cox",
+      "jcoxb@stumbleupon.com",
+      "Human Resources Manager",
+      "(816)816-8474"
+    ],
     "detail": {
       "sn": {
         "name": "sn",
-        "values": [
-          " Fontanetta"
-        ],
-        "type": "text",
         "label": "Last Name",
-        "searchable": true
+        "type": "text",
+        "values": [
+          "Cox"
+        ]
       },
       "givenName": {
         "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Jose"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(816)816-8474"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "jcoxb@stumbleupon.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Human Resources Manager"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "William Carter"
+        ],
+        "typeMetaData": {
+          "userKey": 3
+        }
+      }
+    }
+  },
+  {
+    "userKey": 13,
+    "id": "1fecf6c4-2375-4f49-a5da-8f2d90bc4a3f",
+    "givenName": "Paul",
+    "sn": "Barnes",
+    "mail": "pbarnesc@mediafire.com",
+    "telephoneNumber": "(207)691-7625",
+    "title": "Internal Auditor",
+    "managerId": 4,
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Paul Barnes",
+      "pbarnesc@mediafire.com",
+      "Internal Auditor",
+      "(207)691-7625"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Barnes"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
         "values": [
           "Paul"
-        ],
-        "type": "text",
-        "label": "First Name",
-        "searchable": true
-      },
-      "title": {
-        "values": [
-          "Captain II"
         ]
       },
       "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
         "values": [
-          "(123) 456-7890 x007"
-        ],
-        "type": "tel"
+          "(207)691-7625"
+        ]
       },
       "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
         "values": [
-          "paul.fontanetta@lapd.gov"
+          "pbarnesc@mediafire.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Internal Auditor"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Alan Snyder"
         ],
-        "type": "email"
+        "typeMetaData": {
+          "userKey": 4
+        }
       }
     }
   },
   {
-    "userKey": "19",
-    "displayNames": [
-      "Nadine Lauer",
-      "Captain II"
-    ],
+    "userKey": 14,
+    "id": "afd4cdf4-148b-4349-92b5-55a97bd5da4f",
+    "givenName": "Joe",
+    "sn": "Stevens",
+    "mail": "jstevensd@ocn.ne.jp",
+    "telephoneNumber": "(133)596-4078",
+    "title": "Automation Specialist I",
+    "managerId": 4,
     "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
-    "orgChartParentKey": 12,
+    "displayNames": [
+      "Joe Stevens",
+      "jstevensd@ocn.ne.jp",
+      "Automation Specialist I",
+      "(133)596-4078"
+    ],
     "detail": {
       "sn": {
         "name": "sn",
-        "values": [
-          "Lauer"
-        ],
-        "type": "text",
         "label": "Last Name",
-        "searchable": true
+        "type": "text",
+        "values": [
+          "Stevens"
+        ]
       },
       "givenName": {
         "name": "givenName",
-        "values": [
-          "Nadine"
-        ],
-        "type": "text",
         "label": "First Name",
-        "searchable": true
-      },
-      "title": {
+        "type": "text",
         "values": [
-          "Captain II"
+          "Joe"
         ]
       },
       "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
         "values": [
-          "(123) 456-7890 x007"
-        ],
-        "type": "tel"
+          "(133)596-4078"
+        ]
       },
       "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
         "values": [
-          "nadine.lauer@lapd.gov"
+          "jstevensd@ocn.ne.jp"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Automation Specialist I"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Alan Snyder"
         ],
-        "type": "email"
+        "typeMetaData": {
+          "userKey": 4
+        }
+      }
+    }
+  },
+  {
+    "userKey": 15,
+    "id": "511652b6-cd3e-41ac-85ea-8154d1ba3df6",
+    "givenName": "Randy",
+    "sn": "Grant",
+    "mail": "rgrante@europa.eu",
+    "telephoneNumber": "(343)776-3486",
+    "title": "Safety Technician I",
+    "managerId": 4,
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Randy Grant",
+      "rgrante@europa.eu",
+      "Safety Technician I",
+      "(343)776-3486"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Grant"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Randy"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(343)776-3486"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "rgrante@europa.eu"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Safety Technician I"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Alan Snyder"
+        ],
+        "typeMetaData": {
+          "userKey": 4
+        }
+      }
+    }
+  },
+  {
+    "userKey": 16,
+    "id": "cbf1bcd1-7ef1-4ed0-b1c7-ee42b8005c99",
+    "givenName": "Martin",
+    "sn": "Mason",
+    "mail": "mmasonf@who.int",
+    "telephoneNumber": "(285)576-0850",
+    "title": "Compensation Analyst",
+    "managerId": 9,
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Martin Mason",
+      "mmasonf@who.int",
+      "Compensation Analyst",
+      "(285)576-0850"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Mason"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Martin"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(285)576-0850"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "mmasonf@who.int"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Compensation Analyst"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jack Jackson"
+        ],
+        "typeMetaData": {
+          "userKey": 9
+        }
+      }
+    }
+  },
+  {
+    "userKey": 17,
+    "id": "3f4d2955-d6e0-4d70-a3bb-cab342f887de",
+    "givenName": "Cynthia",
+    "sn": "Porter",
+    "mail": "cporterg@a8.net",
+    "telephoneNumber": "(594)905-7773",
+    "title": "Data Coordiator",
+    "managerId": 9,
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Cynthia Porter",
+      "cporterg@a8.net",
+      "Data Coordiator",
+      "(594)905-7773"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Porter"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Cynthia"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(594)905-7773"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "cporterg@a8.net"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Data Coordiator"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jack Jackson"
+        ],
+        "typeMetaData": {
+          "userKey": 9
+        }
+      }
+    }
+  },
+  {
+    "userKey": 18,
+    "id": "fba89f94-29f9-4198-a0e5-f8b7c96620ee",
+    "givenName": "Nancy",
+    "sn": "Burns",
+    "mail": "nburnsh@wordpress.org",
+    "telephoneNumber": "(444)231-5492",
+    "title": "Business Systems Development Analyst",
+    "managerId": 9,
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Nancy Burns",
+      "nburnsh@wordpress.org",
+      "Business Systems Development Analyst",
+      "(444)231-5492"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Burns"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Nancy"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(444)231-5492"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "nburnsh@wordpress.org"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Business Systems Development Analyst"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jack Jackson"
+        ],
+        "typeMetaData": {
+          "userKey": 9
+        }
+      }
+    }
+  },
+  {
+    "userKey": 19,
+    "id": "95ae40b3-c8af-4588-94da-ee0f0d6bafdc",
+    "givenName": "Jimmy",
+    "sn": "Montgomery",
+    "mail": "jmontgomeryi@addtoany.com",
+    "telephoneNumber": "(675)799-8793",
+    "title": "Structural Engineer",
+    "managerId": 9,
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Jimmy Montgomery",
+      "jmontgomeryi@addtoany.com",
+      "Structural Engineer",
+      "(675)799-8793"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Montgomery"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Jimmy"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(675)799-8793"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "jmontgomeryi@addtoany.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Structural Engineer"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jack Jackson"
+        ],
+        "typeMetaData": {
+          "userKey": 9
+        }
+      }
+    }
+  },
+  {
+    "userKey": 20,
+    "id": "2ae2d513-e12e-40a7-9cf5-2dd481706147",
+    "givenName": "Bruce",
+    "sn": "Carroll",
+    "mail": "bcarrollj@paypal.com",
+    "telephoneNumber": "(658)289-4550",
+    "title": "Desktop Support Technician",
+    "managerId": 9,
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Bruce Carroll",
+      "bcarrollj@paypal.com",
+      "Desktop Support Technician",
+      "(658)289-4550"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Carroll"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Bruce"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(658)289-4550"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "bcarrollj@paypal.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Desktop Support Technician"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jack Jackson"
+        ],
+        "typeMetaData": {
+          "userKey": 9
+        }
       }
     }
   }
