@@ -6,8 +6,8 @@ var peopleData = require('./people.data');
 
 export default class PeopleService implements IPeopleService {
     private people: Person[];
-
     static $inject = ['$q', '$timeout'];
+
     constructor(private $q: IQService, private $timeout: ITimeoutService) {
         this.people = peopleData.map((person) => new Person(person));
     }
@@ -64,11 +64,22 @@ export default class PeopleService implements IPeopleService {
         return deferred.promise;
     }
 
+    isOrgChartEnabled(id: string): angular.IPromise<boolean> {
+        var deferred = this.$q.defer<boolean>();
+
+        this.$timeout(() => {
+            deferred.resolve(true);
+        });
+
+        return deferred.promise;
+    }
+
     search(query: string): angular.IPromise<Person[]> {
         var deferred = this.$q.defer<Person[]>();
         var self = this;
         this.$timeout(() => {
-            var people = self.people.filter((person: Person) => person.userKey.toLowerCase().indexOf(query) === 0 );
+            var people = self.people.filter((person: Person) =>
+                person.detail.givenName.values[0].toLowerCase().indexOf(query.toLowerCase()) >= 0);
 
             deferred.resolve(people);
         });

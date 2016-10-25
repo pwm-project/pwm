@@ -12,9 +12,10 @@ export default class PeopleSearchTableComponent {
     private deregistrationCallback: () => void;
     people: Person[];
 
-    static $inject = [ '$scope', 'PeopleSearchService' ];
+    static $inject = [ '$scope', '$state', 'PeopleSearchService' ];
     constructor(
         private $scope: IScope,
+        private $state: angular.ui.IStateService,
         private peopleSearchService: PeopleSearchService) {
     }
 
@@ -33,5 +34,9 @@ export default class PeopleSearchTableComponent {
 
     getPeople() {
         this.people = this.peopleSearchService.people;
+    }
+
+    selectPerson(id: string) {
+        this.$state.go('orgchart', { personId: id });
     }
 }

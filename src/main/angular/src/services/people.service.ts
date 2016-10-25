@@ -7,6 +7,7 @@ export interface IPeopleService {
     getDirectReports(personId: string): IPromise<Person[]>;
     getManagementChain(personId: string): IPromise<Person[]>;
     getPerson(id: string): IPromise<Person>;
+    isOrgChartEnabled(id: string): IPromise<boolean>;
     search(query: string): IPromise<Person[]>;
 }
 
@@ -14,15 +15,19 @@ export default class PeopleService implements IPeopleService {
     static $inject = ['$http'];
     constructor(private $http: IHttpService) {
     }
+
     getDirectReports(id: string): angular.IPromise<Person[]> {
         return undefined;
     }
-
     getManagementChain(id: string): angular.IPromise<Person[]> {
         return undefined;
     }
 
-    getPerson(id: string): IHttpPromise<Person> {
+    getPerson(id: string): IPromise<Person> {
+        return undefined;
+    }
+
+    isOrgChartEnabled(id: string): angular.IPromise<boolean> {
         return undefined;
     }
 

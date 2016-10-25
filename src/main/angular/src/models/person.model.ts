@@ -1,13 +1,15 @@
 export default class Person {
-    userKey: string;
-    photoUrl: string;
+    detail: any;
+    displayNames: string[];
     orgChartParentKey: string;
-    fields: any[];
+    photoURL: string;
+    userKey: string;
 
     constructor(options: any) {
-        this.fields = options.fields;
+        this.detail = options.detail;
+        this.displayNames = options.displayNames;
         this.orgChartParentKey = options.orgChartParentKey;
-        this.photoUrl = options.photoUrl;
+        this.photoURL = options.photoURL;
         this.userKey = options.userKey;
     }
 }

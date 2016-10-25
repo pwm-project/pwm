@@ -10,39 +10,39 @@
              ng-click="$ctrl.selectPerson(manager.userKey)">
             <div class="orgchart-separator" ng-class="{first:$first,last:$last}"></div>
             <div class="orgchart-picture">
-                <img ng-src="{{ manager.photoUrl }}" />
+                <img ng-src="{{ manager.photoURL }}" />
             </div>
             <div class="orgchart-manager-fields">
-                <div class="orgchart-field orgchart-field-0">{{ manager.fields[0].value }}</div>
-                <div class="orgchart-field orgchart-field-1">{{ manager.fields[1].value }}</div>
+                <div class="orgchart-field orgchart-field-0">{{ manager.displayNames[0] }}</div>
+                <div class="orgchart-field orgchart-field-1">{{ manager.displayNames[1] }}</div>
             </div>
         </div>
     </div>
 
     <div class="orgchart-primary-person">
-        <img class="orgchart-picture" ng-src="{{ $ctrl.person.photoUrl }}" />
+        <img class="orgchart-picture" ng-src="{{ $ctrl.person.photoURL }}" />
         <div class="orgchart-num-reports" ng-if="$ctrl.directReports.length">{{ $ctrl.directReports.length }}</div>
 
-        <div class="orgchart-primary-field orgchart-field-0">{{ $ctrl.person.fields[0].value }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-1">{{ $ctrl.person.fields[1].value }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-2">{{ $ctrl.person.fields[2].value }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-3">{{ $ctrl.person.fields[3].value }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-4">{{ $ctrl.person.fields[4].value }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-5">{{ $ctrl.person.fields[5].value }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-6">{{ $ctrl.person.fields[6].value }}</div>
+        <div class="orgchart-primary-field orgchart-field-0">{{ $ctrl.person.displayNames[0] }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-1">{{ $ctrl.person.displayNames[1] }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-2">{{ $ctrl.person.displayNames[2] }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-3">{{ $ctrl.person.displayNames[3] }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-4">{{ $ctrl.person.displayNames[4] }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-5">{{ $ctrl.person.displayNames[5] }}</div>
+        <div class="orgchart-primary-field orgchart-field orgchart-field-6">{{ $ctrl.person.displayNames[6] }}</div>
     </div>
 
     <div class="orgchart-direct-reports-title orgchart-title">Direct Reports</div>
     <div class="orgchart-direct-reports person-card-list" ng-if="$ctrl.directReports.length">
         <div class="person-card" ng-repeat="directReport in $ctrl.directReports"
             ng-click="$ctrl.selectPerson(directReport.userKey)">
-            <div class="person-card-image"><img ng-src="{{ directReport.photoUrl }}" /></div>
+            <div class="person-card-image"><img ng-src="{{ directReport.photoURL }}" /></div>
             <div class="orgchart-num-reports" ng-if="directReport.numOfReports">{{ directReport.numOfReports }}</div>
             <div class="person-card-details">
-                <div class="person-card-row-1">{{ directReport.fields[0].value }}</div>
-                <div class="person-card-row-2">{{ directReport.fields[1].value }}</div>
-                <div class="person-card-row-3">{{ directReport.fields[2].value }}</div>
-                <div class="person-card-row-4">{{ directReport.fields[3].value }}</div>
+                <div class="person-card-row-1">{{ directReport.displayNames[0] }}</div>
+                <div class="person-card-row-2">{{ directReport.displayNames[1] }}</div>
+                <div class="person-card-row-3">{{ directReport.displayNames[2] }}</div>
+                <div class="person-card-row-4">{{ directReport.displayNames[3] }}</div>
             </div>
         </div>
     </div>

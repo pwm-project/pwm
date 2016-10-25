@@ -1,437 +1,791 @@
 [
   {
     "userKey": "1",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Andy Smith",
+      "ASST. C/O",
+      "(123) 456-7890",
+      "andy.smith@lapd.gov"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
-    "fields": [
-      {
-        "fieldId": "name",
-        "name": "Name",
-        "value": "Andy Smith"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Smith"
+        ]
       },
-      {
-        "fieldId": "phone",
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Andy"
+        ]
+      },
+      "telephoneNumber": {
         "name": "Phone",
-        "type": "phone",
-        "value": "(123) 456-7890"
+        "type": "tel",
+        "values": [
+          "(123) 456-7890"
+        ]
       },
-      {
-        "fieldId": "email",
-        "name": "Email",
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
         "type": "email",
-        "value": "andy.smith@lapd.gov"
+        "values": [
+          "andy.smith@lapd.gov"
+        ]
       },
-      {
-        "fieldId": "title",
-        "name": "Title",
-        "value": "ASST. C/O"
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "values": [
+          "ASST. C/O"
+        ]
       },
-      {
-        "fieldId": "department",
+      "department": {
         "name": "Department",
-        "value": "Office of Operations"
+        "values": [
+          "Office of Operations"
+        ]
       },
-      {
-        "fieldId": "manager",
+      "manager": {
         "name": "Manager",
-        "value": "Debra McCarthy",
+        "values": [
+          "Debra McCarthy"
+        ],
         "type": "person-link",
         "typeMetaData": {
           "userKey": "3"
         }
       }
-    ]
+    }
   },
   {
     "userKey": "3",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Debra McCarthy",
+      "Deputy Chief"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": null,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Debra McCarthy",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "McCarthy"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Deputy Chief"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Debra"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
+      },
+      "title": {
+        "values": [
+          "Deputy Chief"
+        ]
       }
-    ]
+    }
   },
   {
     "userKey": "4",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Earl Paysinger",
+      "Assistant Chief"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Earl Paysinger",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "Paysinger"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Assistant Chief"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Earl"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
+      },
+      "title": {
+        "values": [
+          "Assistant Chief"
+        ]
       }
-    ]
+    }
   },
   {
     "userKey": "5",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Charlie Beck",
+      "Chief of Police"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Charlie Beck",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "Beck"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Chief of Police"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Charlie"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
+      },
+      "title": {
+        "values": [
+          "Chief of Police"
+        ]
       }
-    ]
+    }
   },
   {
     "userKey": "6",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "John W. Mack",
+      "CFO"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "John W. Mack",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "Mack"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "Commissioner",
-        "value": "CFO"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "John W. "
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
+      },
+      "Commissioner": {
+        "values": [
+          "CFO"
+        ]
       }
-    ]
+    }
   },
   {
     "userKey": "7",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "R. Tefank",
+      "Executive Director"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "R. Tefank",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "Tefank"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Executive Director"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "R."
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
+      },
+      "title": {
+        "values": [
+          "Executive Director"
+        ]
       }
-    ]
+    }
   },
   {
     "userKey": "8",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Elmer Davis",
+      "Captain III"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Elmer Davis",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "Davis"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Captain III"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Elmer"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
       },
-      {
-        "fieldId": "phone",
-        "value": "(123) 456-7890 x001",
-        "type": "phone"
+      "title": {
+        "values": [
+          "Captain III"
+        ]
       },
-      {
-        "fieldId": "email",
-        "value": "elmer.davis@lapd.gov",
+      "telephoneNumber": {
+        "values": [
+          "(123) 456-7890 x001"
+        ],
+        "type": "tel"
+      },
+      "mail": {
+        "values": [
+          "elmer.davis@lapd.gov"
+        ],
         "type": "email"
       }
-    ]
+    }
   },
   {
     "userKey": "9",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "William Hart",
+      "Captain I"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "William Hart",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "Hart"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Captain I"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "William"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
       },
-      {
-        "fieldId": "phone",
-        "value": "(123) 456-7890 x002",
-        "type": "phone"
+      "title": {
+        "values": [
+          "Captain I"
+        ]
       },
-      {
-        "fieldId": "email",
-        "value": "william.hart@lapd.gov",
+      "telephoneNumber": {
+        "values": [
+          "(123) 456-7890 x002"
+        ],
+        "type": "tel"
+      },
+      "mail": {
+        "values": [
+          "william.hart@lapd.gov"
+        ],
         "type": "email"
       }
-    ]
+    }
   },
   {
     "userKey": "10",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Bob Ginmala",
+      "Captain III"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 3,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Bob Ginmala",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "Ginmala"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Captain III"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Bob"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
       },
-      {
-        "fieldId": "phone",
-        "value": "(123) 456-7890 x003",
-        "type": "phone"
+      "title": {
+        "values": [
+          "Captain III"
+        ]
       },
-      {
-        "fieldId": "email",
-        "value": "bob.ginmala@lapd.gov",
+      "telephoneNumber": {
+        "values": [
+          "(123) 456-7890 x003"
+        ],
+        "type": "tel"
+      },
+      "mail": {
+        "values": [
+          "bob.ginmala@lapd.gov"
+        ],
         "type": "email"
       }
-    ]
+    }
   },
   {
     "userKey": "11",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Peter Wittingham",
+      "Captain I"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 1,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Peter Wittingham",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "Wittingham"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Captain I"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Peter"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
       },
-      {
-        "fieldId": "phone",
-        "value": "(123) 456-7890 x004",
-        "type": "phone"
+      "title": {
+        "values": [
+          "Captain I"
+        ]
       },
-      {
-        "fieldId": "email",
-        "value": "peter.wittingham@lapd.gov",
+      "telephoneNumber": {
+        "values": [
+          "(123) 456-7890 x004"
+        ],
+        "type": "tel"
+      },
+      "mail": {
+        "values": [
+          "peter.wittingham@lapd.gov"
+        ],
         "type": "email"
       }
-    ]
+    }
   },
   {
     "userKey": "12",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Elena Nathan",
+      "Captain III"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 1,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Elena Nathan",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "Nathan"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Captain III"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Elena"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
       },
-      {
-        "fieldId": "phone",
-        "value": "(123) 456-7890 x005",
-        "type": "phone"
+      "title": {
+        "values": [
+          "Captain III"
+        ]
       },
-      {
-        "fieldId": "email",
-        "value": "elena.nathan@lapd.gov",
+      "telephoneNumber": {
+        "values": [
+          "(123) 456-7890 x005"
+        ],
+        "type": "tel"
+      },
+      "mail": {
+        "values": [
+          "elena.nathan@lapd.gov"
+        ],
         "type": "email"
       }
-    ]
+    }
   },
   {
     "userKey": "13",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Rolphe DeLaTorre",
+      "Captain I"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 1,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Rolphe DeLaTorre",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "DeLaTorre"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Captain I"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Rolphe"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
       },
-      {
-        "fieldId": "phone",
-        "value": "(123) 456-7890 x006",
-        "type": "phone"
+      "title": {
+        "values": [
+          "Captain I"
+        ]
       },
-      {
-        "fieldId": "email",
-        "value": "rolphe.delatorre@lapd.gov",
+      "telephoneNumber": {
+        "values": [
+          "(123) 456-7890 x006"
+        ],
+        "type": "tel"
+      },
+      "mail": {
+        "values": [
+          "rolphe.delatorre@lapd.gov"
+        ],
         "type": "email"
       }
-    ]
+    }
   },
   {
     "userKey": "14",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Mike Blake",
+      "Captain III"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 1,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Mike Blake",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "Blake"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Captain III"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Mike"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
       },
-      {
-        "fieldId": "phone",
-        "value": "(123) 456-7890 x007",
-        "type": "phone"
+      "title": {
+        "values": [
+          "Captain III"
+        ]
       },
-      {
-        "fieldId": "email",
-        "value": "mike.blake@lapd.gov",
+      "telephoneNumber": {
+        "values": [
+          "(123) 456-7890 x007"
+        ],
+        "type": "tel"
+      },
+      "mail": {
+        "values": [
+          "mike.blake@lapd.gov"
+        ],
         "type": "email"
       }
-    ]
+    }
   },
   {
     "userKey": "15",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Braeden Crump",
+      "Captain I"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 1,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Braeden Crump",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "Crump"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Captain I"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Braeden"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
       },
-      {
-        "fieldId": "phone",
-        "value": "(123) 456-7890 x007",
-        "type": "phone"
+      "title": {
+        "values": [
+          "Captain I"
+        ]
       },
-      {
-        "fieldId": "email",
-        "value": "braeden.crump@lapd.gov",
+      "telephoneNumber": {
+        "values": [
+          "(123) 456-7890 x007"
+        ],
+        "type": "tel"
+      },
+      "mail": {
+        "values": [
+          "braeden.crump@lapd.gov"
+        ],
         "type": "email"
       }
-    ]
+    }
   },
   {
     "userKey": "16",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Jeremy Peters",
+      "Captain III"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 1,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Jeremy Peters",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "Peters"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Captain III"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Jeremy"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
       },
-      {
-        "fieldId": "phone",
-        "value": "(123) 456-7890 x007",
-        "type": "phone"
+      "title": {
+        "values": [
+          "Captain III"
+        ]
       },
-      {
-        "fieldId": "email",
-        "value": "jeremy.peters@lapd.gov",
+      "telephoneNumber": {
+        "values": [
+          "(123) 456-7890 x007"
+        ],
+        "type": "tel"
+      },
+      "mail": {
+        "values": [
+          "jeremy.peters@lapd.gov"
+        ],
         "type": "email"
       }
-    ]
+    }
   },
   {
     "userKey": "17",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Jeff West",
+      "Captain I"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 12,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Jeff West",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "West"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Captain I"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Jeff"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
       },
-      {
-        "fieldId": "phone",
-        "value": "(123) 456-7890 x007",
-        "type": "phone"
+      "title": {
+        "values": [
+          "Captain I"
+        ]
       },
-      {
-        "fieldId": "email",
-        "value": "jeff.west@lapd.gov",
+      "telephoneNumber": {
+        "values": [
+          "(123) 456-7890 x007"
+        ],
+        "type": "tel"
+      },
+      "mail": {
+        "values": [
+          "jeff.west@lapd.gov"
+        ],
         "type": "email"
       }
-    ]
+    }
   },
   {
     "userKey": "18",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Paul Fontanetta",
+      "Captain II"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 12,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Paul Fontanetta",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          " Fontanetta"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Captain II"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Paul"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
       },
-      {
-        "fieldId": "phone",
-        "value": "(123) 456-7890 x007",
-        "type": "phone"
+      "title": {
+        "values": [
+          "Captain II"
+        ]
       },
-      {
-        "fieldId": "email",
-        "value": "paul.fontanetta@lapd.gov",
+      "telephoneNumber": {
+        "values": [
+          "(123) 456-7890 x007"
+        ],
+        "type": "tel"
+      },
+      "mail": {
+        "values": [
+          "paul.fontanetta@lapd.gov"
+        ],
         "type": "email"
       }
-    ]
+    }
   },
   {
     "userKey": "19",
-    "photoUrl": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "displayNames": [
+      "Nadine Lauer",
+      "Captain II"
+    ],
+    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
     "orgChartParentKey": 12,
-    "fields": [
-      {
-        "fieldId": "name",
-        "value": "Nadine Lauer",
-        "type": "person-link"
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "values": [
+          "Lauer"
+        ],
+        "type": "text",
+        "label": "Last Name",
+        "searchable": true
       },
-      {
-        "fieldId": "title",
-        "value": "Captain II"
+      "givenName": {
+        "name": "givenName",
+        "values": [
+          "Nadine"
+        ],
+        "type": "text",
+        "label": "First Name",
+        "searchable": true
       },
-      {
-        "fieldId": "phone",
-        "value": "(123) 456-7890 x007",
-        "type": "phone"
+      "title": {
+        "values": [
+          "Captain II"
+        ]
       },
-      {
-        "fieldId": "email",
-        "value": "nadine.lauer@lapd.gov",
+      "telephoneNumber": {
+        "values": [
+          "(123) 456-7890 x007"
+        ],
+        "type": "tel"
+      },
+      "mail": {
+        "values": [
+          "nadine.lauer@lapd.gov"
+        ],
         "type": "email"
       }
-    ]
+    }
   }
 ]
