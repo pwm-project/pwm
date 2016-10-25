@@ -32,6 +32,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.*;
 import password.pwm.config.*;
 import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.*;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
@@ -528,14 +529,16 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Configuration config = pwmApplication.getConfig();
+        final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final UserDataReader userDataReader = pwmSession.getSessionManager().getUserDataReader(pwmApplication);
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        final LdapProfile ldapProfile = userInfoBean.getUserIdentity().getLdapProfile(config);
 
         final String message = config.readSettingAsLocalizedString(PwmSetting.SMS_ACTIVATION_TEXT, locale);
 
         final String toSmsNumber;
         try {
-            toSmsNumber = userDataReader.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
+            toSmsNumber = userDataReader.readStringAttribute(ldapProfile.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
         } catch (Exception e) {
             LOGGER.debug(pwmSession.getLabel(), "error reading SMS attribute from user '" + pwmSession.getUserInfoBean().getUserIdentity() + "': " + e.getMessage());
             return false;
@@ -576,7 +579,8 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 
             final String toSmsNumber;
             try {
-                toSmsNumber = dataReader.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
+                final LdapProfile ldapProfile = userIdentity.getLdapProfile(config);
+                toSmsNumber = dataReader.readStringAttribute(ldapProfile.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
             } catch (Exception e) {
                 final String errorMsg = "unable to read user SMS attribute due to ldap error, unable to send token: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);

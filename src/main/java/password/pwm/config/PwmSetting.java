@@ -214,8 +214,6 @@ public enum PwmSetting {
     LDAP_PROFILE_DISPLAY_NAME(
             "ldap.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.LDAP_LOGIN),
 
-    AUTO_ADD_OBJECT_CLASSES(
-            "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES),
     LDAP_USERNAME_ATTRIBUTE(
             "ldap.username.attr", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
     LDAP_GUID_ATTRIBUTE(
@@ -229,9 +227,11 @@ public enum PwmSetting {
     LDAP_GROUP_LABEL_ATTRIBUTE(
             "ldap.group.label.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
     EMAIL_USER_MAIL_ATTRIBUTE(
-            "email.userMailAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
+            "email.userMailAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
     SMS_USER_PHONE_ATTRIBUTE(
-            "sms.userSmsAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
+            "sms.userSmsAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
+    AUTO_ADD_OBJECT_CLASSES(
+            "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES),
 
 
 
