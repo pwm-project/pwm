@@ -11,10 +11,11 @@ export default class PeopleSearchComponent {
     query: string;
     viewToggleClass: string;
 
-    static $inject = ['$scope', '$state', 'PeopleSearchService'];
+    static $inject = ['$scope', '$state', '$stateParams', 'PeopleSearchService'];
     constructor(
         private $scope: IScope,
         private $state: angular.ui.IStateService,
+        private $stateParams: angular.ui.IStateParamsService,
         private peopleSearchService: PeopleSearchService) {
     }
 
@@ -24,6 +25,8 @@ export default class PeopleSearchComponent {
         this.$scope.$watch('$ctrl.query', (newValue: string, oldValue: string) => {
             this.peopleSearchService.search(newValue);
         });
+
+        this.query = this.$stateParams['query'];
     }
 
     private setViewToggleClass() {
