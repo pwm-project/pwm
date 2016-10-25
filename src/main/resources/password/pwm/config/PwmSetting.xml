@@ -620,9 +620,7 @@
         </default>
     </setting>
     <setting hidden="false" key="ldap.profile.displayName" level="2">
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting hidden="false" key="ldap.profile.enabled" level="2">
         <default>
@@ -3557,6 +3555,12 @@
     <category hidden="false" key="LDAP_PROFILE" profiles="true">
         <profile setting="ldap.profile.list"/>
     </category>
+    <category hidden="false" key="LDAP_BASE">
+    </category>
+    <category hidden="false" key="LDAP_ATTRIBUTES">
+    </category>
+    <category hidden="false" key="LDAP_LOGIN">
+    </category>
     <category hidden="false" key="LDAP_GLOBAL">
     </category>
     <category hidden="false" key="LDAP_SETTINGS">
@@ -3702,6 +3706,12 @@
     </category>
     <category hidden="false" key="HELPDESK_PROFILE">
         <profile setting="helpdesk.profile.list"/>
+    </category>
+    <category hidden="false" key="HELPDESK_OPTIONS">
+    </category>
+    <category hidden="false" key="HELPDESK_BASE">
+    </category>
+    <category hidden="false" key="HELPDESK_VERIFICATION">
     </category>
     <category hidden="false" key="HELPDESK_SETTINGS">
     </category>

@@ -108,7 +108,8 @@ h3 {
 }
 
 #header-warning {
-    box-shadow: 4px 4px 2px #888888;
+    box-shadow: 4px 4px 2px #B2B1B9;
+    animation: slideInTop 0.2s;
     border:none;
     border-radius: 2px;
 }
@@ -126,7 +127,7 @@ h3 {
     width: 165px;
     height: 165px;
     border: 1px solid #E8E1F6;
-    transition: box-shadow 0.3s;
+    transition: box-shadow 1s;
 }
 
 .tile:hover {

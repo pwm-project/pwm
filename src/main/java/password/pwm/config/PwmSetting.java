@@ -189,43 +189,50 @@ public enum PwmSetting {
 
     //ldap directories
     LDAP_SERVER_URLS(
-            "ldap.serverUrls", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_PROFILE),
+            "ldap.serverUrls", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_BASE),
     LDAP_SERVER_CERTS(
-            "ldap.serverCerts", PwmSettingSyntax.X509CERT, PwmSettingCategory.LDAP_PROFILE),
+            "ldap.serverCerts", PwmSettingSyntax.X509CERT, PwmSettingCategory.LDAP_BASE),
     LDAP_PROXY_USER_DN(
-            "ldap.proxy.username", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
+            "ldap.proxy.username", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_BASE),
     LDAP_PROXY_USER_PASSWORD(
-            "ldap.proxy.password", PwmSettingSyntax.PASSWORD, PwmSettingCategory.LDAP_PROFILE),
+            "ldap.proxy.password", PwmSettingSyntax.PASSWORD, PwmSettingCategory.LDAP_BASE),
     LDAP_CONTEXTLESS_ROOT(
-            "ldap.rootContexts", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_PROFILE),
+            "ldap.rootContexts", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_BASE),
     LDAP_TEST_USER_DN(
-            "ldap.testuser.username", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
-    AUTO_ADD_OBJECT_CLASSES(
-            "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_PROFILE),
-    LDAP_USERNAME_SEARCH_FILTER(
-            "ldap.usernameSearchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
-    LDAP_USERNAME_ATTRIBUTE(
-            "ldap.username.attr", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
+            "ldap.testuser.username", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_BASE),
     LDAP_GUID_AUTO_ADD(
-            "ldap.guid.autoAddValue", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_PROFILE),
-    LDAP_GUID_ATTRIBUTE(
-            "ldap.guidAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
-    LDAP_LOGIN_CONTEXTS(
-            "ldap.selectableContexts", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_PROFILE),
-    LDAP_NAMING_ATTRIBUTE(
-            "ldap.namingAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
-    PASSWORD_LAST_UPDATE_ATTRIBUTE(
-            "passwordLastUpdateAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
-    LDAP_USER_GROUP_ATTRIBUTE(
-            "ldap.user.group.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
-    LDAP_GROUP_LABEL_ATTRIBUTE(
-            "ldap.group.label.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
+            "ldap.guid.autoAddValue", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_BASE),
     LDAP_SEARCH_TIMEOUT(
-            "ldap.search.timeoutSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.LDAP_PROFILE),
-    LDAP_PROFILE_DISPLAY_NAME(
-            "ldap.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.LDAP_PROFILE),
+            "ldap.search.timeoutSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.LDAP_BASE),
     LDAP_PROFILE_ENABLED(
-            "ldap.profile.enabled", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_PROFILE),
+            "ldap.profile.enabled", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_BASE),
+
+    LDAP_USERNAME_SEARCH_FILTER(
+            "ldap.usernameSearchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_LOGIN),
+    LDAP_LOGIN_CONTEXTS(
+            "ldap.selectableContexts", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_LOGIN),
+    LDAP_PROFILE_DISPLAY_NAME(
+            "ldap.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.LDAP_LOGIN),
+
+    AUTO_ADD_OBJECT_CLASSES(
+            "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES),
+    LDAP_USERNAME_ATTRIBUTE(
+            "ldap.username.attr", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
+    LDAP_GUID_ATTRIBUTE(
+            "ldap.guidAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
+    LDAP_NAMING_ATTRIBUTE(
+            "ldap.namingAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
+    PASSWORD_LAST_UPDATE_ATTRIBUTE(
+            "passwordLastUpdateAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
+    LDAP_USER_GROUP_ATTRIBUTE(
+            "ldap.user.group.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
+    LDAP_GROUP_LABEL_ATTRIBUTE(
+            "ldap.group.label.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
+    EMAIL_USER_MAIL_ATTRIBUTE(
+            "email.userMailAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
+    SMS_USER_PHONE_ATTRIBUTE(
+            "sms.userSmsAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
+
 
 
     // ldap global settings
@@ -258,8 +265,6 @@ public enum PwmSetting {
             "email.smtp.username", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_PASSWORD(
             "email.smtp.userpassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_SETTINGS),
-    EMAIL_USER_MAIL_ATTRIBUTE(
-            "email.userMailAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_MAX_QUEUE_AGE(
             "email.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_CHANGEPASSWORD(
@@ -296,8 +301,6 @@ public enum PwmSetting {
             "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL_SETTINGS),
 
     // sms settings
-    SMS_USER_PHONE_ATTRIBUTE(
-            "sms.userSmsAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
     SMS_MAX_QUEUE_AGE(
             "sms.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.SMS_GATEWAY),
     SMS_GATEWAY_URL(
@@ -914,57 +917,59 @@ public enum PwmSetting {
     HELPDESK_PROFILE_LIST(
             "helpdesk.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
     HELPDESK_PROFILE_QUERY_MATCH(
-            "helpdesk.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_SEARCH_FORM(
-            "helpdesk.result.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.result.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_SEARCH_FILTERS(
-            "helpdesk.search.filters", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.search.filters", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_SEARCH_FILTER(
-            "helpdesk.filter", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.filter", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_SEARCH_BASE(
-            "helpdesk.searchBase", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.searchBase", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_DETAIL_FORM(
-            "helpdesk.detail.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_PROFILE),
-    HELPDESK_VIEW_STATUS_VALUES(
-            "helpdesk.viewStatusValues", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.detail.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_RESULT_LIMIT(
-            "helpdesk.result.limit", PwmSettingSyntax.NUMERIC, PwmSettingCategory.HELPDESK_PROFILE),
-    HELPDESK_SET_PASSWORD_MODE(
-            "helpdesk.setPassword.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.result.limit", PwmSettingSyntax.NUMERIC, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_SEND_PASSWORD(
-            "helpdesk.sendPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.sendPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES(
-            "helpdesk.setPassword.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.setPassword.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_ACTIONS(
-            "helpdesk.actions", PwmSettingSyntax.ACTION, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.actions", PwmSettingSyntax.ACTION, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_IDLE_TIMEOUT_SECONDS(
-            "helpdesk.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.HELPDESK_PROFILE),
-    HELPDESK_ENABLE_UNLOCK(
-            "helpdesk.enableUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_ENFORCE_PASSWORD_POLICY(
-            "helpdesk.enforcePasswordPolicy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.enforcePasswordPolicy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_CLEAR_RESPONSES(
-            "helpdesk.clearResponses", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.clearResponses", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_FORCE_PW_EXPIRATION(
-            "helpdesk.forcePwExpiration", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
-    HELPDESK_CLEAR_RESPONSES_BUTTON(
-            "helpdesk.clearResponses.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
-    HELPDESK_CLEAR_OTP_BUTTON(
-            "helpdesk.clearOtp.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
-    HELPDESK_DELETE_USER_BUTTON(
-            "helpdesk.deleteUser.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.forcePwExpiration", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_USE_PROXY(
-            "helpdesk.useProxy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.useProxy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_DETAIL_DISPLAY_NAME(
-            "helpdesk.displayName", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.displayName", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_TOKEN_SEND_METHOD(
-            "helpdesk.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK_BASE),
+
+    HELPDESK_VIEW_STATUS_VALUES(
+            "helpdesk.viewStatusValues", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.HELPDESK_OPTIONS),
+    HELPDESK_SET_PASSWORD_MODE(
+            "helpdesk.setPassword.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK_OPTIONS),
+    HELPDESK_ENABLE_UNLOCK(
+            "helpdesk.enableUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS),
+    HELPDESK_CLEAR_RESPONSES_BUTTON(
+            "helpdesk.clearResponses.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS),
+    HELPDESK_CLEAR_OTP_BUTTON(
+            "helpdesk.clearOtp.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS),
+    HELPDESK_DELETE_USER_BUTTON(
+            "helpdesk.deleteUser.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS),
     HELPDESK_PASSWORD_MASKVALUE(
-            "helpdesk.setPassword.maskValue", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.setPassword.maskValue", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_OPTIONS),
+
     HELPDESK_VERIFICATION_METHODS(
-            "helpdesk.verificationMethods", PwmSettingSyntax.VERIFICATION_METHOD, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.verificationMethods", PwmSettingSyntax.VERIFICATION_METHOD, PwmSettingCategory.HELPDESK_VERIFICATION),
     HELPDESK_VERIFICATION_FORM(
-            "helpdesk.verification.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.verification.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_VERIFICATION),
 
 
     // Database
@@ -1092,7 +1097,7 @@ public enum PwmSetting {
     FORGOTTEN_PASSWORD_REQUIRE_OTP(
             "recovery.require.otp", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS),
     HELPDESK_ENABLE_OTP_VERIFY(
-            "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+            "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE),
     PWMDB_LOCATION(
             "pwmDb.location", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
 

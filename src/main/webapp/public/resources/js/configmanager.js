@@ -143,7 +143,9 @@ PWM_CONFIG.closeHeaderWarningPanel = function() {
 
 PWM_CONFIG.openHeaderWarningPanel = function() {
     console.log('action openHeader');
-    PWM_CONFIG.headerResizeListener.resume();
+    if (PWM_CONFIG.headerResizeListener) {
+        PWM_CONFIG.headerResizeListener.resume();
+    }
 
     require(['dojo/dom','dijit/place','dojo/on'], function(dom, place, on) {
         place.around(dom.byId("header-warning"), dom.byId("header-username-caret"), ["below-alt"], false);

@@ -815,8 +815,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         }
 
 
-        final String salt = BCrypt.gensalt();
-        final String passwordHash = BCrypt.hashpw(password,salt);
+        final String passwordHash = BCrypt.hashPassword(password);
         this.writeConfigProperty(ConfigurationProperty.PASSWORD_HASH, passwordHash);
     }
 
@@ -825,7 +824,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             return false;
         }
         final String passwordHash = this.readConfigProperty(ConfigurationProperty.PASSWORD_HASH);
-        return BCrypt.checkpw(password,passwordHash);
+        return BCrypt.testAnswer(password, passwordHash);
     }
 
     public boolean hasPassword() {

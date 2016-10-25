@@ -43,13 +43,8 @@ public class LdapProfile extends AbstractProfile implements Profile {
     }
 
     public static LdapProfile makeFromStoredConfiguration(final StoredConfigurationImpl storedConfiguration, final String profileID) {
-        final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<>();
-        for (final PwmSetting setting : PwmSettingCategory.LDAP_PROFILE.getSettings()) {
-            final StoredValue value = storedConfiguration.readSetting(setting, profileID);
-            valueMap.put(setting, value);
-        }
+        final Map<PwmSetting,StoredValue> valueMap = AbstractProfile.makeValueMap(storedConfiguration, profileID, PwmSettingCategory.LDAP_PROFILE);
         return new LdapProfile(profileID, valueMap);
-
     }
 
     public Map<String, String> getLoginContexts() {

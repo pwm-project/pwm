@@ -22,8 +22,7 @@
 
 html {
     background-image: url('autumn-bg.jpg');
-    background-size: 100%;
-    background-repeat: repeat;
+    background-size: cover;
     background-color: White;
 }
 
@@ -39,6 +38,7 @@ p {
     padding-bottom: 4px;
     text-decoration: none;
     opacity: 0.9;
+    animation: fadein 0.5s;
 }
 
 #header-page {
@@ -75,9 +75,12 @@ p {
     color: black;
     padding: 5px 5px 40px 5px;
     border: 0;
+}
+
+#centerbody.tile-centerbody {
     border-radius: 5px;
-    filter:alpha(opacity=80);
-    opacity: 0.8;
+    width:auto; !important;
+    margin:auto;
 }
 
 .header-button {
@@ -99,10 +102,14 @@ p {
 .tile {
     width: 165px;
     height: 165px;
+    margin: 10px;
+    opacity: 0.7;
+    transition: opacity 1s, box-shadow 2s;
 }
 
 .tile:hover {
-    border: 1px solid #f39c12; 
+    opacity: 1;
+    box-shadow: 0 0 0 0 white, 0 0 0 0 white, 9px 0 12px -4px #B2B1B9, -9px 0 12px -4px #B2B1B9;
 }
 
 #footer {
