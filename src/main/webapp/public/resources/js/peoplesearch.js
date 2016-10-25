@@ -107,12 +107,12 @@ PWM_PS.convertDetailResultToHtml = function(data) {
 
     htmlBody += '<div id="peopleSearch-userDetailWrapper">';
 
-    if (data['hasOrgChart']) {
+//    if (data['hasOrgChart']) {
         htmlBody += '<div style="text-align: center"><button class="btn" id="button-peoplesearch-orgChart">'
             + '<span class="btn-icon pwm-icon pwm-icon-sitemap"></span>'
             + PWM_MAIN.showString('Title_OrgChart')
             + '</div>';
-    }
+//    }
 
     htmlBody += '<table class="peopleSearch-userDetails">';
     for (var iter in data['detail']) {
@@ -169,13 +169,14 @@ PWM_PS.applyEventHandlersToDetailView = function(data) {
         PWM_PS.loadPicture(photoDiv,photoURL,'img-peoplesearch-userDetailPhoto');
     }
 
-    if (data['hasOrgChart']) {
+//  TODO: need to get this setting from: /peoplesearch?processAction=clientData, see line 426
+//    if (data['hasOrgChart']) {
         PWM_MAIN.addEventHandler('button-peoplesearch-orgChart', 'click', function () {
             PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/peoplesearch#/orgchart/' + data['userKey']);
             PWM_MAIN.clearDijitWidget('dialogPopup');
 //            PWM_PS.showOrgChartView(data['userKey']);
         });
-    }
+//    }
 
 
     for (var iter in data['detail']) {
@@ -441,21 +442,21 @@ PWM_PS.initPeopleSearchPage = function() {
                     console.log('error reading username field from sessionStorage: ' + e);
                 }
 
-                PWM_MAIN.addEventHandler('username', "keyup, input", function () {
-                    try {
-                        var fieldUsername = PWM_MAIN.getObject('username').value;
-                        PWM_MAIN.Preferences.writeSessionStorage("peoplesearch_field_username", fieldUsername);
-                    } catch (e) {
-                        console.log('error writing username field from sessionStorage: ' + e);
-                    }
-
-                    PWM_PS.processPeopleSearch();
-                });
-                if (PWM_MAIN.getObject('username')) {
-                    if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
-                        PWM_PS.processPeopleSearch();
-                    }
-                }
+//                PWM_MAIN.addEventHandler('username', "keyup, input", function () {
+//                    try {
+//                        var fieldUsername = PWM_MAIN.getObject('username').value;
+//                        PWM_MAIN.Preferences.writeSessionStorage("peoplesearch_field_username", fieldUsername);
+//                    } catch (e) {
+//                        console.log('error writing username field from sessionStorage: ' + e);
+//                    }
+//
+//                    PWM_PS.processPeopleSearch();
+//                });
+//                if (PWM_MAIN.getObject('username')) {
+//                    if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
+//                        PWM_PS.processPeopleSearch();
+//                    }
+//                }
             });
         },{method:"GET"});
     }

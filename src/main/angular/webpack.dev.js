@@ -12,10 +12,5 @@ module.exports = webpackMerge(commonConfig, {
     },
     entry: {
         'peoplesearch.ng': './src/main.dev'
-    },
-    plugins: [
-        // Because we copy the output to another directory, we need file system watch support.
-        // Webpack-dev-server does not do this without the plugin.
-        new WriteFileWebpackPlugin()
-    ]
+    }
 });

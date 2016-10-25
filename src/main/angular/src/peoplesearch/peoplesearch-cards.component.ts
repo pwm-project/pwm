@@ -3,6 +3,7 @@ import { IScope } from 'angular';
 import PeopleSearchService from './peoplesearch.service';
 import Person from '../models/person.model';
 
+declare var PWM_PS: any;
 
 @Component({
     stylesheetUrl: require('peoplesearch/peoplesearch-cards.component.scss'),
@@ -33,5 +34,12 @@ export default class PeopleSearchCardsComponent {
 
     getPeople() {
         this.people = this.peopleSearchService.people;
+    }
+
+    selectPerson(id: string) {
+        // this.$state.go('orgchart', { personId: id });
+
+        // TODO: This is here to temporarily pull up the old modal dialog:
+        PWM_PS.showUserDetail(id);
     }
 }

@@ -8,11 +8,12 @@
     "npm": ">=3.9"
   },
   "scripts": {
-    "build": "node_modules/webpack/bin/webpack.js --config=webpack.build.js --NODE_ENV=production",
-    "clean": "node_modules/rimraf/bin.js dist/",
-    "test": "node_modules/karma/bin/karma start --NODE_ENV=test",
-    "test-single-run": "node_modules/karma/bin/karma start --NODE_ENV=test --singleRun --no-auto-watch",
-    "start": "node_modules/webpack-dev-server/bin/webpack-dev-server.js --config=webpack.dev.js --NODE_ENV=dev"
+    "build": "webpack --config=webpack.build.js --NODE_ENV=production",
+    "clean": "rimraf dist/",
+    "test": "karma start --NODE_ENV=test",
+    "test-single-run": "karma start --NODE_ENV=test --singleRun --no-auto-watch",
+    "start": "webpack-dev-server --config=webpack.dev.js --NODE_ENV=dev",
+    "sync": "concurrently \"webpack-dev-server --config=webpack.build.js --NODE_ENV=production\" \"cpx ./dist/*.js* ../webapp/public/resources/app -w -v\""
   },
   "author": "",
   "license": "ISC",
@@ -26,7 +27,9 @@
     "@types/node": "6.0.45",
     "angular": "1.5.8",
     "angular-mocks": "1.5.8",
+    "concurrently": "3.1.0",
     "copy-webpack-plugin": "3.0.1",
+    "cpx": "1.5.0",
     "css-loader": "0.25.0",
     "html-loader": "0.4.4",
     "html-webpack-plugin": "2.22.0",

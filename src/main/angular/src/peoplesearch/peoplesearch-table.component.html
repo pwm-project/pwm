@@ -10,11 +10,11 @@
     </thead>
     <tbody>
         <tr ng-repeat="person in $ctrl.people" ng-click="$ctrl.selectPerson(person.userKey)">
-            <td>{{ person.detail.givenName.values[0] }}</td>
-            <td>{{ person.detail.sn.values[0] }}</td>
-            <td>{{ person.detail.title.values[0] }}</td>
-            <td>{{ person.detail.mail.values[0] }}</td>
-            <td>{{ person.detail.telephoneNumber.values[0] }}</td>
+            <td>{{ person.givenName }}</td>
+            <td>{{ person.sn }}</td>
+            <td>{{ person.title }}</td>
+            <td>{{ person.mail }}</td>
+            <td>{{ person.telephoneNumber }}</td>
         </tr>
     </tbody>
 </table>

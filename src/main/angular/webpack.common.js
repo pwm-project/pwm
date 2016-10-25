@@ -1,5 +1,6 @@
 var CopyWebpackPlugin = require('copy-webpack-plugin');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
+var WriteFileWebpackPlugin = require('write-file-webpack-plugin');
 var autoPrefixer = require('autoprefixer');
 var path = require('path');
 var webpack = require('webpack');
@@ -65,7 +66,11 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: 'index.html',
             inject: 'body'
-        })
+        }),
+
+        // Because we copy the output to another directory, we need file system watch support.
+        // Webpack-dev-server does not do this without the plugin.
+        new WriteFileWebpackPlugin()
     ],
     postcss: function() {
         return [
