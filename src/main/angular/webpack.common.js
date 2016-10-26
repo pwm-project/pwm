@@ -9,7 +9,9 @@ var outDir = path.resolve(__dirname, 'dist');
 
 module.exports = {
     devServer: {
-        outputPath: outDir
+        contentBase: outDir,
+        outputPath: outDir,
+        port: 4000
     },
     devtool: 'cheap-module-source-map',
     // Externals copied to /dist via CopyWebpackPlugin
