@@ -34,16 +34,8 @@
 
     <div class="orgchart-direct-reports-title orgchart-title">Direct Reports</div>
     <div class="orgchart-direct-reports person-card-list" ng-if="$ctrl.directReports.length">
-        <div class="person-card" ng-repeat="directReport in $ctrl.directReports"
+        <person-card person="directReport" ng-repeat="directReport in $ctrl.directReports"
             ng-click="$ctrl.selectPerson(directReport.userKey)">
-            <div class="person-card-image"><img ng-src="{{ directReport.photoURL }}" /></div>
-            <div class="orgchart-num-reports" ng-if="directReport.numOfReports">{{ directReport.numOfReports }}</div>
-            <div class="person-card-details">
-                <div class="person-card-row-1">{{ directReport.displayNames[0] }}</div>
-                <div class="person-card-row-2">{{ directReport.displayNames[1] }}</div>
-                <div class="person-card-row-3">{{ directReport.displayNames[2] }}</div>
-                <div class="person-card-row-4">{{ directReport.displayNames[3] }}</div>
-            </div>
-        </div>
+        </person-card>
     </div>
 </div>

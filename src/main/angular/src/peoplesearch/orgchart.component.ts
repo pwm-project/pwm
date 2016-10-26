@@ -4,8 +4,8 @@ import PeopleService from '../services/people.service';
 import Person from '../models/person.model';
 
 @Component({
-    stylesheetUrl: require('orgchart/orgchart.component.scss'),
-    templateUrl: require('orgchart/orgchart.component.html')
+    stylesheetUrl: require('peoplesearch/orgchart.component.scss'),
+    templateUrl: require('peoplesearch/orgchart.component.html')
 })
 export default class OrgChartComponent {
     private person: Person;

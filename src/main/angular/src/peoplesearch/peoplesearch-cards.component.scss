@@ -8,51 +8,8 @@ people-search-cards {
 }
 
 .person-card-list {
-    .person-card {
-        background-color: #eef2f2;
-        border: 1px solid #eef2f2;
-        display: inline-block;
-        height: 60px;
+    > person-card {
         margin-right: 5px;
         margin-top: 5px;
-        padding: 10px;
-        position: relative;
-        vertical-align: top;
-        width: 200px;
-
-        &:hover {
-            background: #f6f9f8 none repeat scroll 0 0;
-            border: 1px solid #28a9e1 !important;
-            cursor: pointer;
-        }
-
-        .person-card-image {
-            background: gray no-repeat scroll 0 0 / 50px 50px;
-            height: 50px;
-            position: absolute;
-            top: 10px;
-            width: 50px;
-
-            img {
-                height: 100%;
-                width: 100%;
-            }
-        }
-
-        .person-card-details {
-            left: 70px;
-            position: absolute;
-            top: 10px;
-        }
     }
-}
-
-.person-card-row-1 {
-    color: black;
-    font-size: 14px;
-}
-
-.person-card-row-2, .person-card-row-3, .person-card-row-4 {
-    color: #808080;
-    font-size: 12px;
 }
