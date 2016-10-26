@@ -1100,3 +1100,31 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 #grid-hider-menu {
     width: 200px;
 }
+
+#idle-overlay {
+    position:fixed;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    background-color: black;
+    opacity: 0.8;
+    z-index:1001;
+}
+
+#idle-overlay-message{
+    position: absolute;
+    margin: auto;
+    opacity: 1;
+    padding: 15px;
+    text-align:center;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 500px;
+    height: 100px;
+    background-color: white;
+    border-radius: 3px;
+    z-index:1002;
+}

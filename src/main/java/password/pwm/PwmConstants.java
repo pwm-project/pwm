@@ -171,6 +171,7 @@ public abstract class PwmConstants {
         LOGIN("login.jsp"),
         LOGIN_PW_ONLY("login-passwordonly.jsp"),
         LOGOUT("logout.jsp"),
+        LOGOUT_PUBLIC("logout-public.jsp"),
         PASSWORD_CHANGE("changepassword.jsp"),
         PASSWORD_FORM("changepassword-form.jsp"),
         PASSWORD_CHANGE_WAIT("changepassword-wait.jsp"),
