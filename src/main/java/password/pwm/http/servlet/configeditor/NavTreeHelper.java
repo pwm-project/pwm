@@ -215,7 +215,7 @@ class NavTreeHelper {
         } else {
             categoryItem.setParent("ROOT");
         }
-        if (category.getChildCategories().isEmpty()) {
+        if (category.getChildCategories().isEmpty() && !category.isTopLevelProfile()) {
             categoryItem.setType(NavTreeHelper.NavItemType.category);
         } else {
             categoryItem.setType(NavTreeHelper.NavItemType.navigation);

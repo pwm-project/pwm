@@ -177,7 +177,13 @@ public class LDAPPermissionCalculator implements Serializable {
     }
 
     private Collection<LDAPPermissionInfo> figurePermissionInfos(final PwmSetting pwmSetting, final String profile) {
-        switch (pwmSetting.getCategory()) {
+
+        PwmSettingCategory category = pwmSetting.getCategory();
+        while (category.hasProfiles() && !category.isTopLevelProfile()) {
+            category = category.getParent();
+        }
+
+        switch (category) {
             case PEOPLE_SEARCH:
             {
                 if (!(Boolean)storedConfiguration.readSetting(PwmSetting.PEOPLE_SEARCH_ENABLE).toNativeObject()) {

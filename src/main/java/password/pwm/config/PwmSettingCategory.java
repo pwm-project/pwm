@@ -158,7 +158,9 @@ public enum PwmSettingCategory {
 
     DELETE_ACCOUNT              (MODULES_PRIVATE),
     DELETE_ACCOUNT_SETTINGS     (DELETE_ACCOUNT),
-    DELETE_ACCOUNT_PROFILE      (DELETE_ACCOUNT)
+    DELETE_ACCOUNT_PROFILE      (DELETE_ACCOUNT),
+
+    INTERNAL                    (SETTINGS),
 
     ;
 

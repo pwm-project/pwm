@@ -480,6 +480,12 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
                             var linkID = 'link-' + setting['category'] + '-' + settingKey + (profileID ? profileID : '');
                             PWM_MAIN.addEventHandler(linkID ,'click',function(){
                                 resetDisplay();
+                                PWM_MAIN.Preferences.writeSessionStorage('configEditor-lastSelected',{
+                                    type:'category',
+                                    category:setting['category'],
+                                    setting:settingKey,
+                                    profile:profileID
+                                });
                                 PWM_CFGEDIT.gotoSetting(setting['category'],settingKey,profileID);
                             });
                         }(iter));

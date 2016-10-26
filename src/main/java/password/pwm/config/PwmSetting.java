@@ -172,7 +172,7 @@ public enum PwmSetting {
 
     // delete info
     DELETE_ACCOUNT_PROFILE_LIST(
-            "deleteAccount.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
+            "deleteAccount.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL),
     DELETE_ACCOUNT_ENABLE(
             "deleteAccount.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.DELETE_ACCOUNT_SETTINGS),
     DELETE_ACCOUNT_PERMISSION(
@@ -237,7 +237,7 @@ public enum PwmSetting {
 
     // ldap global settings
     LDAP_PROFILE_LIST(
-            "ldap.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
+            "ldap.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL),
     LDAP_IDLE_TIMEOUT(
             "ldap.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.LDAP_GLOBAL),
     DEFAULT_OBJECT_CLASSES(
@@ -372,7 +372,7 @@ public enum PwmSetting {
     PASSWORD_POLICY_CASE_SENSITIVITY(
             "password.policy.caseSensitivity", PwmSettingSyntax.SELECT, PwmSettingCategory.PASSWORD_GLOBAL),
     PASSWORD_PROFILE_LIST(
-            "password.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.PASSWORD_GLOBAL),
+            "password.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL),
 
 
     // wordlist settings
@@ -657,7 +657,7 @@ public enum PwmSetting {
 
     // challenge policy profile
     CHALLENGE_PROFILE_LIST(
-            "challenge.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
+            "challenge.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL),
     CHALLENGE_POLICY_QUERY_MATCH(
             "challenge.policy.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.CHALLENGE_POLICY),
     CHALLENGE_RANDOM_CHALLENGES(
@@ -696,7 +696,7 @@ public enum PwmSetting {
 
     // recovery profile
     RECOVERY_PROFILE_LIST(
-            "recovery.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.RECOVERY_SETTINGS),
+            "recovery.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL),
     RECOVERY_PROFILE_QUERY_MATCH(
             "recovery.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.RECOVERY_PROFILE),
     RECOVERY_VERIFICATION_METHODS(
@@ -732,7 +732,7 @@ public enum PwmSetting {
     NEWUSER_ENABLE(
             "newUser.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_SETTINGS),
     NEWUSER_PROFILE_LIST(
-            "newUser.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.NEWUSER_SETTINGS),
+            "newUser.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL),
     NEWUSER_CONTEXT(
             "newUser.createContext", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER_PROFILE),
     NEWUSER_AGREEMENT_MESSAGE(
@@ -803,7 +803,7 @@ public enum PwmSetting {
     UPDATE_PROFILE_ENABLE(
             "updateAttributes.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_SETTINGS),
     UPDATE_PROFILE__PROFILE_LIST(
-            "updateAttributes.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
+            "updateAttributes.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL),
     UPDATE_PROFILE_QUERY_MATCH(
             "updateAttributes.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UPDATE_PROFILE),
     UPDATE_PROFILE_WRITE_ATTRIBUTES(
@@ -915,7 +915,7 @@ public enum PwmSetting {
     HELPDESK_ENABLE(
             "helpdesk.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_SETTINGS),
     HELPDESK_PROFILE_LIST(
-            "helpdesk.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
+            "helpdesk.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL),
     HELPDESK_PROFILE_QUERY_MATCH(
             "helpdesk.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.HELPDESK_BASE),
     HELPDESK_SEARCH_FORM(
