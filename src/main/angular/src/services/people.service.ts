@@ -19,15 +19,57 @@ export default class PeopleService implements IPeopleService {
     }
 
     getDirectReports(id: string): angular.IPromise<Person[]> {
-        return undefined;
+        let deferred = this.$q.defer();
+
+        this.$http.post(this.getServerUrl('orgChartData'), {
+            userKey: id
+        }).then((response) => {
+            let people: Person[] = [];
+
+            for (let directReport of response.data['data']['children']) {
+                people.push(new Person(directReport));
+            }
+
+            deferred.resolve(people);
+        }).catch((result) => {
+            deferred.reject(result);
+        });
+
+        return deferred.promise;
     }
 
     getManagementChain(id: string): angular.IPromise<Person[]> {
-        return undefined;
+        let deferred = this.$q.defer();
+
+        this.$http.post(this.getServerUrl('orgChartData'), {
+            userKey: id
+        }).then((response) => {
+            let people: Person[] = [];
+
+            let person: Person = response.data['data']['parent'];
+            people.push(person);
+
+            deferred.resolve(people);
+        }).catch((result) => {
+            deferred.reject(result);
+        });
+
+        return deferred.promise;
     }
 
     getPerson(id: string): IPromise<Person> {
-        return undefined;
+        let deferred = this.$q.defer();
+
+        this.$http.post(this.getServerUrl('detail'), {
+            userKey: id
+        }).then((response) => {
+            let person: Person = new Person(response.data['data']);
+            deferred.resolve(person);
+        }).catch((result) => {
+            deferred.reject(result);
+        });
+
+        return deferred.promise;
     }
 
     isOrgChartEnabled(id: string): angular.IPromise<boolean> {
@@ -37,15 +79,12 @@ export default class PeopleService implements IPeopleService {
     search(query: string): angular.IPromise<Person[]> {
         let deferred = this.$q.defer();
 
-        let url: string = PWM_GLOBAL['url-context'] + '/private/peoplesearch?processAction=search';
-        url = PWM_MAIN.addPwmFormIDtoURL(url);
-
-        this.$http.post(url, {
+        this.$http.post(this.getServerUrl('search'), {
             username: query
         }).then((response) => {
             let people: Person[] = [];
 
-            for (let searchResult of response['data']['data']['searchResults']) {
+            for (let searchResult of response.data['data']['searchResults']) {
                 people.push(new Person(searchResult));
             }
 
@@ -55,5 +94,12 @@ export default class PeopleService implements IPeopleService {
         });
 
         return deferred.promise;
+    }
+
+    private getServerUrl(processAction: string): string {
+        let url: string = PWM_GLOBAL['url-context'] + '/private/peoplesearch?processAction=' + processAction;
+        url = PWM_MAIN.addPwmFormIDtoURL(url);
+
+        return url;
     }
 }
