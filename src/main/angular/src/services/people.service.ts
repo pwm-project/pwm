@@ -19,9 +19,7 @@ export default class PeopleService implements IPeopleService {
     }
 
     getDirectReports(id: string): angular.IPromise<Person[]> {
-        let deferred = this.$q.defer();
-
-        this.$http.post(this.getServerUrl('orgChartData'), {
+        return this.$http.post(this.getServerUrl('orgChartData'), {
             userKey: id
         }).then((response) => {
             let people: Person[] = [];
@@ -30,56 +28,47 @@ export default class PeopleService implements IPeopleService {
                 people.push(new Person(directReport));
             }
 
-            deferred.resolve(people);
-        }).catch((result) => {
-            deferred.reject(result);
+            return this.$q.resolve(people);
         });
-
-        return deferred.promise;
     }
 
     getManagementChain(id: string): angular.IPromise<Person[]> {
-        let deferred = this.$q.defer();
+        let people: Person[] = [];
+        return this.getManagerRecursive(id, people);
+    }
 
-        this.$http.post(this.getServerUrl('orgChartData'), {
+    private getManagerRecursive(id: string, people: Person[]): angular.IPromise<Person[]> {
+        return this.$http.post(this.getServerUrl('orgChartData'), {
             userKey: id
         }).then((response) => {
-            let people: Person[] = [];
+            let responseData = response.data['data'];
+            if ('parent' in responseData) {
+                let manager: Person = responseData['parent'];
+                people.push(manager);
 
-            let person: Person = response.data['data']['parent'];
-            people.push(person);
+                return this.getManagerRecursive(manager.userKey, people);
+            }
 
-            deferred.resolve(people);
-        }).catch((result) => {
-            deferred.reject(result);
+            return this.$q.resolve(people);
         });
-
-        return deferred.promise;
     }
 
     getPerson(id: string): IPromise<Person> {
-        let deferred = this.$q.defer();
-
-        this.$http.post(this.getServerUrl('detail'), {
+        return this.$http.post(this.getServerUrl('detail'), {
             userKey: id
         }).then((response) => {
             let person: Person = new Person(response.data['data']);
-            deferred.resolve(person);
-        }).catch((result) => {
-            deferred.reject(result);
+            return this.$q.resolve(person);
         });
-
-        return deferred.promise;
     }
 
     isOrgChartEnabled(id: string): angular.IPromise<boolean> {
-        return undefined;
+        // TODO: need to read this from the server
+        return this.$q.resolve(true);
     }
 
     search(query: string): angular.IPromise<Person[]> {
-        let deferred = this.$q.defer();
-
-        this.$http.post(this.getServerUrl('search'), {
+        return this.$http.post(this.getServerUrl('search'), {
             username: query
         }).then((response) => {
             let people: Person[] = [];
@@ -88,12 +77,8 @@ export default class PeopleService implements IPeopleService {
                 people.push(new Person(searchResult));
             }
 
-            deferred.resolve(people);
-        }).catch((result) => {
-            deferred.reject(result);
+            return this.$q.resolve(people);
         });
-
-        return deferred.promise;
     }
 
     private getServerUrl(processAction: string): string {
