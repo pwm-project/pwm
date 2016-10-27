@@ -37,16 +37,26 @@ org-chart {
   margin-top: 40px;
   min-width: 700px;
   padding-top: 0;
+  position: relative;
+
+  .orgchart-direct-reports-connector {
+    background-color: #808080;
+    height: 45px;
+    left: 155px;
+    position: absolute;
+    top: -45px;
+    width: 5px;
+  }
 
   .num-reports {
     position: absolute;
     right: 3px;
     top: 3px;
   }
-}
 
-.orgchart-direct-reports-title {
-  top: 315px;
+  .orgchart-title {
+    top: -25px;
+  }
 }
 
 .orgchart-num-reports {
@@ -74,6 +84,10 @@ org-chart {
   margin: 20px 0 0 120px;
   position: relative;
   width: 340px;
+
+  &.fetching {
+    margin-top: 133px;
+  }
 
   .orgchart-picture {
     background: gray repeat scroll 0 0 / 65px 65px;
@@ -149,8 +163,25 @@ org-chart {
 }
 
 .orgchart-management {
-  margin-left: 90px;
   min-width: 650px;
+  position: relative;
+
+  .orgchart-title {
+    top: 30px;
+  }
+
+  .orgchart-manager-list {
+    margin-left: 90px;
+  }
+
+  .orgchart-management-connector {
+    background-color: #808080;
+    height: 68px;
+    left: 155px;
+    position: absolute;
+    top: 68px;
+    width: 5px;
+  }
 
   .orgchart-manager {
     display: inline-block;
@@ -202,6 +233,7 @@ org-chart {
     .orgchart-picture img {
       border: 3px solid #dae1e1;
       border-radius: 50%;
+      cursor: pointer;
       height: 50px;
       margin: 3px;
       width: 50px;
@@ -216,15 +248,6 @@ org-chart {
 
 .orgchart-management-title {
   top: 25px;
-}
-
-.orgchart-primary-person-connector {
-  background-color: #808080;
-  height: 290px;
-  left: 155px;
-  position: absolute;
-  top: 50px;
-  width: 5px;
 }
 
 .orgchart-title {

@@ -11,6 +11,7 @@ export default class OrgChartComponent {
     private person: Person;
     private managementChain: Person[];
     private directReports: Person[];
+    private primaryPersonStatus: string;
 
     static $inject = ['$q', '$state', '$stateParams', 'PeopleService'];
     constructor(
@@ -24,6 +25,8 @@ export default class OrgChartComponent {
         var personId: string = this.$stateParams['personId'];
 
         if (personId) {
+            this.primaryPersonStatus = 'fetching';
+
             this.$q.all({
                 directReports: this.peopleService.getDirectReports(personId),
                 managementChain: this.peopleService.getManagementChain(personId),
@@ -36,6 +39,9 @@ export default class OrgChartComponent {
             })
             .catch((result) => {
                 console.log(result);
+            })
+            .finally(() => {
+                this.primaryPersonStatus = undefined;
             });
         }
     }
