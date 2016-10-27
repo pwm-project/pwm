@@ -5,7 +5,7 @@
     <div class="orgchart-management" ng-if="$ctrl.managementChain.length" >
         <div class="orgchart-management-connector"></div>
         <div class="orgchart-title">Management</div>
-        <div class="orgchart-manager-list">
+        <div class="orgchart-manager-list" ng-class="$ctrl.managerListStatus">
             <div class="orgchart-manager" ng-repeat="manager in $ctrl.managementChain"
                  ng-click="$ctrl.selectPerson(manager.userKey)">
                 <div class="orgchart-separator" ng-class="{first:$first,last:$last}"></div>

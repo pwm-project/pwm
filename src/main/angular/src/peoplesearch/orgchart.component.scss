@@ -172,6 +172,10 @@ org-chart {
 
   .orgchart-manager-list {
     margin-left: 90px;
+
+    &.disabled .orgchart-picture img {
+      cursor: auto;
+    }
   }
 
   .orgchart-management-connector {
@@ -234,6 +238,7 @@ org-chart {
       border: 3px solid #dae1e1;
       border-radius: 50%;
       cursor: pointer;
+      display: block;
       height: 50px;
       margin: 3px;
       width: 50px;

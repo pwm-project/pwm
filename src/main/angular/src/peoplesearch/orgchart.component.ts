@@ -11,7 +11,9 @@ export default class OrgChartComponent {
     private person: Person;
     private managementChain: Person[];
     private directReports: Person[];
+
     private primaryPersonStatus: string;
+    private managerListStatus: string;
 
     static $inject = ['$q', '$state', '$stateParams', 'PeopleService'];
     constructor(
@@ -36,6 +38,12 @@ export default class OrgChartComponent {
                 this.directReports = data['directReports'];
                 this.managementChain = data['managementChain'];
                 this.person = data['person'];
+
+                if (this.directReports.length === 0 && this.managementChain.length === 0) {
+                    let placeholderManager: Person = new Person({displayNames: ['Not Defined']});
+                    this.managementChain.push(placeholderManager);
+                    this.managerListStatus = 'disabled';
+                }
             })
             .catch((result) => {
                 console.log(result);
@@ -51,6 +59,8 @@ export default class OrgChartComponent {
     }
 
     selectPerson(userKey: string) {
-        this.$state.go('orgchart', { personId: userKey });
+        if (userKey) {
+            this.$state.go('orgchart', {personId: userKey});
+        }
     }
 }
