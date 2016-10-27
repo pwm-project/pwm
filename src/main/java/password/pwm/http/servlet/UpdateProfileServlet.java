@@ -33,6 +33,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
 import password.pwm.config.option.TokenStorageMethod;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.error.*;
 import password.pwm.http.HttpMethod;
@@ -527,11 +528,12 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
     {
         final Set<TokenVerificationProgress.TokenChannel> returnObj = new HashSet<>();
 
+        final LdapProfile ldapProfile = pwmRequest.getUserInfoIfLoggedIn().getLdapProfile(pwmRequest.getConfig());
         final Map<String,String> userFormData = updateProfileBean.getFormData();
         Map<String,String> ldapData = null;
 
         if (updateAttributesProfile.readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_EMAIL_VERIFICATION)) {
-            final String emailAddressAttribute = pwmRequest.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
+            final String emailAddressAttribute = ldapProfile.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
             if (userFormData.containsKey(emailAddressAttribute)) {
                 ldapData = formDataFromLdap(pwmRequest, updateAttributesProfile);
                 if (userFormData.get(emailAddressAttribute) != null && !userFormData.get(emailAddressAttribute).equalsIgnoreCase(ldapData.get(emailAddressAttribute))) {
@@ -543,7 +545,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         }
 
         if (updateAttributesProfile.readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_SMS_VERIFICATION)) {
-            final String phoneNumberAttribute = pwmRequest.getConfig().readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
+            final String phoneNumberAttribute = ldapProfile.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
             if (userFormData.containsKey(phoneNumberAttribute)) {
                 if (ldapData == null) {
                     ldapData = formDataFromLdap(pwmRequest, updateAttributesProfile);
@@ -576,10 +578,11 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
         final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmApplication);
         final Configuration config = pwmApplication.getConfig();
+        final LdapProfile ldapProfile = pwmRequest.getUserInfoIfLoggedIn().getLdapProfile(pwmRequest.getConfig());
 
         switch (tokenType) {
             case SMS: {
-                final String telephoneNumberAttribute = pwmRequest.getConfig().readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
+                final String telephoneNumberAttribute = ldapProfile.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
                 final String toNum = updateProfileBean.getFormData().get(telephoneNumberAttribute);
                 final String tokenKey;
                 try {
@@ -615,7 +618,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
                         PwmSetting.EMAIL_UPDATEPROFILE_VERIFICATION,
                         pwmRequest.getLocale()
                 );
-                final String emailAddressAttribute = pwmRequest.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
+                final String emailAddressAttribute = ldapProfile.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
                 final String toAddress = updateProfileBean.getFormData().get(emailAddressAttribute);
 
                 final String tokenKey;

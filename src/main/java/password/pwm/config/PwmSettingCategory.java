@@ -43,6 +43,11 @@ public enum PwmSettingCategory {
     MODULES_PRIVATE             (MODULES),
 
     LDAP_PROFILE                (LDAP),
+    LDAP_BASE                   (LDAP_PROFILE),
+    LDAP_LOGIN                  (LDAP_PROFILE),
+    LDAP_ATTRIBUTES             (LDAP_PROFILE),
+
+
     LDAP_SETTINGS               (LDAP),
     LDAP_GLOBAL                 (LDAP_SETTINGS),
 
@@ -144,11 +149,18 @@ public enum PwmSettingCategory {
 
     HELPDESK                    (MODULES_PRIVATE),
     HELPDESK_PROFILE            (HELPDESK),
+
+    HELPDESK_BASE               (HELPDESK_PROFILE),
+    HELPDESK_VERIFICATION       (HELPDESK_PROFILE),
+    HELPDESK_OPTIONS            (HELPDESK_PROFILE),
+
     HELPDESK_SETTINGS           (HELPDESK),
 
     DELETE_ACCOUNT              (MODULES_PRIVATE),
     DELETE_ACCOUNT_SETTINGS     (DELETE_ACCOUNT),
-    DELETE_ACCOUNT_PROFILE      (DELETE_ACCOUNT)
+    DELETE_ACCOUNT_PROFILE      (DELETE_ACCOUNT),
+
+    INTERNAL                    (SETTINGS),
 
     ;
 
@@ -175,13 +187,17 @@ public enum PwmSettingCategory {
     public password.pwm.config.PwmSetting getProfileSetting()
     {
         if (!CACHE_PROFILE_SETTING.containsKey(this)) {
-            CACHE_PROFILE_SETTING.put(this, readProfileSettingFromXml());
+            CACHE_PROFILE_SETTING.put(this, readProfileSettingFromXml(true));
         }
         return CACHE_PROFILE_SETTING.get(this);
     }
 
     public boolean hasProfiles() {
         return getProfileSetting() != null;
+    }
+
+    public boolean isTopLevelProfile() {
+        return readProfileSettingFromXml(false) != null;
     }
 
     public String getLabel(final Locale locale) {
@@ -257,14 +273,22 @@ public enum PwmSettingCategory {
         return returnObj;
     }
 
-    private password.pwm.config.PwmSetting readProfileSettingFromXml()
+    private password.pwm.config.PwmSetting readProfileSettingFromXml(boolean nested)
     {
-        final Element categoryElement = PwmSettingXml.readCategoryXml(this);
-        final Element profileElement = categoryElement.getChild("profile");
-        if (profileElement != null) {
-            final String settingKey = profileElement.getAttributeValue("setting");
-            if (settingKey != null) {
-                return password.pwm.config.PwmSetting.forKey(settingKey);
+        PwmSettingCategory nextCategory = this;
+        while (nextCategory != null) {
+            final Element categoryElement = PwmSettingXml.readCategoryXml(nextCategory);
+            final Element profileElement = categoryElement.getChild("profile");
+            if (profileElement != null) {
+                final String settingKey = profileElement.getAttributeValue("setting");
+                if (settingKey != null) {
+                    return password.pwm.config.PwmSetting.forKey(settingKey);
+                }
+            }
+            if (nested) {
+                nextCategory = nextCategory.getParent();
+            } else {
+                nextCategory = null;
             }
         }
 
@@ -285,27 +309,35 @@ public enum PwmSettingCategory {
             final String profileID,
             final Locale locale
     ) {
+        return toMenuLocationDebug(this, profileID, locale);
+    }
+
+    private static String toMenuLocationDebug(
+            final PwmSettingCategory category,
+            final String profileID,
+            final Locale locale
+    ) {
+
+        final String parentValue = category.getParent() == null
+                ? ""
+                : toMenuLocationDebug(category.getParent(), profileID, locale);
+
         final String SEPARATOR = LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationSeparator, null);
         final StringBuilder sb = new StringBuilder();
 
-        PwmSettingCategory nextCategory = this;
-        while (nextCategory != null) {
-            if (nextCategory != this) {
-                sb.insert(0, nextCategory.getLabel(locale) + SEPARATOR);
-            } else {
-                sb.insert(0, nextCategory.getLabel(locale));
-            }
-            nextCategory = nextCategory.getParent();
+        if (!parentValue.isEmpty()) {
+            sb.append(parentValue);
+            sb.append(SEPARATOR);
         }
 
-        if (this.hasProfiles()) {
+        sb.append(category.getLabel(locale));
+
+        if (category.isTopLevelProfile()) {
+            sb.append(SEPARATOR);
             if (profileID != null) {
-                sb.append(SEPARATOR);
                 sb.append(profileID);
             } else {
-                final String NULL_PROFILE = LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationNullProfile, null);
-                sb.append(SEPARATOR);
-                sb.append(NULL_PROFILE);
+                sb.append(LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationNullProfile, null));
             }
         }
 
@@ -315,7 +347,7 @@ public enum PwmSettingCategory {
     public static List<PwmSettingCategory> sortedValues(final Locale locale) {
         if (cached_sortedSettings == null) {
             int counter = 0; // prevents dupes from being eliminated;
-            final Map<String, PwmSettingCategory> sortedCategories = new TreeMap<String, PwmSettingCategory>();
+            final Map<String, PwmSettingCategory> sortedCategories = new TreeMap<>();
             for (final PwmSettingCategory category : PwmSettingCategory.values()) {
                 final String sortValue = category.toMenuLocationDebug(null, locale) + (counter++);
                 sortedCategories.put(sortValue, category);
@@ -323,5 +355,18 @@ public enum PwmSettingCategory {
             cached_sortedSettings = Collections.unmodifiableList(new ArrayList<>(sortedCategories.values()));
         }
         return cached_sortedSettings;
+    }
+
+    public static List<PwmSettingCategory> valuesForReferenceDoc(final Locale locale) {
+        List<PwmSettingCategory> values = new ArrayList<>(sortedValues(locale));
+        for (Iterator<PwmSettingCategory> iterator = values.iterator(); iterator.hasNext(); ) {
+            PwmSettingCategory category = iterator.next();
+            if (category.isHidden()) {
+                iterator.remove();
+            } else if (category.getSettings().isEmpty()) {
+                iterator.remove();
+            }
+        }
+        return Collections.unmodifiableList(values);
     }
 }

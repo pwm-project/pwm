@@ -42,7 +42,7 @@
     <div class="configeditor-header" id="header" >
         <div id="header-center-wide" style="min-width: 850px">
             <div id="header-title">
-                <%=PwmConstants.PWM_APP_NAME%> Configuration Editor <span id="currentPageDisplay"></span>
+                <span id="currentPageDisplay"></span>
                 <span style="visibility: hidden" id="working_icon" class="headerIcon pwm-icon pwm-icon-cog pwm-icon-spin"></span>
                 <div class="headerIcon" id="cancelButton_icon" title="<pwm:display key="Tooltip_CancelEditorButton" bundle="Config"/>">
                     <span class="pwm-icon pwm-icon-times"></span>

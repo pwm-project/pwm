@@ -475,7 +475,7 @@ div.progress-container > div {
 }
 
 #header-menu-alert {
-    animation: blink 2s steps(5, start) infinite;
+    animation: blink 4s infinite;
     color: #e50000;
 }
 
@@ -920,13 +920,10 @@ progress[value] {
 }
 
 
-.blink { animation: blink 1s steps(5, start) infinite; -webkit-animation: blink 1s steps(5, start) infinite; }
-@keyframes blink { to { visibility: hidden; } }
-@-webkit-keyframes blink { to { visibility: hidden; } }
+.blink { animation: blink 4s infinite; }
+@keyframes blink {0%{opacity:0} 20%{opacity:1} 80%{opacity:1} 100%{opacity:0}}
 
 @keyframes fadein { from { opacity:0; } to { opacity:1; } }
-@-moz-keyframes fadein { from { opacity:0 } to { opacity:1 } }
-@-webkit-keyframes fadein { from { opacity:0 } to { opacity:1 } }
 
 .meteredProgressBar {
     width:80%;
@@ -1046,7 +1043,7 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 }
 
 .footer-segment::after { padding: 10px; content: '\2022'; filter: brightness(50%); }
-.footer-segment::last-child:after { content: ""; }​
+.footer-segment:last-child:after { content: ""; }​
 
 .center { text-align: center; }
 
@@ -1102,6 +1099,34 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 
 #grid-hider-menu {
     width: 200px;
+}
+
+#idle-overlay {
+    position:fixed;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    background-color: black;
+    opacity: 0.8;
+    z-index:1001;
+}
+
+#idle-overlay-message{
+    position: absolute;
+    margin: auto;
+    opacity: 1;
+    padding: 15px;
+    text-align:center;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 500px;
+    height: 100px;
+    background-color: white;
+    border-radius: 3px;
+    z-index:1002;
 }
 
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
@@ -1468,4 +1493,3 @@ org-chart {
 .orgchart-direct-reports-title {
     top: 315px;
 }
-

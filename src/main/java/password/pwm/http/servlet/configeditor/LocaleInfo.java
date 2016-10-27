@@ -20,21 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.http.servlet.configeditor;
 
-import org.bouncycastle.crypto.generators.OpenBSDBCrypt;
+import java.io.Serializable;
 
-import java.security.SecureRandom;
-
-public class BCrypt {
-    public static String hashPassword(final String password) {
-        final int bcryptRounds = 10;
-        final byte[] salt = new byte[16];
-        (new SecureRandom()).nextBytes(salt);
-        return OpenBSDBCrypt.generate(password.toLowerCase().toCharArray(), salt, bcryptRounds);
-    }
-
-    public static boolean testAnswer(final String password, final String hashedPassword) {
-        return OpenBSDBCrypt.checkPassword(hashedPassword, password.toLowerCase().toCharArray());
-    }
+public class LocaleInfo implements Serializable {
+    public String description;
+    public String key;
+    public boolean adminOnly;
 }

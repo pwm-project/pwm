@@ -47,6 +47,35 @@ public abstract class StoredConfigurationUtil {
             profileSetting = pwmSetting.getCategory().getProfileSetting();
         }
 
+        return profilesForProfileSetting(profileSetting, storedConfiguration);
+    }
+
+    public static List<String> profilesForCategory(
+            final PwmSettingCategory category,
+            final StoredConfiguration storedConfiguration
+    )
+    {
+        final PwmSetting profileSetting = category.getProfileSetting();
+
+        return profilesForProfileSetting(profileSetting, storedConfiguration);
+    }
+
+    private static List<String> profilesForProfileSetting(
+            final PwmSetting pwmSetting,
+            final StoredConfiguration storedConfiguration
+    )
+    {
+        if (!pwmSetting.getCategory().hasProfiles() && pwmSetting.getSyntax() != PwmSettingSyntax.PROFILE) {
+            throw new IllegalArgumentException("cannot build profile list for non-profile setting " + pwmSetting.toString());
+        }
+
+        final PwmSetting profileSetting;
+        if (pwmSetting.getSyntax() == PwmSettingSyntax.PROFILE) {
+            profileSetting = pwmSetting;
+        } else {
+            profileSetting = pwmSetting.getCategory().getProfileSetting();
+        }
+
         final Object nativeObject = storedConfiguration.readSetting(profileSetting).toNativeObject();
         final List<String> settingValues = (List<String>)nativeObject;
         final LinkedList<String> profiles = new LinkedList<>();
@@ -58,7 +87,12 @@ public abstract class StoredConfigurationUtil {
             }
         }
         return Collections.unmodifiableList(profiles);
+
     }
+
+
+
+
 
     public static List<StoredConfigReference> modifiedSettings(final StoredConfiguration storedConfiguration) {
         final List<StoredConfigReference> returnObj = new ArrayList<>();

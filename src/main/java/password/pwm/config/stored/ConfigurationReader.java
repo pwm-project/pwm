@@ -42,6 +42,9 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
 
@@ -206,8 +209,12 @@ public class ConfigurationReader {
             }
 
             LOGGER.trace("renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath());
-            if (!tempWriteFile.renameTo(configFile)) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "unable to rename temporary save file to " + configFile.getAbsolutePath()));
+            try {
+                Files.move(tempWriteFile.toPath(), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (Exception e) {
+                final String errorMsg = "unable to rename temporary save file from " + tempWriteFile.getAbsolutePath()
+                        + " to " + configFile.getAbsolutePath() + "; error: " + e.getMessage();
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
             }
 
             if (backupDirectory != null) {

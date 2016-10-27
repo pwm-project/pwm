@@ -323,7 +323,8 @@ public class UserStatusReader {
         }
 
         { // set email address
-            final String ldapEmailAttribute = config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
+            final LdapProfile ldapProfile = userIdentity.getLdapProfile(pwmApplication.getConfig());
+            final String ldapEmailAttribute = ldapProfile.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
             try {
                 uiBean.setUserEmailAddress(userDataReader.readStringAttribute(ldapEmailAttribute));
             } catch (ChaiOperationException e) {
@@ -332,7 +333,8 @@ public class UserStatusReader {
         }
 
         { // set SMS number
-            final String ldapSmsAttribute = config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
+            final LdapProfile ldapProfile = userIdentity.getLdapProfile(pwmApplication.getConfig());
+            final String ldapSmsAttribute = ldapProfile.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
             try {
                 uiBean.setUserSmsNumber(userDataReader.readStringAttribute(ldapSmsAttribute));
             } catch (ChaiOperationException e) {

@@ -129,9 +129,13 @@ html {
 
 #header-center-wide {
     width: 100%;
-    ;
     position:relative;
     padding:4px;
+}
+
+#header-title {
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 .headerIcon {
@@ -259,10 +263,7 @@ table {
     position: absolute;
     top: 55px;
     width: 242px;
-
     animation: fadein 0.5s;
-    -moz-animation: fadein 0.5s; /* Firefox */
-    -webkit-animation: fadein 0.5s; /* Safari and Chrome */
 }
 
 #navigationTree {

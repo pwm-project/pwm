@@ -480,6 +480,12 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
                             var linkID = 'link-' + setting['category'] + '-' + settingKey + (profileID ? profileID : '');
                             PWM_MAIN.addEventHandler(linkID ,'click',function(){
                                 resetDisplay();
+                                PWM_MAIN.Preferences.writeSessionStorage('configEditor-lastSelected',{
+                                    type:'category',
+                                    category:setting['category'],
+                                    setting:settingKey,
+                                    profile:profileID
+                                });
                                 PWM_CFGEDIT.gotoSetting(setting['category'],settingKey,profileID);
                             });
                         }(iter));
@@ -518,25 +524,29 @@ PWM_CFGEDIT.gotoSetting = function(category,settingKey,profile) {
     }
 
     if (!settingKey && !category) {
-        alert('unable to goto setting: settingKey and category parameter are not specified');
+        console.log('unable to goto setting: settingKey and category parameter are not specified');
         return;
     }
 
     if (settingKey && !(settingKey in PWM_SETTINGS['settings'])) {
-        alert('unable to goto setting: settingKey parameter "' + settingKey + '" is not valid');
+        console.log('unable to goto setting: settingKey parameter "' + settingKey + '" is not valid');
         return;
     }
 
     if (!(category in PWM_SETTINGS['categories'])) {
-        alert('unable to goto setting: category parameter "' + category + '" is not valid');
+        console.log('unable to goto setting: category parameter "' + category + '" is not valid');
         return;
     }
 
     PWM_CFGEDIT.setCurrentProfile(profile);
     PWM_CFGEDIT.displaySettingsCategory(category);
 
-    if (PWM_SETTINGS['categories'][category]['label']) {
-        PWM_MAIN.getObject('currentPageDisplay').innerHTML = ' - ' + PWM_SETTINGS['categories'][category]['label'];
+    if (PWM_SETTINGS['categories'][category]['menuLocation']) {
+        var text = PWM_SETTINGS['categories'][category]['menuLocation'];
+        if (PWM_SETTINGS['categories'][category]['profiles']) {
+            text = text.replace('PROFILE',profile);
+        }
+        PWM_CFGEDIT.setBreadcrumbText(text);
     }
 
     var item = {};
@@ -556,6 +566,12 @@ PWM_CFGEDIT.gotoSetting = function(category,settingKey,profile) {
         },1000);
     }
 };
+
+PWM_CFGEDIT.setBreadcrumbText = function(text) {
+    PWM_MAIN.getObject('currentPageDisplay').innerHTML = text;
+
+};
+
 
 
 PWM_CFGEDIT.cancelEditing = function() {
@@ -758,7 +774,7 @@ PWM_CFGEDIT.loadMainPageBody = function() {
     if (lastSelected) {
         PWM_CFGEDIT.dispatchNavigationItem(lastSelected);
     } else {
-        PWM_CFGEDIT.dispatchNavigationItem({id:'TEMPLATES',type:'category'});
+        PWM_CFGEDIT.dispatchNavigationItem({id:'TEMPLATES',type:'category',category:'TEMPLATES'});
     }
 
     require(["dojo/io-query"],function(ioQuery){
@@ -783,14 +799,6 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
         return;
     }
     var htmlSettingBody = '';
-    /*
-     htmlSettingBody += '<button id="button-expandAllHelp">Awesome</button>';
-     PWM_MAIN.addEventHandler('button-expandAllHelp','click',function(){
-     PWM_MAIN.doQuery('.pane-help',function(element){
-     console.log('hit!' );
-     });
-     });
-     */
 
     if (category == 'LDAP_PROFILE') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
@@ -983,7 +991,7 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
             break;
 
         default:
-            alert('unknown setting syntax type: ' + setting['syntax']);
+            console.log ('unknown setting syntax type: ' + setting['syntax']);
 
     }
 };
@@ -991,18 +999,6 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
 PWM_CFGEDIT.drawNavigationMenu = function() {
     PWM_MAIN.getObject('navigationTree').innerHTML = '';
     PWM_MAIN.setStyle('navigationTreeWrapper','display','none');
-
-    var detectFirstDisplay = function() {
-        var ca = document.cookie.split(';');
-        for(var i=0; i<ca.length; i++) {
-            var c = ca[i];
-            while (c.charAt(0)==' ') c = c.substring(1);
-            if (c.indexOf('navigationTreeSaveStateCookie') != -1) {
-                return false;
-            }
-        }
-        return true;
-    };
 
     var makeTreeFunction = function(menuTreeData) {
         require(["dojo/_base/window", "dojo/store/Memory", "dijit/tree/ObjectStoreModel", "dijit/Tree","dijit","dojo/domReady!"],
@@ -1020,10 +1016,11 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
                 // Create the model
                 var model = new ObjectStoreModel({
                     store: myStore,
-                    query: {id: 'ROOT'}
+                    query: {id: 'ROOT'},
+                    mayHaveChildren: function(object){
+                        return object.type == 'navigation';
+                    }
                 });
-
-                var virginNavTree = detectFirstDisplay();
 
                 // Create the Tree.
                 var tree = new Tree({
@@ -1041,21 +1038,13 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
                     }
                 });
 
-                if (virginNavTree) {
-                    console.log('first time nav menu loaded');
-                    tree.expandAll();
-                    setTimeout(function(){
-                        tree.collapseAll();
-                    },1000);
-                } else {
-                    console.log('detected previous nav menu cookie');
-                }
 
                 PWM_MAIN.getObject('navigationTree').innerHTML = '';
                 tree.placeAt(PWM_MAIN.getObject('navigationTree'));
                 tree.startup();
-                PWM_VAR['navigationTree'] = tree; // used for expand/collapse button events;
                 PWM_MAIN.setStyle('navigationTreeWrapper','display','inherit');
+                PWM_VAR['navigationTree'] = tree; // used for expand/collapse button events;
+                console.log('completed menu tree drawing')
             }
         );
     };
@@ -1080,12 +1069,19 @@ PWM_CFGEDIT.readNavigationFilters = function() {
 PWM_CFGEDIT.dispatchNavigationItem = function(item) {
     var currentID = item['id'];
     var type = item['type'];
+    //debugger;
     if  (type == 'navigation') {
         /* not used, nav tree set to auto-expand */
     } else if (type == 'category') {
-        PWM_CFGEDIT.gotoSetting(currentID);
+        var category = item['category'];
+        if (item['profile']) {
+            PWM_CFGEDIT.gotoSetting(category,null,item['profile']);
+        } else {
+            PWM_CFGEDIT.gotoSetting(category);
+        }
     } else if (type == 'displayText') {
         var keys = item['keys'];
+        PWM_CFGEDIT.setBreadcrumbText('Display Text - ' + item['name']);
         PWM_CFGEDIT.drawDisplayTextPage(currentID,keys);
     } else if (type == 'profile') {
         var category = item['category'];
@@ -1093,10 +1089,6 @@ PWM_CFGEDIT.dispatchNavigationItem = function(item) {
     } else if (type == 'profileDefinition') {
         var profileSettingKey = item['profileSetting'];
         PWM_CFGEDIT.drawProfileEditorPage(profileSettingKey);
-    }
-
-    if (item['name']) {
-        PWM_MAIN.getObject('currentPageDisplay').innerHTML = ' - ' + item['name'];
     }
 };
 

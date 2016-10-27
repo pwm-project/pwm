@@ -847,7 +847,7 @@ public class NewUserServlet extends AbstractPwmServlet {
 
         switch (tokenType) {
             case SMS: {
-                final String toNum = tokenPayloadMap.get(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
+                final String toNum = tokenPayloadMap.get(pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
 
                 final RestTokenDataClient.TokenDestinationData inputTokenDestData = new RestTokenDataClient.TokenDestinationData(
                         null, toNum, null);
@@ -1017,7 +1017,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         final Map<String, String> formValues = newUserForm.getFormData();
         final UserInfoBean stubUserBean = new UserInfoBean();
 
-        final String emailAddressAttribute = pwmApplication.getConfig().readSettingAsString(
+        final String emailAddressAttribute = pwmApplication.getConfig().getDefaultLdapProfile().readSettingAsString(
                 PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
         stubUserBean.setUserEmailAddress(formValues.get(emailAddressAttribute));
 
