@@ -4,11 +4,11 @@
     <icon-button ng-click="$ctrl.close()"></icon-button>
 </app-bar>
 
-<div class="org-chart-section managers" ng-if="$ctrl.hasManagementChain() || $ctrl.isOrphan()">
+<div class="org-chart-section managers" ng-if="$ctrl.hasManagementChain() || $ctrl.isPersonOrphan()">
     <h3>Management</h3>
-    <div ng-if="!$ctrl.isOrphan()">
+    <div ng-if="!$ctrl.isPersonOrphan()">
         <div class="manager"
-             ng-repeat="manager in $ctrl.getManagementChain()"
+             ng-repeat="manager in $ctrl.getManagementChain() track by $id(manager.displayNames)"
              ng-switch="$ctrl.getManagerCardSize()">
             <div class="org-chart-connector"></div>
             <person-card person="manager"
@@ -20,7 +20,7 @@
             </person-card>
         </div>
     </div>
-    <div ng-if="$ctrl.isOrphan()">
+    <div ng-if="$ctrl.isPersonOrphan()">
         <div class="manager empty-manager"
              ng-switch="$ctrl.getManagerCardSize()">
             <div class="org-chart-connector"></div>

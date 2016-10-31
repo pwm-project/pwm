@@ -204,6 +204,8 @@ org-chart {
             > person-card {
               > .person-card-content {
                 > .avatar {
+                  background-color: #dae1e1;
+
                   &:not(:hover) {
                     border-color: #dae1e1;
                   }
