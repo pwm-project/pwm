@@ -475,7 +475,7 @@ div.progress-container > div {
 }
 
 #header-menu-alert {
-    animation: blink 2s steps(5, start) infinite;
+    animation: blink 4s infinite;
     color: #e50000;
 }
 
@@ -920,13 +920,10 @@ progress[value] {
 }
 
 
-.blink { animation: blink 1s steps(5, start) infinite; -webkit-animation: blink 1s steps(5, start) infinite; }
-@keyframes blink { to { visibility: hidden; } }
-@-webkit-keyframes blink { to { visibility: hidden; } }
+.blink { animation: blink 4s infinite; }
+@keyframes blink {0%{opacity:0} 20%{opacity:1} 80%{opacity:1} 100%{opacity:0}}
 
 @keyframes fadein { from { opacity:0; } to { opacity:1; } }
-@-moz-keyframes fadein { from { opacity:0 } to { opacity:1 } }
-@-webkit-keyframes fadein { from { opacity:0 } to { opacity:1 } }
 
 .meteredProgressBar {
     width:80%;
@@ -1046,7 +1043,7 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
 }
 
 .footer-segment::after { padding: 10px; content: '\2022'; filter: brightness(50%); }
-.footer-segment::last-child:after { content: ""; }​
+.footer-segment:last-child:after { content: ""; }​
 
 .center { text-align: center; }
 
@@ -1104,368 +1101,30 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
     width: 200px;
 }
 
-[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
-  display: none !important;
+#idle-overlay {
+    position:fixed;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    background-color: black;
+    opacity: 0.8;
+    z-index:1001;
 }
 
-#people-search-view {
-    bottom: 0;
-    display: block;
-    left: 0;
-    margin: 5px;
+#idle-overlay-message{
     position: absolute;
-    right: 0;
+    margin: auto;
+    opacity: 1;
+    padding: 15px;
+    text-align:center;
     top: 0;
-}
-
-#people-search-component-view {
+    right: 0;
     bottom: 0;
     left: 0;
-    position: absolute;
-    right: 0;
-    top: 85px;
-}
-
-#people-search-view-toggle {
-    border: 1px solid transparent;
-    color: #808080;
-    cursor: pointer;
-    font-size: 20px;
-    height: 24px;
-    position: absolute;
-    right: 0;
-    top: 42px;
-    width: 24px;
-}
-
-#people-search-view-toggle.fa::before {
-    left: 2px;
-    position: absolute;
-    top: 2px;
-}
-
-#people-search-view-toggle:hover {
-    background-color: #f6f9f8;
-    border: 1px solid #dae1e1;
-    color: #0088ce;
-}
-
-people-search-table {
-    border: 1px solid #dae1e1;
-    bottom: 0;
-    left: 0;
-    overflow: auto;
-    position: absolute;
-    right: 0;
-    top: 0;
-}
-
-people-search-table table {
-    border: 0 none;
-    width: 100%;
-}
-
-people-search-table table th, people-search-table table td {
-    border-bottom: 1px solid #dae1e1;
-    font-weight: normal;
-    overflow: hidden;
-    padding: 5px;
-    text-align: left;
-    vertical-align: top;
-}
-
-people-search-table table th {
-    background-color: #eee;
-    color: #697c87;
-}
-
-people-search-cards {
-    bottom: 0;
-    left: 0;
-    overflow: auto;
-    position: absolute;
-    right: 0;
-    top: 0;
-}
-
-.person-card-list .person-card {
-    background-color: #eef2f2;
-    border: 1px solid #eef2f2;
-    display: inline-block;
-    height: 60px;
-    margin-right: 5px;
-    margin-top: 5px;
-    padding: 10px;
-    vertical-align: top;
-    width: 200px;
-}
-
-.person-card-list .person-card:hover {
-    background: #f6f9f8 none repeat scroll 0 0;
-    border: 1px solid #28a9e1 !important;
-    cursor: pointer;
-}
-
-.person-card-list .person-card {
-    position: relative;
-}
-
-.person-card-list .person-card .person-card-image {
-    background: gray url("UserPhoto.png") no-repeat scroll 0 0 / 50px 50px;
-    height: 50px;
-    position: absolute;
-    top: 10px;
-    width: 50px;
-}
-
-.person-card-list .person-card .person-card-details {
-    left: 70px;
-    position: absolute;
-    top: 10px;
-}
-
-.person-card-row-1 {
-    color: black;
-    font-size: 14px;
-}
-
-.person-card-row-2, .person-card-row-3, .person-card-row-4 {
-    color: #808080;
-    font-size: 12px;
-}
-
-org-chart {
-    bottom: 0;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
-}
-
-#orgchart-content {
-    bottom: 0;
-    left: 0;
-    overflow: auto;
-    position: absolute;
-    right: 0;
-    top: 42px;
-}
-
-.orgchart-primary-person {
-    background: #fff none repeat scroll 0 0;
-    border: 3px solid #808080;
-    border-radius: 3px;
-    float: none;
-    height: 160px;
-    margin: 20px 0 0;
-    position: relative;
-    width: 340px;
-}
-
-.orgchart-primary-person {
-    margin-left: 120px;
-}
-
-.orgchart-primary-person .orgchart-picture {
-    background: rgba(0, 0, 0, 0) url("UserPhoto.png") repeat scroll 0 0 / 65px 65px;
-    height: 65px;
-    left: 10px;
-    position: absolute;
-    top: 10px;
-    width: 65px;
-}
-
-.orgchart-num-reports {
-    background-color: #dae1e1;
-    border-radius: 2px;
-    color: #434c50;
-    font-size: 12px;
-    height: 18px;
-    line-height: 18px;
-    margin-bottom: 0;
-    padding-bottom: 0;
-    position: absolute;
-    right: 3px;
-    text-align: center;
-    top: 3px;
-    width: 25px;
-}
-
-.orgchart-primary-person .orgchart-primary-field {
-    color: #808080;
-    left: 90px;
-    font-size: 13px;
-    position: absolute;
-}
-
-.orgchart-primary-person .orgchart-primary-field.link,
-.orgchart-primary-person .orgchard-field-value.link {
-    color: #0088ce;
-}
-
-.orgchart-primary-person .orgchart-field-0 {
-    color: black;
-    font-size: 14px;
-    top: 10px;
-}
-
-.orgchart-primary-person .orgchart-field-1 {
-    top: 28px;
-}
-
-.orgchart-primary-person .orgchart-field-2 {
-    top: 46px;
-}
-
-.orgchart-primary-person .orgchart-secondary-field {
-    position: absolute;
-    left: 10px;
-}
-
-.orgchart-primary-person .orgchart-secondary-field .orgchard-field-name {
-    color: #808080;
-    display: inline-block;
-    font-size: 13px;
-    overflow: hidden;
-    width: 100px;
-}
-
-.orgchart-primary-person .orgchart-secondary-field .orgchard-field-value {
-    display: inline-block;
-    font-size: 13px;
-    overflow: hidden;
-    width: 215px;
-}
-
-.orgchart-primary-person .orgchart-field-3 {
-    border-top: 1px solid #dae1e1;
-    padding-top: 8px;
-    top: 80px;
-}
-
-.orgchart-primary-person .orgchart-field-4 {
-    top: 111px;
-}
-
-.orgchart-primary-person .orgchart-field-5 {
-    top: 134px;
-}
-
-.orgchart-direct-reports .num-reports {
-    position: absolute;
-    right: 3px;
-    top: 3px;
-}
-
-.orgchart-direct-reports {
-    border-top: 3px solid #808080;
-    margin-right: 25px;
-    margin-top: 40px;
-    min-width: 700px;
-    padding-top: 0;
-}
-
-.orgchart-management {
-    margin-left: 90px;
-    min-width: 650px;
-}
-
-.orgchart-management .orgchart-manager {
-    display: inline-block;
-    padding-top: 75px;
-    position: relative;
-    width: 130px;
-}
-
-.orgchart-manager-fields {
+    width: 500px;
+    height: 100px;
     background-color: white;
-    padding: 4px;
+    border-radius: 3px;
+    z-index:1002;
 }
-
-.orgchart-manager .orgchart-separator {
-    background-color: #dae1e1;
-    height: 3px;
-    position: absolute;
-    top: 40px;
-    width: 100%;
-}
-
-.orgchart-primary-person-connector {
-    background-color: #808080;
-    height: 290px;
-    left: 155px;
-    position: absolute;
-    top: 50px;
-    width: 5px;
-}
-
-.orgchart-manager .orgchart-separator.first {
-    margin-left: 50%;
-    width: 50%;
-}
-
-.orgchart-manager .orgchart-separator.last {
-    margin-right: 50%;
-    width: 50%;
-}
-
-.orgchart-manager .orgchart-separator.first.last {
-    display: none;
-}
-
-.orgchart-manager .orgchart-field {
-    color: #808080;
-    font-size: 12px;
-    text-align: center;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.orgchart-manager .orgchart-picture {
-    left: 35px;
-    margin: 0 auto;
-    position: absolute;
-    top: 10px;
-    width: 50%;
-}
-
-.orgchart-manager .orgchart-picture img {
-    border: 3px solid #dae1e1;
-    border-radius: 50%;
-    height: 50px;
-    margin: 3px;
-    width: 50px;
-}
-
-#orgchart-close {
-    background: transparent url("close_40.png") no-repeat scroll 0 0 / 20px 20px;
-    border: 1px solid transparent;
-    height: 20px;
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 20px;
-}
-
-#orgchart-close:hover {
-    background-color: #f6f9f8;
-    border: 1px solid #dae1e1;
-    color: #0088ce;
-}
-
-.orgchart-title {
-    color: #808080;
-    font-size: 14px;
-    left: 0;
-    position: absolute;
-}
-
-.orgchart-management-title {
-    top: 25px;
-}
-
-.orgchart-direct-reports-title {
-    top: 315px;
-}
-

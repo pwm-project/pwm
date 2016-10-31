@@ -41,20 +41,7 @@
 <%
     final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
     boolean advancedMode = false;
-    List<PwmSettingCategory> sortedCategories = new ArrayList();
-    try {
-        advancedMode = pwmRequest != null && pwmRequest.hasParameter("advanced");
-        sortedCategories.addAll(PwmSettingCategory.sortedValues(JspUtility.locale(request)));
-        for (Iterator<PwmSettingCategory> iterator = sortedCategories.iterator(); iterator.hasNext(); ) {
-            PwmSettingCategory category = iterator.next();
-            if (category.isHidden() || (category.getSettings().isEmpty() && category.getDescription(userLocale).isEmpty())) {
-                iterator.remove();
-            }
-        }
-
-    } catch (PwmException e) {
-        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
-    }
+    final List<PwmSettingCategory> sortedCategories = PwmSettingCategory.valuesForReferenceDoc(userLocale);
 %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>

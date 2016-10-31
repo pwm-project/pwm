@@ -1557,7 +1557,7 @@ PWM_MAIN.IdleTimeoutHandler.initCountDownTimer = function(secondsRemaining) {
 
 PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer = function() {
     PWM_GLOBAL['idle_suspendTimeout'] = true;
-}
+};
 
 PWM_MAIN.IdleTimeoutHandler.resetIdleCounter = function() {
     PWM_MAIN.IdleTimeoutHandler.lastActivityTime = new Date();
@@ -1582,7 +1582,8 @@ PWM_MAIN.IdleTimeoutHandler.pollActivity = function() {
         if (!PWM_GLOBAL['idle_suspendTimeout']) {
             PWM_VAR['dirtyPageLeaveFlag'] = false;
             PWM_GLOBAL['idle_suspendTimeout'] = true;
-            window.location = PWM_GLOBAL['url-logout'];
+            var url = PWM_GLOBAL['url-logout'] + '?idle=true&url=' + encodeURIComponent(window.location.pathname);
+            PWM_MAIN.goto(url);
         } else {
             try { PWM_MAIN.getObject('idle_wrapper').style.visibility = 'none'; } catch(e) { /* noop */ }
         }
@@ -1609,9 +1610,7 @@ PWM_MAIN.IdleTimeoutHandler.pollActivity = function() {
 PWM_MAIN.IdleTimeoutHandler.pingServer = function() {
     PWM_MAIN.IdleTimeoutHandler.lastPingTime = new Date();
     var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&time=" + new Date().getTime() + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-    require(["dojo"], function(dojo){
-        dojo.xhrPost({url:pingURL,sync:false});
-    });
+    PWM_MAIN.ajaxRequest(pingURL, function(){},{method:'POST'});
 };
 
 PWM_MAIN.IdleTimeoutHandler.calcSecondsRemaining = function() {
@@ -1631,18 +1630,19 @@ PWM_MAIN.IdleTimeoutHandler.showIdleWarning = function() {
     if (!PWM_MAIN.IdleTimeoutHandler.warningDisplayed) {
         PWM_MAIN.IdleTimeoutHandler.warningDisplayed = true;
 
-        var dialogBody = PWM_MAIN.showString('Display_IdleWarningMessage') + '<br/><br/><span id="IdleDialogWindowIdleText">&nbsp;</span>';
-        require(["dijit/Dialog"],function(){
-            var theDialog = new dijit.Dialog({
-                title: PWM_MAIN.showString('Display_IdleWarningTitle'),
-                style: "width: 260px; border: 2px solid #D4D4D4;",
-                content: dialogBody,
-                closable: true,
-                draggable: false,
-                id: "idleDialog"
-            });
-            theDialog.show();
-        });
+        var idleOverlayDiv = document.createElement('div');
+        idleOverlayDiv.setAttribute('id','idle-overlay');
+        document.body.appendChild(idleOverlayDiv);
+
+        var idleMsgDiv = document.createElement('div');
+        idleMsgDiv.setAttribute('id','idle-overlay-message');
+        idleMsgDiv.innerHTML = '<p>' + PWM_MAIN.showString('Display_IdleWarningMessage') + '</p><p><span id="IdleDialogWindowIdleText">&nbsp;</span></p>';
+        document.body.appendChild(idleMsgDiv);
+
+        PWM_MAIN.addEventHandler('idle-overlay','click',function(){
+            idleOverlayDiv.parentNode.removeChild(idleOverlayDiv);
+            idleMsgDiv.parentNode.removeChild(idleMsgDiv);
+        })
     }
 };
 

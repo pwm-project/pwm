@@ -31,24 +31,23 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_Logout"/>
+        <jsp:param name="pwm.PageName" value="Title_LogoutPublic"/>
     </jsp:include>
     <div id="centerbody">
-        <div id="page-content-title"><pwm:display key="Title_Logout" displayIfMissing="true"/></div>
+        <div id="page-content-title"><pwm:display key="Title_LogoutPublic" displayIfMissing="true"/></div>
         <%@ include file="fragment/message.jsp" %>
-        <p><pwm:display key="Display_Logout"/></p>
+        <p><pwm:display key="Display_LogoutPublic"/></p>
         <br/>
         <br/>
         <p>
-        <% if (JspUtility.getAttribute(pageContext,PwmRequest.Attribute.NextUrl) != null) {%>
-        <form action="<%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.NextUrl)%>" method="GET">
-            <button type="submit" name="button" class="btn" <pwm:autofocus/> id="submitBtn">
-                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
-                <pwm:display key="Button_Continue"/>
-            </button>
-        </form>
-        <% } %>
-        </p>
+            <% if (JspUtility.getAttribute(pageContext,PwmRequest.Attribute.NextUrl) != null) {%>
+            <form action="<%=JspUtility.getAttribute(pageContext, PwmRequest.Attribute.NextUrl)%>" method="GET">
+                <button type="submit" name="button" class="btn" <pwm:autofocus/> id="submitBtn">
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                    <pwm:display key="Button_Continue"/>
+                </button>
+            </form>
+            <% } %>
     </div>
     <div class="push"></div>
 </div>

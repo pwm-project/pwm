@@ -307,6 +307,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         CookieBeanStorage,
 
         ShortcutItems,
+        NextUrl,
     }
 
     public static class FileUploadItem {

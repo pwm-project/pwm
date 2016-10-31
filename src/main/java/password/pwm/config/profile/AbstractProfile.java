@@ -121,9 +121,14 @@ public abstract class AbstractProfile implements Profile, SettingReader {
             final PwmSettingCategory pwmSettingCategory
     ) {
         final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<>();
-        for (final PwmSetting setting : pwmSettingCategory.getSettings()) {
-            final StoredValue value = storedConfiguration.readSetting(setting, identifier);
-            valueMap.put(setting, value);
+        final List<PwmSettingCategory> categories = new ArrayList<>();
+        categories.add(pwmSettingCategory);
+        categories.addAll(pwmSettingCategory.getChildCategories());
+        for (final PwmSettingCategory category : categories) {
+            for (final PwmSetting setting : category.getSettings()) {
+                final StoredValue value = storedConfiguration.readSetting(setting, identifier);
+                valueMap.put(setting, value);
+            }
         }
         return valueMap;
     }

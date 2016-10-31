@@ -22,12 +22,15 @@
 
 package password.pwm.config;
 
+import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class PwmSettingTest {
 
@@ -80,6 +83,15 @@ public class PwmSettingTest {
     public void testRegExPatterns() throws PwmUnrecoverableException, PwmOperationalException {
         for (PwmSetting pwmSetting : PwmSetting.values()) {
             pwmSetting.getRegExPattern();
+        }
+    }
+
+    @Test
+    public void testKeyUniqueness() {
+        final Set<String> seenKeys = new HashSet<>();
+        for (PwmSetting pwmSetting : PwmSetting.values()) {
+            Assert.assertTrue(!seenKeys.contains(pwmSetting.getKey())); // duplicate key foud
+            seenKeys.add(pwmSetting.getKey());
         }
     }
 }

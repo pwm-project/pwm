@@ -27,6 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;

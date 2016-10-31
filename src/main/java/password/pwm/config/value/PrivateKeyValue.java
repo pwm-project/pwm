@@ -161,8 +161,9 @@ public class PrivateKeyValue extends AbstractValue {
         if (privateKeyCertificate == null) {
             return null;
         }
+        final X509Utils.DebugInfoFlag[] flags = includeDetail ? new X509Utils.DebugInfoFlag[]{X509Utils.DebugInfoFlag.IncludeCertificateDetail} : null;
         final Map<String,Object> returnMap = new LinkedHashMap<>();
-        returnMap.put("certificates", X509Utils.makeDebugInfoMap(privateKeyCertificate.getCertificates(), X509Utils.DebugInfoFlag.IncludeCertificateDetail));
+        returnMap.put("certificates", X509Utils.makeDebugInfoMap(privateKeyCertificate.getCertificates(), flags));
         final Map<String,Object> privateKeyInfo = new LinkedHashMap<>();
         privateKeyInfo.put("algorithm", privateKeyCertificate.getKey().getAlgorithm());
         privateKeyInfo.put("format", privateKeyCertificate.getKey().getFormat());

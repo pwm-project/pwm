@@ -22,8 +22,12 @@
 
 package password.pwm.config;
 
+import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.PwmConstants;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class PwmSettingCategoryTest {
     @Test
@@ -47,5 +51,31 @@ public class PwmSettingCategoryTest {
                 category.getProfileSetting();
             }
         }
+    }
+
+
+    @Test
+    public void testProfileCategoryHasSettingsOrChildren() {
+        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
+            if (category.hasProfiles()) {
+                boolean hasChildren = !category.getChildCategories().isEmpty();
+                boolean hasSettings = !category.getSettings().isEmpty();
+                Assert.assertTrue(hasChildren || hasSettings);
+                Assert.assertFalse(category.getKey() + " has both child categories and settings", hasChildren && hasSettings);
+            }
+        }
+    }
+
+    @Test
+    public void testProfileSettingUniqueness() {
+        final Set<PwmSetting> seenSettings = new HashSet<>();
+        /*
+        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
+            if (category.hasProfiles()) {
+                Assert.assertTrue(!seenSettings.contains(category.getProfileSetting())); // duplicate category
+                seenSettings.add(category.getProfileSetting());
+            }
+        }
+        */  //@todo removed during multi-level profiled-category introduction
     }
 }
