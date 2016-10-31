@@ -20,13 +20,14 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.bean.ResponseInfoBean" %>
 <%@ page import="password.pwm.bean.LocalSessionStateBean" %>
+<%@ page import="password.pwm.bean.ResponseInfoBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
+<%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.option.ViewStatusFields" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.svc.event.UserAuditRecord" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
@@ -36,6 +37,7 @@
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
+<%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -334,7 +336,33 @@
         <% } %>
     </table>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" id="PasswordPolicy" title="<pwm:display key="Title_PasswordPolicy"/>" class="tabContent">
+<% final Map<FormConfiguration, List<String>> userFormData = (Map<FormConfiguration,List<String>>)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.FormData); %>
+<% if (userFormData != null && !userFormData.isEmpty()) { %>
+<div data-dojo-type="dijit.layout.ContentPane" id="UserData" title="<pwm:display key="<%=Display.Title_UserData.toString()%>"/>" class="tabContent">
+    <div style="max-height: 400px; overflow: auto;">
+        <table class="nomargin">
+            <% for (final FormConfiguration formConfiguration : userFormData.keySet()) { %>
+            <tr>
+                <td class="key" style="width:50%">
+                    <span class="timestamp">
+                    <%= formConfiguration.getLabel(userLocale) %>
+                    </span>
+                </td>
+                <td>
+                    <% for (final String value : userFormData.get(formConfiguration)) { %>
+                    <%=  StringUtil.escapeHtml(value) %><br/>
+                    <% } %>
+                </td>
+            </tr>
+            <% } %>
+        </table>
+    </div>
+</div>
+<% } %>
+
+
+
+    <div data-dojo-type="dijit.layout.ContentPane" id="PasswordPolicy" title="<pwm:display key="Title_PasswordPolicy"/>" class="tabContent">
     <div style="max-height: 400px; overflow: auto;">
         <table class="nomargin">
             <tr>

@@ -302,7 +302,7 @@ public class LDAPPermissionCalculator implements Serializable {
     }
 
     private Collection<PermissionRecord> permissionsForUserPassword() {
-        final String userPasswordAttributeName = LocaleHelper.getLocalizedMessage("Label_UserPasswordAttribute",null,Config.class);
+        final String userPasswordAttributeName = LocaleHelper.getLocalizedMessage(Config.Label_UserPasswordAttribute,null);
         final Collection<PermissionRecord> records = new ArrayList<>();
 
         // user set password

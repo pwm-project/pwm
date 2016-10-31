@@ -70,7 +70,7 @@ public class ImportResponsesCommand extends AbstractCliCommand {
                     final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
                     final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, userIdentity, false);
                     final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean(PwmConstants.DEFAULT_LOCALE,challengeSet.getIdentifier());
-                    pwmApplication.getCrService().writeResponses(user, userGuid, responseInfoBean );
+                    pwmApplication.getCrService().writeResponses(userIdentity, user, userGuid, responseInfoBean );
                 } catch (Exception e) {
                     out("error writing responses to user '" + user.getEntryDN() + "', error: " + e.getMessage());
                     return;

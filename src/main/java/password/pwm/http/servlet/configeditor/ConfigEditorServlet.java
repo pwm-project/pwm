@@ -782,7 +782,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             navigationData.addAll(NavTreeHelper.makeSettingNavItems(categories, storedConfiguration, pwmRequest.getLocale()));
         }
 
-        boolean includeDisplayText = false;
+        boolean includeDisplayText = true;
         if (level >= 1) {
             for (final PwmLocaleBundle localeBundle : PwmLocaleBundle.values()) {
                 if (!localeBundle.isAdminOnly()) {
@@ -808,6 +808,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             final NavTreeItem categoryInfo = new NavTreeItem();
             categoryInfo.setId("DISPLAY_TEXT");
             categoryInfo.setName("Display Text");
+            categoryInfo.setType(NavTreeHelper.NavItemType.navigation);
             categoryInfo.setParent("ROOT");
             navigationData.add(categoryInfo);
         }

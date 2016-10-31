@@ -48,7 +48,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collection;
 
-public abstract class AbstractPwmServlet extends HttpServlet implements PwmServlet {
+public abstract class ControlledPwmServlet extends HttpServlet implements PwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(AbstractPwmServlet.class);
 
@@ -277,3 +277,4 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         throw new IllegalStateException("unable to determine PwmServletDefinition for class " + this.getClass().getName());
     }
 }
+

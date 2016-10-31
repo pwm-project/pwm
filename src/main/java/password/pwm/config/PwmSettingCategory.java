@@ -131,6 +131,9 @@ public enum PwmSettingCategory {
     RECOVERY_SETTINGS           (RECOVERY),
     RECOVERY_PROFILE            (RECOVERY),
 
+    RECOVERY_DEF                (RECOVERY_PROFILE),
+    RECOVERY_OAUTH              (RECOVERY_PROFILE),
+
     FORGOTTEN_USERNAME          (MODULES_PUBLIC),
 
     ACTIVATION                  (MODULES_PUBLIC),

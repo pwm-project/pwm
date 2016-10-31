@@ -1101,6 +1101,7 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
     width: 200px;
 }
 
+@keyframes idle-fadein { from { opacity:0.1; } to { opacity:0.8; } }
 #idle-overlay {
     position:fixed;
     top:0;
@@ -1110,6 +1111,7 @@ dialog .closeIcon { float: right; cursor: pointer; margin-right: 3px; }
     background-color: black;
     opacity: 0.8;
     z-index:1001;
+    animation: idle-fadein 6s;
 }
 
 #idle-overlay-message{

@@ -57,6 +57,7 @@ public enum Config implements PwmDisplayBundle {
     Display_SettingNavigationNullProfile,
     Field_VerificationMethod,
     Label_ProfileListEditMenuItem,
+    Label_UserPasswordAttribute,
     MenuDisplay_AlternateNewConfig,
     MenuDisplay_AlternateUnlockConfig,
     MenuDisplay_AlternateUpload,

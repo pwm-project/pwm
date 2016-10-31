@@ -631,7 +631,7 @@ FormTableHandler.redraw = function(keyName) {
 
     var buttonRow = document.createElement("tr");
     buttonRow.setAttribute("colspan","5");
-    buttonRow.innerHTML = '<td><button class="btn" id="button-' + keyName + '-addRow"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Form Item</button></td>';
+    buttonRow.innerHTML = '<td><button class="btn" id="button-' + keyName + '-addRow"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Item</button></td>';
 
     parentDivElement.appendChild(buttonRow);
 
