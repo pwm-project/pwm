@@ -5,7 +5,6 @@ export default class Person {
     // Details properties (not available in search)
     detail: any;
     displayNames: string[];
-    orgChartParentKey: string;
     photoURL: string;
 
     // Search properties (not available in details)
@@ -22,7 +21,6 @@ export default class Person {
         // Details properties
         this.detail = options.detail;
         this.displayNames = options.displayNames;
-        this.orgChartParentKey = options.orgChartParentKey;
         this.photoURL = options.photoURL;
 
         // Search properties

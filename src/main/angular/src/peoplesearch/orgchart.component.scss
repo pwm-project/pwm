@@ -1,235 +1,232 @@
+$manager-connector-height: 16px;
+
+// Default display
 org-chart {
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-}
+  display: block;
+  min-width: 300px;
 
-#orgchart-content {
-  bottom: 0;
-  left: 0;
-  overflow: auto;
-  position: absolute;
-  right: 0;
-  top: 42px;
-}
-
-#orgchart-close {
-  background: gray no-repeat scroll 0 0 / 20px 20px;
-  border: 1px solid transparent;
-  height: 20px;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 20px;
-
-  &:hover {
-    background-color: #f6f9f8;
-    border: 1px solid #dae1e1;
-    color: #0088ce;
-  }
-}
-
-.orgchart-direct-reports {
-  border-top: 3px solid #808080;
-  margin-right: 25px;
-  margin-top: 40px;
-  min-width: 700px;
-  padding-top: 0;
-
-  .num-reports {
-    position: absolute;
-    right: 3px;
-    top: 3px;
-  }
-}
-
-.orgchart-direct-reports-title {
-  top: 315px;
-}
-
-.orgchart-num-reports {
-  background-color: #dae1e1;
-  border-radius: 2px;
-  color: #434c50;
-  font-size: 12px;
-  height: 18px;
-  line-height: 18px;
-  margin-bottom: 0;
-  padding-bottom: 0;
-  position: absolute;
-  right: 3px;
-  text-align: center;
-  top: 3px;
-  width: 25px;
-}
-
-.orgchart-primary-person {
-  background: #fff none repeat scroll 0 0;
-  border: 3px solid #808080;
-  border-radius: 3px;
-  float: none;
-  height: 160px;
-  margin: 20px 0 0 120px;
-  position: relative;
-  width: 340px;
-
-  .orgchart-picture {
-    background: gray repeat scroll 0 0 / 65px 65px;
-    height: 65px;
-    left: 10px;
-    position: absolute;
-    top: 10px;
-    width: 65px;
-  }
-
-  .orgchart-primary-field {
-    color: #808080;
-    left: 90px;
-    font-size: 13px;
-    position: absolute;
-  }
-
-  .orgchart-primary-field,
-  .orgchard-field-value {
-    &.link {
-      color: #0088ce;
-    }
-  }
-
-
-  .orgchart-field-0 {
-    color: black;
-    font-size: 14px;
-    top: 10px;
-  }
-
-  .orgchart-field-1 {
-    top: 28px;
-  }
-
-  .orgchart-field-2 {
-    top: 46px;
-  }
-
-  .orgchart-secondary-field {
-    position: absolute;
-    left: 10px;
-
-    .orgchart-field-name {
-      color: #808080;
-      display: inline-block;
-      font-size: 13px;
-      overflow: hidden;
-      width: 100px;
-    }
-
-    .orgchart-field-value {
-      display: inline-block;
-      font-size: 13px;
-      overflow: hidden;
-      width: 215px;
-    }
-  }
-
-  .orgchart-field-3 {
-    border-top: 1px solid #dae1e1;
-    padding-top: 8px;
-    top: 80px;
-  }
-
-  .orgchart-field-4 {
-    top: 111px;
-  }
-
-  .orgchart-field-5 {
-    top: 134px;
-  }
-}
-
-.orgchart-management {
-  margin-left: 90px;
-  min-width: 650px;
-
-  .orgchart-manager {
-    display: inline-block;
-    padding-top: 75px;
+  > .org-chart-section {
     position: relative;
-    width: 130px;
+    text-align: center;
 
-    .orgchart-separator {
-      background-color: #dae1e1;
-      height: 3px;
-      position: absolute;
-      top: 40px;
-      width: 100%;
-    }
-
-    .orgchart-separator {
-      &.first {
-        margin-left: 50%;
-        width: 50%;
-      }
-
-      &.last {
-        margin-right: 50%;
-        width: 50%;
-      }
-
-      &.first.last {
-        display: none;
+    &.direct-reports {
+      > .org-chart-connector {
+        height: 34px;
       }
     }
 
-    .orgchart-field {
+    &.managers {
+      min-height: 98px;
+
+      .manager {
+        margin-bottom: $manager-connector-height;
+        position: relative;
+        text-align: center;
+
+        &.empty-manager {
+          > person-card {
+            cursor: initial;
+
+            > .person-card-content {
+              > .avatar {
+                background-color: #dae1e1;
+                border-color: #dae1e1;
+              }
+            }
+          }
+
+          > .org-chart-connector {
+            background-color: #dae1e1;
+          }
+        }
+
+        > person-card {
+          display: inline-block;
+        }
+      }
+
+      .org-chart-connector {
+        bottom: -$manager-connector-height;
+        height: $manager-connector-height;
+        top: initial;
+      }
+    }
+
+    > h3 {
       color: #808080;
-      font-size: 12px;
-      text-align: center;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      font-size: 14px;
+      line-height: 14px;
+      margin: 0;
+      padding: 15px 0 5px 0;
+      text-align: left;
     }
 
-    .orgchart-picture {
-      left: 35px;
+    > person-card {
+      &[size="large"] {
+        margin: 0 auto;
+      }
+    }
+
+    > .person-card-list {
+      border-top: 3px solid #808080;
+      min-height: 90px;
+      padding-top: 5px;
+
+      > person-card {
+        display: inline-block;
+        width: 100%;
+
+        &:not(:last-child) {
+          margin-bottom: 5px;
+        }
+      }
+    }
+
+    .org-chart-connector {
+      background-color: #808080;
+      left: 0;
       margin: 0 auto;
       position: absolute;
-      top: 10px;
-      width: 50%;
+      right: 0;
+      top: 0;
+      width: 5px;
     }
 
-    .orgchart-picture img {
-      border: 3px solid #dae1e1;
-      border-radius: 50%;
-      height: 50px;
-      margin: 3px;
-      width: 50px;
+    .empty-section-label {
+      color: #808080;
     }
   }
 }
 
-.orgchart-manager-fields {
-  background-color: white;
-  padding: 4px;
+// Too wide for full width person-card
+@media (min-width: 375px) {
+  org-chart {
+    > .org-chart-section {
+      > .person-card-list {
+        > person-card {
+          margin-right: 5px;
+          width: 200px;
+        }
+      }
+    }
+  }
 }
 
-.orgchart-management-title {
-  top: 25px;
+// Wide enough to fit multiple person-cards next to each other inline
+@media (min-width: 420px) {
+  org-chart {
+    > .org-chart-section {
+      > .person-card-list {
+        text-align: left;
+      }
+
+      &.managers {
+        .manager {
+          text-align: center;
+        }
+      }
+    }
+  }
 }
 
-.orgchart-primary-person-connector {
-  background-color: #808080;
-  height: 290px;
-  left: 155px;
-  position: absolute;
-  top: 50px;
-  width: 5px;
+// Wide enough to show main person offset to the right. Manager should now be locked in place (instead of centered)
+@media (min-width: 464px) {
+  org-chart {
+    > .org-chart-section {
+      text-align: left;
+
+      > person-card {
+        &[size="large"] {
+          margin: 0 0 0 128px;
+        }
+      }
+
+      .org-chart-connector {
+        left: 169px;
+        margin: 0;
+      }
+
+      &.managers {
+        .org-chart-connector {
+          left: 34px;
+        }
+
+        .manager {
+          display: block;
+          margin-left: 135px;
+          text-align: left;
+        }
+      }
+    }
+  }
 }
 
-.orgchart-title {
-  color: #808080;
-  font-size: 14px;
-  left: 0;
-  position: absolute;
+// Wide enough to display several managers horizontally
+@media (min-width: 625px) {
+  org-chart {
+    > .org-chart-section {
+      &.managers {
+        margin-left: 0;
+        min-height: 162px;
+        overflow: hidden;
+        white-space: nowrap;
+
+        .org-chart-connector {
+          left: 42px;
+        }
+
+        .manager {
+          display: inline-block;
+          margin-left: 0;
+          margin-bottom: 32px;
+
+          &:first-child {
+            margin-left: 115px;
+
+            > .org-chart-connector {
+              bottom: initial;
+              top: 56px;
+              left: 57px;
+              height: 72px;
+            }
+          }
+
+          &:not(:first-child) {
+            > .org-chart-connector {
+              background-color: #dae1e1;
+              bottom: initial;
+              height: 3px;
+              left: -37px;
+              top: 26px;
+              width: 69px;
+            }
+
+            > person-card {
+              > .person-card-content {
+                > .avatar {
+                  &:not(:hover) {
+                    border-color: #dae1e1;
+                  }
+                }
+
+                > .details {
+                  > :first-child {
+                    color: #808080;
+                  }
+                }
+              }
+            }
+          }
+
+          &:not(:last-child) {
+            margin-right: 5px;
+          }
+        }
+      }
+
+      .org-chart-connector {
+        left: 172px;
+      }
+    }
+  }
 }

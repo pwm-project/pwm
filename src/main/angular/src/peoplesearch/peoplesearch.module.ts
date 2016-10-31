@@ -5,10 +5,13 @@ import PeopleSearchComponent from './peoplesearch.component';
 import PeopleSearchTableComponent from './peoplesearch-table.component';
 import PeopleSearchCardsComponent from './peoplesearch-cards.component';
 import PersonCardComponent from './person-card.component';
+import uxModule from '../ux/ux.module';
+
+require('./peoplesearch.scss');
 
 var moduleName = 'people-search';
 
-module(moduleName, [ ])
+module(moduleName, [ uxModule ])
     .service('PeopleSearchService', PeopleSearchService)
     .component('orgChart', OrgChartComponent)
     .component('personCard', PersonCardComponent)

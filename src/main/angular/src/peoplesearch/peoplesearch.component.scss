@@ -1,43 +1,5 @@
-#people-search-component-view {
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 85px;
-}
-
-#people-search-view {
-  bottom: 0;
-  display: block;
-  left: 0;
-  margin: 5px;
-  position: absolute;
-  right: 0;
-  top: 0;
-}
-
-#people-search-view-toggle {
-  border: 1px solid transparent;
-  color: #808080;
-  cursor: pointer;
-  font-size: 20px;
-  height: 24px;
-  position: absolute;
-  right: 0;
-  top: 42px;
-  width: 24px;
-
-  &:hover {
-    background-color: #f6f9f8;
-    border: 1px solid #dae1e1;
-    color: #0088ce;
-  }
-
-  &.fa {
-    &::before {
-      left: 2px;
-      position: absolute;
-      top: 2px;
-    }
+people-search {
+  > .search-bar {
+    margin-bottom: 10px;
   }
 }

@@ -1,15 +1,21 @@
 people-search-cards {
-    bottom: 0;
-    left: 0;
-    overflow: auto;
-    position: absolute;
-    right: 0;
-    top: 0;
+    text-align: center;
+
+    > person-card {
+        display: inline-block;
+        width: 100%;
+
+        &:not(:last-child) {
+            margin-bottom: 5px;
+        }
+    }
 }
 
-.person-card-list {
-    > person-card {
-        margin-right: 5px;
-        margin-top: 5px;
+@media (min-width: 375px) {
+    people-search-cards {
+        > person-card {
+            margin-right: 5px;
+            width: 200px;
+        }
     }
 }

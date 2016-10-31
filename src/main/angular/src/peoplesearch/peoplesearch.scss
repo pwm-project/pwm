@@ -1,0 +1,9 @@
+body {
+  > ui-view {
+    box-sizing: border-box;
+    display: block;
+    overflow: hidden;
+    padding: 5px;
+    width: 100%;
+  }
+}

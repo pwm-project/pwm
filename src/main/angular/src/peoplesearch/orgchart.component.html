@@ -1,41 +1,51 @@
-<div id="page-content-title">Organization</div>
-<div id="orgchart-close" ng-click="$ctrl.close()"></div>
+<app-bar>
+    <div id="page-content-title">Organization</div>
+    <span flex></span>
+    <icon-button ng-click="$ctrl.close()"></icon-button>
+</app-bar>
 
-<div id="orgchart-content" class="ng-cloak">
-    <div class="orgchart-primary-person-connector" class="ng-cloak"></div>
-
-    <div class="orgchart-management-title orgchart-title">Management</div>
-    <div class="orgchart-management" ng-if="$ctrl.managementChain.length" >
-        <div class="orgchart-manager" ng-repeat="manager in $ctrl.managementChain"
-             ng-click="$ctrl.selectPerson(manager.userKey)">
-            <div class="orgchart-separator" ng-class="{first:$first,last:$last}"></div>
-            <div class="orgchart-picture">
-                <img ng-src="{{ manager.photoURL }}" />
-            </div>
-            <div class="orgchart-manager-fields">
-                <div class="orgchart-field orgchart-field-0">{{ manager.displayNames[0] }}</div>
-                <div class="orgchart-field orgchart-field-1">{{ manager.displayNames[1] }}</div>
-            </div>
+<div class="org-chart-section managers" ng-if="$ctrl.hasManagementChain() || $ctrl.isOrphan()">
+    <h3>Management</h3>
+    <div ng-if="!$ctrl.isOrphan()">
+        <div class="manager"
+             ng-repeat="manager in $ctrl.getManagementChain()"
+             ng-switch="$ctrl.getManagerCardSize()">
+            <div class="org-chart-connector"></div>
+            <person-card person="manager"
+                         size="small"
+                         ng-click="$ctrl.selectPerson(manager.userKey)" ng-switch-when="small">
+            </person-card>
+            <person-card person="manager"
+                         ng-click="$ctrl.selectPerson(manager.userKey)" ng-switch-default>
+            </person-card>
         </div>
     </div>
+    <div ng-if="$ctrl.isOrphan()">
+        <div class="manager empty-manager"
+             ng-switch="$ctrl.getManagerCardSize()">
+            <div class="org-chart-connector"></div>
+            <person-card person="$ctrl.emptyPerson" size="small" ng-switch-when="small"></person-card>
+            <person-card person="$ctrl.emptyPerson" ng-switch-default></person-card>
+        </div>
+    </div>
+</div>
 
-    <div class="orgchart-primary-person">
-        <img class="orgchart-picture" ng-src="{{ $ctrl.person.photoURL }}" />
-        <div class="orgchart-num-reports" ng-if="$ctrl.directReports.length">{{ $ctrl.directReports.length }}</div>
+<div class="org-chart-section">
+    <person-card person="$ctrl.person" direct-reports="$ctrl.directReports" size="large"></person-card>
+</div>
 
-        <div class="orgchart-primary-field orgchart-field-0">{{ $ctrl.person.displayNames[0] }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-1">{{ $ctrl.person.displayNames[1] }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-2">{{ $ctrl.person.displayNames[2] }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-3">{{ $ctrl.person.displayNames[3] }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-4">{{ $ctrl.person.displayNames[4] }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-5">{{ $ctrl.person.displayNames[5] }}</div>
-        <div class="orgchart-primary-field orgchart-field orgchart-field-6">{{ $ctrl.person.displayNames[6] }}</div>
+<div class="org-chart-section direct-reports" ng-if="$ctrl.hasDirectReports()">
+    <h3>Direct Reports</h3>
+    <div class="org-chart-connector"></div>
+
+    <div class="person-card-list">
+        <person-card person="directReport"
+                     ng-repeat="directReport in $ctrl.directReports"
+                     ng-click="$ctrl.selectPerson(directReport.userKey)">
+        </person-card>
     </div>
 
-    <div class="orgchart-direct-reports-title orgchart-title">Direct Reports</div>
-    <div class="orgchart-direct-reports person-card-list" ng-if="$ctrl.directReports.length">
-        <person-card person="directReport" ng-repeat="directReport in $ctrl.directReports"
-            ng-click="$ctrl.selectPerson(directReport.userKey)">
-        </person-card>
+    <div class="person-card-list" ng-if="!$ctrl.hasDirectReports()">
+        <span class="empty-section-label">0 direct reports</span>
     </div>
 </div>

@@ -1,4 +1,4 @@
-<div class="person-card-list">
-    <person-card person="person" ng-repeat="person in $ctrl.people" ng-click="$ctrl.selectPerson(person.userKey)">
-    </person-card>
-</div>
+<person-card person="person"
+             ng-repeat="person in $ctrl.people"
+             ng-click="$ctrl.selectPerson(person.userKey)">
+</person-card>

@@ -1,6 +1,10 @@
-<div id="page-content-title">People Search</div>
+<app-bar>
+    <div id="page-content-title">People Search</div>
+    <span flex></span>
+    <icon-button ng-click="$ctrl.viewToggleClicked()" ng-class="$ctrl.viewToggleClass"></icon-button>
+</app-bar>
 
-<div id="panel-searchbar" class="searchbar">
+<div class="search-bar">
     <input id="username" name="username" placeholder="Search" class="peoplesearch-input-username"
            autocomplete="off" ng-model="$ctrl.query" /> <!-- Auto focus this control -->
     <div class="searchbar-extras">
@@ -14,6 +18,4 @@
     </div>
 </div>
 
-<div id="people-search-view-toggle" ng-click="$ctrl.viewToggleClicked()" ng-class="$ctrl.viewToggleClass"></div>
-
-<ui-view id="people-search-component-view">Loading...</ui-view>
+<ui-view>Loading...</ui-view>

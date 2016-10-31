@@ -1,0 +1,12 @@
+app-bar {
+  display: block;
+
+  > .app-bar-content {
+    display: flex;
+    flex-flow: row nowrap;
+
+    > [flex] {
+      flex: 1 1;
+    }
+  }
+}

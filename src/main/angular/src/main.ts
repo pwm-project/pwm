@@ -6,7 +6,7 @@ import PeopleService from './services/people.service';
 
 module('app', [
     uiRouter,
-    peopleSearchModule
+    peopleSearchModule,
 ])
 
     .config(routes)

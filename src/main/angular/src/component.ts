@@ -5,6 +5,7 @@ export function Component(options: {
     controllerAs?: string,
     template?: string,
     templateUrl?: string,
+    transclude?: boolean,
     stylesheetUrl?: string
 }) {
     return (controller: Function) => angular.extend(options, { controller: controller });
