@@ -790,6 +790,12 @@
             <value>{"to":"@User:Email@","from":"Intruder Notifier \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Information","bodyPlain":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator.","bodyHtml":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator."}</value>
         </default>
     </setting>
+    <setting hidden="false" key="email.deleteAccount" level="1">
+        <flag>MacroSupport</flag>
+        <default>
+            <value>{"to":"@User:Email@","from":"Delete Account Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Deletion Notice","bodyPlain":"Your account has been deleted at your request.","bodyHtml":""}</value>
+        </default>
+    </setting>
     <setting hidden="false" key="email.smtp.advancedSettings" level="2">
         <regex>^[a-zA-Z0-9.]+=.+$</regex>
         <default/>

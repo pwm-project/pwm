@@ -302,6 +302,9 @@ public enum PwmSetting {
             "email.sendUsername", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_INTRUDERNOTICE(
             "email.intruderNotice", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
+    EMAIL_DELETEACCOUNT(
+            "email.deleteAccount", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
+
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL_SETTINGS),
 
