@@ -1,3 +1,7 @@
+$org-chart-connector-color: #808080;
+$org-chart-secondary-connector-color: #dae1e1;
+$org-chart-text-color: #808080;
+
 $manager-connector-height: 16px;
 
 // Default display
@@ -18,6 +22,20 @@ org-chart {
     &.managers {
       min-height: 98px;
 
+      &.overflow {
+        .manager {
+          &:last-child {
+            > person-card {
+              > .person-card-content {
+                > .avatar {
+                  background-image: url('../../images/m_circle-horz-menu.svg');
+                }
+              }
+            }
+          }
+        }
+      }
+
       .manager {
         margin-bottom: $manager-connector-height;
         position: relative;
@@ -29,14 +47,14 @@ org-chart {
 
             > .person-card-content {
               > .avatar {
-                background-color: #dae1e1;
-                border-color: #dae1e1;
+                background: $org-chart-secondary-connector-color url('../../images/m_question_mark.svg');
+                border-color: $org-chart-secondary-connector-color;
               }
             }
           }
 
           > .org-chart-connector {
-            background-color: #dae1e1;
+            background-color: $org-chart-secondary-connector-color;
           }
         }
 
@@ -53,7 +71,7 @@ org-chart {
     }
 
     > h3 {
-      color: #808080;
+      color: $org-chart-text-color;
       font-size: 14px;
       line-height: 14px;
       margin: 0;
@@ -68,7 +86,7 @@ org-chart {
     }
 
     > .person-card-list {
-      border-top: 3px solid #808080;
+      border-top: 3px solid $org-chart-connector-color;
       min-height: 90px;
       padding-top: 5px;
 
@@ -83,17 +101,13 @@ org-chart {
     }
 
     .org-chart-connector {
-      background-color: #808080;
+      background-color: $org-chart-connector-color;
       left: 0;
       margin: 0 auto;
       position: absolute;
       right: 0;
       top: 0;
       width: 5px;
-    }
-
-    .empty-section-label {
-      color: #808080;
     }
   }
 }
@@ -199,7 +213,7 @@ org-chart {
 
           &:not(:first-child) {
             > .org-chart-connector {
-              background-color: #dae1e1;
+              background-color: $org-chart-secondary-connector-color;
               bottom: initial;
               height: 3px;
               left: -37px;
@@ -210,16 +224,16 @@ org-chart {
             > person-card {
               > .person-card-content {
                 > .avatar {
-                  background-color: #dae1e1;
+                  background-color: $org-chart-secondary-connector-color;
 
                   &:not(:hover) {
-                    border-color: #dae1e1;
+                    border-color: $org-chart-secondary-connector-color;
                   }
                 }
 
                 > .details {
                   > :first-child {
-                    color: #808080;
+                    color: $org-chart-connector-color;
                   }
                 }
               }

@@ -18,6 +18,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "url-loader": "0.5.7"
   },
   "devDependencies": {
     "@types/angular": "1.5.8",

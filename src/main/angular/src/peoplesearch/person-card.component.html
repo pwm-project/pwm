@@ -1,6 +1,6 @@
 <div class="person-card-content" ng-switch="$ctrl.size">
     <div class="avatar">
-        <img ng-src="{{ $ctrl.person.photoURL }}" alt="User photo">
+        <img ng-src="{{ $ctrl.person.photoURL }}" ng-if="$ctrl.person.photoURL" alt="User photo">
     </div>
     <div class="reports" ng-if="$ctrl.directReports.length" ng-bind="$ctrl.directReports.length"></div>
 

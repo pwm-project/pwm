@@ -51,6 +51,10 @@ module.exports = {
             {
                 test: /\.json/,
                 loaders: [ 'json' ]
+            },
+            {
+                test: /\.(png|jpg|jpeg|gif|svg)$/,
+                loaders: [ 'url?limit=25000' ]
             }
         ]
     },
@@ -62,8 +66,7 @@ module.exports = {
     plugins: [
         new CopyWebpackPlugin([
             { from: 'vendor/angular-ui-router.js', to: 'vendor/' },
-            { from: 'node_modules/angular/angular.js', to: 'vendor/' },
-            { from: 'images/', to: 'images/' }
+            { from: 'node_modules/angular/angular.js', to: 'vendor/' }
         ]),
 
         new HtmlWebpackPlugin({

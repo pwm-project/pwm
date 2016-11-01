@@ -8,7 +8,7 @@
     "telephoneNumber": "(564) 683-6597",
     "title": "Senior Sales Associate",
     "managerId": null,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Jean Ryan",
       "jryan0@csmonitor.com",
@@ -78,7 +78,7 @@
     "telephoneNumber": "(567) 798-6155",
     "title": "Quality Engineer",
     "managerId": 1,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Ruby Bowman",
       "rbowman1@pinterest.com",
@@ -148,7 +148,7 @@
     "telephoneNumber": "(523) 622-4293",
     "title": "Community Outreach Specialist",
     "managerId": 1,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "William Carter",
       "wcarter2@delicious.com",
@@ -218,7 +218,7 @@
     "telephoneNumber": "(345) 682-1430",
     "title": "Research Nurse",
     "managerId": 1,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Alan Snyder",
       "asnyder3@blinklist.com",
@@ -288,7 +288,7 @@
     "telephoneNumber": "(457) 877-1797",
     "title": "Financial Analyst",
     "managerId": 2,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Aaron Alvarez",
       "aalvarez4@ezinearticles.com",
@@ -358,7 +358,7 @@
     "telephoneNumber": "(268) 336-2705",
     "title": "Accountant II",
     "managerId": 2,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Deborah Morrison",
       "dmorrison5@nytimes.com",
@@ -428,7 +428,7 @@
     "telephoneNumber": "(638) 951-3305",
     "title": "Design Engineer",
     "managerId": 2,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Mildred Hayes",
       "mhayes6@house.gov",
@@ -498,7 +498,7 @@
     "telephoneNumber": "(564) 818-6794",
     "title": "Structural Engineer",
     "managerId": 3,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Margaret Holmes",
       "mholmes7@nbcnews.com",
@@ -568,7 +568,7 @@
     "telephoneNumber": "(206) 987-9763",
     "title": "Junior Executive",
     "managerId": 3,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Jack Jackson",
       "jjackson8@thetimes.co.uk",
@@ -638,7 +638,7 @@
     "telephoneNumber": "(751) 250-5973",
     "title": "Chief Design Engineer",
     "managerId": 3,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Judy Butler",
       "jbutler9@reference.com",
@@ -708,7 +708,7 @@
     "telephoneNumber": "(205) 653-6795",
     "title": "Engineer IV",
     "managerId": 9,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Tina Gutierrez",
       "tgutierreza@godaddy.com",
@@ -778,7 +778,7 @@
     "telephoneNumber": "(816) 816-8474",
     "title": "Human Resources Manager",
     "managerId": 9,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Jose Cox",
       "jcoxb@stumbleupon.com",
@@ -848,7 +848,7 @@
     "telephoneNumber": "(207) 691-7625",
     "title": "Internal Auditor",
     "managerId": 4,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Paul Barnes",
       "pbarnesc@mediafire.com",
@@ -918,7 +918,7 @@
     "telephoneNumber": "(133) 596-4078",
     "title": "Automation Specialist I",
     "managerId": 14,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Joe Stevens",
       "jstevensd@ocn.ne.jp",
@@ -988,7 +988,7 @@
     "telephoneNumber": "(343) 776-3486",
     "title": "Safety Technician I",
     "managerId": 20,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Randy Grant",
       "rgrante@europa.eu",
@@ -1058,7 +1058,7 @@
     "telephoneNumber": "(285) 576-0850",
     "title": "Compensation Analyst",
     "managerId": 9,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Martin Mason",
       "mmasonf@who.int",
@@ -1128,7 +1128,7 @@
     "telephoneNumber": "(594) 905-7773",
     "title": "Data Coordiator",
     "managerId": 16,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Cynthia Porter",
       "cporterg@a8.net",
@@ -1198,7 +1198,7 @@
     "telephoneNumber": "(444) 231-5492",
     "title": "Business Systems Development Analyst",
     "managerId": 17,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Nancy Burns",
       "nburnsh@wordpress.org",
@@ -1268,7 +1268,7 @@
     "telephoneNumber": "(675) 799-8793",
     "title": "Structural Engineer",
     "managerId": 18,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Jimmy Montgomery",
       "jmontgomeryi@addtoany.com",
@@ -1338,7 +1338,7 @@
     "telephoneNumber": "(658) 289-4550",
     "title": "Desktop Support Technician",
     "managerId": 19,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Bruce Carroll",
       "bcarrollj@paypal.com",
@@ -1408,7 +1408,7 @@
     "telephoneNumber": "(454) 249-4440",
     "title": "No Real Position",
     "managerId": null,
-    "photoURL": "http://localhost:8080/pwm/public/resources/UserPhoto.png",
+    "photoURL": null,
     "displayNames": [
       "Orphan User",
       "orphan.user@gmail.com",
