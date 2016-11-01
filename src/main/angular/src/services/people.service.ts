@@ -7,6 +7,7 @@ declare var PWM_MAIN: any;
 
 export interface IPeopleService {
     getDirectReports(personId: string): IPromise<Person[]>;
+    getNumberOfDirectReports(personId: string): IPromise<number>;
     getManagementChain(personId: string): IPromise<Person[]>;
     getPerson(id: string): IPromise<Person>;
     isOrgChartEnabled(id: string): IPromise<boolean>;
@@ -14,6 +15,7 @@ export interface IPeopleService {
 }
 
 export default class PeopleService implements IPeopleService {
+
     static $inject = ['$http', '$q'];
     constructor(private $http: IHttpService, private $q: IQService) {
     }
@@ -25,10 +27,19 @@ export default class PeopleService implements IPeopleService {
             let people: Person[] = [];
 
             for (let directReport of response.data['data']['children']) {
-                people.push(new Person(directReport));
+                let person: Person = new Person(directReport);
+                people.push(person);
             }
 
             return this.$q.resolve(people);
+        });
+    }
+
+    getNumberOfDirectReports(personId: string): angular.IPromise<number> {
+        return this.$http.post(this.getServerUrl('orgChartData'), {
+            userKey: personId
+        }).then((response) => {
+            return this.$q.resolve(response.data['data']['children'].length);
         });
     }
 
@@ -84,7 +95,6 @@ export default class PeopleService implements IPeopleService {
     private getServerUrl(processAction: string): string {
         let url: string = PWM_GLOBAL['url-context'] + '/private/peoplesearch?processAction=' + processAction;
         url = PWM_MAIN.addPwmFormIDtoURL(url);
-
         return url;
     }
 }

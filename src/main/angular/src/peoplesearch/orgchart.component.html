@@ -16,7 +16,7 @@
                          ng-click="$ctrl.selectPerson(manager.userKey)" ng-switch-when="small">
             </person-card>
             <person-card person="manager"
-                         ng-click="$ctrl.selectPerson(manager.userKey)" ng-switch-default>
+                         ng-click="$ctrl.selectPerson(manager.userKey)" show-direct-report-count="true" ng-switch-default>
             </person-card>
         </div>
     </div>
@@ -31,7 +31,7 @@
 </div>
 
 <div class="org-chart-section">
-    <person-card person="$ctrl.person" direct-reports="$ctrl.directReports" size="large"></person-card>
+    <person-card person="$ctrl.person" direct-reports="$ctrl.directReports" size="large" show-direct-report-count="true"></person-card>
 </div>
 
 <div class="org-chart-section direct-reports" ng-if="$ctrl.hasDirectReports()">
@@ -39,7 +39,7 @@
     <div class="org-chart-connector"></div>
 
     <div class="person-card-list">
-        <person-card person="directReport"
+        <person-card person="directReport" show-direct-report-count="true"
                      ng-repeat="directReport in $ctrl.directReports"
                      ng-click="$ctrl.selectPerson(directReport.userKey)">
         </person-card>

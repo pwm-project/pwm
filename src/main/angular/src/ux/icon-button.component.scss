@@ -1,5 +1,6 @@
+$icon-button-color: #808080;
 $icon-button-size: 20px;
-$icon-button-bg-color: #808080;
+$icon-button-bg-color: transparent;
 
 $icon-button-hover-bg-color: #f6f9f8;
 //$icon-button-hover-border-color: #dae1e1;
@@ -9,10 +10,17 @@ $icon-button-hover-color: #0088ce;
 icon-button {
   background-color: $icon-button-bg-color;
   border: 1px solid transparent;
+  color: $icon-button-color;
+  cursor: pointer;
   display: block;
   flex: 0 0 $icon-button-size;
   height: $icon-button-size;
+  padding: 2px;
   width: $icon-button-size;
+
+  &.fa {
+    font-size: 20px;
+  }
 
   &:hover {
     background-color: $icon-button-hover-bg-color;

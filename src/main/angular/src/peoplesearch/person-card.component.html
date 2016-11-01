@@ -2,7 +2,7 @@
     <div class="avatar">
         <img ng-src="{{ $ctrl.person.photoURL }}" alt="User photo">
     </div>
-    <div class="reports" ng-if="$ctrl.directReports.length" ng-bind="$ctrl.directReports.length"></div>
+    <div class="reports" ng-if="$ctrl.showDirectReportCount && $ctrl.person.numOfDirectReports" ng-bind="$ctrl.person.numOfDirectReports"></div>
 
     <div class="details" ng-switch-when="small">
         <div ng-bind="$ctrl.person.displayNames[0]"></div>
