@@ -27,12 +27,14 @@ export default class PersonCardComponent {
     $onInit() {
         this.details = [];
 
-        this.peopleService.getNumberOfDirectReports(this.person.userKey)
-            .then((numOfDirectReports) => {
-                this.person.numOfDirectReports = numOfDirectReports;
-            }).catch((result) => {
-            console.log(result);
-        });
+        if (this.showDirectReportCount) {
+            this.peopleService.getNumberOfDirectReports(this.person.userKey)
+                .then((numOfDirectReports) => {
+                    this.person.numOfDirectReports = numOfDirectReports;
+                }).catch((result) => {
+                console.log(result);
+            });
+        }
     }
 
     $onChanges() {

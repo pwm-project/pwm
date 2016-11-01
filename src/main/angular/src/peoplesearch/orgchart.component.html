@@ -14,6 +14,7 @@
             <div class="org-chart-connector"></div>
             <person-card person="manager"
                          size="{{ $ctrl.getManagerCardSize() }}"
+                         show-direct-report-count="true"
                          ng-click="$ctrl.selectPerson(manager.userKey)">
             </person-card>
         </div>
