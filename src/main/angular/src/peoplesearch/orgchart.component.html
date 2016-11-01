@@ -8,24 +8,18 @@
     <h3>Management</h3>
     <div ng-if="!$ctrl.isPersonOrphan()">
         <div class="manager"
-             ng-repeat="manager in $ctrl.getManagementChain() track by $id(manager.displayNames)"
-             ng-switch="$ctrl.getManagerCardSize()">
+             ng-repeat="manager in $ctrl.getManagementChain() track by $id(manager.displayNames)">
             <div class="org-chart-connector"></div>
             <person-card person="manager"
-                         size="small"
-                         ng-click="$ctrl.selectPerson(manager.userKey)" ng-switch-when="small">
-            </person-card>
-            <person-card person="manager"
-                         ng-click="$ctrl.selectPerson(manager.userKey)" ng-switch-default>
+                         size="{{ $ctrl.getManagerCardSize() }}"
+                         ng-click="$ctrl.selectPerson(manager.userKey)">
             </person-card>
         </div>
     </div>
     <div ng-if="$ctrl.isPersonOrphan()">
-        <div class="manager empty-manager"
-             ng-switch="$ctrl.getManagerCardSize()">
+        <div class="manager empty-manager">
             <div class="org-chart-connector"></div>
-            <person-card person="$ctrl.emptyPerson" size="small" ng-switch-when="small"></person-card>
-            <person-card person="$ctrl.emptyPerson" ng-switch-default></person-card>
+            <person-card person="$ctrl.emptyPerson" size="{{ $ctrl.getManagerCardSize() }}"></person-card>
         </div>
     </div>
 </div>
