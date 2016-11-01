@@ -12,7 +12,7 @@ $person-card-spacing: 10px;
 $person-card-large-avatar-size: 65px;
 
 person-card {
-  background-color: $person-card-bg-color;
+  background: $person-card-bg-color;
   border: 1px solid $person-card-bg-color;
   border-radius: 3px;
   box-sizing: border-box;
@@ -49,7 +49,6 @@ person-card {
         width: $person-card-large-avatar-size;
 
         img {
-          height: 100%;
           width: 100%;
         }
       }
@@ -102,7 +101,8 @@ person-card {
     overflow: hidden;
 
     > .avatar {
-      background-color: gray;
+      background: gray url('../../images/user.png') no-repeat center center;
+      background-size: cover;
       flex: 0 0 $person-card-avatar-size;
       height: $person-card-avatar-size;
       margin-right: $person-card-spacing;

@@ -16,7 +16,7 @@ export default class OrgChartComponent {
         displayNames: [
             'No Managers'
         ],
-        photoURL: 'images/question_mark.png',
+        photoURL: null,
         userKey: null
     });
 
@@ -82,7 +82,7 @@ export default class OrgChartComponent {
 
                 this.managers.push(new Person({
                     userKey: lastManager.userKey,
-                    photoURL: 'images/more.png',
+                    photoURL: null,
                     displayNames: []
                 }));
             }
@@ -100,6 +100,12 @@ export default class OrgChartComponent {
 
     hasManagementChain() {
         return this.managementChain && this.managementChain.length;
+    }
+
+    showingOverflow() {
+        return this.managers &&
+            this.managementChain &&
+            this.managers.length < this.managementChain.length;
     }
 
     isPersonOrphan() {
@@ -135,7 +141,7 @@ export default class OrgChartComponent {
     }
 
     private isWideLayout() {
-        return this.windowWidth >= 625;
+        return this.windowWidth >= 490;
     }
 
     // Remove all displayed managers so the list is updated on window resize

@@ -41,6 +41,16 @@ export default class PersonCardComponent {
         }
     }
 
+    getAvatarStyle(): any {
+        if (this.person && this.person.photoURL) {
+            return {
+                'background-image': 'url(' + this.person.photoURL + ')'
+            };
+        }
+
+        return {};
+    }
+
     private setDisplayData() {
         // This data is only available on people search views
         if (this.person.givenName && this.person.sn) {
