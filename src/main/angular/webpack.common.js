@@ -66,7 +66,8 @@ module.exports = {
     plugins: [
         new CopyWebpackPlugin([
             { from: 'vendor/angular-ui-router.js', to: 'vendor/' },
-            { from: 'node_modules/angular/angular.js', to: 'vendor/' }
+            { from: 'node_modules/angular/angular.js', to: 'vendor/' },
+            { from: 'images/', to: 'images/' }
         ]),
 
         new HtmlWebpackPlugin({
