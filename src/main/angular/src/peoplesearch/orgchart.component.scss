@@ -167,9 +167,15 @@ org-chart {
     > .org-chart-section {
       &.managers {
         margin-left: 0;
-        min-height: 162px;
+        min-height: 128px;
         overflow: hidden;
         white-space: nowrap;
+
+        > h3 {
+          left: 0;
+          position: absolute;
+          top: 6px;
+        }
 
         .org-chart-connector {
           left: 42px;
