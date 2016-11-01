@@ -67,6 +67,7 @@ person-card {
       text-align: center;
 
       > .avatar {
+        background-color: #808080;
         border: 3px solid #808080;
         border-radius: 100%;
         height: $person-card-avatar-size;
@@ -101,8 +102,8 @@ person-card {
     overflow: hidden;
 
     > .avatar {
-      background: gray url('../../images/user.png') no-repeat center center;
-      background-size: cover;
+      background: transparent url('../../images/user.png') no-repeat center center;
+      background-size: contain;
       flex: 0 0 $person-card-avatar-size;
       height: $person-card-avatar-size;
       margin-right: $person-card-spacing;
