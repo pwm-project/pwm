@@ -162,7 +162,7 @@ org-chart {
 }
 
 // Wide enough to display several managers horizontally
-@media (min-width: 625px) {
+@media (min-width: 490px) {
   org-chart {
     > .org-chart-section {
       &.managers {

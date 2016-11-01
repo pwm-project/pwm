@@ -135,7 +135,7 @@ export default class OrgChartComponent {
     }
 
     private isWideLayout() {
-        return this.windowWidth >= 625;
+        return this.windowWidth >= 490;
     }
 
     // Remove all displayed managers so the list is updated on window resize
