@@ -6,6 +6,7 @@ declare var PWM_GLOBAL: any;
 declare var PWM_MAIN: any;
 
 export interface IPeopleService {
+    autoComplete(query: string): IPromise<Person[]>;
     getDirectReports(personId: string): IPromise<Person[]>;
     getNumberOfDirectReports(personId: string): IPromise<number>;
     getManagementChain(personId: string): IPromise<Person[]>;
@@ -18,6 +19,10 @@ export default class PeopleService implements IPeopleService {
 
     static $inject = ['$http', '$q'];
     constructor(private $http: IHttpService, private $q: IQService) {
+    }
+
+    autoComplete(query: string): IPromise<Person[]> {
+        return this.search(query);
     }
 
     getDirectReports(id: string): angular.IPromise<Person[]> {

@@ -12,11 +12,15 @@ export default class PeopleService implements IPeopleService {
         this.people = peopleData.map((person) => new Person(person));
     }
 
+    autoComplete(query: string): IPromise<Person[]> {
+        return this.search(query);
+    }
+    
     getDirectReports(id: string): angular.IPromise<Person[]> {
         var deferred = this.$q.defer<Person[]>();
 
         this.$timeout(() => {
-            var people = this.people.filter((person: Person) => person.detail.manager.typeMetaData.userKey == id);
+            var people = this.people.filter((person: Person) => person.detail['manager']['typeMetaData'].userKey == id);
 
             deferred.resolve(people);
         });
@@ -33,7 +37,7 @@ export default class PeopleService implements IPeopleService {
             if (person) {
                 var managementChain: Person[] = [];
 
-                while (person = this.findPerson(person.detail.manager.typeMetaData.userKey)) {
+                while (person = this.findPerson(person.detail['manager']['typeMetaData'].userKey)) {
                     managementChain.push(person);
                 }
 
@@ -86,7 +90,7 @@ export default class PeopleService implements IPeopleService {
         var self = this;
         this.$timeout(() => {
             var people = self.people.filter((person: Person) =>
-                person.detail.givenName.values[0].toLowerCase().indexOf(query.toLowerCase()) >= 0);
+                person.detail.givenName['values'][0].toLowerCase().indexOf(query.toLowerCase()) >= 0);
 
             deferred.resolve(people);
         });
