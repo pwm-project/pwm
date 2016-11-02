@@ -1,5 +1,6 @@
 import { module } from 'angular';
 import OrgChartComponent from './orgchart.component';
+import OrgChartSearchComponent from './orgchart-search.component';
 import PeopleSearchService from './peoplesearch.service';
 import PeopleSearchComponent from './peoplesearch.component';
 import PeopleSearchTableComponent from './peoplesearch-table.component';
@@ -14,6 +15,7 @@ var moduleName = 'people-search';
 module(moduleName, [ uxModule ])
     .service('PeopleSearchService', PeopleSearchService)
     .component('orgChart', OrgChartComponent)
+    .component('orgChartSearch', OrgChartSearchComponent)
     .component('personCard', PersonCardComponent)
     .component('peopleSearch', PeopleSearchComponent)
     .component('peopleSearchTable', PeopleSearchTableComponent)

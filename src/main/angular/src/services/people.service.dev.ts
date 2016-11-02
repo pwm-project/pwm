@@ -15,7 +15,7 @@ export default class PeopleService implements IPeopleService {
     autoComplete(query: string): IPromise<Person[]> {
         return this.search(query);
     }
-    
+
     getDirectReports(id: string): angular.IPromise<Person[]> {
         var deferred = this.$q.defer<Person[]>();
 
