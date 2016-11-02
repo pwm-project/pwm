@@ -23,6 +23,8 @@
 package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -30,17 +32,24 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.*;
+import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmSession;
+import password.pwm.http.PwmURL;
+import password.pwm.http.filter.AbstractPwmFilter;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @WebServlet(
         name="LogoutServlet",
@@ -51,7 +60,7 @@ import java.util.Map;
                 PwmConstants.URL_PREFIX_PRIVATE+ "/Logout",
         }
 )
-public class LogoutServlet extends AbstractPwmServlet {
+public class LogoutServlet extends ControlledPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LogoutServlet.class);
 
     private static final String PARAM_URL = "url";
@@ -59,21 +68,31 @@ public class LogoutServlet extends AbstractPwmServlet {
     private static final String PARAM_PASSWORD_MODIFIED = "passwordModified";
     private static final String PARAM_PUBLIC_ONLY = "publicOnly";
 
-    private enum LogoutAction implements AbstractPwmServlet.ProcessAction {
-        showLogout,
-        showTimeout,
+    private enum LogoutAction implements ControlledPwmServlet.ProcessAction {
+        showLogout(ShowLogoutHandler.class),
+        showTimeout(ShowTimeoutHandler.class),
 
         ;
 
-        public Collection<HttpMethod> permittedMethods()
-        {
+        private final Class<? extends ProcessActionHandler> handlerClass;
+
+        LogoutAction(Class<? extends ProcessActionHandler> handlerClass) {
+            this.handlerClass = handlerClass;
+        }
+
+        public Class<? extends ProcessActionHandler> getHandlerClass() {
+            return handlerClass;
+        }
+
+        public Collection<HttpMethod> permittedMethods() {
             return Collections.singletonList(HttpMethod.GET);
         }
+
     }
 
-    protected LogoutAction readProcessAction(final PwmRequest request)
-            throws PwmUnrecoverableException
-    {
+    @Nullable
+    protected LogoutAction readProcessAction(@NotNull final PwmRequest request)
+            throws PwmUnrecoverableException {
         try {
             return LogoutAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
         } catch (IllegalArgumentException e) {
@@ -81,36 +100,57 @@ public class LogoutServlet extends AbstractPwmServlet {
         }
     }
 
-    protected void processAction(final PwmRequest pwmRequest)
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
-    {
-        final String nextUrl;
-        if (!pwmRequest.getPwmSession().getSessionStateBean().isPasswordModified()) {
-            nextUrl = readAndValidateNextUrlParameter(pwmRequest);
-        } else {
-            nextUrl = null;
-        }
+    protected void processAction(@NotNull final PwmRequest pwmRequest)
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
 
         final LogoutAction logoutAction = readProcessAction(pwmRequest);
         if (logoutAction != null) {
-            if (nextUrl != null) {
-                pwmRequest.setAttribute(PwmRequest.Attribute.NextUrl, nextUrl);
+            AbstractPwmFilter.ProcessStatus status = dispatchMethod(pwmRequest);
+            if (status == AbstractPwmFilter.ProcessStatus.Halt) {
+                return;
             }
+        }
 
-            switch (logoutAction) {
-                case showLogout:
-                    pwmRequest.forwardToJsp(PwmConstants.JSP_URL.LOGOUT);
-                    break;
+        nextStep(pwmRequest);
+    }
 
-                case showTimeout:
-                    pwmRequest.forwardToJsp(PwmConstants.JSP_URL.LOGOUT_PUBLIC);
-                    break;
-
-                default:
-                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unknown process action"));
+    class ShowLogoutHandler implements ProcessActionHandler {
+        public AbstractPwmFilter.ProcessStatus processAction(
+                final PwmRequest pwmRequest
+        )
+                throws ServletException, PwmUnrecoverableException, IOException
+        {
+            final Optional<String> nextUrl = readAndValidateNextUrlParameter(pwmRequest);
+            if (nextUrl.isPresent()) {
+                pwmRequest.setAttribute(PwmRequest.Attribute.NextUrl, nextUrl.get());
             }
+            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.LOGOUT);
+            return AbstractPwmFilter.ProcessStatus.Halt;
+        }
+    }
 
-            return;
+
+     class ShowTimeoutHandler implements ProcessActionHandler {
+        public AbstractPwmFilter.ProcessStatus processAction(
+                final PwmRequest pwmRequest
+        )
+                throws ServletException, PwmUnrecoverableException, IOException
+        {
+            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.LOGOUT_PUBLIC);
+            return AbstractPwmFilter.ProcessStatus.Halt;
+        }
+    }
+
+    private void nextStep(
+            final PwmRequest pwmRequest
+    )
+            throws PwmUnrecoverableException, IOException
+    {
+        final String nextUrl;
+        if (!pwmRequest.getPwmSession().getSessionStateBean().isPasswordModified()) {
+            nextUrl = readAndValidateNextUrlParameter(pwmRequest).orElse(null);
+        } else {
+            nextUrl = null;
         }
 
         // no process action so this is the first time through this method;
@@ -183,13 +223,19 @@ public class LogoutServlet extends AbstractPwmServlet {
         pwmRequest.sendRedirect(logoutURL);
     }
 
-    private String readAndValidateNextUrlParameter(
+
+    private static Optional<String> readAndValidateNextUrlParameter(
             final PwmRequest pwmRequest
     ) {
         try {
             if (!pwmRequest.hasParameter(PARAM_URL)) {
-                return null;
+                return Optional.empty();
             }
+
+            if (pwmRequest.getPwmSession().getSessionStateBean().isPasswordModified()) {
+                return Optional.empty();
+            }
+
 
             final String urlParameter = pwmRequest.readParameterAsString(PARAM_URL);
             URI uri = URI.create(urlParameter);
@@ -216,7 +262,7 @@ public class LogoutServlet extends AbstractPwmServlet {
 
             if (matchedServlet != null) {
                 LOGGER.trace(pwmRequest, "matched next url to servlet definition " + matchedServlet.toString());
-                return pwmRequest.getContextPath() + matchedServlet.servletUrl();
+                return Optional.of(pwmRequest.getContextPath() + matchedServlet.servletUrl());
             } else {
                 LOGGER.trace(pwmRequest, "unable to match next url parameter to servlet definition");
             }
@@ -225,6 +271,41 @@ public class LogoutServlet extends AbstractPwmServlet {
         } catch(Exception e) {
             LOGGER.debug("error parsing client specified url parameter: " + e.getMessage());
         }
-        return null;
+        return Optional.empty();
+    }
+
+    private AbstractPwmFilter.ProcessStatus dispatchMethod(
+            final PwmRequest pwmRequest
+    )
+            throws PwmUnrecoverableException
+    {
+
+        final LogoutAction action = readProcessAction(pwmRequest);
+        if (action == null) {
+            return AbstractPwmFilter.ProcessStatus.Continue;
+        }
+        final ProcessActionHandler processActionHandler;
+        try {
+            final Class<? extends ProcessActionHandler> theClass = action.getHandlerClass();
+            if (theClass.getEnclosingClass() == null) {
+                processActionHandler = theClass.newInstance();
+            } else {
+                final Constructor constructor = theClass.getDeclaredConstructor(this.getClass());
+                processActionHandler = (ProcessActionHandler) constructor.newInstance(this);
+            }
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            e.printStackTrace();
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "XXX"));
+        }
+        try {
+            return processActionHandler.processAction(pwmRequest);
+        } catch (ServletException | IOException e) {
+            e.printStackTrace();
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "XXX"));
+        }
+    }
+
+    interface ProcessActionHandler {
+        AbstractPwmFilter.ProcessStatus processAction(final PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException;
     }
 }

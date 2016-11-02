@@ -98,12 +98,12 @@ public class NMASUAWSOperator implements CrOperator {
     }
 
     @Override
-    public void clearResponses(ChaiUser theUser, String userGUID) throws PwmUnrecoverableException {
+    public void clearResponses(UserIdentity userIdentity, ChaiUser theUser, String userGUID) throws PwmUnrecoverableException {
         throw new UnsupportedOperationException("NMASUserAppWebService C/R implementation does not support clearing responses");
     }
 
     @Override
-    public void writeResponses(ChaiUser theUser, String userGuid, ResponseInfoBean responseInfoBean) throws PwmUnrecoverableException {
+    public void writeResponses(UserIdentity userIdentity, ChaiUser theUser, String userGuid, ResponseInfoBean responseInfoBean) throws PwmUnrecoverableException {
         throw new UnsupportedOperationException("NMASUserAppWebService C/R implementation does not support writing responses");
     }
 

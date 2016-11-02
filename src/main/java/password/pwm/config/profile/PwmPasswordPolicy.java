@@ -22,6 +22,21 @@
 
 package password.pwm.config.profile;
 
+import com.novell.ldapchai.ChaiPasswordPolicy;
+import com.novell.ldapchai.ChaiPasswordRule;
+import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
+import com.novell.ldapchai.util.PasswordRuleHelper;
+import com.novell.ldapchai.util.StringHelper;
+import org.apache.commons.lang3.StringUtils;
+import password.pwm.config.UserPermission;
+import password.pwm.config.option.ADPolicyComplexity;
+import password.pwm.health.HealthMessage;
+import password.pwm.health.HealthRecord;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,23 +49,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
-import org.apache.commons.lang3.StringUtils;
-
-import password.pwm.config.UserPermission;
-import password.pwm.config.option.ADPolicyComplexity;
-import password.pwm.health.HealthMessage;
-import password.pwm.health.HealthRecord;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
-
-import com.novell.ldapchai.ChaiPasswordPolicy;
-import com.novell.ldapchai.ChaiPasswordRule;
-import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
-import com.novell.ldapchai.util.PasswordRuleHelper;
-import com.novell.ldapchai.util.StringHelper;
 
 
 /**
@@ -436,6 +434,19 @@ public class PwmPasswordPolicy implements Profile,Serializable {
                 final String detailMsg = minRule.getLabel(locale, null) + " (" + minValue + ")"
                         + " > "
                         + maxRule.getLabel(locale, null) + " (" + maxValue + ")";
+                returnList.add(HealthRecord.forMessage(HealthMessage.Config_PasswordPolicyProblem, profileID, detailMsg));
+            }
+        }
+
+        {
+            final int minValue = ruleHelper.readIntValue(PwmPasswordRule.CharGroupsMinMatch);
+            final List<Pattern> ruleGroups = ruleHelper.getCharGroupValues();
+            final int maxValue = ruleGroups == null ? 0 : ruleGroups.size();
+
+            if (maxValue > 0 && minValue > maxValue) {
+                final String detailMsg = PwmPasswordRule.CharGroupsValues.getLabel(locale, null) + " (" + minValue + ")"
+                        + " > "
+                        + PwmPasswordRule.CharGroupsMinMatch.getLabel(locale, null) + " (" + maxValue + ")";
                 returnList.add(HealthRecord.forMessage(HealthMessage.Config_PasswordPolicyProblem, profileID, detailMsg));
             }
         }

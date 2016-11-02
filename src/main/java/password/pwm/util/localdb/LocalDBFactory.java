@@ -86,8 +86,6 @@ public class LocalDBFactory {
         initInstance(dbProvider, dbDirectory, initParameters, className, parameters);
         final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
 
-        localDB = wrapWithCompressor(localDB,config);
-
         if (!readonly) {
             LOGGER.trace("clearing TEMP db");
             localDB.truncate(LocalDB.DB.TEMP);
@@ -154,22 +152,6 @@ public class LocalDBFactory {
         }
 
         LOGGER.trace("db init completed for " + theClass);
-    }
-
-    private static LocalDB wrapWithCompressor(final LocalDB localDB, final Configuration config) {
-        if (config == null) {
-            return LocalDBCompressor.createLocalDBCompressor(localDB, 1024, false);
-        }
-
-        final boolean enableCompression = Boolean.parseBoolean(config.readAppProperty(AppProperty.LOCALDB_COMPRESSION_ENABLED));
-        final boolean enableDecompression = Boolean.parseBoolean(config.readAppProperty(AppProperty.LOCALDB_DECOMPRESSION_ENABLED));
-        final int compressionMinSize = Integer.parseInt(config.readAppProperty(AppProperty.LOCALDB_COMPRESSION_MINSIZE));
-
-        if (enableCompression || enableDecompression) {
-            return LocalDBCompressor.createLocalDBCompressor(localDB, compressionMinSize, enableCompression);
-        }
-
-        return localDB;
     }
 
     private static Map<LocalDBProvider.Parameter, String> makeParameterMap(final Configuration configuration, final boolean readOnly) {

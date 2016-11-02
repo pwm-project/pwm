@@ -251,7 +251,7 @@ public class NMASCrOperator implements CrOperator {
     }
 
     public void clearResponses(
-            final ChaiUser theUser,
+            UserIdentity userIdentity, final ChaiUser theUser,
             final String user
     )
             throws PwmUnrecoverableException
@@ -271,7 +271,7 @@ public class NMASCrOperator implements CrOperator {
     }
 
     public void writeResponses(
-            final ChaiUser theUser,
+            UserIdentity userIdentity, final ChaiUser theUser,
             final String userGuid,
             final ResponseInfoBean responseInfoBean
     )

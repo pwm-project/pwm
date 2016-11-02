@@ -28,8 +28,10 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
+import password.pwm.util.PasswordData;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -54,7 +56,9 @@ class CryptoCookieBeanImpl implements SessionBeanProvider {
         final String cookieName = nameForClass(theClass);
 
         try {
-            final E cookieBean = pwmRequest.readEncryptedCookie(cookieName, theClass);
+            final String rawValue = pwmRequest.readCookie(cookieName);
+            final PwmSecurityKey key = keyForSession(pwmRequest);
+            final E cookieBean = pwmRequest.getPwmApplication().getSecureService().decryptObject(rawValue, key, theClass);
             if (validateCookie(pwmRequest, cookieName, cookieBean)) {
                 sessionBeans.put(theClass, cookieBean);
                 return cookieBean;
@@ -118,7 +122,9 @@ class CryptoCookieBeanImpl implements SessionBeanProvider {
                         if (bean == null) {
                             pwmRequest.getPwmResponse().removeCookie(cookieName, COOKIE_PATH);
                         } else {
-                            pwmRequest.getPwmResponse().writeEncryptedCookie(cookieName, beansInRequest.get(theClass), COOKIE_PATH);
+                            final PwmSecurityKey key = keyForSession(pwmRequest);
+                            final String encrytedValue = pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(beansInRequest.get(theClass), key);
+                            pwmRequest.getPwmResponse().writeCookie(cookieName, encrytedValue, -1, COOKIE_PATH);
                         }
                     }
                 }
@@ -151,5 +157,13 @@ class CryptoCookieBeanImpl implements SessionBeanProvider {
     @Override
     public String getSessionStateInfo(PwmRequest pwmRequest) throws PwmUnrecoverableException {
         return null;
+    }
+
+    private PwmSecurityKey keyForSession(final PwmRequest pwmRequest)
+            throws PwmUnrecoverableException
+    {
+        final PasswordData configKey = pwmRequest.getConfig().readSettingAsPassword(PwmSetting.PWM_SECURITY_KEY);
+        final String userGuid = pwmRequest.getPwmSession().getLoginInfoBean().getGuid();
+        return new PwmSecurityKey(configKey.getStringValue() + userGuid);
     }
 }

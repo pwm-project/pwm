@@ -58,10 +58,10 @@ public interface CrOperator {
     public ResponseInfoBean readResponseInfo(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID)
             throws PwmUnrecoverableException;
 
-    public void clearResponses(final ChaiUser theUser, final String userGUID)
+    public void clearResponses(UserIdentity userIdentity, final ChaiUser theUser, final String userGUID)
             throws PwmUnrecoverableException;
 
-    public void writeResponses(final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean)
+    public void writeResponses(UserIdentity userIdentity, final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean)
             throws PwmUnrecoverableException;
 
     public void close();

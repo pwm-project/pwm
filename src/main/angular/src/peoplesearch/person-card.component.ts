@@ -2,12 +2,12 @@ import { Component } from '../component';
 import Person from '../models/person.model';
 import { IPeopleService } from '../services/people.service';
 
-
 @Component({
     bindings: {
         directReports: '<',
         person: '<',
-        size: '@'
+        size: '@',
+        showDirectReportCount: '@'
     },
     stylesheetUrl: require('peoplesearch/person-card.component.scss'),
     templateUrl: require('peoplesearch/person-card.component.html')
@@ -16,14 +16,25 @@ export default class PersonCardComponent {
     private data: string[];
     private details: any[]; // For large style cards
     private person: Person;
+    private directReports: Person[];
     private size: string;
+    private showDirectReportCount: boolean;
 
-    static $inject = [];
-    constructor() {
+    static $inject = ['PeopleService'];
+    constructor(private peopleService: IPeopleService) {
     }
 
     $onInit() {
         this.details = [];
+
+        if (this.showDirectReportCount) {
+            this.peopleService.getNumberOfDirectReports(this.person.userKey)
+                .then((numOfDirectReports) => {
+                    this.person.numOfDirectReports = numOfDirectReports;
+                }).catch((result) => {
+                console.log(result);
+            });
+        }
     }
 
     $onChanges() {
@@ -62,6 +73,10 @@ export default class PersonCardComponent {
             this.details = Object
                 .keys(this.person.detail)
                 .map((key: string) => { return this.person.detail[key]; });
+        }
+
+        if (this.directReports) {
+            this.person.numOfDirectReports = this.directReports.length;
         }
     }
 }

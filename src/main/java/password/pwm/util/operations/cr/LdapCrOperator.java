@@ -34,6 +34,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -75,10 +76,11 @@ public class LdapCrOperator implements CrOperator {
         }
     }
 
-    public void clearResponses(final ChaiUser theUser, final String userGuid)
+    public void clearResponses(UserIdentity userIdentity, final ChaiUser theUser, final String userGuid)
             throws PwmUnrecoverableException
     {
-        final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile(config);
+        final String ldapStorageAttribute = ldapProfile.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
         if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
             final String errorMsg = "ldap storage attribute is not configured, unable to clear user responses";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg);
@@ -107,10 +109,11 @@ public class LdapCrOperator implements CrOperator {
         }
     }
 
-    public void writeResponses(final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean)
+    public void writeResponses(UserIdentity userIdentity, final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean)
             throws PwmUnrecoverableException
     {
-        final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile(config);
+        final String ldapStorageAttribute = ldapProfile.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
         if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
             final String errorMsg = "ldap storage attribute is not configured, unable to write user responses";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg);

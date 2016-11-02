@@ -23,7 +23,11 @@
 package password.pwm.util.operations;
 
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.*;
+import com.novell.ldapchai.cr.ChaiChallenge;
+import com.novell.ldapchai.cr.ChaiChallengeSet;
+import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.ChallengeSet;
+import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
@@ -40,9 +44,13 @@ import password.pwm.config.UserPermission;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
-import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.svc.PwmService;
@@ -50,9 +58,24 @@ import password.pwm.svc.wordlist.WordlistManager;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.cr.*;
+import password.pwm.util.operations.cr.CrOperator;
+import password.pwm.util.operations.cr.DbCrOperator;
+import password.pwm.util.operations.cr.LdapCrOperator;
+import password.pwm.util.operations.cr.LocalDbCrOperator;
+import password.pwm.util.operations.cr.NMASCrOperator;
+import password.pwm.util.operations.cr.NMASUAWSOperator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Jason D. Rivard
@@ -393,6 +416,7 @@ public class CrService implements PwmService {
 
 
     public void writeResponses(
+            final UserIdentity userIdentity,
             final ChaiUser theUser,
             final String userGUID,
             final ResponseInfoBean responseInfoBean
@@ -409,7 +433,7 @@ public class CrService implements PwmService {
         for (final DataStorageMethod loopWriteMethod : writeMethods) {
             try {
                 attempts++;
-                operatorMap.get(loopWriteMethod).writeResponses(theUser,userGUID,responseInfoBean);
+                operatorMap.get(loopWriteMethod).writeResponses(userIdentity, theUser, userGUID, responseInfoBean);
                 LOGGER.debug("saved responses using storage method " + loopWriteMethod + " for user " + theUser.getEntryDN());
                 errorMessages.put(loopWriteMethod,"Success");
                 successes++;
@@ -436,7 +460,8 @@ public class CrService implements PwmService {
 
 
     public void clearResponses(
-            final PwmSession pwmSession,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity,
             final ChaiUser theUser,
             final String userGUID
 
@@ -446,17 +471,17 @@ public class CrService implements PwmService {
         final Configuration config = pwmApplication.getConfig();
         int attempts = 0, successes = 0;
 
-        LOGGER.trace(pwmSession, "beginning clear response operation for user " + theUser.getEntryDN() + " guid=" + userGUID);
+        LOGGER.trace(sessionLabel, "beginning clear response operation for user " + theUser.getEntryDN() + " guid=" + userGUID);
 
         final List<DataStorageMethod> writeMethods = config.helper().getCrWritePreference();
 
         for (final DataStorageMethod loopWriteMethod : writeMethods) {
             try {
                 attempts++;
-                operatorMap.get(loopWriteMethod).clearResponses(theUser, userGUID);
+                operatorMap.get(loopWriteMethod).clearResponses(userIdentity, theUser, userGUID);
                 successes++;
             } catch (PwmUnrecoverableException e) {
-                LOGGER.error(pwmSession,"error clearing responses via " + loopWriteMethod + ", error: " + e.getMessage());
+                LOGGER.error(sessionLabel, "error clearing responses via " + loopWriteMethod + ", error: " + e.getMessage());
             }
         }
 

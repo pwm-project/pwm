@@ -206,7 +206,7 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
         try {
             final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
             final ChaiUser theUser = pwmSession.getSessionManager().getActor(pwmApplication);
-            pwmApplication.getCrService().clearResponses(pwmSession, theUser, userGUID);
+            pwmApplication.getCrService().clearResponses(pwmSession.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID);
             UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmRequest.getSessionLabel());
             userStatusReader.populateLocaleSpecificUserInfoBean(pwmSession.getUserInfoBean(),pwmRequest.getLocale());
             pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, SetupResponsesBean.class);
@@ -364,7 +364,7 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ChaiUser theUser = pwmSession.getSessionManager().getActor(pwmApplication);
         final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
-        pwmApplication.getCrService().writeResponses(theUser, userGUID, responseInfoBean);
+        pwmApplication.getCrService().writeResponses(pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID, responseInfoBean);
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmSession.getLabel());
         userStatusReader.populateActorUserInfoBean(pwmSession, uiBean.getUserIdentity());

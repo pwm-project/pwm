@@ -1,6 +1,7 @@
 export default class Person {
     // Common properties
     userKey: string;
+    numOfDirectReports: number;
 
     // Details properties (not available in search)
     detail: any;

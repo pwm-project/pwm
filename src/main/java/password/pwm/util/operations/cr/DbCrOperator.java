@@ -100,7 +100,7 @@ public class DbCrOperator implements CrOperator {
         }
     }
 
-    public void clearResponses(final ChaiUser theUser, final String userGUID)
+    public void clearResponses(UserIdentity userIdentity, final ChaiUser theUser, final String userGUID)
             throws PwmUnrecoverableException
     {
         if (userGUID == null || userGUID.length() < 1) {
@@ -120,7 +120,7 @@ public class DbCrOperator implements CrOperator {
     }
 
     @Override
-    public void writeResponses(ChaiUser theUser, String userGUID, ResponseInfoBean responseInfoBean)
+    public void writeResponses(UserIdentity userIdentity, ChaiUser theUser, String userGUID, ResponseInfoBean responseInfoBean)
             throws PwmUnrecoverableException
     {
         if (userGUID == null || userGUID.length() < 1) {

@@ -11,6 +11,9 @@ export default class PeopleSearchComponent {
     query: string;
     viewToggleClass: string;
 
+    tableIconClass: string = 'fa fa-list-alt';
+    cardIconClass: string = 'fa fa-th-large';
+
     static $inject = ['$scope', '$state', '$stateParams', 'PeopleSearchService'];
     constructor(
         private $scope: IScope,
@@ -30,17 +33,14 @@ export default class PeopleSearchComponent {
     }
 
     private setViewToggleClass() {
-        this.viewToggleClass = this.$state.is('search.table') ? 'fa fa-th-large' : 'fa fa-list-alt';
+        this.viewToggleClass = this.$state.is('search.table') ? this.cardIconClass : this.tableIconClass;
     }
 
     private viewToggleClicked() {
-        this.setViewToggleClass();
+        let nextState: string = this.$state.is('search.table') ? 'search.cards' : 'search.table';
 
-        if (this.$state.is('search.table')) {
-            this.$state.go('search.cards');
-        }
-        else {
-            this.$state.go('search.table');
-        }
+        this.$state.go(nextState).then(() => {
+            this.setViewToggleClass();
+        });
     }
 }

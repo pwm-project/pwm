@@ -169,6 +169,9 @@ public enum PwmSetting {
             "display.passwordHistory", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACCOUNT_INFO),
     ACCOUNT_INFORMATION_VIEW_STATUS_VALUES(
             "accountInfo.viewStatusValues", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.ACCOUNT_INFO),
+    ACCOUNT_INFORMATION_VIEW_FORM(
+            "accountInfo.view.form", PwmSettingSyntax.FORM, PwmSettingCategory.ACCOUNT_INFO),
+
 
     // delete info
     DELETE_ACCOUNT_PROFILE_LIST(
@@ -230,6 +233,8 @@ public enum PwmSetting {
             "email.userMailAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
     SMS_USER_PHONE_ATTRIBUTE(
             "sms.userSmsAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
+    CHALLENGE_USER_ATTRIBUTE(
+            "challenge.userAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES),
 
@@ -687,8 +692,6 @@ public enum PwmSetting {
             "recovery.response.readPreference", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS),
     FORGOTTEN_PASSWORD_WRITE_PREFERENCE(
             "recovery.response.writePreference", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS),
-    CHALLENGE_USER_ATTRIBUTE(
-            "challenge.userAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_SETTINGS),
     CHALLENGE_STORAGE_HASHED(
             "response.hashMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS),
     FORGOTTEN_USER_POST_ACTIONS(
@@ -698,21 +701,37 @@ public enum PwmSetting {
     RECOVERY_PROFILE_LIST(
             "recovery.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL),
     RECOVERY_PROFILE_QUERY_MATCH(
-            "recovery.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.RECOVERY_PROFILE),
+            "recovery.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.RECOVERY_DEF),
     RECOVERY_VERIFICATION_METHODS(
-            "recovery.verificationMethods", PwmSettingSyntax.VERIFICATION_METHOD, PwmSettingCategory.RECOVERY_PROFILE),
+            "recovery.verificationMethods", PwmSettingSyntax.VERIFICATION_METHOD, PwmSettingCategory.RECOVERY_DEF),
     RECOVERY_TOKEN_SEND_METHOD(
-            "challenge.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
+            "challenge.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_DEF),
     RECOVERY_ALLOW_UNLOCK(
-            "challenge.allowUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_PROFILE),
+            "challenge.allowUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_DEF),
     RECOVERY_ACTION(
-            "recovery.action", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
+            "recovery.action", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_DEF),
     RECOVERY_SENDNEWPW_METHOD(
-            "recovery.sendNewPassword.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
+            "recovery.sendNewPassword.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_DEF),
     RECOVERY_ATTRIBUTE_FORM(
-            "challenge.requiredAttributes", PwmSettingSyntax.FORM, PwmSettingCategory.RECOVERY_PROFILE),
+            "challenge.requiredAttributes", PwmSettingSyntax.FORM, PwmSettingCategory.RECOVERY_DEF),
     RECOVERY_ALLOW_WHEN_LOCKED(
-            "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_PROFILE),
+            "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_DEF),
+
+    // recovery oauth
+    RECOVERY_OAUTH_ID_LOGIN_URL(
+            "recovery.oauth.idserver.loginUrl", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH),
+    RECOVERY_OAUTH_ID_CODERESOLVE_URL(
+            "recovery.oauth.idserver.codeResolveUrl", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH),
+    RECOVERY_OAUTH_ID_ATTRIBUTES_URL(
+            "recovery.oauth.idserver.attributesUrl", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH),
+    RECOVERY_OAUTH_ID_CERTIFICATE(
+            "recovery.oauth.idserver.serverCerts", PwmSettingSyntax.X509CERT, PwmSettingCategory.RECOVERY_OAUTH),
+    RECOVERY_OAUTH_ID_CLIENTNAME(
+            "recovery.oauth.idserver.clientName", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH),
+    RECOVERY_OAUTH_ID_SECRET(
+            "recovery.oauth.idserver.secret", PwmSettingSyntax.PASSWORD, PwmSettingCategory.RECOVERY_OAUTH),
+    RECOVERY_OAUTH_ID_DN_ATTRIBUTE_NAME(
+            "recovery.oauth.idserver.dnAttributeName", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH),
 
 
     // forgotten username
@@ -1021,7 +1040,6 @@ public enum PwmSetting {
             "oauth.idserver.attributesUrl", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH),
     OAUTH_ID_CERTIFICATE(
             "oauth.idserver.serverCerts", PwmSettingSyntax.X509CERT, PwmSettingCategory.OAUTH),
-
     OAUTH_ID_CLIENTNAME(
             "oauth.idserver.clientName", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH),
     OAUTH_ID_SECRET(
