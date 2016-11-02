@@ -232,7 +232,11 @@ public class StatisticsManager implements PwmService {
         {
             final String storedCummulativeBundleStr = localDB.get(LocalDB.DB.PWM_STATS, DB_KEY_CUMULATIVE);
             if (storedCummulativeBundleStr != null && storedCummulativeBundleStr.length() > 0) {
-                statsCummulative = StatisticsBundle.input(storedCummulativeBundleStr);
+                try {
+                    statsCummulative = StatisticsBundle.input(storedCummulativeBundleStr);
+                } catch (Exception e) {
+                    LOGGER.warn("error loading saved stored statistics: " + e.getMessage());
+                }
             }
         }
 

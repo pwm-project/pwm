@@ -150,7 +150,7 @@ public abstract class AlertHandler {
 
 
         { // health check data
-            final Collection<HealthRecord> healthRecords = pwmApplication.getHealthMonitor().getHealthRecords(HealthMonitor.CheckTimeliness.CurrentButNotAncient);
+            final Collection<HealthRecord> healthRecords = pwmApplication.getHealthMonitor().getHealthRecords(HealthMonitor.CheckTimeliness.Immediate);
             textBody.append("-- Health Check Results --\n");
             htmlBody.append("<h2>Health Check Results</h2>");
 

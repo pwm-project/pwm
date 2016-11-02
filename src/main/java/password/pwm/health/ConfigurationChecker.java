@@ -32,7 +32,6 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
-import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -45,6 +44,7 @@ import password.pwm.util.operations.PasswordUtility;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -90,20 +90,23 @@ public class ConfigurationChecker implements HealthChecker {
             return records;
         }
 
+        records.addAll(allChecks(config, locale));
+
         final String siteUrl = config.readSettingAsString(PwmSetting.PWM_SITE_URL);
         final String SEPARATOR = LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationSeparator, null);
         try {
             if (siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(
                     PwmSetting.PWM_SITE_URL.getDefaultValue(config.getTemplate()).toNativeObject())) {
                 records.add(
-                        HealthRecord.forMessage(HealthMessage.Config_NoSiteURL, settingToOutputText(PwmSetting.PWM_SITE_URL)));
+                        HealthRecord.forMessage(HealthMessage.Config_NoSiteURL, PwmSetting.PWM_SITE_URL.toMenuLocationDebug(null,locale)));
             }
         } catch (PwmException e) {
             LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL,"error while inspecting site URL setting: " + e.getMessage());
         }
 
         if (config.readSettingAsBoolean(PwmSetting.LDAP_ENABLE_WIRE_TRACE)) {
-            records.add(HealthRecord.forMessage(HealthMessage.Config_LDAPWireTrace,settingToOutputText(PwmSetting.LDAP_ENABLE_WIRE_TRACE)));
+            records.add(
+                    HealthRecord.forMessage(HealthMessage.Config_LDAPWireTrace,PwmSetting.LDAP_ENABLE_WIRE_TRACE.toMenuLocationDebug(null,locale)));
         }
 
         if (Boolean.parseBoolean(config.readAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE))) {
@@ -112,13 +115,13 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         if (config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
-            records.add(HealthRecord.forMessage(HealthMessage.Config_ShowDetailedErrors,settingToOutputText(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)));
+            records.add(HealthRecord.forMessage(HealthMessage.Config_ShowDetailedErrors,PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.toMenuLocationDebug(null,locale)));
         }
 
         for (final LdapProfile ldapProfile : config.getLdapProfiles().values()) {
             final String testUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
             if (testUserDN == null || testUserDN.length() < 1) {
-                records.add(HealthRecord.forMessage(HealthMessage.Config_AddTestUser,settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile)));
+                records.add(HealthRecord.forMessage(HealthMessage.Config_AddTestUser,PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(),locale)));
             }
         }
 
@@ -132,13 +135,13 @@ public class ConfigurationChecker implements HealthChecker {
                         if (!secure) {
                             records.add(HealthRecord.forMessage(
                                     HealthMessage.Config_LDAPUnsecure,
-                                    settingToOutputText(PwmSetting.LDAP_SERVER_URLS, ldapProfile)
+                                    PwmSetting.LDAP_SERVER_URLS.toMenuLocationDebug(ldapProfile.getIdentifier(),locale)
                             ));
                         }
                     } catch (URISyntaxException e) {
                         records.add(HealthRecord.forMessage(HealthMessage.Config_ParseError,
                                 e.getMessage(),
-                                settingToOutputText(PwmSetting.LDAP_SERVER_URLS, ldapProfile),
+                                PwmSetting.LDAP_SERVER_URLS.toMenuLocationDebug(ldapProfile.getIdentifier(), locale),
                                 urlStringValue
                         ));
                     }
@@ -157,10 +160,11 @@ public class ConfigurationChecker implements HealthChecker {
                                         passwordValue.getStringValue());
                                 if (strength < 50) {
                                     records.add(HealthRecord.forMessage(HealthMessage.Config_WeakPassword,
-                                            settingToOutputText(setting, null), String.valueOf(strength)));
+                                            setting.toMenuLocationDebug(null,locale), String.valueOf(strength)));
                                 }
                             } catch (Exception e) {
-                                LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL,"error while inspecting setting " + settingToOutputText(setting, null) +  ", error: " + e.getMessage());
+                                LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL,"error while inspecting setting "
+                                        + setting.toMenuLocationDebug(null,locale) +  ", error: " + e.getMessage());
                             }
                         }
                     }
@@ -173,11 +177,11 @@ public class ConfigurationChecker implements HealthChecker {
                     final int strength = PasswordUtility.judgePasswordStrength(passwordValue == null ? null : passwordValue.getStringValue());
                     if (strength < 50) {
                         records.add(HealthRecord.forMessage(HealthMessage.Config_WeakPassword,
-                                settingToOutputText(setting, profile),
+                                setting.toMenuLocationDebug(profile.getIdentifier(),locale),
                                 String.valueOf(strength)));
                     }
                 } catch (PwmException e) {
-                    LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL,"error while inspecting setting " + settingToOutputText(setting, profile) +  ", error: " + e.getMessage());
+                    LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL,"error while inspecting setting " + setting.toMenuLocationDebug(profile.getIdentifier(),locale) +  ", error: " + e.getMessage());
                 }
             }
         }
@@ -189,26 +193,18 @@ public class ConfigurationChecker implements HealthChecker {
                     final URI url = new URI(novellUserAppURL);
                     final boolean secure = "https".equalsIgnoreCase(url.getScheme());
                     if (!secure) {
-                        records.add(HealthRecord.forMessage(HealthMessage.Config_URLNotSecure,settingToOutputText(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL)));
+                        records.add(HealthRecord.forMessage(HealthMessage.Config_URLNotSecure,PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL.toMenuLocationDebug(null,locale)));
                     }
                 } catch (URISyntaxException e) {
                     records.add(HealthRecord.forMessage(HealthMessage.Config_ParseError,
                             e.getMessage(),
-                            settingToOutputText(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL, null),
+                            PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL.toMenuLocationDebug(null,locale),
                             novellUserAppURL
                     ));
                 }
             }
         }
 
-        for (final String profileID : config.getPasswordProfileIDs()) {
-            try {
-                final PwmPasswordPolicy pwmPasswordPolicy = config.getPasswordPolicy(profileID, locale);
-                records.addAll(pwmPasswordPolicy.health(locale));
-            } catch (Exception e) {
-                LOGGER.error("unexpected error during password policy health check: " + e.getMessage(),e);
-            }
-        }
 
         /*
         if (config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
@@ -223,50 +219,102 @@ public class ConfigurationChecker implements HealthChecker {
         }
         */
 
-
-
-
-
-        if (!config.hasDbConfigured()) {
-            if (config.helper().shouldHaveDbConfigured()) {
-                records.add(HealthRecord.forMessage(HealthMessage.Config_MissingDB));
-            }
-        }
-
-        final boolean hasResponseAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE) != null && config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE).length() > 0;
-        if (!hasResponseAttribute) {
-            for (final PwmSetting loopSetting : new PwmSetting[] {PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE}) {
-                if (config.getResponseStorageLocations(loopSetting).contains(DataStorageMethod.LDAP)) {
-                    records.add(HealthRecord.forMessage(HealthMessage.Config_MissingLDAPResponseAttr,
-                            settingToOutputText(loopSetting),
-                            settingToOutputText(PwmSetting.CHALLENGE_USER_ATTRIBUTE)
-                    ));
-                }
-            }
-        }
-
-        if (config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE).contains(DataStorageMethod.LOCALDB)) {
-            records.add(HealthRecord.forMessage(HealthMessage.Config_UsingLocalDBResponseStorage, settingToOutputText(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE)));
-        }
-
-        if (config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_WRITE_PREFERENCE).contains(DataStorageMethod.LOCALDB)) {
-            records.add(HealthRecord.forMessage(HealthMessage.Config_UsingLocalDBResponseStorage, settingToOutputText(PwmSetting.OTP_SECRET_WRITE_PREFERENCE)));
-        }
-
         return records;
     }
 
-    private static String settingToOutputText(
-            final PwmSetting setting
+    private List<HealthRecord> allChecks(
+            final Configuration config,
+            final Locale locale
     ) {
-        return settingToOutputText(setting,null);
+        final List<HealthRecord> records = new ArrayList<>();
+        for (final Class<? extends ConfigHealthCheck> clazz : ALL_CHECKS) {
+            final ConfigHealthCheck healthCheckClass;
+            try {
+                healthCheckClass = clazz.newInstance();
+                records.addAll(healthCheckClass.healthCheck(config, locale));
+            } catch (Exception e) {
+                LOGGER.error("unexpected error during health check operation for class " + clazz.toString() + ", error:" + e.getMessage(),e);
+            }
+        }
+        return records;
     }
 
-    private static String settingToOutputText(
-            final PwmSetting setting,
-            final Profile profile
-    ) {
-        final String profileID = profile == null ? null : profile.getIdentifier();
-        return setting.toMenuLocationDebug(profileID, PwmConstants.DEFAULT_LOCALE);
+    private static final List<Class<? extends ConfigHealthCheck>> ALL_CHECKS = Collections.unmodifiableList(Arrays.asList(
+            VerifyPasswordPolicyConfigs.class,
+            VerifyResponseLdapAttribute.class,
+            VerifyDbConfiguredIfNeeded.class
+    ));
+
+    static class VerifyResponseLdapAttribute implements ConfigHealthCheck {
+        @Override
+        public List<HealthRecord> healthCheck(
+                Configuration config,
+                Locale locale
+        ) {
+            final List<HealthRecord> records = new ArrayList<>();
+            final PwmSetting[] interestedSettings = new PwmSetting[]{PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE};
+            for (final PwmSetting loopSetting : interestedSettings) {
+                if (config.getResponseStorageLocations(loopSetting).contains(DataStorageMethod.LDAP)) {
+                    for (final LdapProfile ldapProfile : config.getLdapProfiles().values()) {
+                        final String responseAttr = ldapProfile.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
+                        final boolean hasResponseAttribute =  responseAttr != null && !responseAttr.isEmpty();
+                        if (!hasResponseAttribute) {
+                            records.add(HealthRecord.forMessage(HealthMessage.Config_MissingLDAPResponseAttr,
+                                    loopSetting.toMenuLocationDebug(null, locale),
+                                    PwmSetting.CHALLENGE_USER_ATTRIBUTE.toMenuLocationDebug(ldapProfile.getIdentifier(), locale)
+                            ));
+                        }
+                    }
+                }
+            }
+            return records;
+        }
+    }
+
+    static class VerifyDbConfiguredIfNeeded implements ConfigHealthCheck {
+        @Override
+        public List<HealthRecord> healthCheck(Configuration config, Locale locale) {
+            final List<HealthRecord> records = new ArrayList<>();
+            if (!config.hasDbConfigured()) {
+                if (config.helper().shouldHaveDbConfigured()) {
+                    records.add(HealthRecord.forMessage(HealthMessage.Config_MissingDB));
+                }
+            }
+
+            if (config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE).contains(DataStorageMethod.LOCALDB)) {
+                records.add(HealthRecord.forMessage(
+                        HealthMessage.Config_UsingLocalDBResponseStorage,
+                        PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.toMenuLocationDebug(null, locale)));
+            }
+
+            if (config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_WRITE_PREFERENCE).contains(DataStorageMethod.LOCALDB)) {
+                records.add(HealthRecord.forMessage(
+                        HealthMessage.Config_UsingLocalDBResponseStorage,
+                        PwmSetting.OTP_SECRET_WRITE_PREFERENCE.toMenuLocationDebug(null,locale)));
+            }
+            return records;
+        }
+    }
+
+    static class VerifyPasswordPolicyConfigs implements ConfigHealthCheck {
+        @Override
+        public List<HealthRecord> healthCheck(Configuration config, Locale locale) {
+            final List<HealthRecord> records = new ArrayList<>();
+            for (final String profileID : config.getPasswordProfileIDs()) {
+                try {
+                    final PwmPasswordPolicy pwmPasswordPolicy = config.getPasswordPolicy(profileID, locale);
+                    records.addAll(pwmPasswordPolicy.health(locale));
+                } catch (Exception e) {
+                    LOGGER.error("unexpected error during password policy health check: " + e.getMessage(),e);
+                }
+            }
+            return records;
+        }
+    }
+
+    interface ConfigHealthCheck {
+        List<HealthRecord> healthCheck(
+                final Configuration configuration,
+                final Locale locale);
     }
 }

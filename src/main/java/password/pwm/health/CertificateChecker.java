@@ -65,7 +65,7 @@ public class CertificateChecker implements HealthChecker {
     private static List<HealthRecord> doHealthCheck(Configuration configuration) {
         final List<HealthRecord> returnList = new ArrayList<>();
         for (final PwmSetting setting : PwmSetting.values()) {
-            if (setting.getSyntax() == PwmSettingSyntax.X509CERT) {
+            if (setting.getSyntax() == PwmSettingSyntax.X509CERT && !setting.getCategory().hasProfiles()) {
                 if (setting != PwmSetting.LDAP_SERVER_CERTS) {
                     final X509Certificate[] certs = configuration.readSettingAsCertificate(setting);
                     returnList.addAll(doHealthCheck(configuration,setting,null,certs));

@@ -252,13 +252,16 @@ public class RestChallengesServer extends AbstractRestServer {
             final ChaiUser chaiUser;
             final String userGUID;
             final String csIdentifer;
+            final UserIdentity userIdentity;
             final CrService crService = restRequestBean.getPwmApplication().getCrService();
+
             if (restRequestBean.getUserIdentity() == null) {
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
+                userIdentity = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity();
                 userGUID = restRequestBean.getPwmSession().getUserInfoBean().getUserGuid();
                 csIdentifer = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getChallengeSet().getIdentifier();
             } else {
-                final UserIdentity userIdentity = restRequestBean.getUserIdentity();
+                userIdentity = restRequestBean.getUserIdentity();
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),userIdentity);
                 userGUID = LdapOperationsHelper.readLdapGuidValue(
                         restRequestBean.getPwmApplication(),
@@ -275,7 +278,7 @@ public class RestChallengesServer extends AbstractRestServer {
             }
 
             final ResponseInfoBean responseInfoBean = jsonInput.toResponseInfoBean(request.getLocale(), csIdentifer);
-            crService.writeResponses(chaiUser,userGUID,responseInfoBean);
+            crService.writeResponses(userIdentity, chaiUser,userGUID,responseInfoBean);
 
             // update statistics
             if (!restRequestBean.isExternal()) {
@@ -366,7 +369,8 @@ public class RestChallengesServer extends AbstractRestServer {
 
             final CrService crService = restRequestBean.getPwmApplication().getCrService();
             crService.clearResponses(
-                    restRequestBean.getPwmSession(),
+                    restRequestBean.getPwmSession().getLabel(),
+                    restRequestBean.getUserIdentity(),
                     chaiUser,
                     userGUID
             );

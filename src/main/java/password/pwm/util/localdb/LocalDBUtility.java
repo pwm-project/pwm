@@ -273,37 +273,19 @@ public class LocalDBUtility {
             final LocalDB.DB db
     )
     {
-        int compressedValues = 0;
         int totalValues = 0;
-        int uncompressedValues = 0;
         long storedChars = 0;
-        long uncompressedChars = 0;
-        long compressedCharSavings = 0;
-
-        final LocalDBCompressor compressorLocalDB = localDB instanceof LocalDBCompressor
-                ? (LocalDBCompressor) localDB
-                : new LocalDBCompressor(localDB, 0, true);
+        long totalChars = 0;
 
         LocalDB.LocalDBIterator<String> iter = null;
         try {
-            iter = compressorLocalDB.iterator(db);
+            iter = localDB.iterator(db);
             while (iter.hasNext()) {
                 final String key = iter.next();
-                final String rawValue = compressorLocalDB.innerLocalDB.get(db, key);
+                final String rawValue = localDB.get(db, key);
                 if (rawValue != null) {
                     totalValues++;
                     storedChars += rawValue.length();
-                    if (rawValue.startsWith(LocalDBCompressor.COMPRESS_PREFIX)) {
-                        compressedValues++;
-
-                        final String uncompressedValue = compressorLocalDB.get(db, key);
-                        uncompressedChars += uncompressedValue.length();
-
-                        final int diff = uncompressedValue.length() - rawValue.length();
-                        compressedCharSavings += diff;
-                    } else {
-                        uncompressedValues++;
-                    }
                 }
             }
         } catch (Exception e) {
@@ -314,13 +296,9 @@ public class LocalDBUtility {
             }
         }
 
-        int avgValueLength = totalValues == 0 ? 0 : (int)(uncompressedChars / totalValues);
+        int avgValueLength = totalValues == 0 ? 0 : (int)(totalChars / totalValues);
         final Map<STATS_KEY, Object> returnObj = new LinkedHashMap<>();
         returnObj.put(STATS_KEY.TOTAL_VALUES,totalValues);
-        returnObj.put(STATS_KEY.COMPRESSED_VALUES,compressedValues);
-        returnObj.put(STATS_KEY.UNCOMPRESSED_VALUES,uncompressedValues);
-        returnObj.put(STATS_KEY.UNCOMPRESSED_CHARS,uncompressedChars);
-        returnObj.put(STATS_KEY.COMPRESSED_CHAR_DIFF,compressedCharSavings);
         returnObj.put(STATS_KEY.STORED_CHARS,storedChars);
         returnObj.put(STATS_KEY.AVG_VALUE_LENGTH,avgValueLength);
         return returnObj;
@@ -328,11 +306,7 @@ public class LocalDBUtility {
 
     public enum STATS_KEY {
         TOTAL_VALUES,
-        COMPRESSED_VALUES,
-        UNCOMPRESSED_VALUES,
-        UNCOMPRESSED_CHARS,
         STORED_CHARS,
-        COMPRESSED_CHAR_DIFF,
         AVG_VALUE_LENGTH,
     }
 

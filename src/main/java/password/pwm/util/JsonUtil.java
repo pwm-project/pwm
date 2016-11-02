@@ -22,7 +22,15 @@
 
 package password.pwm.util;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
@@ -37,7 +45,12 @@ import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
 
 public class JsonUtil {
     private static final PwmLogger LOGGER = PwmLogger.forClass(JsonUtil.class);
@@ -173,7 +186,39 @@ public class JsonUtil {
             try {
                 return gsonDateFormat.parse(jsonElement.getAsString());
             } catch (ParseException e) {
-                LOGGER.error("unable to parse stored json timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage());
+                LOGGER.error("unable to parse stored json Date.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage());
+                throw new JsonParseException(e);
+            }
+        }
+    }
+
+    /**
+     * GsonSerializer that stores instants in ISO 8601 format, with a deserialier that also reads local-platform format reading.
+     */
+    private static class InstantTypeAdapter implements JsonSerializer<Instant>, JsonDeserializer<Instant> {
+        private static final DateFormat isoDateFormat;
+        private static final DateFormat gsonDateFormat;
+
+        static {
+            isoDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            isoDateFormat.setTimeZone(TimeZone.getTimeZone("Zulu"));
+
+            gsonDateFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT);
+            gsonDateFormat.setTimeZone(TimeZone.getDefault());
+        }
+
+        private InstantTypeAdapter() {
+        }
+
+        public synchronized JsonElement serialize(Instant instant, Type type, JsonSerializationContext jsonSerializationContext) {
+            return new JsonPrimitive(instant.toString());
+        }
+
+        public synchronized Instant deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) {
+            try {
+                return Instant.parse(jsonElement.getAsString());
+            } catch (Exception e) {
+                LOGGER.error("unable to parse stored json Instant.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage());
                 throw new JsonParseException(e);
             }
         }
@@ -226,6 +271,7 @@ public class JsonUtil {
 
     private static GsonBuilder registerTypeAdapters(final GsonBuilder gsonBuilder) {
         gsonBuilder.registerTypeAdapter(Date.class, new DateTypeAdapter());
+        gsonBuilder.registerTypeAdapter(Instant.class, new InstantTypeAdapter());
         gsonBuilder.registerTypeAdapter(X509Certificate.class, new X509CertificateAdapter());
         gsonBuilder.registerTypeAdapter(byte[].class, new ByteArrayToBase64TypeAdapter());
         gsonBuilder.registerTypeAdapter(PasswordData.class, new PasswordDataTypeAdapter());

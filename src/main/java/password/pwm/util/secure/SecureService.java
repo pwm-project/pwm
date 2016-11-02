@@ -96,9 +96,20 @@ public class SecureService implements PwmService {
         return SecureEngine.encryptToString(value, pwmSecurityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE);
     }
 
+    public String encryptToString(final String value, final PwmSecurityKey securityKey)
+            throws PwmUnrecoverableException
+    {
+        return SecureEngine.encryptToString(value, securityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE);
+    }
+
     public String encryptObjectToString(final Serializable serializableObject) throws PwmUnrecoverableException {
         final String jsonValue = JsonUtil.serialize(serializableObject);
         return encryptToString(jsonValue);
+    }
+
+    public String encryptObjectToString(final Serializable serializableObject, final PwmSecurityKey securityKey) throws PwmUnrecoverableException {
+        final String jsonValue = JsonUtil.serialize(serializableObject);
+        return encryptToString(jsonValue, securityKey);
     }
 
     public String decryptStringValue(
@@ -109,8 +120,22 @@ public class SecureService implements PwmService {
         return SecureEngine.decryptStringValue(value, pwmSecurityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE);
     }
 
+    public String decryptStringValue(
+            final String value,
+            final PwmSecurityKey securityKey
+    )
+            throws PwmUnrecoverableException
+    {
+        return SecureEngine.decryptStringValue(value, securityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE);
+    }
+
     public <T extends Serializable> T decryptObject(final String value, Class<T> returnClass) throws PwmUnrecoverableException {
         final String decryptedValue = decryptStringValue(value);
+        return JsonUtil.deserialize(decryptedValue, returnClass);
+    }
+
+    public <T extends Serializable> T decryptObject(final String value, final PwmSecurityKey securityKey,  Class<T> returnClass) throws PwmUnrecoverableException {
+        final String decryptedValue = decryptStringValue(value, securityKey);
         return JsonUtil.deserialize(decryptedValue, returnClass);
     }
 

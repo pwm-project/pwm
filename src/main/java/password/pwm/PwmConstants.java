@@ -212,7 +212,7 @@ public abstract class PwmConstants {
         GUEST_REGISTRATION("guest-create.jsp"),
         GUEST_UPDATE("guest-update.jsp"),
         GUEST_UPDATE_SEARCH("guest-search.jsp"),
-        ACCOUNT_INFORMATION("userinfo.jsp"),
+        ACCOUNT_INFORMATION("accountinformation.jsp"),
         SHORTCUT("shortcut.jsp"),
         CAPTCHA("captcha.jsp"),
         PEOPLE_SEARCH("peoplesearch.jsp"),
