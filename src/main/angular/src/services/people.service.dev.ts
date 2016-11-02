@@ -47,6 +47,13 @@ export default class PeopleService implements IPeopleService {
         return deferred.promise;
     }
 
+    getNumberOfDirectReports(personId: string): IPromise<number> {
+        return this.getDirectReports(personId)
+            .then((directReports: Person[]) => {
+                return this.$q.resolve(directReports.length);
+            });
+    }
+
     getPerson(id: string): IPromise<Person> {
         var deferred = this.$q.defer<Person>();
 

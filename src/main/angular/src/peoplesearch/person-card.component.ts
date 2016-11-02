@@ -22,24 +22,24 @@ export default class PersonCardComponent {
 
     static $inject = ['PeopleService'];
     constructor(private peopleService: IPeopleService) {
+        this.details = [];
     }
 
     $onInit() {
-        this.details = [];
-
-        if (this.showDirectReportCount) {
-            this.peopleService.getNumberOfDirectReports(this.person.userKey)
-                .then((numOfDirectReports) => {
-                    this.person.numOfDirectReports = numOfDirectReports;
-                }).catch((result) => {
-                console.log(result);
-            });
-        }
     }
 
     $onChanges() {
         if (this.person) {
             this.setDisplayData();
+
+            if (this.showDirectReportCount) {
+                this.peopleService.getNumberOfDirectReports(this.person.userKey)
+                    .then((numOfDirectReports) => {
+                        this.person.numOfDirectReports = numOfDirectReports;
+                    }).catch((result) => {
+                    console.log(result);
+                });
+            }
         }
     }
 

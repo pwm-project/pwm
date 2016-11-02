@@ -30,6 +30,10 @@ org-chart {
                 > .avatar {
                   background-image: url('../../images/m_circle-horz-menu.svg');
                 }
+
+                > .reports {
+                  display: none;
+                }
               }
             }
           }
