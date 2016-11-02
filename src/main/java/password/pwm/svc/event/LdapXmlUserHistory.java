@@ -37,6 +37,7 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -101,7 +102,8 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
 
         // settings
         final String corRecordIdentifer = COR_RECORD_ID;
-        final String corAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile(pwmApplication.getConfig());
+        final String corAttribute = ldapProfile.readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
 
         // quit if settings no good;
         if (corAttribute == null || corAttribute.length() < 1) {
@@ -156,7 +158,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
     {
         try {
             final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userInfoBean.getUserIdentity());
-            final StoredHistory storedHistory = readUserHistory(pwmApplication, theUser);
+            final StoredHistory storedHistory = readUserHistory(pwmApplication, userInfoBean.getUserIdentity(), theUser);
             return storedHistory.asAuditRecords(userInfoBean);
         } catch (ChaiUnavailableException e) {
             throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
@@ -165,11 +167,13 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
 
     private StoredHistory readUserHistory(
             final PwmApplication pwmApplication,
+            final UserIdentity userIdentity,
             final ChaiUser chaiUser
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
         final String corRecordIdentifer = COR_RECORD_ID;
-        final String corAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile(pwmApplication.getConfig());
+        final String corAttribute = ldapProfile.readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE);
 
         if (corAttribute == null || corAttribute.length() < 1) {
             LOGGER.trace("no user event log attribute configured, skipping read of log data");
