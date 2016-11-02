@@ -6,7 +6,7 @@ export default [
     ($stateProvider: angular.ui.IStateProvider, $urlRouterProvider: angular.ui.IUrlRouterProvider) => {
         $urlRouterProvider.otherwise('/search/table');
 
-        $stateProvider.state('search', { url: '/search?query', component: 'peopleSearch' });
+        $stateProvider.state('search', { url: '/search?query', component: 'peopleSearch', reloadOnSearch: false });
         $stateProvider.state('search.table', { url: '/table', component: 'peopleSearchTable' });
         $stateProvider.state('search.cards', { url: '/cards', component: 'peopleSearchCards' });
         $stateProvider.state('orgchart', { url: '/orgchart/{personId}', component: 'orgChart' });

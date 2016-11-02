@@ -1,5 +1,5 @@
 import { Component } from '../component';
-import { IScope } from 'angular';
+import { IScope, ILocationService } from 'angular';
 import PeopleSearchService from './peoplesearch.service';
 
 
@@ -14,11 +14,12 @@ export default class PeopleSearchComponent {
     tableIconClass: string = 'fa fa-list-alt';
     cardIconClass: string = 'fa fa-th-large';
 
-    static $inject = ['$scope', '$state', '$stateParams', 'PeopleSearchService'];
+    static $inject = ['$scope', '$state', '$stateParams', '$location', 'PeopleSearchService'];
     constructor(
         private $scope: IScope,
         private $state: angular.ui.IStateService,
         private $stateParams: angular.ui.IStateParamsService,
+        private $location: ILocationService,
         private peopleSearchService: PeopleSearchService) {
     }
 
@@ -27,6 +28,7 @@ export default class PeopleSearchComponent {
 
         this.$scope.$watch('$ctrl.query', (newValue: string, oldValue: string) => {
             this.peopleSearchService.search(newValue);
+            this.$location.search('query', newValue);
         });
 
         this.query = this.$stateParams['query'];
