@@ -503,8 +503,6 @@ public enum PwmSetting {
             "disallowedInputs", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY),
     REQUIRE_HTTPS(
             "pwm.requireHTTPS", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
-    FORCE_BASIC_AUTH(
-            "forceBasicAuth", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     USE_X_FORWARDED_FOR_HEADER(
             "useXForwardedForHeader", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     MULTI_IP_SESSION_ALLOWED(
@@ -1059,6 +1057,12 @@ public enum PwmSetting {
     // http sso
     SSO_AUTH_HEADER_NAME(
             "security.sso.authHeaderName", PwmSettingSyntax.STRING, PwmSettingCategory.HTTP_SSO),
+
+    // basic auth sso
+    BASIC_AUTH_ENABLED(
+            "basicAuth.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.BASIC_SSO),
+    BASIC_AUTH_FORCE(
+            "forceBasicAuth", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.BASIC_SSO),
 
     // administration
     QUERY_MATCH_PWM_ADMIN(
