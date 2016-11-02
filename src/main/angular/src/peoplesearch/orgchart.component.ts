@@ -57,10 +57,6 @@ export default class OrgChartComponent {
         });
     }
 
-    close() {
-        this.$state.go('search.table');
-    }
-
     getManagerCardSize() {
         return this.isWideLayout() ? 'small' : 'normal';
     }
