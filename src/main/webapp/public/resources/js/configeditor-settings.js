@@ -502,8 +502,7 @@ MultiLocaleTableHandler.draw = function(keyName) {
                 var imgElement = document.createElement("div");
                 imgElement.setAttribute("style", "width: 10px; height: 10px;");
                 imgElement.setAttribute("class", "delete-row-icon action-icon pwm-icon pwm-icon-times");
-
-                imgElement.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',null,'" + regExPattern + "')");
+                imgElement.setAttribute("id", inputID + "-remove");
                 valueTd1.appendChild(imgElement);
             }
 
@@ -516,7 +515,7 @@ MultiLocaleTableHandler.draw = function(keyName) {
                 newTableData.setAttribute("style", "border-width: 0;");
 
                 var addItemButton = document.createElement("button");
-                addItemButton.setAttribute("type", "[button");
+                addItemButton.setAttribute("type", "button");
                 addItemButton.setAttribute("onclick", "PWM_VAR['clientSettingCache']['" + keyName + "']['" + localeName + "'].push('');MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "',null,null,null,'" + regExPattern + "')");
                 addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
                 addItemButton.innerHTML = "Add Value";
@@ -526,11 +525,10 @@ MultiLocaleTableHandler.draw = function(keyName) {
                 localeTableElement.appendChild(newTableRow);
             }
 
-
             if (localeName != '') { // add remove locale x
                 var imgElement2 = document.createElement("div");
+                imgElement2.setAttribute("id", "div-" + keyName + "-" + localeName + "-remove");
                 imgElement2.setAttribute("class", "delete-row-icon action-icon pwm-icon pwm-icon-times");
-                imgElement2.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "',null,null,'" + regExPattern + "')");
                 var tdElement = document.createElement("td");
                 tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top;width 10px");
 
@@ -562,6 +560,22 @@ MultiLocaleTableHandler.draw = function(keyName) {
         UILibrary.addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction, Object.keys(resultValue));
         PWM_VAR['clientSettingCache'][keyName] = resultValue;
         dojoParser.parse(parentDiv);
+
+        for (var localeName in resultValue) {
+            var inputID = "value-" + keyName + "-" + localeName + "-" + iteration;
+
+            var removeID = inputID + "-remove";
+            PWM_MAIN.addEventHandler(removeID,'click',function(){
+                MultiLocaleTableHandler.writeMultiLocaleSetting(keyName,localeName,iteration,null,regExPattern);
+            });
+
+
+            var removeID = "div-" + keyName + "-" + localeName + "-remove";
+            PWM_MAIN.addEventHandler(removeID,'click',function(){
+                MultiLocaleTableHandler.writeMultiLocaleSetting(keyName,localeName,null,null,regExPattern);
+            });
+        }
+
     });
 };
 

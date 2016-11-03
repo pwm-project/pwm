@@ -99,7 +99,6 @@
            name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
         <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
-        <%if(loopConfiguration.isConfirmationRequired()) { %> onkeypress="PWM_MAIN.getObject('<%=loopConfiguration.getName()%>_confirm').value=''"<% } %>
     <pwm:autofocus/> maxlength="<%=loopConfiguration.getMaximumLength()%>">
     <% if (loopConfiguration.isConfirmationRequired() && !forceReadOnly && !loopConfiguration.isReadonly() && loopConfiguration.getType() != FormConfiguration.Type.hidden && loopConfiguration.getType() != FormConfiguration.Type.select) { %>
     <label for="<%=loopConfiguration.getName()%>_confirm">
@@ -110,10 +109,18 @@
     </label>
     <input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
            name="<%=loopConfiguration.getName()%>_confirm"
-            <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
             <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
             <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>
            maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
+    <pwm:script>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>','keypress',function(){
+                    PWM_MAIN.getObject('<%=loopConfiguration.getName()%>_confirm').value='';
+                });
+            });
+        </script>
+    </pwm:script>
     <% } %>
     <% } %>
     <% } %>
@@ -138,7 +145,7 @@
                 });
             });
         </script>
-    </pwm:script>
+    </pwm:script>F
 </div>
 <% } %>
 
@@ -167,7 +174,7 @@
 <table class="noborder nomargin nopadding">
     <tr class="noborder nomargin nopadding">
         <td class="noborder nomargin nopadding" style="width:60%">
-            <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" onkeypress="PWM_MAIN.getObject('password2').value=''" style="margin-left:5px"/>
+            <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" style="margin-left:5px"/>
         </td>
         <td class="noborder">
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
@@ -210,5 +217,14 @@
         <td class="noborder" style="width:10%">&nbsp;</td>
     </tr>
 </table>
+<pwm:script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.addEventHandler('password1','keypress',function(){
+                PWM_MAIN.getObject('password2').value='';
+            });
+        });
+    </script>
+</pwm:script>
 <% } %>
 <% } %>
