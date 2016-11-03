@@ -20,41 +20,38 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
-import java.io.File;
+import password.pwm.PwmConstants;
+import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.util.cli.CliParameters;
 
-public class ConfigDeleteCommand extends AbstractCliCommand {
+import java.util.Collections;
+
+public class ConfigSetPasswordCommand extends AbstractCliCommand {
+
     public void doCommand()
             throws Exception
     {
-        final File configurationFile = cliEnvironment.configurationFile;
-        if (configurationFile == null || !configurationFile.exists()) {
-            out("configuration file is not present");
-            return;
-        }
-
-
-        if (!promptForContinue("Proceeding will delete the existing configuration")) {
-            return;
-        }
-
-        if (configurationFile.delete()) {
-            out("success");
-        } else {
-            out("unable to delete file");
-        }
+        final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
+        final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
+        final String password = getOptionalPassword();
+        storedConfiguration.setPassword(password);
+        configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), PwmConstants.CLI_SESSION_LABEL);
+        out("success");
     }
 
     @Override
     public CliParameters getCliParameters()
     {
         CliParameters cliParameters = new CliParameters();
-        cliParameters.commandName = "ConfigDelete";
-        cliParameters.description = "Delete configuration.";
+        cliParameters.commandName = "ConfigSetPassword";
+        cliParameters.description = "Sets the configuration password";
+        cliParameters.options = Collections.singletonList(CliParameters.OPTIONAL_PASSWORD);
         cliParameters.needsPwmApplication = false;
+        cliParameters.needsLocalDB = false;
         cliParameters.readOnly = true;
         return cliParameters;
     }
-
 }

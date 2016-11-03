@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.exception.ChaiOperationException;
@@ -37,6 +37,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.cli.CliParameters;
 import password.pwm.util.operations.CrService;
 
 import java.io.File;

@@ -62,7 +62,7 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.VersionChecker;
-import password.pwm.util.cli.ExportHttpsTomcatConfigCommand;
+import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
@@ -171,7 +171,7 @@ public class PwmApplication {
         final Date startTime = new Date();
 
         // initialize log4j
-        if (!pwmEnvironment.isInternalRuntimeInstance()) {
+        if (!pwmEnvironment.isInternalRuntimeInstance() && !pwmEnvironment.getFlags().contains(PwmEnvironment.ApplicationFlag.CommandLineInstance)) {
             final String log4jFileName = pwmEnvironment.getConfig().readSettingAsString(PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE);
             final File log4jFile = FileSystemUtility.figureFilepath(log4jFileName, pwmEnvironment.getApplicationPath());
             final String consoleLevel, fileLevel;
@@ -211,7 +211,7 @@ public class PwmApplication {
 
         LOGGER.info("initializing, application mode=" + getApplicationMode()
                 + ", applicationPath=" + (pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath().getAbsolutePath())
-                + ", pwmEnvironment.getConfig()File=" + (pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath())
+                + ", pwmEnvironment.getConfigFile()=" + (pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath())
         );
 
         if (!pwmEnvironment.isInternalRuntimeInstance()) {

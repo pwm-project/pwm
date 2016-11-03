@@ -20,25 +20,26 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.util.cli.CliParameters;
 
-public class ConfigUnlockCommand extends AbstractCliCommand {
+public class ConfigLockCommand extends AbstractCliCommand {
     public void doCommand()
             throws Exception
     {
         final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
         final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
-        if (Boolean.parseBoolean(storedConfiguration.readConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE))) {
-            out("configuration is already unlocked");
+        if (!Boolean.parseBoolean(storedConfiguration.readConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE))) {
+            out("configuration is already locked");
             return;
         }
-        
-        storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE,Boolean.toString(true));
+
+        storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE,Boolean.toString(false));
         configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), PwmConstants.CLI_SESSION_LABEL);
         out("success");
     }
@@ -47,8 +48,8 @@ public class ConfigUnlockCommand extends AbstractCliCommand {
     public CliParameters getCliParameters()
     {
         CliParameters cliParameters = new CliParameters();
-        cliParameters.commandName = "ConfigUnlock";
-        cliParameters.description = "Unlock a configuration, allows config to be edited without LDAP authentication.";
+        cliParameters.commandName = "ConfigLock";
+        cliParameters.description = "Lock a configuration, prevents config from being edited without LDAP authentication.";
         cliParameters.needsPwmApplication = false;
         cliParameters.readOnly = true;
         return cliParameters;

@@ -40,7 +40,7 @@ public class CliEnvironment {
     final LocalDB localDB;
     final Writer debugWriter;
     final Map<String,Object> options;
-    final MainClass.MainOptions mainOptions;
+    final MainOptions mainOptions;
 
     public CliEnvironment(
             ConfigurationReader configurationReader,
@@ -51,7 +51,7 @@ public class CliEnvironment {
             LocalDB localDB,
             Writer debugWriter,
             Map<String, Object> options,
-            MainClass.MainOptions mainOptions
+            MainOptions mainOptions
     )
     {
         this.configurationReader = configurationReader;
@@ -99,7 +99,11 @@ public class CliEnvironment {
         return configurationReader;
     }
 
-    public MainClass.MainOptions getMainOptions() {
+    public MainOptions getMainOptions() {
         return mainOptions;
+    }
+
+    public File getConfigurationFile() {
+        return configurationFile;
     }
 }

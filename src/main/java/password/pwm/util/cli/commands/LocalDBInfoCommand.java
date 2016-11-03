@@ -20,12 +20,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
 import password.pwm.util.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.cli.CliParameters;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBUtility;
 

@@ -20,13 +20,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.util.Helper;
+import password.pwm.util.cli.CliParameters;
 
 import java.util.Collections;
 

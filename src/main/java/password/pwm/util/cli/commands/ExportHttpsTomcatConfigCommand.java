@@ -20,13 +20,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TLSVersion;
+import password.pwm.util.cli.CliParameters;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -38,8 +39,8 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand {
 
     @Override
     void doCommand() throws Exception {
-        final File sourceFile = (File)cliEnvironment.options.get("sourceFile");
-        final File outputFile = (File)cliEnvironment.options.get("outputFile");
+        final File sourceFile = (File)cliEnvironment.getOptions().get("sourceFile");
+        final File outputFile = (File)cliEnvironment.getOptions().get("outputFile");
         try {
             TomcatConfigWriter.writeOutputFile(
                     cliEnvironment.getConfig(),

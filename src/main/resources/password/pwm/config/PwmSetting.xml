@@ -1743,7 +1743,7 @@
             <option value="Off">0 - Off</option>
         </options>
     </setting>
-    <setting hidden="false" key="events.java.log4jconfigFile" level="2">
+    <setting hidden="true" key="events.java.log4jconfigFile" level="2">
         <default>
             <value />
         </default>
