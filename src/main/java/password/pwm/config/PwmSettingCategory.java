@@ -111,6 +111,7 @@ public enum PwmSettingCategory {
     OAUTH                       (SSO),
     HTTP_SSO                    (SSO),
     CAS_SSO                     (SSO),
+    BASIC_SSO                   (SSO),
 
     WEB_SERVICES                (SETTINGS),
     REST_SERVER                 (WEB_SERVICES),

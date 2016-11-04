@@ -20,13 +20,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
+
+import password.pwm.util.cli.CliEnvironment;
+import password.pwm.util.cli.CliParameters;
 
 import java.io.Console;
 import java.io.IOException;
 import java.util.Scanner;
 
-public abstract class AbstractCliCommand implements CliCommand  {
+public abstract class AbstractCliCommand implements CliCommand {
     protected CliEnvironment cliEnvironment;
 
     protected AbstractCliCommand()

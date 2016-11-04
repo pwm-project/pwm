@@ -20,42 +20,49 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
-import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.PwmApplication;
+import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.Helper;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.cli.CliParameters;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Collections;
+import java.util.Locale;
 
-public class ConfigNewCommand extends AbstractCliCommand {
-    public void doCommand()
+public class ExportStatsCommand extends AbstractCliCommand {
+
+    @Override
+    void doCommand()
             throws Exception
     {
-        final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
-        storedConfiguration.initNewRandomSecurityKey();
-        storedConfiguration.writeConfigProperty(
-                ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString(true));
-        storedConfiguration.writeConfigProperty(
-                ConfigurationProperty.CONFIG_EPOCH, String.valueOf(0));
+        final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
+        StatisticsManager statsManger = pwmApplication.getStatisticsManager();
+        Helper.pause(1000);
 
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
-        storedConfiguration.toXml(new FileOutputStream(outputFile, false));
-        out("success");
+        final long startTime = System.currentTimeMillis();
+        out("beginning output to " + outputFile.getAbsolutePath());
+        final FileOutputStream fileOutputStream = new FileOutputStream(outputFile,true);
+        final int counter = statsManger.outputStatsToCsv(fileOutputStream, Locale.getDefault(), true);
+        fileOutputStream.close();
+        out("completed writing " + counter + " rows of stats output in " + TimeDuration.fromCurrent(startTime).asLongString());
     }
 
     @Override
     public CliParameters getCliParameters()
     {
         CliParameters cliParameters = new CliParameters();
-        cliParameters.commandName = "ConfigNew";
-        cliParameters.description = "Create a new configuration file";
-        cliParameters.needsPwmApplication = false;
-        cliParameters.needsLocalDB = false;
+        cliParameters.commandName = "ExportStats";
+        cliParameters.description = "Dump all statistics in the LocalDB to a csv file";
         cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
 
+        cliParameters.needsPwmApplication = true;
         cliParameters.readOnly = true;
+
         return cliParameters;
     }
 }

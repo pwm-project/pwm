@@ -455,7 +455,9 @@ public class PwmEnvironment {
     }
 
     public void waitForFileLock() throws PwmUnrecoverableException {
-        final int maxWaitSeconds = Integer.parseInt(getConfig().readAppProperty(AppProperty.APPLICATION_FILELOCK_WAIT_SECONDS));
+        final int maxWaitSeconds = this.getFlags().contains(ApplicationFlag.CommandLineInstance)
+                ? 1
+                : Integer.parseInt(getConfig().readAppProperty(AppProperty.APPLICATION_FILELOCK_WAIT_SECONDS));
         final Date startTime = new Date();
         final int attemptInterval = 5021; //ms
 
@@ -501,8 +503,8 @@ public class PwmEnvironment {
                     final FileChannel f = file.getChannel();
                     lock = f.tryLock();
                     if (lock != null) {
-                        LOGGER.debug("obtained file lock on file " + lockfile.getAbsolutePath());
-                        writeLockFileContents(lockfile);
+                        LOGGER.debug("obtained file lock on file " + lockfile.getAbsolutePath() + " lock is valid=" + lock.isValid());
+                        writeLockFileContents(file);
                     } else {
                         LOGGER.debug("unable to obtain file lock on file " + lockfile.getAbsolutePath());
                     }
@@ -512,27 +514,20 @@ public class PwmEnvironment {
             }
         }
 
-        void writeLockFileContents(final File file) {
-            FileWriter fileWriter = null;
+        void writeLockFileContents(RandomAccessFile file) {
             try {
                 final Properties props = new Properties();
                 props.put("timestamp", PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
                 props.put("applicationPath",PwmEnvironment.this.getApplicationPath() == null ? "n/a" : PwmEnvironment.this.getApplicationPath().getAbsolutePath());
                 props.put("configurationFile", PwmEnvironment.this.getConfigurationFile() == null ? "n/a" : PwmEnvironment.this.getConfigurationFile().getAbsolutePath());
                 final String comment = PwmConstants.PWM_APP_NAME + " file lock";
-                fileWriter = new FileWriter(lockfile);
-                props.store(new FileWriter(file, false), comment);
+                final StringWriter stringWriter = new StringWriter();
+                props.store(stringWriter, comment);
+                file.write(stringWriter.getBuffer().toString().getBytes(PwmConstants.DEFAULT_CHARSET));
             } catch (IOException e) {
                 LOGGER.error("unable to write contents of application lock file: " + e.getMessage());
-            } finally {
-                if (fileWriter != null) {
-                    try {
-                        fileWriter.close();
-                    } catch (IOException e) {
-                        LOGGER.error("unable to close contents of application lock file: " + e.getMessage());
-                    }
-                }
             }
+            // do not close FileWriter, otherwise lock is released.
         }
 
         public void releaseFileLock() {
@@ -542,14 +537,7 @@ public class PwmEnvironment {
                 } catch (IOException e) {
                     LOGGER.error("error releasing file lock: " + e.getMessage());
                 }
-                /*
-                try {
-                    lockfile.delete();
-                } catch (Exception e) {
-                    LOGGER.error("error deleting lock file: " + e.getMessage());
-                }
-                */
-                lock = null;
+
                 LOGGER.debug("released file lock on file " + lockfile.getAbsolutePath());
             }
         }

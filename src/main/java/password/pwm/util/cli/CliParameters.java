@@ -33,7 +33,7 @@ public class CliParameters {
     public String description;
     public List<Option> options;
 
-    interface Option {
+    public interface Option {
         enum type {
             EXISTING_FILE,
             NEW_FILE,

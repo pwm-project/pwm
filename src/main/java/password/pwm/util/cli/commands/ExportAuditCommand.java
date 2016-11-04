@@ -20,13 +20,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.svc.event.AuditService;
 import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.cli.CliParameters;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,7 +40,8 @@ public class ExportAuditCommand extends AbstractCliCommand {
             throws Exception
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
-        final AuditService auditManager = pwmApplication.getAuditManager();
+        final AuditService auditManager = new AuditService();
+        auditManager.init(pwmApplication);
         Helper.pause(1000);
 
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());

@@ -38,6 +38,32 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.FileSystemUtility;
+import password.pwm.util.cli.commands.ClearResponsesCommand;
+import password.pwm.util.cli.commands.CliCommand;
+import password.pwm.util.cli.commands.ConfigDeleteCommand;
+import password.pwm.util.cli.commands.ConfigLockCommand;
+import password.pwm.util.cli.commands.ConfigNewCommand;
+import password.pwm.util.cli.commands.ConfigResetHttpsCommand;
+import password.pwm.util.cli.commands.ConfigSetPasswordCommand;
+import password.pwm.util.cli.commands.ConfigUnlockCommand;
+import password.pwm.util.cli.commands.ExportAuditCommand;
+import password.pwm.util.cli.commands.ExportHttpsKeyStoreCommand;
+import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
+import password.pwm.util.cli.commands.ExportLocalDBCommand;
+import password.pwm.util.cli.commands.ExportLogsCommand;
+import password.pwm.util.cli.commands.ExportResponsesCommand;
+import password.pwm.util.cli.commands.ExportStatsCommand;
+import password.pwm.util.cli.commands.HelpCommand;
+import password.pwm.util.cli.commands.ImportHttpsKeyStoreCommand;
+import password.pwm.util.cli.commands.ImportLocalDBCommand;
+import password.pwm.util.cli.commands.ImportResponsesCommand;
+import password.pwm.util.cli.commands.LdapSchemaExtendCommand;
+import password.pwm.util.cli.commands.LocalDBInfoCommand;
+import password.pwm.util.cli.commands.ResponseStatsCommand;
+import password.pwm.util.cli.commands.ShellCommand;
+import password.pwm.util.cli.commands.TokenInfoCommand;
+import password.pwm.util.cli.commands.UserReportCommand;
+import password.pwm.util.cli.commands.VersionCommand;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBFactory;
@@ -48,16 +74,26 @@ import password.pwm.util.logging.PwmLogger;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.TreeMap;
 
 public class MainClass {
     private static final PwmLogger LOGGER = PwmLogger.forClass(MainClass.class);
 
     private static final String LOGGING_PATTERN = "%d{yyyy-MM-dd'T'HH:mm:ssX}{GMT}, %-5p, %c{2}, %m%n";
 
-    private static MainOptions MAIN_OPTIONS = new MainOptions();
+    private static MainOptions MAIN_OPTIONS;
 
-    private static final Map<String,CliCommand> COMMANDS;
+    public static final Map<String,CliCommand> COMMANDS;
     static {
         final List<CliCommand> commandList = new ArrayList<>();
         commandList.add(new LocalDBInfoCommand());
@@ -84,6 +120,7 @@ public class MainClass {
         commandList.add(new ExportHttpsTomcatConfigCommand());
         commandList.add(new ShellCommand());
         commandList.add(new ConfigResetHttpsCommand());
+        commandList.add(new HelpCommand());
 
         final Map<String,CliCommand> sortedMap = new TreeMap<>();
         for (CliCommand command : commandList) {
@@ -92,7 +129,7 @@ public class MainClass {
         COMMANDS = Collections.unmodifiableMap(sortedMap);
     }
 
-    static String helpTextFromCommands(Collection<CliCommand> commands) {
+    public static String helpTextFromCommands(Collection<CliCommand> commands) {
         final StringBuilder output = new StringBuilder();
         for (CliCommand command : commands) {
             output.append(command.getCliParameters().commandName);
@@ -149,7 +186,7 @@ public class MainClass {
         final LocalDB localDB;
 
         if (parameters.needsPwmApplication) {
-            pwmApplication = loadPwmApplication(applicationPath, MAIN_OPTIONS.applicationFlags, config, configurationFile, parameters.readOnly);
+            pwmApplication = loadPwmApplication(applicationPath, MAIN_OPTIONS.getApplicationFlags(), config, configurationFile, parameters.readOnly);
             localDB = pwmApplication.getLocalDB();
         } else if (parameters.needsLocalDB) {
             pwmApplication = null;
@@ -159,6 +196,8 @@ public class MainClass {
             localDB = null;
         }
 
+        out("environment initialized");
+        out("");
 
         return new CliEnvironment(
                 configReader,
@@ -173,7 +212,7 @@ public class MainClass {
         );
     }
 
-    static Map<String,Object> parseCommandOptions(
+    public static Map<String,Object> parseCommandOptions(
             final CliParameters cliParameters,
             final List<String> args
     )
@@ -240,120 +279,75 @@ public class MainClass {
     public static void main(String[] args)
             throws Exception
     {
-        System.out.println(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " Command Line Utility");
-        args = parseMainCommandLineOptions(args);
+        out(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " Command Line Utility");
+        MAIN_OPTIONS = MainOptions.parseMainCommandLineOptions(args, new OutputStreamWriter(System.out));
+        args = MAIN_OPTIONS.getRemainingArguments();
 
-        initLog4j(MAIN_OPTIONS.pwmLogLevel);
+        initLog4j(MAIN_OPTIONS.getPwmLogLevel());
 
         final String commandStr = args == null || args.length < 1 ? null : args[0];
 
         if (commandStr == null) {
-            System.out.println("");
-            System.out.println(makeHelpTextOutput());
+            out("\n");
+            out(makeHelpTextOutput());
         } else {
             for (CliCommand command : COMMANDS.values()) {
                 if (commandStr.equalsIgnoreCase(command.getCliParameters().commandName)) {
-
-                    final List<String> argList = new LinkedList<>(Arrays.asList(args));
-                    argList.remove(0);
-
-                    final CliEnvironment cliEnvironment;
-                    try {
-                        cliEnvironment = createEnv(command.getCliParameters(), argList);
-                    } catch (Exception e) {
-                        final String errorMsg = "unable to establish operating environment: " + e.getMessage();
-                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ENVIRONMENT_ERROR, errorMsg);
-                        LOGGER.error(errorInformation.toDebugStr(),e);
-                        System.out.println("unable to establish operating environment: " + e.getMessage());
-                        System.exit(-1);
-                        return;
-                    }
-
-                    try {
-                        command.execute(commandStr, cliEnvironment);
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                        //System.exit(-1);
-                        return;
-                    }
-
-                    if (cliEnvironment.getPwmApplication() != null) {
-                        try {
-                            cliEnvironment.getPwmApplication().shutdown();
-                        } catch (Exception e) {
-                            System.out.println("error closing operating environment: " + e.getMessage());
-                            e.printStackTrace();
-                        }
-                    }
-                    if (cliEnvironment.getLocalDB() != null) {
-                        try {
-                            cliEnvironment.getLocalDB().close();
-                        } catch (Exception e) {
-                            System.out.println("error closing LocalDB environment: " + e.getMessage());
-                        }
-                    }
-
-                    System.exit(0);
-                    return;
+                    executeCommand(command, commandStr, args);
+                    break;
                 }
             }
             out("unknown command '" + args[0] + "'");
         }
     }
 
-    private static String[] parseMainCommandLineOptions(String[] args) {
-        final String OPT_DEBUG_LEVEL = "-debugLevel";
-        final String OPT_APP_PATH = "-applicationPath";
-        final String OPT_APP_FLAGS= "-applicationFlags";
-        final String OPT_FORCE = "-force";
+    private static void executeCommand(
+            CliCommand command,
+            String commandStr,
+            String[] args
+    ) {
+        final List<String> argList = new LinkedList<>(Arrays.asList(args));
+        argList.remove(0);
 
-        if (args == null || args.length < 1) {
-            return args;
+        final CliEnvironment cliEnvironment;
+        try {
+            cliEnvironment = createEnv(command.getCliParameters(), argList);
+        } catch (Exception e) {
+            final String errorMsg = "unable to establish operating environment: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ENVIRONMENT_ERROR, errorMsg);
+            LOGGER.error(errorInformation.toDebugStr(),e);
+            out("unable to establish operating environment: " + e.getMessage());
+            System.exit(-1);
+            return;
         }
 
-        final List<String> outputArgs = new ArrayList<>();
-        for (final String arg : args) {
-            if (arg != null) {
-                if (arg.startsWith(OPT_DEBUG_LEVEL)) {
-                    if (arg.length() < OPT_DEBUG_LEVEL.length() + 2) {
-                        out(OPT_DEBUG_LEVEL + " option must include level (example: -" + OPT_DEBUG_LEVEL + "=TRACE");
-                        System.exit(-1);
-                    } else {
-                        final String levelStr = arg.substring(OPT_DEBUG_LEVEL.length() + 1, arg.length());
-                        final PwmLogLevel pwmLogLevel;
-                        try {
-                            pwmLogLevel = PwmLogLevel.valueOf(levelStr.toUpperCase());
-                            MAIN_OPTIONS.pwmLogLevel = pwmLogLevel;
-                        } catch (IllegalArgumentException e) {
-                            out(" unknown log level value: " + levelStr);
-                            System.exit(-1);
-                        }
-                    }
-                } else  if (arg.startsWith(OPT_APP_PATH)) {
-                    if (arg.length() < OPT_APP_PATH.length() + 2) {
-                        out(OPT_APP_PATH + " option must include value (example: -" + OPT_APP_PATH + "=/tmp/applicationPath");
-                        System.exit(-1);
-                    } else {
-                        final String pathStr = arg.substring(OPT_APP_PATH.length() + 1, arg.length());
-                        MAIN_OPTIONS.applicationPath = new File(pathStr);
-                    }
-                } else if (arg.equals(OPT_FORCE)) {
-                    MAIN_OPTIONS.forceFlag = true;
-                } else if (arg.startsWith(OPT_APP_FLAGS)){
-                    if (arg.length() < OPT_APP_FLAGS.length() + 2) {
-                        out(OPT_APP_FLAGS + " option must include value (example: -" + OPT_APP_FLAGS + "=Flag1,Flag2");
-                        System.exit(-1);
-                    } else {
-                        final String flagStr = arg.substring(OPT_APP_PATH.length() + 1, arg.length());
-                        MAIN_OPTIONS.applicationFlags = PwmEnvironment.ParseHelper.parseApplicationFlagValueParameter(flagStr);
-                    }
-                    outputArgs.add(arg);
-                } else {
-                    outputArgs.add(arg);
-                }
+        try {
+            command.execute(commandStr, cliEnvironment);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            //System.exit(-1);
+            return;
+        }
+
+        if (cliEnvironment.getPwmApplication() != null) {
+            try {
+                cliEnvironment.getPwmApplication().shutdown();
+            } catch (Exception e) {
+                out("error closing operating environment: " + e.getMessage());
+                e.printStackTrace();
             }
         }
-        return outputArgs.toArray(new String[outputArgs.size()]);
+        if (cliEnvironment.getLocalDB() != null) {
+            try {
+                cliEnvironment.getLocalDB().close();
+            } catch (Exception e) {
+                out("error closing LocalDB environment: " + e.getMessage());
+            }
+        }
+
+        System.exit(0);
+        return;
+
     }
 
     private static void initLog4j(PwmLogLevel logLevel) {
@@ -439,32 +433,13 @@ public class MainClass {
     }
 
     private static void out(CharSequence txt) {
-        System.out.println(txt + "\n");
-    }
-
-    static class MainOptions {
-        private PwmLogLevel pwmLogLevel = null;
-        private File applicationPath = null;
-        private boolean forceFlag = false;
-        private Collection<PwmEnvironment.ApplicationFlag> applicationFlags;
-
-        public PwmLogLevel getPwmLogLevel() {
-            return pwmLogLevel;
-        }
-
-        public File getApplicationPath() {
-            return applicationPath;
-        }
-
-        boolean isForceFlag() {
-            return forceFlag;
-        }
+        System.out.println(txt);
     }
 
     private static File figureApplicationPath(final MainOptions mainOptions) throws IOException, PwmUnrecoverableException {
         final File applicationPath;
-        if (mainOptions != null && mainOptions.applicationPath != null) {
-            applicationPath = mainOptions.applicationPath;
+        if (mainOptions != null && mainOptions.getApplicationPath() != null) {
+            applicationPath = mainOptions.getApplicationPath();
         } else {
             final String appPathStr = PwmEnvironment.ParseHelper.readValueFromSystem(PwmEnvironment.EnvironmentParameter.applicationPath,null);
             if (appPathStr != null && !appPathStr.isEmpty()) {

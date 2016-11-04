@@ -49,6 +49,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
 
     private Environment environment;
     private File fileLocation;
+    private boolean readOnly;
 
     private enum Property {
         Compression_Enabled("xodus.compression.enabled"),
@@ -120,6 +121,8 @@ public class Xodus_LocalDB implements LocalDBProvider {
             bindMachine = new BindMachine(compressionEnabled, compressionMinLength);
         }
 
+        readOnly = parameters.containsKey(Parameter.readOnly) && Boolean.parseBoolean(parameters.get(Parameter.readOnly));
+
         LOGGER.trace("preparing to open with configuration " + JsonUtil.serializeMap(environmentConfig.getSettings()));
         environment = Environments.newInstance(dbDirectory.getAbsolutePath() + File.separator + "xodus", environmentConfig);
         LOGGER.trace("environment open (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
@@ -143,14 +146,16 @@ public class Xodus_LocalDB implements LocalDBProvider {
 
     @Override
     public void close() throws LocalDBException {
-        environment.close();
+        if (environment != null && environment.isOpen()) {
+            environment.close();
+        }
         status = LocalDB.Status.CLOSED;
         LOGGER.debug("closed");
     }
 
     @Override
     public int size(final LocalDB.DB db) throws LocalDBException {
-        checkStatus();
+        checkStatus(false);
         return environment.computeInReadonlyTransaction(new TransactionalComputable<Integer>() {
             @Override
             public Integer compute(@NotNull Transaction transaction) {
@@ -161,12 +166,13 @@ public class Xodus_LocalDB implements LocalDBProvider {
     }
     @Override
     public boolean contains(LocalDB.DB db, String key) throws LocalDBException {
+        checkStatus(false);
         return get(db, key) != null;
     }
 
     @Override
     public String get(final LocalDB.DB db, final String key) throws LocalDBException {
-        checkStatus();
+        checkStatus(false);
         return environment.computeInReadonlyTransaction(new TransactionalComputable<String>() {
             @Override
             public String compute(@NotNull Transaction transaction) {
@@ -199,7 +205,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
         }
 
         private void doNext() {
-            checkStatus();
+            checkStatus(false);
             try {
                 if (closed) {
                     return;
@@ -260,7 +266,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
 
     @Override
     public void putAll(final LocalDB.DB db, final Map<String, String> keyValueMap) throws LocalDBException {
-        checkStatus();
+        checkStatus(true);
         environment.executeInTransaction(new TransactionalExecutable() {
             @Override
             public void execute(@NotNull Transaction transaction) {
@@ -279,8 +285,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
 
     @Override
     public boolean put(final LocalDB.DB db, final String key, final String value) throws LocalDBException {
-        checkStatus();
-        outputLogExecutor.conditionallyExecuteTask();
+        checkStatus(true);
         return environment.computeInTransaction(new TransactionalComputable<Boolean>() {
             @Override
             public Boolean compute(@NotNull Transaction transaction) {
@@ -294,8 +299,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
 
     @Override
     public boolean remove(final LocalDB.DB db, final String key) throws LocalDBException {
-        checkStatus();
-        outputLogExecutor.conditionallyExecuteTask();
+        checkStatus(true);
         return environment.computeInTransaction(new TransactionalComputable<Boolean>() {
             @Override
             public Boolean compute(@NotNull Transaction transaction) {
@@ -307,7 +311,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
 
     @Override
     public void removeAll(final LocalDB.DB db, final Collection<String> keys) throws LocalDBException {
-        checkStatus();
+        checkStatus(true);
         environment.executeInTransaction(new TransactionalExecutable() {
             @Override
             public void execute(@NotNull Transaction transaction) {
@@ -317,12 +321,13 @@ public class Xodus_LocalDB implements LocalDBProvider {
                 }
             }
         });
-        outputLogExecutor.conditionallyExecuteTask();
     }
 
 
     @Override
     public void truncate(final LocalDB.DB db) throws LocalDBException {
+        checkStatus(true);
+
         LOGGER.trace("begin truncate of " + db.toString() + ", size=" + this.size(db));
         final Date startDate = new Date();
 
@@ -338,7 +343,6 @@ public class Xodus_LocalDB implements LocalDBProvider {
         LOGGER.trace("completed truncate of " + db.toString()
                 + " (" + TimeDuration.fromCurrent(startDate).asCompactString() + ")"
                 + ", size=" + this.size(db));
-        outputLogExecutor.conditionallyExecuteTask();
     }
 
     @Override
@@ -360,10 +364,16 @@ public class Xodus_LocalDB implements LocalDBProvider {
     }
 
 
-    private void checkStatus() {
+    private void checkStatus(final boolean writeOperation) {
         if (status != LocalDB.Status.OPEN) {
             throw new IllegalStateException("cannot perform operation, this instance is not open");
         }
+
+        if (writeOperation && readOnly) {
+            throw new IllegalStateException("cannot perform operation, localdb is in read-only mode");
+        }
+
+        outputLogExecutor.conditionallyExecuteTask();
     }
 
     private void outputStats() {

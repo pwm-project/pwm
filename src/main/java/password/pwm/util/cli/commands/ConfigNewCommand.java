@@ -20,26 +20,29 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
-import password.pwm.PwmConstants;
 import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.util.cli.CliParameters;
 
-public class ConfigLockCommand extends AbstractCliCommand {
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.Collections;
+
+public class ConfigNewCommand extends AbstractCliCommand {
     public void doCommand()
             throws Exception
     {
-        final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
-        final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
-        if (!Boolean.parseBoolean(storedConfiguration.readConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE))) {
-            out("configuration is already locked");
-            return;
-        }
+        final StoredConfigurationImpl storedConfiguration = StoredConfigurationImpl.newStoredConfiguration();
+        storedConfiguration.initNewRandomSecurityKey();
+        storedConfiguration.writeConfigProperty(
+                ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString(true));
+        storedConfiguration.writeConfigProperty(
+                ConfigurationProperty.CONFIG_EPOCH, String.valueOf(0));
 
-        storedConfiguration.writeConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE,Boolean.toString(false));
-        configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), PwmConstants.CLI_SESSION_LABEL);
+        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
+        storedConfiguration.toXml(new FileOutputStream(outputFile, false));
         out("success");
     }
 
@@ -47,9 +50,12 @@ public class ConfigLockCommand extends AbstractCliCommand {
     public CliParameters getCliParameters()
     {
         CliParameters cliParameters = new CliParameters();
-        cliParameters.commandName = "ConfigLock";
-        cliParameters.description = "Lock a configuration, prevents config from being edited without LDAP authentication.";
+        cliParameters.commandName = "ConfigNew";
+        cliParameters.description = "Create a new configuration file";
         cliParameters.needsPwmApplication = false;
+        cliParameters.needsLocalDB = false;
+        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
+
         cliParameters.readOnly = true;
         return cliParameters;
     }

@@ -186,10 +186,10 @@
                             <outputDirectory>${project.basedir}/target/${project.artifactId}-${project.version}/public/resources/app</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>src/main/angular/src</directory>
-                                    <excludes>
-                                        <exclude>**/*.ts</exclude>
-                                    </excludes>
+                                    <directory>src/main/angular/dist</directory>
+                                    <includes>
+                                        <include>*.ng.js*</include>
+                                    </includes>
                                 </resource>
                             </resources>
                         </configuration>
@@ -644,6 +644,11 @@
             <groupId>org.jetbrains.xodus</groupId>
             <artifactId>xodus-environment</artifactId>
             <version>1.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-nop</artifactId>
+            <version>1.7.21</version>
         </dependency>
 
 

@@ -256,6 +256,7 @@ public class UserStatusReader {
         LdapOperationsHelper.addConfiguredUserObjectClass(sessionLabel, userIdentity, pwmApplication);
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), provider);
+        final LdapProfile ldapProfile = config.getLdapProfiles().get(userIdentity.getLdapProfileID());
         final UserDataReader userDataReader = new LdapUserDataReader(userIdentity, theUser);
 
         uiBean.setUserIdentity(userIdentity.canonicalized(pwmApplication));
@@ -292,9 +293,10 @@ public class UserStatusReader {
             LOGGER.warn(sessionLabel, "error retrieving user cached password rule attributes " + e);
         }
 
+
         //populate cached attributes.
         {
-            final List<String> cachedAttributeNames = config.readSettingAsStringArray(PwmSetting.CACHED_USER_ATTRIBUTES);
+            final List<String> cachedAttributeNames = ldapProfile.readSettingAsStringArray(PwmSetting.CACHED_USER_ATTRIBUTES);
             if (cachedAttributeNames != null && !cachedAttributeNames.isEmpty()) {
                 try {
                     final Map<String,String> attributeValues = userDataReader.readStringAttributes(cachedAttributeNames);
@@ -307,8 +309,6 @@ public class UserStatusReader {
         }
 
         {// set userID
-            final String ldapProfileID = userIdentity.getLdapProfileID();
-            final LdapProfile ldapProfile = config.getLdapProfiles().get(ldapProfileID);
             final String uIDattr = ldapProfile.getUsernameAttribute();
             try {
                 uiBean.setUsername(userDataReader.readStringAttribute(uIDattr));
@@ -323,7 +323,6 @@ public class UserStatusReader {
         }
 
         { // set email address
-            final LdapProfile ldapProfile = userIdentity.getLdapProfile(pwmApplication.getConfig());
             final String ldapEmailAttribute = ldapProfile.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
             try {
                 uiBean.setUserEmailAddress(userDataReader.readStringAttribute(ldapEmailAttribute));
@@ -333,7 +332,6 @@ public class UserStatusReader {
         }
 
         { // set SMS number
-            final LdapProfile ldapProfile = userIdentity.getLdapProfile(pwmApplication.getConfig());
             final String ldapSmsAttribute = ldapProfile.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
             try {
                 uiBean.setUserSmsNumber(userDataReader.readStringAttribute(ldapSmsAttribute));

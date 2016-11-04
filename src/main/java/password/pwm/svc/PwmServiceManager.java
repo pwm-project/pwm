@@ -23,6 +23,7 @@
 package password.pwm.svc;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmEnvironment;
 import password.pwm.util.VersionChecker;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -126,7 +127,8 @@ public class PwmServiceManager {
             throws PwmUnrecoverableException
     {
 
-        final boolean internalRuntimeInstance = pwmApplication.getPwmEnvironment().isInternalRuntimeInstance();
+        final boolean internalRuntimeInstance = pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
+                || pwmApplication.getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.CommandLineInstance);
 
         for (final PwmServiceClassEnum serviceClassEnum : PwmServiceClassEnum.values()) {
             boolean startService = true;
