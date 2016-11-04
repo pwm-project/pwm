@@ -1,12 +1,7 @@
 people-search-table {
-    display: flex;
-    flex-flow: column nowrap;
-    overflow-x: auto;
-
     > table {
         border: 1px solid #dae1e1;
         border-collapse: collapse;
-
         flex: 1 1;
         margin-top: 10px;
         width: 100%;

@@ -1,5 +1,13 @@
 people-search {
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
+
   > .search-bar {
     margin-bottom: 10px;
+  }
+
+  > ui-view {
+    overflow: auto;
   }
 }
