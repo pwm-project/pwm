@@ -42,7 +42,6 @@ export default class OrgChartComponent {
 
         // OrgChartComponent has different functionality at different window widths. On window resize, we
         // want to update the state of the component and trigger a $digest
-        // noinspection TypeScriptUnresolvedFunction
         element(this.$window).bind('resize', () => {
             self.updateLayout();
             self.$scope.$apply();
