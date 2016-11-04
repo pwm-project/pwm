@@ -131,26 +131,28 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         // read the basic auth info out of the header (if it exists);
-        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(pwmApplication, pwmRequest);
+        if (pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.BASIC_AUTH_ENABLED)) {
+            final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(pwmApplication, pwmRequest);
 
-        final BasicAuthInfo originalBasicAuthInfo = pwmSession.getLoginInfoBean().getBasicAuth();
+            final BasicAuthInfo originalBasicAuthInfo = pwmSession.getLoginInfoBean().getBasicAuth();
 
-        //check to make sure basic auth info is same as currently known user in session.
-        if (basicAuthInfo != null && originalBasicAuthInfo != null && !(originalBasicAuthInfo.equals(basicAuthInfo))) {
-            // if we read here then user is using basic auth, and header has changed since last request
-            // this means something is screwy, so log out the session
+            //check to make sure basic auth info is same as currently known user in session.
+            if (basicAuthInfo != null && originalBasicAuthInfo != null && !(originalBasicAuthInfo.equals(basicAuthInfo))) {
+                // if we read here then user is using basic auth, and header has changed since last request
+                // this means something is screwy, so log out the session
 
-            // read the current user info for logging
-            final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION,"basic auth header user '" + basicAuthInfo.getUsername() + "' does not match currently logged in user '" + uiBean.getUserIdentity() + "', session will be logged out");
-            LOGGER.info(pwmRequest, errorInformation);
+                // read the current user info for logging
+                final UserInfoBean uiBean = pwmSession.getUserInfoBean();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION, "basic auth header user '" + basicAuthInfo.getUsername() + "' does not match currently logged in user '" + uiBean.getUserIdentity() + "', session will be logged out");
+                LOGGER.info(pwmRequest, errorInformation);
 
-            // log out their user
-            pwmSession.unauthenticateUser(pwmRequest);
+                // log out their user
+                pwmSession.unauthenticateUser(pwmRequest);
 
-            // send en error to user.
-            pwmRequest.respondWithError(errorInformation, true);
-            return;
+                // send en error to user.
+                pwmRequest.respondWithError(errorInformation, true);
+                return;
+            }
         }
 
         // check status of oauth expiration
@@ -258,7 +260,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             return;
         }
 
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.FORCE_BASIC_AUTH)) {
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.BASIC_AUTH_FORCE)) {
             final String displayMessage = LocaleHelper.getLocalizedMessage(Display.Title_Application, pwmRequest);
             pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.WWW_Authenticate,"Basic realm=\"" + displayMessage + "\"");
             pwmRequest.getPwmResponse().setStatus(401);
@@ -438,33 +440,41 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         )
                 throws PwmUnrecoverableException
         {
-            if (!pwmRequest.isAuthenticated()) {
-                final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(pwmRequest.getPwmApplication(), pwmRequest);
-                if (basicAuthInfo != null) {
-                    try {
-                        final PwmSession pwmSession = pwmRequest.getPwmSession();
-                        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+            if (!pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.BASIC_AUTH_ENABLED)) {
+                return;
+            }
 
-                        //user isn't already authenticated and has an auth header, so try to auth them.
-                        LOGGER.debug(pwmSession, "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.getUsername() + ")");
-                        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
-                                pwmApplication,
-                                pwmSession,
-                                PwmAuthenticationSource.BASIC_AUTH
-                        );
-                        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
-                        final UserIdentity userIdentity = userSearchEngine.resolveUsername(basicAuthInfo.getUsername(), null, null);
-                        sessionAuthenticator.authenticateUser(userIdentity, basicAuthInfo.getPassword());
-                        pwmSession.getLoginInfoBean().setBasicAuth(basicAuthInfo);
+            if (pwmRequest.isAuthenticated()) {
+                return;
+            }
 
-                    } catch (ChaiUnavailableException e) {
-                        StatisticsManager.incrementStat(pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT);
-                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage());
-                        throw new PwmUnrecoverableException(errorInformation);
-                    } catch (PwmException e) {
-                        throw new PwmUnrecoverableException(e.getError());
-                    }
-                }
+            final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(pwmRequest.getPwmApplication(), pwmRequest);
+            if (basicAuthInfo == null) {
+                return;
+            }
+
+            try {
+                final PwmSession pwmSession = pwmRequest.getPwmSession();
+                final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+
+                //user isn't already authenticated and has an auth header, so try to auth them.
+                LOGGER.debug(pwmSession, "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.getUsername() + ")");
+                final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
+                        pwmApplication,
+                        pwmSession,
+                        PwmAuthenticationSource.BASIC_AUTH
+                );
+                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
+                final UserIdentity userIdentity = userSearchEngine.resolveUsername(basicAuthInfo.getUsername(), null, null);
+                sessionAuthenticator.authenticateUser(userIdentity, basicAuthInfo.getPassword());
+                pwmSession.getLoginInfoBean().setBasicAuth(basicAuthInfo);
+
+            } catch (ChaiUnavailableException e) {
+                StatisticsManager.incrementStat(pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT);
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage());
+                throw new PwmUnrecoverableException(errorInformation);
+            } catch (PwmException e) {
+                throw new PwmUnrecoverableException(e.getError());
             }
         }
 

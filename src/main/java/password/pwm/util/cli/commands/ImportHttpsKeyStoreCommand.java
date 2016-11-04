@@ -20,13 +20,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.util.PasswordData;
 import password.pwm.util.StringUtil;
+import password.pwm.util.cli.CliParameters;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 
 import java.io.File;
@@ -59,7 +60,7 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand {
         final String keyStorePassword = getOptionalPassword();
         final String inputAliasName = (String)cliEnvironment.getOptions().get(ALIAS_OPTIONNAME);
 
-        final ConfigurationReader configurationReader = new ConfigurationReader(cliEnvironment.configurationFile);
+        final ConfigurationReader configurationReader = new ConfigurationReader(cliEnvironment.getConfigurationFile());
         final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
 
         try {

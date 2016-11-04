@@ -235,6 +235,10 @@ public enum PwmSetting {
             "sms.userSmsAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
     CHALLENGE_USER_ATTRIBUTE(
             "challenge.userAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
+    EVENTS_LDAP_ATTRIBUTE(
+            "events.ldap.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES),
+    CACHED_USER_ATTRIBUTES(
+            "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LDAP_ATTRIBUTES),
 
@@ -302,6 +306,9 @@ public enum PwmSetting {
             "email.sendUsername", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_INTRUDERNOTICE(
             "email.intruderNotice", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
+    EMAIL_DELETEACCOUNT(
+            "email.deleteAccount", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
+
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL_SETTINGS),
 
@@ -496,8 +503,6 @@ public enum PwmSetting {
             "disallowedInputs", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY),
     REQUIRE_HTTPS(
             "pwm.requireHTTPS", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
-    FORCE_BASIC_AUTH(
-            "forceBasicAuth", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     USE_X_FORWARDED_FOR_HEADER(
             "useXForwardedForHeader", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     MULTI_IP_SESSION_ALLOWED(
@@ -627,8 +632,6 @@ public enum PwmSetting {
             "events.user.storageMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.USER_HISTORY),
     EVENTS_USER_EVENT_TYPES(
             "events.user.eventList", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.USER_HISTORY),
-    EVENTS_LDAP_ATTRIBUTE(
-            "events.ldap.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.USER_HISTORY),
     EVENTS_LDAP_MAX_EVENTS(
             "events.ldap.maxEvents", PwmSettingSyntax.NUMERIC, PwmSettingCategory.USER_HISTORY),
 
@@ -1055,6 +1058,12 @@ public enum PwmSetting {
     SSO_AUTH_HEADER_NAME(
             "security.sso.authHeaderName", PwmSettingSyntax.STRING, PwmSettingCategory.HTTP_SSO),
 
+    // basic auth sso
+    BASIC_AUTH_ENABLED(
+            "basicAuth.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.BASIC_SSO),
+    BASIC_AUTH_FORCE(
+            "forceBasicAuth", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.BASIC_SSO),
+
     // administration
     QUERY_MATCH_PWM_ADMIN(
             "pwmAdmin.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.ADMINISTRATION),
@@ -1082,8 +1091,6 @@ public enum PwmSetting {
             "external.macros.urls", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
     EXTERNAL_MACROS_REMOTE_RESPONSES_URL(
             "external.remoteResponses.url", PwmSettingSyntax.STRING, PwmSettingCategory.REST_CLIENT),
-    CACHED_USER_ATTRIBUTES(
-            "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
 
 
     // NAAF

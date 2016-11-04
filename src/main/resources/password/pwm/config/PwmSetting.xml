@@ -790,6 +790,12 @@
             <value>{"to":"@User:Email@","from":"Intruder Notifier \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Information","bodyPlain":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator.","bodyHtml":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator."}</value>
         </default>
     </setting>
+    <setting hidden="false" key="email.deleteAccount" level="1">
+        <flag>MacroSupport</flag>
+        <default>
+            <value>{"to":"@User:Email@","from":"Delete Account Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Deletion Notice","bodyPlain":"Your account has been deleted at your request.","bodyHtml":""}</value>
+        </default>
+    </setting>
     <setting hidden="false" key="email.smtp.advancedSettings" level="2">
         <regex>^[a-zA-Z0-9.]+=.+$</regex>
         <default/>
@@ -1390,6 +1396,11 @@
             <value>false</value>
         </default>
     </setting>
+    <setting hidden="false" key="basicAuth.enable" level="2" required="true">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="false" key="forceBasicAuth" level="2" required="true">
         <default>
             <value>false</value>
@@ -1732,7 +1743,7 @@
             <option value="Off">0 - Off</option>
         </options>
     </setting>
-    <setting hidden="false" key="events.java.log4jconfigFile" level="2">
+    <setting hidden="true" key="events.java.log4jconfigFile" level="2">
         <default>
             <value />
         </default>
@@ -3697,6 +3708,8 @@
     <category hidden="false" key="HTTP_SSO" level="2">
     </category>
     <category hidden="false" key="CAS_SSO" level="2">
+    </category>
+    <category hidden="false" key="BASIC_SSO">
     </category>
     <category hidden="false" key="CHANGE_PASSWORD">
     </category>

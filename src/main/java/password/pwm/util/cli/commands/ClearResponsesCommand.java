@@ -20,48 +20,48 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
-import password.pwm.error.PwmOperationalException;
+import password.pwm.util.cli.CliParameters;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.localdb.LocalDBUtility;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.Collections;
+public class ClearResponsesCommand extends AbstractCliCommand {
 
-public class ExportLocalDBCommand extends AbstractCliCommand {
     @Override
     void doCommand()
             throws Exception
     {
-        final LocalDB localDB = cliEnvironment.getLocalDB();
-
-        final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
-        if (outputFile.exists()) {
-            out("outputFile for exportLocalDB cannot already exist");
+        final String msg = "Proceeding with this operation will clear all stored responses from the LocalDB." + "\n"
+                + "Please consider exporting the responses before proceeding. " + "\n"
+                + "\n"
+                + "The application must be stopped for this operation to succeed." + "\n";
+        if (!promptForContinue(msg)) {
             return;
         }
 
-        final LocalDBUtility localDBUtility = new LocalDBUtility(localDB);
-        try {
-            localDBUtility.exportLocalDB(new FileOutputStream(outputFile), System.out, true);
-        } catch (PwmOperationalException e) {
-            out("error during export: " + e.getMessage());
+        final LocalDB localDB = cliEnvironment.getLocalDB();
+
+        if (localDB.size(LocalDB.DB.RESPONSE_STORAGE) == 0) {
+            out("The LocalDB response database is already empty");
+            return;
         }
+
+        out("clearing " + localDB.size(LocalDB.DB.RESPONSE_STORAGE) + " responses");
+        localDB.truncate(LocalDB.DB.RESPONSE_STORAGE);
+        out("all saved responses are now removed from LocalDB");
     }
 
     @Override
     public CliParameters getCliParameters()
     {
         CliParameters cliParameters = new CliParameters();
-        cliParameters.commandName = "ExportLocalDB";
-        cliParameters.description = "Export the entire LocalDB contents to a backup file";
-        cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);
+        cliParameters.commandName = "ClearLocalResponses";
+        cliParameters.description = "Clear all responses from the LocalDB";
 
-        cliParameters.needsLocalDB = true;
-        cliParameters.readOnly = true;
+        cliParameters.needsLocalDB= true;
+        cliParameters.readOnly = false;
 
         return cliParameters;
     }
 }
+

@@ -20,13 +20,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
+import password.pwm.util.cli.CliParameters;
 
 import java.io.File;
 
@@ -36,7 +37,7 @@ public class ConfigResetHttpsCommand
     public void doCommand()
             throws Exception
     {
-        final File configurationFile = cliEnvironment.configurationFile;
+        final File configurationFile = cliEnvironment.getConfigurationFile();
         if (configurationFile == null || !configurationFile.exists()) {
             out("configuration file is not present");
             return;
@@ -46,7 +47,7 @@ public class ConfigResetHttpsCommand
             return;
         }
 
-        final ConfigurationReader configurationReader = new ConfigurationReader(cliEnvironment.configurationFile);
+        final ConfigurationReader configurationReader = new ConfigurationReader(cliEnvironment.getConfigurationFile());
         final StoredConfigurationImpl storedConfiguration = configurationReader.getStoredConfiguration();
 
         for (final PwmSetting setting : PwmSettingCategory.HTTPS_SERVER.getSettings()) {

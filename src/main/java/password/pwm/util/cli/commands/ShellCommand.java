@@ -20,9 +20,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
 import password.pwm.PwmConstants;
+import password.pwm.util.cli.CliEnvironment;
+import password.pwm.util.cli.CliException;
+import password.pwm.util.cli.CliParameters;
+import password.pwm.util.cli.MainClass;
 
 import java.util.*;
 
@@ -107,15 +111,15 @@ public class ShellCommand extends AbstractCliCommand {
             cliOptions = MainClass.parseCommandOptions(command.getCliParameters(), tokens);
         }
         final CliEnvironment newEnvironment = new CliEnvironment(
-                cliEnvironment.configurationReader,
-                cliEnvironment.configurationFile,
-                cliEnvironment.config,
-                cliEnvironment.applicationPath,
-                cliEnvironment.pwmApplication,
-                cliEnvironment.localDB,
-                cliEnvironment.debugWriter,
+                cliEnvironment.getConfigurationReader(),
+                cliEnvironment.getConfigurationFile(),
+                cliEnvironment.getConfig(),
+                cliEnvironment.getApplicationPath(),
+                cliEnvironment.getPwmApplication(),
+                cliEnvironment.getLocalDB(),
+                cliEnvironment.getDebugWriter(),
                 cliOptions,
-                cliEnvironment.mainOptions
+                cliEnvironment.getMainOptions()
         );
         command.execute(commandLine,newEnvironment);
     }

@@ -164,8 +164,10 @@ PWM_CFGEDIT.updateSettingDisplay = function(keyName, isDefault) {
             settingSyntax = PWM_SETTINGS['settings'][keyName]['syntax'];
         } catch (e) { /* noop */ }  //setting keys may not be loaded
 
-        if (PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'],'NoDefault')) {
-            isDefault = true;
+        if (PWM_SETTINGS['settings'][keyName]) {
+            if (PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'],'NoDefault')) {
+                isDefault = true;
+            }
         }
 
         if (!isDefault) {

@@ -27,11 +27,13 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.DeleteAccountProfile;
+import password.pwm.config.profile.ProfileType;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -52,6 +54,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 @WebServlet(
         name="SelfDeleteServlet",
@@ -215,6 +218,9 @@ public class DeleteAccountServlet extends AbstractPwmServlet {
             }
         }
 
+        // send notification
+        sendProfileUpdateEmailNotice(pwmRequest);
+
         // mark the event log
         pwmApplication.getAuditManager().submit(AuditEvent.DELETE_ACCOUNT, pwmRequest.getPwmSession().getUserInfoBean(), pwmRequest.getPwmSession());
 
@@ -244,5 +250,26 @@ public class DeleteAccountServlet extends AbstractPwmServlet {
         // delete finished, so logout and redirect.
         pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
         pwmRequest.sendRedirectToContinue();
+    }
+
+    private static void sendProfileUpdateEmailNotice(
+            final PwmRequest pwmRequest
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final Configuration config = pwmRequest.getConfig();
+        final Locale locale = pwmRequest.getLocale();
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_DELETEACCOUNT, locale);
+
+        if (configuredEmailSetting == null) {
+            LOGGER.debug(pwmRequest, "skipping delete account notice email for '" + pwmRequest.getUserInfoIfLoggedIn() + "' no email configured");
+            return;
+        }
+
+        pwmRequest.getPwmApplication().getEmailQueue().submitEmail(
+                configuredEmailSetting,
+                pwmRequest.getPwmSession().getUserInfoBean(),
+                pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication())
+        );
     }
 }

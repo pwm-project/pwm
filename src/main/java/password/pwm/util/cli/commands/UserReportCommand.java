@@ -20,13 +20,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.report.ReportService;
+import password.pwm.util.cli.CliParameters;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -43,7 +44,7 @@ public class UserReportCommand extends AbstractCliCommand {
     void doCommand()
             throws Exception
     {
-        final File outputFile = (File)cliEnvironment.options.get(OUTPUT_FILE_OPTIONNAME);
+        final File outputFile = (File)cliEnvironment.getOptions().get(OUTPUT_FILE_OPTIONNAME);
         final OutputStream outputFileStream;
         try {
             outputFileStream = new BufferedOutputStream(new FileOutputStream(outputFile));

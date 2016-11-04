@@ -20,24 +20,33 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.util.cli.commands;
 
-import password.pwm.PwmConstants;
+import password.pwm.util.cli.CliParameters;
+import password.pwm.util.cli.MainClass;
 
-public class VersionCommand extends AbstractCliCommand {
-    @Override
+import java.util.Collections;
+
+public class HelpCommand extends AbstractCliCommand {
+
     void doCommand()
             throws Exception
     {
-        out(PwmConstants.PWM_APP_NAME + " version " + PwmConstants.SERVLET_VERSION);
+        out(MainClass.helpTextFromCommands(MainClass.COMMANDS.values()));
     }
+
 
     @Override
     public CliParameters getCliParameters()
     {
         CliParameters cliParameters = new CliParameters();
-        cliParameters.commandName = "Version";
-        cliParameters.description = "Output version information";
+        cliParameters.commandName = "Help";
+        cliParameters.description = "Display Help Text";
+        cliParameters.options = Collections.emptyList();
+
+        cliParameters.needsPwmApplication = false;
+        cliParameters.needsLocalDB = false;
+        cliParameters.readOnly = false;
         return cliParameters;
     }
 }
