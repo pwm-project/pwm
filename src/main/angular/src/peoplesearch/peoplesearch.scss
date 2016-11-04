@@ -3,9 +3,6 @@ body, html {
 }
 
 body {
-  box-sizing: border-box;
-  padding: 10px;
-
   > ui-view {
     box-sizing: border-box;
     display: block;

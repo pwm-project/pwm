@@ -1,6 +1,14 @@
 import { Component } from '../component';
-import { element, IScope, IWindowService } from 'angular';
+import { element, IAugmentedJQuery, IFilterService, IScope, IWindowService } from 'angular';
 import Person from '../models/person.model';
+
+export enum OrgChartSize {
+    ExtraSmall = 0,
+    Small = 365,
+    Medium = 410,
+    Large = 454,
+    ExtraLarge = 480
+}
 
 @Component({
     bindings: {
@@ -13,6 +21,7 @@ import Person from '../models/person.model';
 })
 export default class OrgChartComponent {
     directReports: Person[];
+    elementWidth: number;
     managementChain: Person[];
     person: Person;
 
@@ -24,15 +33,21 @@ export default class OrgChartComponent {
         userKey: null
     });
 
+    private elementSize: OrgChartSize = OrgChartSize.ExtraSmall;
     private maxVisibleManagers: number;
-    private windowWidth: number;
     private visibleManagers: Person[];
 
-    static $inject = ['$scope', '$state', '$window'];
+    static $inject = [ '$element', '$filter', '$scope', '$state', '$window' ];
     constructor(
+        private $element: IAugmentedJQuery,
+        private $filter: IFilterService,
         private $scope: IScope,
         private $state: angular.ui.IStateService,
         private $window: IWindowService) {
+    }
+
+    $onDestroy(): void {
+        element(this.$window).off();
     }
 
     $onInit(): void {
@@ -40,28 +55,31 @@ export default class OrgChartComponent {
 
         this.updateLayout();
 
-        // OrgChartComponent has different functionality at different window widths. On window resize, we
+        // OrgChartComponent has different functionality at different widths. On element resize, we
         // want to update the state of the component and trigger a $digest
-        element(this.$window).bind('resize', () => {
-            self.updateLayout();
+        element(this.$window).on('resize', () => {
+            self.elementWidth = self.getElementWidth();
             self.$scope.$apply();
+        });
+        this.$scope.$watch('$ctrl.elementWidth', () => {
+            self.updateLayout();
         });
 
         // In large displays managers are displayed in a row. Any time this property changes, we want
         // to force our manager list to be recalculated in this.getManagementChain() so it returns the correct
-        // result at all window widths
+        // result at all element widths
         this.$scope.$watch('$ctrl.maxVisibleManagers', () => {
             this.resetManagerList();
         });
     }
 
     getManagerCardSize(): string {
-        return this.isWideLayout() ? 'small' : 'normal';
+        return this.isExtraLargeLayout() ? 'small' : 'normal';
     }
 
     getManagementChain(): Person[] {
         // Display managers in a row
-        if (this.isWideLayout()) {
+        if (this.isExtraLargeLayout()) {
             // All managers can fit on screen
             if (this.maxVisibleManagers >= this.managementChain.length) {
                 return this.managementChain;
@@ -110,27 +128,67 @@ export default class OrgChartComponent {
             this.visibleManagers.length < this.managementChain.length;
     }
 
-    private isWideLayout(): boolean {
-        return this.windowWidth >= 490;
+    private getElementWidth() {
+        return this.$element[0].clientWidth;
     }
 
-    // Remove all displayed managers so the list is updated on window resize
+    private isExtraLargeLayout(): boolean {
+        return this.elementSize === OrgChartSize.ExtraLarge;
+    }
+
+    // Remove all displayed managers so the list is updated on element resize
     private resetManagerList(): void {
         this.visibleManagers = null;
     }
 
-    private setMaxVisibleManagers(): void {
-        this.maxVisibleManagers = Math.floor(
-            (this.windowWidth - 115 /* left margin */) /
-            125 /* card width + right margin */);
+    private setElementClass(): void {
+        var className: string = [
+            OrgChartSize.Small,
+            OrgChartSize.ExtraSmall,
+            OrgChartSize.Medium,
+            OrgChartSize.Large,
+            OrgChartSize.ExtraLarge
+        ]
+            .filter((size: OrgChartSize): boolean => {
+                return size <= this.elementSize;
+            })
+            .map((size: OrgChartSize): string => {
+                return this.$filter<(input: string) => string>('dasherize')(OrgChartSize[size]);
+            })
+            .join(' ');
+
+        this.$element[0].className = '';
+        this.$element.addClass(className);
     }
 
-    private setWindowWidth(): void {
-        this.windowWidth = this.$window.innerWidth;
+    private setElementSize(): void {
+        var elementWidth: number = this.getElementWidth();
+
+        if (elementWidth < OrgChartSize.Small) {
+            this.elementSize = OrgChartSize.ExtraSmall;
+        }
+        else if (elementWidth < OrgChartSize.Medium) {
+            this.elementSize = OrgChartSize.Small;
+        }
+        else if (elementWidth < OrgChartSize.Large) {
+            this.elementSize = OrgChartSize.Medium;
+        }
+        else if (elementWidth < OrgChartSize.ExtraLarge) {
+            this.elementSize = OrgChartSize.Large;
+        }
+        else {
+            this.elementSize = OrgChartSize.ExtraLarge;
+        }
+    }
+
+    private setMaxVisibleManagers(): void {
+        this.maxVisibleManagers = Math.floor(
+            (this.getElementWidth() - 115 /* left margin */) / 125 /* card width + right margin */);
     }
 
     private updateLayout(): void {
-        this.setWindowWidth();
+        this.setElementSize();
+        this.setElementClass();
         this.setMaxVisibleManagers();
     }
 }

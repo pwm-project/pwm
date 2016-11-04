@@ -4,11 +4,144 @@ $org-chart-text-color: #808080;
 
 $manager-connector-height: 16px;
 
-// Default display
+// (XS) Default display
 org-chart {
   display: block;
   min-width: 300px;
   padding-top: 10px;
+
+  // (S) Too wide for full width person-card in direct reports
+  &.small {
+    > .org-chart-section {
+      > .person-card-list {
+        > person-card {
+          margin-right: 5px;
+          width: 200px;
+        }
+      }
+    }
+  }
+
+  // (M) Wide enough to fit multiple person-cards next to each other inline
+  &.medium {
+    > .org-chart-section {
+      > .person-card-list {
+        text-align: left;
+      }
+
+      &.managers {
+        .manager {
+          text-align: center;
+        }
+      }
+    }
+  }
+
+  // (L) Wide enough to show main person offset to the right. Manager should now be locked in place (instead of centered)
+  &.large {
+    > .org-chart-section {
+      text-align: left;
+
+      > person-card {
+        &[size="large"] {
+          margin: 0 0 0 128px;
+        }
+      }
+
+      .org-chart-connector {
+        left: 169px;
+        margin: 0;
+      }
+
+      &.managers {
+        .org-chart-connector {
+          left: 34px;
+        }
+
+        .manager {
+          display: block;
+          margin-left: 135px;
+          text-align: left;
+        }
+      }
+    }
+  }
+
+  // (XL) Wide enough to display several managers horizontally
+  &.extra-large {
+    > .org-chart-section {
+      &.managers {
+        margin-left: 0;
+        min-height: 128px;
+        overflow: hidden;
+        white-space: nowrap;
+
+        > h3 {
+          left: 0;
+          position: absolute;
+          top: 6px;
+        }
+
+        .org-chart-connector {
+          left: 42px;
+        }
+
+        .manager {
+          display: inline-block;
+          margin-left: 0;
+          margin-bottom: 32px;
+
+          &:first-child {
+            margin-left: 115px;
+
+            > .org-chart-connector {
+              bottom: initial;
+              top: 56px;
+              left: 57px;
+              height: 72px;
+            }
+          }
+
+          &:not(:first-child) {
+            > .org-chart-connector {
+              background-color: $org-chart-secondary-connector-color;
+              bottom: initial;
+              height: 3px;
+              left: -37px;
+              top: 26px;
+              width: 69px;
+            }
+
+            > person-card {
+              > .person-card-content {
+                > .avatar {
+                  background-color: $org-chart-secondary-connector-color;
+
+                  &:not(:hover) {
+                    border-color: $org-chart-secondary-connector-color;
+                  }
+                }
+
+                > .details {
+                  > :first-child {
+                    color: $org-chart-connector-color;
+                  }
+                }
+              }
+            }
+          }
+
+          &:not(:last-child) {
+            margin-right: 5px;
+          }
+        }
+      }
+
+      .org-chart-connector {
+        left: 172px;
+      }
+    }
+  }
 
   > .org-chart-section {
     position: relative;
@@ -113,147 +246,6 @@ org-chart {
       right: 0;
       top: 0;
       width: 5px;
-    }
-  }
-}
-
-// Too wide for full width person-card
-@media (min-width: 375px) {
-  org-chart {
-    > .org-chart-section {
-      > .person-card-list {
-        > person-card {
-          margin-right: 5px;
-          width: 200px;
-        }
-      }
-    }
-  }
-}
-
-// Wide enough to fit multiple person-cards next to each other inline
-@media (min-width: 420px) {
-  org-chart {
-    > .org-chart-section {
-      > .person-card-list {
-        text-align: left;
-      }
-
-      &.managers {
-        .manager {
-          text-align: center;
-        }
-      }
-    }
-  }
-}
-
-// Wide enough to show main person offset to the right. Manager should now be locked in place (instead of centered)
-@media (min-width: 464px) {
-  org-chart {
-    > .org-chart-section {
-      text-align: left;
-
-      > person-card {
-        &[size="large"] {
-          margin: 0 0 0 128px;
-        }
-      }
-
-      .org-chart-connector {
-        left: 169px;
-        margin: 0;
-      }
-
-      &.managers {
-        .org-chart-connector {
-          left: 34px;
-        }
-
-        .manager {
-          display: block;
-          margin-left: 135px;
-          text-align: left;
-        }
-      }
-    }
-  }
-}
-
-// Wide enough to display several managers horizontally
-@media (min-width: 490px) {
-  org-chart {
-    > .org-chart-section {
-      &.managers {
-        margin-left: 0;
-        min-height: 128px;
-        overflow: hidden;
-        white-space: nowrap;
-
-        > h3 {
-          left: 0;
-          position: absolute;
-          top: 6px;
-        }
-
-        .org-chart-connector {
-          left: 42px;
-        }
-
-        .manager {
-          display: inline-block;
-          margin-left: 0;
-          margin-bottom: 32px;
-
-          &:first-child {
-            margin-left: 115px;
-
-            > .org-chart-connector {
-              bottom: initial;
-              top: 56px;
-              left: 57px;
-              height: 72px;
-            }
-          }
-
-          &:not(:first-child) {
-            > .org-chart-connector {
-              background-color: $org-chart-secondary-connector-color;
-              bottom: initial;
-              height: 3px;
-              left: -37px;
-              top: 26px;
-              width: 69px;
-            }
-
-            > person-card {
-              > .person-card-content {
-                > .avatar {
-                  background-color: $org-chart-secondary-connector-color;
-
-                  &:not(:hover) {
-                    border-color: $org-chart-secondary-connector-color;
-                  }
-                }
-
-                > .details {
-                  > :first-child {
-                    color: $org-chart-connector-color;
-                  }
-                }
-              }
-            }
-          }
-
-          &:not(:last-child) {
-            margin-right: 5px;
-          }
-        }
-      }
-
-      .org-chart-connector {
-        left: 172px;
-      }
     }
   }
 }
