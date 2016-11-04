@@ -5,6 +5,10 @@ app-bar {
     display: flex;
     flex-flow: row nowrap;
 
+    > .page-content-title {
+      margin-right: 10px;
+    }
+
     > [flex] {
       flex: 1 1;
     }

@@ -1,10 +1,10 @@
 import { Component } from '../component';
-import { IQService, IScope } from 'angular';
+import { IPromise, IQService, IScope } from 'angular';
 import { IPeopleService } from '../services/people.service';
 import Person from '../models/person.model';
 
 @Component({
-    // stylesheetUrl: require('peoplesearch/orgchart-search.component.scss'),
+    stylesheetUrl: require('peoplesearch/orgchart-search.component.scss'),
     templateUrl: require('peoplesearch/orgchart-search.component.html')
 })
 export default class OrgChartSearchComponent {
@@ -12,19 +12,30 @@ export default class OrgChartSearchComponent {
     managementChain: Person[];
     person: Person;
 
-    static $inject = [ '$q', '$scope', '$stateParams', 'PeopleService' ];
+    static $inject = [ '$q', '$scope', '$state', '$stateParams', 'PeopleService' ];
     constructor(private $q: IQService,
                 private $scope: IScope,
+                private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
                 private peopleService: IPeopleService) {
     }
 
-    $onInit() {
+    $onInit(): void {
+        var self = this;
+
         // Retrieve data from the server
         this.fetchData();
     }
 
-    private fetchData() {
+    autoCompleteSearch(query: string): IPromise<Person[]> {
+        return this.peopleService.autoComplete(query);
+    }
+
+    onAutoCompleteItemSelected(person: Person): void {
+        this.$state.go('orgchart', { personId: person.userKey });
+    }
+
+    private fetchData(): void {
         var personId: string = this.$stateParams['personId'];
         var self = this;
 

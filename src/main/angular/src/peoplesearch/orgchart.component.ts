@@ -35,7 +35,7 @@ export default class OrgChartComponent {
         private $window: IWindowService) {
     }
 
-    $onInit() {
+    $onInit(): void {
         var self = this;
 
         this.updateLayout();
@@ -56,7 +56,7 @@ export default class OrgChartComponent {
         });
     }
 
-    getManagerCardSize() {
+    getManagerCardSize(): string {
         return this.isWideLayout() ? 'small' : 'normal';
     }
 
@@ -89,48 +89,48 @@ export default class OrgChartComponent {
         return [].concat(this.managementChain).reverse();
     }
 
-    hasDirectReports() {
-        return this.directReports && this.directReports.length;
+    hasDirectReports(): boolean {
+        return this.directReports && !!this.directReports.length;
     }
 
-    hasManagementChain() {
-        return this.managementChain && this.managementChain.length;
+    hasManagementChain(): boolean {
+        return this.managementChain && !!this.managementChain.length;
     }
 
-    showingOverflow() {
+    isPersonOrphan(): boolean {
+        return !(this.hasDirectReports() || this.hasManagementChain());
+    }
+
+    selectPerson(userKey: string): void {
+        this.$state.go('orgchart', { personId: userKey });
+    }
+
+    showingOverflow(): boolean {
         return this.visibleManagers &&
             this.managementChain &&
             this.visibleManagers.length < this.managementChain.length;
     }
 
-    isPersonOrphan() {
-        return !(this.hasDirectReports() || this.hasManagementChain());
-    }
-
-    selectPerson(userKey: string) {
-        this.$state.go('orgchart', { personId: userKey });
-    }
-
-    private isWideLayout() {
+    private isWideLayout(): boolean {
         return this.windowWidth >= 490;
     }
 
     // Remove all displayed managers so the list is updated on window resize
-    private resetManagerList() {
+    private resetManagerList(): void {
         this.visibleManagers = null;
     }
 
-    private setMaxVisibleManagers() {
+    private setMaxVisibleManagers(): void {
         this.maxVisibleManagers = Math.floor(
             (this.windowWidth - 115 /* left margin */) /
             125 /* card width + right margin */);
     }
 
-    private setWindowWidth() {
+    private setWindowWidth(): void {
         this.windowWidth = this.$window.innerWidth;
     }
 
-    private updateLayout() {
+    private updateLayout(): void {
         this.setWindowWidth();
         this.setMaxVisibleManagers();
     }

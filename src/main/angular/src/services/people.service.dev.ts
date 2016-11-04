@@ -13,7 +13,14 @@ export default class PeopleService implements IPeopleService {
     }
 
     autoComplete(query: string): IPromise<Person[]> {
-        return this.search(query);
+        return this.search(query)
+            .then((people: Person[]) => {
+                if (people && people.length > 10) {
+                    return this.$q.resolve(people.slice(0, 10));
+                }
+
+                return this.$q.resolve(people);
+            });
     }
 
     getDirectReports(id: string): angular.IPromise<Person[]> {
@@ -89,8 +96,13 @@ export default class PeopleService implements IPeopleService {
         var deferred = this.$q.defer<Person[]>();
         var self = this;
         this.$timeout(() => {
-            var people = self.people.filter((person: Person) =>
-                person.detail.givenName['values'][0].toLowerCase().indexOf(query.toLowerCase()) >= 0);
+            var people = self.people.filter((person: Person) => {
+                if (!query) {
+                    return false;
+                }
+                var fullName = `${person.givenName} ${person.sn}`;
+                return fullName.toLowerCase().indexOf(query.toLowerCase()) >= 0;
+            });
 
             deferred.resolve(people);
         });

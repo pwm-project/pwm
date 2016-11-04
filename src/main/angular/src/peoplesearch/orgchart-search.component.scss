@@ -1,0 +1,49 @@
+org-chart-search {
+  app-bar {
+    > .app-bar-content {
+      display: block;
+
+      > .page-content-title {
+        width: 100%;
+      }
+
+      > auto-complete {
+        .results {
+          span {
+            color: #808080;
+            font-size: 13px;
+
+            &:first-child {
+              color: #000000;
+              font-size: 16px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: 426px) {
+  org-chart-search {
+    app-bar {
+      > .app-bar-content {
+        display: flex;
+
+        > .page-content-title {
+          width: auto;
+        }
+
+        > auto-complete {
+          > input {
+            max-width: 360px;
+          }
+
+          > .results {
+            width: auto;
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,15 @@
 <app-bar>
-    <div id="page-content-title">Organization</div>
+    <div class="page-content-title">Organization</div>
+    <auto-complete flex
+                   search="$ctrl.autoCompleteSearch(query)"
+                   item-selected="$ctrl.onAutoCompleteItemSelected(person)"
+                   item="person">
+        <content-template>
+            <span ng-bind="person.givenName + ' ' + person.sn"></span>
+            <span ng-bind="person.title"></span>
+            <span ng-bind="person.telephoneNumber"></span>
+        </content-template>
+    </auto-complete>
 </app-bar>
 
 <org-chart person="$ctrl.person"

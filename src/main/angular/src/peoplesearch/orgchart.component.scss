@@ -8,6 +8,7 @@ $manager-connector-height: 16px;
 org-chart {
   display: block;
   min-width: 300px;
+  padding-top: 10px;
 
   > .org-chart-section {
     position: relative;

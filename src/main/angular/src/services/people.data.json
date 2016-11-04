@@ -917,7 +917,7 @@
     "mail": "jstevensd@ocn.ne.jp",
     "telephoneNumber": "(133) 596-4078",
     "title": "Automation Specialist I",
-    "managerId": 14,
+    "managerId": 9,
     "photoURL": "/images/avatars/14.jpg",
     "displayNames": [
       "Joe Stevens",
@@ -971,10 +971,10 @@
         "label": "Manager",
         "type": "person-link",
         "values": [
-          "Joe Stevens"
+          "Jack Jackson"
         ],
         "typeMetaData": {
-          "userKey": 14
+          "userKey": 9
         }
       }
     }

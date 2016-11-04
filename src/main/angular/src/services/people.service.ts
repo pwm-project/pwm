@@ -22,7 +22,14 @@ export default class PeopleService implements IPeopleService {
     }
 
     autoComplete(query: string): IPromise<Person[]> {
-        return this.search(query);
+        return this.search(query)
+            .then((people: Person[]) => {
+                if (people && people.length > 10) {
+                    return this.$q.resolve(people.slice(0, 10));
+                }
+
+                return this.$q.resolve(people);
+            });
     }
 
     getDirectReports(id: string): angular.IPromise<Person[]> {
