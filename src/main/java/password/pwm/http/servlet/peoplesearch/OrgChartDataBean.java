@@ -25,9 +25,10 @@ package password.pwm.http.servlet.peoplesearch;
 import java.io.Serializable;
 import java.util.List;
 
-class OrgChartData implements Serializable {
+class OrgChartDataBean implements Serializable {
     private OrgChartReferenceBean parent;
-    private List<OrgChartReferenceBean> siblings;
+    private OrgChartReferenceBean self;
+    private List<OrgChartReferenceBean> children;
 
     public OrgChartReferenceBean getParent() {
         return parent;
@@ -37,11 +38,19 @@ class OrgChartData implements Serializable {
         this.parent = parent;
     }
 
-    public List<OrgChartReferenceBean> getSiblings() {
-        return siblings;
+    public OrgChartReferenceBean getSelf() {
+        return self;
     }
 
-    public void setSiblings(List<OrgChartReferenceBean> siblings) {
-        this.siblings = siblings;
+    public void setSelf(OrgChartReferenceBean self) {
+        this.self = self;
+    }
+
+    public List<OrgChartReferenceBean> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<OrgChartReferenceBean> children) {
+        this.children = children;
     }
 }

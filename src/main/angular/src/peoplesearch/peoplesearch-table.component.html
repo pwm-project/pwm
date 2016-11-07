@@ -1,0 +1,20 @@
+<table st-table="rowCollection" ng-if="$ctrl.people.length" class="table table-striped">
+    <thead>
+        <tr>
+            <th>{{ 'COLUMN_FIRST_NAME' | translate }}</th>
+            <th>{{ 'COLUMN_LAST_NAME' | translate }}</th>
+            <th>{{ 'COLUMN_TITLE' | translate }}</th>
+            <th>{{ 'COLUMN_EMAIL' | translate }}</th>
+            <th>{{ 'COLUMN_TELEPHONE' | translate }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="person in $ctrl.people" ng-click="$ctrl.selectPerson(person.userKey)">
+            <td>{{ person.givenName }}</td>
+            <td>{{ person.sn }}</td>
+            <td>{{ person.title }}</td>
+            <td>{{ person.mail }}</td>
+            <td>{{ person.telephoneNumber }}</td>
+        </tr>
+    </tbody>
+</table>

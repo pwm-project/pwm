@@ -177,6 +177,24 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>copy-angular-resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/target/${project.artifactId}-${project.version}/public/resources/app</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/angular/dist</directory>
+                                    <includes>
+                                        <include>*.ng.js*</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>replace-build-properties</id>
                         <phase>process-resources</phase>
                         <goals>
@@ -348,6 +366,59 @@
                         <goals>
                             <goal>check</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.0</version>
+                <configuration>
+                    <nodeVersion>v6.6.0</nodeVersion>
+                    <npmVersion>3.10.8</npmVersion>
+                    <installDirectory>target</installDirectory>
+                    <workingDirectory>${basedir}/src/main/angular</workingDirectory>
+                </configuration>
+                <executions>
+                    <!-- install node & npm -->
+                    <execution>
+                        <id>install</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                    </execution>
+
+                    <!-- install package dependencies -->
+                    <execution>
+                        <id>install-packages</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+
+                    <!-- clean dist/ folder before build -->
+                    <execution>
+                        <id>clean-ng</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run clean</arguments>
+                        </configuration>
+                    </execution>
+
+                    <!-- run TypeScript compiler (You can execute directly using: "mvn frontend:npm@run-tsc") -->
+                    <execution>
+                        <id>run-tsc</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -607,6 +678,21 @@
             <groupId>org.webjars.bower</groupId>
             <artifactId>famfamfam-flags</artifactId>
             <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>angular</artifactId>
+            <version>1.5.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>angular-ui-router</artifactId>
+            <version>1.0.0-beta.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>angular-translate</artifactId>
+            <version>2.13.0</version>
         </dependency>
     </dependencies>
 

@@ -1,0 +1,32 @@
+<div class="person-card-content" ng-switch="$ctrl.size">
+    <div class="avatar" ng-style="$ctrl.getAvatarStyle()" aria-label="User avatar"></div>
+    <div class="reports"
+         ng-if="$ctrl.showDirectReportCount && $ctrl.person.numOfDirectReports"
+         ng-bind="$ctrl.person.numOfDirectReports"></div>
+
+    <div class="details" ng-switch-when="small">
+        <div ng-bind="$ctrl.person.displayNames[0]"></div>
+        <div ng-bind="$ctrl.person.displayNames[1]"></div>
+    </div>
+
+    <div class="details" ng-switch-when="large">
+        <div ng-bind="$ctrl.person.displayNames[0]"></div>
+        <div ng-bind="$ctrl.person.displayNames[1]"></div>
+        <div ng-bind="$ctrl.person.displayNames[2]"></div>
+        <div ng-bind="$ctrl.person.displayNames[3]"></div>
+
+        <div class="secondary-details">
+            <div ng-bind="$ctrl.person.displayNames[4]"></div>
+            <div ng-bind="$ctrl.person.displayNames[5]"></div>
+            <div ng-bind="$ctrl.person.displayNames[6]"></div>
+            <div ng-bind="$ctrl.person.displayNames[7]"></div>
+        </div>
+    </div>
+
+    <div class="details" ng-switch-default>
+        <div ng-bind="$ctrl.data[0]"></div>
+        <div ng-bind="$ctrl.data[1]"></div>
+        <div ng-bind="$ctrl.data[2]"></div>
+        <div ng-bind="$ctrl.data[3]"></div>
+    </div>
+</div>

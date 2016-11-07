@@ -1,0 +1,1472 @@
+[
+  {
+    "userKey": 1,
+    "id": "f5728471-cf90-48d6-a435-6218c58dc7e3",
+    "givenName": "Jean",
+    "sn": "Ryan",
+    "mail": "jryan0@csmonitor.com",
+    "telephoneNumber": "(564) 683-6597",
+    "title": "Senior Sales Associate",
+    "managerId": null,
+    "photoURL": "/images/avatars/1.jpg",
+    "displayNames": [
+      "Jean Ryan",
+      "jryan0@csmonitor.com",
+      "Senior Sales Associate",
+      "(564) 683-6597"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Ryan"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Jean"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(564) 683-6597"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "jryan0@csmonitor.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Senior Sales Associate"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "#N/A"
+        ],
+        "typeMetaData": {
+          "userKey": 0
+        }
+      }
+    }
+  },
+  {
+    "userKey": 2,
+    "id": "75ac8b24-64a4-4df5-8709-b414bc65e63a",
+    "givenName": "Ruby",
+    "sn": "Bowman",
+    "mail": "rbowman1@pinterest.com",
+    "telephoneNumber": "(567) 798-6155",
+    "title": "Quality Engineer",
+    "managerId": 1,
+    "photoURL": "/images/avatars/2.jpg",
+    "displayNames": [
+      "Ruby Bowman",
+      "rbowman1@pinterest.com",
+      "Quality Engineer",
+      "(567) 798-6155"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Bowman"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Ruby"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(567) 798-6155"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "rbowman1@pinterest.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Quality Engineer"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jean Ryan"
+        ],
+        "typeMetaData": {
+          "userKey": 1
+        }
+      }
+    }
+  },
+  {
+    "userKey": 3,
+    "id": "88a52657-45f5-4e8a-9081-fd8ece607e57",
+    "givenName": "William",
+    "sn": "Carter",
+    "mail": "wcarter2@delicious.com",
+    "telephoneNumber": "(523) 622-4293",
+    "title": "Community Outreach Specialist",
+    "managerId": 1,
+    "photoURL": "/images/avatars/3.jpg",
+    "displayNames": [
+      "William Carter",
+      "wcarter2@delicious.com",
+      "Community Outreach Specialist",
+      "(523) 622-4293"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Carter"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "William"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(523) 622-4293"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "wcarter2@delicious.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Community Outreach Specialist"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jean Ryan"
+        ],
+        "typeMetaData": {
+          "userKey": 1
+        }
+      }
+    }
+  },
+  {
+    "userKey": 4,
+    "id": "5daa7e1b-6c40-45cb-a3bb-9c59f8d189a0",
+    "givenName": "Alan",
+    "sn": "Snyder",
+    "mail": "asnyder3@blinklist.com",
+    "telephoneNumber": "(345) 682-1430",
+    "title": "Research Nurse",
+    "managerId": 1,
+    "photoURL": "/images/avatars/4.jpg",
+    "displayNames": [
+      "Alan Snyder",
+      "asnyder3@blinklist.com",
+      "Research Nurse",
+      "(345) 682-1430"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Snyder"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Alan"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(345) 682-1430"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "asnyder3@blinklist.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Research Nurse"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jean Ryan"
+        ],
+        "typeMetaData": {
+          "userKey": 1
+        }
+      }
+    }
+  },
+  {
+    "userKey": 5,
+    "id": "96637293-860a-4979-a9b9-6c7424f79249",
+    "givenName": "Aaron",
+    "sn": "Alvarez",
+    "mail": "aalvarez4@ezinearticles.com",
+    "telephoneNumber": "(457) 877-1797",
+    "title": "Financial Analyst",
+    "managerId": 2,
+    "photoURL": "/images/avatars/5.jpg",
+    "displayNames": [
+      "Aaron Alvarez",
+      "aalvarez4@ezinearticles.com",
+      "Financial Analyst",
+      "(457) 877-1797"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Alvarez"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Aaron"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(457) 877-1797"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "aalvarez4@ezinearticles.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Financial Analyst"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Ruby Bowman"
+        ],
+        "typeMetaData": {
+          "userKey": 2
+        }
+      }
+    }
+  },
+  {
+    "userKey": 6,
+    "id": "3bc65639-ac59-44a2-8dc0-8b1d6c096c3a",
+    "givenName": "Deborah",
+    "sn": "Morrison",
+    "mail": "dmorrison5@nytimes.com",
+    "telephoneNumber": "(268) 336-2705",
+    "title": "Accountant II",
+    "managerId": 2,
+    "photoURL": "",
+    "displayNames": [
+      "Deborah Morrison",
+      "dmorrison5@nytimes.com",
+      "Accountant II",
+      "(268) 336-2705"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Morrison"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Deborah"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(268) 336-2705"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "dmorrison5@nytimes.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Accountant II"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Ruby Bowman"
+        ],
+        "typeMetaData": {
+          "userKey": 2
+        }
+      }
+    }
+  },
+  {
+    "userKey": 7,
+    "id": "dc227135-7a34-413f-9a1a-6bbc65fccc52",
+    "givenName": "Mildred",
+    "sn": "Hayes",
+    "mail": "mhayes6@house.gov",
+    "telephoneNumber": "(638) 951-3305",
+    "title": "Design Engineer",
+    "managerId": 2,
+    "photoURL": "/images/avatars/7.jpg",
+    "displayNames": [
+      "Mildred Hayes",
+      "mhayes6@house.gov",
+      "Design Engineer",
+      "(638) 951-3305"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Hayes"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Mildred"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(638) 951-3305"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "mhayes6@house.gov"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Design Engineer"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Ruby Bowman"
+        ],
+        "typeMetaData": {
+          "userKey": 2
+        }
+      }
+    }
+  },
+  {
+    "userKey": 8,
+    "id": "11ad9dce-2249-4526-8709-b50c5fc2f3e5",
+    "givenName": "Margaret",
+    "sn": "Holmes",
+    "mail": "mholmes7@nbcnews.com",
+    "telephoneNumber": "(564) 818-6794",
+    "title": "Structural Engineer",
+    "managerId": 3,
+    "photoURL": "/images/avatars/8.jpg",
+    "displayNames": [
+      "Margaret Holmes",
+      "mholmes7@nbcnews.com",
+      "Structural Engineer",
+      "(564) 818-6794"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Holmes"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Margaret"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(564) 818-6794"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "mholmes7@nbcnews.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Structural Engineer"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "William Carter"
+        ],
+        "typeMetaData": {
+          "userKey": 3
+        }
+      }
+    }
+  },
+  {
+    "userKey": 9,
+    "id": "e5ca9428-5319-4a4e-b21f-f4a30b44c4e7",
+    "givenName": "Jack",
+    "sn": "Jackson",
+    "mail": "jjackson8@thetimes.co.uk",
+    "telephoneNumber": "(206) 987-9763",
+    "title": "Junior Executive",
+    "managerId": 3,
+    "photoURL": "/images/avatars/9.jpg",
+    "displayNames": [
+      "Jack Jackson",
+      "jjackson8@thetimes.co.uk",
+      "Junior Executive",
+      "(206) 987-9763"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Jackson"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Jack"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(206) 987-9763"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "jjackson8@thetimes.co.uk"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Junior Executive"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "William Carter"
+        ],
+        "typeMetaData": {
+          "userKey": 3
+        }
+      }
+    }
+  },
+  {
+    "userKey": 10,
+    "id": "0f3d7561-5c2c-4e71-b716-cab2fbed991d",
+    "givenName": "Judy",
+    "sn": "Butler",
+    "mail": "jbutler9@reference.com",
+    "telephoneNumber": "(751) 250-5973",
+    "title": "Chief Design Engineer",
+    "managerId": 3,
+    "photoURL": "/images/avatars/10.jpg",
+    "displayNames": [
+      "Judy Butler",
+      "jbutler9@reference.com",
+      "Chief Design Engineer",
+      "(751) 250-5973"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Butler"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Judy"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(751) 250-5973"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "jbutler9@reference.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Chief Design Engineer"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "William Carter"
+        ],
+        "typeMetaData": {
+          "userKey": 3
+        }
+      }
+    }
+  },
+  {
+    "userKey": 11,
+    "id": "564e659a-b491-4dc6-820c-524785031d33",
+    "givenName": "Tina",
+    "sn": "Gutierrez",
+    "mail": "tgutierreza@godaddy.com",
+    "telephoneNumber": "(205) 653-6795",
+    "title": "Engineer IV",
+    "managerId": 9,
+    "photoURL": "/images/avatars/11.jpg",
+    "displayNames": [
+      "Tina Gutierrez",
+      "tgutierreza@godaddy.com",
+      "Engineer IV",
+      "(205) 653-6795"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Gutierrez"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Tina"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(205) 653-6795"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "tgutierreza@godaddy.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Engineer IV"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jack Jackson"
+        ],
+        "typeMetaData": {
+          "userKey": 9
+        }
+      }
+    }
+  },
+  {
+    "userKey": 12,
+    "id": "5203a7f8-a63b-47e9-bd05-1d00fb542eaa",
+    "givenName": "Jose",
+    "sn": "Cox",
+    "mail": "jcoxb@stumbleupon.com",
+    "telephoneNumber": "(816) 816-8474",
+    "title": "Human Resources Manager",
+    "managerId": 9,
+    "photoURL": "/images/avatars/12.jpg",
+    "displayNames": [
+      "Jose Cox",
+      "jcoxb@stumbleupon.com",
+      "Human Resources Manager",
+      "(816) 816-8474"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Cox"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Jose"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(816) 816-8474"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "jcoxb@stumbleupon.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Human Resources Manager"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jack Jackson"
+        ],
+        "typeMetaData": {
+          "userKey": 9
+        }
+      }
+    }
+  },
+  {
+    "userKey": 13,
+    "id": "1fecf6c4-2375-4f49-a5da-8f2d90bc4a3f",
+    "givenName": "Paul",
+    "sn": "Barnes",
+    "mail": "pbarnesc@mediafire.com",
+    "telephoneNumber": "(207) 691-7625",
+    "title": "Internal Auditor",
+    "managerId": 4,
+    "photoURL": "",
+    "displayNames": [
+      "Paul Barnes",
+      "pbarnesc@mediafire.com",
+      "Internal Auditor",
+      "(207) 691-7625"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Barnes"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Paul"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(207) 691-7625"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "pbarnesc@mediafire.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Internal Auditor"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Alan Snyder"
+        ],
+        "typeMetaData": {
+          "userKey": 4
+        }
+      }
+    }
+  },
+  {
+    "userKey": 14,
+    "id": "afd4cdf4-148b-4349-92b5-55a97bd5da4f",
+    "givenName": "Joe",
+    "sn": "Stevens",
+    "mail": "jstevensd@ocn.ne.jp",
+    "telephoneNumber": "(133) 596-4078",
+    "title": "Automation Specialist I",
+    "managerId": 9,
+    "photoURL": "/images/avatars/14.jpg",
+    "displayNames": [
+      "Joe Stevens",
+      "jstevensd@ocn.ne.jp",
+      "Automation Specialist I",
+      "(133) 596-4078"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Stevens"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Joe"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(133) 596-4078"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "jstevensd@ocn.ne.jp"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Automation Specialist I"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jack Jackson"
+        ],
+        "typeMetaData": {
+          "userKey": 9
+        }
+      }
+    }
+  },
+  {
+    "userKey": 15,
+    "id": "511652b6-cd3e-41ac-85ea-8154d1ba3df6",
+    "givenName": "Randy",
+    "sn": "Grant",
+    "mail": "rgrante@europa.eu",
+    "telephoneNumber": "(343) 776-3486",
+    "title": "Safety Technician I",
+    "managerId": 20,
+    "photoURL": "/images/avatars/15.jpg",
+    "displayNames": [
+      "Randy Grant",
+      "rgrante@europa.eu",
+      "Safety Technician I",
+      "(343) 776-3486"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Grant"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Randy"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(343) 776-3486"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "rgrante@europa.eu"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Safety Technician I"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Bruce Carroll"
+        ],
+        "typeMetaData": {
+          "userKey": 20
+        }
+      }
+    }
+  },
+  {
+    "userKey": 16,
+    "id": "cbf1bcd1-7ef1-4ed0-b1c7-ee42b8005c99",
+    "givenName": "Martin",
+    "sn": "Mason",
+    "mail": "mmasonf@who.int",
+    "telephoneNumber": "(285) 576-0850",
+    "title": "Compensation Analyst",
+    "managerId": 9,
+    "photoURL": "/images/avatars/16.jpg",
+    "displayNames": [
+      "Martin Mason",
+      "mmasonf@who.int",
+      "Compensation Analyst",
+      "(285) 576-0850"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Mason"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Martin"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(285) 576-0850"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "mmasonf@who.int"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Compensation Analyst"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jack Jackson"
+        ],
+        "typeMetaData": {
+          "userKey": 9
+        }
+      }
+    }
+  },
+  {
+    "userKey": 17,
+    "id": "3f4d2955-d6e0-4d70-a3bb-cab342f887de",
+    "givenName": "Cynthia",
+    "sn": "Porter",
+    "mail": "cporterg@a8.net",
+    "telephoneNumber": "(594) 905-7773",
+    "title": "Data Coordiator",
+    "managerId": 16,
+    "photoURL": "/images/avatars/17.jpg",
+    "displayNames": [
+      "Cynthia Porter",
+      "cporterg@a8.net",
+      "Data Coordiator",
+      "(594) 905-7773"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Porter"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Cynthia"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(594) 905-7773"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "cporterg@a8.net"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Data Coordiator"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Martin Mason"
+        ],
+        "typeMetaData": {
+          "userKey": 16
+        }
+      }
+    }
+  },
+  {
+    "userKey": 18,
+    "id": "fba89f94-29f9-4198-a0e5-f8b7c96620ee",
+    "givenName": "Nancy",
+    "sn": "Burns",
+    "mail": "nburnsh@wordpress.org",
+    "telephoneNumber": "(444) 231-5492",
+    "title": "Business Systems Development Analyst",
+    "managerId": 17,
+    "photoURL": "/images/avatars/18.jpg",
+    "displayNames": [
+      "Nancy Burns",
+      "nburnsh@wordpress.org",
+      "Business Systems Development Analyst",
+      "(444) 231-5492"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Burns"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Nancy"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(444) 231-5492"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "nburnsh@wordpress.org"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Business Systems Development Analyst"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Cynthia Porter"
+        ],
+        "typeMetaData": {
+          "userKey": 17
+        }
+      }
+    }
+  },
+  {
+    "userKey": 19,
+    "id": "95ae40b3-c8af-4588-94da-ee0f0d6bafdc",
+    "givenName": "Jimmy",
+    "sn": "Montgomery",
+    "mail": "jmontgomeryi@addtoany.com",
+    "telephoneNumber": "(675) 799-8793",
+    "title": "Structural Engineer",
+    "managerId": 18,
+    "photoURL": "/images/avatars/19.jpg",
+    "displayNames": [
+      "Jimmy Montgomery",
+      "jmontgomeryi@addtoany.com",
+      "Structural Engineer",
+      "(675) 799-8793"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Montgomery"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Jimmy"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(675) 799-8793"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "jmontgomeryi@addtoany.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Structural Engineer"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Nancy Burns"
+        ],
+        "typeMetaData": {
+          "userKey": 18
+        }
+      }
+    }
+  },
+  {
+    "userKey": 20,
+    "id": "2ae2d513-e12e-40a7-9cf5-2dd481706147",
+    "givenName": "Bruce",
+    "sn": "Carroll",
+    "mail": "bcarrollj@paypal.com",
+    "telephoneNumber": "(658) 289-4550",
+    "title": "Desktop Support Technician",
+    "managerId": 19,
+    "photoURL": "/images/avatars/20.jpg",
+    "displayNames": [
+      "Bruce Carroll",
+      "bcarrollj@paypal.com",
+      "Desktop Support Technician",
+      "(658) 289-4550"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "Carroll"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Bruce"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(658) 289-4550"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "bcarrollj@paypal.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "Desktop Support Technician"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "Jimmy Montgomery"
+        ],
+        "typeMetaData": {
+          "userKey": 19
+        }
+      }
+    }
+  },
+  {
+    "userKey": 21,
+    "id": "6aeec76a-6a36-4825-965b-b9b5a009827a",
+    "givenName": "Orphan",
+    "sn": "User",
+    "mail": "orphan.user@gmail.com",
+    "telephoneNumber": "(454) 249-4440",
+    "title": "No Real Position",
+    "managerId": null,
+    "photoURL": "/images/avatars/21.jpg",
+    "displayNames": [
+      "Orphan User",
+      "orphan.user@gmail.com",
+      "No Real Position",
+      "(454) 249-4440"
+    ],
+    "detail": {
+      "sn": {
+        "name": "sn",
+        "label": "Last Name",
+        "type": "text",
+        "values": [
+          "User"
+        ]
+      },
+      "givenName": {
+        "name": "givenName",
+        "label": "First Name",
+        "type": "text",
+        "values": [
+          "Orphan"
+        ]
+      },
+      "telephoneNumber": {
+        "name": "telephoneNumber",
+        "label": "Phone",
+        "type": "tel",
+        "values": [
+          "(454) 249-4440"
+        ]
+      },
+      "mail": {
+        "name": "mail",
+        "label": "Email Address",
+        "type": "email",
+        "values": [
+          "orphan.user@gmail.com"
+        ]
+      },
+      "title": {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "values": [
+          "No Real Position"
+        ]
+      },
+      "manager": {
+        "name": "manager",
+        "label": "Manager",
+        "type": "person-link",
+        "values": [
+          "#N/A"
+        ],
+        "typeMetaData": {
+          "userKey": 0
+        }
+      }
+    }
+  }
+]

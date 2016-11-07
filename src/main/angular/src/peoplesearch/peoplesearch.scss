@@ -1,0 +1,14 @@
+body, html {
+  height: 100%;
+}
+
+body {
+  > ui-view {
+    box-sizing: border-box;
+    display: block;
+    height: 100%;
+    overflow: hidden;
+    padding: 5px;
+    width: 100%;
+  }
+}

@@ -22,14 +22,14 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-class OrgChartReferenceBean {
+class OrgChartReferenceBean implements Serializable {
     public String userKey;
     public List<String> displayNames = new ArrayList<>();
     public String photoURL;
-    public boolean hasMoreNodes;
 
     public String getPhotoURL() {
         return photoURL;
@@ -37,14 +37,6 @@ class OrgChartReferenceBean {
 
     public void setPhotoURL(String photoURL) {
         this.photoURL = photoURL;
-    }
-
-    public boolean isHasMoreNodes() {
-        return hasMoreNodes;
-    }
-
-    public void setHasMoreNodes(boolean hasMoreNodes) {
-        this.hasMoreNodes = hasMoreNodes;
     }
 
     public String getUserKey() {

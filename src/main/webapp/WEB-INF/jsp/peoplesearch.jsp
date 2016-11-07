@@ -31,32 +31,21 @@
         <jsp:param name="pwm.PageName" value="Title_PeopleSearch"/>
     </jsp:include>
     <div id="centerbody" class="wide tall" style="height:100%">
-        <div id="page-content-title"><pwm:display key="Title_PeopleSearch" displayIfMissing="true"/></div>
-
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <div id="panel-searchbar" class="searchbar">
-	        <input id="username" name="username" placeholder="<pwm:display key="Placeholder_Search"/>" class="peoplesearch-input-username" <pwm:autofocus/> autocomplete="off" />
-            <div class="searchbar-extras">
-                <div id="searchIndicator" style="display: none">
-                    <span style="" class="pwm-icon pwm-icon-lg pwm-icon-spin pwm-icon-spinner"></span>
-                </div>
 
-                <div id="maxResultsIndicator" style="display: none;">
-                    <span style="color: #ffcd59;" class="pwm-icon pwm-icon-lg pwm-icon-exclamation-circle"></span>
-                </div>
-            </div>
-
-            <noscript>
-                <span><pwm:display key="Display_JavascriptRequired"/></span>
-                <a href="<pwm:context/>"><pwm:display key="Title_MainPage"/></a>
-            </noscript>
-        </div>
-        <div id="peoplesearch-searchResultsGrid" class="searchResultsGrid grid tall">
-        </div>
+        <ui-view id="people-search-view">Loading...</ui-view>
     </div>
     <div class="push"></div>
 </div>
+
+<%-- TODO: change these to the 'min' versions (i.e. angular.min.js) --%>
+<pwm:script-ref url="/public/resources/angular/angular.js" />
+<pwm:script-ref url="/public/resources/angular-ui-router/release/angular-ui-router.js" />
+<pwm:script-ref url="/public/resources/angular-translate/dist/angular-translate.js" />
+
 <%@ include file="fragment/footer.jsp" %>
-<pwm:script-ref url="/public/resources/js/peoplesearch.js"/>
+<pwm:script-ref url="/public/resources/js/peoplesearch.js" />
+<pwm:script-ref url="/public/resources/app/peoplesearch.ng.js" />
+
 </body>
 </html>
