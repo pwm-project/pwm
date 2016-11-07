@@ -41,6 +41,7 @@
 <%-- TODO: change these to the 'min' versions (i.e. angular.min.js) --%>
 <pwm:script-ref url="/public/resources/angular/angular.js" />
 <pwm:script-ref url="/public/resources/angular-ui-router/release/angular-ui-router.js" />
+<pwm:script-ref url="/public/resources/angular-translate/dist/angular-translate.js" />
 
 <%@ include file="fragment/footer.jsp" %>
 <pwm:script-ref url="/public/resources/js/peoplesearch.js" />

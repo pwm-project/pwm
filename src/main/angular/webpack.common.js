@@ -19,7 +19,8 @@ module.exports = {
     {
         'angular': true,
         // Wrapped in window because of hyphens
-        'angular-ui-router': 'window["angular-ui-router"]'
+        'angular-ui-router': 'window["angular-ui-router"]',
+        'angular-translate': 'window["angular-translate"]'
     },
     module: {
         preLoaders: [
