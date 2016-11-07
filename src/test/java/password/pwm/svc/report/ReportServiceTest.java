@@ -2,11 +2,11 @@ package password.pwm.svc.report;
 
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.WriterOutputStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.mortbay.io.WriterOutputStream;
 import password.pwm.config.Configuration;
 import password.pwm.svc.report.ReportService.RecordIterator;
 import password.pwm.util.JsonUtil;

@@ -31,6 +31,8 @@ import java.util.*;
 
 public class ForgottenPasswordProfile extends AbstractProfile {
 
+    private static final ProfileType PROFILE_TYPE = ProfileType.ForgottenPassword;
+
     private Set<IdentityVerificationMethod> requiredRecoveryVerificationMethods;
     private Set<IdentityVerificationMethod> optionalRecoveryVerificationMethods;
 
@@ -45,18 +47,14 @@ public class ForgottenPasswordProfile extends AbstractProfile {
     }
 
     public static ForgottenPasswordProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
-        final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<>();
-        for (final PwmSetting setting : PwmSettingCategory.RECOVERY_PROFILE.getSettings()) {
-            final StoredValue value = storedConfiguration.readSetting(setting, identifier);
-            valueMap.put(setting, value);
-        }
+        final Map<PwmSetting,StoredValue> valueMap = makeValueMap(storedConfiguration, identifier, PROFILE_TYPE.getCategory());
         return new ForgottenPasswordProfile(identifier, valueMap);
 
     }
 
     @Override
     public ProfileType profileType() {
-        return ProfileType.ForgottenPassword;
+        return PROFILE_TYPE;
     }
     
     public Set<IdentityVerificationMethod> requiredRecoveryAuthenticationMethods() {

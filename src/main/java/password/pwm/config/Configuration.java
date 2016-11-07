@@ -27,16 +27,35 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
-import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
-import password.pwm.config.profile.*;
+import password.pwm.config.profile.ChallengeProfile;
+import password.pwm.config.profile.DeleteAccountProfile;
+import password.pwm.config.profile.ForgottenPasswordProfile;
+import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.profile.NewUserProfile;
+import password.pwm.config.profile.Profile;
+import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileUtility;
+import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.StoredConfigurationUtil;
-import password.pwm.config.value.*;
+import password.pwm.config.value.BooleanValue;
+import password.pwm.config.value.FileValue;
+import password.pwm.config.value.FormValue;
+import password.pwm.config.value.LocalizedStringArrayValue;
+import password.pwm.config.value.LocalizedStringValue;
+import password.pwm.config.value.NumericValue;
+import password.pwm.config.value.PasswordValue;
+import password.pwm.config.value.StringArrayValue;
+import password.pwm.config.value.StringValue;
+import password.pwm.config.value.UserPermissionValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -52,7 +71,20 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * @author Jason D. Rivard
@@ -219,6 +251,10 @@ public class Configuration implements Serializable, SettingReader {
         }
 
         public static List<UserPermission> valueToUserPermissions(final StoredValue value) {
+            if (value == null) {
+                return Collections.emptyList();
+            }
+
             if (!(value instanceof UserPermissionValue)) {
                 throw new IllegalArgumentException("setting value is not readable as string array");
             }

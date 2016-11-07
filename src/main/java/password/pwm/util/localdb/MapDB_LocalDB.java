@@ -22,6 +22,13 @@
 
 package password.pwm.util.localdb;
 
+/**
+ * @author Jason D. Rivard
+ */
+public class MapDB_LocalDB {}
+
+// No longer used, commented in case it may be resurrected some day.
+/*
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
 import password.pwm.error.ErrorInformation;
@@ -38,10 +45,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static password.pwm.util.localdb.LocalDB.DB;
 
-/**
- * @author Jason D. Rivard
- */
 public class MapDB_LocalDB implements LocalDBProvider {
+
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(MapDB_LocalDB.class, true);
@@ -323,3 +328,4 @@ public class MapDB_LocalDB implements LocalDBProvider {
         return Collections.emptySet();
     }
 }
+*/

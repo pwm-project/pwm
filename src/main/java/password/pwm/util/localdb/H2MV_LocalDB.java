@@ -1,9 +1,10 @@
 package password.pwm.util.localdb;
 
-import org.h2.mvstore.MVStore;
-import password.pwm.util.Helper;
-import password.pwm.util.TimeDuration;
-import password.pwm.util.logging.PwmLogger;
+public class H2MV_LocalDB {}
+
+
+// No longer used, commented in case it may be resurrected some day.
+/*
 
 import java.io.File;
 import java.io.Serializable;
@@ -12,7 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class H2MV_LocalDB implements LocalDBProvider {
+public class H2MV_LocalDB {} implements LocalDBProvider {
     private static final PwmLogger LOGGER = PwmLogger.forClass(H2MV_LocalDB.class);
 
     private MVStore mvStore;
@@ -189,3 +190,4 @@ public class H2MV_LocalDB implements LocalDBProvider {
         return Collections.emptySet();
     }
 }
+*/

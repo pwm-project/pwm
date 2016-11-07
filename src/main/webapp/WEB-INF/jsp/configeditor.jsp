@@ -113,6 +113,7 @@
         <div id="settingsPanel">
             <%-- settings content goes here --%>
         </div>
+        <div id="config-infoPanel"></div>
     </div>
     <br/><br/>
     <div class="push"></div>

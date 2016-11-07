@@ -145,7 +145,7 @@
                 });
             });
         </script>
-    </pwm:script>F
+    </pwm:script>
 </div>
 <% } %>
 

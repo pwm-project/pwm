@@ -22,6 +22,14 @@
 
 package password.pwm.util.localdb;
 
+
+public class H2_LocalDB {}
+
+
+
+// No longer used, commented in case it may be resurrected some day.
+/*
+
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.StringUtil;
@@ -34,6 +42,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 
 public class H2_LocalDB extends AbstractJDBC_LocalDB {
 
@@ -126,3 +135,4 @@ public class H2_LocalDB extends AbstractJDBC_LocalDB {
         return StringUtil.mapToString(params,"=",";");
     }
 }
+*/

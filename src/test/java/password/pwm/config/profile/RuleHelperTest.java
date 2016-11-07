@@ -1,21 +1,22 @@
 package password.pwm.config.profile;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static password.pwm.config.profile.PwmPasswordRule.*;
-
-import java.util.List;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
 import password.pwm.config.profile.PwmPasswordPolicy.RuleHelper;
 import password.pwm.util.macro.MacroMachine;
+
+import java.util.List;
+import java.util.regex.Pattern;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static password.pwm.config.profile.PwmPasswordRule.RegExMatch;
 
 public class RuleHelperTest {
     private static final String[][] MACRO_MAP = new String[][] {
@@ -69,7 +70,7 @@ public class RuleHelperTest {
                     macroValues[i] = macroMap[i][1];
                 }
 
-                final String stringWithMacros = invocation.getArgumentAt(0, String.class);
+                final String stringWithMacros = invocation.getArgument(0);
                 return StringUtils.replaceEach(stringWithMacros, macroNames, macroValues);
             }
         };

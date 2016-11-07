@@ -1,20 +1,18 @@
 package password.pwm.util.reports;
 
+import password.pwm.svc.report.ReportColumnFilter;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.h2.util.StringUtils;
-
-import password.pwm.svc.report.ReportColumnFilter;
 
 public class ReportUtils {
     public static ReportColumnFilter toReportColumnFilter(String desiredColumnsStr) {
         ReportColumnFilter reportColumnFilter = new ReportColumnFilter();
 
         if (desiredColumnsStr != null) {
-            String[] selectedColumnsArray = StringUtils.arraySplit(desiredColumnsStr, ',', true);
-            Set<String> desiredColumns = new HashSet<String>(Arrays.asList(selectedColumnsArray));
+            String[] selectedColumnsArray = desiredColumnsStr.split(",");
+            Set<String> desiredColumns = new HashSet<>(Arrays.asList(selectedColumnsArray));
 
             reportColumnFilter.setUserDnVisible(desiredColumns.contains("userDN"));
             reportColumnFilter.setLdapProfileVisible(desiredColumns.contains("ldapProfile"));
