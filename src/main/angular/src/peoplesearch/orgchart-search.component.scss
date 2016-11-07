@@ -1,4 +1,9 @@
 org-chart-search {
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
+  overflow-x: auto;
+
   app-bar {
     > .app-bar-content {
       display: block;

@@ -1,4 +1,5 @@
 import { module } from 'angular';
+import { dasherize } from './string.filters';
 import OrgChartComponent from './orgchart.component';
 import OrgChartSearchComponent from './orgchart-search.component';
 import PeopleSearchService from './peoplesearch.service';
@@ -14,6 +15,7 @@ var moduleName = 'people-search';
 
 module(moduleName, [ uxModule ])
     .service('PeopleSearchService', PeopleSearchService)
+    .filter('dasherize', dasherize)
     .component('orgChart', OrgChartComponent)
     .component('orgChartSearch', OrgChartSearchComponent)
     .component('personCard', PersonCardComponent)
