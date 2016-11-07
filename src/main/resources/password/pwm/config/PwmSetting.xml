@@ -2128,7 +2128,7 @@
             <option value="TOKEN">SMS/Email Token Verification</option>
             <option value="OTP">OTP (Mobile Device) Verification</option>
             <option value="REMOTE_RESPONSES">External Responses</option>
-            <!--<option value="OAUTH">OAuth</option>-->
+            <option value="OAUTH">OAuth2</option>
         </options>
     </setting>
     <setting hidden="false" key="recovery.oauth.idserver.loginUrl" level="2">
@@ -3724,7 +3724,7 @@
     </category>
     <category hidden="false" key="RECOVERY_DEF">
     </category>
-    <category hidden="true" key="RECOVERY_OAUTH">
+    <category hidden="false" key="RECOVERY_OAUTH">
     </category>
     <category hidden="false" key="ADMINISTRATION">
     </category>
