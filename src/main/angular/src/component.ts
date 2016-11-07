@@ -2,6 +2,7 @@ import * as angular from 'angular';
 
 export function Component(options: {
     bindings?: any,
+    bindToController?: boolean,
     controllerAs?: string,
     template?: string,
     templateUrl?: string,
