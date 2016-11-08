@@ -52,8 +52,12 @@ import java.util.*;
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/peoplesearch",
                 PwmConstants.URL_PREFIX_PUBLIC + "/peoplesearch",
+                PwmConstants.URL_PREFIX_PRIVATE + "/peoplesearch/*",
+                PwmConstants.URL_PREFIX_PUBLIC + "/peoplesearch/*",
                 PwmConstants.URL_PREFIX_PRIVATE + "/PeopleSearch",
                 PwmConstants.URL_PREFIX_PUBLIC + "/PeopleSearch",
+                PwmConstants.URL_PREFIX_PRIVATE + "/PeopleSearch/*",
+                PwmConstants.URL_PREFIX_PUBLIC + "/PeopleSearch/*",
         }
 )
 public class PeopleSearchServlet extends AbstractPwmServlet {

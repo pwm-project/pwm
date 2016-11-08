@@ -11,7 +11,8 @@ module.exports = {
     devServer: {
         contentBase: outDir,
         outputPath: outDir,
-        port: 4000
+        port: 4000,
+        historyApiFallback: true
     },
     devtool: 'cheap-module-source-map',
     // Externals copied to /dist via CopyWebpackPlugin

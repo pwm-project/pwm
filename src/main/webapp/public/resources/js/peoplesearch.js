@@ -172,7 +172,10 @@ PWM_PS.applyEventHandlersToDetailView = function(data) {
 //  TODO: need to get this setting from: /peoplesearch?processAction=clientData, see line 426
 //    if (data['hasOrgChart']) {
         PWM_MAIN.addEventHandler('button-peoplesearch-orgChart', 'click', function () {
-            PWM_MAIN.goto(PWM_GLOBAL['url-context'] + '/private/peoplesearch#/orgchart/' + data['userKey']);
+
+            // Access the angular StateService on this page, and use it to navigate to the orgchart using the provided person ID
+            angular.element(document.body).injector().get('$state').go('orgchart', {personId: data['userKey']});
+
             PWM_MAIN.clearDijitWidget('dialogPopup');
 //            PWM_PS.showOrgChartView(data['userKey']);
         });
