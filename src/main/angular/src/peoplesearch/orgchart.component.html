@@ -1,7 +1,7 @@
 <div class="org-chart-section managers"
      ng-class="{ 'overflow': $ctrl.showingOverflow() }"
      ng-if="$ctrl.hasManagementChain() || $ctrl.isPersonOrphan()">
-    <h3>Management</h3>
+    <h3>{{ 'TITLE_MANAGEMENT' | translate }}</h3>
     <div ng-if="!$ctrl.isPersonOrphan()">
         <div class="manager"
              ng-repeat="manager in $ctrl.getManagementChain() track by $id(manager.displayNames)">
@@ -26,7 +26,7 @@
 </div>
 
 <div class="org-chart-section direct-reports" ng-if="$ctrl.hasDirectReports()">
-    <h3>Direct Reports</h3>
+    <h3>{{ 'TITLE_DIRECT_REPORTS' | translate }}</h3>
     <div class="org-chart-connector"></div>
 
     <div class="person-card-list">

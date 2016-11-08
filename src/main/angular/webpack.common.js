@@ -19,7 +19,8 @@ module.exports = {
     {
         'angular': true,
         // Wrapped in window because of hyphens
-        'angular-ui-router': 'window["angular-ui-router"]'
+        'angular-ui-router': 'window["angular-ui-router"]',
+        'angular-translate': 'window["angular-translate"]'
     },
     module: {
         preLoaders: [
@@ -67,6 +68,8 @@ module.exports = {
         new CopyWebpackPlugin([
             { from: 'vendor/angular-ui-router.js', to: 'vendor/' },
             { from: 'node_modules/angular/angular.js', to: 'vendor/' },
+            { from: 'node_modules/angular-sanitize/angular-sanitize.js', to: 'vendor/' },
+            { from: 'node_modules/angular-translate/dist/angular-translate.js', to: 'vendor/' },
             { from: 'images/', to: 'images/' }
         ]),
 
