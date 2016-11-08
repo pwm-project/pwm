@@ -121,7 +121,9 @@
     <setting hidden="false" key="knownLocales" level="2">
         <default>
             <value><![CDATA[en::us]]></value>
+            <value><![CDATA[ca::catalonia]]></value>
             <value><![CDATA[cs::cz]]></value>
+            <value><![CDATA[da::dk]]></value>
             <value><![CDATA[de::de]]></value>
             <value><![CDATA[el::gr]]></value>
             <value><![CDATA[es::es]]></value>
@@ -138,11 +140,12 @@
             <value><![CDATA[pl::pl]]></value>
             <value><![CDATA[pt_BR::br]]></value>
             <value><![CDATA[pt::pt]]></value>
+            <value><![CDATA[ru::ru]]></value>
             <value><![CDATA[sk::sk]]></value>
             <value><![CDATA[sv::se]]></value>
             <value><![CDATA[th::th]]></value>
             <value><![CDATA[tr::tr]]></value>
-            <value><![CDATA[zh::cn]]></value>
+            <value><![CDATA[zh_CN::cn]]></value>
             <value><![CDATA[zh_TW::tw]]></value>
         </default>
     </setting>

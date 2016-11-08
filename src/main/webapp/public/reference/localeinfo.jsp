@@ -41,13 +41,20 @@
 <%
     final List<Locale> HIGHLIGHTED_LOCALES = Arrays.asList(new Locale[] {
             LocaleHelper.parseLocaleString("en"),
-            LocaleHelper.parseLocaleString("fr"),
-            LocaleHelper.parseLocaleString("zh_tw"),
+            LocaleHelper.parseLocaleString("ca"),
+            LocaleHelper.parseLocaleString("da"),
             LocaleHelper.parseLocaleString("de"),
-            LocaleHelper.parseLocaleString("ja"),
-            LocaleHelper.parseLocaleString("pt_BR"),
             LocaleHelper.parseLocaleString("es"),
-            LocaleHelper.parseLocaleString("sv")
+            LocaleHelper.parseLocaleString("fr"),
+            LocaleHelper.parseLocaleString("it"),
+            LocaleHelper.parseLocaleString("ja"),
+            LocaleHelper.parseLocaleString("nl"),
+            LocaleHelper.parseLocaleString("pl"),
+            LocaleHelper.parseLocaleString("pt_BR"),
+            LocaleHelper.parseLocaleString("ru"),
+            LocaleHelper.parseLocaleString("sv"),
+            LocaleHelper.parseLocaleString("zh_CN"),
+            LocaleHelper.parseLocaleString("zh_TW")
     });
 
     PwmRequest pwmRequest = null;
@@ -367,7 +374,6 @@
             <% } %>
         </table>
 
-        <%--
     <h1><a id="aa">Missing Keys</a></h1>
     <table>
         <tr>
@@ -383,6 +389,7 @@
         </tr>
         <% for (final PwmLocaleBundle pwmLocaleBundle : allStats.getMissingKeys().keySet()) { %>
         <% for (final Locale locale : allStats.getMissingKeys().get(pwmLocaleBundle).keySet()) { %>
+        <% if (HIGHLIGHTED_LOCALES.contains(locale)) { %>
         <% for (final String key : allStats.getMissingKeys().get(pwmLocaleBundle).get(locale)) { %>
         <tr>
             <td>
@@ -398,8 +405,8 @@
         <% } %>
         <% } %>
         <% } %>
+        <% } %>
         </table>
-        --%>
         <br/><br/><br/><br/>
     </div>
 </div>
