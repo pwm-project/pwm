@@ -42,7 +42,11 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
-import password.pwm.ldap.*;
+import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.LdapUserDataReader;
+import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.Statistic;
@@ -52,15 +56,22 @@ import password.pwm.util.LocaleHelper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.ws.server.RestResultBean;
 
-import javax.naming.directory.SearchResult;
 import javax.servlet.ServletException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URLConnection;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 public class PeopleSearchDataReader {
     final private static PwmLogger LOGGER = PwmLogger.forClass(PeopleSearchDataReader.class);
@@ -74,10 +85,11 @@ public class PeopleSearchDataReader {
     }
 
     public SearchResultBean makeSearchResultBean(
-            final String searchData
+            final String searchData,
+            final boolean includeDisplayName
     )
             throws PwmUnrecoverableException, ChaiUnavailableException {
-        final CacheKey cacheKey = makeCacheKey(SearchResultBean.class.getSimpleName(), searchData);
+        final CacheKey cacheKey = makeCacheKey(SearchResultBean.class.getSimpleName(), searchData + "|" + includeDisplayName);
 
         { // try to serve from cache first
             final String cachedOutput = pwmRequest.getPwmApplication().getCacheService().get(cacheKey);
@@ -92,7 +104,7 @@ public class PeopleSearchDataReader {
         }
 
         // if not in cache, build results from ldap
-        final SearchResultBean searchResultBean = makeSearchResultsImpl(pwmRequest, searchData);
+        final SearchResultBean searchResultBean = makeSearchResultsImpl(pwmRequest, searchData, includeDisplayName);
         searchResultBean.setFromCache(false);
         StatisticsManager.incrementStat(pwmRequest, Statistic.PEOPLESEARCH_SEARCHES);
         storeDataInCache(pwmRequest.getPwmApplication(), cacheKey, searchResultBean);
@@ -582,7 +594,8 @@ public class PeopleSearchDataReader {
 
     private SearchResultBean makeSearchResultsImpl(
             final PwmRequest pwmRequest,
-            final String username
+            final String username,
+            final boolean includeDisplayName
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
@@ -622,12 +635,24 @@ public class PeopleSearchDataReader {
             throw new PwmUnrecoverableException(errorInformation);
         }
 
+        final List<Map<String,Object>> resultOutput = new ArrayList<>(results.resultsAsJsonOutput(pwmRequest.getPwmApplication(),null));
+        if (includeDisplayName) {
+            for (Map<String,Object> map : resultOutput) {
+                final String userKey = (String)map.get("userKey");
+                if (userKey != null) {
+                    final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication());
+                    final String displayValue = figureDisplaynameValue(pwmRequest, userIdentity);
+                    map.put("_displayName",displayValue);
+                }
+            }
+        }
+
         final TimeDuration searchDuration = TimeDuration.fromCurrent(startTime);
         LOGGER.trace(pwmRequest.getPwmSession(), "finished rest peoplesearch search in " +
                 searchDuration.asCompactString() + " not using cache, size=" + results.getResults().size());
 
         final SearchResultBean searchResultBean = new SearchResultBean();
-        searchResultBean.setSearchResults(new ArrayList<>(results.resultsAsJsonOutput(pwmRequest.getPwmApplication(),null)));
+        searchResultBean.setSearchResults(resultOutput);
         searchResultBean.setSizeExceeded(sizeExceeded);
         final String aboutMessage = LocaleHelper.getLocalizedMessage(
                 pwmRequest.getLocale(),

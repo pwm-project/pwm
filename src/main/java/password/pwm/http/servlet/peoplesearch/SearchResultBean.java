@@ -25,18 +25,19 @@ package password.pwm.http.servlet.peoplesearch;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 class SearchResultBean implements Serializable {
-    private List searchResults = new ArrayList<>();
+    private List<Map<String,Object>> searchResults = new ArrayList<>();
     private boolean sizeExceeded;
     private String aboutResultMessage;
     private boolean fromCache;
 
-    public List getSearchResults() {
+    public List<Map<String,Object>> getSearchResults() {
         return searchResults;
     }
 
-    public void setSearchResults(List searchResults) {
+    public void setSearchResults(List<Map<String,Object>> searchResults) {
         this.searchResults = searchResults;
     }
 
