@@ -4,15 +4,15 @@ org-chart-search {
   height: 100%;
   overflow-x: auto;
 
-  app-bar {
-    > .app-bar-content {
+  mf-app-bar {
+    > .mf-app-bar-content {
       display: block;
 
       > .page-content-title {
         width: 100%;
       }
 
-      > auto-complete {
+      > mf-auto-complete {
         .results {
           span {
             color: #808080;
@@ -31,15 +31,15 @@ org-chart-search {
 
 @media (min-width: 426px) {
   org-chart-search {
-    app-bar {
-      > .app-bar-content {
+    mf-app-bar {
+      > .mf-app-bar-content {
         display: flex;
 
         > .page-content-title {
           width: auto;
         }
 
-        > auto-complete {
+        > mf-auto-complete {
           > input {
             max-width: 360px;
           }

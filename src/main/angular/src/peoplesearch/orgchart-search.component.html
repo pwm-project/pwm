@@ -1,6 +1,6 @@
-<app-bar>
+<mf-app-bar>
     <div class="page-content-title">{{ 'TITLE_ORGANIZATION' | translate }}</div>
-    <auto-complete flex
+    <mf-auto-complete flex
                    search="$ctrl.autoCompleteSearch(query)"
                    item-selected="$ctrl.onAutoCompleteItemSelected(person)"
                    item="person">
@@ -9,8 +9,8 @@
             <span ng-bind="person.title"></span>
             <span ng-bind="person.telephoneNumber"></span>
         </content-template>
-    </auto-complete>
-</app-bar>
+    </mf-auto-complete>
+</mf-app-bar>
 
 <org-chart person="$ctrl.person"
            direct-reports="$ctrl.directReports"
