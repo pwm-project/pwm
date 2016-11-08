@@ -12,8 +12,8 @@
     "clean": "rimraf dist/",
     "test": "karma start --NODE_ENV=test",
     "test-single-run": "karma start --NODE_ENV=test --singleRun --no-auto-watch",
-    "start": "webpack-dev-server --config=webpack.dev.js --NODE_ENV=dev",
-    "sync": "concurrently \"webpack-dev-server --config=webpack.build.js --NODE_ENV=production\" \"cpx ./dist/*.js* ../webapp/public/resources/app --watch --verbose\""
+    "start": "webpack-dev-server --config=webpack.dev.js --NODE_ENV=dev --colors",
+    "sync": "concurrently \"webpack-dev-server --config=webpack.build.js --NODE_ENV=production  --colors\" \"cpx ./dist/*.js* ../webapp/public/resources/app --watch --verbose\""
   },
   "author": "",
   "license": "ISC",
