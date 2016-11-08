@@ -184,10 +184,11 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
         final Map<String, String> valueMap = JsonUtil.deserializeStringMap(bodyString);
 
         final String username = Validator.sanitizeInputValue(pwmRequest.getConfig(), valueMap.get("username"), 1024);
+        final boolean includeDisplayName = pwmRequest.readParameterAsBoolean("includeDisplayName");
 
         // if not in cache, build results from ldap
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader(pwmRequest);
-        final SearchResultBean searchResultBean = peopleSearchDataReader.makeSearchResultBean(username);
+        final SearchResultBean searchResultBean = peopleSearchDataReader.makeSearchResultBean(username, includeDisplayName);
         searchResultBean.setFromCache(false);
         final RestResultBean restResultBean = new RestResultBean(searchResultBean);
         pwmRequest.outputJsonResult(restResultBean);
@@ -210,11 +211,19 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
         if (requestInputMap == null) {
             return;
         }
-        final String userKey = requestInputMap.get(PARAM_USERKEY);
-        if (userKey == null || userKey.isEmpty()) {
-            return;
+
+        final UserIdentity userIdentity;
+        {
+            final String userKey = requestInputMap.get(PARAM_USERKEY);
+            if (userKey == null || userKey.isEmpty()) {
+                userIdentity = pwmRequest.getUserInfoIfLoggedIn();
+                if (userIdentity == null) {
+                    return;
+                }
+            } else {
+                userIdentity = UserIdentity.fromObfuscatedKey(userKey, pwmRequest.getPwmApplication());
+            }
         }
-        final UserIdentity userIdentity = UserIdentity.fromObfuscatedKey(userKey, pwmRequest.getPwmApplication());
 
         try {
             final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader(pwmRequest);
