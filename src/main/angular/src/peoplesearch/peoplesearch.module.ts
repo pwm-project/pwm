@@ -13,7 +13,10 @@ require('./peoplesearch.scss');
 
 var moduleName = 'people-search';
 
-module(moduleName, [ uxModule ])
+module(moduleName, [
+    'pascalprecht.translate',
+    uxModule,
+])
     .service('PeopleSearchService', PeopleSearchService)
     .filter('dasherize', dasherize)
     .component('orgChart', OrgChartComponent)
