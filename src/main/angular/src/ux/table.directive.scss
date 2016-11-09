@@ -1,3 +1,99 @@
 mf-table {
+  display: block;
+  width: 100%;
 
+  > mf-table-column {
+    display: none;
+  }
+
+  > .table-configuration {
+    position: relative;
+
+    > ul {
+      background-color: #ffffff;
+      box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .26);
+      box-sizing: border-box;
+      left: 26px;
+      list-style: none;
+      margin: 0;
+      padding: 10px;
+      position: absolute;
+      top: 0;
+
+      > li {
+        height: 24px;
+        line-height: 24px;
+        user-select: none;
+
+        > label {
+          cursor: pointer;
+
+          > input[type="checkbox"] {
+            cursor: inherit;
+          }
+        }
+      }
+    }
+  }
+
+  > table {
+    border: 1px solid #dae1e1;
+    border-collapse: collapse;
+    width: 100%;
+
+    > tbody {
+      > tr {
+        cursor: pointer;
+
+        &:hover {
+          background-color: #eeeeee;
+        }
+      }
+    }
+
+    th, td {
+      font-weight: normal;
+      overflow: hidden;
+      padding: 5px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background-color: #eeeeee;
+      color: #697c87;
+      user-select: none;
+
+      > .column-header {
+        display: flex;
+        flex-flow: row nowrap;
+        vertical-align: middle;
+
+        > mf-icon-button {
+          border: none;
+          height: 17px;
+          padding: 0;
+          width: 17px;
+
+          > img {
+            height: 100%;
+            width: 100%;
+          }
+        }
+
+        > .label {
+          cursor: pointer;
+        }
+      }
+    }
+
+    tr {
+      &:not(:last-child) {
+        > th,
+        > td {
+          border-bottom: 1px solid #dae1e1;
+        }
+      }
+    }
+  }
 }

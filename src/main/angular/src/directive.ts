@@ -4,10 +4,12 @@ export default function Directive(options: {
     bindToController?: boolean,
     controller?: (string | any),
     controllerAs?: string,
+    replace?: boolean,
+    require?: string,
     restrict?: string,
     template?: string,
     templateUrl?: string,
-    transclude?: boolean,
+    transclude?: (boolean | string),
     scope?: (boolean | any),
     stylesheetUrl?: string
 }) {

@@ -1,27 +1,8 @@
-<!--<mf-table class="table-striped" data="person in $ctrl.people">-->
-    <!--<mf-table-column label="First Name" value="person.givenName"></mf-table-column>-->
-    <!--<mf-table-column label="Last Name" value="person.sn"></mf-table-column>-->
-    <!--<mf-table-column label="Title" value="person.title"></mf-table-column>-->
-    <!--<mf-table-column label="Email" value="person.mail"></mf-table-column>-->
-    <!--<mf-table-column label="Telephone" value="person.telephoneNumber"></mf-table-column>-->
-<!--</mf-table>-->
-<table st-table="rowCollection" ng-if="$ctrl.people.length" class="table table-striped">
-    <thead>
-        <tr>
-            <th>{{ 'COLUMN_FIRST_NAME' | translate }}</th>
-            <th>{{ 'COLUMN_LAST_NAME' | translate }}</th>
-            <th>{{ 'COLUMN_TITLE' | translate }}</th>
-            <th>{{ 'COLUMN_EMAIL' | translate }}</th>
-            <th>{{ 'COLUMN_TELEPHONE' | translate }}</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr ng-repeat="person in $ctrl.people" ng-click="$ctrl.selectPerson(person.userKey)">
-            <td>{{ person.givenName }}</td>
-            <td>{{ person.sn }}</td>
-            <td>{{ person.title }}</td>
-            <td>{{ person.mail }}</td>
-            <td>{{ person.telephoneNumber }}</td>
-        </tr>
-    </tbody>
-</table>
+<mf-table data="person in $ctrl.people" ng-show="$ctrl.people.length">
+    <mf-table-column label="'First Name'" value="person.givenName"></mf-table-column>
+    <mf-table-column label="'Last Name'" value="person.sn"></mf-table-column>
+    <mf-table-column label="'Title'" value="person.title"></mf-table-column>
+    <mf-table-column label="'Email'" value="person.mail"></mf-table-column>
+    <mf-table-column label="'Telephone'" value="person.telephoneNumber"></mf-table-column>
+    <mf-table-column label="'Full Name'" value="person | fullName"></mf-table-column>
+</mf-table>

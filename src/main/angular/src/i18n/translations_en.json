@@ -4,11 +4,5 @@
   "TITLE_DIRECT_REPORTS": "Direct Reports",
   "TITLE_ORGANIZATION": "Organization",
 
-  "COLUMN_FIRST_NAME": "First Name",
-  "COLUMN_LAST_NAME": "Last Name",
-  "COLUMN_TITLE": "Title",
-  "COLUMN_EMAIL": "Email",
-  "COLUMN_TELEPHONE": "Telephone",
-
   "LOADING": "Loading..."
 }

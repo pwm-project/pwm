@@ -1,6 +1,6 @@
-import { IAttributes, IAugmentedJQuery, IDirective, IScope, ITranscludeFunction } from 'angular';
+import { IAttributes, IAugmentedJQuery, IDirective, IScope } from 'angular';
 import Directive from '../directive.ts';
-import TableColumnDirectiveController from './table-column.directive.controller';
+import TableDirectiveController from './table.directive.controller';
 
 interface ITableColumnDirectiveScope extends IScope {
     label: string;
@@ -11,14 +11,8 @@ interface ITableColumnDirectiveScope extends IScope {
 }
 
 @Directive({
-    bindToController: true,
-    controller: TableColumnDirectiveController,
-    restrict: 'E',
-    scope: {
-        label: '@'
-    },
-    templateUrl: require('ux/table-column.directive.html'),
-    transclude: false
+    require: '^mfTable',
+    restrict: 'E'
 })
 export default class TableColumnDirective implements IDirective {
     static $inject = [];
@@ -26,9 +20,10 @@ export default class TableColumnDirective implements IDirective {
     }
 
     static link($scope: ITableColumnDirectiveScope,
-         element: IAugmentedJQuery,
-         attributes: IAttributes,
-         transclude: ITranscludeFunction) {
+                instanceElement: IAugmentedJQuery,
+                instanceAttributes: IAttributes,
+                tableController: TableDirectiveController): void {
+        tableController.addColumn(instanceAttributes['label'], instanceAttributes['value']);
     }
 
     static factory(): IDirective {

@@ -1,1 +1,36 @@
 <ng-transclude></ng-transclude>
+
+<div class="table-configuration">
+    <mf-icon-button icon="settings" ng-click="table.showConfiguration = !table.showConfiguration"></mf-icon-button>
+    <ul ng-if="table.showConfiguration">
+        <li ng-repeat="column in table.columns">
+            <label class="label">
+                <input name="column-visibile" type="checkbox" ng-model="column.visible" aria-label="Toggle column visibility"/>
+                {{column.label}}
+            </label>
+        </li>
+    </ul>
+</div>
+
+<table st-table="rowCollection" class="table table-striped">
+    <thead>
+        <tr>
+            <th ng-repeat="column in table.getVisibleColumns()">
+                <div class="column-header">
+                    <span class="label" ng-bind="column.label" ng-click="table.sortOnColumn(column)"></span>
+                    <mf-icon-button icon="chevron-down"
+                                    ng-if="table.sortColumn === column && table.sortReverse"
+                                    ng-click="table.reverseSort()"></mf-icon-button>
+                    <mf-icon-button icon="chevron-up"
+                                    ng-if="table.sortColumn === column && !table.sortReverse"
+                                    ng-click="table.reverseSort()"></mf-icon-button>
+                </div>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="item in table.getItems()">
+            <td ng-repeat="column in table.getVisibleColumns()" ng-bind="table.getValue(item, column.valueExpression)"></td>
+        </tr>
+    </tbody>
+</table>
