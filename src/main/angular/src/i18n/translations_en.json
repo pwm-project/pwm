@@ -1,8 +1,8 @@
 {
-  "TITLE_PEOPLE_SEARCH": "People Search",
-  "TITLE_MANAGEMENT": "Management",
-  "TITLE_DIRECT_REPORTS": "Direct Reports",
-  "TITLE_ORGANIZATION": "Organization",
+  "Title_PeopleSearch": "People Search",
+  "Title_Management": "Management",
+  "Title_DirectReports": "Direct Reports",
+  "Title_Organization": "Organization",
 
   "COLUMN_FIRST_NAME": "First Name",
   "COLUMN_LAST_NAME": "Last Name",
@@ -10,5 +10,5 @@
   "COLUMN_EMAIL": "Email",
   "COLUMN_TELEPHONE": "Telephone",
 
-  "LOADING": "Loading..."
+  "Display_PleaseWait": "Loading..."
 }

@@ -2,7 +2,7 @@ import { bootstrap, module } from 'angular';
 import peopleSearchModule from './peoplesearch/peoplesearch.module';
 import PeopleService from './services/people.service';
 import routes from './routes';
-import translations from './translations';
+import translationsLoader from './services/translations-loader.factory';
 import uiRouter from 'angular-ui-router';
 
 module('app', [
@@ -12,9 +12,13 @@ module('app', [
 ])
 
     .config(routes)
-    .config(translations)
-    .service('PeopleService', PeopleService);
+    .config(['$translateProvider', ($translateProvider: angular.translate.ITranslateProvider) => {
+        $translateProvider.useLoader('translationsLoader');
+        $translateProvider.useSanitizeValueStrategy('escapeParameters');
+        $translateProvider.preferredLanguage('en');
+    }])
+    .service('PeopleService', PeopleService)
+    .factory('translationsLoader', translationsLoader);
 
 // Attach to the page document
 bootstrap(document, ['app']);
-
