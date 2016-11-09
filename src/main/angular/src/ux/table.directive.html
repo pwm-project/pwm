@@ -1,9 +1,9 @@
 <ng-transclude></ng-transclude>
 
 <div class="table-configuration">
-    <mf-icon-button icon="settings" ng-click="table.showConfiguration = !table.showConfiguration"></mf-icon-button>
+    <mf-icon-button icon="settings" ng-click="table.toggleConfigurationVisibility($event)"></mf-icon-button>
     <ul ng-if="table.showConfiguration">
-        <li ng-repeat="column in table.columns">
+        <li ng-repeat="column in table.columns" ng-click="table.onConfigurationColumnClick(column, $event)">
             <label class="label">
                 <input name="column-visibile" type="checkbox" ng-model="column.visible" aria-label="Toggle column visibility"/>
                 {{column.label}}

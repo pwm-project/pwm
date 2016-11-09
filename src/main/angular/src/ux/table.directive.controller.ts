@@ -34,7 +34,6 @@ export default class TableDirectiveController {
                 var value2 = this.getValue(item2, self.sortColumn.valueExpression);
 
                 var result = 0;
-
                 if (value1 < value2) {
                     result = -1;
                 }
@@ -61,6 +60,16 @@ export default class TableDirectiveController {
         return this.columns.filter((column: Column) => column.visible);
     }
 
+    hideConfiguration(): void {
+        this.showConfiguration = false;
+    }
+
+    onConfigurationColumnClick(column: Column, event: Event): void {
+        this.toggleColumnVisibility(column);
+
+        event.stopImmediatePropagation();
+    }
+
     sortOnColumn(column: Column): void {
         if (this.sortColumn === column) {
             // Reverse sort order if the column has already been sorted
@@ -74,8 +83,14 @@ export default class TableDirectiveController {
         this.sortColumn = column;
     }
 
-    static toggleColumnVisibility(column: Column): void {
+    toggleColumnVisibility(column: Column) {
         column.visible = !column.visible;
+    }
+
+    toggleConfigurationVisibility(event: Event) {
+        this.showConfiguration = !this.showConfiguration;
+
+        event.stopImmediatePropagation();
     }
 
     reverseSort(): void {

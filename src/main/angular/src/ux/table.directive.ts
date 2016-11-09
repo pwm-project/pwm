@@ -1,51 +1,57 @@
-import {
-    IAttributes,
-    IAugmentedJQuery,
-    ICompileService,
-    IDirective,
-    IScope,
-    ITranscludeFunction } from 'angular';
-import Directive from '../directive.ts';
+import { IAttributes, IAugmentedJQuery, IDirective, IDocumentService, IScope } from 'angular';
 import TableDirectiveController from './table.directive.controller';
 
-interface ITableDirectiveScope extends IScope {
-    items: any[];
+require('ux/table.directive.scss');
+var templateUrl = require('ux/table.directive.html');
+
+class DataExpression {
+    constructor(public itemName: string,
+                public collectionExpression: string) {}
 }
 
-@Directive({
-    controller: TableDirectiveController,
-    controllerAs: 'table',
-    restrict: 'E',
-    stylesheetUrl: require('ux/table.directive.scss'),
-    templateUrl: require('ux/table.directive.html'),
-    transclude: true
-})
-export default class TableDirective implements IDirective {
-    static $inject = [ '$compile' ];
-    constructor(private $compile: ICompileService) {
+class TableDirective implements IDirective {
+    controller = TableDirectiveController;
+    controllerAs = 'table';
+    restrict = 'E';
+    templateUrl = templateUrl;
+    transclude = true;
+
+    constructor(private $document: IDocumentService) {}
+
+    link($scope: IScope,
+         instanceElement: IAugmentedJQuery,
+         instanceAttributes: IAttributes,
+         controller: TableDirectiveController): void {
+        var dataExpression: DataExpression = this.parseDataExpression(instanceAttributes['data']);
+
+        controller.itemName = dataExpression.itemName;
+        // Collection may not be immediately available (i.e. promise). Watch its value for changes
+        $scope.$watch(dataExpression.collectionExpression, (items: any[]) => { controller.items = items; });
+
+        // Listen for clicks outside of the configuration panel
+        this.$document.bind('click', () => {
+            controller.hideConfiguration();
+            $scope.$apply();
+        });
+
+        // Clean up event listeners
+        $scope.$on('$destroy', () => {
+            instanceElement.off();
+        });
     }
 
-    static link($scope: ITableDirectiveScope,
-                instanceElement: IAugmentedJQuery,
-                instanceAttributes: IAttributes,
-                controller: TableDirectiveController): void {
-        var dataExpression: string = instanceAttributes['data'];
-
-        // TODO: Implement 'track by' functionality
-        // TODO: Support objects, not just arrays (ex: data="(key, value) in [OBJECT]")
+    parseDataExpression(dataExpression: string): any {
         // Parse data expression from [data] attribute
         var match: RegExpMatchArray = dataExpression.match(/^\s*(.+)\s+in\s+(.*?)\s*$/);
         if (!match) {
-            throw Error('Expected expression in [data] in form of "[ITEM] in [COLLECTION]"');
+            throw Error('Expected expression in [data] attribute in form of "[ITEM] in [COLLECTION]"');
         }
 
-        // Set itemName on controller for $eval execution
-        controller.itemName = match[1];
-        // Collection may not be immediately available (i.e. promise). Watch its value for changes
-        $scope.$watch(match[2], (items: any[]) => { controller.items = items; });
-    }
-
-    static factory(): IDirective {
-        return TableDirective;
+        return new DataExpression(match[1], match[2]);
     }
 }
+
+TableDirectiveFactory.$inject = [ '$document' ];
+export default function TableDirectiveFactory($document: IDocumentService): IDirective {
+    return new TableDirective($document);
+};
