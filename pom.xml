@@ -242,6 +242,12 @@
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.0.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset><directory>src/main/angular/dist</directory></fileset>
+                        <fileset><directory>src/main/angular/node_modules</directory></fileset>
+                    </filesets>
+                </configuration>
                 <executions>
                     <execution>
                         <id>remove-compiled-jsps</id>
