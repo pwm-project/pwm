@@ -13,7 +13,7 @@
     "test": "karma start --NODE_ENV=test",
     "test-single-run": "karma start --NODE_ENV=test --singleRun --no-auto-watch",
     "start": "webpack-dev-server --config=webpack.dev.js --NODE_ENV=dev --colors",
-    "sync": "concurrently \"webpack-dev-server --config=webpack.build.js --NODE_ENV=production  --colors\" \"cpx ./dist/*.js* ../webapp/public/resources/app --watch --verbose\""
+    "sync": "webpack --config=webpack.build.js --NODE_ENV=production --output-path=../webapp/public/resources/app --watch"
   },
   "author": "",
   "license": "ISC",
@@ -32,9 +32,7 @@
     "angular": "1.5.8",
     "angular-mocks": "1.5.8",
     "angular-translate": "2.13.0",
-    "concurrently": "3.1.0",
     "copy-webpack-plugin": "3.0.1",
-    "cpx": "1.5.0",
     "css-loader": "0.25.0",
     "html-loader": "0.4.4",
     "html-webpack-plugin": "2.22.0",
