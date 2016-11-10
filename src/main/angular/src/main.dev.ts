@@ -3,7 +3,6 @@ import ConfigService from './services/config.service.dev';
 import peopleSearchModule from './peoplesearch/peoplesearch.module';
 import PeopleService from './services/people.service.dev';
 import routes from './routes';
-import translations from './translations';
 import uiRouter from 'angular-ui-router';
 
 module('app', [
@@ -13,7 +12,11 @@ module('app', [
 ])
 
     .config(routes)
-    .config(translations)
+    .config(['$translateProvider', ($translateProvider: angular.translate.ITranslateProvider) => {
+        $translateProvider.translations('en', require('i18n/translations_en.json'));
+        $translateProvider.useSanitizeValueStrategy('escapeParameters');
+        $translateProvider.preferredLanguage('en');
+    }])
     .service('PeopleService', PeopleService)
     .service('ConfigService', ConfigService);
 

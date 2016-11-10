@@ -1,5 +1,5 @@
 <mf-app-bar>
-    <div class="page-content-title">{{ 'TITLE_PEOPLE_SEARCH' | translate }}</div>
+    <div class="page-content-title" translate="Title_PeopleSearch">People Search</div>
     <span flex></span>
     <mf-icon-button ng-click="$ctrl.viewToggleClicked()" ng-class="$ctrl.viewToggleClass"></mf-icon-button>
 </mf-app-bar>
@@ -18,4 +18,4 @@
     </div>
 </div>
 
-<ui-view>{{ 'LOADING' | translate }}</ui-view>
+<ui-view><span translate="Display_PleaseWait">Loading...</span></ui-view>
