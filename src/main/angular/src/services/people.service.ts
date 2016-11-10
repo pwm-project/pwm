@@ -101,7 +101,7 @@ export default class PeopleService extends PwmService implements IPeopleService 
     }
 
     search(query: string): IPromise<Person[]> {
-        return this.$http.post(this.getServerUrl('search'), {
+        return this.$http.post(this.getServerUrl('search', { 'includeDisplayName': true }), {
             username: query
         }).then((response) => {
             let people: Person[] = [];

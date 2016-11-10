@@ -51,9 +51,13 @@ export default class PersonCardComponent {
     }
 
     private setDisplayData() {
-        this.details = Object
-            .keys(this.person.detail)
-            .map((key: string) => { return this.person.detail[key]; });
+        if (this.person.detail) {
+            this.details = Object
+                .keys(this.person.detail)
+                .map((key: string) => {
+                    return this.person.detail[key];
+                });
+        }
 
         if (this.directReports) {
             this.person.numOfDirectReports = this.directReports.length;

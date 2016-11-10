@@ -3,6 +3,9 @@ export default class Person {
     userKey: string;
     numOfDirectReports: number;
 
+    // Autocomplete properties (via Search)
+    displayName: string;
+
     // Details properties (not available in search)
     detail: any;
     displayNames: string[];
@@ -18,6 +21,9 @@ export default class Person {
     constructor(options: any) {
         // Common properties
         this.userKey = options.userKey;
+
+        // Autocomplete properties (via Search)
+        this.displayName = options.displayName;
 
         // Details properties
         this.detail = options.detail;
