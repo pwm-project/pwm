@@ -6,8 +6,8 @@ var peopleData = require('./people.data');
 
 export default class PeopleService implements IPeopleService {
     private people: Person[];
-    static $inject = ['$q'];
 
+    static $inject = ['$q'];
     constructor(private $q: IQService) {
         this.people = peopleData.map((person) => new Person(person));
     }
@@ -21,6 +21,10 @@ export default class PeopleService implements IPeopleService {
 
                 return this.$q.resolve(people);
             });
+    }
+
+    cardSearch(query: string): angular.IPromise<Person[]> {
+        return this.search(query);
     }
 
     getDirectReports(id: string): angular.IPromise<Person[]> {

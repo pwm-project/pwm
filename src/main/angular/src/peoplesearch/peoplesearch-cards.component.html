@@ -1,4 +1,17 @@
-<person-card person="person"
-             ng-repeat="person in $ctrl.people"
-             ng-click="$ctrl.selectPerson(person)">
-</person-card>
+<mf-app-bar>
+    <div class="page-content-title" translate="Title_PeopleSearch">People Search</div>
+    <span flex></span>
+    <mf-icon-button class="fa fa-th-large" ng-click="$ctrl.gotoTableView()"></mf-icon-button>
+</mf-app-bar>
+
+<div class="search-bar">
+    <input id="username" name="username" placeholder="Search" class="peoplesearch-input-username"
+           autocomplete="off" ng-model="$ctrl.query" /> <!-- Auto focus this control -->
+</div>
+
+<div class="person-card-list">
+    <person-card person="person"
+                 ng-repeat="person in $ctrl.people"
+                 ng-click="$ctrl.selectPerson(person)">
+    </person-card>
+</div>

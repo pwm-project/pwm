@@ -12,3 +12,18 @@ body {
     width: 100%;
   }
 }
+
+.people-search-component {
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
+
+  > ui-view {
+    height: 100%;
+    overflow: auto;
+  }
+}
+
+.search-bar {
+  margin-bottom: 10px;
+}

@@ -4,6 +4,7 @@ import PwmService from './pwm.service';
 
 export interface IPeopleService {
     autoComplete(query: string): IPromise<Person[]>;
+    cardSearch(query: string): IPromise<Person[]>;
     getDirectReports(personId: string): IPromise<Person[]>;
     getNumberOfDirectReports(personId: string): IPromise<number>;
     getManagementChain(personId: string): IPromise<Person[]>;
@@ -13,7 +14,6 @@ export interface IPeopleService {
 }
 
 export default class PeopleService extends PwmService implements IPeopleService {
-
     static $inject = ['$http', '$q'];
     constructor(private $http: IHttpService, private $q: IQService) {
         super();
@@ -27,6 +27,18 @@ export default class PeopleService extends PwmService implements IPeopleService 
                 }
 
                 return this.$q.resolve(people);
+            });
+    }
+
+    cardSearch(query: string): angular.IPromise<Person[]> {
+        var self = this;
+        return this.search(query)
+            .then((people: Person[]) => {
+                var peoplePromises: IPromise<Person>[] = people.map((person: Person) => {
+                    return self.getPerson(person.userKey);
+                });
+
+                return this.$q.all(peoplePromises);
             });
     }
 

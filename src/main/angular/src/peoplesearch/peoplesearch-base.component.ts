@@ -1,37 +1,27 @@
 import { IScope } from 'angular';
-import PeopleSearchService from './peoplesearch.service';
 import Person from '../models/person.model';
+import {IPeopleService} from '../services/people.service';
 
 declare var PWM_PS: any;
 
 export default class PeopleSearchBaseComponent {
-    private deregistrationCallback: () => void;
     people: Person[];
+    query: string;
 
-    constructor(
-        protected $scope: IScope,
-        protected peopleSearchService: PeopleSearchService) {
-    }
+    constructor(protected $scope: IScope,
+                protected $state: angular.ui.IStateService,
+                protected $stateParams: angular.ui.IStateParamsService,
+                protected peopleService: IPeopleService) {}
 
-    $onInit() {
-        this.getPeople();
-
-        var self = this;
-        this.deregistrationCallback = this.$scope.$on('people-updated', () => {
-            self.getPeople();
-        });
-    }
-
-    $onDestroy() {
-        this.deregistrationCallback();
-    }
-
-    getPeople() {
-        this.people = this.peopleSearchService.people;
+    $onInit(): void {
+        this.query = this.$stateParams['query'];
     }
 
     selectPerson(person: Person) {
-        // TODO: This is here to temporarily pull up the old modal dialog:
         PWM_PS.showUserDetail(person.userKey);
+    }
+
+    gotoState(state: string) {
+        this.$state.go(state, { query: this.query });
     }
 }

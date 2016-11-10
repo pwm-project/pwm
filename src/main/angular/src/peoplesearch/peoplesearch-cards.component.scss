@@ -1,21 +1,32 @@
 people-search-cards {
-    text-align: center;
+    display: flex;
+    flex-flow: column nowrap;
+    height: 100%;
 
-    > person-card {
-        display: inline-block;
-        width: 100%;
+    > .person-card-list {
+        height: 100%;
+        overflow: auto;
+        text-align: center;
 
-        &:not(:last-child) {
-            margin-bottom: 5px;
+        > person-card {
+            display: inline-block;
+            width: 100%;
+
+            &:not(:last-child) {
+                margin-bottom: 5px;
+            }
         }
     }
 }
 
 @media (min-width: 375px) {
     people-search-cards {
-        > person-card {
-            margin-right: 5px;
-            width: 200px;
+        > .person-card-list {
+            text-align: left;
+            > person-card {
+                margin-right: 5px;
+                width: 200px;
+            }
         }
     }
 }
