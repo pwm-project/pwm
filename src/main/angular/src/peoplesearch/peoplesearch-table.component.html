@@ -1,8 +1,6 @@
-<mf-table data="person in $ctrl.people" ng-show="$ctrl.people.length">
-    <mf-table-column label="'First Name'" value="person.givenName"></mf-table-column>
-    <mf-table-column label="'Last Name'" value="person.sn"></mf-table-column>
-    <mf-table-column label="'Title'" value="person.title"></mf-table-column>
-    <mf-table-column label="'Email'" value="person.mail"></mf-table-column>
-    <mf-table-column label="'Telephone'" value="person.telephoneNumber"></mf-table-column>
-    <mf-table-column label="'Full Name'" value="person | fullName"></mf-table-column>
+<mf-table data="person in $ctrl.people" ng-show="$ctrl.people.length" on-click-item="$ctrl.selectPerson(person)">
+    <mf-table-column ng-repeat="(key, value) in $ctrl.columnConfiguration"
+                     label="value"
+                     value="'person.' + key">
+    </mf-table-column>
 </mf-table>

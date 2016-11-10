@@ -1,17 +1,11 @@
 import { IScope } from 'angular';
-
-class Column {
-    constructor(public label: string,
-                public valueExpression: string,
-                public visible?: boolean) {
-        this.visible = visible !== false;
-    }
-}
+import Column from './../models/column.model';
 
 export default class TableDirectiveController {
     columns: Column[];
     items: any[];
     itemName: string;
+    onClickItem: (scope: IScope, locals: any) => void;
     showConfiguration: boolean = false;
     sortColumn: Column;
     sortReverse: boolean = false;
@@ -21,8 +15,19 @@ export default class TableDirectiveController {
         this.columns = [];
     }
 
+    $onInit(): void {
+
+    }
+
     addColumn(label: string, valueExpression: string): void {
-        this.columns.push(new Column(this.$scope.$eval(label), valueExpression));
+        this.columns.push(new Column(label, valueExpression));
+    }
+
+    clickItem(item: any) {
+        var locals = {};
+        locals[this.itemName] = item;
+
+        this.onClickItem(this.$scope, locals);
     }
 
     getItems(): any[] {

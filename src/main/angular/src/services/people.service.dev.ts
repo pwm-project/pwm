@@ -6,9 +6,9 @@ var peopleData = require('./people.data');
 
 export default class PeopleService implements IPeopleService {
     private people: Person[];
-    static $inject = ['$q', '$timeout'];
+    static $inject = ['$q'];
 
-    constructor(private $q: IQService, private $timeout: ITimeoutService) {
+    constructor(private $q: IQService) {
         this.people = peopleData.map((person) => new Person(person));
     }
 
@@ -24,38 +24,25 @@ export default class PeopleService implements IPeopleService {
     }
 
     getDirectReports(id: string): angular.IPromise<Person[]> {
-        var deferred = this.$q.defer<Person[]>();
+        var people = this.people.filter((person: Person) => person.detail['manager']['typeMetaData'].userKey == id);
 
-        this.$timeout(() => {
-            var people = this.people.filter((person: Person) => person.detail['manager']['typeMetaData'].userKey == id);
-
-            deferred.resolve(people);
-        });
-
-        return deferred.promise;
+        return this.$q.resolve(people);
     }
 
     getManagementChain(id: string): angular.IPromise<Person[]> {
-        var deferred = this.$q.defer<Person[]>();
+        var person = this.findPerson(id);
 
-        this.$timeout(() => {
-            var person = this.findPerson(id);
+        if (person) {
+            var managementChain: Person[] = [];
 
-            if (person) {
-                var managementChain: Person[] = [];
-
-                while (person = this.findPerson(person.detail['manager']['typeMetaData'].userKey)) {
-                    managementChain.push(person);
-                }
-
-                deferred.resolve(managementChain);
+            while (person = this.findPerson(person.detail['manager']['typeMetaData'].userKey)) {
+                managementChain.push(person);
             }
-            else {
-                deferred.reject(`Person with id: "${id}" not found.`);
-            }
-        });
 
-        return deferred.promise;
+            return this.$q.resolve(managementChain);
+        }
+
+        return this.$q.reject(`Person with id: "${id}" not found.`);
     }
 
     getNumberOfDirectReports(personId: string): IPromise<number> {
@@ -66,48 +53,30 @@ export default class PeopleService implements IPeopleService {
     }
 
     getPerson(id: string): IPromise<Person> {
-        var deferred = this.$q.defer<Person>();
+        var person = this.findPerson(id);
 
-        this.$timeout(() => {
-            var person = this.findPerson(id);
+        if (person) {
+            return this.$q.resolve(person);
+        }
 
-            if (person) {
-                deferred.resolve(person);
-            }
-            else {
-                deferred.reject(`Person with id: "${id}" not found.`);
-            }
-        });
-
-        return deferred.promise;
+        return this.$q.reject(`Person with id: "${id}" not found.`);
     }
 
     isOrgChartEnabled(id: string): angular.IPromise<boolean> {
-        var deferred = this.$q.defer<boolean>();
-
-        this.$timeout(() => {
-            deferred.resolve(true);
-        });
-
-        return deferred.promise;
+        return this.$q.resolve(true);
     }
 
     search(query: string): angular.IPromise<Person[]> {
-        var deferred = this.$q.defer<Person[]>();
-        var self = this;
-        this.$timeout(() => {
-            var people = self.people.filter((person: Person) => {
-                if (!query) {
-                    return false;
-                }
-                var fullName = `${person.givenName} ${person.sn}`;
-                return fullName.toLowerCase().indexOf(query.toLowerCase()) >= 0;
-            });
-
-            deferred.resolve(people);
+        var people = this.people.filter((person: Person) => {
+            if (!query) {
+                return false;
+            }
+            var fullName = `${person.givenName} ${person.sn}`;
+            return fullName.toLowerCase().indexOf(query.toLowerCase()) >= 0;
         });
 
-        return deferred.promise;
+        return this.$q.resolve(people);
+
     }
 
     private findPerson(id: string): Person {

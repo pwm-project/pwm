@@ -11,7 +11,9 @@ class TableColumnDirective implements IDirective {
          instanceElement: IAugmentedJQuery,
          instanceAttributes: IAttributes,
          tableController: TableDirectiveController): void {
-        tableController.addColumn(instanceAttributes['label'], instanceAttributes['value']);
+        tableController.addColumn(
+            $scope.$eval(instanceAttributes['label']),
+            $scope.$eval(instanceAttributes['value']));
     }
 }
 

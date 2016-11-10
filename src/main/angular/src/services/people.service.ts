@@ -1,9 +1,6 @@
-import { IHttpPromise, IHttpService, IPromise, IQService } from 'angular';
+import { IHttpService, IPromise, IQService } from 'angular';
 import Person from '../models/person.model';
-
-// These come from legacy PWM:
-declare var PWM_GLOBAL: any;
-declare var PWM_MAIN: any;
+import PwmService from './pwm.service';
 
 export interface IPeopleService {
     autoComplete(query: string): IPromise<Person[]>;
@@ -15,10 +12,11 @@ export interface IPeopleService {
     search(query: string): IPromise<Person[]>;
 }
 
-export default class PeopleService implements IPeopleService {
+export default class PeopleService extends PwmService implements IPeopleService {
 
     static $inject = ['$http', '$q'];
     constructor(private $http: IHttpService, private $q: IQService) {
+        super();
     }
 
     autoComplete(query: string): IPromise<Person[]> {
@@ -32,7 +30,7 @@ export default class PeopleService implements IPeopleService {
             });
     }
 
-    getDirectReports(id: string): angular.IPromise<Person[]> {
+    getDirectReports(id: string): IPromise<Person[]> {
         return this.$http.post(this.getServerUrl('orgChartData'), {
             userKey: id
         }).then((response) => {
@@ -47,7 +45,7 @@ export default class PeopleService implements IPeopleService {
         });
     }
 
-    getNumberOfDirectReports(personId: string): angular.IPromise<number> {
+    getNumberOfDirectReports(personId: string): IPromise<number> {
         return this.$http.post(this.getServerUrl('orgChartData'), {
             userKey: personId
         }).then((response) => {
@@ -55,12 +53,12 @@ export default class PeopleService implements IPeopleService {
         });
     }
 
-    getManagementChain(id: string): angular.IPromise<Person[]> {
+    getManagementChain(id: string): IPromise<Person[]> {
         let people: Person[] = [];
         return this.getManagerRecursive(id, people);
     }
 
-    private getManagerRecursive(id: string, people: Person[]): angular.IPromise<Person[]> {
+    private getManagerRecursive(id: string, people: Person[]): IPromise<Person[]> {
         return this.$http.post(this.getServerUrl('orgChartData'), {
             userKey: id
         }).then((response) => {
@@ -85,12 +83,12 @@ export default class PeopleService implements IPeopleService {
         });
     }
 
-    isOrgChartEnabled(id: string): angular.IPromise<boolean> {
+    isOrgChartEnabled(id: string): IPromise<boolean> {
         // TODO: need to read this from the server
         return this.$q.resolve(true);
     }
 
-    search(query: string): angular.IPromise<Person[]> {
+    search(query: string): IPromise<Person[]> {
         return this.$http.post(this.getServerUrl('search'), {
             username: query
         }).then((response) => {
@@ -102,11 +100,5 @@ export default class PeopleService implements IPeopleService {
 
             return this.$q.resolve(people);
         });
-    }
-
-    private getServerUrl(processAction: string): string {
-        let url: string = PWM_GLOBAL['url-context'] + '/private/peoplesearch?processAction=' + processAction;
-        url = PWM_MAIN.addPwmFormIDtoURL(url);
-        return url;
     }
 }

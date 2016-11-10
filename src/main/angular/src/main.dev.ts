@@ -1,4 +1,5 @@
 import { bootstrap, module } from 'angular';
+import ConfigService from './services/config.service.dev';
 import peopleSearchModule from './peoplesearch/peoplesearch.module';
 import PeopleService from './services/people.service.dev';
 import routes from './routes';
@@ -13,7 +14,8 @@ module('app', [
 
     .config(routes)
     .config(translations)
-    .service('PeopleService', PeopleService);
+    .service('PeopleService', PeopleService)
+    .service('ConfigService', ConfigService);
 
 // Attach to the page document
 bootstrap(document, ['app']);

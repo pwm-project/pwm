@@ -30,10 +30,8 @@ export default class PeopleSearchBaseComponent {
         this.people = this.peopleSearchService.people;
     }
 
-    selectPerson(id: string) {
-        // this.$state.go('orgchart', { personId: id });
-
+    selectPerson(person: Person) {
         // TODO: This is here to temporarily pull up the old modal dialog:
-        PWM_PS.showUserDetail(id);
+        PWM_PS.showUserDetail(person.userKey);
     }
 }
