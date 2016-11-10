@@ -1,33 +1,63 @@
-import { IAttributes, IAugmentedJQuery, IDirective, IScope, ITranscludeFunction } from 'angular';
-import Directive from '../directive.ts';
+import { IAttributes, IAugmentedJQuery, IDirective, IDocumentService, IParseService, IScope } from 'angular';
 import TableDirectiveController from './table.directive.controller';
 
-interface ITableDirectiveScope extends IScope {
-    autoSize: boolean;
+require('ux/table.directive.scss');
+var templateUrl = require('ux/table.directive.html');
+
+class DataExpression {
+    constructor(public itemName: string,
+                public collectionExpression: string) {}
 }
 
-@Directive({
-    controller: TableDirectiveController,
-    restrict: 'E',
-    scope: {
-        autoSize: '@'
-    },
-    stylesheetUrl: require('ux/table.directive.scss'),
-    templateUrl: require('ux/table.directive.html'),
-    transclude: true
-})
-export default class TableDirective implements IDirective {
-    static $inject = [];
-    constructor() {
+class TableDirective implements IDirective {
+    controller = TableDirectiveController;
+    controllerAs = 'table';
+    restrict = 'E';
+    templateUrl = templateUrl;
+    transclude = true;
+
+    constructor(private $document: IDocumentService, private $parse: IParseService) {}
+
+    link($scope: IScope,
+         instanceElement: IAugmentedJQuery,
+         instanceAttributes: IAttributes,
+         controller: TableDirectiveController): void {
+        if (instanceAttributes['onClickItem']) {
+            controller.onClickItem = this.$parse(instanceAttributes['onClickItem']);
+        }
+
+        var dataExpression: DataExpression = this.parseDataExpression(instanceAttributes['data']);
+
+        controller.itemName = dataExpression.itemName;
+        // Collection may not be immediately available (i.e. promise). Watch its value for changes
+        $scope.$watch(dataExpression.collectionExpression, (items: any[]) => {
+            controller.items = items;
+        });
+
+        // Listen for clicks outside of the configuration panel
+        this.$document.bind('click', () => {
+            controller.hideConfiguration();
+            $scope.$apply();
+        });
+
+        // Clean up event listeners
+        $scope.$on('$destroy', () => {
+            instanceElement.off();
+        });
     }
 
-    static link($scope: ITableDirectiveScope,
-         element: IAugmentedJQuery,
-         attributes: IAttributes,
-         transclude: ITranscludeFunction) {
-    }
+    parseDataExpression(dataExpression: string): any {
+        // Parse data expression from [data] attribute
+        var match: RegExpMatchArray = dataExpression.match(/^\s*(.+)\s+in\s+(.*?)\s*$/);
+        if (!match) {
+            throw Error('Expected expression in [data] attribute in form of "[ITEM] in [COLLECTION]"');
+        }
 
-    static factory(): IDirective {
-        return TableDirective;
+        return new DataExpression(match[1], match[2]);
     }
 }
+
+TableDirectiveFactory.$inject = [ '$document', '$parse' ];
+export default function TableDirectiveFactory($document: IDocumentService, $parse: IParseService): IDirective {
+    return new TableDirective($document, $parse);
+};

@@ -1,4 +1,5 @@
 import { bootstrap, module } from 'angular';
+import ConfigService from './services/config.service';
 import peopleSearchModule from './peoplesearch/peoplesearch.module';
 import PeopleService from './services/people.service';
 import routes from './routes';
@@ -18,7 +19,9 @@ module('app', [
         $translateProvider.preferredLanguage('en');
     }])
     .service('PeopleService', PeopleService)
+    .service('ConfigService', ConfigService)
     .factory('translationsLoader', translationsLoader);
 
 // Attach to the page document
 bootstrap(document, ['app']);
+

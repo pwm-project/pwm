@@ -1,5 +1,6 @@
 import { module } from 'angular';
-import { dasherize } from './string.filters';
+import { DasherizeFilter } from './string.filters';
+import { FullNameFilter } from './person.filters';
 import OrgChartComponent from './orgchart.component';
 import OrgChartSearchComponent from './orgchart-search.component';
 import PeopleSearchService from './peoplesearch.service';
@@ -15,10 +16,11 @@ var moduleName = 'people-search';
 
 module(moduleName, [
     'pascalprecht.translate',
-    uxModule,
+    uxModule
 ])
     .service('PeopleSearchService', PeopleSearchService)
-    .filter('dasherize', dasherize)
+    .filter('dasherize', DasherizeFilter)
+    .filter('fullName', FullNameFilter)
     .component('orgChart', OrgChartComponent)
     .component('orgChartSearch', OrgChartSearchComponent)
     .component('personCard', PersonCardComponent)

@@ -1,42 +1,6 @@
 people-search-table {
-    > table {
-        border: 1px solid #dae1e1;
-        border-collapse: collapse;
+    > mf-table {
         flex: 1 1;
         margin-top: 10px;
-        width: 100%;
-
-        > tbody {
-            > tr {
-                cursor: pointer;
-
-                &:hover {
-                    background-color: #eeeeee;
-                }
-            }
-        }
-
-        th, td {
-            font-weight: normal;
-            overflow: hidden;
-            padding: 5px;
-            text-align: left;
-            vertical-align: top;
-        }
-
-        th {
-            background-color: #eeeeee;
-            color: #697c87;
-        }
-
-        tr {
-            &:not(:last-child) {
-                > th,
-                > td {
-                    border-bottom: 1px solid #dae1e1;
-                }
-            }
-        }
     }
 }
-

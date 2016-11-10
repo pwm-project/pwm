@@ -21,8 +21,6 @@ export default class OrgChartSearchComponent {
     }
 
     $onInit(): void {
-        var self = this;
-
         // Retrieve data from the server
         this.fetchData();
     }

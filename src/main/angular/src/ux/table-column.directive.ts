@@ -1,37 +1,23 @@
-import { IAttributes, IAugmentedJQuery, IDirective, IScope, ITranscludeFunction } from 'angular';
-import Directive from '../directive.ts';
-import TableColumnDirectiveController from './table-column.directive.controller';
+import { IAttributes, IAugmentedJQuery, IDirective, IScope } from 'angular';
+import TableDirectiveController from './table.directive.controller';
 
-interface ITableColumnDirectiveScope extends IScope {
-    label: string;
-    order: number;
-    sortable: boolean;
-    value: string;
-    visible: boolean;
-}
+class TableColumnDirective implements IDirective {
+    require: string = '^mfTable';
+    restrict: string = 'E';
 
-@Directive({
-    bindToController: true,
-    controller: TableColumnDirectiveController,
-    restrict: 'E',
-    scope: {
-        label: '@'
-    },
-    templateUrl: require('ux/table-column.directive.html'),
-    transclude: false
-})
-export default class TableColumnDirective implements IDirective {
-    static $inject = [];
-    constructor() {
-    }
+    constructor() {}
 
-    static link($scope: ITableColumnDirectiveScope,
-         element: IAugmentedJQuery,
-         attributes: IAttributes,
-         transclude: ITranscludeFunction) {
-    }
-
-    static factory(): IDirective {
-        return TableColumnDirective;
+    link($scope: IScope,
+         instanceElement: IAugmentedJQuery,
+         instanceAttributes: IAttributes,
+         tableController: TableDirectiveController): void {
+        tableController.addColumn(
+            $scope.$eval(instanceAttributes['label']),
+            $scope.$eval(instanceAttributes['value']));
     }
 }
+
+TableColumnDirectiveFactory.$inject = [];
+export default function TableColumnDirectiveFactory(): IDirective {
+    return new TableColumnDirective();
+};

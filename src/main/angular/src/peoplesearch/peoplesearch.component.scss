@@ -8,6 +8,7 @@ people-search {
   }
 
   > ui-view {
+    height: 100%;
     overflow: auto;
   }
 }
