@@ -22,20 +22,22 @@ export default class OrgChartSearchComponent {
     }
 
     $onInit(): void {
-        // Retrieve data from the server
         var self = this;
+
         var personId: string = this.$stateParams['personId'];
-        this.fetchOrgChartData(personId).then((orgChartData: OrgChartData) => {
-            // Override personId in case it was undefined
-            personId = orgChartData.self.userKey;
-            this.$q
-                .all({
-                    directReports: this.peopleService.getDirectReports(personId),
-                    managementChain: this.peopleService.getManagementChain(personId),
-                    person: this.peopleService.getPerson(personId)
+
+        this.fetchOrgChartData(personId)
+            .then((orgChartData: OrgChartData) => {
+                // Override personId in case it was undefined
+                personId = orgChartData.self.userKey;
+
+                self.$q.all({
+                    directReports: self.peopleService.getDirectReports(personId),
+                    managementChain: self.peopleService.getManagementChain(personId),
+                    person: self.peopleService.getPerson(personId)
                 })
                 .then((data) => {
-                    this.$scope.$evalAsync(() => {
+                    self.$scope.$evalAsync(() => {
                         self.directReports = data['directReports'];
                         self.managementChain = data['managementChain'];
                         self.person = data['person'];
@@ -44,7 +46,7 @@ export default class OrgChartSearchComponent {
                 .catch((result) => {
                     console.log(result);
                 });
-        });
+            });
     }
 
     autoCompleteSearch(query: string): IPromise<Person[]> {
@@ -57,6 +59,5 @@ export default class OrgChartSearchComponent {
 
     private fetchOrgChartData(personId): IPromise<OrgChartData> {
         return this.peopleService.getOrgChartData(personId);
-
     }
 }
