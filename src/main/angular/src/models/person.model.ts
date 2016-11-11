@@ -4,7 +4,7 @@ export default class Person {
     numOfDirectReports: number;
 
     // Autocomplete properties (via Search)
-    displayName: string;
+    _displayName: string;
 
     // Details properties (not available in search)
     detail: any;
@@ -23,7 +23,7 @@ export default class Person {
         this.userKey = options.userKey;
 
         // Autocomplete properties (via Search)
-        this.displayName = options.displayName;
+        this._displayName = options._displayName;
 
         // Details properties
         this.detail = options.detail;
