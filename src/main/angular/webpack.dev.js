@@ -10,7 +10,11 @@ module.exports = webpackMerge(commonConfig, {
         loaders: [
             {
                 test: /icons\.json$/,
-                loaders: ['style','css', 'fontgen?fileName=fonts/[fontname][ext]' ]
+                loaders: [
+                    'style',
+                    'raw',
+                    'fontgen?fileName=fonts/[fontname][ext]'
+                ]
             }
         ]
     },

@@ -9,7 +9,13 @@ module.exports = webpackMerge(commonConfig, {
         loaders: [
             {
                 test: /icons\.json$/,
-                loaders: ['style','css', 'fontgen?fileName=fonts/[fontname]-[hash][ext]' ]
+                loaders: [
+                    'style',
+                    'raw',
+                    // This replaces path from app root so the urls are relative to the output directory
+                    'string-replace?search=url%5C("%5C/&replace=url("./&flags=gm',
+                    'fontgen?fileName=fonts/[fontname]-[hash][ext]'
+                ]
             }
         ]
     }
