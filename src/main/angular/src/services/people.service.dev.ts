@@ -16,6 +16,9 @@ export default class PeopleService implements IPeopleService {
     autoComplete(query: string): IPromise<Person[]> {
         return this.search(query)
             .then((people: Person[]) => {
+                // Alphabetize results by _displayName
+                people = people.sort((person1, person2) => person1._displayName.localeCompare(person2._displayName));
+
                 if (people && people.length > 10) {
                     return this.$q.resolve(people.slice(0, 10));
                 }
@@ -90,8 +93,7 @@ export default class PeopleService implements IPeopleService {
             if (!query) {
                 return false;
             }
-            var fullName = `${person.givenName} ${person.sn}`;
-            return fullName.toLowerCase().indexOf(query.toLowerCase()) >= 0;
+            return person._displayName.toLowerCase().indexOf(query.toLowerCase()) >= 0;
         });
 
         return this.$q.resolve(people);
