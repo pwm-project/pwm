@@ -47,7 +47,7 @@ export default class OrgChartComponent {
     }
 
     $onDestroy(): void {
-        element(this.$window).off();
+        // TODO: remove $window click listener
     }
 
     $onInit(): void {
