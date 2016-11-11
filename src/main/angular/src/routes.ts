@@ -14,9 +14,10 @@ export default [
             url: '/search?query',
             abstract: true,
             template: '<div class="people-search-component"><ui-view/></div>',
-            reloadOnSearch: false
         });
         $stateProvider.state('search.table', { url: '/table', component: 'peopleSearchTable' });
         $stateProvider.state('search.cards', { url: '/cards', component: 'peopleSearchCards' });
-        $stateProvider.state('orgchart', { url: '/orgchart/{personId}', component: 'orgChartSearch' });
+        $stateProvider.state('orgchart', { url: '/orgchart', abstract: true, template: '<ui-view/>' });
+        $stateProvider.state('orgchart.index', { url: '', component: 'orgChartSearch' });
+        $stateProvider.state('orgchart.search', { url: '/{personId}', component: 'orgChartSearch' });
     }];

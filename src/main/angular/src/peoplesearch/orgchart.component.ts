@@ -119,7 +119,7 @@ export default class OrgChartComponent {
     }
 
     selectPerson(userKey: string): void {
-        this.$state.go('orgchart', { personId: userKey });
+        this.$state.go('orgchart.search', { personId: userKey });
     }
 
     showingOverflow(): boolean {
