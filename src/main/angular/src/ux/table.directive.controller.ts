@@ -69,12 +69,6 @@ export default class TableDirectiveController {
         this.showConfiguration = false;
     }
 
-    onConfigurationColumnClick(column: Column, event: Event): void {
-        this.toggleColumnVisibility(column);
-
-        event.stopImmediatePropagation();
-    }
-
     sortOnColumn(column: Column): void {
         if (this.sortColumn === column) {
             // Reverse sort order if the column has already been sorted
@@ -86,10 +80,6 @@ export default class TableDirectiveController {
         }
 
         this.sortColumn = column;
-    }
-
-    toggleColumnVisibility(column: Column) {
-        column.visible = !column.visible;
     }
 
     toggleConfigurationVisibility(event: Event) {
