@@ -1,6 +1,7 @@
 import { IHttpService, IPromise, IQService } from 'angular';
 import Person from '../models/person.model';
 import PwmService from './pwm.service';
+import OrgChartData from '../models/orgchart-data.model';
 
 export interface IPeopleService {
     autoComplete(query: string): IPromise<Person[]>;
@@ -8,6 +9,7 @@ export interface IPeopleService {
     getDirectReports(personId: string): IPromise<Person[]>;
     getNumberOfDirectReports(personId: string): IPromise<number>;
     getManagementChain(personId: string): IPromise<Person[]>;
+    getOrgChartData(personId: string): IPromise<OrgChartData>;
     getPerson(id: string): IPromise<Person>;
     isOrgChartEnabled(id: string): IPromise<boolean>;
     search(query: string): IPromise<Person[]>;
@@ -43,12 +45,10 @@ export default class PeopleService extends PwmService implements IPeopleService 
     }
 
     getDirectReports(id: string): IPromise<Person[]> {
-        return this.$http.post(this.getServerUrl('orgChartData'), {
-            userKey: id
-        }).then((response) => {
+        return this.getOrgChartData(id).then((orgChartData: OrgChartData) => {
             let people: Person[] = [];
 
-            for (let directReport of response.data['data']['children']) {
+            for (let directReport of orgChartData.children) {
                 let person: Person = new Person(directReport);
                 people.push(person);
             }
@@ -58,10 +58,8 @@ export default class PeopleService extends PwmService implements IPeopleService 
     }
 
     getNumberOfDirectReports(personId: string): IPromise<number> {
-        return this.$http.post(this.getServerUrl('orgChartData'), {
-            userKey: personId
-        }).then((response) => {
-            return this.$q.resolve(response.data['data']['children'].length);
+        return this.getOrgChartData(personId).then((orgChartData: OrgChartData) => {
+            return this.$q.resolve(orgChartData.children.length);
         });
     }
 
@@ -71,19 +69,32 @@ export default class PeopleService extends PwmService implements IPeopleService 
     }
 
     private getManagerRecursive(id: string, people: Person[]): IPromise<Person[]> {
-        return this.$http.post(this.getServerUrl('orgChartData'), {
-            userKey: id
-        }).then((response) => {
-            let responseData = response.data['data'];
-            if ('parent' in responseData) {
-                let manager: Person = responseData['parent'];
-                people.push(manager);
+        return this.getOrgChartData(id).then((orgChartData: OrgChartData) => {
+            if (orgChartData.manager) {
+                people.push(orgChartData.manager);
 
-                return this.getManagerRecursive(manager.userKey, people);
+                return this.getManagerRecursive(orgChartData.manager.userKey, people);
             }
 
             return this.$q.resolve(people);
         });
+    }
+
+    getOrgChartData(personId: string): angular.IPromise<OrgChartData> {
+        return this.$http
+            .post(this.getServerUrl('orgChartData'), { userKey: personId })
+            .then((response) => {
+                let responseData = response.data['data'];
+
+                var manager: Person;
+                if ('parent' in responseData) { manager = new Person(responseData['parent']); }
+                var children = responseData['children'].map((child: any) => new Person(child));
+                var self = new Person(responseData['self']);
+
+                var orgChartData = new OrgChartData(manager, children, self);
+
+                return this.$q.resolve(orgChartData);
+            });
     }
 
     getPerson(id: string): IPromise<Person> {

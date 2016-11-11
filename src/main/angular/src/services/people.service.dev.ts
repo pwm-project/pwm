@@ -1,17 +1,17 @@
 import { IPromise, IQService, ITimeoutService } from 'angular';
 import Person from '../models/person.model';
 import { IPeopleService } from './people.service';
+import OrgChartData from '../models/orgchart-data.model';
 
 var peopleData = require('./people.data');
 
 export default class PeopleService implements IPeopleService {
     private people: Person[];
-
     static $inject = ['$q'];
+
     constructor(private $q: IQService) {
         this.people = peopleData.map((person) => new Person(person));
     }
-
     autoComplete(query: string): IPromise<Person[]> {
         return this.search(query)
             .then((people: Person[]) => {
@@ -47,6 +47,22 @@ export default class PeopleService implements IPeopleService {
         }
 
         return this.$q.reject(`Person with id: "${id}" not found.`);
+    }
+
+    getOrgChartData(personId: string): angular.IPromise<OrgChartData> {
+        if (!personId) {
+            personId = '9';
+        }
+
+        var self = this.findPerson(personId);
+        var manager = self.detail['manager'];
+        var children = this.people.filter((person: Person) => {
+            return self.detail['manager']['typeMetaData'].userKey == personId;
+        });
+
+        var orgChartData = new OrgChartData(manager, children, self);
+
+        return this.$q.resolve(orgChartData);
     }
 
     getNumberOfDirectReports(personId: string): IPromise<number> {

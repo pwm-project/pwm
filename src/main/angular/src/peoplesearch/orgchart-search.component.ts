@@ -2,6 +2,7 @@ import { Component } from '../component';
 import { IPromise, IQService, IScope } from 'angular';
 import { IPeopleService } from '../services/people.service';
 import Person from '../models/person.model';
+import OrgChartData from '../models/orgchart-data.model';
 
 @Component({
     stylesheetUrl: require('peoplesearch/orgchart-search.component.scss'),
@@ -22,28 +23,17 @@ export default class OrgChartSearchComponent {
 
     $onInit(): void {
         // Retrieve data from the server
-        this.fetchData();
-    }
-
-    autoCompleteSearch(query: string): IPromise<Person[]> {
-        return this.peopleService.autoComplete(query);
-    }
-
-    onAutoCompleteItemSelected(person: Person): void {
-        this.$state.go('orgchart', { personId: person.userKey });
-    }
-
-    private fetchData(): void {
-        var personId: string = this.$stateParams['personId'];
         var self = this;
-
-        // Fetch data
-        if (personId) {
-            this.$q.all({
-                directReports: this.peopleService.getDirectReports(personId),
-                managementChain: this.peopleService.getManagementChain(personId),
-                person: this.peopleService.getPerson(personId)
-            })
+        var personId: string = this.$stateParams['personId'];
+        this.fetchOrgChartData(personId).then((orgChartData: OrgChartData) => {
+            // Override personId in case it was undefined
+            personId = orgChartData.self.userKey;
+            this.$q
+                .all({
+                    directReports: this.peopleService.getDirectReports(personId),
+                    managementChain: this.peopleService.getManagementChain(personId),
+                    person: this.peopleService.getPerson(personId)
+                })
                 .then((data) => {
                     this.$scope.$evalAsync(() => {
                         self.directReports = data['directReports'];
@@ -54,6 +44,19 @@ export default class OrgChartSearchComponent {
                 .catch((result) => {
                     console.log(result);
                 });
-        }
+        });
+    }
+
+    autoCompleteSearch(query: string): IPromise<Person[]> {
+        return this.peopleService.autoComplete(query);
+    }
+
+    onAutoCompleteItemSelected(person: Person): void {
+        this.$state.go('orgchart', { personId: person.userKey });
+    }
+
+    private fetchOrgChartData(personId): IPromise<OrgChartData> {
+        return this.peopleService.getOrgChartData(personId);
+
     }
 }
