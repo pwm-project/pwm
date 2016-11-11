@@ -4,10 +4,7 @@
     <mf-icon-button class="fa fa-th-large" ng-click="$ctrl.gotoTableView()"></mf-icon-button>
 </mf-app-bar>
 
-<div class="search-bar">
-    <input id="username" name="username" placeholder="Search" class="peoplesearch-input-username"
-           autocomplete="off" ng-model="$ctrl.query" /> <!-- Auto focus this control -->
-</div>
+<mf-search-bar search-text="$ctrl.query" auto-focus></mf-search-bar>
 
 <div class="person-card-list">
     <person-card person="person"

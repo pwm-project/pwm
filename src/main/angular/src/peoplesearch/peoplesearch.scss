@@ -22,8 +22,16 @@ body {
     height: 100%;
     overflow: auto;
   }
+
+  mf-search-bar {
+    margin: 10px 0;
+  }
 }
 
-.search-bar {
-  margin-bottom: 10px;
+@media (min-width: 454px) {
+  .people-search-component {
+    mf-search-bar {
+      width: 444px;
+    }
+  }
 }

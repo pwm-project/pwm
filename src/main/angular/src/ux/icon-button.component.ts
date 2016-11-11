@@ -12,7 +12,7 @@ export default class IconButtonComponent {
 
     getIconSrc() {
         if (this.icon) {
-            return `/images/m_${this.icon}.svg`;
+            return `/images/icons/m_${this.icon}.svg`;
         }
 
         return null;

@@ -1,0 +1,35 @@
+$mf-search-bar-height: 21px;
+
+mf-search-bar {
+  display: inline-block;
+  position: relative;
+
+  > input {
+    height: $mf-search-bar-height;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  > .placeholder {
+    color: rgba(0, 0, 0, 0.50);
+    height: $mf-search-bar-height;
+    line-height: $mf-search-bar-height;
+    left: 2px;
+    position: absolute;
+    top: 0;
+  }
+
+  > mf-icon-button {
+    border: none;
+    height: $mf-search-bar-height - 2px;
+    padding: 0;
+    position: absolute;
+    right: 5px;
+    top: 1px;
+    width: $mf-search-bar-height - 2px;
+
+    &:hover {
+      color: #0088ce;
+    }
+  }
+}
