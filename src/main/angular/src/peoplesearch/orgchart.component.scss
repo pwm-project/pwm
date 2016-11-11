@@ -185,7 +185,7 @@ org-chart {
 
             > .person-card-content {
               > .avatar {
-                background: $org-chart-secondary-connector-color url('../../images/icons/m_question_mark.svg');
+                background: $org-chart-secondary-connector-color;
                 border-color: $org-chart-secondary-connector-color;
               }
             }
