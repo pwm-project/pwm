@@ -162,7 +162,7 @@ org-chart {
             > person-card {
               > .person-card-content {
                 > .avatar {
-                  background-image: url('../../images/m_circle-horz-menu.svg');
+                  background-image: url('../../images/icons/m_circle-horz-menu.svg');
                 }
 
                 > .reports {
@@ -185,7 +185,7 @@ org-chart {
 
             > .person-card-content {
               > .avatar {
-                background: $org-chart-secondary-connector-color url('../../images/m_question_mark.svg');
+                background: $org-chart-secondary-connector-color url('../../images/icons/m_question_mark.svg');
                 border-color: $org-chart-secondary-connector-color;
               }
             }

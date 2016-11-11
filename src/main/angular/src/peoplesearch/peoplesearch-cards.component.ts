@@ -1,6 +1,7 @@
 import { Component } from '../component';
+import IPeopleService from '../services/people.service';
 import { IScope } from 'angular';
-import PeopleSearchService from './peoplesearch.service';
+import Person from '../models/person.model';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
 
 
@@ -9,10 +10,37 @@ import PeopleSearchBaseComponent from './peoplesearch-base.component';
     templateUrl: require('peoplesearch/peoplesearch-cards.component.html')
 })
 export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponent {
-    static $inject = [ '$scope', 'PeopleSearchService' ];
-    constructor(
-        $scope: IScope,
-        peopleSearchService: PeopleSearchService) {
-        super($scope, peopleSearchService);
+    columnConfiguration: any;
+
+    static $inject = [ '$scope', '$state', '$stateParams', 'PeopleService' ];
+    constructor($scope: IScope,
+                $state: angular.ui.IStateService,
+                $stateParams: angular.ui.IStateParamsService,
+                peopleService: IPeopleService) {
+        super($scope, $state, $stateParams, peopleService);
+    }
+
+    $onInit(): void {
+        super.$onInit();
+
+        var self = this;
+
+        // Fetch data when query changes
+        this.$scope.$watch('$ctrl.query', (newValue: string) => {
+            if (!newValue) {
+                self.people = [];
+            }
+            else {
+                this.peopleService
+                    .cardSearch(newValue)
+                    .then((people: Person[]) => {
+                        self.people = people;
+                    });
+            }
+        });
+    }
+
+    gotoTableView() {
+        super.gotoState('search.table');
     }
 }

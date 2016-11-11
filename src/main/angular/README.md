@@ -15,7 +15,7 @@ Run the following commands
 * `npm run build` Starts a production build
 * `npm start` Starts the development environment, which watches your 
 system for any file changes and rebuilds automatically. It also serves
-the dist/ folder from http://localhost:8080/
+the dist/ folder from http://localhost:4000/
 * `npm run clean` Cleans dist/ directory
 * `npm test` Starts test environment, which will watch your system for 
 any file changes, rebuild your code, and run unit tests

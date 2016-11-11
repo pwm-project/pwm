@@ -6,6 +6,9 @@ import routes from './routes';
 import translationsLoader from './services/translations-loader.factory';
 import uiRouter from 'angular-ui-router';
 
+// fontgen-loader needs this :(
+require('./icons.json');
+
 module('app', [
     uiRouter,
     peopleSearchModule,

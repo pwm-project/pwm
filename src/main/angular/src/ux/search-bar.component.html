@@ -1,0 +1,8 @@
+<input type="text"
+       ng-model="$ctrl.searchText"
+       ng-keydown="$ctrl.onInputKeyDown($event)"
+       title="Search Box"
+       autocomplete="off" />
+<span class="placeholder" ng-hide="$ctrl.searchText">{{$ctrl.placeholder || 'Search' }}</span>
+<mf-icon icon="close" ng-click="$ctrl.clearSearchText()"></mf-icon>
+<!-- loader graphic -->

@@ -1,13 +1,14 @@
-import { IPromise, IQService, ITimeoutService } from 'angular';
+import { IPromise, IQService } from 'angular';
 import Person from '../models/person.model';
 import { IPeopleService } from './people.service';
+import OrgChartData from '../models/orgchart-data.model';
 
 var peopleData = require('./people.data');
 
 export default class PeopleService implements IPeopleService {
     private people: Person[];
-    static $inject = ['$q'];
 
+    static $inject = ['$q'];
     constructor(private $q: IQService) {
         this.people = peopleData.map((person) => new Person(person));
     }
@@ -23,8 +24,12 @@ export default class PeopleService implements IPeopleService {
             });
     }
 
+    cardSearch(query: string): angular.IPromise<Person[]> {
+        return this.search(query);
+    }
+
     getDirectReports(id: string): angular.IPromise<Person[]> {
-        var people = this.people.filter((person: Person) => person.detail['manager']['typeMetaData'].userKey == id);
+        var people = this.findDirectReports(id);
 
         return this.$q.resolve(people);
     }
@@ -35,7 +40,7 @@ export default class PeopleService implements IPeopleService {
         if (person) {
             var managementChain: Person[] = [];
 
-            while (person = this.findPerson(person.detail['manager']['typeMetaData'].userKey)) {
+            while (person = this.findManager(person)) {
                 managementChain.push(person);
             }
 
@@ -43,6 +48,20 @@ export default class PeopleService implements IPeopleService {
         }
 
         return this.$q.reject(`Person with id: "${id}" not found.`);
+    }
+
+    getOrgChartData(personId: string): angular.IPromise<OrgChartData> {
+        if (!personId) {
+            personId = '9';
+        }
+
+        var self = this.findPerson(personId);
+        var manager = this.findManager(self);
+        var children = this.findDirectReports(personId);
+
+        var orgChartData = new OrgChartData(manager, children, self);
+
+        return this.$q.resolve(orgChartData);
     }
 
     getNumberOfDirectReports(personId: string): IPromise<number> {
@@ -77,6 +96,14 @@ export default class PeopleService implements IPeopleService {
 
         return this.$q.resolve(people);
 
+    }
+
+    private findDirectReports(id: string): Person[] {
+        return this.people.filter((person: Person) => person.detail['manager']['typeMetaData'].userKey == id);
+    }
+
+    private findManager(person: Person): Person {
+        return this.findPerson(person.detail['manager']['typeMetaData'].userKey);
     }
 
     private findPerson(id: string): Person {

@@ -2,8 +2,8 @@ mf-auto-complete {
   display: block;
   position: relative;
 
-  > input {
-    box-sizing: border-box;
+  > mf-search-bar {
+    height: 100%;
     width: 100%;
     max-width: 100%;
   }
@@ -26,6 +26,7 @@ mf-auto-complete {
     z-index: 1;
 
     > li {
+      box-sizing: border-box;
       cursor: pointer;
       height: 24px;
       line-height: 24px;
@@ -33,6 +34,7 @@ mf-auto-complete {
       padding: 0 10px;
       text-overflow: ellipsis;
       white-space: nowrap;
+      width: 100%;
 
       &:hover {
         background-color: #eef2f2;

@@ -5,9 +5,7 @@
                    item-selected="$ctrl.onAutoCompleteItemSelected(person)"
                    item="person">
         <content-template>
-            <span ng-bind="person.givenName + ' ' + person.sn"></span>
-            <span ng-bind="person.title"></span>
-            <span ng-bind="person.telephoneNumber"></span>
+            <span ng-bind="person.displayName"></span>
         </content-template>
     </mf-auto-complete>
 </mf-app-bar>

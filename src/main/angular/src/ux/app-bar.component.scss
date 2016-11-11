@@ -1,11 +1,17 @@
+$mf-app-bar-height: 26px;
+
 mf-app-bar {
   display: block;
+  height: $mf-app-bar-height;
 
   > .mf-app-bar-content {
+    height: $mf-app-bar-height;
     display: flex;
     flex-flow: row nowrap;
 
     > .page-content-title {
+      height: $mf-app-bar-height;
+      line-height: $mf-app-bar-height;
       margin-right: 10px;
     }
 

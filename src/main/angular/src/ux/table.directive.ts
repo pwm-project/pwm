@@ -35,9 +35,11 @@ class TableDirective implements IDirective {
         });
 
         // Listen for clicks outside of the configuration panel
-        this.$document.bind('click', () => {
+        this.$document.bind('click', (event: Event) => {
             controller.hideConfiguration();
             $scope.$apply();
+
+            event.stopImmediatePropagation();
         });
 
         // Clean up event listeners

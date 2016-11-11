@@ -9,6 +9,7 @@
     "title": "Senior Sales Associate",
     "managerId": null,
     "photoURL": "/images/avatars/1.jpg",
+    "displayName": "Jean Ryan - Senior Sales Associate",
     "displayNames": [
       "Jean Ryan",
       "jryan0@csmonitor.com",
@@ -79,6 +80,7 @@
     "title": "Quality Engineer",
     "managerId": 1,
     "photoURL": "/images/avatars/2.jpg",
+    "displayName": "Ruby Bowman - Quality Engineer",
     "displayNames": [
       "Ruby Bowman",
       "rbowman1@pinterest.com",
@@ -149,6 +151,7 @@
     "title": "Community Outreach Specialist",
     "managerId": 1,
     "photoURL": "/images/avatars/3.jpg",
+    "displayName": "William Carter - Community Outreach Specialist",
     "displayNames": [
       "William Carter",
       "wcarter2@delicious.com",
@@ -219,6 +222,7 @@
     "title": "Research Nurse",
     "managerId": 1,
     "photoURL": "/images/avatars/4.jpg",
+    "displayName": "Alan Snyder - Research Nurse",
     "displayNames": [
       "Alan Snyder",
       "asnyder3@blinklist.com",
@@ -289,6 +293,7 @@
     "title": "Financial Analyst",
     "managerId": 2,
     "photoURL": "/images/avatars/5.jpg",
+    "displayName": "Aaron Alvarez - Financial Analyst",
     "displayNames": [
       "Aaron Alvarez",
       "aalvarez4@ezinearticles.com",
@@ -359,6 +364,7 @@
     "title": "Accountant II",
     "managerId": 2,
     "photoURL": "",
+    "displayName": "Deborah Morrison - Accountant II",
     "displayNames": [
       "Deborah Morrison",
       "dmorrison5@nytimes.com",
@@ -429,6 +435,7 @@
     "title": "Design Engineer",
     "managerId": 2,
     "photoURL": "/images/avatars/7.jpg",
+    "displayName": "Mildred Hayes - Design Engineer",
     "displayNames": [
       "Mildred Hayes",
       "mhayes6@house.gov",
@@ -499,6 +506,7 @@
     "title": "Structural Engineer",
     "managerId": 3,
     "photoURL": "/images/avatars/8.jpg",
+    "displayName": "Margaret Holmes - Structural Engineer",
     "displayNames": [
       "Margaret Holmes",
       "mholmes7@nbcnews.com",
@@ -569,6 +577,7 @@
     "title": "Junior Executive",
     "managerId": 3,
     "photoURL": "/images/avatars/9.jpg",
+    "displayName": "Jack Jackson - Junior Executive",
     "displayNames": [
       "Jack Jackson",
       "jjackson8@thetimes.co.uk",
@@ -639,6 +648,7 @@
     "title": "Chief Design Engineer",
     "managerId": 3,
     "photoURL": "/images/avatars/10.jpg",
+    "displayName": "Judy Butler - Chief Design Engineer",
     "displayNames": [
       "Judy Butler",
       "jbutler9@reference.com",
@@ -709,6 +719,7 @@
     "title": "Engineer IV",
     "managerId": 9,
     "photoURL": "/images/avatars/11.jpg",
+    "displayName": "Tina Gutierrez - Engineer IV",
     "displayNames": [
       "Tina Gutierrez",
       "tgutierreza@godaddy.com",
@@ -779,6 +790,7 @@
     "title": "Human Resources Manager",
     "managerId": 9,
     "photoURL": "/images/avatars/12.jpg",
+    "displayName": "Jose Cox - Human Resources Manager",
     "displayNames": [
       "Jose Cox",
       "jcoxb@stumbleupon.com",
@@ -849,6 +861,7 @@
     "title": "Internal Auditor",
     "managerId": 4,
     "photoURL": "",
+    "displayName": "Paul Barnes - Internal Auditor",
     "displayNames": [
       "Paul Barnes",
       "pbarnesc@mediafire.com",
@@ -919,6 +932,7 @@
     "title": "Automation Specialist I",
     "managerId": 9,
     "photoURL": "/images/avatars/14.jpg",
+    "displayName": "Joe Stevens - Automation Specialist I",
     "displayNames": [
       "Joe Stevens",
       "jstevensd@ocn.ne.jp",
@@ -989,6 +1003,7 @@
     "title": "Safety Technician I",
     "managerId": 20,
     "photoURL": "/images/avatars/15.jpg",
+    "displayName": "Randy Grant - Safety Technician I",
     "displayNames": [
       "Randy Grant",
       "rgrante@europa.eu",
@@ -1059,6 +1074,7 @@
     "title": "Compensation Analyst",
     "managerId": 9,
     "photoURL": "/images/avatars/16.jpg",
+    "displayName": "Martin Mason - Compensation Analyst",
     "displayNames": [
       "Martin Mason",
       "mmasonf@who.int",
@@ -1129,6 +1145,7 @@
     "title": "Data Coordiator",
     "managerId": 16,
     "photoURL": "/images/avatars/17.jpg",
+    "displayName": "Cynthia Porter - Data Coordiator",
     "displayNames": [
       "Cynthia Porter",
       "cporterg@a8.net",
@@ -1199,6 +1216,7 @@
     "title": "Business Systems Development Analyst",
     "managerId": 17,
     "photoURL": "/images/avatars/18.jpg",
+    "displayName": "Nancy Burns - Business Systems Development Analyst",
     "displayNames": [
       "Nancy Burns",
       "nburnsh@wordpress.org",
@@ -1269,6 +1287,7 @@
     "title": "Structural Engineer",
     "managerId": 18,
     "photoURL": "/images/avatars/19.jpg",
+    "displayName": "Jimmy Montgomery - Structural Engineer",
     "displayNames": [
       "Jimmy Montgomery",
       "jmontgomeryi@addtoany.com",
@@ -1339,6 +1358,7 @@
     "title": "Desktop Support Technician",
     "managerId": 19,
     "photoURL": "/images/avatars/20.jpg",
+    "displayName": "Bruce Carroll - Desktop Support Technician",
     "displayNames": [
       "Bruce Carroll",
       "bcarrollj@paypal.com",
@@ -1409,6 +1429,7 @@
     "title": "No Real Position",
     "managerId": null,
     "photoURL": "/images/avatars/21.jpg",
+    "displayName": "Orphan User - No Real Position",
     "displayNames": [
       "Orphan User",
       "orphan.user@gmail.com",

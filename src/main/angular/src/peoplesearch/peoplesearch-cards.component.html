@@ -1,4 +1,14 @@
-<person-card person="person"
-             ng-repeat="person in $ctrl.people"
-             ng-click="$ctrl.selectPerson(person)">
-</person-card>
+<mf-app-bar>
+    <div class="page-content-title" translate="Title_PeopleSearch">People Search</div>
+    <span flex></span>
+    <mf-icon-button icon="table-large" ng-click="$ctrl.gotoTableView()"></mf-icon-button>
+</mf-app-bar>
+
+<mf-search-bar search-text="$ctrl.query" auto-focus></mf-search-bar>
+
+<div class="person-card-list">
+    <person-card person="person"
+                 ng-repeat="person in $ctrl.people"
+                 ng-click="$ctrl.selectPerson(person)">
+    </person-card>
+</div>

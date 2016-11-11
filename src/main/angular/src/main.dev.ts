@@ -5,6 +5,9 @@ import PeopleService from './services/people.service.dev';
 import routes from './routes';
 import uiRouter from 'angular-ui-router';
 
+// fontgen-loader needs this :(
+require('./icons.json');
+
 module('app', [
     uiRouter,
     peopleSearchModule,

@@ -1,3 +1,11 @@
+<mf-app-bar>
+    <div class="page-content-title" translate="Title_PeopleSearch">People Search</div>
+    <span flex></span>
+    <mf-icon-button icon="view-grid" ng-click="$ctrl.gotoCardsView()"></mf-icon-button>
+</mf-app-bar>
+
+<mf-search-bar search-text="$ctrl.query" auto-focus></mf-search-bar>
+
 <mf-table data="person in $ctrl.people" ng-show="$ctrl.people.length" on-click-item="$ctrl.selectPerson(person)">
     <mf-table-column ng-repeat="(key, value) in $ctrl.columnConfiguration"
                      label="value"
