@@ -18,12 +18,12 @@
             <th ng-repeat="column in table.getVisibleColumns()">
                 <div class="column-header">
                     <span class="label" ng-bind="column.label" ng-click="table.sortOnColumn(column)"></span>
-                    <mf-icon-button icon="chevron-down"
-                                    ng-if="table.sortColumn === column && table.sortReverse"
-                                    ng-click="table.reverseSort()"></mf-icon-button>
-                    <mf-icon-button icon="chevron-up"
-                                    ng-if="table.sortColumn === column && !table.sortReverse"
-                                    ng-click="table.reverseSort()"></mf-icon-button>
+                    <mf-icon icon="chevron-down"
+                             ng-if="table.sortColumn === column && table.sortReverse"
+                             ng-click="table.reverseSort()"></mf-icon>
+                    <mf-icon icon="chevron-up"
+                             ng-if="table.sortColumn === column && !table.sortReverse"
+                             ng-click="table.reverseSort()"></mf-icon>
                 </div>
             </th>
         </tr>

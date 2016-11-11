@@ -1,0 +1,10 @@
+{
+  "baseClass": "icon",
+  "classPrefix": "icon_",
+  "files": [ "../images/icons/**/*.svg" ],
+  "fixedWidth": true,
+  "fontName": "icons",
+  "html": true,
+  "normalize": true,
+  "types": [ "eot", "woff", "ttf", "svg" ]
+}

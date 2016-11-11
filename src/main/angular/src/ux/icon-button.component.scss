@@ -1,26 +1,21 @@
 $mf-icon-button-color: #808080;
-$mf-icon-button-size: 20px;
+$mf-icon-button-size: 24px;
 $mf-icon-button-bg-color: transparent;
 
 $mf-icon-button-hover-bg-color: #f6f9f8;
-//$mf-icon-button-hover-border-color: #dae1e1;
 $mf-icon-button-hover-border-color: #0088ce;
 $mf-icon-button-hover-color: #0088ce;
 
 mf-icon-button {
   background-color: $mf-icon-button-bg-color;
   border: 1px solid transparent;
+  box-sizing: border-box;
   color: $mf-icon-button-color;
   cursor: pointer;
   display: block;
   flex: 0 0 $mf-icon-button-size;
   height: $mf-icon-button-size;
-  padding: 2px;
   width: $mf-icon-button-size;
-
-  &.fa {
-    font-size: 20px;
-  }
 
   &:hover {
     background-color: $mf-icon-button-hover-bg-color;
@@ -28,7 +23,7 @@ mf-icon-button {
     color: $mf-icon-button-hover-color;
   }
 
-  > img {
+  > mf-icon {
     height: 100%;
     width: 100%;
   }

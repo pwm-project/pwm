@@ -35,11 +35,14 @@ org-chart-search {
         }
 
         > mf-auto-complete {
-          > input {
-            max-width: 360px;
+          max-width: 360px;
+
+          > mf-search-bar {
+            max-width: 100%;
           }
 
           > .results {
+            min-width: 100%;
             width: auto;
           }
         }

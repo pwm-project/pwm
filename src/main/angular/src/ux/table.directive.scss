@@ -70,16 +70,12 @@ mf-table {
         flex-flow: row nowrap;
         vertical-align: middle;
 
-        > mf-icon-button {
+        > mf-icon {
           border: none;
+          font-size: 17px;
           height: 17px;
           padding: 0;
           width: 17px;
-
-          > img {
-            height: 100%;
-            width: 100%;
-          }
         }
 
         > .label {

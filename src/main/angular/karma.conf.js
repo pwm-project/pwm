@@ -11,9 +11,12 @@ module.exports = function (config) {
         frameworks: [ 'jasmine' ],
 
         // list of files / patterns to load in the browser
+        // Don't forget to add this to webpack.dev.js
         files: [
             'node_modules/angular/angular.js',
             'node_modules/angular-mocks/angular-mocks.js',
+            'node_modules/angular-sanitize/angular-sanitize.js',
+            'node_modules/angular-translate/dist/angular-translate.js',
             'vendor/angular-ui-router.js',
             'src/main.ts',
             'src/**/*.test.ts'

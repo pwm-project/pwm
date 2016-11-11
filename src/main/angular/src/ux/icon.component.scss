@@ -1,0 +1,21 @@
+mf-icon {
+  display: inline-block;
+  font-size: 20px;
+  height: 24px;
+  position: relative;
+  vertical-align: top;
+  width: 24px;
+
+  > i {
+    color: inherit;
+    position: absolute;
+    text-align: center;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+
+    &:before {
+      color: inherit;
+    }
+  }
+}

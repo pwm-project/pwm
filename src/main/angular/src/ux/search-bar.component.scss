@@ -2,30 +2,33 @@ $mf-search-bar-height: 21px;
 
 mf-search-bar {
   display: inline-block;
+  height: $mf-search-bar-height;
   position: relative;
 
   > input {
-    height: $mf-search-bar-height;
+    height: 100%;
+    line-height: 100%;
     box-sizing: border-box;
     width: 100%;
   }
 
   > .placeholder {
     color: rgba(0, 0, 0, 0.50);
-    height: $mf-search-bar-height;
-    line-height: $mf-search-bar-height;
     left: 2px;
     position: absolute;
-    top: 0;
+    top: 50%;
+    transform: translateY(-50%);
   }
 
-  > mf-icon-button {
-    border: none;
+  > mf-icon {
+    cursor: pointer;
+    font-size: 16px;
     height: $mf-search-bar-height - 2px;
     padding: 0;
     position: absolute;
-    right: 5px;
-    top: 1px;
+    right: 1px;
+    top: 50%;
+    transform: translateY(-50%);
     width: $mf-search-bar-height - 2px;
 
     &:hover {

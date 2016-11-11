@@ -1,4 +1,3 @@
-var CopyWebpackPlugin = require('copy-webpack-plugin');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var WriteFileWebpackPlugin = require('write-file-webpack-plugin');
 var autoPrefixer = require('autoprefixer');
@@ -66,14 +65,6 @@ module.exports = {
         path: outDir
     },
     plugins: [
-        new CopyWebpackPlugin([
-            { from: 'vendor/angular-ui-router.js', to: 'vendor/' },
-            { from: 'node_modules/angular/angular.js', to: 'vendor/' },
-            { from: 'node_modules/angular-sanitize/angular-sanitize.js', to: 'vendor/' },
-            { from: 'node_modules/angular-translate/dist/angular-translate.js', to: 'vendor/' },
-            { from: 'images/', to: 'images/' }
-        ]),
-
         new HtmlWebpackPlugin({
             template: 'index.html',
             inject: 'body'

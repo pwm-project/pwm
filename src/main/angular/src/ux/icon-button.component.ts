@@ -5,16 +5,6 @@ import { Component } from '../component';
         icon: '@'
     },
     stylesheetUrl: require('ux/icon-button.component.scss'),
-    template: `<img ng-src="{{$ctrl.getIconSrc()}}" />`
+    template: `<mf-icon icon="{{$ctrl.icon}}"></mf-icon>`
 })
-export default class IconButtonComponent {
-    icon: string;
-
-    getIconSrc() {
-        if (this.icon) {
-            return `/images/icons/m_${this.icon}.svg`;
-        }
-
-        return null;
-    }
-}
+export default class IconButtonComponent {}
