@@ -21,6 +21,10 @@ export default class PeopleSearchBaseComponent {
         PWM_PS.showUserDetail(person.userKey);
     }
 
+    gotoOrgchart() {
+        this.$state.go('orgchart.index');
+    }
+
     gotoState(state: string) {
         this.$state.go(state, { query: this.query });
     }

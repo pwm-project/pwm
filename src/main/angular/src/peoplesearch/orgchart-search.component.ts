@@ -53,8 +53,12 @@ export default class OrgChartSearchComponent {
         return this.peopleService.autoComplete(query);
     }
 
+    gotoSearchState(state: string) {
+        this.$state.go(state);
+    }
+
     onAutoCompleteItemSelected(person: Person): void {
-        this.$state.go('orgchart', { personId: person.userKey });
+        this.$state.go('orgchart.search', { personId: person.userKey });
     }
 
     private fetchOrgChartData(personId): IPromise<OrgChartData> {
