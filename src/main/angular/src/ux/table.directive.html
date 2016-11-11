@@ -19,18 +19,17 @@
                 <div class="column-header">
                     <span class="label" ng-bind="column.label" ng-click="table.sortOnColumn(column)"></span>
                     <mf-icon icon="chevron-down"
-                             ng-if="table.sortColumn === column && table.sortReverse"
-                             ng-click="table.reverseSort()"></mf-icon>
+                             ng-if="table.sortColumn === column && table.reverseSort"
+                             ng-click="table.toggleSortOrder()"></mf-icon>
                     <mf-icon icon="chevron-up"
-                             ng-if="table.sortColumn === column && !table.sortReverse"
-                             ng-click="table.reverseSort()"></mf-icon>
+                             ng-if="table.sortColumn === column && !table.reverseSort"
+                             ng-click="table.toggleSortOrder()"></mf-icon>
                 </div>
             </th>
         </tr>
     </thead>
     <tbody>
-        <tr ng-repeat="item in table.getItems()"
-            ng-click="table.clickItem(item)">
+        <tr ng-repeat="item in table.getItems()" ng-click="table.clickItem(item, $event)">
             <td ng-repeat="column in table.getVisibleColumns()" ng-bind="table.getValue(item, column.valueExpression)"></td>
         </tr>
     </tbody>

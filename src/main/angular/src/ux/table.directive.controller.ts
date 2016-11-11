@@ -1,5 +1,6 @@
 import { IScope } from 'angular';
 import Column from './../models/column.model';
+import * as angular from 'angular';
 
 export default class TableDirectiveController {
     columns: Column[];
@@ -8,7 +9,7 @@ export default class TableDirectiveController {
     onClickItem: (scope: IScope, locals: any) => void;
     showConfiguration: boolean = false;
     sortColumn: Column;
-    sortReverse: boolean = false;
+    reverseSort: boolean = false;
 
     static $inject = [ '$scope' ];
     constructor(private $scope: IScope) {
@@ -23,30 +24,43 @@ export default class TableDirectiveController {
         this.columns.push(new Column(label, valueExpression));
     }
 
-    clickItem(item: any) {
+    clickItem(item: any, event: Event) {
         var locals = {};
         locals[this.itemName] = item;
 
         this.onClickItem(this.$scope, locals);
+
+        event.stopImmediatePropagation();
     }
 
     getItems(): any[] {
         if (this.sortColumn) {
             var self = this;
 
-            return this.items.sort((item1: any, item2: any): number => {
-                var value1 = this.getValue(item1, self.sortColumn.valueExpression);
-                var value2 = this.getValue(item2, self.sortColumn.valueExpression);
+            return this.items.concat().sort((item1: any, item2: any): number => {
+                var value1 = self.getValue(item1, self.sortColumn.valueExpression);
+                var value2 = self.getValue(item2, self.sortColumn.valueExpression);
 
                 var result = 0;
-                if (value1 < value2) {
+
+                // value 1 is undefined but not value 2
+                if (angular.isUndefined(value1) && !angular.isUndefined(value2)) {
                     result = -1;
                 }
-                else if (value1 > value2) {
+                // value 2 is undefined but not value 1
+                else if (angular.isUndefined(value2) && !angular.isUndefined(value1)) {
                     result = 1;
                 }
+                // Both values are numbers
+                else if (angular.isNumber(value1) && angular.isNumber(value2)) {
+                    result = value1 - value2;
+                }
+                // Both values are strings
+                else if (angular.isString(value1) && angular.isString(value2)) {
+                    result = value1.localeCompare(value2);
+                }
 
-                return self.sortReverse ? -result : result;
+                return self.reverseSort ? -result : result;
             });
         }
 
@@ -71,12 +85,11 @@ export default class TableDirectiveController {
 
     sortOnColumn(column: Column): void {
         if (this.sortColumn === column) {
-            // Reverse sort order if the column has already been sorted
-            this.sortReverse = !this.sortReverse;
+            this.toggleSortOrder();
         }
         else {
             // Reset sort order to normal sort order
-            this.sortReverse = false;
+            this.reverseSort = false;
         }
 
         this.sortColumn = column;
@@ -88,7 +101,7 @@ export default class TableDirectiveController {
         event.stopImmediatePropagation();
     }
 
-    reverseSort(): void {
-        this.sortOnColumn(this.sortColumn);
+    toggleSortOrder(): void {
+        this.reverseSort = !this.reverseSort;
     }
 }
