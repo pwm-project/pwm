@@ -22,7 +22,11 @@
 
 package password.pwm.svc.intruder;
 
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataStoreException;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.ClosableIterator;
 import password.pwm.util.DataStore;
@@ -43,7 +47,7 @@ class DataStoreRecordStore implements RecordStore {
 
     private Date eldestRecord = new Date(0);
 
-    public DataStoreRecordStore(final DataStore dataStore, final IntruderManager intruderManager) {
+    DataStoreRecordStore(final DataStore dataStore, final IntruderManager intruderManager) {
         this.dataStore = dataStore;
         this.intruderManager = intruderManager;
     }
@@ -103,7 +107,7 @@ class DataStoreRecordStore implements RecordStore {
     private class RecordIterator implements ClosableIterator<IntruderRecord> {
         private final ClosableIterator<String> dbIterator;
 
-        private RecordIterator(ClosableIterator<String> dbIterator) {
+        private RecordIterator(final ClosableIterator<String> dbIterator) {
             this.dbIterator = dbIterator;
         }
 
@@ -141,14 +145,14 @@ class DataStoreRecordStore implements RecordStore {
         eldestRecord = new Date();
 
         final long startTime = System.currentTimeMillis();
-        int recordsExamined = 0;
+        final int recordsExamined = 0;
         int recordsRemoved = 0;
 
         boolean complete = false;
 
         while (!complete && intruderManager.status() == PwmService.STATUS.OPEN) {
 
-            List<String> recordsToRemove = discoverPurgableKeys(maxRecordAge);
+            final List<String> recordsToRemove = discoverPurgableKeys(maxRecordAge);
             if (recordsToRemove.isEmpty()) {
                 complete = true;
             }

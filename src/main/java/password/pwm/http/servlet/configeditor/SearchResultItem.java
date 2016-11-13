@@ -35,7 +35,7 @@ class SearchResultItem implements Serializable {
     private boolean defaultValue;
     private String profile;
 
-    public SearchResultItem(String category, String value, String navigation, boolean defaultValue, String profile) {
+    SearchResultItem(final String category, final String value, final String navigation, final boolean defaultValue, final String profile) {
         this.category = category;
         this.value = value;
         this.navigation = navigation;

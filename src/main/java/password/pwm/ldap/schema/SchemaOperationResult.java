@@ -26,7 +26,7 @@ public class SchemaOperationResult {
     private boolean success;
     private String operationLog;
 
-    public SchemaOperationResult(boolean success, String operationLog) {
+    public SchemaOperationResult(final boolean success, final String operationLog) {
         this.success = success;
         this.operationLog = operationLog;
     }

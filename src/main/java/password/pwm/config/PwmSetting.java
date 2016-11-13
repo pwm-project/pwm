@@ -35,7 +35,16 @@ import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -1229,7 +1238,7 @@ public enum PwmSetting {
             if (optionsElement != null) {
                 final List<Element> optionElements = optionsElement.getChildren("option");
                 if (optionElements != null) {
-                    for (Element optionElement : optionElements) {
+                    for (final Element optionElement : optionElements) {
                         if (optionElement.getAttribute("value") == null) {
                             throw new IllegalStateException("option element is missing 'value' attribute for key " + this.getKey());
                         }
@@ -1250,7 +1259,7 @@ public enum PwmSetting {
         if (propertiesElement != null) {
             final List<Element> propertyElements = propertiesElement.getChildren("property");
             if (propertyElements != null) {
-                for (Element propertyElement : propertyElements) {
+                for (final Element propertyElement : propertyElements) {
                     if (propertyElement.getAttributeValue("key") == null) {
                         throw new IllegalStateException("property element is missing 'key' attribute for value " + this.getKey());
                     }
@@ -1306,7 +1315,7 @@ public enum PwmSetting {
                         permissionElement.getAttributeValue(PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACCESS)
                 );
                 if (actor != null && type != null) {
-                    LDAPPermissionInfo permissionInfo = new LDAPPermissionInfo(type, actor);
+                    final LDAPPermissionInfo permissionInfo = new LDAPPermissionInfo(type, actor);
                     returnObj.add(permissionInfo);
                 }
             }
@@ -1382,8 +1391,8 @@ public enum PwmSetting {
 
     public Pattern getRegExPattern() {
         if (pattern == null) {
-            Element settingNode = PwmSettingXml.readSettingXml(this);
-            Element regexNode = settingNode.getChild("regex");
+            final Element settingNode = PwmSettingXml.readSettingXml(this);
+            final Element regexNode = settingNode.getChild("regex");
             if (regexNode != null) {
                 try {
                     pattern = Pattern.compile(regexNode.getText());
@@ -1455,7 +1464,7 @@ public enum PwmSetting {
         private final Object object;
         private final Set<PwmSettingTemplate> settingTemplates;
 
-        public TemplateSetAssociation(Object association, Set<PwmSettingTemplate> settingTemplates) {
+        public TemplateSetAssociation(final Object association, final Set<PwmSettingTemplate> settingTemplates) {
             this.object = association;
             this.settingTemplates = settingTemplates;
         }

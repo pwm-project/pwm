@@ -32,10 +32,22 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.io.StringWriter;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public class PwmEnvironment {
@@ -99,7 +111,8 @@ public class PwmEnvironment {
         public List<String> possibleNames(final String contextName) {
             final List<String> returnValues = new ArrayList<>();
             if (contextName != null) {
-                final String value = PwmConstants.PWM_APP_NAME.toLowerCase() // java property format <app>.<context>.<paramName> like pwm.pwm.applicationFlag
+                // java property format <app>.<context>.<paramName> like pwm.pwm.applicationFlag
+                final String value = PwmConstants.PWM_APP_NAME.toLowerCase()
                         + "."
                         + contextName
                         + "."
@@ -110,7 +123,8 @@ public class PwmEnvironment {
                 returnValues.add(value.toUpperCase().replace(".", "_"));
             }
             {
-                final String value = PwmConstants.PWM_APP_NAME.toLowerCase() // java property format <app>.<paramName> like pwm.applicationFlag
+                // java property format <app>.<paramName> like pwm.applicationFlag
+                final String value = PwmConstants.PWM_APP_NAME.toLowerCase()
                         + "."
                         + this.toString();
                 returnValues.add(value);
@@ -264,7 +278,7 @@ public class PwmEnvironment {
             return Collections.emptyMap();
         }
 
-        public static String readValueFromSystem(PwmEnvironment.EnvironmentParameter parameter, final String contextName) {
+        public static String readValueFromSystem(final PwmEnvironment.EnvironmentParameter parameter, final String contextName) {
             final List<String> namePossibilities = parameter.possibleNames(contextName);
 
             for (final String propertyName : namePossibilities){
@@ -376,12 +390,12 @@ public class PwmEnvironment {
             this.params                  = pwmEnvironment.parameters;
         }
 
-        public Builder(Configuration config, File applicationPath) {
+        public Builder(final Configuration config, final File applicationPath) {
             this.config = config;
             this.applicationPath = applicationPath;
         }
 
-        public Builder setApplicationMode(PwmApplicationMode applicationMode) {
+        public Builder setApplicationMode(final PwmApplicationMode applicationMode) {
             if (PwmConstants.TRIAL_MODE && applicationMode == PwmApplicationMode.RUNNING) {
                 LOGGER.info("application is in trial mode");
                 this.applicationMode = PwmApplicationMode.CONFIGURATION;
@@ -391,22 +405,22 @@ public class PwmEnvironment {
             return this;
         }
 
-        public Builder setInternalRuntimeInstance(boolean internalRuntimeInstance) {
+        public Builder setInternalRuntimeInstance(final boolean internalRuntimeInstance) {
             this.internalRuntimeInstance = internalRuntimeInstance;
             return this;
         }
 
-        public Builder setConfigurationFile(File configurationFile) {
+        public Builder setConfigurationFile(final File configurationFile) {
             this.configurationFile = configurationFile;
             return this;
         }
 
-        public Builder setContextManager(ContextManager contextManager) {
+        public Builder setContextManager(final ContextManager contextManager) {
             this.contextManager = contextManager;
             return this;
         }
 
-        public Builder setFlags(Collection<ApplicationFlag> flags) {
+        public Builder setFlags(final Collection<ApplicationFlag> flags) {
             this.flags.clear();
             if (flags != null) {
                 this.flags.addAll(flags);
@@ -414,7 +428,7 @@ public class PwmEnvironment {
             return this;
         }
 
-        public Builder setParams(Map<ApplicationParameter,String> params) {
+        public Builder setParams(final Map<ApplicationParameter,String> params) {
             this.params.clear();
             if (params != null) {
                 this.params.putAll(params);
@@ -422,7 +436,7 @@ public class PwmEnvironment {
             return this;
         }
 
-        public Builder setConfig(Configuration config) {
+        public Builder setConfig(final Configuration config) {
             this.config = config;
             return this;
         }
@@ -483,7 +497,7 @@ public class PwmEnvironment {
         private FileLock lock;
         private final File lockfile;
 
-        public FileLocker() {
+        FileLocker() {
             final String lockfileName = config.readAppProperty(AppProperty.APPLICATION_FILELOCK_FILENAME);
             lockfile = new File(getApplicationPath(), lockfileName);
         }
@@ -514,7 +528,7 @@ public class PwmEnvironment {
             }
         }
 
-        void writeLockFileContents(RandomAccessFile file) {
+        void writeLockFileContents(final RandomAccessFile file) {
             try {
                 final Properties props = new Properties();
                 props.put("timestamp", PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));

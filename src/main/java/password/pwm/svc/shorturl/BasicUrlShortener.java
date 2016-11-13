@@ -28,28 +28,28 @@ import password.pwm.error.PwmUnrecoverableException;
 import java.util.Properties;
 
 public class BasicUrlShortener implements AbstractUrlShortener {
-	private Properties configuration = null;
+    private Properties configuration = null;
 
-	public BasicUrlShortener() {
-	}
-	
-	public BasicUrlShortener(Properties configuration) {
-		this.configuration = configuration;
-	}
-	
-	public void setConfiguration(Properties configuration) {
-		this.configuration = configuration;
-	}
+    public BasicUrlShortener() {
+    }
 
-	public Properties getConfiguration() {
-		return configuration;
-	}
-	
-	public String shorten(String input, PwmApplication context) throws PwmUnrecoverableException {
-		/* 
-		 * This function does nothing.
-		 * Real functionality has to be implemented by extending this class
-		 */
-		return input;
-	}
+    public BasicUrlShortener(final Properties configuration) {
+        this.configuration = configuration;
+    }
+
+    public void setConfiguration(final Properties configuration) {
+        this.configuration = configuration;
+    }
+
+    public Properties getConfiguration() {
+        return configuration;
+    }
+
+    public String shorten(final String input, final PwmApplication context) throws PwmUnrecoverableException {
+        /*
+        * This function does nothing.
+        * Real functionality has to be implemented by extending this class
+        */
+        return input;
+    }
 }

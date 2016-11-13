@@ -84,7 +84,7 @@ public class DisplayTag extends PwmAbstractTag {
         return value3;
     }
 
-    public void setValue3(String value3)
+    public void setValue3(final String value3)
     {
         this.value3 = value3;
     }
@@ -93,7 +93,7 @@ public class DisplayTag extends PwmAbstractTag {
         return displayIfMissing;
     }
 
-    public void setDisplayIfMissing(boolean displayIfMissing) {
+    public void setDisplayIfMissing(final boolean displayIfMissing) {
         this.displayIfMissing = displayIfMissing;
     }
 
@@ -101,7 +101,7 @@ public class DisplayTag extends PwmAbstractTag {
         return bundle;
     }
 
-    public void setBundle(String bundle) {
+    public void setBundle(final String bundle) {
         this.bundle = bundle;
     }
 
@@ -156,12 +156,15 @@ public class DisplayTag extends PwmAbstractTag {
         return Display.class;
     }
 
-    private String figureDisplayMessage(Locale locale, final Configuration config, final Class bundleClass) {
-        if (locale == null) {
-            locale = PwmConstants.DEFAULT_LOCALE;
-        }
+    private String figureDisplayMessage(final Locale locale, final Configuration config, final Class bundleClass) {
         try {
-            return LocaleHelper.getLocalizedMessage(locale, key, config, bundleClass, new String[]{value1, value2, value3});
+            return LocaleHelper.getLocalizedMessage(
+                    locale == null ? PwmConstants.DEFAULT_LOCALE : null,
+                    key,
+                    config,
+                    bundleClass,
+                    new String[]{value1, value2, value3}
+            );
         } catch (MissingResourceException e) {
             if (!displayIfMissing) {
                 LOGGER.info("error while executing jsp display tag: " + e.getMessage());

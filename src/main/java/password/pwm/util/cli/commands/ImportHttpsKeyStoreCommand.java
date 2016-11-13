@@ -118,7 +118,7 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand {
             }
         };
 
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ImportHttpsKeyStore";
         cliParameters.description = "Import configured HTTPS certificate to Java KeyStore file.  [format] must be one of "
                 + StringUtil.join(HttpsServerCertificateManager.KeyStoreFormat.values(),",");

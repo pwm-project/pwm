@@ -53,7 +53,7 @@ public enum GuideStep {
 
     private final Class<? extends VisibilityCheck> visibilityCheckClass;
 
-    GuideStep(Class<? extends VisibilityCheck> visibilityCheckClass) {
+    GuideStep(final Class<? extends VisibilityCheck> visibilityCheckClass) {
         this.visibilityCheckClass = visibilityCheckClass;
     }
 
@@ -65,11 +65,11 @@ public enum GuideStep {
         return peer(-1);
     }
 
-    private GuideStep peer(int distance) {
+    private GuideStep peer(final int distance) {
         return values()[(this.ordinal()+distance) % values().length];
     }
 
-    boolean visible(ConfigGuideBean configGuideBean) {
+    boolean visible(final ConfigGuideBean configGuideBean) {
         if (visibilityCheckClass != null) {
             final VisibilityCheck visibilityCheckImpl;
             try {
@@ -87,7 +87,7 @@ public enum GuideStep {
     }
 
     static class LdapSchemeVisibilityCheck implements VisibilityCheck {
-        public boolean visible(ConfigGuideBean configGuideBean) {
+        public boolean visible(final ConfigGuideBean configGuideBean) {
             try {
                 final Set<PwmSettingTemplate> templates = ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().getTemplates();
                 return templates.contains(PwmSettingTemplate.LDAP);
@@ -98,7 +98,7 @@ public enum GuideStep {
     }
 
     static class DbVisibilityCheck implements VisibilityCheck {
-        public boolean visible(ConfigGuideBean configGuideBean) {
+        public boolean visible(final ConfigGuideBean configGuideBean) {
             try {
                 final Set<PwmSettingTemplate> templates = ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().getTemplates();
                 return templates.contains(PwmSettingTemplate.DB);

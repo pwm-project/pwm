@@ -67,16 +67,16 @@ public class ConditionalTaskExecutor {
         private final TimeDuration timeDuration;
         private long nextExecuteTimestamp;
 
-        public TimeDurationConditional(TimeDuration timeDuration) {
+        public TimeDurationConditional(final TimeDuration timeDuration) {
             this.timeDuration = timeDuration;
             nextExecuteTimestamp = System.currentTimeMillis() + timeDuration.getTotalMilliseconds();
         }
 
-        public TimeDurationConditional(long value, TimeUnit unit) {
+        public TimeDurationConditional(final long value, final TimeUnit unit) {
             this(new TimeDuration(value, unit));
         }
 
-        public TimeDurationConditional setNextTimeFromNow(final long value, TimeUnit unit) {
+        public TimeDurationConditional setNextTimeFromNow(final long value, final TimeUnit unit) {
             nextExecuteTimestamp = System.currentTimeMillis() + unit.toMillis(value);
             return this;
         }

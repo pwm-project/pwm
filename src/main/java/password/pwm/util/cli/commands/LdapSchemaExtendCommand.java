@@ -115,7 +115,7 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand {
             }
         };
 
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "LdapSchemaExtend";
         cliParameters.description = "Extend an LDAP schema with standard extensions";
         cliParameters.options = Arrays.asList(new CliParameters.Option[]{ldapUrlOption, bindDN, bindPassword});

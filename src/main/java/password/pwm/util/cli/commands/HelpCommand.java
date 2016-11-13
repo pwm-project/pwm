@@ -39,7 +39,7 @@ public class HelpCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "Help";
         cliParameters.description = "Display Help Text";
         cliParameters.options = Collections.emptyList();

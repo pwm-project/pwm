@@ -33,7 +33,7 @@ public class OAuthForgottenPasswordResults implements Serializable {
     private final String username;
     private final Instant timestamp;
 
-    public OAuthForgottenPasswordResults(boolean authenticated, String username) {
+    public OAuthForgottenPasswordResults(final boolean authenticated, final String username) {
         this.authenticated = authenticated;
         this.username = username;
         this.timestamp = Instant.now();

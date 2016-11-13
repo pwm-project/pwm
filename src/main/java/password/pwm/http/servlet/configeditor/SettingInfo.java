@@ -22,7 +22,12 @@
 
 package password.pwm.http.servlet.configeditor;
 
-import password.pwm.config.*;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingCategory;
+import password.pwm.config.PwmSettingFlag;
+import password.pwm.config.PwmSettingProperty;
+import password.pwm.config.PwmSettingSyntax;
+import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.util.macro.MacroMachine;
 
 import java.io.Serializable;

@@ -33,7 +33,14 @@ import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionTrackService implements PwmService {
@@ -49,7 +56,7 @@ public class SessionTrackService implements PwmService {
     }
 
     @Override
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
         this.pwmApplication = pwmApplication;
     }
 
@@ -102,7 +109,7 @@ public class SessionTrackService implements PwmService {
                     LOGGER.error("error during session size calculation: " + e.getMessage());
                 }
             }
-            Map<DebugKey, String> returnMap = new HashMap<>();
+            final Map<DebugKey, String> returnMap = new HashMap<>();
             returnMap.put(DebugKey.HttpSessionCount, String.valueOf(sessionCounter));
             returnMap.put(DebugKey.HttpSessionTotalSize, String.valueOf(sizeTotal));
             returnMap.put(DebugKey.HttpSessionAvgSize,

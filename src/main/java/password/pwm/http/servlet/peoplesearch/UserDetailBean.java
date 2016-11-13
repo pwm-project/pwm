@@ -36,7 +36,7 @@ class UserDetailBean implements Serializable {
         return displayNames;
     }
 
-    public void setDisplayNames(List<String> displayNames) {
+    public void setDisplayNames(final List<String> displayNames) {
         this.displayNames = displayNames;
     }
 
@@ -44,7 +44,7 @@ class UserDetailBean implements Serializable {
         return userKey;
     }
 
-    public void setUserKey(String userKey) {
+    public void setUserKey(final String userKey) {
         this.userKey = userKey;
     }
 
@@ -52,7 +52,7 @@ class UserDetailBean implements Serializable {
         return detail;
     }
 
-    public void setDetail(Map<String, AttributeDetailBean> detail) {
+    public void setDetail(final Map<String, AttributeDetailBean> detail) {
         this.detail = detail;
     }
 
@@ -60,7 +60,7 @@ class UserDetailBean implements Serializable {
         return photoURL;
     }
 
-    public void setPhotoURL(String photoURL) {
+    public void setPhotoURL(final String photoURL) {
         this.photoURL = photoURL;
     }
 }

@@ -30,7 +30,8 @@ import javax.servlet.jsp.PageContext;
 
 public interface ValueOutput {
     String valueOutput(
-            final PwmRequest pwmRequest,
-            final PageContext pageContext)
+            PwmRequest pwmRequest,
+            PageContext pageContext
+    )
             throws ChaiUnavailableException, PwmUnrecoverableException;
 }

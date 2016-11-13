@@ -32,7 +32,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<% ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
+<% final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
@@ -57,7 +57,7 @@
                     <pwm:display key="ldap_cert_description" bundle="ConfigGuide" value1="<%=serverInfo%>"/>
                     <div>
                         <div id="titlePane_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
-                            <% int counter=0;for (X509Certificate certificate : configGuideBean.getLdapCertificates()) {%>
+                            <% int counter=0;for (final X509Certificate certificate : configGuideBean.getLdapCertificates()) {%>
                             <% final String md5sum = SecureEngine.hash(new ByteArrayInputStream(certificate.getEncoded()), PwmHashAlgorithm.MD5); %>
                             <% final String sha1sum = SecureEngine.hash(new ByteArrayInputStream(certificate.getEncoded()), PwmHashAlgorithm.SHA1); %>
                             <table style="width:100%" id="table_certificate0">

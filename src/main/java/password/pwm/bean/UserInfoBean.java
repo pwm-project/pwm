@@ -28,7 +28,10 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.util.otp.OTPUserRecord;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A bean that is stored in the user's session.   Only information that is particular to logged in user is stored in the
@@ -36,11 +39,11 @@ import java.util.*;
  * <p/>
  * For any given HTTP session using PWM, several {@link UserInfoBean}s may be created during
  * the life of the session, however at any given time, no more than one will be stored in
- * the HTTP session.  If the user is not authenticated (determined by {@link LocalSessionStateBean#isAuthenticated()})
+ * the HTTP session.  If the user is not authenticated (determined by {@link LocalSessionStateBean})
  * then there should not be a {@link UserInfoBean} in the HTTP session.
  *
  * @author Jason D. Rivard
- * @see password.pwm.ldap.UserStatusReader#populateUserInfoBean(Locale, UserIdentity)
+ * @see password.pwm.ldap.UserStatusReader#populateUserInfoBean
  */
 public class UserInfoBean implements Serializable {
 // ------------------------------ FIELDS ------------------------------
@@ -90,7 +93,7 @@ public class UserInfoBean implements Serializable {
         return cachedAttributeValues;
     }
 
-    public void setCachedAttributeValues(Map<String, String> cachedAttributeValues)
+    public void setCachedAttributeValues(final Map<String, String> cachedAttributeValues)
     {
         this.cachedAttributeValues = cachedAttributeValues;
     }
@@ -99,7 +102,7 @@ public class UserInfoBean implements Serializable {
         return lastLdapLoginTime;
     }
 
-    public void setLastLdapLoginTime(Date lastLdapLoginTime) {
+    public void setLastLdapLoginTime(final Date lastLdapLoginTime) {
         this.lastLdapLoginTime = lastLdapLoginTime;
     }
 
@@ -123,7 +126,7 @@ public class UserInfoBean implements Serializable {
         return userIdentity;
     }
 
-    public void setUserIdentity(UserIdentity userIdentity) {
+    public void setUserIdentity(final UserIdentity userIdentity) {
         this.userIdentity = userIdentity;
     }
 
@@ -219,7 +222,7 @@ public class UserInfoBean implements Serializable {
         return responseInfoBean;
     }
 
-    public void setResponseInfoBean(ResponseInfoBean responseInfoBean) {
+    public void setResponseInfoBean(final ResponseInfoBean responseInfoBean) {
         this.responseInfoBean = responseInfoBean;
     }
 
@@ -228,7 +231,7 @@ public class UserInfoBean implements Serializable {
         return otpUserRecord;
     }
 
-    public void setOtpUserRecord(OTPUserRecord otpUserRecord)
+    public void setOtpUserRecord(final OTPUserRecord otpUserRecord)
     {
         this.otpUserRecord = otpUserRecord;
     }
@@ -237,7 +240,7 @@ public class UserInfoBean implements Serializable {
         return accountExpirationTime;
     }
 
-    public void setAccountExpirationTime(Date accountExpirationTime) {
+    public void setAccountExpirationTime(final Date accountExpirationTime) {
         this.accountExpirationTime = accountExpirationTime;
     }
 

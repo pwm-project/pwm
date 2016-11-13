@@ -27,7 +27,11 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.X509CertificateValue;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.util.X509Utils;
@@ -39,11 +43,11 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction {
 
     @Override
     public String provideFunction(
-            PwmRequest pwmRequest,
-            StoredConfigurationImpl storedConfiguration,
-            PwmSetting setting,
-            String profile,
-            String extraData)
+            final PwmRequest pwmRequest,
+            final StoredConfigurationImpl storedConfiguration,
+            final PwmSetting setting,
+            final String profile,
+            final String extraData)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -56,7 +60,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction {
                 if (e instanceof PwmException) {
                     throw new PwmOperationalException(((PwmException) e).getErrorInformation());
                 }
-                ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"error importing certificates: " + e.getMessage());
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"error importing certificates: " + e.getMessage());
                 throw new PwmOperationalException(errorInformation);
             }
 
@@ -72,10 +76,10 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction {
         return returnStr.toString();
     }
 
-    abstract String getUri(StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData) throws PwmOperationalException;
+    abstract String getUri(StoredConfigurationImpl storedConfiguration,  PwmSetting pwmSetting,  String profile,  String extraData) throws PwmOperationalException;
 
 
-    void store(X509Certificate[] certs, StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData, final UserIdentity userIdentity) throws PwmOperationalException, PwmUnrecoverableException {
+    void store(final X509Certificate[] certs, final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData, final UserIdentity userIdentity) throws PwmOperationalException, PwmUnrecoverableException {
         storedConfiguration.writeSetting(pwmSetting, new X509CertificateValue(certs), userIdentity);
     }
 

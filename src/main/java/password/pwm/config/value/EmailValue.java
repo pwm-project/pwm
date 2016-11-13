@@ -32,7 +32,15 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 public class EmailValue extends AbstractValue implements StoredValue {
     final Map<String,EmailItemBean> values; //key is locale identifier
@@ -60,7 +68,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
             }
 
             public EmailValue fromXmlElement(
-                    Element settingElement,
+                    final Element settingElement,
                     final PwmSecurityKey input
             )
                     throws PwmOperationalException
@@ -72,7 +80,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
                         final Element loopValueElement = (Element) loopValue;
                         final String value = loopValueElement.getText();
                         if (value != null && value.length() > 0) {
-                            String localeValue = loopValueElement.getAttribute(
+                            final String localeValue = loopValueElement.getAttribute(
                                     "locale") == null ? "" : loopValueElement.getAttribute("locale").getValue();
                             values.put(localeValue, JsonUtil.deserialize(value, EmailItemBean.class));
                         }
@@ -85,7 +93,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
                     final Map<String, String> bodyPlainMap = new HashMap<>();
                     final Map<String, String> bodyHtmlMap = new HashMap<>();
                     for (final Object loopSettingObj : settingElement.getParentElement().getChildren()) {
-                        Element loopSetting = (Element) loopSettingObj;
+                        final Element loopSetting = (Element) loopSettingObj;
                         if (loopSetting.getAttribute("key") != null) {
                             if (loopSetting.getAttribute("key").getValue().equals(
                                     settingElement.getAttribute("key").getValue() + ".from")) {
@@ -94,7 +102,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
                                     final Element loopValueElement = (Element) loopValue;
                                     final String value = loopValueElement.getText();
                                     if (value != null && value.length() > 0) {
-                                        String localeValue = settingElement.getAttribute(
+                                        final String localeValue = settingElement.getAttribute(
                                                 "locale") == null ? "" : settingElement.getAttribute(
                                                 "locale").getValue();
                                         fromMap.put(localeValue, value);
@@ -108,7 +116,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
                                     final Element loopValueElement = (Element) loopValue;
                                     final String value = loopValueElement.getText();
                                     if (value != null && value.length() > 0) {
-                                        String localeValue = settingElement.getAttribute(
+                                        final String localeValue = settingElement.getAttribute(
                                                 "locale") == null ? "" : settingElement.getAttribute(
                                                 "locale").getValue();
                                         subjectMap.put(localeValue, value);
@@ -122,7 +130,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
                                     final Element loopValueElement = (Element) loopValue;
                                     final String value = loopValueElement.getText();
                                     if (value != null && value.length() > 0) {
-                                        String localeValue = settingElement.getAttribute(
+                                        final String localeValue = settingElement.getAttribute(
                                                 "locale") == null ? "" : settingElement.getAttribute(
                                                 "locale").getValue();
                                         bodyPlainMap.put(localeValue, value);
@@ -136,7 +144,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
                                     final Element loopValueElement = (Element) loopValue;
                                     final String value = loopValueElement.getText();
                                     if (value != null && value.length() > 0) {
-                                        String localeValue = settingElement.getAttribute(
+                                        final String localeValue = settingElement.getAttribute(
                                                 "locale") == null ? "" : settingElement.getAttribute(
                                                 "locale").getValue();
                                         bodyHtmlMap.put(localeValue, value);
@@ -188,7 +196,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
         return Collections.unmodifiableMap(values);
     }
 
-    public List<String> validateValue(PwmSetting pwmSetting) {
+    public List<String> validateValue(final PwmSetting pwmSetting) {
         if (pwmSetting.isRequired()) {
             if (values == null || values.isEmpty() || values.values().iterator().next() == null) {
                 return Collections.singletonList("required value missing");
@@ -214,7 +222,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
         return Collections.emptyList();
     }
 
-    public String toDebugString(Locale locale) {
+    public String toDebugString(final Locale locale) {
         if (values == null) {
             return "No Email Item";
         }

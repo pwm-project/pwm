@@ -33,7 +33,14 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.math.BigInteger;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class ReportSummaryData {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ReportSummaryData.class);
@@ -122,15 +129,15 @@ public class ReportSummaryData {
         return meanCacheTime;
     }
 
-    void update(UserCacheRecord userCacheRecord) {
+    void update(final UserCacheRecord userCacheRecord) {
         update(userCacheRecord, true);
     }
 
-    void remove(UserCacheRecord userCacheRecord) {
+    void remove(final UserCacheRecord userCacheRecord) {
         update(userCacheRecord,false);
     }
 
-    private synchronized void update(UserCacheRecord userCacheRecord, boolean adding) {
+    private synchronized void update(final UserCacheRecord userCacheRecord, final boolean adding) {
         final int modifier = adding ? 1 : -1;
 
         totalUsers += modifier;
@@ -274,7 +281,7 @@ public class ReportSummaryData {
         meanCacheTime = new Date(halvedMillis.longValue());
     }
 
-    private int calcTimeWindow(Date eventDate, final long timeWindow, boolean adding) {
+    private int calcTimeWindow(final Date eventDate, final long timeWindow, final boolean adding) {
         if (eventDate == null) {
             return 0;
         }
@@ -354,7 +361,7 @@ public class ReportSummaryData {
         }
 
         returnCollection.add(builder.makeRow("Field_Report_Sum_HaveResponseTime", this.hasResponseSetTime));
-        for (Integer day : responseSetDays.keySet()) {
+        for (final Integer day : responseSetDays.keySet()) {
             if (day < 0) {
                 returnCollection.add(builder.makeRow("Field_Report_Sum_ResponseTimePrevious", this.responseSetDays.get(day), String.valueOf(Math.abs(day))));
             }
@@ -379,9 +386,9 @@ public class ReportSummaryData {
         private String pct;
 
         public PresentationRow(
-                String label,
-                String count,
-                String pct
+                final String label,
+                final String count,
+                final String pct
         )
         {
             this.label = label;
@@ -411,9 +418,9 @@ public class ReportSummaryData {
         private final Locale locale;
 
         public PresentationRowBuilder(
-                Configuration config,
-                int totalUsers,
-                Locale locale
+                final Configuration config,
+                final int totalUsers,
+                final Locale locale
         )
         {
             this.config = config;

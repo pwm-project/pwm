@@ -63,7 +63,7 @@
                     Last Modified
                 </td>
                 <td>
-                    <% String lastModified = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigLastModified); %>
+                    <% final String lastModified = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigLastModified); %>
                     <% if (lastModified == null) { %>
                     <pwm:display key="Value_NotApplicable"/>
                     <% } else { %>
@@ -121,7 +121,7 @@
             <pwm:if test="<%=PwmIfTest.configurationOpen%>">
             <tr class="buttonrow">
                 <td class="buttoncell" colspan="2">
-                    <% String configFileName = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigFilename); %>
+                    <% final String configFileName = (String)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigFilename); %>
                     <pwm:if test="<%=PwmIfTest.trialMode%>">
                         <div  style="text-align: center" class="center">
                         <span><pwm:display key="Notice_TrialRestrictConfig" bundle="Admin"/></span>

@@ -44,6 +44,7 @@ import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -65,7 +66,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
 
 
     @Override
-    protected ProcessAction readProcessAction(PwmRequest request)
+    protected ProcessAction readProcessAction(final PwmRequest request)
             throws PwmUnrecoverableException
     {
         return null;
@@ -107,6 +108,11 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
                     return;
                 }
             }
+            break;
+
+            default:
+                // for non-auth requests its okay to continue
+                break;
         }
 
         // check if there is an "error" on the request sent from the oauth server., if there is then halt.
@@ -134,6 +140,9 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
                     pwmRequest.respondWithError(errorInformation);
                     LOGGER.error(pwmSession,errorMsg);
                     return;
+
+                default:
+                    Helper.unhandledSwitchStatement(oAuthUseCaseCase);
             }
 
         }
@@ -289,6 +298,9 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
                 final String profileId = oAuthState.getForgottenProfileId();
                 final ForgottenPasswordProfile profile = pwmRequest.getConfig().getForgottenPasswordProfiles().get(profileId);
                 return OAuthSettings.forForgottenPassword(profile);
+
+            default:
+                Helper.unhandledSwitchStatement(oAuthUseCase);
 
         }
 

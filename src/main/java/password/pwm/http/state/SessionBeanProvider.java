@@ -31,7 +31,7 @@ interface SessionBeanProvider {
 
     <E extends PwmSessionBean> void clearSessionBean(PwmRequest pwmRequest, Class<E> userBeanClass) throws PwmUnrecoverableException;
 
-    void saveSessionBeans(final PwmRequest pwmRequest);
+    void saveSessionBeans( PwmRequest pwmRequest);
 
-    String getSessionStateInfo(final PwmRequest pwmRequest) throws PwmUnrecoverableException;
+    String getSessionStateInfo( PwmRequest pwmRequest) throws PwmUnrecoverableException;
 }

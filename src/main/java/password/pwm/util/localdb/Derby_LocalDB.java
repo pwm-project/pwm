@@ -30,7 +30,11 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
-import java.sql.*;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
 
@@ -118,8 +122,8 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
         } catch (Throwable e) {
             final String errorMsg;
             if (e instanceof SQLException) {
-                SQLException sqlException = (SQLException)e;
-                SQLException nextException = sqlException.getNextException();
+                final SQLException sqlException = (SQLException)e;
+                final SQLException nextException = sqlException.getNextException();
                 if (nextException != null) {
                     if ("XSDB6".equals(nextException.getSQLState())) {
                         errorMsg = "unable to open LocalDB, the LocalDB is already opened in a different instance: " + nextException.getMessage();

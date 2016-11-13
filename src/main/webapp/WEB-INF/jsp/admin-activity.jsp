@@ -55,7 +55,7 @@
     }
 </style>
 <div id="wrapper">
-    <% String PageName = JspUtility.localizedString(pageContext,"Title_UserActivity",Admin.class);%>
+    <% final String PageName = JspUtility.localizedString(pageContext,"Title_UserActivity",Admin.class);%>
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp" flush="true" >
         <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
@@ -86,8 +86,8 @@
 
                 </div>
             </div>
-            <% for (RecordType recordType : RecordType.values()) { %>
-            <% String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getConfig(), Admin.class); %>
+            <% for (final RecordType recordType : RecordType.values()) { %>
+            <% final String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getConfig(), Admin.class); %>
             <div id="Intruders<%=titleName%>" data-dojo-type="dijit/layout/ContentPane" title="Intruders<br/><%=titleName%>" class="tabContent">
                 <div id="<%=recordType%>_Grid" class="analysisGrid">
                 </div>

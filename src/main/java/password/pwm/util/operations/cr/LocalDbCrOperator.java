@@ -42,7 +42,7 @@ public class LocalDbCrOperator implements CrOperator {
 
     private final LocalDB localDB;
 
-    public LocalDbCrOperator(LocalDB localDB) {
+    public LocalDbCrOperator(final LocalDB localDB) {
         this.localDB = localDB;
     }
 
@@ -87,7 +87,7 @@ public class LocalDbCrOperator implements CrOperator {
         return null;
     }
 
-    public ResponseInfoBean readResponseInfo(ChaiUser theUser, UserIdentity userIdentity, String userGUID)
+    public ResponseInfoBean readResponseInfo(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID)
             throws PwmUnrecoverableException
     {
         try {
@@ -98,7 +98,7 @@ public class LocalDbCrOperator implements CrOperator {
         }
     }
 
-    public void clearResponses(UserIdentity userIdentity, final ChaiUser theUser, final String userGUID) throws PwmUnrecoverableException {
+    public void clearResponses(final UserIdentity userIdentity, final ChaiUser theUser, final String userGUID) throws PwmUnrecoverableException {
         if (userGUID == null || userGUID.length() < 1) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot clear responses to localDB, user does not have a pwmGUID"));
         }
@@ -120,7 +120,7 @@ public class LocalDbCrOperator implements CrOperator {
         }
     }
 
-    public void writeResponses(UserIdentity userIdentity, ChaiUser theUser, String userGUID, ResponseInfoBean responseInfoBean)
+    public void writeResponses(final UserIdentity userIdentity, final ChaiUser theUser, final String userGUID, final ResponseInfoBean responseInfoBean)
             throws PwmUnrecoverableException
     {
         if (userGUID == null || userGUID.length() < 1) {

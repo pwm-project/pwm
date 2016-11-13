@@ -25,7 +25,7 @@ package password.pwm.util;
 import password.pwm.error.PwmDataStoreException;
 
 public interface DataStore {
-    public static enum Status {
+    enum Status {
         NEW, OPEN, CLOSED
     }
 

@@ -134,7 +134,7 @@
       <br/>
       <% } %>
       <% final Configuration pwmConfig = JspUtility.getPwmRequest(pageContext).getConfig(); %>
-      <% Map<PwmLocaleBundle,Map<String,List<Locale>>> modifiedKeys = LocaleHelper.getModifiedKeysInConfig(pwmConfig); %>
+      <% final Map<PwmLocaleBundle,Map<String,List<Locale>>> modifiedKeys = LocaleHelper.getModifiedKeysInConfig(pwmConfig); %>
       <% if (modifiedKeys != null && !modifiedKeys.isEmpty()) { %>
       <% for (final PwmLocaleBundle pwmLocaleBundle : modifiedKeys.keySet()) { %>
       <% for (final String key : modifiedKeys.get(pwmLocaleBundle).keySet()) { %>

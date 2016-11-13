@@ -49,7 +49,7 @@ public class ConfigNewCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigNew";
         cliParameters.description = "Create a new configuration file";
         cliParameters.needsPwmApplication = false;

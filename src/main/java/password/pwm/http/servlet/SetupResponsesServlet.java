@@ -34,13 +34,15 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.svc.event.AuditRecordFactory;
-import password.pwm.util.Validator;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ChallengeProfile;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -49,10 +51,13 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -60,7 +65,11 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * User interaction servlet for setting up secret question/answer
@@ -91,7 +100,7 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
 
         private final HttpMethod method;
 
-        SetupResponsesAction(HttpMethod method)
+        SetupResponsesAction(final HttpMethod method)
         {
             this.method = method;
         }
@@ -188,7 +197,10 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
                     setupResponsesBean = pwmApplication.getSessionStateService().getBean(pwmRequest, SetupResponsesBean.class);
                     this.initializeBean(pwmRequest, setupResponsesBean);
                     setupResponsesBean.setUserLocale(pwmSession.getSessionStateBean().getLocale());
+                    break;
 
+                default:
+                    Helper.unhandledSwitchStatement(action);
 
             }
         }
@@ -207,7 +219,7 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
             final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
             final ChaiUser theUser = pwmSession.getSessionManager().getActor(pwmApplication);
             pwmApplication.getCrService().clearResponses(pwmSession.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID);
-            UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmRequest.getSessionLabel());
+            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmRequest.getSessionLabel());
             userStatusReader.populateLocaleSpecificUserInfoBean(pwmSession.getUserInfoBean(),pwmRequest.getLocale());
             pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, SetupResponsesBean.class);
 
@@ -550,23 +562,25 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
 
     private static SetupResponsesBean.SetupData populateSetupData(
             final ChallengeSet challengeSet,
-            int minRandomSetup
+            final int minRandomSetup
     )
     {
         boolean useSimple = true;
         final Map<String, Challenge> indexedChallenges = new LinkedHashMap<>();
 
+        int minRandom = minRandomSetup;
+
         {
-            if (minRandomSetup != 0 && minRandomSetup < challengeSet.getMinRandomRequired()) {
-                minRandomSetup = challengeSet.getMinRandomRequired();
+            if (minRandom != 0 && minRandom < challengeSet.getMinRandomRequired()) {
+                minRandom = challengeSet.getMinRandomRequired();
             }
-            if (minRandomSetup > challengeSet.getRandomChallenges().size()) {
-                minRandomSetup = 0;
+            if (minRandom > challengeSet.getRandomChallenges().size()) {
+                minRandom = 0;
             }
         }
         {
             {
-                if (minRandomSetup == 0) {
+                if (minRandom == 0) {
                     useSimple = false;
                 }
 
@@ -590,18 +604,18 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
             }
         }
 
-        SetupResponsesBean.SetupData setupData = new SetupResponsesBean.SetupData();
+        final SetupResponsesBean.SetupData setupData = new SetupResponsesBean.SetupData();
         setupData.setChallengeSet(challengeSet);
         setupData.setSimpleMode(useSimple);
         setupData.setIndexedChallenges(indexedChallenges);
-        setupData.setMinRandomSetup(minRandomSetup);
+        setupData.setMinRandomSetup(minRandom);
         return setupData;
     }
 
     private static class ValidationResponseBean implements Serializable {
-        final private int version = 1;
-        final private String message;
-        final private boolean success;
+        private final int version = 1;
+        private final String message;
+        private final boolean success;
 
         private ValidationResponseBean(
                 final String message,

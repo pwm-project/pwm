@@ -25,8 +25,8 @@
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<% ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
-<% String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE); %>
+<% final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
+<% final String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_STORAGE); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
@@ -43,7 +43,7 @@
             <option value="NOTSELECTED" selected disabled> -- Please select a template -- </option>
             <% } %>
             <% for (final String loopTemplate : PwmSetting.TEMPLATE_STORAGE.getOptions().keySet()) { %>
-            <% boolean selected = loopTemplate.equals(selectedTemplate); %>
+            <% final boolean selected = loopTemplate.equals(selectedTemplate); %>
             <option value="<%=loopTemplate%>"<% if (selected) { %> selected="selected"<% } %>>
                 <%=PwmSetting.TEMPLATE_STORAGE.getOptions().get(loopTemplate)%>
             </option>

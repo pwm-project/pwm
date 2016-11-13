@@ -32,7 +32,12 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 public class FormValue extends AbstractValue implements StoredValue {
     final List<FormConfiguration> values;
@@ -61,7 +66,7 @@ public class FormValue extends AbstractValue implements StoredValue {
                 }
             }
 
-            public FormValue fromXmlElement(Element settingElement, final PwmSecurityKey key)
+            public FormValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
                     throws PwmOperationalException
             {
                 final boolean oldType = PwmSettingSyntax.LOCALIZED_STRING_ARRAY.toString().equals(
@@ -100,7 +105,7 @@ public class FormValue extends AbstractValue implements StoredValue {
         return Collections.unmodifiableList(values);
     }
 
-    public List<String> validateValue(PwmSetting pwmSetting) {
+    public List<String> validateValue(final PwmSetting pwmSetting) {
         if (pwmSetting.isRequired()) {
             if (values == null || values.size() < 1 || values.get(0) == null) {
                 return Collections.singletonList("required value missing");
@@ -131,7 +136,7 @@ public class FormValue extends AbstractValue implements StoredValue {
         return needsXmlUpdate;
     }
 
-    public String toDebugString(Locale locale) {
+    public String toDebugString(final Locale locale) {
         if (values != null && !values.isEmpty()) {
             final StringBuilder sb = new StringBuilder();
             for (final FormConfiguration formRow : values) {

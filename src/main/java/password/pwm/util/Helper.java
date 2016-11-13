@@ -43,14 +43,30 @@ import password.pwm.http.state.SessionStateService;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TimeZone;
+import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.regex.Pattern;
@@ -78,8 +94,8 @@ public class
      * @param in byte[] buffer to convert to string format
      * @return result String buffer in String format
      */
-    public static String byteArrayToHexString(final byte in[]) {
-        final String pseudo[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
+    public static String byteArrayToHexString(final byte[] in) {
+        final String[] pseudo = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
 
         if (in == null || in.length <= 0) {
             return "";
@@ -261,7 +277,7 @@ public class
     }
 
 
-    static public String buildPwmFormID(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+    public static String buildPwmFormID(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
         final SessionStateService sessionStateService = pwmRequest.getPwmApplication().getSessionStateService();
         final String value = sessionStateService.getSessionStateInfo(pwmRequest);
         final FormNonce formID = new FormNonce(
@@ -353,7 +369,7 @@ public class
 
         if (inputURI.getHost() != null && !inputURI.getHost().isEmpty()) { // disallow localhost uri
             try {
-                InetAddress inetAddress = InetAddress.getByName(inputURI.getHost());
+                final InetAddress inetAddress = InetAddress.getByName(inputURI.getHost());
                 if (inetAddress.isLoopbackAddress()) {
                     final String errorMsg = "redirect to loopback host is not permitted";
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_REDIRECT_ILLEGAL,errorMsg));
@@ -417,7 +433,7 @@ public class
         if (pwmApplication == null) {
             return false;
         }
-        PwmApplicationMode mode = pwmApplication.getApplicationMode();
+        final PwmApplicationMode mode = pwmApplication.getApplicationMode();
         if (mode == PwmApplicationMode.CONFIGURATION || mode == PwmApplicationMode.NEW) {
             return true;
         }
@@ -438,15 +454,15 @@ public class
     }
 
 
-    public static <E extends Enum<E>> E readEnumFromString(Class<E> enumClass, E defaultValue, String input) {
+    public static <E extends Enum<E>> E readEnumFromString(final Class<E> enumClass, final E defaultValue, final String input) {
         if (input == null) {
             return defaultValue;
         }
 
         try {
-            Method valueOfMethod = enumClass.getMethod("valueOf", String.class);
+            final Method valueOfMethod = enumClass.getMethod("valueOf", String.class);
             try {
-                Object result = valueOfMethod.invoke(null, input);
+                final Object result = valueOfMethod.invoke(null, input);
                 return (E) result;
             } catch (InvocationTargetException e) {
                 throw e.getCause();
@@ -500,7 +516,7 @@ public class
      * @param e The exception to convert to a string
      * @return A string containing any meaningful extractable cause information, suitable for debugging.
      */
-    public static String readHostileExceptionMessage(Throwable e) {
+    public static String readHostileExceptionMessage(final Throwable e) {
         String errorMsg = e.getClass().getName();
         if (e.getMessage() != null) {
             errorMsg += ": " + e.getMessage();
@@ -522,5 +538,20 @@ public class
 
     public static <E extends Enum<E>> boolean enumArrayContainsValue(final E[] enumArray, final E enumValue) {
         return !(enumArray == null || enumArray.length == 0) && Arrays.asList(enumArray).contains(enumValue);
+    }
+
+    public static void unhandledSwitchStatement(final Object switchParameter) {
+        final String className = switchParameter == null
+                ? "unknown - see stack trace"
+                : switchParameter.getClass().getName();
+
+        final String paramValue = switchParameter == null
+                ? "unknown"
+                : switchParameter.toString();
+
+        final String errorMsg = "unhandled switch statement on parameter class=" + className + ", value=" + paramValue;
+        final UnsupportedOperationException exception = new UnsupportedOperationException(errorMsg);
+        LOGGER.warn(errorMsg, exception);
+        throw exception;
     }
 }

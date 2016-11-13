@@ -31,7 +31,12 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -96,7 +101,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
         return Collections.unmodifiableMap(values);
     }
 
-    public List<String> validateValue(PwmSetting pwmSetting) {
+    public List<String> validateValue(final PwmSetting pwmSetting) {
         if (pwmSetting.isRequired()) {
             if (values == null || values.size() < 1 || values.keySet().iterator().next().length() < 1) {
                 return Collections.singletonList("required value missing");
@@ -119,7 +124,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
     }
 
     @Override
-    public String toDebugString(Locale locale) {
+    public String toDebugString(final Locale locale) {
         if (values == null) {
             return "";
         }

@@ -28,7 +28,11 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.X509CertificateValue;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Message;
@@ -44,11 +48,11 @@ public class SyslogCertImportFunction implements SettingUIFunction {
 
     @Override
     public String provideFunction(
-            PwmRequest pwmRequest,
-            StoredConfigurationImpl storedConfiguration,
-            PwmSetting setting,
-            String profile,
-            String extraData)
+            final PwmRequest pwmRequest,
+            final StoredConfigurationImpl storedConfiguration,
+            final PwmSetting setting,
+            final String profile,
+            final String extraData)
             throws PwmOperationalException, PwmUnrecoverableException {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -68,7 +72,7 @@ public class SyslogCertImportFunction implements SettingUIFunction {
                     if (e instanceof PwmException) {
                         throw new PwmOperationalException(((PwmException) e).getErrorInformation());
                     }
-                    ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error importing certificates: " + e.getMessage());
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error importing certificates: " + e.getMessage());
                     throw new PwmOperationalException(errorInformation);
                 }
 

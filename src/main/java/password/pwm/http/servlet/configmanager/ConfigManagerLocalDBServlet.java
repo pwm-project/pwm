@@ -33,9 +33,13 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.*;
+import password.pwm.http.ContextManager;
+import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmResponse;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.i18n.Message;
+import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
@@ -47,7 +51,11 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -59,7 +67,7 @@ import java.util.Date;
         }
 )
 public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
-    final static private PwmLogger LOGGER = PwmLogger.forClass(ConfigManagerLocalDBServlet.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigManagerLocalDBServlet.class);
 
     public enum ConfigManagerAction implements ProcessAction {
         exportLocalDB(HttpMethod.GET),
@@ -69,7 +77,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
 
         private final HttpMethod method;
 
-        ConfigManagerAction(HttpMethod method)
+        ConfigManagerAction(final HttpMethod method)
         {
             this.method = method;
         }
@@ -104,6 +112,9 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
                 case importLocalDB:
                     restUploadLocalDB(pwmRequest);
                     return;
+
+                default:
+                    Helper.unhandledSwitchStatement(processAction);
 
 
             }

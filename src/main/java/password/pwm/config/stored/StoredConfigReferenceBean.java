@@ -29,7 +29,7 @@ class StoredConfigReferenceBean implements StoredConfigReference, Serializable, 
     private String recordID;
     private String profileID;
 
-    StoredConfigReferenceBean(RecordType type, String recordID, String profileID) {
+    StoredConfigReferenceBean(final RecordType type, final String recordID, final String profileID) {
         if (type == null) {
             throw new NullPointerException("recordType can not be null");
         }
@@ -57,7 +57,7 @@ class StoredConfigReferenceBean implements StoredConfigReference, Serializable, 
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         return o instanceof StoredConfigReference && toString().equals(o);
 
     }
@@ -77,7 +77,7 @@ class StoredConfigReferenceBean implements StoredConfigReference, Serializable, 
     }
 
     @Override
-    public int compareTo(Object o) {
+    public int compareTo(final Object o) {
         return toString().compareTo(o.toString());
     }
 }

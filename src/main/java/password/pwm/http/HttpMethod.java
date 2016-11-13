@@ -33,7 +33,7 @@ public enum HttpMethod {
 
     private final boolean idempotent;
 
-    HttpMethod(boolean idempotent) {
+    HttpMethod(final boolean idempotent) {
         this.idempotent = idempotent;
     }
 

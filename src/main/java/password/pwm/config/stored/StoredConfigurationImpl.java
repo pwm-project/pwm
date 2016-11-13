@@ -175,7 +175,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     }
 
     public void resetAllPasswordValues(final String comment) {
-        for (final Iterator<SettingValueRecord> settingValueRecordIterator = new StoredValueIterator(false); settingValueRecordIterator.hasNext();) {
+        for (final Iterator<SettingValueRecord> settingValueRecordIterator = new StoredValueIterator(false); settingValueRecordIterator.hasNext(); ) {
             final SettingValueRecord settingValueRecord = settingValueRecordIterator.next();
             if (settingValueRecord.getSetting().getSyntax() == PwmSettingSyntax.PASSWORD) {
                 this.resetSetting(settingValueRecord.getSetting(),settingValueRecord.getProfile(),null);
@@ -228,7 +228,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             propertyElement.setContent(new Text(value));
 
             if (null == XPathBuilder.xpathForConfigProperties().evaluateFirst(document)) {
-                Element configProperties = new Element(XML_ELEMENT_PROPERTIES);
+                final Element configProperties = new Element(XML_ELEMENT_PROPERTIES);
                 configProperties.setAttribute(new Attribute(XML_ATTRIBUTE_TYPE,XML_ATTRIBUTE_VALUE_CONFIG));
                 document.getRootElement().addContent(configProperties);
             }
@@ -367,7 +367,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         return new PwmSettingTemplateSet(templates);
     }
 
-    private static PwmSettingTemplate readTemplateValue(final Document document, PwmSetting pwmSetting) {
+    private static PwmSettingTemplate readTemplateValue(final Document document, final PwmSetting pwmSetting) {
         final XPathExpression xp = XPathBuilder.xpathForSetting(pwmSetting, null);
         final Element settingElement = (Element) xp.evaluateFirst(document);
         if (settingElement != null) {
@@ -381,7 +381,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         return null;
     }
 
-    public void setTemplate(PwmSettingTemplate template) {
+    public void setTemplate(final PwmSettingTemplate template) {
         writeConfigProperty(ConfigurationProperty.LDAP_TEMPLATE, template.toString());
     }
 
@@ -392,7 +392,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
     public Map<String,String> getModifiedSettingDebugValues(final Locale locale, final boolean prettyPrint) {
         final Map<String,String> returnObj = new LinkedHashMap<>();
-        for (SettingValueRecord record : this.modifiedSettings()) {
+        for (final SettingValueRecord record : this.modifiedSettings()) {
             final String label = record.getSetting().toMenuLocationDebug(record.getProfile(),locale);
             final String value = record.getStoredValue().toDebugString(locale);
             returnObj.put(label,value);
@@ -651,7 +651,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
     public StoredValue readSetting(final PwmSetting setting, final String profileID) {
         if (profileID == null && setting.getCategory().hasProfiles()) {
-            IllegalArgumentException e = new IllegalArgumentException("reading of setting " + setting.getKey() + " requires a non-null profileID");
+            final IllegalArgumentException e = new IllegalArgumentException("reading of setting " + setting.getKey() + " requires a non-null profileID");
             LOGGER.error("error", e);
             throw e;
         }
@@ -819,7 +819,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         final List<SettingValueRecord> modifiedSettings = modifiedSettings();
         final StringBuilder sb = new StringBuilder();
         sb.append("PwmSettingsChecksum");
-        for (SettingValueRecord settingValueRecord : modifiedSettings) {
+        for (final SettingValueRecord settingValueRecord : modifiedSettings) {
             final StoredValue storedValue = settingValueRecord.getStoredValue();
             sb.append(storedValue.valueHash());
         }
@@ -869,7 +869,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         return passwordHash != null && passwordHash.length() > 0;
     }
 
-    private static abstract class XPathBuilder {
+    private abstract static class XPathBuilder {
         private static XPathExpression xpathForLocaleBundleSetting(final String bundleName, final String keyName) {
             final XPathFactory xpfac = XPathFactory.instance();
             final String xpathString;
@@ -965,7 +965,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
                 final List<Element> nonAttributedProperties = nonAttributedProperty.evaluate(rootElement);
 
                 if (configPropertiesElement != null && nonAttributedProperties != null) {
-                    for (Element element : nonAttributedProperties) {
+                    for (final Element element : nonAttributedProperties) {
                         element.detach();
                         configPropertiesElement.addContent(element);
                     }
@@ -976,7 +976,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
                         "//" + XML_ELEMENT_PROPERTIES + "[not (@" + XML_ATTRIBUTE_TYPE + ")]");
                 final List<Element> oldPropertiesElements = oldPropertiesXpath.evaluate(rootElement);
                 if (oldPropertiesElements != null) {
-                    for (Element element : oldPropertiesElements) {
+                    for (final Element element : oldPropertiesElements) {
                         element.detach();
                     }
                 }
@@ -1126,7 +1126,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             final UserIdentity actor = new UserIdentity("UpgradeProcessor", null);
             for (final String profileID : storedConfiguration.profilesForSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY)) {
                 if (!storedConfiguration.isDefaultValue(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID)) {
-                    boolean ad2003Enabled = (boolean) storedConfiguration.readSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY,profileID).toNativeObject();
+                    final boolean ad2003Enabled = (boolean) storedConfiguration.readSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY,profileID).toNativeObject();
                     final StoredValue value;
                     if (ad2003Enabled) {
                         value = new StringValue(ADPolicyComplexity.AD2003.toString());
@@ -1188,9 +1188,9 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         }
 
         public ConfigRecordID(
-                RecordType recordType,
-                Object recordID,
-                String profileID
+                final RecordType recordType,
+                final Object recordID,
+                final String profileID
         )
         {
             this.recordType = recordType;
@@ -1215,7 +1215,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(final Object o) {
             return o instanceof StoredConfigReference && toString().equals(o);
 
         }
@@ -1235,7 +1235,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         }
 
         @Override
-        public int compareTo(Object o) {
+        public int compareTo(final Object o) {
             return toString().compareTo(o.toString());
         }
     }
@@ -1248,6 +1248,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     }
 
     private PwmSecurityKey cachedKey = null;
+
     public PwmSecurityKey getKey() throws PwmUnrecoverableException {
         if (cachedKey == null) {
             cachedKey = new PwmSecurityKey(createTime() + "StoredConfiguration");
@@ -1267,7 +1268,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             return !changeLog.isEmpty();
         }
 
-        public String changeLogAsDebugString(final Locale locale, boolean asHtml) {
+        public String changeLogAsDebugString(final Locale locale, final boolean asHtml) {
             final Map<String,String> outputMap = new TreeMap<>();
             final String SEPARATOR = LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationSeparator, null);
 
@@ -1291,6 +1292,10 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
                         outputMap.put("LocaleBundle" + SEPARATOR + bundleName + " " + keys,debugValue);
                     }
                     break;
+
+                    default:
+                        // continue processing
+                        break;
                 }
             }
             final StringBuilder output = new StringBuilder();
@@ -1413,9 +1418,9 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         private StoredValue storedValue;
 
         public SettingValueRecord(
-                PwmSetting setting,
-                String profile,
-                StoredValue storedValue
+                final PwmSetting setting,
+                final String profile,
+                final StoredValue storedValue
         )
         {
             this.setting = setting;
@@ -1443,11 +1448,11 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
 
         private Queue<SettingValueRecord> settingQueue = new LinkedList<>();
 
-        public StoredValueIterator(boolean includeDefaults) {
+        StoredValueIterator(final boolean includeDefaults) {
             for (final PwmSetting setting : PwmSetting.values()) {
                 if (setting.getSyntax() != PwmSettingSyntax.PROFILE && !setting.getCategory().hasProfiles()) {
                     if (includeDefaults || !isDefaultValue(setting)) {
-                        SettingValueRecord settingValueRecord = new SettingValueRecord(setting, null, null);
+                        final SettingValueRecord settingValueRecord = new SettingValueRecord(setting, null, null);
                         settingQueue.add(settingValueRecord);
                     }
                 }
@@ -1458,7 +1463,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
                     for (final String profileID : profilesForSetting(category.getProfileSetting())) {
                         for (final PwmSetting setting : category.getSettings()) {
                             if (includeDefaults || !isDefaultValue(setting,profileID)) {
-                                SettingValueRecord settingValueRecord = new SettingValueRecord(setting, profileID, null);
+                                final SettingValueRecord settingValueRecord = new SettingValueRecord(setting, profileID, null);
                                 settingQueue.add(settingValueRecord);
                             }
                         }
@@ -1477,7 +1482,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         @Override
         public SettingValueRecord next()
         {
-            StoredConfigurationImpl.SettingValueRecord settingValueRecord = settingQueue.poll();
+            final StoredConfigurationImpl.SettingValueRecord settingValueRecord = settingQueue.poll();
             return new SettingValueRecord(
                     settingValueRecord.getSetting(),
                     settingValueRecord.getProfile(),

@@ -243,7 +243,7 @@ public class PasswordCharCounter {
 
         private final CharTester charTester;
 
-        CharType(CharTester charClassType)
+        CharType(final CharTester charClassType)
         {
             this.charTester = charClassType;
         }
@@ -255,6 +255,6 @@ public class PasswordCharCounter {
     }
 
     private interface CharTester {
-        boolean isType(final char character);
+        boolean isType(char character);
     }
 }

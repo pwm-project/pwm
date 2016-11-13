@@ -22,7 +22,23 @@
 
 package password.pwm.config;
 
-import password.pwm.config.value.*;
+import password.pwm.config.value.ActionValue;
+import password.pwm.config.value.BooleanValue;
+import password.pwm.config.value.ChallengeValue;
+import password.pwm.config.value.EmailValue;
+import password.pwm.config.value.FileValue;
+import password.pwm.config.value.FormValue;
+import password.pwm.config.value.LocalizedStringArrayValue;
+import password.pwm.config.value.LocalizedStringValue;
+import password.pwm.config.value.NumericValue;
+import password.pwm.config.value.OptionListValue;
+import password.pwm.config.value.PasswordValue;
+import password.pwm.config.value.PrivateKeyValue;
+import password.pwm.config.value.StringArrayValue;
+import password.pwm.config.value.StringValue;
+import password.pwm.config.value.UserPermissionValue;
+import password.pwm.config.value.VerificationMethodValue;
+import password.pwm.config.value.X509CertificateValue;
 
 /**
  * Setting syntax definitions.  Each syntax listed here corresponds to some type of native Java object.  The factory specified includes
@@ -57,7 +73,7 @@ public enum PwmSettingSyntax {
 
     private StoredValue.StoredValueFactory storedValueImpl;
 
-    PwmSettingSyntax(StoredValue.StoredValueFactory storedValueImpl) {
+    PwmSettingSyntax(final StoredValue.StoredValueFactory storedValueImpl) {
         this.storedValueImpl = storedValueImpl;
     }
 

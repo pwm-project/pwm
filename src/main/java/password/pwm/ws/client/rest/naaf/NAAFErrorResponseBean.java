@@ -33,7 +33,7 @@ public class NAAFErrorResponseBean implements Serializable {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(final String status) {
         this.status = status;
     }
 
@@ -41,7 +41,7 @@ public class NAAFErrorResponseBean implements Serializable {
         return errors;
     }
 
-    public void setErrors(List<ErrorData> errors) {
+    public void setErrors(final List<ErrorData> errors) {
         this.errors = errors;
     }
 
@@ -54,7 +54,7 @@ public class NAAFErrorResponseBean implements Serializable {
             return description;
         }
 
-        public void setDescription(String description) {
+        public void setDescription(final String description) {
             this.description = description;
         }
 
@@ -62,7 +62,7 @@ public class NAAFErrorResponseBean implements Serializable {
             return name;
         }
 
-        public void setName(String name) {
+        public void setName(final String name) {
             this.name = name;
         }
 
@@ -70,7 +70,7 @@ public class NAAFErrorResponseBean implements Serializable {
             return location;
         }
 
-        public void setLocation(String location) {
+        public void setLocation(final String location) {
             this.location = location;
         }
     }

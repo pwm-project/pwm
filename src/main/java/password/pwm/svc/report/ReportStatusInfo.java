@@ -49,7 +49,7 @@ public class ReportStatusInfo implements Serializable {
     }
 
 
-    public ReportStatusInfo(String settingsHash) {
+    public ReportStatusInfo(final String settingsHash) {
         this.settingsHash = settingsHash;
     }
 
@@ -61,7 +61,7 @@ public class ReportStatusInfo implements Serializable {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(final Date startDate) {
         this.startDate = startDate;
     }
 
@@ -69,7 +69,7 @@ public class ReportStatusInfo implements Serializable {
         return finishDate;
     }
 
-    public void setFinishDate(Date finishDate) {
+    public void setFinishDate(final Date finishDate) {
         this.finishDate = finishDate;
     }
 
@@ -77,7 +77,7 @@ public class ReportStatusInfo implements Serializable {
         return inProgress;
     }
 
-    public void setInProgress(boolean inProgress) {
+    public void setInProgress(final boolean inProgress) {
         this.inProgress = inProgress;
     }
 
@@ -85,7 +85,7 @@ public class ReportStatusInfo implements Serializable {
         return count;
     }
 
-    public void setCount(int count) {
+    public void setCount(final int count) {
         this.count = count;
     }
 
@@ -93,7 +93,7 @@ public class ReportStatusInfo implements Serializable {
         return updated;
     }
 
-    public void setUpdated(int updated) {
+    public void setUpdated(final int updated) {
         this.updated = updated;
     }
 
@@ -101,7 +101,7 @@ public class ReportStatusInfo implements Serializable {
         return total;
     }
 
-    public void setTotal(int total) {
+    public void setTotal(final int total) {
         this.total = total;
     }
 
@@ -109,7 +109,7 @@ public class ReportStatusInfo implements Serializable {
         return eventRateMeter;
     }
 
-    public void setEventRateMeter(EventRateMeter eventRateMeter) {
+    public void setEventRateMeter(final EventRateMeter eventRateMeter) {
         this.eventRateMeter = eventRateMeter;
     }
 
@@ -117,7 +117,7 @@ public class ReportStatusInfo implements Serializable {
         return errors;
     }
 
-    public void setErrors(int errors) {
+    public void setErrors(final int errors) {
         this.errors = errors;
     }
 
@@ -125,7 +125,7 @@ public class ReportStatusInfo implements Serializable {
         return lastError;
     }
 
-    public void setLastError(ErrorInformation lastError) {
+    public void setLastError(final ErrorInformation lastError) {
         this.lastError = lastError;
     }
 
@@ -133,7 +133,7 @@ public class ReportStatusInfo implements Serializable {
         return currentProcess;
     }
 
-    public void setCurrentProcess(ReportEngineProcess currentProcess) {
+    public void setCurrentProcess(final ReportEngineProcess currentProcess) {
         this.currentProcess = currentProcess;
     }
 }

@@ -23,7 +23,7 @@
 package password.pwm.error;
 
 public abstract class PwmException extends Exception {
-    protected ErrorInformation errorInformation;
+    protected final ErrorInformation errorInformation;
 
     public PwmException(final ErrorInformation error) {
         this.errorInformation = error == null ? new ErrorInformation(PwmError.ERROR_UNKNOWN) : error;

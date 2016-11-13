@@ -54,7 +54,7 @@ class DatabaseUserHistory implements UserHistoryStore {
     }
 
     @Override
-    public void updateUserHistory(UserAuditRecord auditRecord) throws PwmUnrecoverableException {
+    public void updateUserHistory(final UserAuditRecord auditRecord) throws PwmUnrecoverableException {
         // user info
         final UserIdentity userIdentity;
         if (auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEvent.Type.HELPDESK) {
@@ -83,7 +83,7 @@ class DatabaseUserHistory implements UserHistoryStore {
     }
 
     @Override
-    public List<UserAuditRecord> readUserHistory(UserInfoBean userInfoBean) throws PwmUnrecoverableException {
+    public List<UserAuditRecord> readUserHistory(final UserInfoBean userInfoBean) throws PwmUnrecoverableException {
         final String userGuid = userInfoBean.getUserGuid();
         try {
             return readStoredHistory(userGuid).getRecords();
@@ -115,7 +115,7 @@ class DatabaseUserHistory implements UserHistoryStore {
             return records;
         }
 
-        void setRecords(List<UserAuditRecord> records) {
+        void setRecords(final List<UserAuditRecord> records) {
             this.records = records;
         }
     }

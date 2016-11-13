@@ -34,6 +34,7 @@ import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /*
  * A in-memory password value wrapper.  Instances of this class cannot be serialized.  The actual password value is encrypted using a
@@ -75,7 +76,7 @@ public class PasswordData implements Serializable {
         initializationError = newInitializationError;
     }
 
-    public PasswordData(String passwordData)
+    public PasswordData(final String passwordData)
             throws PwmUnrecoverableException
     {
         checkInitStatus();
@@ -119,16 +120,23 @@ public class PasswordData implements Serializable {
     }
 
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
         return equals(obj, false);
     }
 
-    public boolean equalsIgnoreCase(PasswordData obj) {
+    @Override
+    public int hashCode() {
+        int result = Arrays.hashCode(passwordData);
+        result = 31 * result + keyHash.hashCode();
+        return result;
+    }
+
+    public boolean equalsIgnoreCase(final PasswordData obj) {
         return equals(obj, true);
     }
 
-    private boolean equals(Object obj, boolean ignoreCase)
+    private boolean equals(final Object obj, final boolean ignoreCase)
     {
         if (obj == null) {
             return false;

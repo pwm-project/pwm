@@ -95,7 +95,7 @@ public class CrService implements PwmService {
     }
 
     @Override
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
         this.pwmApplication = pwmApplication;
         operatorMap.put(DataStorageMethod.DB, new DbCrOperator(pwmApplication));
         operatorMap.put(DataStorageMethod.LDAP, new LdapCrOperator(pwmApplication.getConfig()));
@@ -229,7 +229,7 @@ public class CrService implements PwmService {
             if (queryMatch != null && !queryMatch.isEmpty()) {
                 LOGGER.debug(sessionLabel, "testing challenge profiles '" + profile + "'");
                 try {
-                    boolean match = LdapPermissionTester.testUserPermissions(pwmApplication,sessionLabel,userIdentity,queryMatch);
+                    final boolean match = LdapPermissionTester.testUserPermissions(pwmApplication,sessionLabel,userIdentity,queryMatch);
                     if (match) {
                         return profile;
                     }
@@ -251,7 +251,7 @@ public class CrService implements PwmService {
             throws PwmDataValidationException, PwmUnrecoverableException
     {
         //strip null keys from responseMap;
-        for (final Iterator<Challenge> iter = responseMap.keySet().iterator(); iter.hasNext();) {
+        for (final Iterator<Challenge> iter = responseMap.keySet().iterator(); iter.hasNext(); ) {
             final Challenge loopChallenge = iter.next();
             if (loopChallenge == null) {
                 iter.remove();
@@ -424,7 +424,8 @@ public class CrService implements PwmService {
             throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException
     {
 
-        int attempts = 0, successes = 0;
+        int attempts = 0;
+        int successes = 0;
         final Map<DataStorageMethod,String> errorMessages = new LinkedHashMap<>();
         final Configuration config = pwmApplication.getConfig();
 
@@ -469,7 +470,8 @@ public class CrService implements PwmService {
             throws PwmOperationalException, ChaiUnavailableException
     {
         final Configuration config = pwmApplication.getConfig();
-        int attempts = 0, successes = 0;
+        int attempts = 0;
+        int successes = 0;
 
         LOGGER.trace(sessionLabel, "beginning clear response operation for user " + theUser.getEntryDN() + " guid=" + userGUID);
 

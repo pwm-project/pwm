@@ -65,6 +65,7 @@ import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.ldap.LdapBrowser;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.StringUtil;
@@ -138,7 +139,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
 
         private final HttpMethod method;
 
-        ConfigEditorAction(HttpMethod method) {
+        ConfigEditorAction(final HttpMethod method) {
             this.method = method;
         }
 
@@ -248,6 +249,9 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                 case copyProfile:
                     restCopyProfile(pwmRequest, configManagerBean);
                     return;
+
+                default:
+                    Helper.unhandledSwitchStatement(action);
             }
         }
 
@@ -269,10 +273,10 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final String extraData = requestMap.get("extraData");
 
         try {
-            Class implementingClass = Class.forName(functionName);
-            SettingUIFunction function = (SettingUIFunction) implementingClass.newInstance();
+            final Class implementingClass = Class.forName(functionName);
+            final SettingUIFunction function = (SettingUIFunction) implementingClass.newInstance();
             final Serializable result = function.provideFunction(pwmRequest, configManagerBean.getStoredConfiguration(), pwmSetting, profileID, extraData);
-            RestResultBean restResultBean = new RestResultBean();
+            final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setSuccessMessage(Message.Success_Unknown.getLocalizedMessage(pwmRequest.getLocale(),pwmRequest.getConfig()));
             restResultBean.setData(result);
             pwmRequest.outputJsonResult(restResultBean);
@@ -975,5 +979,4 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest));
         }
     }
-
 }

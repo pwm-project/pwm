@@ -29,7 +29,12 @@ import password.pwm.util.LocaleHelper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public enum Statistic {
     AUTHENTICATIONS                     (Type.INCREMENTOR, "Authentications", null),
@@ -108,7 +113,7 @@ public enum Statistic {
 
     ;
 
-    private final static PwmLogger LOGGER = PwmLogger.forClass(Statistic.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(Statistic.class);
     private final Type type;
     private final String key;
     private final StatDetail statDetail;
@@ -116,7 +121,7 @@ public enum Statistic {
     Statistic(
             final Type type,
             final String key,
-            StatDetail statDetail
+            final StatDetail statDetail
     ) {
         this.type = type;
         this.key = key;
@@ -185,7 +190,7 @@ public enum Statistic {
 
         private Statistic relatedStatistic;
 
-        private EpsType(Statistic relatedStatistic) {
+        EpsType(final Statistic relatedStatistic) {
             this.relatedStatistic = relatedStatistic;
         }
 
@@ -207,7 +212,7 @@ public enum Statistic {
 
         private final TimeDuration timeDuration;
 
-        private EpsDuration(TimeDuration timeDuration) {
+        EpsDuration(final TimeDuration timeDuration) {
             this.timeDuration = timeDuration;
         }
 
@@ -221,9 +226,9 @@ public enum Statistic {
     }
 
     static class ConfigSettingDetail implements StatDetail {
-        final private PwmSetting pwmSetting;
+        private final PwmSetting pwmSetting;
 
-        ConfigSettingDetail(PwmSetting pwmSetting)
+        ConfigSettingDetail(final PwmSetting pwmSetting)
         {
             this.pwmSetting = pwmSetting;
         }

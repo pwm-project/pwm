@@ -158,7 +158,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%=loopLocale.getDisplayName()%>
@@ -215,7 +215,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%=loopLocale.getDisplayName()%>
@@ -273,7 +273,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%=loopLocale.getDisplayName()%>
@@ -330,7 +330,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%= loopLocale.getDisplayName() %>
@@ -362,7 +362,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%= loopLocale.getDisplayName() %>

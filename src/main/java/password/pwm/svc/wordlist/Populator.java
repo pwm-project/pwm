@@ -91,7 +91,7 @@ class Populator {
         PERCENT_FORMAT.setMinimumFractionDigits(2);
     }
 
-    public Populator(
+    Populator(
             final InputStream inputStream,
             final StoredWordlistDataBean.Source source,
             final AbstractWordlist rootWordlist,
@@ -173,21 +173,21 @@ class Populator {
         }
     }
 
-    private void addLine(String line)
+    private void addLine(final String word)
             throws IOException
     {
         // check for word suitability
-        line = rootWordlist.normalizeWord(line);
+        String normalizedWord = rootWordlist.normalizeWord(word);
 
-        if (line == null || line.length() < 1 || line.startsWith(COMMENT_PREFIX)) {
+        if (normalizedWord == null || normalizedWord.length() < 1 || normalizedWord.startsWith(COMMENT_PREFIX)) {
             return;
         }
 
-        if (line.length() > MAX_LINE_LENGTH) {
-            line = line.substring(0,MAX_LINE_LENGTH);
+        if (normalizedWord.length() > MAX_LINE_LENGTH) {
+            normalizedWord = normalizedWord.substring(0,MAX_LINE_LENGTH);
         }
 
-        final Map<String,String> wordTxn = rootWordlist.getWriteTxnForValue(line);
+        final Map<String,String> wordTxn = rootWordlist.getWriteTxnForValue(normalizedWord);
         bufferedWords.putAll(wordTxn);
     }
 

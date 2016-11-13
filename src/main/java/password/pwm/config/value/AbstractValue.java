@@ -37,12 +37,12 @@ public abstract class AbstractValue implements StoredValue {
     }
 
     @Override
-    public String toDebugString(Locale locale) {
+    public String toDebugString(final Locale locale) {
         return JsonUtil.serialize((Serializable) this.toNativeObject(), JsonUtil.Flag.PrettyPrint);
     }
 
     @Override
-    public Serializable toDebugJsonObject(Locale locale) {
+    public Serializable toDebugJsonObject(final Locale locale) {
         return (Serializable)this.toNativeObject();
     }
 

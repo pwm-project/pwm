@@ -32,7 +32,11 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.SessionBeanMode;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * @author Jason D. Rivard
@@ -55,7 +59,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return userInfo;
     }
 
-    public void setUserInfo(UserInfoBean userInfo)
+    public void setUserInfo(final UserInfoBean userInfo)
     {
         this.userInfo = userInfo;
     }
@@ -65,7 +69,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return userLocale;
     }
 
-    public void setUserLocale(Locale userLocale)
+    public void setUserLocale(final Locale userLocale)
     {
         this.userLocale = userLocale;
     }
@@ -80,7 +84,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return responseSet;
     }
 
-    public void setResponseSet(ResponseSet responseSet)
+    public void setResponseSet(final ResponseSet responseSet)
     {
         this.responseSet = responseSet;
     }
@@ -90,7 +94,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return presentableChallengeSet;
     }
 
-    public void setPresentableChallengeSet(ChallengeSet presentableChallengeSet)
+    public void setPresentableChallengeSet(final ChallengeSet presentableChallengeSet)
     {
         this.presentableChallengeSet = presentableChallengeSet;
     }
@@ -100,12 +104,12 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return attributeForm;
     }
 
-    public void setAttributeForm(List<FormConfiguration> attributeForm)
+    public void setAttributeForm(final List<FormConfiguration> attributeForm)
     {
         this.attributeForm = attributeForm;
     }
 
-    public void setProgress(Progress progress)
+    public void setProgress(final Progress progress)
     {
         this.progress = progress;
     }
@@ -115,7 +119,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return recoveryFlags;
     }
 
-    public void setRecoveryFlags(RecoveryFlags recoveryFlags)
+    public void setRecoveryFlags(final RecoveryFlags recoveryFlags)
     {
         this.recoveryFlags = recoveryFlags;
     }
@@ -141,7 +145,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             return tokenSent;
         }
 
-        public void setTokenSent(boolean tokenSent)
+        public void setTokenSent(final boolean tokenSent)
         {
             this.tokenSent = tokenSent;
         }
@@ -151,7 +155,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             return allPassed;
         }
 
-        public void setAllPassed(boolean allPassed)
+        public void setAllPassed(final boolean allPassed)
         {
             this.allPassed = allPassed;
         }
@@ -161,7 +165,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             return tokenSendChoice;
         }
 
-        public void setTokenSendChoice(MessageSendMethod tokenSendChoice)
+        public void setTokenSendChoice(final MessageSendMethod tokenSendChoice)
         {
             this.tokenSendChoice = tokenSendChoice;
         }
@@ -171,7 +175,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             return tokenSentAddress;
         }
 
-        public void setTokenSentAddress(String tokenSentAddress)
+        public void setTokenSentAddress(final String tokenSentAddress)
         {
             this.tokenSentAddress = tokenSentAddress;
         }
@@ -180,11 +184,11 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             return inProgressVerificationMethod;
         }
 
-        public void setInProgressVerificationMethod(IdentityVerificationMethod inProgressVerificationMethod) {
+        public void setInProgressVerificationMethod(final IdentityVerificationMethod inProgressVerificationMethod) {
             this.inProgressVerificationMethod = inProgressVerificationMethod;
         }
 
-        public void setNaafRecoveryMethod(VerificationMethodSystem naafRecoveryMethod) {
+        public void setNaafRecoveryMethod(final VerificationMethodSystem naafRecoveryMethod) {
             this.naafRecoveryMethod = naafRecoveryMethod;
         }
 
@@ -196,7 +200,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             return remoteRecoveryMethod;
         }
 
-        public void setRemoteRecoveryMethod(VerificationMethodSystem remoteRecoveryMethod) {
+        public void setRemoteRecoveryMethod(final VerificationMethodSystem remoteRecoveryMethod) {
             this.remoteRecoveryMethod = remoteRecoveryMethod;
         }
     }
@@ -258,7 +262,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return forgottenPasswordProfileID;
     }
 
-    public void setForgottenPasswordProfileID(String forgottenPasswordProfileID) {
+    public void setForgottenPasswordProfileID(final String forgottenPasswordProfileID) {
         this.forgottenPasswordProfileID = forgottenPasswordProfileID;
     }
 

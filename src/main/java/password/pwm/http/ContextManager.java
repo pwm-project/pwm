@@ -22,7 +22,11 @@
 
 package password.pwm.http;
 
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
+import password.pwm.PwmConstants;
+import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
@@ -41,7 +45,12 @@ import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ContextManager implements Serializable {
 // ------------------------------ FIELDS ------------------------------
@@ -61,9 +70,9 @@ public class ContextManager implements Serializable {
 
     private String contextPath;
 
-    private final static String UNSPECIFIED_VALUE = "unspecified";
+    private static final String UNSPECIFIED_VALUE = "unspecified";
 
-    public ContextManager(ServletContext servletContext) {
+    public ContextManager(final ServletContext servletContext) {
         this.servletContext = servletContext;
         this.instanceGuid = PwmRandom.getInstance().randomUUID().toString();
         this.contextPath = servletContext.getContextPath();
@@ -131,7 +140,7 @@ public class ContextManager implements Serializable {
         }
 
         final EnvironmentTest[] tests = new EnvironmentTest[]{
-                new JavaVersionCheck()
+                new JavaVersionCheck(),
         };
         for (final EnvironmentTest doTest : tests) {
             startupErrorInformation = doTest.doTest();
@@ -383,7 +392,7 @@ public class ContextManager implements Serializable {
         return null;
     }
 
-    static void outputError(String outputText) {
+    static void outputError(final String outputText) {
         final String msg = PwmConstants.PWM_APP_NAME + " " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()) + " " + outputText;
         System.out.println(msg);
         System.out.println(msg);
@@ -393,7 +402,7 @@ public class ContextManager implements Serializable {
         return instanceGuid;
     }
 
-    public InputStream getResourceAsStream(String path)
+    public InputStream getResourceAsStream(final String path)
     {
         return servletContext.getResourceAsStream(path);
     }
@@ -402,7 +411,7 @@ public class ContextManager implements Serializable {
         private final ServletContext servletContext;
 
 
-        ParameterReader(ServletContext servletContext) {
+        ParameterReader(final ServletContext servletContext) {
             this.servletContext = servletContext;
         }
 

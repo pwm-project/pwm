@@ -41,6 +41,7 @@ public interface VerificationMethodSystem {
 
     interface UserPrompt {
         String getDisplayPrompt();
+
         String getIdentifier();
     }
 
@@ -52,7 +53,7 @@ public interface VerificationMethodSystem {
             return displayPrompt;
         }
 
-        public void setDisplayPrompt(String displayPrompt) {
+        public void setDisplayPrompt(final String displayPrompt) {
             this.displayPrompt = displayPrompt;
         }
 
@@ -60,7 +61,7 @@ public interface VerificationMethodSystem {
             return identifier;
         }
 
-        public void setIdentifier(String identifier) {
+        public void setIdentifier(final String identifier) {
             this.identifier = identifier;
         }
     }
@@ -69,11 +70,11 @@ public interface VerificationMethodSystem {
 
     String getCurrentDisplayInstructions();
 
-    ErrorInformation respondToPrompts(final Map<String, String> answers) throws PwmUnrecoverableException;
+    ErrorInformation respondToPrompts( Map<String, String> answers) throws PwmUnrecoverableException;
 
     VerificationState getVerificationState();
 
-    void init(final PwmApplication pwmApplication, final UserInfoBean userInfoBean, SessionLabel sessionLabel, Locale locale)
+    void init( PwmApplication pwmApplication,  UserInfoBean userInfoBean, SessionLabel sessionLabel, Locale locale)
             throws PwmUnrecoverableException
             ;
 

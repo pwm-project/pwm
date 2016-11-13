@@ -36,7 +36,13 @@ import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.StringUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.TreeSet;
 
 class NavTreeHelper {
     static Set<String> determineModifiedKeysSettings(
@@ -64,9 +70,9 @@ class NavTreeHelper {
     }
 
     static boolean categoryMatcher(
-            PwmApplication pwmApplication,
-            PwmSettingCategory category,
-            StoredConfigurationImpl storedConfiguration,
+            final PwmApplication pwmApplication,
+            final PwmSettingCategory category,
+            final StoredConfigurationImpl storedConfiguration,
             final boolean modifiedOnly,
             final int minLevel,
             final String text
@@ -81,7 +87,7 @@ class NavTreeHelper {
             }
         }
 
-        for (PwmSettingCategory childCategory : category.getChildCategories()) {
+        for (final PwmSettingCategory childCategory : category.getChildCategories()) {
             if (categoryMatcher(pwmApplication, childCategory, storedConfiguration, modifiedOnly, minLevel, text)) {
                 return true;
             }
@@ -92,7 +98,7 @@ class NavTreeHelper {
             if (profileIDs == null || profileIDs.isEmpty()) {
                 return true;
             }
-            for (String profileID : profileIDs) {
+            for (final String profileID : profileIDs) {
                 for (final PwmSetting setting : category.getSettings()) {
                     if (settingMatches(storedConfiguration,setting,profileID,modifiedOnly,minLevel,text)) {
                         return true;
@@ -267,7 +273,7 @@ class NavTreeHelper {
     static void moveNavItemToTopOfList(final String categoryID, final List<NavTreeItem> navigationData) {
         { // put templates on top
             NavTreeItem templateEntry = null;
-            for (NavTreeItem entry : navigationData) {
+            for (final NavTreeItem entry : navigationData) {
                 if (categoryID.equals(entry.getId())) {
                     templateEntry = entry;
                 }

@@ -29,9 +29,9 @@ public class PwmRandom {
 
     private final SecureRandom internalRand = new SecureRandom();
 
-    private final static PwmRandom SINGLETON = new PwmRandom();
+    private static final PwmRandom SINGLETON = new PwmRandom();
 
-    private final static String ALPHANUMERIC_STRING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final String ALPHANUMERIC_STRING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
     private PwmRandom() {
     }
@@ -83,7 +83,7 @@ public class PwmRandom {
         return characters.charAt(nextInt(characters.length()));
     }
 
-    public void nextBytes(byte[] secArray)
+    public void nextBytes(final byte[] secArray)
     {
         internalRand.nextBytes(secArray);
     }

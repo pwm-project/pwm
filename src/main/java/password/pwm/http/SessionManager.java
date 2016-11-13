@@ -32,7 +32,11 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
-import password.pwm.config.profile.*;
+import password.pwm.config.profile.DeleteAccountProfile;
+import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.profile.Profile;
+import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -61,7 +65,7 @@ public class SessionManager implements Serializable {
 
     private ChaiProvider chaiProvider;
 
-    final private PwmSession pwmSession;
+    private final PwmSession pwmSession;
 
     private transient UserDataReader userDataReader;
 
@@ -114,11 +118,6 @@ public class SessionManager implements Serializable {
 
 // ------------------------ CANONICAL METHODS ------------------------
 
-    protected void finalize()
-            throws Throwable {
-        super.finalize();
-        this.closeConnections();
-    }
 
     public void closeConnections() {
         if (chaiProvider != null) {

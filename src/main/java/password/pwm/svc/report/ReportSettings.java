@@ -49,7 +49,7 @@ class ReportSettings implements Serializable {
     private List<Integer> trackDays = new ArrayList<>();
 
     public static ReportSettings readSettingsFromConfig(final Configuration config) {
-        ReportSettings settings = new ReportSettings();
+        final ReportSettings settings = new ReportSettings();
         settings.minCacheAge = new TimeDuration(config.readSettingAsLong(PwmSetting.REPORTING_MIN_CACHE_AGE) * 1000);
         settings.maxCacheAge = new TimeDuration(config.readSettingAsLong(PwmSetting.REPORTING_MAX_CACHE_AGE) * 1000);
         settings.searchFilter = config.readSettingAsString(PwmSetting.REPORTING_SEARCH_FILTER);

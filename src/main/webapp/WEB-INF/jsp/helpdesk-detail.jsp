@@ -92,13 +92,13 @@
                         <div id="Field_Profile" data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Field_Profile"/>" class="tabContent">
                             <div style="max-height: 400px; overflow: auto;">
                                 <table class="nomargin">
-                                    <% for (FormConfiguration formItem : helpdeskDetailInfoBean.getSearchDetails().keySet()) { %>
+                                    <% for (final FormConfiguration formItem : helpdeskDetailInfoBean.getSearchDetails().keySet()) { %>
                                     <tr>
                                         <td class="key" id="key_<%=StringUtil.escapeHtml(formItem.getName())%>" title="<%=StringUtil.escapeHtml(formItem.getDescription(pwmRequest.getLocale()))%>">
                                             <%= formItem.getLabel(pwmSession.getSessionStateBean().getLocale())%>
                                         </td>
                                         <td id="value_<%=formItem.getName()%>">
-                                            <% for (Iterator<String> iter = helpdeskDetailInfoBean.getSearchDetails().get(formItem).iterator(); iter.hasNext(); ) { %>
+                                            <% for (final Iterator<String> iter = helpdeskDetailInfoBean.getSearchDetails().get(formItem).iterator(); iter.hasNext(); ) { %>
                                             <% final String loopValue = iter.next(); %>
                                             <%= loopValue == null ? "" : StringUtil.escapeHtml(loopValue) %>
                                             <% if (iter.hasNext()) { %> <br/> <% } %>
@@ -463,7 +463,7 @@
                                         <td>
                                             <ul>
                                                 <%
-                                                    MacroMachine macroMachine = JspUtility.getPwmSession(pageContext).getSessionManager().getMacroMachine(ContextManager.getPwmApplication(session));
+                                                    final MacroMachine macroMachine = JspUtility.getPwmSession(pageContext).getSessionManager().getMacroMachine(ContextManager.getPwmApplication(session));
                                                     final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale(), macroMachine); %>
                                                 <% for (final String requirementLine : requirementLines) { %>
                                                 <li><%=requirementLine%>

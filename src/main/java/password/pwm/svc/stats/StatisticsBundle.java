@@ -36,7 +36,7 @@ public class StatisticsBundle {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(StatisticsBundle.class);
 
-    final static SimpleDateFormat STORED_DATETIME_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+    static final SimpleDateFormat STORED_DATETIME_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
 
     static {
         STORED_DATETIME_FORMATTER.setTimeZone(TimeZone.getTimeZone("Zulu"));
@@ -142,7 +142,7 @@ public class StatisticsBundle {
         BigInteger total = BigInteger.ZERO;
         BigInteger count = BigInteger.ZERO;
 
-        public AverageBean() {
+        AverageBean() {
         }
 
         BigInteger getAverage() {

@@ -89,7 +89,7 @@ public class ImportResponsesCommand extends AbstractCliCommand {
     public CliParameters getCliParameters()
     {
 
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ImportResponses";
         cliParameters.description = "Import responses from file";
         cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_EXISTING_INPUT_FILE);

@@ -29,7 +29,12 @@ import password.pwm.util.otp.OTPUserRecord;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class SetupOtpBean extends PwmSessionBean {
 
@@ -55,12 +60,12 @@ public class SetupOtpBean extends PwmSessionBean {
         return hasPreExistingOtp;
     }
 
-    public void setHasPreExistingOtp(boolean hasPreExistingOtp)
+    public void setHasPreExistingOtp(final boolean hasPreExistingOtp)
     {
         this.hasPreExistingOtp = hasPreExistingOtp;
     }
 
-    public void setOtpUserRecord(OTPUserRecord otp) {
+    public void setOtpUserRecord(final OTPUserRecord otp) {
         this.otpUserRecord = otp;
     }
 
@@ -68,7 +73,7 @@ public class SetupOtpBean extends PwmSessionBean {
         return confirmed;
     }
 
-    public void setConfirmed(boolean confirmed) {
+    public void setConfirmed(final boolean confirmed) {
         this.confirmed = confirmed;
     }
 
@@ -90,7 +95,7 @@ public class SetupOtpBean extends PwmSessionBean {
         return challenge;
     }
 
-    public void setChallenge(Long challenge) {
+    public void setChallenge(final Long challenge) {
         this.challenge = challenge;
     }
 
@@ -99,7 +104,7 @@ public class SetupOtpBean extends PwmSessionBean {
         return recoveryCodes;
     }
 
-    public void setRecoveryCodes(List<String> recoveryCodes)
+    public void setRecoveryCodes(final List<String> recoveryCodes)
     {
         this.recoveryCodes = recoveryCodes;
     }
@@ -109,7 +114,7 @@ public class SetupOtpBean extends PwmSessionBean {
         return codeSeen;
     }
 
-    public void setCodeSeen(boolean codeSeen)
+    public void setCodeSeen(final boolean codeSeen)
     {
         this.codeSeen = codeSeen;
     }
@@ -119,7 +124,7 @@ public class SetupOtpBean extends PwmSessionBean {
         return written;
     }
 
-    public void setWritten(boolean written)
+    public void setWritten(final boolean written)
     {
         this.written = written;
     }

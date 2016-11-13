@@ -43,14 +43,14 @@ public class PwmSecurityKey {
         HMAC_512,
     }
 
-    final private byte[] keyData;
-    final private Map<Type,SecretKey> keyCache = new HashMap<>();
+    private final byte[] keyData;
+    private final Map<Type,SecretKey> keyCache = new HashMap<>();
 
-    public PwmSecurityKey(byte[] keyData) {
+    public PwmSecurityKey(final byte[] keyData) {
         this.keyData = keyData;
     }
 
-    public PwmSecurityKey(String keyData) throws PwmUnrecoverableException {
+    public PwmSecurityKey(final String keyData) throws PwmUnrecoverableException {
         this.keyData = stringToKeyData(keyData);
     }
 
@@ -64,7 +64,7 @@ public class PwmSecurityKey {
         }
     }
 
-    SecretKey getKey(Type keyType)
+    SecretKey getKey(final Type keyType)
             throws PwmUnrecoverableException
     {
         if (!keyCache.containsKey(keyType)) {
@@ -73,7 +73,7 @@ public class PwmSecurityKey {
         return keyCache.get(keyType);
     }
 
-    private SecretKey getKeyImpl(Type keyType)
+    private SecretKey getKeyImpl(final Type keyType)
             throws PwmUnrecoverableException {
         switch (keyType) {
             case AES: {
@@ -91,9 +91,10 @@ public class PwmSecurityKey {
             case HMAC_512: {
                 return new SecretKeySpec(keyData, "HmacSHA512");
             }
-        }
 
-        throw new IllegalStateException("unknown key type: " + keyType);
+            default:
+                throw new UnsupportedOperationException("unknown key type: " + keyType);
+        }
     }
 
     private SecretKey shaBasedKey(final String keySpecName, final PwmHashAlgorithm pwmHashAlgorithm, final int keyLength) throws PwmUnrecoverableException {

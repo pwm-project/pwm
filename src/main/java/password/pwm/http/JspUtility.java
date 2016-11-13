@@ -42,7 +42,7 @@ public abstract class JspUtility {
     private static final PwmLogger LOGGER = PwmLogger.forClass(JspUtility.class);
 
     private static PwmRequest forRequest(
-            ServletRequest request
+            final ServletRequest request
     )
     {
         final PwmRequest pwmRequest = (PwmRequest)request.getAttribute(PwmRequest.Attribute.PwmRequest.toString());
@@ -132,7 +132,7 @@ public abstract class JspUtility {
         return forRequest(pageContext.getRequest());
     }
 
-    public static String localizedString(final PageContext pageContext, final String key, Class<? extends PwmDisplayBundle> bundleClass, final String... values) {
+    public static String localizedString(final PageContext pageContext, final String key, final Class<? extends PwmDisplayBundle> bundleClass, final String... values) {
         final PwmRequest pwmRequest = forRequest(pageContext.getRequest());
         return LocaleHelper.getLocalizedMessage(pwmRequest.getLocale(), key, pwmRequest.getConfig(), bundleClass, values);
     }

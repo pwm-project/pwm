@@ -26,7 +26,7 @@ class PhotoDataBean {
     private final String mimeType;
     private byte[] contents;
 
-    PhotoDataBean(String mimeType, byte[] contents) {
+    PhotoDataBean(final String mimeType, final byte[] contents) {
         this.mimeType = mimeType;
         this.contents = contents;
     }

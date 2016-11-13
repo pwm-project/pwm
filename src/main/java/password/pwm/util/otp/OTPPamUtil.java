@@ -44,10 +44,10 @@ public class OTPPamUtil {
      * @param text
      * @return list of Strings
      */
-    public static List<String> splitLines(String text) {
-        List<String> list = new ArrayList<>();
+    public static List<String> splitLines(final String text) {
+        final List<String> list = new ArrayList<>();
         if (text != null) {
-            String lines[] = text.split("\r?\n|\r");
+            final String[] lines = text.split("\r?\n|\r");
             list.addAll(Arrays.asList(lines));
         }
         return list;
@@ -58,29 +58,29 @@ public class OTPPamUtil {
      * @param otpInfo
      * @return
      */
-    public static OTPUserRecord decomposePamData(String otpInfo) {
-        List<String> lines = splitLines(otpInfo);
+    public static OTPUserRecord decomposePamData(final String otpInfo) {
+        final List<String> lines = splitLines(otpInfo);
         if (lines.size() >= 2) {
-            Iterator<String> iterator = lines.iterator();
+            final Iterator<String> iterator = lines.iterator();
             String line = iterator.next();
             if (line.matches("^[A-Z2-7\\=]{16}$")) {
-                OTPUserRecord otp = new OTPUserRecord(); // default identifier
+                final OTPUserRecord otp = new OTPUserRecord(); // default identifier
                 otp.setSecret(line);
-                List<OTPUserRecord.RecoveryCode> recoveryCodes = new ArrayList<>();
+                final List<OTPUserRecord.RecoveryCode> recoveryCodes = new ArrayList<>();
                 while (iterator.hasNext()) {
                     line = iterator.next();
                     if (line.startsWith("\" ")) {
-                        String option = line.substring(2).trim();
+                        final String option = line.substring(2).trim();
                         if ("TOTP_AUTH".equals(option)) {
                             otp.setType(OTPUserRecord.Type.TOTP);
                         } else if (option.matches("^HOTP_COUNTER\\s+\\d+$")) {
-                            String countStr = option.substring(option.indexOf(" ") + 1);
+                            final String countStr = option.substring(option.indexOf(" ") + 1);
                             otp.setType(OTPUserRecord.Type.HOTP);
                             otp.setAttemptCount(Long.parseLong(countStr));
                         }
                     }
                     else if(line.matches("^\\d{8}$")) {
-                        OTPUserRecord.RecoveryCode code = new OTPUserRecord.RecoveryCode();
+                        final OTPUserRecord.RecoveryCode code = new OTPUserRecord.RecoveryCode();
                         code.setUsed(false);
                         code.setHashCode(line);
                         recoveryCodes.add(code);
@@ -94,7 +94,7 @@ public class OTPPamUtil {
                     otp.setRecoveryInfo(null);
                 } else {
                     LOGGER.debug(String.format("%d recovery codes read.", recoveryCodes.size()));
-                    OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
+                    final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
                     recoveryInfo.setHashCount(0);
                     recoveryInfo.setSalt(null);
                     recoveryInfo.setHashMethod(null);
@@ -113,13 +113,13 @@ public class OTPPamUtil {
      * @param otp the record with OTP configuration
      * @return the string representation of the OTP record
      */
-    public static String composePamData(OTPUserRecord otp) {
+    public static String composePamData(final OTPUserRecord otp) {
         if (otp == null) {
             return "";
         }
-        String secret = otp.getSecret();
-        OTPUserRecord.Type type = otp.getType();
-        List<OTPUserRecord.RecoveryCode> recoveryCodes = otp.getRecoveryCodes();
+        final String secret = otp.getSecret();
+        final OTPUserRecord.Type type = otp.getType();
+        final List<OTPUserRecord.RecoveryCode> recoveryCodes = otp.getRecoveryCodes();
         String pamData = secret + "\n";
         if (OTPUserRecord.Type.HOTP.equals(type)) {
             pamData += String.format("\" HOTP_COUNTER %d\n", otp.getAttemptCount());
@@ -128,7 +128,7 @@ public class OTPPamUtil {
         }
         if (recoveryCodes != null && recoveryCodes.size() > 0) {
             // The codes are assumed to be non-hashed
-            for (OTPUserRecord.RecoveryCode code : recoveryCodes) {
+            for (final OTPUserRecord.RecoveryCode code : recoveryCodes) {
                 if (!code.isUsed()) {
                     pamData += code.getHashCode() + "\n";
                 }

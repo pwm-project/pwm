@@ -38,8 +38,8 @@ public class ProcessChaResRequest  implements java.io.Serializable {
     }
 
     public ProcessChaResRequest(
-           java.lang.String userDN,
-           java.lang.String[] chaAnswers) {
+            final java.lang.String userDN,
+            final java.lang.String[] chaAnswers) {
            this.userDN = userDN;
            this.chaAnswers = chaAnswers;
     }
@@ -60,7 +60,7 @@ public class ProcessChaResRequest  implements java.io.Serializable {
      * 
      * @param userDN
      */
-    public void setUserDN(java.lang.String userDN) {
+    public void setUserDN(final java.lang.String userDN) {
         this.userDN = userDN;
     }
 
@@ -80,29 +80,30 @@ public class ProcessChaResRequest  implements java.io.Serializable {
      * 
      * @param chaAnswers
      */
-    public void setChaAnswers(java.lang.String[] chaAnswers) {
+    public void setChaAnswers(final java.lang.String[] chaAnswers) {
         this.chaAnswers = chaAnswers;
     }
 
-    public java.lang.String getChaAnswers(int i) {
+    public java.lang.String getChaAnswers(final int i) {
         return this.chaAnswers[i];
     }
 
-    public void setChaAnswers(int i, java.lang.String _value) {
+    public void setChaAnswers(final int i, final java.lang.String _value) {
         this.chaAnswers[i] = _value;
     }
 
     private java.lang.Object __equalsCalc = null;
-    public synchronized boolean equals(java.lang.Object obj) {
+
+    public synchronized boolean equals(final java.lang.Object obj) {
         if (!(obj instanceof ProcessChaResRequest)) return false;
-        ProcessChaResRequest other = (ProcessChaResRequest) obj;
+        final ProcessChaResRequest other = (ProcessChaResRequest) obj;
         if (obj == null) return false;
         if (this == obj) return true;
         if (__equalsCalc != null) {
             return (__equalsCalc == obj);
         }
         __equalsCalc = obj;
-        boolean _equals;
+        final boolean _equals;
         _equals = true && 
             ((this.userDN==null && other.getUserDN()==null) || 
              (this.userDN!=null &&
@@ -115,6 +116,7 @@ public class ProcessChaResRequest  implements java.io.Serializable {
     }
 
     private boolean __hashCodeCalc = false;
+
     public synchronized int hashCode() {
         if (__hashCodeCalc) {
             return 0;
@@ -128,7 +130,7 @@ public class ProcessChaResRequest  implements java.io.Serializable {
             for (int i=0;
                  i<java.lang.reflect.Array.getLength(getChaAnswers());
                  i++) {
-                java.lang.Object obj = java.lang.reflect.Array.get(getChaAnswers(), i);
+                final java.lang.Object obj = java.lang.reflect.Array.get(getChaAnswers(), i);
                 if (obj != null &&
                     !obj.getClass().isArray()) {
                     _hashCode += obj.hashCode();
@@ -172,9 +174,9 @@ public class ProcessChaResRequest  implements java.io.Serializable {
      * Get Custom Serializer
      */
     public static org.apache.axis.encoding.Serializer getSerializer(
-           java.lang.String mechType, 
-           java.lang.Class _javaType,  
-           javax.xml.namespace.QName _xmlType) {
+            final java.lang.String mechType,
+            final java.lang.Class _javaType,
+            final javax.xml.namespace.QName _xmlType) {
         return 
           new  org.apache.axis.encoding.ser.BeanSerializer(
             _javaType, _xmlType, typeDesc);
@@ -184,9 +186,9 @@ public class ProcessChaResRequest  implements java.io.Serializable {
      * Get Custom Deserializer
      */
     public static org.apache.axis.encoding.Deserializer getDeserializer(
-           java.lang.String mechType, 
-           java.lang.Class _javaType,  
-           javax.xml.namespace.QName _xmlType) {
+            final java.lang.String mechType,
+            final java.lang.Class _javaType,
+            final javax.xml.namespace.QName _xmlType) {
         return 
           new  org.apache.axis.encoding.ser.BeanDeserializer(
             _javaType, _xmlType, typeDesc);

@@ -24,7 +24,6 @@ package password.pwm.svc;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmEnvironment;
-import password.pwm.util.VersionChecker;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -45,6 +44,7 @@ import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistManager;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.VersionChecker;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.CrService;
@@ -53,7 +53,12 @@ import password.pwm.util.queue.EmailQueueManager;
 import password.pwm.util.queue.SmsQueueManager;
 import password.pwm.util.secure.SecureService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PwmServiceManager {
 
@@ -93,7 +98,7 @@ public class PwmServiceManager {
         private final Class<? extends PwmService> clazz;
         private final boolean internalRuntime;
 
-        PwmServiceClassEnum(Class<? extends PwmService> clazz, final boolean internalRuntime) {
+        PwmServiceClassEnum(final Class<? extends PwmService> clazz, final boolean internalRuntime) {
             this.clazz = clazz;
             this.internalRuntime = internalRuntime;
         }
@@ -115,7 +120,7 @@ public class PwmServiceManager {
         }
     }
 
-    public PwmServiceManager(PwmApplication pwmApplication) {
+    public PwmServiceManager(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
     }
 

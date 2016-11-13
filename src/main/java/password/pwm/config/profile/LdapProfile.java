@@ -32,13 +32,12 @@ import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.StringUtil;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 public class LdapProfile extends AbstractProfile implements Profile {
-    protected LdapProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
+    protected LdapProfile(final String identifier, final Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);
     }
 

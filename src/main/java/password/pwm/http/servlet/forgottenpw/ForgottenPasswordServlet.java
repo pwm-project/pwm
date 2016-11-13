@@ -83,6 +83,7 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PostChangePasswordAction;
@@ -153,7 +154,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
 
         private final Collection<HttpMethod> method;
 
-        ForgottenPasswordAction(HttpMethod... method)
+        ForgottenPasswordAction(final HttpMethod... method)
         {
             this.method = Collections.unmodifiableList(Arrays.asList(method));
         }
@@ -260,6 +261,9 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                 case oauthReturn:
                     this.processOAuthReturn(pwmRequest);
                     break;
+
+                default:
+                    Helper.unhandledSwitchStatement(processAction);
             }
         } else {
             pwmApplication.getSessionStateService().clearBean(pwmRequest, ForgottenPasswordBean.class);
@@ -564,7 +568,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
 
         final OTPUserRecord otpUserRecord = forgottenPasswordBean.getUserInfo().getOtpUserRecord();
         final OtpService otpService = pwmRequest.getPwmApplication().getOtpService();
-        boolean otpPassed;
+        final boolean otpPassed;
         if (otpUserRecord != null) {
             LOGGER.info(pwmRequest, "checking entered OTP");
             try {
@@ -1128,7 +1132,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
         }
 
         final String tokenKey;
-        TokenPayload tokenPayload;
+        final TokenPayload tokenPayload;
         try {
             tokenPayload = pwmRequest.getPwmApplication().getTokenService().createTokenPayload(TokenType.FORGOTTEN_PW, tokenMapData, userIdentity, destinationValues);
             tokenKey = pwmRequest.getPwmApplication().getTokenService().generateNewToken(tokenPayload, pwmRequest.getSessionLabel());
@@ -1298,6 +1302,10 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                 }
             }
             break;
+
+            default:
+                // continue, assume no data requirements for method.
+                break;
         }
     }
 
@@ -1511,8 +1519,8 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
     }
 
     private static Set<IdentityVerificationMethod> figureSatisfiedOptionalAuthMethods(
-            ForgottenPasswordBean.RecoveryFlags recoveryFlags,
-            ForgottenPasswordBean.Progress progress)
+            final ForgottenPasswordBean.RecoveryFlags recoveryFlags,
+            final ForgottenPasswordBean.Progress progress)
     {
         final Set<IdentityVerificationMethod> result = new HashSet<>();
         result.addAll(recoveryFlags.getOptionalAuthMethods());
@@ -1524,8 +1532,8 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             final ForgottenPasswordBean forgottenPasswordBean
     )
     {
-        ForgottenPasswordBean.RecoveryFlags recoveryFlags = forgottenPasswordBean.getRecoveryFlags();
-        ForgottenPasswordBean.Progress progress = forgottenPasswordBean.getProgress();
+        final ForgottenPasswordBean.RecoveryFlags recoveryFlags = forgottenPasswordBean.getRecoveryFlags();
+        final ForgottenPasswordBean.Progress progress = forgottenPasswordBean.getProgress();
         final Set<IdentityVerificationMethod> result = new HashSet<>();
         result.addAll(recoveryFlags.getOptionalAuthMethods());
         result.removeAll(progress.getSatisfiedMethods());

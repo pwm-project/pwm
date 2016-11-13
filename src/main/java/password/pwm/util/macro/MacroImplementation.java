@@ -38,13 +38,16 @@ public interface MacroImplementation {
 
     Pattern getRegExPattern();
 
-    String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
+    String replaceValue( String matchValue,  MacroRequestInfo macroRequestInfo)
             throws MacroParseException;
 
     interface MacroRequestInfo {
         PwmApplication getPwmApplication();
+
         UserInfoBean getUserInfoBean();
+
         LoginInfoBean getLoginInfoBean();
+
         UserDataReader getUserDataReader();
     }
 

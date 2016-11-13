@@ -50,7 +50,7 @@ public class PwmUrlTag extends PwmAbstractTag {
         this.url = url;
     }
 
-    public void setAddContext(boolean addContext) {
+    public void setAddContext(final boolean addContext) {
         this.addContext = addContext;
     }
 

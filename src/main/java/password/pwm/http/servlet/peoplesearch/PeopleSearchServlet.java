@@ -23,11 +23,16 @@
 package password.pwm.http.servlet.peoplesearch;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.Permission;
+import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
@@ -35,6 +40,7 @@ import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
@@ -45,7 +51,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @WebServlet(
         name="PeopleSearchServlet",
@@ -77,7 +87,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
 
         private final HttpMethod method;
 
-        PeopleSearchActions(HttpMethod method) {
+        PeopleSearchActions(final HttpMethod method) {
             this.method = method;
         }
 
@@ -143,6 +153,9 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
                 case orgChartData:
                     restOrgChartData(pwmRequest, peopleSearchConfiguration);
                     return;
+
+                default:
+                    Helper.unhandledSwitchStatement(peopleSearchAction);
             }
         }
 
@@ -309,7 +322,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
             final long maxCacheSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS);
             final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
             resp.setContentType(photoData.getMimeType());
-            resp.setDateHeader("Expires", System.currentTimeMillis() + (maxCacheSeconds * 1000l));
+            resp.setDateHeader("Expires", System.currentTimeMillis() + (maxCacheSeconds * 1000L));
             resp.setHeader("Cache-Control", "public, max-age=" + maxCacheSeconds);
 
             outputStream = pwmRequest.getPwmResponse().getOutputStream();

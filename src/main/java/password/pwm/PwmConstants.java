@@ -31,7 +31,14 @@ import password.pwm.util.secure.PwmHashAlgorithm;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.TimeZone;
 
 /**
  * Constant values used throughout the servlet.
@@ -90,6 +97,7 @@ public abstract class PwmConstants {
     public static final String DEFAULT_DATETIME_FORMAT_STR = readPwmConstantsBundle("locale.defaultDateTimeFormat");
     public static final TimeZone DEFAULT_TIMEZONE = TimeZone.getTimeZone(readPwmConstantsBundle("locale.defaultTimeZone"));
     public static final DateFormat DEFAULT_DATETIME_FORMAT = new SimpleDateFormat(DEFAULT_DATETIME_FORMAT_STR, DEFAULT_LOCALE);
+
     static {
         DEFAULT_DATETIME_FORMAT.setTimeZone(DEFAULT_TIMEZONE);
     }
@@ -141,6 +149,7 @@ public abstract class PwmConstants {
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle("log.removedValue");
 
     public static final Collection<Locale> INCLUDED_LOCALES;
+
     static {
         final List<Locale> localeList = new ArrayList<>();
         final String inputString = readPwmConstantsBundle("includedLocales");
@@ -231,7 +240,7 @@ public abstract class PwmConstants {
         private String path;
         private static final String JSP_ROOT_URL = "/WEB-INF/jsp/";
 
-        JSP_URL(String path) {
+        JSP_URL(final String path) {
             this.path = path;
         }
 
@@ -312,7 +321,7 @@ public abstract class PwmConstants {
             "I changed my password to \"incorrect\", so whenever i forget, it will tell me \"your password is incorrect\".",
             "passwords are like underwear, changing underwear regularly is a good thing.", //menno
             "daisy, daisy, give me your password do...",
-            "it's a wholesome can of software goodness" // thx krowten
+            "it's a wholesome can of software goodness", // thx krowten
 
     };
 
@@ -324,6 +333,7 @@ public abstract class PwmConstants {
     private static String readBuildInfoBundle(final String key) {
         return readBuildInfoBundle(key, null);
     }
+
     private static String readBuildInfoBundle(final String key, final String defaultValue) {
         final ResourceBundle resourceBundle = ResourceBundle.getBundle("password.pwm.BuildInformation");
         if (resourceBundle.containsKey(key)) {
@@ -369,7 +379,7 @@ public abstract class PwmConstants {
 
         private final String httpName;
 
-        HttpHeader(String httpName)
+        HttpHeader(final String httpName)
         {
             this.httpName = httpName;
         }
@@ -395,7 +405,7 @@ public abstract class PwmConstants {
 
         private final String headerValue;
 
-        ContentTypeValue(String headerValue) {
+        ContentTypeValue(final String headerValue) {
             this.headerValue = headerValue;
         }
 
@@ -411,7 +421,7 @@ public abstract class PwmConstants {
 
         private String headerValue;
 
-        AcceptValue(String headerValue) {
+        AcceptValue(final String headerValue) {
             this.headerValue = headerValue;
         }
 

@@ -24,7 +24,12 @@ package password.pwm.http.servlet;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.*;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.SessionLabel;
+import password.pwm.bean.SmsItemBean;
+import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.FormUtility;
@@ -42,13 +47,19 @@ import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @WebServlet(
         name="ForgottenUsernameServlet",
@@ -99,6 +110,9 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
                 case search:
                     handleSearchRequest(pwmRequest);
                     return;
+
+                default:
+                    Helper.unhandledSwitchStatement(action);
             }
         }
 

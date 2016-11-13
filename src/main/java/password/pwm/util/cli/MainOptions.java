@@ -35,10 +35,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class MainOptions implements Serializable {
-    final static private String OPT_DEBUG_LEVEL = "-debugLevel";
-    final static private  String OPT_APP_PATH = "-applicationPath";
-    final static private  String OPT_APP_FLAGS= "-applicationFlags";
-    final static private  String OPT_FORCE = "-force";
+    private static final String OPT_DEBUG_LEVEL = "-debugLevel";
+    private static final String OPT_APP_PATH = "-applicationPath";
+    private static final String OPT_APP_FLAGS= "-applicationFlags";
+    private static final String OPT_FORCE = "-force";
 
 
     private PwmLogLevel pwmLogLevel = null;
@@ -48,11 +48,11 @@ public class MainOptions implements Serializable {
     private String[] remainingArguments;
 
     MainOptions(
-            PwmLogLevel pwmLogLevel,
-            File applicationPath,
-            boolean forceFlag,
-            Collection<PwmEnvironment.ApplicationFlag> applicationFlags,
-            String[] remainingArguments
+            final PwmLogLevel pwmLogLevel,
+            final File applicationPath,
+            final boolean forceFlag,
+            final Collection<PwmEnvironment.ApplicationFlag> applicationFlags,
+            final String[] remainingArguments
 
     ) {
         this.pwmLogLevel = pwmLogLevel;
@@ -84,8 +84,8 @@ public class MainOptions implements Serializable {
     }
 
     public static MainOptions parseMainCommandLineOptions(
-            String[] args,
-            Writer debugWriter
+            final String[] args,
+            final Writer debugWriter
     ) {
 
 
@@ -93,7 +93,7 @@ public class MainOptions implements Serializable {
         File applicationPath = null;
         boolean forceFlag = false;
         Collection<PwmEnvironment.ApplicationFlag> applicationFlags = Collections.emptyList();
-        String[] remainingArguments;
+        final String[] remainingArguments;
 
         final List<String> outputArgs = new ArrayList<>();
         if (args != null) {

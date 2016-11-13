@@ -62,7 +62,7 @@ public class OAuthMachine {
 
     private final OAuthSettings settings;
 
-    public OAuthMachine(OAuthSettings settings) {
+    public OAuthMachine(final OAuthSettings settings) {
         this.settings = settings;
     }
 
@@ -116,7 +116,7 @@ public class OAuthMachine {
             LOGGER.debug(pwmRequest,"redirecting user to oauth id server, url: " + redirectUrl);
         } catch (PwmUnrecoverableException e) {
             final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
-            ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             pwmRequest.setResponseError(errorInformation);
             LOGGER.error(errorInformation.toDebugStr());
         }
@@ -254,7 +254,7 @@ public class OAuthMachine {
         debugOutput.append(debugText).append(
                 TimeDuration.fromCurrent(startTime).asCompactString()).append(", status: ").append(
                 httpResponse.getStatusLine()).append("\n");
-        for (Header responseHeader : httpResponse.getAllHeaders()) {
+        for (final Header responseHeader : httpResponse.getAllHeaders()) {
             debugOutput.append(" response header: ").append(responseHeader.getName()).append(": ").append(
                     responseHeader.getValue()).append("\n");
         }
@@ -273,7 +273,8 @@ public class OAuthMachine {
     }
 
     public static String figureOauthSelfEndPointUrl(final PwmRequest pwmRequest) {
-        final String debugSource, redirect_uri;
+        final String debugSource;
+        final String redirect_uri;
 
         {
             final String returnUrlOverride = pwmRequest.getConfig().readAppProperty(AppProperty.OAUTH_RETURN_URL_OVERRIDE);
@@ -311,8 +312,8 @@ public class OAuthMachine {
         final String responseBody;
 
         RestResults(
-                HttpResponse httpResponse,
-                String responseBody
+                final HttpResponse httpResponse,
+                final String responseBody
         )
         {
             this.httpResponse = httpResponse;
@@ -349,7 +350,7 @@ public class OAuthMachine {
         LOGGER.trace(pwmRequest, "oauth access token has expired, attempting to refresh");
 
         try {
-            OAuthResolveResults resolveResults = makeOAuthRefreshRequest(pwmRequest,
+            final OAuthResolveResults resolveResults = makeOAuthRefreshRequest(pwmRequest,
                     loginInfoBean.getOauthRefToken());
             if (resolveResults != null) {
                 if (resolveResults.getExpiresSeconds() > 0) {

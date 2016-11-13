@@ -47,7 +47,7 @@ class NAAFLoginResponseBean implements Serializable {
         return msg;
     }
 
-    public void setMsg(String msg) {
+    public void setMsg(final String msg) {
         this.msg = msg;
     }
 
@@ -55,7 +55,7 @@ class NAAFLoginResponseBean implements Serializable {
         return current_method;
     }
 
-    public void setCurrent_method(String current_method) {
+    public void setCurrent_method(final String current_method) {
         this.current_method = current_method;
     }
 
@@ -63,7 +63,7 @@ class NAAFLoginResponseBean implements Serializable {
         return logon_process_id;
     }
 
-    public void setLogon_process_id(String logon_process_id) {
+    public void setLogon_process_id(final String logon_process_id) {
         this.logon_process_id = logon_process_id;
     }
 
@@ -71,7 +71,7 @@ class NAAFLoginResponseBean implements Serializable {
         return completed_methods;
     }
 
-    public void setCompleted_methods(List<String> completed_methods) {
+    public void setCompleted_methods(final List<String> completed_methods) {
         this.completed_methods = completed_methods;
     }
 
@@ -79,7 +79,7 @@ class NAAFLoginResponseBean implements Serializable {
         return plugins;
     }
 
-    public void setPlugins(List<String> plugins) {
+    public void setPlugins(final List<String> plugins) {
         this.plugins = plugins;
     }
 
@@ -87,7 +87,7 @@ class NAAFLoginResponseBean implements Serializable {
         return status;
     }
 
-    public void setStatus(STATUS status) {
+    public void setStatus(final STATUS status) {
         this.status = status;
     }
 
@@ -95,7 +95,7 @@ class NAAFLoginResponseBean implements Serializable {
         return chains;
     }
 
-    public void setChains(List<NAAFChainBean> chains) {
+    public void setChains(final List<NAAFChainBean> chains) {
         this.chains = chains;
     }
 
@@ -103,7 +103,7 @@ class NAAFLoginResponseBean implements Serializable {
         return questions;
     }
 
-    public void setQuestions(Map<String, String> questions) {
+    public void setQuestions(final Map<String, String> questions) {
         this.questions = questions;
     }
 }

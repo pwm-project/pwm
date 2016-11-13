@@ -38,7 +38,7 @@ class NGStorageEngineImpl implements StorageEngine {
     private final ReentrantReadWriteLock bigLock = new ReentrantReadWriteLock();
     private boolean writeLocked = false;
 
-    public NGStorageEngineImpl(
+    NGStorageEngineImpl(
             final Map<StoredConfigReference, StoredValue> values,
             final Map<StoredConfigReference, ValueMetaData> metaValues
     ) {
@@ -51,7 +51,7 @@ class NGStorageEngineImpl implements StorageEngine {
         return changeLog;
     }
 
-    public StoredValue read(StoredConfigReference storedConfigReference) {
+    public StoredValue read(final StoredConfigReference storedConfigReference) {
         bigLock.readLock().lock();
         try {
             return values.get(storedConfigReference);
@@ -64,7 +64,7 @@ class NGStorageEngineImpl implements StorageEngine {
         return metaValues.get(storedConfigReference);
     }
 
-    public void write(StoredConfigReference reference, StoredValue value, UserIdentity userIdentity)
+    public void write(final StoredConfigReference reference, final StoredValue value, final UserIdentity userIdentity)
     {
         checkWriteLock();
         bigLock.writeLock().lock();
@@ -82,7 +82,7 @@ class NGStorageEngineImpl implements StorageEngine {
         }
     }
 
-    public void reset(StoredConfigReference reference, UserIdentity userIdentity)
+    public void reset(final StoredConfigReference reference, final UserIdentity userIdentity)
     {
         checkWriteLock();
         bigLock.writeLock().lock();

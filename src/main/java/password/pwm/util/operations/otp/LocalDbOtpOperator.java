@@ -25,6 +25,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package password.pwm.util.operations.otp;
 
 import password.pwm.PwmApplication;
@@ -50,13 +51,13 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDbOtpOperator.class);
     private final LocalDB localDB;
 
-    public LocalDbOtpOperator(PwmApplication pwmApplication) {
+    public LocalDbOtpOperator(final PwmApplication pwmApplication) {
         this.localDB = pwmApplication.getLocalDB();
         setPwmApplication(pwmApplication);
     }
 
     @Override
-    public OTPUserRecord readOtpUserConfiguration(UserIdentity theUser, String userGUID) throws PwmUnrecoverableException {
+    public OTPUserRecord readOtpUserConfiguration(final UserIdentity theUser, final String userGUID) throws PwmUnrecoverableException {
         LOGGER.trace(String.format("Enter: readOtpUserConfiguration(%s, %s)", theUser, userGUID));
         if (userGUID == null || userGUID.length() < 1) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save otp to localDB, user does not have a GUID"));
@@ -70,7 +71,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
 
         OTPUserRecord otpConfig = null;
         try {
-            Configuration config = this.getPwmApplication().getConfig();
+            final Configuration config = this.getPwmApplication().getConfig();
             String value = localDB.get(LocalDB.DB.OTP_SECRET, userGUID);
             if (value != null && value.length() > 0) {
                 if (config.readSettingAsBoolean(PwmSetting.OTP_SECRET_ENCRYPT)) {
@@ -116,7 +117,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
         }
 
         try {
-            Configuration config = this.getPwmApplication().getConfig();
+            final Configuration config = this.getPwmApplication().getConfig();
             String value = composeOtpAttribute(otpConfig);
             if (config.readSettingAsBoolean(PwmSetting.OTP_SECRET_ENCRYPT)) {
                 LOGGER.debug(pwmSession,"Encrypting OTP secret for storage");

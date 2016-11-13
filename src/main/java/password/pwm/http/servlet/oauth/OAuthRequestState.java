@@ -28,7 +28,7 @@ public class OAuthRequestState implements Serializable {
     private OAuthState oAuthState;
     private boolean sessionMatch;
 
-    public OAuthRequestState(OAuthState oAuthState, boolean sessionMatch) {
+    public OAuthRequestState(final OAuthState oAuthState, final boolean sessionMatch) {
         this.oAuthState = oAuthState;
         this.sessionMatch = sessionMatch;
     }

@@ -125,7 +125,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
     }
 
     @Override
-    boolean isInterested(PwmApplicationMode mode, PwmURL pwmURL) {
+    boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
         return !pwmURL.isResourceURL();
     }
 
@@ -221,7 +221,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         private Date date;
         private String guid;
 
-        public AuthRecord(Date date, String guid) {
+        public AuthRecord(final Date date, final String guid) {
             this.date = date;
             this.guid = guid;
         }
@@ -427,7 +427,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
         private final String className;
 
-        AuthenticationMethod(String className) {
+        AuthenticationMethod(final String className) {
             this.className = className;
         }
 

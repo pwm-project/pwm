@@ -22,11 +22,7 @@
 
 package password.pwm.config.profile;
 
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.Set;
-
+import com.novell.ldapchai.ChaiPasswordRule;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -34,7 +30,10 @@ import password.pwm.i18n.Message;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
-import com.novell.ldapchai.ChaiPasswordRule;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.Set;
 
 /**
  * Password rules

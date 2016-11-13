@@ -33,11 +33,16 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.OTPStorageFormat;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.PwmService;
+import password.pwm.util.Helper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -56,7 +61,14 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Menno Pieters, Jason D. Rivard
@@ -73,7 +85,7 @@ public class OtpService implements PwmService {
     }
 
     @Override
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
         this.pwmApplication = pwmApplication;
         operatorMap.put(DataStorageMethod.LDAP, new LdapOtpOperator(pwmApplication));
         operatorMap.put(DataStorageMethod.LOCALDB, new LocalDbOtpOperator(pwmApplication));
@@ -100,9 +112,12 @@ public class OtpService implements PwmService {
             switch (otpUserRecord.getType()) {
                 case TOTP:
                     otpCorrect = generator.verifyTimeoutCode(userInput, settings.getTotpPastIntervals(), settings.getTotpFutureIntervals());
-                case HOTP:
-                    /* Not yet implemented */
                     break;
+
+                //@todo HOTP implementation
+
+                default:
+                    throw new UnsupportedOperationException("OTP type not supported: " + otpUserRecord.getType());
             }
         } catch (Exception e) {
             LOGGER.error(pwmSession.getLabel(),"error checking otp secret: " + e.getMessage());
@@ -148,7 +163,7 @@ public class OtpService implements PwmService {
     public List<String> initializeUserRecord(
             final OTPUserRecord otpUserRecord,
             final SessionLabel sessionLabel,
-            String identifier
+            final String identifier
     )
             throws IOException, PwmUnrecoverableException {
         otpUserRecord.setIdentifier(identifier);
@@ -165,6 +180,10 @@ public class OtpService implements PwmService {
 
             case TOTP:
                 otpUserRecord.setType(OTPUserRecord.Type.TOTP);
+                break;
+
+            default:
+                Helper.unhandledSwitchStatement(settings.getOtpType());
         }
         final List<String> rawRecoveryCodes;
         if (settings.getOtpStorageFormat().supportsRecoveryCodes()) {
@@ -204,7 +223,7 @@ public class OtpService implements PwmService {
     }
 
     private static byte[] generateSecret() {
-        byte[] secArray = new byte[10];
+        final byte[] secArray = new byte[10];
         PwmRandom.getInstance().nextBytes(secArray);
         return secArray;
     }
@@ -301,7 +320,9 @@ public class OtpService implements PwmService {
     )
             throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        int attempts = 0, successes = 0;
+        int attempts = 0;
+        int successes = 0;
+
         final Configuration config = pwmApplication.getConfig();
         final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(
                 PwmSetting.OTP_SECRET_READ_PREFERENCE);
@@ -309,7 +330,7 @@ public class OtpService implements PwmService {
 
         final StringBuilder errorMsgs = new StringBuilder();
         if (otpSecretStorageLocations != null) {
-            for (DataStorageMethod otpSecretStorageLocation : otpSecretStorageLocations) {
+            for (final DataStorageMethod otpSecretStorageLocation : otpSecretStorageLocations) {
                 attempts++;
                 final OtpOperator operator = operatorMap.get(otpSecretStorageLocation);
                 if (operator != null) {
@@ -347,7 +368,9 @@ public class OtpService implements PwmService {
     {
         LOGGER.trace(pwmSession, "beginning clear otp user configuration");
 
-        int attempts = 0, successes = 0;
+        int attempts = 0;
+        int successes = 0;
+
         final Configuration config = pwmApplication.getConfig();
         final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
 
@@ -355,7 +378,7 @@ public class OtpService implements PwmService {
 
         final StringBuilder errorMsgs = new StringBuilder();
         if (otpSecretStorageLocations != null) {
-            for (DataStorageMethod otpSecretStorageLocation : otpSecretStorageLocations) {
+            for (final DataStorageMethod otpSecretStorageLocation : otpSecretStorageLocations) {
                 attempts++;
                 final OtpOperator operator = operatorMap.get(otpSecretStorageLocation);
                 if (operator != null) {
@@ -374,14 +397,14 @@ public class OtpService implements PwmService {
 
         if (attempts == 0) {
             final String errorMsg = "no OTP secret clear methods are available or configured";
-            /* TODO: replace error message */
+            //@todo: replace error message
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, errorMsg);
             throw new PwmOperationalException(errorInfo);
         }
 
         if (attempts != successes) { // should be impossible to read here, but just in case.
             final String errorMsg = "OTP secret clearing only partially successful; attempts=" + attempts + ", successes=" + successes + ", error: " + errorMsgs.toString();
-            /* TODO: replace error message */
+            //@todo: replace error message
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, errorMsg);
             throw new PwmOperationalException(errorInfo);
         }

@@ -32,7 +32,7 @@ class PwmIfOptions {
     private PwmSetting pwmSetting;
     private PwmRequestFlag requestFlag;
 
-    public PwmIfOptions(final boolean negate, final PwmSetting pwmSetting, final Permission permission, final PwmRequestFlag pwmRequestFlag) {
+    PwmIfOptions(final boolean negate, final PwmSetting pwmSetting, final Permission permission, final PwmRequestFlag pwmRequestFlag) {
         this.negate = negate;
         this.permission = permission;
         this.pwmSetting = pwmSetting;

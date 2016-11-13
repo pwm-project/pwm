@@ -69,7 +69,7 @@ public interface StoredConfiguration {
 
     void lock();
 
-    ValueMetaData readSettingMetadata(final PwmSetting setting, final String profileID);
+    ValueMetaData readSettingMetadata( PwmSetting setting,  String profileID);
 
     void resetSetting(PwmSetting setting, String profileID, UserIdentity userIdentity);
 

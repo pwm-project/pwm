@@ -49,7 +49,7 @@ public class TokenVerificationProgress implements Serializable {
         return phase;
     }
 
-    public void setPhase(TokenChannel phase) {
+    public void setPhase(final TokenChannel phase) {
         this.phase = phase;
     }
 
@@ -57,7 +57,7 @@ public class TokenVerificationProgress implements Serializable {
         return tokenDisplayText;
     }
 
-    public void setTokenDisplayText(String tokenDisplayText) {
+    public void setTokenDisplayText(final String tokenDisplayText) {
         this.tokenDisplayText = tokenDisplayText;
     }
 }

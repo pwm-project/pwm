@@ -31,8 +31,19 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class HealthMonitor implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(HealthMonitor.class);
@@ -42,6 +53,7 @@ public class HealthMonitor implements PwmService {
     private final Set<HealthRecord> healthRecords = new TreeSet<>();
 
     private static final List<HealthChecker> HEALTH_CHECKERS;
+
     static {
         final List<HealthChecker> records = new ArrayList<>();
         records.add(new LDAPStatusChecker());
@@ -85,14 +97,14 @@ public class HealthMonitor implements PwmService {
         return lastHealthCheckTime;
     }
 
-    public HealthStatus getMostSevereHealthStatus(CheckTimeliness timeliness) {
+    public HealthStatus getMostSevereHealthStatus(final CheckTimeliness timeliness) {
         return getMostSevereHealthStatus(getHealthRecords(timeliness));
     }
 
     public static HealthStatus getMostSevereHealthStatus(final Collection<HealthRecord> healthRecords) {
         HealthStatus returnStatus = HealthStatus.GOOD;
         if (healthRecords != null) {
-            for (HealthRecord record : healthRecords) {
+            for (final HealthRecord record : healthRecords) {
                 if (record.getStatus().getSeverityLevel() > returnStatus.getSeverityLevel()) {
                     returnStatus = record.getStatus();
                 }
@@ -105,7 +117,7 @@ public class HealthMonitor implements PwmService {
         return status;
     }
 
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
         status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
         settings = HealthMonitorSettings.fromConfiguration(pwmApplication.getConfig());

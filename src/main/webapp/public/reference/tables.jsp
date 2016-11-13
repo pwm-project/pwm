@@ -94,7 +94,7 @@
                     <h3>Label</h3>
                 </td>
             </tr>
-            <% for (AuditEvent auditEvent : AuditEvent.values()) { %>
+            <% for (final AuditEvent auditEvent : AuditEvent.values()) { %>
             <tr>
                 <td>
                     <%= auditEvent.toString() %>
@@ -127,7 +127,7 @@
                     <h3>Message</h3>
                 </td>
             </tr>
-            <% for (PwmError error : PwmError.values()) { %>
+            <% for (final PwmError error : PwmError.values()) { %>
             <tr>
                 <td>
                     <%=error.getErrorCode()%>

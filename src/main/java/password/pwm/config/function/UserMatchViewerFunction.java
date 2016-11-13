@@ -46,7 +46,11 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class UserMatchViewerFunction implements SettingUIFunction {
     private static final PwmLogger LOGGER = PwmLogger.forClass(UserMatchViewerFunction.class);
@@ -57,7 +61,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
             final StoredConfigurationImpl storedConfiguration,
             final PwmSetting setting,
             final String profile,
-            String extraData)
+            final String extraData)
             throws Exception
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
@@ -142,7 +146,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
             return users;
         }
 
-        public void setUsers(Collection<UserIdentity> users) {
+        public void setUsers(final Collection<UserIdentity> users) {
             this.users = users;
         }
 
@@ -150,7 +154,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
             return sizeExceeded;
         }
 
-        public void setSizeExceeded(boolean sizeExceeded) {
+        public void setSizeExceeded(final boolean sizeExceeded) {
             this.sizeExceeded = sizeExceeded;
         }
 
@@ -158,7 +162,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
             return searchOperationSummary;
         }
 
-        public void setSearchOperationSummary(String searchOperationSummary) {
+        public void setSearchOperationSummary(final String searchOperationSummary) {
             this.searchOperationSummary = searchOperationSummary;
         }
     }

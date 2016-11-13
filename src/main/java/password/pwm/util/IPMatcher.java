@@ -48,12 +48,12 @@ public class IPMatcher
      *             if there is an error parsing the specification (i.e. it is
      *             somehow malformed)
      */
-    public IPMatcher(String ipSpec) throws IPMatcherException
+    public IPMatcher(final String ipSpec) throws IPMatcherException
     {
         // Boil all specs down to network + mask
 
         String ipPart = ipSpec;
-        String[] parts = ipSpec.split("/");
+        final String[] parts = ipSpec.split("/");
 
         if (parts[0].indexOf(':') >= 0)
         { // looks like IPv6
@@ -71,7 +71,7 @@ public class IPMatcher
             switch(parts.length)
             {
                 case 2: // CIDR notation:  calculate the mask
-                    int maskBits;
+                    final int maskBits;
                     try {
                         maskBits = Integer.parseInt(parts[1]);
                     } catch (NumberFormatException nfe) {
@@ -82,7 +82,7 @@ public class IPMatcher
                         throw new IPMatcherException("Mask bits out of range 0-128 "
                                 + ipSpec);
 
-                    int maskBytes = maskBits/8;
+                    final int maskBytes = maskBits/8;
                     for (int i = 0; i < maskBytes; i++)
                         netmask[i] = (byte) 0Xff;
                     netmask[maskBytes] = (byte) ((byte) 0Xff << 8-(maskBits % 8)); // FIXME test!
@@ -112,11 +112,11 @@ public class IPMatcher
                     ipPart = parts[0];
                     mustHave4 = true;
 
-                    String[] maskParts = parts[1].split("\\.");
+                    final String[] maskParts = parts[1].split("\\.");
                     if (maskParts.length == 1)
                     {
                         // CIDR slash notation
-                        int x;
+                        final int x;
 
                         try
                         {
@@ -133,7 +133,7 @@ public class IPMatcher
                             throw new IPMatcherException();
                         }
 
-                        int fullMask = -1 << (32 - x);
+                        final int fullMask = -1 << (32 - x);
                         netmask[0] = (byte) ((fullMask & 0xFF000000) >>> 24);
                         netmask[1] = (byte) ((fullMask & 0x00FF0000) >>> 16);
                         netmask[2] = (byte) ((fullMask & 0x0000FF00) >>> 8);
@@ -152,7 +152,7 @@ public class IPMatcher
                     // Get IP
                     for (int i = 0; i < netmask.length; i++)
                         netmask[i] = -1;
-                    int partCount = ipToBytes(ipPart, network, mustHave4);
+                    final int partCount = ipToBytes(ipPart, network, mustHave4);
 
                     // If partial IP, set mask for remaining bytes
                     for (int i = 3; i >= partCount; i--)
@@ -189,10 +189,10 @@ public class IPMatcher
      *             outside of range 0-255, too many numbers, less than 4 numbers
      *             if {@code mustHave4} is true
      */
-    private static int ipToBytes(String ip, byte[] bytes, boolean mustHave4)
+    private static int ipToBytes(final String ip, final byte[] bytes, final boolean mustHave4)
             throws IPMatcherException
     {
-        String[] parts = ip.split("\\.");
+        final String[] parts = ip.split("\\.");
 
         if (parts.length > 4 || mustHave4 && parts.length != 4)
         {
@@ -204,7 +204,7 @@ public class IPMatcher
 
             for (int i = 0; i < parts.length; i++)
             {
-                int p = Integer.parseInt(parts[i]);
+                final int p = Integer.parseInt(parts[i]);
                 if (p < 0 || p > 255)
                 {
                     throw new IPMatcherException("Malformed IP specification "
@@ -236,7 +236,7 @@ public class IPMatcher
      *             if the IP passed in cannot be parsed correctly (i.e. is
      *             malformed)
      */
-    public boolean match(String ipIn) throws IPMatcherException
+    public boolean match(final String ipIn) throws IPMatcherException
     {
         byte[] candidate;
 
@@ -273,12 +273,12 @@ public class IPMatcher
      * @return the corresponding IPv6 address
      * @throws IllegalArgumentException if ip4 is not exactly four octets long.
      */
-    private static byte[] ip4ToIp6(byte[] ip4)
+    private static byte[] ip4ToIp6(final byte[] ip4)
     {
         if (ip4.length != 4)
             throw new IllegalArgumentException("IPv4 address must be four octets");
 
-        byte[] ip6 = new byte[16];
+        final byte[] ip6 = new byte[16];
         for (int i = 0; i < 16-4; i++)
             ip6[i] = 0;
         for (int i = 0; i < 4; i++)
@@ -292,12 +292,12 @@ public class IPMatcher
      * @return the corresponding IPv6 mask
      * @throws IllegalArgumentException if ip4 is not exactly four octets long.
      */
-    private static byte[] ip4MaskToIp6(byte[] ip4)
+    private static byte[] ip4MaskToIp6(final byte[] ip4)
     {
         if (ip4.length != 4)
             throw new IllegalArgumentException("IPv4 mask must be four octets");
 
-        byte[] ip6 = new byte[16];
+        final byte[] ip6 = new byte[16];
         for (int i = 0; i < 16-4; i++)
             ip6[i] = (byte) 0Xff;
         for (int i = 0; i < 4; i++)
@@ -311,17 +311,17 @@ public class IPMatcher
             super();
         }
 
-        public IPMatcherException(String message)
+        public IPMatcherException(final String message)
         {
             super(message);
         }
 
-        public IPMatcherException(Throwable cause)
+        public IPMatcherException(final Throwable cause)
         {
             super(cause);
         }
 
-        public IPMatcherException(String message, Throwable cause)
+        public IPMatcherException(final String message, final Throwable cause)
         {
             super(message, cause);
         }

@@ -23,7 +23,10 @@
 package password.pwm.http.servlet.configmanager;
 
 import org.apache.commons.csv.CSVPrinter;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.PwmAboutProperty;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.stored.StoredConfigurationImpl;
@@ -33,17 +36,41 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.svc.PwmService;
-import password.pwm.util.*;
+import password.pwm.util.FileSystemUtility;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.LDAPPermissionCalculator;
+import password.pwm.util.StringUtil;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -123,7 +150,7 @@ public class DebugItemGenerator {
         }
 
         @Override
-        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception
         {
             final StoredConfigurationImpl storedConfiguration = ConfigManagerServlet.readCurrentConfiguration(pwmRequest);
             storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
@@ -139,7 +166,7 @@ public class DebugItemGenerator {
         }
 
         @Override
-        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception
         {
             final StoredConfigurationImpl storedConfiguration = ConfigManagerServlet.readCurrentConfiguration(pwmRequest);
             storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
@@ -173,7 +200,7 @@ public class DebugItemGenerator {
         }
 
         @Override
-        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception
         {
             final StoredConfigurationImpl storedConfiguration = ConfigManagerServlet.readCurrentConfiguration(pwmRequest);
             storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
@@ -191,7 +218,7 @@ public class DebugItemGenerator {
         }
 
         @Override
-        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception
         {
             final Properties outputProps = new Properties() {
                 public synchronized Enumeration<Object> keys() {
@@ -216,7 +243,7 @@ public class DebugItemGenerator {
         }
 
         @Override
-        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception
         {
             final Properties outputProps = Helper.newSortedProperties();
 
@@ -238,7 +265,7 @@ public class DebugItemGenerator {
         }
 
         @Override
-        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception
         {
 
             final Configuration config = pwmRequest.getConfig();
@@ -261,7 +288,7 @@ public class DebugItemGenerator {
         }
 
         @Override
-        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception
+        public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception
         {
             final LinkedHashMap<String,Object> outputMap = new LinkedHashMap<>();
 
@@ -291,7 +318,7 @@ public class DebugItemGenerator {
         }
 
         @Override
-        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception {
+        public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception {
             final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords(HealthMonitor.CheckTimeliness.CurrentButNotAncient);
             final String recordJson = JsonUtil.serializeCollection(records, JsonUtil.Flag.PrettyPrint);
             outputStream.write(recordJson.getBytes(PwmConstants.DEFAULT_CHARSET));
@@ -305,7 +332,7 @@ public class DebugItemGenerator {
         }
 
         @Override
-        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception {
+        public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception {
 
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
             final PrintWriter writer = new PrintWriter( new OutputStreamWriter(baos, PwmConstants.DEFAULT_CHARSET) );
@@ -325,7 +352,7 @@ public class DebugItemGenerator {
         }
 
         @Override
-        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception {
+        public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception {
             final List<LdapDebugDataGenerator.LdapDebugInfo> ldapDebugInfos = LdapDebugDataGenerator.makeLdapDebugInfos(
                     pwmRequest.getSessionLabel(),
                     pwmApplication.getConfig(),
@@ -345,7 +372,7 @@ public class DebugItemGenerator {
         }
 
         @Override
-        public void outputItem(PwmApplication pwmApplication, PwmRequest pwmRequest, OutputStream outputStream) throws Exception {
+        public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception {
             final List<FileSystemUtility.FileSummaryInformation> fileSummaryInformations = new ArrayList<>();
             final File applicationPath = pwmApplication.getPwmEnvironment().getApplicationPath();
 

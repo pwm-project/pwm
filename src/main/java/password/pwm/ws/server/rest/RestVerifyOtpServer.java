@@ -40,7 +40,11 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
@@ -82,7 +86,7 @@ public class RestVerifyOtpServer extends AbstractRestServer {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession().getLabel());
             UserIdentity userIdentity = restRequestBean.getUserIdentity();
             if (userIdentity == null) {
-                ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
+                final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
                 userIdentity = userSearchEngine.resolveUsername(chaiUser.readUsername(), null, null);
             }
 
@@ -96,7 +100,7 @@ public class RestVerifyOtpServer extends AbstractRestServer {
                     false
             );
             final String successMsg = Message.Success_Unknown.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());
-            RestResultBean resultBean = new RestResultBean();
+            final RestResultBean resultBean = new RestResultBean();
             resultBean.setError(false);
             resultBean.setData(verified);
             resultBean.setSuccessMessage(successMsg);

@@ -89,7 +89,7 @@ public class TokenInfoCommand extends AbstractCliCommand {
             }
         };
 
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "TokenInfo";
         cliParameters.description = "Get information about an issued token";
         cliParameters.options = Collections.singletonList(tokenValue);

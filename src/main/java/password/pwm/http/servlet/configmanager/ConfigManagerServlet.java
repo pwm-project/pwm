@@ -35,7 +35,12 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.*;
+import password.pwm.http.ContextManager;
+import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmResponse;
+import password.pwm.http.PwmSession;
+import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
@@ -57,7 +62,12 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.zip.ZipOutputStream;
 
 @WebServlet(
@@ -68,7 +78,7 @@ import java.util.zip.ZipOutputStream;
         }
 )
 public class ConfigManagerServlet extends AbstractPwmServlet {
-    final static private PwmLogger LOGGER = PwmLogger.forClass(ConfigManagerServlet.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigManagerServlet.class);
 
     public enum ConfigManagerAction implements ProcessAction {
         lockConfiguration(HttpMethod.POST),
@@ -86,7 +96,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
 
         private final HttpMethod method;
 
-        ConfigManagerAction(HttpMethod method)
+        ConfigManagerAction(final HttpMethod method)
         {
             this.method = method;
         }
@@ -144,6 +154,9 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
                 case downloadPermissionCsv:
                     downloadPermissionReportCsv(pwmRequest);
                     return;
+
+                default:
+                    Helper.unhandledSwitchStatement(processAction);
             }
             return;
         }
@@ -254,7 +267,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         }
 
         try {
-            ContextManager contextManager = ContextManager.getContextManager(pwmRequest.getHttpServletRequest().getSession().getServletContext());
+            final ContextManager contextManager = ContextManager.getContextManager(pwmRequest.getHttpServletRequest().getSession().getServletContext());
             contextManager.getConfigReader().saveConfiguration(
                     storedConfiguration,
                     contextManager.getPwmApplication(),
@@ -357,7 +370,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
-        LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(storedConfiguration);
+        final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(storedConfiguration);
         pwmRequest.setAttribute(PwmRequest.Attribute.LdapPermissionItems,ldapPermissionCalculator);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_PERMISSIONS);
     }
@@ -372,7 +385,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         private final PwmConstants.JSP_URL jspURL;
         private final String urlSuffix;
 
-        Page(PwmConstants.JSP_URL jspURL, String urlSuffix) {
+        Page(final PwmConstants.JSP_URL jspURL, final String urlSuffix) {
             this.jspURL = jspURL;
             this.urlSuffix = urlSuffix;
         }

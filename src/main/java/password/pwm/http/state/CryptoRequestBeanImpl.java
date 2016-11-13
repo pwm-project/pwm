@@ -38,7 +38,7 @@ public class CryptoRequestBeanImpl implements SessionBeanProvider {
     private static String attrName = "ssi_cache_map";
 
     @Override
-    public <E extends PwmSessionBean> E getSessionBean(PwmRequest pwmRequest, Class<E> theClass) throws PwmUnrecoverableException {
+    public <E extends PwmSessionBean> E getSessionBean(final PwmRequest pwmRequest, final Class<E> theClass) throws PwmUnrecoverableException {
         final Map<Class<E>, E> cachedMap = getBeanMap(pwmRequest);
         if (cachedMap.containsKey(theClass)) {
             return cachedMap.get(theClass);
@@ -51,7 +51,7 @@ public class CryptoRequestBeanImpl implements SessionBeanProvider {
                     FormNonce.class
             );
             final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
-            E bean = secureService.decryptObject(formNonce.getPayload(), theClass);
+            final E bean = secureService.decryptObject(formNonce.getPayload(), theClass);
             cachedMap.put(theClass, bean);
             return bean;
         }
@@ -65,9 +65,9 @@ public class CryptoRequestBeanImpl implements SessionBeanProvider {
     }
 
     @Override
-    public String getSessionStateInfo(PwmRequest pwmRequest) throws PwmUnrecoverableException {
+    public String getSessionStateInfo(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
         final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
-        Map<Class, PwmSessionBean> cachedMap = (Map<Class, PwmSessionBean>)pwmRequest.getHttpServletRequest().getAttribute(attrName);
+        final Map<Class, PwmSessionBean> cachedMap = (Map<Class, PwmSessionBean>)pwmRequest.getHttpServletRequest().getAttribute(attrName);
         if (cachedMap == null || cachedMap.isEmpty()) {
             return "";
         }
@@ -79,7 +79,7 @@ public class CryptoRequestBeanImpl implements SessionBeanProvider {
         return secureService.encryptObjectToString(bean);
     }
 
-    public <E extends PwmSessionBean> void clearSessionBean(PwmRequest pwmRequest, Class<E> userBeanClass) throws PwmUnrecoverableException {
+    public <E extends PwmSessionBean> void clearSessionBean(final PwmRequest pwmRequest, final Class<E> userBeanClass) throws PwmUnrecoverableException {
         final Map<Class<E>, E> cachedMap = getBeanMap(pwmRequest);
         if (cachedMap != null) {
             cachedMap.remove(userBeanClass);

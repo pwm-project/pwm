@@ -26,8 +26,8 @@ import java.io.Serializable;
 import java.util.Map;
 
 final class CacheEntry implements Serializable {
-    final private byte[] entity;
-    final private Map<String, String> headerStrings;
+    private final byte[] entity;
+    private final Map<String, String> headerStrings;
 
     CacheEntry(final byte[] entity, final Map<String, String> headerStrings) {
         this.entity = entity;

@@ -48,7 +48,7 @@ class LdapTokenMachine implements TokenMachine {
     private final String KEY_VALUE_DELIMITER = " ";
     private TokenService tokenService;
 
-    LdapTokenMachine(TokenService tokenService, PwmApplication pwmApplication)
+    LdapTokenMachine(final TokenService tokenService, final PwmApplication pwmApplication)
             throws PwmOperationalException
     {
         this.tokenService = tokenService;
@@ -57,15 +57,15 @@ class LdapTokenMachine implements TokenMachine {
     }
 
     public String generateToken(
-            SessionLabel sessionLabel,
-            TokenPayload tokenPayload
+            final SessionLabel sessionLabel,
+            final TokenPayload tokenPayload
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
         return tokenService.makeUniqueTokenForMachine(sessionLabel, this);
     }
 
-    public TokenPayload retrieveToken(String tokenKey)
+    public TokenPayload retrieveToken(final String tokenKey)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String searchFilter;
@@ -92,7 +92,7 @@ class LdapTokenMachine implements TokenMachine {
             final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, user);
             final String tokenAttributeValue = userDataReader.readStringAttribute(tokenAttribute);
             if (tokenAttribute != null && tokenAttributeValue.length() > 0) {
-                final String splitString[] = tokenAttributeValue.split(KEY_VALUE_DELIMITER);
+                final String[] splitString = tokenAttributeValue.split(KEY_VALUE_DELIMITER);
                 if (splitString.length != 2) {
                     final String errorMsg = "error parsing ldap stored token, not enough delimited values";
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
@@ -113,7 +113,7 @@ class LdapTokenMachine implements TokenMachine {
         return null;
     }
 
-    public void storeToken(String tokenKey, TokenPayload tokenPayload)
+    public void storeToken(final String tokenKey, final TokenPayload tokenPayload)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         try {
@@ -130,7 +130,7 @@ class LdapTokenMachine implements TokenMachine {
         }
     }
 
-    public void removeToken(String tokenKey)
+    public void removeToken(final String tokenKey)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final TokenPayload payload = retrieveToken(tokenKey);

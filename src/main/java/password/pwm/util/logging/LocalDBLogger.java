@@ -38,7 +38,13 @@ import password.pwm.util.localdb.LocalDBStoredQueue;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -56,7 +62,7 @@ import java.util.regex.PatternSyntaxException;
 public class LocalDBLogger implements PwmService {
 // ------------------------------ FIELDS ------------------------------
 
-    private final static PwmLogger LOGGER = PwmLogger.forClass(LocalDBLogger.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDBLogger.class);
 
     private final LocalDB localDB;
     private final LocalDBLoggerSettings settings;
@@ -216,12 +222,12 @@ public class LocalDBLogger implements PwmService {
     }
 
     public static class SearchParameters {
-        final private PwmLogLevel minimumLevel;
-        final private int maxEvents;
-        final private String username;
-        final private String text;
-        final private long maxQueryTime;
-        final private EventType eventType;
+        private final PwmLogLevel minimumLevel;
+        private final int maxEvents;
+        private final String username;
+        private final String text;
+        private final long maxQueryTime;
+        private final EventType eventType;
 
         public SearchParameters(
                 final PwmLogLevel minimumLevel,
@@ -428,8 +434,8 @@ public class LocalDBLogger implements PwmService {
     }
 
     public class SearchResults implements Serializable, Iterator<PwmLogEvent> {
-        final private Iterator<String> localDBIterator;
-        final private SearchParameters searchParameters;
+        private final Iterator<String> localDBIterator;
+        private final SearchParameters searchParameters;
 
         private final Date startTime;
 
@@ -539,7 +545,7 @@ public class LocalDBLogger implements PwmService {
         return healthRecords;
     }
 
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
     }
 
 

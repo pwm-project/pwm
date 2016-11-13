@@ -39,7 +39,7 @@
 </p>
 <h1>Attribute Permissions</h1>
 <% for (final LDAPPermissionInfo.Actor actor : LDAPPermissionInfo.Actor.values()) { %>
-<% Map<String,Map<LDAPPermissionInfo.Access,List<LDAPPermissionCalculator.PermissionRecord>>> baseMap = outputData.getPermissionsByActor(actor); %>
+<% final Map<String,Map<LDAPPermissionInfo.Access,List<LDAPPermissionCalculator.PermissionRecord>>> baseMap = outputData.getPermissionsByActor(actor); %>
 <% if (!baseMap.isEmpty()) { %>
 <h2>
     <%=actor.getLabel(JspUtility.locale(request),JspUtility.getPwmRequest(pageContext).getConfig())%>
@@ -73,7 +73,7 @@
                     }
                 }
             %>
-            <% for (String menuLocation : menuLocations) { %>
+            <% for (final String menuLocation : menuLocations) { %>
             <%= menuLocation %>
             <br/>
             <% } %>

@@ -270,7 +270,7 @@ public enum AppProperty {
     private final String key;
     private String defaultValue;
 
-    AppProperty(String key) {
+    AppProperty(final String key) {
         this.key = key;
     }
 

@@ -7,12 +7,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class ReportUtils {
-    public static ReportColumnFilter toReportColumnFilter(String desiredColumnsStr) {
-        ReportColumnFilter reportColumnFilter = new ReportColumnFilter();
+    public static ReportColumnFilter toReportColumnFilter(final String desiredColumnsStr) {
+        final ReportColumnFilter reportColumnFilter = new ReportColumnFilter();
 
         if (desiredColumnsStr != null) {
-            String[] selectedColumnsArray = desiredColumnsStr.split(",");
-            Set<String> desiredColumns = new HashSet<>(Arrays.asList(selectedColumnsArray));
+            final String[] selectedColumnsArray = desiredColumnsStr.split(",");
+            final Set<String> desiredColumns = new HashSet<>(Arrays.asList(selectedColumnsArray));
 
             reportColumnFilter.setUserDnVisible(desiredColumns.contains("userDN"));
             reportColumnFilter.setLdapProfileVisible(desiredColumns.contains("ldapProfile"));

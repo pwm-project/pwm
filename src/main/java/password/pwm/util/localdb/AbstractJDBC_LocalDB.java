@@ -27,11 +27,21 @@ import password.pwm.error.PwmError;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.Serializable;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -41,7 +51,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
 
     private static final String KEY_COLUMN = "id";
     private static final String VALUE_COLUMN = "value";
-    private final static int ITERATOR_LIMIT = 100;
+    private static final int ITERATOR_LIMIT = 100;
 
     private static final String WIDTH_KEY = String.valueOf(LocalDB.MAX_KEY_LENGTH);
 
@@ -69,7 +79,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
         try {
             checkIfTableExists(connection, db);
             LOGGER.trace("table " + db + " appears to exist");
-        } catch (LocalDBException e) { // assume error was due to table missing;
+        } catch (final LocalDBException e) { // assume error was due to table missing;
             {
                 final Date startTime = new Date();
                 final StringBuilder sqlString = new StringBuilder();
@@ -85,7 +95,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
                     statement.execute(sqlString.toString());
                     connection.commit();
                     LOGGER.debug("created table " + db.toString() + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
-                } catch (SQLException ex) {
+                } catch (final SQLException ex) {
                     LOGGER.error("error creating new table " + db.toString() + ": " + ex.getMessage());
                 } finally {
                     close(statement);
@@ -106,7 +116,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
                     statement.execute(sqlString.toString());
                     connection.commit();
                     LOGGER.debug("created index " + indexName + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
-                } catch (SQLException ex) {
+                } catch (final SQLException ex) {
                     LOGGER.error("error creating new index " + indexName + ex.getMessage());
                 } finally {
                     close(statement);
@@ -123,7 +133,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
         try {
             statement = connection.createStatement();
             resultSet = statement.executeQuery(sb.toString());
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             final String errorMsg = "table doesn't exist or some other error: " + e.getCause();
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,errorMsg));
         } finally {
@@ -136,7 +146,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
         if (statement != null) {
             try {
                 statement.close();
-            } catch (SQLException e) {
+            } catch (final SQLException e) {
                 LOGGER.error("unexpected error during close statement object " + e.getMessage(), e);
             }
         }
@@ -146,7 +156,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
         if (resultSet != null) {
             try {
                 resultSet.close();
-            } catch (SQLException e) {
+            } catch (final SQLException e) {
                 LOGGER.error("unexpected error during close resultSet object " + e.getMessage(), e);
             }
         }
@@ -169,7 +179,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             if (dbConnection != null) {
                 try {
                     closeConnection(dbConnection);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     LOGGER.debug("error while closing DB: " + e.getMessage());
                 }
             }
@@ -210,7 +220,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             if (resultSet.next()) {
                 return resultSet.getString(VALUE_COLUMN);
             }
-        } catch (SQLException ex) {
+        } catch (final SQLException ex) {
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             close(statement);
@@ -245,7 +255,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             dbIterators.add(iterator);
             LOGGER.trace(this.getClass().getSimpleName() + " issued iterator for " + db.toString() + ", outstanding iterators: " + dbIterators.size());
             return iterator;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,e.getMessage()));
         }
     }
@@ -253,7 +263,9 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
     public void putAll(final LocalDB.DB db, final Map<String, String> keyValueMap)
             throws LocalDBException {
         preCheck(true);
-        PreparedStatement insertStatement = null, removeStatement = null;
+        PreparedStatement insertStatement = null;
+        PreparedStatement removeStatement = null;
+
         final String removeSqlString = "DELETE FROM " + db.toString() + " WHERE " + KEY_COLUMN + "=?";
         final String insertSqlString = "INSERT INTO " + db.toString() + "(" + KEY_COLUMN + ", " + VALUE_COLUMN + ") VALUES(?,?)";
 
@@ -277,7 +289,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             removeStatement.executeBatch();
             insertStatement.executeBatch();
             dbConnection.commit();
-        } catch (SQLException ex) {
+        } catch (final SQLException ex) {
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             close(removeStatement);
@@ -301,7 +313,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
                 statement.setString(2, value);
                 statement.executeUpdate();
                 dbConnection.commit();
-            } catch (SQLException ex) {
+            } catch (final SQLException ex) {
                 throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
             } finally {
                 close(statement);
@@ -320,7 +332,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             statement.setString(2, key);
             statement.executeUpdate();
             dbConnection.commit();
-        } catch (SQLException ex) {
+        } catch (final SQLException ex) {
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             close(statement);
@@ -347,7 +359,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             statement.setString(1, key);
             statement.executeUpdate();
             dbConnection.commit();
-        } catch (SQLException ex) {
+        } catch (final SQLException ex) {
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             close(statement);
@@ -373,7 +385,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             if (resultSet.next()) {
                 return resultSet.getInt(1);
             }
-        } catch (SQLException ex) {
+        } catch (final SQLException ex) {
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             close(statement);
@@ -409,7 +421,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             LOGGER.debug("truncated table " + db.toString() + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
 
             initTable(dbConnection, db);
-        } catch (SQLException ex) {
+        } catch (final SQLException ex) {
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             close(statement);
@@ -434,7 +446,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             }
             statement.executeBatch();
             dbConnection.commit();
-        } catch (SQLException ex) {
+        } catch (final SQLException ex) {
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             close(statement);
@@ -445,15 +457,15 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
 // -------------------------- OTHER METHODS --------------------------
 
     abstract Connection openConnection(
-            final File databaseDirectory,
-            final String driverClasspath,
-            final Map<String,String> initParams
+            File databaseDirectory,
+            String driverClasspath,
+            Map<String,String> initParams
     ) throws LocalDBException;
 
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator implements LocalDB.LocalDBIterator<String> {
+    private class DbIterator implements Closeable, LocalDB.LocalDBIterator<String> {
         private String nextItem;
         private String currentItem;
 
@@ -473,7 +485,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             try {
                 final PreparedStatement statement = dbConnection.prepareStatement(sb.toString());
                 resultSet = statement.executeQuery();
-            } catch (SQLException ex) {
+            } catch (final SQLException ex) {
                 throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
             }
         }
@@ -485,13 +497,13 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
                 } else {
                     nextItem = null;
                 }
-            } catch (SQLException e) {
+            } catch (final SQLException e) {
                 throw new IllegalStateException("error during db iteration of " + db.toString() + ": " + e.getCause());
             }
         }
 
         public boolean hasNext() {
-            boolean hasNext = nextItem != null;
+            final boolean hasNext = nextItem != null;
             if (!hasNext) {
                 close();
             }
@@ -518,11 +530,6 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
                     throw new RuntimeException(e);
                 }
             }
-        }
-
-        protected void finalize() throws Throwable {
-            super.finalize();
-            close();
         }
     }
 

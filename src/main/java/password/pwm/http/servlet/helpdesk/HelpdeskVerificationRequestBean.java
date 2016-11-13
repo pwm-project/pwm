@@ -37,7 +37,7 @@ public class HelpdeskVerificationRequestBean implements Serializable {
         return destination;
     }
 
-    public void setDestination(String destination) {
+    public void setDestination(final String destination) {
         this.destination = destination;
     }
 
@@ -45,7 +45,7 @@ public class HelpdeskVerificationRequestBean implements Serializable {
         return userKey;
     }
 
-    public void setUserKey(String userKey) {
+    public void setUserKey(final String userKey) {
         this.userKey = userKey;
     }
 
@@ -53,7 +53,7 @@ public class HelpdeskVerificationRequestBean implements Serializable {
         return code;
     }
 
-    public void setCode(String code) {
+    public void setCode(final String code) {
         this.code = code;
     }
 
@@ -61,7 +61,7 @@ public class HelpdeskVerificationRequestBean implements Serializable {
         return tokenData;
     }
 
-    public void setTokenData(String tokenData) {
+    public void setTokenData(final String tokenData) {
         this.tokenData = tokenData;
     }
 
@@ -69,7 +69,7 @@ public class HelpdeskVerificationRequestBean implements Serializable {
         return verificationState;
     }
 
-    public void setVerificationState(String verificationState) {
+    public void setVerificationState(final String verificationState) {
         this.verificationState = verificationState;
     }
 
@@ -81,7 +81,7 @@ public class HelpdeskVerificationRequestBean implements Serializable {
             return token;
         }
 
-        public void setToken(String token) {
+        public void setToken(final String token) {
             this.token = token;
         }
 
@@ -89,7 +89,7 @@ public class HelpdeskVerificationRequestBean implements Serializable {
             return issueDate;
         }
 
-        public void setIssueDate(Date issueDate) {
+        public void setIssueDate(final Date issueDate) {
             this.issueDate = issueDate;
         }
     }

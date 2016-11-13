@@ -41,20 +41,20 @@ import java.util.List;
 public class ActionCertImportFunction extends AbstractUriCertImportFunction {
 
     @Override
-    String getUri(StoredConfigurationImpl storedConfiguration, PwmSetting pwmSetting, String profile, String extraData) throws PwmOperationalException {
+    String getUri(final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData) throws PwmOperationalException {
         final ActionValue actionValue = (ActionValue)storedConfiguration.readSetting(pwmSetting, profile);
         final String actionName = actionNameFromExtraData(extraData);
         final ActionConfiguration action =  actionValue.forName(actionName);
         final String uriString = action.getUrl();
 
         if (uriString == null || uriString.isEmpty()) {
-            ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + pwmSetting.toMenuLocationDebug(profile, null) + " action " + actionName + " must first be configured");
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + pwmSetting.toMenuLocationDebug(profile, null) + " action " + actionName + " must first be configured");
             throw new PwmOperationalException(errorInformation);
         }
         try {
             URI.create(uriString);
         } catch (IllegalArgumentException e) {
-            ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + pwmSetting.toMenuLocationDebug(profile, null) + " action " + actionName + " has an invalid URL syntax");
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + pwmSetting.toMenuLocationDebug(profile, null) + " action " + actionName + " has an invalid URL syntax");
             throw new PwmOperationalException(errorInformation);
         }
         return uriString;
@@ -64,11 +64,11 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction {
         return extraData;
     }
 
-    void store(X509Certificate[] certs, StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData, final UserIdentity userIdentity) throws PwmOperationalException, PwmUnrecoverableException {
+    void store(final X509Certificate[] certs, final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData, final UserIdentity userIdentity) throws PwmOperationalException, PwmUnrecoverableException {
         final ActionValue actionValue = (ActionValue)storedConfiguration.readSetting(pwmSetting, profile);
         final String actionName = actionNameFromExtraData(extraData);
         final List<ActionConfiguration> newList = new ArrayList<>();
-        for (ActionConfiguration loopConfiguration : actionValue.toNativeObject()) {
+        for (final ActionConfiguration loopConfiguration : actionValue.toNativeObject()) {
             if (actionName.equals(loopConfiguration.getName())) {
                 final ActionConfiguration newConfig = loopConfiguration.copyWithNewCertificate(certs);
                 newList.add(newConfig);

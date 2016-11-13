@@ -30,7 +30,7 @@ public enum PwmHashAlgorithm {
 
     private final String algName;
 
-    PwmHashAlgorithm(String algName) {
+    PwmHashAlgorithm(final String algName) {
         this.algName = algName;
     }
 

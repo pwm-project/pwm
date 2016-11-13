@@ -36,10 +36,14 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class LdapConnectionService implements PwmService {
-    final private static PwmLogger LOGGER = PwmLogger.forClass(LdapConnectionService.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LdapConnectionService.class);
 
     private final Map<String,ChaiProvider> proxyChaiProviders = new HashMap<>();
     private final Map<LdapProfile,ErrorInformation> lastLdapErrors = new HashMap<>();
@@ -51,7 +55,7 @@ public class LdapConnectionService implements PwmService {
         return status;
     }
 
-    public void init(PwmApplication pwmApplication)
+    public void init(final PwmApplication pwmApplication)
             throws PwmException
     {
         this.pwmApplication = pwmApplication;

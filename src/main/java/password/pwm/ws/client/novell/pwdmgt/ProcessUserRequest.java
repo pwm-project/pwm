@@ -36,7 +36,7 @@ public class ProcessUserRequest  implements java.io.Serializable {
     }
 
     public ProcessUserRequest(
-           java.lang.String userName) {
+            final java.lang.String userName) {
            this.userName = userName;
     }
 
@@ -56,21 +56,22 @@ public class ProcessUserRequest  implements java.io.Serializable {
      * 
      * @param userName
      */
-    public void setUserName(java.lang.String userName) {
+    public void setUserName(final java.lang.String userName) {
         this.userName = userName;
     }
 
     private java.lang.Object __equalsCalc = null;
-    public synchronized boolean equals(java.lang.Object obj) {
+
+    public synchronized boolean equals(final java.lang.Object obj) {
         if (!(obj instanceof ProcessUserRequest)) return false;
-        ProcessUserRequest other = (ProcessUserRequest) obj;
+        final ProcessUserRequest other = (ProcessUserRequest) obj;
         if (obj == null) return false;
         if (this == obj) return true;
         if (__equalsCalc != null) {
             return (__equalsCalc == obj);
         }
         __equalsCalc = obj;
-        boolean _equals;
+        final boolean _equals;
         _equals = true && 
             ((this.userName==null && other.getUserName()==null) || 
              (this.userName!=null &&
@@ -80,6 +81,7 @@ public class ProcessUserRequest  implements java.io.Serializable {
     }
 
     private boolean __hashCodeCalc = false;
+
     public synchronized int hashCode() {
         if (__hashCodeCalc) {
             return 0;
@@ -99,7 +101,7 @@ public class ProcessUserRequest  implements java.io.Serializable {
 
     static {
         typeDesc.setXmlType(new javax.xml.namespace.QName("http://www.novell.com/pwdmgt/service", "processUserRequest"));
-        org.apache.axis.description.ElementDesc elemField = new org.apache.axis.description.ElementDesc();
+        final org.apache.axis.description.ElementDesc elemField = new org.apache.axis.description.ElementDesc();
         elemField.setFieldName("userName");
         elemField.setXmlName(new javax.xml.namespace.QName("http://www.novell.com/pwdmgt/service", "userName"));
         elemField.setXmlType(new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "string"));
@@ -118,9 +120,9 @@ public class ProcessUserRequest  implements java.io.Serializable {
      * Get Custom Serializer
      */
     public static org.apache.axis.encoding.Serializer getSerializer(
-           java.lang.String mechType, 
-           java.lang.Class _javaType,  
-           javax.xml.namespace.QName _xmlType) {
+            final java.lang.String mechType,
+            final java.lang.Class _javaType,
+            final javax.xml.namespace.QName _xmlType) {
         return 
           new  org.apache.axis.encoding.ser.BeanSerializer(
             _javaType, _xmlType, typeDesc);
@@ -130,9 +132,9 @@ public class ProcessUserRequest  implements java.io.Serializable {
      * Get Custom Deserializer
      */
     public static org.apache.axis.encoding.Deserializer getDeserializer(
-           java.lang.String mechType, 
-           java.lang.Class _javaType,  
-           javax.xml.namespace.QName _xmlType) {
+            final java.lang.String mechType,
+            final java.lang.Class _javaType,
+            final javax.xml.namespace.QName _xmlType) {
         return 
           new  org.apache.axis.encoding.ser.BeanDeserializer(
             _javaType, _xmlType, typeDesc);

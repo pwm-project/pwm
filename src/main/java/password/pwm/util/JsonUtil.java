@@ -135,7 +135,7 @@ public class JsonUtil {
         private X509CertificateAdapter() {
         }
 
-        public synchronized JsonElement serialize(X509Certificate cert, Type type, JsonSerializationContext jsonSerializationContext) {
+        public synchronized JsonElement serialize(final X509Certificate cert, final Type type, final JsonSerializationContext jsonSerializationContext) {
             try {
                 return new JsonPrimitive(StringUtil.base64Encode(cert.getEncoded()));
             } catch (CertificateEncodingException e) {
@@ -143,7 +143,7 @@ public class JsonUtil {
             }
         }
 
-        public X509Certificate deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext)
+        public X509Certificate deserialize(final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext)
                 throws JsonParseException {
             try {
                 final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
@@ -173,11 +173,11 @@ public class JsonUtil {
         private DateTypeAdapter() {
         }
 
-        public synchronized JsonElement serialize(Date date, Type type, JsonSerializationContext jsonSerializationContext) {
+        public synchronized JsonElement serialize(final Date date, final Type type, final JsonSerializationContext jsonSerializationContext) {
             return new JsonPrimitive(isoDateFormat.format(date));
         }
 
-        public synchronized Date deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) {
+        public synchronized Date deserialize(final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext) {
             try {
                 return isoDateFormat.parse(jsonElement.getAsString());
             } catch (ParseException e) { /* noop */ }
@@ -210,11 +210,11 @@ public class JsonUtil {
         private InstantTypeAdapter() {
         }
 
-        public synchronized JsonElement serialize(Instant instant, Type type, JsonSerializationContext jsonSerializationContext) {
+        public synchronized JsonElement serialize(final Instant instant, final Type type, final JsonSerializationContext jsonSerializationContext) {
             return new JsonPrimitive(instant.toString());
         }
 
-        public synchronized Instant deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) {
+        public synchronized Instant deserialize(final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext) {
             try {
                 return Instant.parse(jsonElement.getAsString());
             } catch (Exception e) {
@@ -225,7 +225,7 @@ public class JsonUtil {
     }
 
     private static class ByteArrayToBase64TypeAdapter implements JsonSerializer<byte[]>, JsonDeserializer<byte[]> {
-        public byte[] deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        public byte[] deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context) throws JsonParseException {
             try {
                 return StringUtil.base64Decode(json.getAsString());
             } catch (IOException e) {
@@ -235,7 +235,7 @@ public class JsonUtil {
             }
         }
 
-        public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context) {
+        public JsonElement serialize(final byte[] src, final Type typeOfSrc, final JsonSerializationContext context) {
             try {
                 return new JsonPrimitive(StringUtil.base64Encode(src, StringUtil.Base64Options.GZIP));
             } catch (IOException e) {
@@ -247,7 +247,7 @@ public class JsonUtil {
     }
 
     private static class PasswordDataTypeAdapter implements JsonSerializer<PasswordData>, JsonDeserializer<PasswordData> {
-        public PasswordData deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        public PasswordData deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context) throws JsonParseException {
             try {
                 return new PasswordData(json.getAsString());
             } catch (PwmUnrecoverableException e) {
@@ -257,7 +257,7 @@ public class JsonUtil {
             }
         }
 
-        public JsonElement serialize(PasswordData src, Type typeOfSrc, JsonSerializationContext context) {
+        public JsonElement serialize(final PasswordData src, final Type typeOfSrc, final JsonSerializationContext context) {
             try {
                 return new JsonPrimitive(src.getStringValue());
             } catch (PwmUnrecoverableException e) {

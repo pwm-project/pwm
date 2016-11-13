@@ -35,7 +35,7 @@ public class HelpdeskSearchResultsBean implements Serializable {
         return searchResults;
     }
 
-    public void setSearchResults(List<Map<String, Object>> searchResults) {
+    public void setSearchResults(final List<Map<String, Object>> searchResults) {
         this.searchResults = searchResults;
     }
 
@@ -43,7 +43,7 @@ public class HelpdeskSearchResultsBean implements Serializable {
         return sizeExceeded;
     }
 
-    public void setSizeExceeded(boolean sizeExceeded) {
+    public void setSizeExceeded(final boolean sizeExceeded) {
         this.sizeExceeded = sizeExceeded;
     }
 }

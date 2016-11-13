@@ -42,6 +42,7 @@ import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.http.client.PwmHttpClientResponse;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.TimeDuration;
@@ -109,6 +110,9 @@ public class CaptchaServlet extends AbstractPwmServlet {
                 case doVerify:
                     handleVerify(pwmRequest);
                     break;
+
+                default:
+                    Helper.unhandledSwitchStatement(action);
 
             }
         }
@@ -192,7 +196,7 @@ public class CaptchaServlet extends AbstractPwmServlet {
             final JsonElement responseJson = new JsonParser().parse(clientResponse.getBody());
             final JsonObject topObject = responseJson.getAsJsonObject();
             if (topObject != null && topObject.has("success")) {
-                boolean success = topObject.get("success").getAsBoolean();
+                final boolean success = topObject.get("success").getAsBoolean();
                 if (success) {
                     return true;
                 }
