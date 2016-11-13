@@ -22,22 +22,14 @@
 
 package password.pwm.http.servlet.oauth;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 
-public class OAuthRequestState implements Serializable {
-    private OAuthState oAuthState;
-    private boolean sessionMatch;
+enum OAuthUseCase implements Serializable {
+    @SerializedName("F")
+    ForgottenPassword,
 
-    public OAuthRequestState(OAuthState oAuthState, boolean sessionMatch) {
-        this.oAuthState = oAuthState;
-        this.sessionMatch = sessionMatch;
-    }
-
-    public OAuthState getoAuthState() {
-        return oAuthState;
-    }
-
-    public boolean isSessionMatch() {
-        return sessionMatch;
-    }
+    @SerializedName("A")
+    Authentication,
 }

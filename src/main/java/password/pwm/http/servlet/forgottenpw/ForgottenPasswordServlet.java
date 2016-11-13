@@ -34,22 +34,39 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.VerificationMethodSystem;
-import password.pwm.bean.*;
-import password.pwm.config.*;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.SessionLabel;
+import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
+import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.FormUtility;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.RecoveryAction;
-import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.ProfileUtility;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.http.servlet.oauth.OAuthForgottenPasswordResults;
+import password.pwm.http.servlet.oauth.OAuthMachine;
+import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
@@ -83,7 +100,19 @@ import password.pwm.ws.client.rest.naaf.PwmNAAFVerificationMethod;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * User interaction servlet for recovering user's password using secret question/answer
@@ -118,6 +147,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
         verificationChoice(HttpMethod.POST),
         enterNaafResponse(HttpMethod.POST),
         enterRemoteResponse(HttpMethod.POST),
+        oauthReturn(HttpMethod.GET),
 
         ;
 
@@ -227,6 +257,9 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                     this.processEnterRemote(pwmRequest);
                     break;
 
+                case oauthReturn:
+                    this.processOAuthReturn(pwmRequest);
+                    break;
             }
         } else {
             pwmApplication.getSessionStateService().clearBean(pwmRequest, ForgottenPasswordBean.class);
@@ -557,6 +590,61 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
         }
     }
 
+    private void processOAuthReturn(final PwmRequest pwmRequest)
+            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean(pwmRequest);
+        if (forgottenPasswordBean.getProgress().getInProgressVerificationMethod() != IdentityVerificationMethod.OAUTH) {
+            LOGGER.debug(pwmRequest, "oauth return detected, however current session did not issue an oauth request; will restart forgotten password sequence");
+            pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, ForgottenPasswordBean.class);
+            pwmRequest.sendRedirect(PwmServletDefinition.ForgottenPassword);
+            return;
+        }
+
+        if (forgottenPasswordBean.getUserInfo() == null || forgottenPasswordBean.getUserInfo().getUserIdentity() == null) {
+            LOGGER.debug(pwmRequest, "oauth return detected, however current session does not have a user identity stored; will restart forgotten password sequence");
+            pwmRequest.getPwmApplication().getSessionStateService().clearBean(pwmRequest, ForgottenPasswordBean.class);
+            pwmRequest.sendRedirect(PwmServletDefinition.ForgottenPassword);
+            return;
+        }
+
+        final String encryptedResult = pwmRequest.readParameterAsString(PwmConstants.PARAM_RECOVERY_OAUTH_RESULT, PwmHttpRequestWrapper.Flag.BypassValidation);
+        final OAuthForgottenPasswordResults results = pwmRequest.getPwmApplication().getSecureService().decryptObject(encryptedResult, OAuthForgottenPasswordResults.class);
+        LOGGER.trace(pwmRequest, "received ");
+
+        final String userDNfromOAuth = results.getUsername();
+        if (userDNfromOAuth == null || userDNfromOAuth.isEmpty()) {
+            final String errorMsg = "oauth server coderesolver endpoint did not return a username value";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR, errorMsg);
+            throw new PwmUnrecoverableException(errorInformation);
+        }
+
+        final UserIdentity oauthUserIdentity;
+        {
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest);
+            try {
+                oauthUserIdentity = userSearchEngine.resolveUsername(userDNfromOAuth, null, null);
+            } catch (PwmOperationalException e) {
+                final String errorMsg = "unexpected error searching for oauth supplied username in ldap; error: " + e.getMessage() ;
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+        }
+
+        final boolean userMatch;
+        {
+            final UserIdentity userIdentityInBean = forgottenPasswordBean.getUserInfo().getUserIdentity();
+            userMatch = userIdentityInBean != null && userIdentityInBean.equals(oauthUserIdentity);
+        }
+
+        if (userMatch) {
+            forgottenPasswordBean.getProgress().getSatisfiedMethods().add(IdentityVerificationMethod.OAUTH);
+        } else {
+            final String errorMsg = "oauth server username does not match previously identified user";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR, errorMsg);
+            throw new PwmUnrecoverableException(errorInformation);
+        }
+    }
 
     private void processCheckResponses(final PwmRequest pwmRequest)
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
@@ -1560,6 +1648,16 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_NAAF);
             }
             break;
+
+            case OAUTH:
+                forgottenPasswordBean.getProgress().setInProgressVerificationMethod(IdentityVerificationMethod.OAUTH);
+                final ForgottenPasswordProfile forgottenPasswordProfile = pwmRequest.getConfig().getForgottenPasswordProfiles().get(forgottenPasswordBean.getForgottenPasswordProfileID());
+                final OAuthSettings oAuthSettings = OAuthSettings.forForgottenPassword(forgottenPasswordProfile);
+                final OAuthMachine oAuthMachine = new OAuthMachine(oAuthSettings);
+                pwmRequest.getPwmApplication().getSessionStateService().saveSessionBeans(pwmRequest);
+                oAuthMachine.redirectUserToOAuthServer(pwmRequest, null, forgottenPasswordProfile.getIdentifier());
+                break;
+
 
             default:
                 throw new UnsupportedOperationException("unexpected method during forward: " + method.toString());

@@ -24,6 +24,7 @@ package password.pwm.http.servlet.oauth;
 
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.util.PasswordData;
 
 import java.io.Serializable;
@@ -35,6 +36,10 @@ public class OAuthSettings implements Serializable {
     private String clientID;
     private PasswordData secret;
     private String dnAttributeName;
+    private OAuthUseCase use;
+
+    private OAuthSettings() {
+    }
 
     public String getLoginURL()
     {
@@ -66,6 +71,10 @@ public class OAuthSettings implements Serializable {
         return dnAttributeName;
     }
 
+    public OAuthUseCase getUse() {
+        return use;
+    }
+
     public boolean oAuthIsConfigured() {
         return (loginURL != null && !loginURL.isEmpty())
                 && (codeResolveUrl != null && !codeResolveUrl.isEmpty())
@@ -75,7 +84,7 @@ public class OAuthSettings implements Serializable {
                 && (dnAttributeName != null && !dnAttributeName.isEmpty());
     }
 
-    public static OAuthSettings fromConfiguration(final Configuration config) {
+    public static OAuthSettings forSSOAuthentication(final Configuration config) {
         final OAuthSettings settings = new OAuthSettings();
         settings.loginURL = config.readSettingAsString(PwmSetting.OAUTH_ID_LOGIN_URL);
         settings.codeResolveUrl = config.readSettingAsString(PwmSetting.OAUTH_ID_CODERESOLVE_URL);
@@ -83,6 +92,19 @@ public class OAuthSettings implements Serializable {
         settings.clientID = config.readSettingAsString(PwmSetting.OAUTH_ID_CLIENTNAME);
         settings.secret = config.readSettingAsPassword(PwmSetting.OAUTH_ID_SECRET);
         settings.dnAttributeName = config.readSettingAsString(PwmSetting.OAUTH_ID_DN_ATTRIBUTE_NAME);
+        settings.use = OAuthUseCase.Authentication;
+        return settings;
+    }
+
+    public static OAuthSettings forForgottenPassword(final ForgottenPasswordProfile config) {
+        final OAuthSettings settings = new OAuthSettings();
+        settings.loginURL = config.readSettingAsString(PwmSetting.RECOVERY_OAUTH_ID_LOGIN_URL);
+        settings.codeResolveUrl = config.readSettingAsString(PwmSetting.RECOVERY_OAUTH_ID_CODERESOLVE_URL);
+        settings.attributesUrl = config.readSettingAsString(PwmSetting.RECOVERY_OAUTH_ID_ATTRIBUTES_URL);
+        settings.clientID = config.readSettingAsString(PwmSetting.RECOVERY_OAUTH_ID_CLIENTNAME);
+        settings.secret = config.readSettingAsPassword(PwmSetting.RECOVERY_OAUTH_ID_SECRET);
+        settings.dnAttributeName = config.readSettingAsString(PwmSetting.RECOVERY_OAUTH_ID_DN_ATTRIBUTE_NAME);
+        settings.use = OAuthUseCase.ForgottenPassword;
         return settings;
     }
 }

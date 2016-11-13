@@ -23,21 +23,31 @@
 package password.pwm.http.servlet.oauth;
 
 import java.io.Serializable;
+import java.time.Instant;
 
-public class OAuthRequestState implements Serializable {
-    private OAuthState oAuthState;
-    private boolean sessionMatch;
+/**
+ * This Json object gets sent as a redirect from the oauth consumer servlet to the ForgttenPasswordServlet.
+ */
+public class OAuthForgottenPasswordResults implements Serializable {
+    private final boolean authenticated;
+    private final String username;
+    private final Instant timestamp;
 
-    public OAuthRequestState(OAuthState oAuthState, boolean sessionMatch) {
-        this.oAuthState = oAuthState;
-        this.sessionMatch = sessionMatch;
+    public OAuthForgottenPasswordResults(boolean authenticated, String username) {
+        this.authenticated = authenticated;
+        this.username = username;
+        this.timestamp = Instant.now();
     }
 
-    public OAuthState getoAuthState() {
-        return oAuthState;
+    public boolean isAuthenticated() {
+        return authenticated;
     }
 
-    public boolean isSessionMatch() {
-        return sessionMatch;
+    public String getUsername() {
+        return username;
+    }
+
+    public Instant getTimestamp() {
+        return timestamp;
     }
 }

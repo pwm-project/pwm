@@ -209,7 +209,9 @@ public class PwmURL {
         if (parameters != null) {
             for (final String key : parameters.keySet()) {
                 final String value = parameters.get(key);
-                final String encodedValue = StringUtil.urlEncode(value);
+                final String encodedValue = value == null
+                        ? ""
+                        : StringUtil.urlEncode(value);
 
                 output.append(output.toString().contains("?") ? "&" : "?");
                 output.append(key);
