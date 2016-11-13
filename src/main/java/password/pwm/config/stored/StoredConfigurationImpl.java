@@ -22,19 +22,44 @@
 
 package password.pwm.config.stored;
 
-import org.jdom2.*;
+import org.jdom2.Attribute;
+import org.jdom2.CDATA;
+import org.jdom2.Comment;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.Text;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.*;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingCategory;
+import password.pwm.config.PwmSettingSyntax;
+import password.pwm.config.PwmSettingTemplate;
+import password.pwm.config.PwmSettingTemplateSet;
+import password.pwm.config.StoredValue;
 import password.pwm.config.option.ADPolicyComplexity;
-import password.pwm.config.value.*;
-import password.pwm.error.*;
+import password.pwm.config.value.PasswordValue;
+import password.pwm.config.value.PrivateKeyValue;
+import password.pwm.config.value.StringArrayValue;
+import password.pwm.config.value.StringValue;
+import password.pwm.config.value.ValueFactory;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
-import password.pwm.util.*;
+import password.pwm.util.BCrypt;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.LocaleHelper;
+import password.pwm.util.PasswordData;
+import password.pwm.util.StringUtil;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.XmlUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -45,8 +70,26 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Queue;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 /**
  * @author Jason D. Rivard
@@ -515,34 +558,28 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             return Collections.emptyList();
         }
 
-        final LinkedHashSet<ConfigRecordID> returnSet = new LinkedHashSet<>();
-        boolean firstIter = true;
-        for (final String searchWord : StringUtil.whitespaceSplit(searchTerm)) { // split on whitespace
-            final LinkedHashSet<ConfigRecordID> loopResults = new LinkedHashSet<>();
-            for (final PwmSetting loopSetting : PwmSetting.values()) {
-                if (loopSetting.getCategory().hasProfiles()) {
-                    for (final String profile : profilesForSetting(loopSetting)) {
-                        final StoredValue loopValue = readSetting(loopSetting, profile);
-                        if (matchSetting(loopSetting,loopValue,searchWord,locale)) {
-                            loopResults.add(new ConfigRecordID(ConfigRecordID.RecordType.SETTING,loopSetting,profile));
-                        }
-                    }
-                } else {
-                    final StoredValue loopValue = readSetting(loopSetting);
-                    if (matchSetting(loopSetting,loopValue,searchWord,locale)) {
-                        loopResults.add(new ConfigRecordID(ConfigRecordID.RecordType.SETTING,loopSetting,null));
-                    }
-                }
-            }
-            if (firstIter) {
-                returnSet.addAll(loopResults);
-            } else {
-                returnSet.retainAll(loopResults);
-            }
-            firstIter = false;
-        }
+        final SortedSet<ConfigRecordID> matches = new TreeSet<>(
+                allSettingConfigRecordIDs()
+                        .parallelStream()
+                        .filter(s -> matchSetting(s, searchTerm, locale))
+                        .collect(Collectors.toList())
+        );
 
-        return new ArrayList<>(returnSet);
+        return new ArrayList<>(matches);
+    }
+
+    private boolean matchSetting(
+            final ConfigRecordID configRecordID,
+            final String searchTerm,
+            final Locale locale
+    ) {
+
+        final PwmSetting pwmSetting = (PwmSetting)configRecordID.getRecordID();
+        final StoredValue value = readSetting(pwmSetting, configRecordID.getProfileID());
+
+        return StringUtil.whitespaceSplit(searchTerm)
+                .parallelStream()
+                .allMatch(s -> matchSetting(pwmSetting, value, s, locale));
     }
 
     public boolean matchSetting(final PwmSetting setting, final StoredValue value, final String searchTerm, final Locale locale) {
@@ -1140,7 +1177,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     }
 
 
-    public static class ConfigRecordID implements Serializable {
+    public static class ConfigRecordID implements Serializable, Comparable {
         private RecordType recordType;
         private Object recordID;
         private String profileID;
@@ -1161,29 +1198,6 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
             this.profileID = profileID;
         }
 
-        @Override
-        public boolean equals(Object o)
-        {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            ConfigRecordID that = (ConfigRecordID) o;
-
-            if (profileID != null ? !profileID.equals(that.profileID) : that.profileID != null) return false;
-            if (recordID != null ? !recordID.equals(that.recordID) : that.recordID != null) return false;
-            if (recordType != that.recordType) return false;
-
-            return true;
-        }
-
-        @Override
-        public int hashCode()
-        {
-            int result = recordType != null ? recordType.hashCode() : 0;
-            result = 31 * result + (recordID != null ? recordID.hashCode() : 0);
-            result = 31 * result + (profileID != null ? profileID.hashCode() : 0);
-            return result;
-        }
 
         public RecordType getRecordType()
         {
@@ -1199,7 +1213,35 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         {
             return profileID;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof StoredConfigReference && toString().equals(o);
+
+        }
+
+        @Override
+        public int hashCode() {
+            return toString().hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return this.getRecordType().toString()
+                    + "-"
+                    + (this.getProfileID() == null ? "" : this.getProfileID())
+                    + "-"
+                    + this.getRecordID();
+        }
+
+        @Override
+        public int compareTo(Object o) {
+            return toString().compareTo(o.toString());
+        }
     }
+
+
+
 
     public String changeLogAsDebugString(final Locale locale, final boolean asHtml) {
         return changeLog.changeLogAsDebugString(locale, asHtml);
@@ -1493,5 +1535,19 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     @Override
     public boolean isLocked() {
         return locked;
+    }
+
+    private List<ConfigRecordID> allSettingConfigRecordIDs() {
+        final LinkedHashSet<ConfigRecordID> loopResults = new LinkedHashSet<>();
+        for (final PwmSetting loopSetting : PwmSetting.values()) {
+            if (loopSetting.getCategory().hasProfiles()) {
+                for (final String profile : profilesForSetting(loopSetting)) {
+                    loopResults.add(new ConfigRecordID(ConfigRecordID.RecordType.SETTING, loopSetting, profile));
+                }
+            } else {
+                loopResults.add(new ConfigRecordID(ConfigRecordID.RecordType.SETTING, loopSetting, null));
+            }
+        }
+        return new ArrayList<>(loopResults);
     }
 }
