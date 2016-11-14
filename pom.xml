@@ -246,6 +246,7 @@
                     <filesets>
                         <fileset><directory>src/main/angular/dist</directory></fileset>
                         <fileset><directory>src/main/angular/node_modules</directory></fileset>
+                        <fileset><directory>src/main/webapp/public/resources/app</directory></fileset>
                     </filesets>
                 </configuration>
                 <executions>
@@ -424,6 +425,18 @@
                         </goals>
                         <configuration>
                             <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+
+                    <!-- run TypeScript compiler (You can execute directly using: "mvn frontend:npm@run-sync") -->
+                    <execution>
+                        <id>run-sync</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run sync</arguments>
                         </configuration>
                     </execution>
                 </executions>
