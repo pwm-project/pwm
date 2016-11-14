@@ -5,8 +5,9 @@ import {IPeopleService} from '../services/people.service';
 declare var PWM_PS: any;
 
 export default class PeopleSearchBaseComponent {
-    people: Person[];
+    people: Person[] = [];
     query: string;
+    noResults: boolean = false;
 
     constructor(protected $scope: IScope,
                 protected $state: angular.ui.IStateService,
@@ -19,6 +20,14 @@ export default class PeopleSearchBaseComponent {
 
     selectPerson(person: Person) {
         PWM_PS.showUserDetail(person.userKey);
+    }
+
+    noSearchResults(): boolean {
+        if (this.query && this.query.length) {
+            return (this.people.length == 0);
+        }
+
+        return false;
     }
 
     gotoOrgchart() {
