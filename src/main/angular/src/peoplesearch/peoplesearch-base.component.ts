@@ -7,8 +7,7 @@ declare var PWM_PS: any;
 export default class PeopleSearchBaseComponent {
     people: Person[] = [];
     query: string;
-    noResults: boolean = false;
-    noResultsEnabled: boolean = false;
+    loading: boolean;
 
     constructor(protected $scope: IScope,
                 protected $state: angular.ui.IStateService,
@@ -23,8 +22,9 @@ export default class PeopleSearchBaseComponent {
         PWM_PS.showUserDetail(person.userKey);
     }
 
+    // Trigger "No Results" message when search already done loading has no results
     noSearchResults(): boolean {
-        if (this.noResultsEnabled && this.query && this.query.length) {
+        if (this.loading && this.query && this.query.length) {
             return (this.people.length == 0);
         }
 
@@ -37,13 +37,5 @@ export default class PeopleSearchBaseComponent {
 
     gotoState(state: string) {
         this.$state.go(state, { query: this.query });
-    }
-
-    disableNoResults() {
-        this.noResultsEnabled = false;
-    }
-
-    enableNoResults() {
-        this.noResultsEnabled = true;
     }
 }
