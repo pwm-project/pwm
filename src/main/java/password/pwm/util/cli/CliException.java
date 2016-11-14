@@ -24,7 +24,7 @@ package password.pwm.util.cli;
 
 public class CliException extends Exception {
 
-    public CliException(String message)
+    public CliException(final String message)
     {
         super(message);
     }

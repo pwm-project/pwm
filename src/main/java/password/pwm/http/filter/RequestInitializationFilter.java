@@ -33,7 +33,13 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.*;
+import password.pwm.http.ContextManager;
+import password.pwm.http.IdleTimeoutCalculator;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmResponse;
+import password.pwm.http.PwmSession;
+import password.pwm.http.PwmSessionWrapper;
+import password.pwm.http.PwmURL;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.IPMatcher;
@@ -44,7 +50,12 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.PwmRandom;
 
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -52,14 +63,19 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class RequestInitializationFilter implements Filter {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(RequestInitializationFilter.class);
 
     @Override
-    public void init(FilterConfig filterConfig)
+    public void init(final FilterConfig filterConfig)
             throws ServletException
     {
     }
@@ -127,7 +143,7 @@ public class RequestInitializationFilter implements Filter {
             if (!(new PwmURL(req).isResourceURL())) {
                 ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE);
                 try {
-                    ContextManager contextManager = ContextManager.getContextManager(req.getServletContext());
+                    final ContextManager contextManager = ContextManager.getContextManager(req.getServletContext());
                     if (contextManager != null) {
                         errorInformation = contextManager.getStartupErrorInformation();
                     }
@@ -173,7 +189,7 @@ public class RequestInitializationFilter implements Filter {
             if (!(new PwmURL(req).isResourceURL())) {
                 ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE);
                 try {
-                    ContextManager contextManager = ContextManager.getContextManager(req.getServletContext());
+                    final ContextManager contextManager = ContextManager.getContextManager(req.getServletContext());
                     if (contextManager != null) {
                         errorInformation = contextManager.getStartupErrorInformation();
                     }
@@ -535,7 +551,7 @@ public class RequestInitializationFilter implements Filter {
                 boolean match = false;
                 final String requestAddress = pwmRequest.getHttpServletRequest().getRemoteAddr();
                 for (int i = 0; i < requiredHeaders.size() && !match; i++) {
-                    String ipMatchString = requiredHeaders.get(i);
+                    final String ipMatchString = requiredHeaders.get(i);
                     try {
                         final IPMatcher ipMatcher = new IPMatcher(ipMatchString);
                         try {

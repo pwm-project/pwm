@@ -72,7 +72,7 @@ public class PasscodeGenerator {
     /**
      * @param mac A {@link Mac} used to generate passcodes
      */
-    public PasscodeGenerator(Mac mac) {
+    public PasscodeGenerator(final Mac mac) {
         this(mac, PASS_CODE_LENGTH, INTERVAL);
     }
 
@@ -81,21 +81,21 @@ public class PasscodeGenerator {
      * @param passCodeLength The length of the decimal passcode
      * @param interval The interval that a passcode is valid for
      */
-    public PasscodeGenerator(final Mac mac, int passCodeLength, int interval) {
+    public PasscodeGenerator(final Mac mac, final int passCodeLength, final int interval) {
         this(new Signer() {
-            public byte[] sign(byte[] data){
+            public byte[] sign(final byte[] data){
                 return mac.doFinal(data);
             }
         }, passCodeLength, interval);
     }
 
-    public PasscodeGenerator(Signer signer, int passCodeLength, int interval) {
+    public PasscodeGenerator(final Signer signer, final int passCodeLength, final int interval) {
         this.signer = signer;
         this.codeLength = passCodeLength;
         this.intervalPeriod = interval;
     }
 
-    private String padOutput(int value) {
+    private String padOutput(final int value) {
         String result = Integer.toString(value);
         for (int i = result.length(); i < codeLength; i++) {
             result = "0" + result;
@@ -115,9 +115,9 @@ public class PasscodeGenerator {
      * @return A decimal response code
      * @throws GeneralSecurityException If a JCE exception occur
      */
-    public String generateResponseCode(long challenge)
+    public String generateResponseCode(final long challenge)
             throws GeneralSecurityException {
-        byte[] value = ByteBuffer.allocate(8).putLong(challenge).array();
+        final byte[] value = ByteBuffer.allocate(8).putLong(challenge).array();
         return generateResponseCode(value);
     }
 
@@ -126,16 +126,16 @@ public class PasscodeGenerator {
      * @return A decimal response code
      * @throws GeneralSecurityException If a JCE exception occur
      */
-    public String generateResponseCode(byte[] challenge)
+    public String generateResponseCode(final byte[] challenge)
             throws GeneralSecurityException {
-        byte[] hash = signer.sign(challenge);
+        final byte[] hash = signer.sign(challenge);
 
         // Dynamically truncate the hash
         // OffsetBits are the low order bits of the last byte of the hash
-        int offset = hash[hash.length - 1] & 0xF;
+        final int offset = hash[hash.length - 1] & 0xF;
         // Grab a positive integer value starting at the given offset.
-        int truncatedHash = hashToInt(hash, offset) & 0x7FFFFFFF;
-        int pinValue = truncatedHash % PIN_MODULO;
+        final int truncatedHash = hashToInt(hash, offset) & 0x7FFFFFFF;
+        final int pinValue = truncatedHash % PIN_MODULO;
         return padOutput(pinValue);
     }
 
@@ -146,10 +146,10 @@ public class PasscodeGenerator {
      * @param start the index into the array to start grabbing bytes
      * @return the integer constructed from the four bytes in the array
      */
-    private int hashToInt(byte[] bytes, int start) {
-        DataInput input = new DataInputStream(
+    private int hashToInt(final byte[] bytes, final int start) {
+        final DataInput input = new DataInputStream(
                 new ByteArrayInputStream(bytes, start, bytes.length - start));
-        int val;
+        final int val;
         try {
             val = input.readInt();
         } catch (IOException e) {
@@ -163,9 +163,9 @@ public class PasscodeGenerator {
      * @param response A response to verify
      * @return True if the response is valid
      */
-    public boolean verifyResponseCode(long challenge, String response)
+    public boolean verifyResponseCode(final long challenge, final String response)
             throws GeneralSecurityException {
-        String expectedResponse = generateResponseCode(challenge);
+        final String expectedResponse = generateResponseCode(challenge);
         return expectedResponse.equals(response);
     }
 
@@ -177,7 +177,7 @@ public class PasscodeGenerator {
      * @param timeoutCode The timeout code
      * @return True if the timeout code is valid
      */
-    public boolean verifyTimeoutCode(String timeoutCode)
+    public boolean verifyTimeoutCode(final String timeoutCode)
             throws GeneralSecurityException {
         return verifyTimeoutCode(timeoutCode, ADJACENT_INTERVALS,
                 ADJACENT_INTERVALS);
@@ -193,21 +193,21 @@ public class PasscodeGenerator {
      * @param futureIntervals The number of future intervals to check
      * @return True if the timeout code is valid
      */
-    public boolean verifyTimeoutCode(String timeoutCode, int pastIntervals,
-                                     int futureIntervals) throws GeneralSecurityException {
-        long currentInterval = clock.getCurrentInterval();
-        String expectedResponse = generateResponseCode(currentInterval);
+    public boolean verifyTimeoutCode(final String timeoutCode, final int pastIntervals,
+                                     final int futureIntervals) throws GeneralSecurityException {
+        final long currentInterval = clock.getCurrentInterval();
+        final String expectedResponse = generateResponseCode(currentInterval);
         if (expectedResponse.equals(timeoutCode)) {
             return true;
         }
         for (int i = 1; i <= pastIntervals; i++) {
-            String pastResponse = generateResponseCode(currentInterval - i);
+            final String pastResponse = generateResponseCode(currentInterval - i);
             if (pastResponse.equals(timeoutCode)) {
                 return true;
             }
         }
         for (int i = 1; i <= futureIntervals; i++) {
-            String futureResponse = generateResponseCode(currentInterval + i);
+            final String futureResponse = generateResponseCode(currentInterval + i);
             if (futureResponse.equals(timeoutCode)) {
                 return true;
             }
@@ -220,7 +220,7 @@ public class PasscodeGenerator {
          * @return The current interval
          */
         public long getCurrentInterval() {
-            long currentTimeSeconds = System.currentTimeMillis() / 1000;
+            final long currentTimeSeconds = System.currentTimeMillis() / 1000;
             return currentTimeSeconds / getIntervalPeriod();
         }
 
@@ -232,6 +232,7 @@ public class PasscodeGenerator {
     // To facilitate injecting a mock clock
     interface IntervalClock {
         int getIntervalPeriod();
+
         long getCurrentInterval();
     }
 }

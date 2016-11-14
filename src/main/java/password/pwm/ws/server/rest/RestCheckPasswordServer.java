@@ -26,6 +26,7 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
+import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
@@ -35,7 +36,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.bean.LoginInfoBean;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.JsonUtil;
@@ -48,7 +48,12 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
@@ -101,9 +106,9 @@ public class RestCheckPasswordServer extends AbstractRestServer {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response doPasswordRuleCheckFormPost(
-            final @FormParam("password1") String password1,
-            final @FormParam("password2") String password2,
-            final @FormParam("username") String username
+            @FormParam("password1") final String password1,
+            @FormParam("password2") final String password2,
+            @FormParam("username") final String username
     )
             throws PwmUnrecoverableException
     {
@@ -118,13 +123,13 @@ public class RestCheckPasswordServer extends AbstractRestServer {
     @POST
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response doPasswordRuleCheckJsonPost(JsonInput jsonInput)
+    public Response doPasswordRuleCheckJsonPost(final JsonInput jsonInput)
             throws PwmUnrecoverableException
     {
         return doOperation(jsonInput);
     }
 
-    public Response doOperation(JsonInput jsonInput)
+    public Response doOperation(final JsonInput jsonInput)
             throws PwmUnrecoverableException
     {
         final Date startTime = new Date();
@@ -201,7 +206,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
         final PasswordData password2;
         final UserInfoBean userInfoBean;
 
-        private PasswordCheckRequest(UserIdentity userDN, PasswordData password1, PasswordData password2, UserInfoBean userInfoBean) {
+        private PasswordCheckRequest(final UserIdentity userDN, final PasswordData password1, final PasswordData password2, final UserInfoBean userInfoBean) {
             this.userDN= userDN;
             this.password1 = password1;
             this.password2 = password2;

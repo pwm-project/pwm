@@ -25,11 +25,11 @@ package password.pwm.config.stored;
 import java.io.Serializable;
 
 public interface StoredConfigReference extends Serializable, Comparable {
-    public RecordType getRecordType();
+    RecordType getRecordType();
 
-    public String getRecordID();
+    String getRecordID();
 
-    public String getProfileID();
+    String getProfileID();
 
     enum RecordType {
         SETTING,

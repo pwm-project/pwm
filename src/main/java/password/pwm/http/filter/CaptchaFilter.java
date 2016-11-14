@@ -43,7 +43,7 @@ public class CaptchaFilter extends AbstractPwmFilter {
     private static final PwmLogger LOGGER = PwmLogger.forClass(CaptchaFilter.class);
 
     @Override
-    boolean isInterested(PwmApplicationMode mode, PwmURL pwmURL) {
+    boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
         return true;
     }
 

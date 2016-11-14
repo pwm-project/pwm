@@ -23,8 +23,8 @@
 package password.pwm.ws.client.rest;
 
 public interface RestClient {
-    public static final String DATA_KEY_USERINFO = "userInfo";
-    public static final String DATA_KEY_TOKENDATA = "tokenDestination";
+    String DATA_KEY_USERINFO = "userInfo";
+    String DATA_KEY_TOKENDATA = "tokenDestination";
 
-    public static final String DATA_KEY_RETURNVALUE = "value";
+    String DATA_KEY_RETURNVALUE = "value";
 }

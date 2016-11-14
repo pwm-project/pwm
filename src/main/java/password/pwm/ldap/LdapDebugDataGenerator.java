@@ -38,7 +38,13 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class LdapDebugDataGenerator {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LdapDebugDataGenerator.class);
@@ -51,7 +57,7 @@ public class LdapDebugDataGenerator {
 
     {
         final List<LdapDebugInfo> returnList = new ArrayList<>();
-        for (LdapProfile ldapProfile : configuration.getLdapProfiles().values()) {
+        for (final LdapProfile ldapProfile : configuration.getLdapProfiles().values()) {
             final LdapDebugInfo ldapDebugInfo = new LdapDebugInfo();
             ldapDebugInfo.setProfileName(ldapProfile.getIdentifier());
             ldapDebugInfo.setDisplayName(ldapProfile.getDisplayName(locale));
@@ -136,7 +142,7 @@ public class LdapDebugDataGenerator {
             return profileName;
         }
 
-        public void setProfileName(String profileName) {
+        public void setProfileName(final String profileName) {
             this.profileName = profileName;
         }
 
@@ -144,7 +150,7 @@ public class LdapDebugDataGenerator {
             return displayName;
         }
 
-        public void setDisplayName(String displayName) {
+        public void setDisplayName(final String displayName) {
             this.displayName = displayName;
         }
 
@@ -152,7 +158,7 @@ public class LdapDebugDataGenerator {
             return serverInfo;
         }
 
-        public void setServerInfo(List<LdapDebugServerInfo> serverInfo) {
+        public void setServerInfo(final List<LdapDebugServerInfo> serverInfo) {
             this.serverInfo = serverInfo;
         }
     }
@@ -169,7 +175,7 @@ public class LdapDebugDataGenerator {
             return ldapServerlUrl;
         }
 
-        public void setLdapServerlUrl(String ldapServerlUrl) {
+        public void setLdapServerlUrl(final String ldapServerlUrl) {
             this.ldapServerlUrl = ldapServerlUrl;
         }
 
@@ -177,7 +183,7 @@ public class LdapDebugDataGenerator {
             return testUserDN;
         }
 
-        public void setTestUserDN(String testUserDN) {
+        public void setTestUserDN(final String testUserDN) {
             this.testUserDN = testUserDN;
         }
 
@@ -185,7 +191,7 @@ public class LdapDebugDataGenerator {
             return testUserAttributes;
         }
 
-        public void setTestUserAttributes(Map<String, List<String>> testUserAttributes) {
+        public void setTestUserAttributes(final Map<String, List<String>> testUserAttributes) {
             this.testUserAttributes = testUserAttributes;
         }
 
@@ -193,7 +199,7 @@ public class LdapDebugDataGenerator {
             return proxyDN;
         }
 
-        public void setProxyDN(String proxyDN) {
+        public void setProxyDN(final String proxyDN) {
             this.proxyDN = proxyDN;
         }
 
@@ -201,7 +207,7 @@ public class LdapDebugDataGenerator {
             return proxyUserAttributes;
         }
 
-        public void setProxyUserAttributes(Map<String, List<String>> proxyUserAttributes) {
+        public void setProxyUserAttributes(final Map<String, List<String>> proxyUserAttributes) {
             this.proxyUserAttributes = proxyUserAttributes;
         }
 
@@ -209,7 +215,7 @@ public class LdapDebugDataGenerator {
             return rootDseAttributes;
         }
 
-        public void setRootDseAttributes(Map<String, List<String>> rootDseAttributes) {
+        public void setRootDseAttributes(final Map<String, List<String>> rootDseAttributes) {
             this.rootDseAttributes = rootDseAttributes;
         }
     }

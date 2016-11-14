@@ -37,7 +37,7 @@ public enum ProfileType {
     private final PwmSettingCategory category;
     private final PwmSetting queryMatch;
 
-    ProfileType(boolean authenticated, PwmSettingCategory category, PwmSetting queryMatch) {
+    ProfileType(final boolean authenticated, final PwmSettingCategory category, final PwmSetting queryMatch) {
         this.authenticated = authenticated;
         this.category = category;
         this.queryMatch = queryMatch;

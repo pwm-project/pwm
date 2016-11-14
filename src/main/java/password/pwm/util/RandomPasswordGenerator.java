@@ -41,7 +41,16 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.secure.PwmRandom;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Random password generator
@@ -521,7 +530,7 @@ public class RandomPasswordGenerator {
         final Collection<String> newSeeds = new HashSet<>();
         newSeeds.addAll(inputSeeds);
 
-        for (Iterator<String> iter = newSeeds.iterator(); iter.hasNext();) {
+        for (final Iterator<String> iter = newSeeds.iterator(); iter.hasNext(); ) {
             final String s = iter.next();
             if (s == null || s.length() < 1) {
                 iter.remove();

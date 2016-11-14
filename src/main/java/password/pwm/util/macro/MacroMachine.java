@@ -39,7 +39,13 @@ import password.pwm.util.Helper;
 import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,7 +81,7 @@ public class MacroMachine {
         implementations.putAll(InternalMacros.INTERNAL_MACROS);
         final LinkedHashMap<MacroImplementation.Scope,Map<Pattern,MacroImplementation>> map = new LinkedHashMap<>();
 
-        for (Class macroClass : implementations.keySet()) {
+        for (final Class macroClass : implementations.keySet()) {
             final MacroImplementation.Scope scope = implementations.get(macroClass);
             try {
                 final MacroImplementation macroImplementation = (MacroImplementation)macroClass.newInstance();
@@ -92,10 +98,10 @@ public class MacroMachine {
         return map;
     }
 
-    private Map<Pattern,MacroImplementation> makeExternalImplementations(PwmApplication pwmApplication) {
+    private Map<Pattern,MacroImplementation> makeExternalImplementations(final PwmApplication pwmApplication) {
         final LinkedHashMap<Pattern,MacroImplementation> map = new LinkedHashMap<>();
-        final List<String> externalMethods = pwmApplication == null
-                ? Collections.<String>emptyList()
+        final List<String> externalMethods = (pwmApplication == null)
+                ? Collections.emptyList()
                 : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EXTERNAL_MACROS_REST_URLS);
 
         int iteration = 0;
@@ -166,7 +172,7 @@ public class MacroMachine {
         }
 
         String workingString = input;
-        String previousString = workingString;
+        final String previousString = workingString;
 
         for (final Pattern pattern : macroImplementations.keySet()) {
             final MacroImplementation pwmMacro = macroImplementations.get(pattern);
@@ -189,7 +195,7 @@ public class MacroMachine {
         return workingString;
     }
 
-    private static Set<MacroImplementation.Scope> effectiveScopes(MacroImplementation.MacroRequestInfo macroRequestInfo) {
+    private static Set<MacroImplementation.Scope> effectiveScopes(final MacroImplementation.MacroRequestInfo macroRequestInfo) {
         final Set<MacroImplementation.Scope> scopes = new HashSet<>();
         scopes.add(MacroImplementation.Scope.Static);
 
@@ -259,11 +265,11 @@ public class MacroMachine {
     }
 
     public interface StringReplacer {
-        String replace(final String matchedMacro, final String newValue);
+        String replace( String matchedMacro,  String newValue);
     }
 
     public static class URLEncoderReplacer implements StringReplacer {
-        public String replace(String matchedMacro, String newValue) {
+        public String replace(final String matchedMacro, final String newValue) {
             return StringUtil.urlEncode(newValue); // make sure replacement values are properly encoded
         }
     }
@@ -299,5 +305,4 @@ public class MacroMachine {
     {
         return new MacroMachine(pwmApplication, sessionLabel, null, null, null);
     }
-
 }

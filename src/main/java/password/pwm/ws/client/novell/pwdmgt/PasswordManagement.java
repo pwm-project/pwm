@@ -30,8 +30,11 @@
 package password.pwm.ws.client.novell.pwdmgt;
 
 public interface PasswordManagement extends java.rmi.Remote {
-    public password.pwm.ws.client.novell.pwdmgt.ForgotPasswordConfWSBean processForgotConf(password.pwm.ws.client.novell.pwdmgt.ProcessForgotConfRequest bodyIn) throws java.rmi.RemoteException;
-    public password.pwm.ws.client.novell.pwdmgt.ForgotPasswordWSBean processUser(password.pwm.ws.client.novell.pwdmgt.ProcessUserRequest bodyIn) throws java.rmi.RemoteException;
-    public password.pwm.ws.client.novell.pwdmgt.ForgotPasswordWSBean processChaRes(password.pwm.ws.client.novell.pwdmgt.ProcessChaResRequest bodyIn) throws java.rmi.RemoteException;
-    public password.pwm.ws.client.novell.pwdmgt.ForgotPasswordWSBean processChgPwd(password.pwm.ws.client.novell.pwdmgt.ProcessChgPwdRequest bodyIn) throws java.rmi.RemoteException;
+    password.pwm.ws.client.novell.pwdmgt.ForgotPasswordConfWSBean processForgotConf(password.pwm.ws.client.novell.pwdmgt.ProcessForgotConfRequest bodyIn) throws java.rmi.RemoteException;
+
+    password.pwm.ws.client.novell.pwdmgt.ForgotPasswordWSBean processUser(password.pwm.ws.client.novell.pwdmgt.ProcessUserRequest bodyIn) throws java.rmi.RemoteException;
+
+    password.pwm.ws.client.novell.pwdmgt.ForgotPasswordWSBean processChaRes(password.pwm.ws.client.novell.pwdmgt.ProcessChaResRequest bodyIn) throws java.rmi.RemoteException;
+
+    password.pwm.ws.client.novell.pwdmgt.ForgotPasswordWSBean processChgPwd(password.pwm.ws.client.novell.pwdmgt.ProcessChgPwdRequest bodyIn) throws java.rmi.RemoteException;
 }

@@ -62,7 +62,11 @@ import password.pwm.ws.server.ServicePermissions;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -70,7 +74,17 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 @Path("/app-data")
 public class RestAppDataServer extends AbstractRestServer {
@@ -93,11 +107,13 @@ public class RestAppDataServer extends AbstractRestServer {
     @Path("/audit")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doGetAppAuditData(
-            @QueryParam("maximum") int maximum
+            @QueryParam("maximum") final int maximum
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        maximum = maximum > 0 ? maximum : 10 * 1000;
+        final int max = maximum > 0
+                ? maximum
+                : 10 * 1000;
 
         final RestRequestBean restRequestBean;
         try {
@@ -115,7 +131,7 @@ public class RestAppDataServer extends AbstractRestServer {
         final ArrayList<SystemAuditRecord> systemRecords = new ArrayList<>();
         final Iterator<AuditRecord> iterator = restRequestBean.getPwmApplication().getAuditManager().readVault();
         int counter = 0;
-        while (iterator.hasNext() && counter <= maximum) {
+        while (iterator.hasNext() && counter <= max) {
             final AuditRecord loopRecord = iterator.next();
             counter++;
             if (loopRecord instanceof SystemAuditRecord) {
@@ -141,10 +157,13 @@ public class RestAppDataServer extends AbstractRestServer {
     @Path("/session")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doGetAppSessionData(
-            @QueryParam("maximum") int maximum
-    ) throws ChaiUnavailableException, PwmUnrecoverableException {
-        maximum = maximum > 0 ? maximum : 10 * 1000;
-
+            @QueryParam("maximum") final int maximum
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final int max = maximum > 0
+                ? maximum
+                : 10 * 1000;
         final RestRequestBean restRequestBean;
         try {
             final ServicePermissions servicePermissions = new ServicePermissions();
@@ -164,7 +183,7 @@ public class RestAppDataServer extends AbstractRestServer {
         final ArrayList<SessionStateInfoBean> gridData = new ArrayList<>();
         int counter = 0;
         final Iterator<SessionStateInfoBean> infos = restRequestBean.getPwmApplication().getSessionTrackService().getSessionInfoIterator();
-        while (counter < maximum && infos.hasNext()) {
+        while (counter < max && infos.hasNext()) {
             gridData.add(infos.next());
             counter++;
         }
@@ -177,9 +196,13 @@ public class RestAppDataServer extends AbstractRestServer {
     @Path("/intruder")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doGetAppIntruderData(
-            @QueryParam("maximum") int maximum
-    ) throws ChaiUnavailableException, PwmUnrecoverableException {
-        maximum = maximum > 0 ? maximum : 10 * 1000;
+            @QueryParam("maximum") final int maximum
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final int max = maximum > 0
+                ? maximum
+                : 10 * 1000;
 
         final RestRequestBean restRequestBean;
         try {
@@ -200,7 +223,7 @@ public class RestAppDataServer extends AbstractRestServer {
         final TreeMap<String,Object> returnData = new TreeMap<>();
         try {
             for (final RecordType recordType : RecordType.values()) {
-                returnData.put(recordType.toString(),restRequestBean.getPwmApplication().getIntruderManager().getRecords(recordType, maximum));
+                returnData.put(recordType.toString(),restRequestBean.getPwmApplication().getIntruderManager().getRecords(recordType, max));
             }
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
@@ -217,10 +240,10 @@ public class RestAppDataServer extends AbstractRestServer {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Path("/client")
     public Response doGetAppClientData(
-            @QueryParam("pageUrl") String pageUrl,
+            @QueryParam("pageUrl") final String pageUrl,
             @PathParam(value = "eTagUri") final String eTagUri,
-            @Context HttpServletRequest request,
-            @Context HttpServletResponse response
+            @Context final HttpServletRequest request,
+            @Context final HttpServletResponse response
     )
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException
     {

@@ -31,7 +31,7 @@ public class DatabaseDataStore implements DataStore {
     private final DatabaseAccessorImpl databaseAccessor;
     private final DatabaseTable table;
 
-    public DatabaseDataStore(DatabaseAccessorImpl databaseAccessor, DatabaseTable table) {
+    public DatabaseDataStore(final DatabaseAccessorImpl databaseAccessor, final DatabaseTable table) {
         this.databaseAccessor = databaseAccessor;
         this.table = table;
     }
@@ -40,11 +40,11 @@ public class DatabaseDataStore implements DataStore {
         databaseAccessor.close();
     }
 
-    public boolean contains(String key) throws PwmDataStoreException {
+    public boolean contains(final String key) throws PwmDataStoreException {
         return databaseAccessor.contains(table, key);
     }
 
-    public String get(String key) throws PwmDataStoreException {
+    public String get(final String key) throws PwmDataStoreException {
         return databaseAccessor.get(table,key);
     }
 
@@ -73,11 +73,11 @@ public class DatabaseDataStore implements DataStore {
         }
     }
 
-    public boolean put(String key, String value) throws PwmDataStoreException {
+    public boolean put(final String key, final String value) throws PwmDataStoreException {
         return databaseAccessor.put(table, key, value);
     }
 
-    public boolean remove(String key) throws PwmDataStoreException {
+    public boolean remove(final String key) throws PwmDataStoreException {
         return databaseAccessor.remove(table, key);
     }
 

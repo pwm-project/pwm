@@ -90,8 +90,8 @@ public enum HealthMessage {
     private final HealthTopic topic;
 
     HealthMessage(
-            HealthStatus status,
-            HealthTopic topic
+            final HealthStatus status,
+            final HealthTopic topic
     )
     {
         this.status = status;

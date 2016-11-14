@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.util.operations.cr;
 
 import com.novell.ldapchai.ChaiUser;
@@ -46,7 +47,7 @@ public class LdapCrOperator implements CrOperator {
 
     private final Configuration config;
 
-    public LdapCrOperator(Configuration config) {
+    public LdapCrOperator(final Configuration config) {
         this.config = config;
     }
 
@@ -65,7 +66,7 @@ public class LdapCrOperator implements CrOperator {
         return null;
     }
 
-    public ResponseInfoBean readResponseInfo(ChaiUser theUser, final UserIdentity userIdentity, String userGUID)
+    public ResponseInfoBean readResponseInfo(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID)
             throws PwmUnrecoverableException
     {
         try {
@@ -76,7 +77,7 @@ public class LdapCrOperator implements CrOperator {
         }
     }
 
-    public void clearResponses(UserIdentity userIdentity, final ChaiUser theUser, final String userGuid)
+    public void clearResponses(final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid)
             throws PwmUnrecoverableException
     {
         final LdapProfile ldapProfile = userIdentity.getLdapProfile(config);
@@ -109,7 +110,7 @@ public class LdapCrOperator implements CrOperator {
         }
     }
 
-    public void writeResponses(UserIdentity userIdentity, final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean)
+    public void writeResponses(final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean)
             throws PwmUnrecoverableException
     {
         final LdapProfile ldapProfile = userIdentity.getLdapProfile(config);

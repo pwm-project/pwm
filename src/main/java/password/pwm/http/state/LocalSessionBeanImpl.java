@@ -34,7 +34,7 @@ import java.util.Map;
 
 class LocalSessionBeanImpl implements SessionBeanProvider {
 
-    private final static PwmLogger LOGGER = PwmLogger.forClass(LocalSessionBeanImpl.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LocalSessionBeanImpl.class);
 
     @Override
     public <E extends PwmSessionBean> E getSessionBean(final PwmRequest pwmRequest, final Class<E> theClass) {
@@ -53,7 +53,7 @@ class LocalSessionBeanImpl implements SessionBeanProvider {
     }
 
     @Override
-    public <E extends PwmSessionBean> void clearSessionBean(PwmRequest pwmRequest, Class<E> userBeanClass) throws PwmUnrecoverableException {
+    public <E extends PwmSessionBean> void clearSessionBean(final PwmRequest pwmRequest, final Class<E> userBeanClass) throws PwmUnrecoverableException {
         final Map<Class<? extends PwmSessionBean>,PwmSessionBean> sessionBeans = getSessionBeanMap(pwmRequest);
         sessionBeans.remove(userBeanClass);
     }
@@ -70,12 +70,12 @@ class LocalSessionBeanImpl implements SessionBeanProvider {
     }
 
     @Override
-    public void saveSessionBeans(PwmRequest pwmRequest) {
+    public void saveSessionBeans(final PwmRequest pwmRequest) {
 
     }
 
     @Override
-    public String getSessionStateInfo(PwmRequest pwmRequest) throws PwmUnrecoverableException {
+    public String getSessionStateInfo(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
         return null;
     }
 }

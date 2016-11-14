@@ -28,7 +28,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import java.util.List;
 
 public interface UserHistoryStore {
-    void updateUserHistory(final UserAuditRecord auditRecord) throws PwmUnrecoverableException;
+    void updateUserHistory( UserAuditRecord auditRecord) throws PwmUnrecoverableException;
 
-    List<UserAuditRecord> readUserHistory(final UserInfoBean userInfoBean) throws PwmUnrecoverableException;
+    List<UserAuditRecord> readUserHistory( UserInfoBean userInfoBean) throws PwmUnrecoverableException;
 }

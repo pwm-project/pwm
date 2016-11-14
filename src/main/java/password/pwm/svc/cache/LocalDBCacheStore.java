@@ -31,7 +31,11 @@ import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class LocalDBCacheStore implements CacheStore {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDBCacheStore.class);
@@ -77,7 +81,7 @@ public class LocalDBCacheStore implements CacheStore {
     }
 
     @Override
-    public String read(CacheKey cacheKey)
+    public String read(final CacheKey cacheKey)
             throws PwmUnrecoverableException 
     {
         readCount++;
@@ -132,9 +136,9 @@ public class LocalDBCacheStore implements CacheStore {
         final String payload;
 
         private ValueWrapper(
-                CacheKey cacheKey,
-                Date expirationDate,
-                String payload
+                final CacheKey cacheKey,
+                final Date expirationDate,
+                final String payload
         )
         {
             this.cacheKey = cacheKey;

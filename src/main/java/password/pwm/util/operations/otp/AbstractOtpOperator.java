@@ -58,7 +58,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
      * @return
      * @throws password.pwm.error.PwmUnrecoverableException
      */
-    public String composeOtpAttribute(OTPUserRecord otpUserRecord) throws PwmUnrecoverableException {
+    public String composeOtpAttribute(final OTPUserRecord otpUserRecord) throws PwmUnrecoverableException {
         String value = "";
         if (otpUserRecord != null) {
             final Configuration config = pwmApplication.getConfig();
@@ -77,8 +77,8 @@ public abstract class AbstractOtpOperator implements OtpOperator {
                     value = OTPPamUtil.composePamData(otpUserRecord);
                     break;
                 default:
-                    String errorStr = String.format("Unsupported storage format: ", format.toString());
-                    ErrorInformation error = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorStr);
+                    final String errorStr = String.format("Unsupported storage format: ", format.toString());
+                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorStr);
                     throw new PwmUnrecoverableException(error);
             }
         }
@@ -93,7 +93,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
      * @throws PwmUnrecoverableException
      * @throws PwmOperationalException
      */
-    public String encryptAttributeValue(String unencrypted) throws PwmUnrecoverableException, PwmOperationalException {
+    public String encryptAttributeValue(final String unencrypted) throws PwmUnrecoverableException, PwmOperationalException {
         final PwmBlockAlgorithm pwmBlockAlgorithm = figureBlockAlg();
         final PwmSecurityKey pwmSecurityKey = pwmApplication.getConfig().getSecurityKey();
         return SecureEngine.encryptToString(unencrypted, pwmSecurityKey, pwmBlockAlgorithm);
@@ -112,7 +112,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
      * @throws PwmUnrecoverableException
      * @throws PwmOperationalException
      */
-    public String decryptAttributeValue(String encrypted) throws PwmUnrecoverableException, PwmOperationalException {
+    public String decryptAttributeValue(final String encrypted) throws PwmUnrecoverableException, PwmOperationalException {
         final PwmBlockAlgorithm pwmBlockAlgorithm = figureBlockAlg();
         final PwmSecurityKey pwmSecurityKey = pwmApplication.getConfig().getSecurityKey();
         return SecureEngine.decryptStringValue(encrypted, pwmSecurityKey, pwmBlockAlgorithm);
@@ -123,7 +123,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
      * @param value
      * @return
      */
-    public OTPUserRecord decomposeOtpAttribute(String value) {
+    public OTPUserRecord decomposeOtpAttribute(final String value) {
         if (value == null) {
             return null;
         }
@@ -168,7 +168,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
         return pwmApplication;
     }
 
-    public void setPwmApplication(PwmApplication pwmApplication) {
+    public void setPwmApplication(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
     }
 }

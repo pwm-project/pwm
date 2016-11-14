@@ -26,11 +26,17 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.util.ClosableIterator;
 
 public interface RecordManager {
-    public boolean checkSubject(final String subject);
-    public void markSubject(final String subject);
-    public void clearSubject(final String subject);
-    public boolean isAlerted(final String subject);
-    public void markAlerted(final String subject);
-    public IntruderRecord readIntruderRecord(final String subject);
-    public ClosableIterator<IntruderRecord> iterator() throws PwmOperationalException;
+    boolean checkSubject( String subject);
+
+    void markSubject( String subject);
+
+    void clearSubject( String subject);
+
+    boolean isAlerted( String subject);
+
+    void markAlerted( String subject);
+
+    IntruderRecord readIntruderRecord( String subject);
+
+    ClosableIterator<IntruderRecord> iterator() throws PwmOperationalException;
 }

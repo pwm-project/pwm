@@ -36,16 +36,16 @@ public class DatabaseStatusChecker implements HealthChecker {
     private static final PwmLogger LOGGER = PwmLogger.forClass(DatabaseStatusChecker.class);
 
     @Override
-    public List<HealthRecord> doHealthCheck(PwmApplication pwmApplication)
+    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication)
     {
         return Collections.emptyList();
     }
 
-    public static List<HealthRecord> checkNewDatabaseStatus(Configuration config) {
+    public static List<HealthRecord> checkNewDatabaseStatus(final Configuration config) {
         return checkDatabaseStatus(config);
     }
 
-    private static List<HealthRecord> checkDatabaseStatus(Configuration config)
+    private static List<HealthRecord> checkDatabaseStatus(final Configuration config)
     {
         if (!config.hasDbConfigured()) {
             return Collections.singletonList(new HealthRecord(HealthStatus.INFO,HealthTopic.Database,"Database not configured"));

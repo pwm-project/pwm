@@ -36,7 +36,7 @@ public class VersionCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "Version";
         cliParameters.description = "Output version information";
         return cliParameters;

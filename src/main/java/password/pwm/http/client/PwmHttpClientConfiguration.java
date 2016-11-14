@@ -28,7 +28,7 @@ public class PwmHttpClientConfiguration {
     private X509Certificate[] certificates;
     private boolean promiscuous;
 
-    private PwmHttpClientConfiguration(X509Certificate[] certificate, boolean promiscuous) {
+    private PwmHttpClientConfiguration(final X509Certificate[] certificate, final boolean promiscuous) {
         this.certificates = certificate;
         this.promiscuous = promiscuous;
     }
@@ -45,12 +45,12 @@ public class PwmHttpClientConfiguration {
         private X509Certificate[] certificate;
         private boolean promiscuous;
 
-        public Builder setCertificate(X509Certificate[] certificate) {
+        public Builder setCertificate(final X509Certificate[] certificate) {
             this.certificate = certificate;
             return this;
         }
 
-        public Builder setPromiscuous(boolean promiscuous) {
+        public Builder setPromiscuous(final boolean promiscuous) {
             this.promiscuous = promiscuous;
             return this;
         }

@@ -29,11 +29,24 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.*;
-import password.pwm.config.*;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.SmsItemBean;
+import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
+import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.FormUtility;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.UserPermission;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.LdapProfile;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -53,6 +66,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
+import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -63,7 +77,16 @@ import password.pwm.ws.client.rest.RestTokenDataClient;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * User interaction servlet for creating new users (self registration)
@@ -94,7 +117,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 
         private final Collection<HttpMethod> method;
 
-        ActivateUserAction(HttpMethod... method)
+        ActivateUserAction(final HttpMethod... method)
         {
             this.method = Collections.unmodifiableList(Arrays.asList(method));
         }
@@ -165,6 +188,10 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                     handleAgreeRequest(pwmRequest, activateUserBean);
                     advanceToNextStage(pwmRequest);
                     break;
+
+                default:
+                    Helper.unhandledSwitchStatement(action);
+
             }
         }
 
@@ -253,7 +280,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
 
         if (!activateUserBean.isAgreementPassed()) {
             activateUserBean.setAgreementPassed(true);
-            AuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
+            final AuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getSessionLabel(),
@@ -358,7 +385,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             }
 
             //authenticate the pwm session
-            SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession, PwmAuthenticationSource.USER_ACTIVATION);
+            final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession, PwmAuthenticationSource.USER_ACTIVATION);
             sessionAuthenticator.authUserWithUnknownPassword(userIdentity,AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
 
             //ensure a change password is triggered

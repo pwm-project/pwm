@@ -32,7 +32,7 @@ class NAAFChainInformationResponseBean implements Serializable {
         return chains;
     }
 
-    public void setChains(List<NAAFChainBean> chains) {
+    public void setChains(final List<NAAFChainBean> chains) {
         this.chains = chains;
     }
 }

@@ -52,7 +52,7 @@ public class SecureService implements PwmService {
     }
 
     @Override
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
         final Configuration config = pwmApplication.getConfig();
         pwmSecurityKey = config.getSecurityKey();
         {
@@ -129,12 +129,12 @@ public class SecureService implements PwmService {
         return SecureEngine.decryptStringValue(value, securityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE);
     }
 
-    public <T extends Serializable> T decryptObject(final String value, Class<T> returnClass) throws PwmUnrecoverableException {
+    public <T extends Serializable> T decryptObject(final String value, final Class<T> returnClass) throws PwmUnrecoverableException {
         final String decryptedValue = decryptStringValue(value);
         return JsonUtil.deserialize(decryptedValue, returnClass);
     }
 
-    public <T extends Serializable> T decryptObject(final String value, final PwmSecurityKey securityKey,  Class<T> returnClass) throws PwmUnrecoverableException {
+    public <T extends Serializable> T decryptObject(final String value, final PwmSecurityKey securityKey, final Class<T> returnClass) throws PwmUnrecoverableException {
         final String decryptedValue = decryptStringValue(value, securityKey);
         return JsonUtil.deserialize(decryptedValue, returnClass);
     }

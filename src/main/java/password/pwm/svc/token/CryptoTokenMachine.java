@@ -33,15 +33,15 @@ class CryptoTokenMachine implements TokenMachine {
 
     private TokenService tokenService;
 
-    CryptoTokenMachine(TokenService tokenService)
+    CryptoTokenMachine(final TokenService tokenService)
             throws PwmOperationalException
     {
         this.tokenService = tokenService;
     }
 
     public String generateToken(
-            SessionLabel sessionLabel,
-            TokenPayload tokenPayload
+            final SessionLabel sessionLabel,
+            final TokenPayload tokenPayload
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
@@ -53,7 +53,7 @@ class CryptoTokenMachine implements TokenMachine {
         return returnString.toString();
     }
 
-    public TokenPayload retrieveToken(String tokenKey)
+    public TokenPayload retrieveToken(final String tokenKey)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         if (tokenKey == null || tokenKey.length() < 1) {
@@ -62,10 +62,10 @@ class CryptoTokenMachine implements TokenMachine {
         return tokenService.fromEncryptedString(tokenKey);
     }
 
-    public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
+    public void storeToken(final String tokenKey, final TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
     }
 
-    public void removeToken(String tokenKey) throws PwmOperationalException, PwmUnrecoverableException {
+    public void removeToken(final String tokenKey) throws PwmOperationalException, PwmUnrecoverableException {
     }
 
     public int size() throws PwmOperationalException, PwmUnrecoverableException {

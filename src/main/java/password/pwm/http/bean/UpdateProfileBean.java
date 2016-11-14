@@ -25,7 +25,11 @@ package password.pwm.http.bean;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.config.option.SessionBeanMode;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class UpdateProfileBean extends PwmSessionBean {
 
@@ -52,7 +56,7 @@ public class UpdateProfileBean extends PwmSessionBean {
         return formData;
     }
 
-    public void setFormData(Map<String, String> formData) {
+    public void setFormData(final Map<String, String> formData) {
         this.formData = formData;
     }
 
@@ -68,7 +72,7 @@ public class UpdateProfileBean extends PwmSessionBean {
         return formSubmitted;
     }
 
-    public void setFormSubmitted(boolean formSubmitted) {
+    public void setFormSubmitted(final boolean formSubmitted) {
         this.formSubmitted = formSubmitted;
     }
 

@@ -33,7 +33,7 @@ public class SessionLabel implements Serializable {
     private final String srcAddress;
     private final String srcHostname;
 
-    public SessionLabel(String sessionID, UserIdentity userIdentity, String username, final String srcAddress, final String srcHostname)
+    public SessionLabel(final String sessionID, final UserIdentity userIdentity, final String username, final String srcAddress, final String srcHostname)
     {
         this.sessionID = sessionID;
         this.userIdentity = userIdentity;

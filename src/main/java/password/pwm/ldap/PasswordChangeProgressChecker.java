@@ -31,7 +31,11 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.PasswordSyncCheckMode;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
-import password.pwm.util.*;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.LocaleHelper;
+import password.pwm.util.Percent;
+import password.pwm.util.ProgressInfo;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 
@@ -39,7 +43,14 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class PasswordChangeProgressChecker {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PasswordChangeProgressChecker.class);
@@ -55,10 +66,10 @@ public class PasswordChangeProgressChecker {
     private final PasswordSyncCheckMode passwordSyncCheckMode;
 
     public PasswordChangeProgressChecker(
-            PwmApplication pwmApplication,
-            UserIdentity userIdentity,
-            SessionLabel sessionLabel,
-            Locale locale
+            final PwmApplication pwmApplication,
+            final UserIdentity userIdentity,
+            final SessionLabel sessionLabel,
+            final Locale locale
     )
     {
         this.pwmApplication = pwmApplication;
@@ -90,11 +101,11 @@ public class PasswordChangeProgressChecker {
         );
 
         public PasswordChangeProgress(
-                boolean complete,
-                BigDecimal percentComplete,
-                Collection<ProgressRecord> messages,
-                String elapsedSeconds,
-                String estimatedRemainingSeconds
+                final boolean complete,
+                final BigDecimal percentComplete,
+                final Collection<ProgressRecord> messages,
+                final String elapsedSeconds,
+                final String estimatedRemainingSeconds
         )
         {
             this.complete = complete;
@@ -220,12 +231,12 @@ public class PasswordChangeProgressChecker {
         return returnValue;
     }
 
-    public Date maxCompletionTime(ProgressTracker tracker) {
+    public Date maxCompletionTime(final ProgressTracker tracker) {
         final TimeDuration maxWait = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME) * 1000);
         return new Date(tracker.beginTime.getTime() + maxWait.getTotalMilliseconds());
     }
 
-    private Date minCompletionTime(ProgressTracker tracker) {
+    private Date minCompletionTime(final ProgressTracker tracker) {
         final TimeDuration minWait = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME) * 1000);
         return new Date(tracker.beginTime.getTime() + minWait.getTotalMilliseconds());
     }

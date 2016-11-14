@@ -213,6 +213,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 } catch (Throwable e1) {
                     LOGGER.error("error while marking pre-login url:" + e1.getMessage());
                 }
+                break;
 
 
             case ERROR_UNKNOWN:
@@ -254,7 +255,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         Collection<HttpMethod> permittedMethods();
     }
 
-    public String servletUriRemainder(PwmRequest pwmRequest, String command) throws PwmUnrecoverableException {
+    public String servletUriRemainder(final PwmRequest pwmRequest, final String command) throws PwmUnrecoverableException {
         String uri = pwmRequest.getURLwithoutQueryString();
         if (uri.startsWith(pwmRequest.getContextPath())) {
             uri = uri.substring(pwmRequest.getContextPath().length(), uri.length());

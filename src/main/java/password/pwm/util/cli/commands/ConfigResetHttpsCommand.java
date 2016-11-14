@@ -62,7 +62,7 @@ public class ConfigResetHttpsCommand
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigResetHttps";
         cliParameters.description = "Reset HTTPS settings to default";
         cliParameters.needsPwmApplication = false;

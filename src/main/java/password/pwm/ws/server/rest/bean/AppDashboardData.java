@@ -32,7 +32,12 @@ import password.pwm.util.LocaleHelper;
 import password.pwm.util.TimeDuration;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class AppDashboardData implements Serializable {
     public static class DataElement {
@@ -42,10 +47,10 @@ public class AppDashboardData implements Serializable {
         public Object value;
 
         public DataElement(
-                String key,
-                Type type,
-                String label,
-                Object value
+                final String key,
+                final Type type,
+                final String label,
+                final Object value
         )
         {
             this.key = key;
@@ -80,7 +85,7 @@ public class AppDashboardData implements Serializable {
         final String NA_VALUE = Display.getLocalizedMessage(locale, Display.Value_NotApplicable, config);
         final LocaleHelper.DisplayMaker l = new LocaleHelper.DisplayMaker(locale, Admin.class, pwmApplication);
 
-        AppDashboardData appDashboardData = new AppDashboardData();
+        final AppDashboardData appDashboardData = new AppDashboardData();
         {
             final List<DataElement> data = new ArrayList<>();
 
@@ -155,7 +160,7 @@ public class AppDashboardData implements Serializable {
 
 
             final Map<String, DataElement> aboutMap = new LinkedHashMap<>();
-            for (DataElement dataElement : data) {
+            for (final DataElement dataElement : data) {
                 aboutMap.put(dataElement.key, dataElement);
             }
             appDashboardData.about = aboutMap;
@@ -172,7 +177,7 @@ public class AppDashboardData implements Serializable {
             ));
 
             final Map<String, DataElement> statsMap = new LinkedHashMap<>();
-            for (DataElement dataElement : data) {
+            for (final DataElement dataElement : data) {
                 statsMap.put(dataElement.key, dataElement);
             }
             appDashboardData.appStats = statsMap;

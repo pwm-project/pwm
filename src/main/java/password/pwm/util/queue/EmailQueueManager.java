@@ -40,7 +40,12 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.PasswordData;
+import password.pwm.util.StringUtil;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.WorkQueueProcessor;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.logging.PwmLogger;
@@ -49,10 +54,20 @@ import password.pwm.util.macro.MacroMachine;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Transport;
-import javax.mail.internet.*;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author Jason D. Rivard
@@ -136,16 +151,16 @@ public class EmailQueueManager implements PwmService {
 
     private class EmailItemProcessor implements  WorkQueueProcessor.ItemProcessor<EmailItemBean>  {
         @Override
-        public WorkQueueProcessor.ProcessResult process(EmailItemBean workItem) {
+        public WorkQueueProcessor.ProcessResult process(final EmailItemBean workItem) {
                 return sendItem(workItem);
         }
 
-        public String convertToDebugString(EmailItemBean emailItemBean) {
+        public String convertToDebugString(final EmailItemBean emailItemBean) {
             return emailItemToDebugString(emailItemBean);
         }
     }
 
-    private static String emailItemToDebugString(EmailItemBean emailItemBean) {
+    private static String emailItemToDebugString(final EmailItemBean emailItemBean) {
         final Map<String,Object> debugOutputMap = new LinkedHashMap<>();
         debugOutputMap.put("to", emailItemBean.getTo());
         debugOutputMap.put("from", emailItemBean.getFrom());
@@ -234,7 +249,7 @@ public class EmailQueueManager implements PwmService {
 
                 logText = "plaintext";
 
-                for (Message message : messages) {
+                for (final Message message : messages) {
                     Transport.send(message);
                 }
             } else {
@@ -247,7 +262,7 @@ public class EmailQueueManager implements PwmService {
                 final Transport tr = session.getTransport("smtp");
                 tr.connect(mailhost, mailport, mailUser, mailPassword.getStringValue());
 
-                for (Message message : messages) {
+                for (final Message message : messages) {
                     message.saveChanges();
                     tr.sendMessage(message, message.getAllRecipients());
                 }
@@ -301,10 +316,10 @@ public class EmailQueueManager implements PwmService {
         // create a new Session object for the messagejavamail
         final javax.mail.Session session = javax.mail.Session.getInstance(javaMailProps, null);
 
-        String emailTo = emailItemBean.getTo();
+        final String emailTo = emailItemBean.getTo();
         if (emailTo != null) {
-            InternetAddress[] recipients = InternetAddress.parse(emailTo);
-            for (InternetAddress recipient : recipients) {
+            final InternetAddress[] recipients = InternetAddress.parse(emailTo);
+            for (final InternetAddress recipient : recipients) {
                 final MimeMessage message = new MimeMessage(session);
                 message.setFrom(makeInternetAddress(emailItemBean.getFrom()));
                 message.setRecipient(Message.RecipientType.TO, recipient);

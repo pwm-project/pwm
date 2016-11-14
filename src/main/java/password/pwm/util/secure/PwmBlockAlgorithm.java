@@ -90,7 +90,7 @@ public enum PwmBlockAlgorithm {
      */
     private final String label;
 
-    PwmBlockAlgorithm(String algName, PwmSecurityKey.Type blockKey, HmacAlgorithm hmacAlgorithm, byte[] prefix, String label) {
+    PwmBlockAlgorithm(final String algName, final PwmSecurityKey.Type blockKey, final HmacAlgorithm hmacAlgorithm, final byte[] prefix, final String label) {
         this.algName = algName;
         this.blockKey = blockKey;
         this.hmacAlgorithm = hmacAlgorithm;

@@ -53,7 +53,7 @@ public class LocalDBInfoCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "LocalDBInfo";
         cliParameters.description = "Report information about the LocalDB";
         cliParameters.needsLocalDB = true;

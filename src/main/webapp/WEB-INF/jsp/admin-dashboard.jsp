@@ -62,7 +62,7 @@
     }
 %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
-<% String PageName = JspUtility.localizedString(pageContext,"Title_Dashboard",Admin.class);%>
+<% final String PageName = JspUtility.localizedString(pageContext,"Title_Dashboard",Admin.class);%>
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
@@ -265,17 +265,17 @@
                             <% final Collection<LdapProfile> ldapProfiles = dashboard_pwmApplication.getConfig().getLdapProfiles().values(); %>
                             <td>
                                 <% if (ldapProfiles.size() < 2) { %>
-                                <% Date lastError = dashboard_pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfiles.iterator().next()); %>
+                                <% final Date lastError = dashboard_pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfiles.iterator().next()); %>
                                 <span class="timestamp">
                                 <%= lastError == null ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable) : dateFormat.format(lastError) %>
                                 </span>
                                 <% } else { %>
                                 <table class="nomargin">
-                                    <% for (LdapProfile ldapProfile : ldapProfiles) { %>
+                                    <% for (final LdapProfile ldapProfile : ldapProfiles) { %>
                                     <tr>
                                         <td><%=ldapProfile.getDisplayName(dashboard_pwmSession.getSessionStateBean().getLocale())%></td>
                                         <td class="timestamp">
-                                            <% Date lastError = dashboard_pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfile); %>
+                                            <% final Date lastError = dashboard_pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfile); %>
                                             <%= lastError == null ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable) : dateFormat.format(lastError) %>
                                         </td>
                                     </tr>
@@ -343,11 +343,11 @@
                         </td>
                         <td>
                             <%= loopService.status() %>
-                            <% List<HealthRecord> healthRecords = loopService.healthCheck(); %>
+                            <% final List<HealthRecord> healthRecords = loopService.healthCheck(); %>
                         </td>
                         <td>
                             <% if (loopService.serviceInfo() != null && loopService.serviceInfo().getUsedStorageMethods() != null) { %>
-                            <% for (DataStorageMethod loopMethod : loopService.serviceInfo().getUsedStorageMethods()) { %>
+                            <% for (final DataStorageMethod loopMethod : loopService.serviceInfo().getUsedStorageMethods()) { %>
                             <%=loopMethod.toString()%>
                             <br/>
                             <% } %>
@@ -355,7 +355,7 @@
                         </td>
                         <td>
                             <% if (healthRecords != null && !healthRecords.isEmpty()) { %>
-                            <% for (HealthRecord loopRecord : healthRecords) { %>
+                            <% for (final HealthRecord loopRecord : healthRecords) { %>
                             <%= loopRecord.getTopic(locale, dashboard_pwmApplication.getConfig()) %> - <%= loopRecord.getStatus().toString() %> - <%= loopRecord.getDetail(locale,
                                 dashboard_pwmApplication.getConfig()) %>
                             <br/>
@@ -432,7 +432,7 @@
                                 Oldest Local Audit Records
                             </td>
                             <td>
-                                <% Date eldestAuditRecord = dashboard_pwmApplication.getAuditManager().eldestVaultRecord(); %>
+                                <% final Date eldestAuditRecord = dashboard_pwmApplication.getAuditManager().eldestVaultRecord(); %>
                                 <%= eldestAuditRecord != null
                                         ? TimeDuration.fromCurrent(eldestAuditRecord).asLongString()
                                         : JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
@@ -655,7 +655,7 @@
                             <%= dashboard_pwmApplication.getResourceServletService().cacheHitRatio().pretty(2) %>
                         </td>
                     </tr>
-                    <% Map<SessionTrackService.DebugKey,String> debugInfoMap = sessionTrackService.getDebugData(); %>
+                    <% final Map<SessionTrackService.DebugKey,String> debugInfoMap = sessionTrackService.getDebugData(); %>
                     <tr>
                         <td class="key">
                             Session Total Size
@@ -722,7 +722,7 @@
                         </tr>
                         <%
                             final StringBuilder threadTrace = new StringBuilder();
-                            for (StackTraceElement traceElement : threads.get(t)) {
+                            for (final StackTraceElement traceElement : threads.get(t)) {
                                 threadTrace.append(traceElement.toString());
                                 threadTrace.append("\n");
                             }

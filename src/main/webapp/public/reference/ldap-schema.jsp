@@ -43,10 +43,10 @@
     <div id="centerbody">
         <%@ include file="reference-nav.jsp"%>
         <p>Below is the default LDAP schema definition.</p>
-        <%List<SchemaDefinition> schemaDefinitions = SchemaDefinition.getPwmSchemaDefinitions();%>
+        <%final List<SchemaDefinition> schemaDefinitions = SchemaDefinition.getPwmSchemaDefinitions();%>
         <div class="border">
             <code>
-                <% for (SchemaDefinition defintion : schemaDefinitions) { %>
+                <% for (final SchemaDefinition defintion : schemaDefinitions) { %>
                 Type: <%=defintion.getSchemaType()%><br/>
                 Name: <%=defintion.getName()%><br/>
                 Definition: <%=defintion.getDefinition()%><br/>

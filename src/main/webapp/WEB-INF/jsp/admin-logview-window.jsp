@@ -57,8 +57,8 @@
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <select name="level" style="width: auto;" id="select-level">
         <% for (final PwmLogLevel level : PwmLogLevel.values()) { %>
-        <% boolean selected = level.toString().equals(selectedLevel); %>
-        <% boolean disabled = level.compareTo(configuredLevel) < 0; %>
+        <% final boolean selected = level.toString().equals(selectedLevel); %>
+        <% final boolean disabled = level.compareTo(configuredLevel) < 0; %>
         <option value="<%=level%>" <%=selected ?" selected": ""%><%=disabled ? " disabled" : ""%>  ><%=level%></option>
         <% } %>
     </select>

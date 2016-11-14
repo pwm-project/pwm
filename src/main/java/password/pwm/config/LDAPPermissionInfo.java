@@ -33,7 +33,7 @@ public class LDAPPermissionInfo implements Serializable {
     private final Access access;
     private final Actor actor;
 
-    public LDAPPermissionInfo(Access type, Actor actor) {
+    public LDAPPermissionInfo(final Access type, final Actor actor) {
         this.access = type;
         this.actor = actor;
     }

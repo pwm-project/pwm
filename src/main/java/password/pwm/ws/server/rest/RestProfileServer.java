@@ -45,7 +45,12 @@ import password.pwm.ws.server.ServicePermissions;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
@@ -65,7 +70,7 @@ public class RestProfileServer extends AbstractRestServer {
     @GET
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doGetProfileJsonData(
-            final @QueryParam("username") String username
+            @QueryParam("username") final String username
     ) {
         try {
             final RestResultBean restResultBean = doGetProfileDataImpl(request,response,username);
@@ -117,7 +122,7 @@ public class RestProfileServer extends AbstractRestServer {
                 FormUtility.populateFormMapFromLdap(formFields, restRequestBean.getPwmSession().getLabel(), formData, restRequestBean.getPwmSession().getSessionManager().getUserDataReader(restRequestBean.getPwmApplication()));
             }
 
-            for (FormConfiguration formConfig : formData.keySet()) {
+            for (final FormConfiguration formConfig : formData.keySet()) {
                 profileData.put(formConfig.getName(),formData.get(formConfig));
             }
         }
@@ -173,7 +178,7 @@ public class RestProfileServer extends AbstractRestServer {
         final FormMap inputFormData = new FormMap(jsonInput.profile);
         final List<FormConfiguration> profileForm = restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<FormConfiguration,String> profileFormData = new HashMap<>();
-        for (FormConfiguration formConfiguration : profileForm) {
+        for (final FormConfiguration formConfiguration : profileForm) {
             if (!formConfiguration.isReadonly() && inputFormData.containsKey(formConfiguration.getName())) {
                 profileFormData.put(formConfiguration,inputFormData.get(formConfiguration.getName()));
             }

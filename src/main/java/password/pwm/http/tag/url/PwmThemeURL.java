@@ -7,7 +7,7 @@ public enum PwmThemeURL {
     MOBILE_THEME_URL(ResourceFileServlet.THEME_CSS_MOBILE_PATH),
     CONFIG_THEME_URL(ResourceFileServlet.THEME_CSS_CONFIG_PATH),;
 
-    PwmThemeURL(String cssName) {
+    PwmThemeURL(final String cssName) {
         this.cssName = cssName;
     }
 

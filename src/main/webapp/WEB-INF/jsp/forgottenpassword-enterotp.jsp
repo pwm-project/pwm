@@ -38,8 +38,8 @@
         <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <% final ForgottenPasswordBean fpb = JspUtility.getSessionBean(pageContext, ForgottenPasswordBean.class); %>
         <%
-            OTPUserRecord otp = fpb.getUserInfo().getOtpUserRecord();
-            String identifier = otp.getIdentifier();
+            final OTPUserRecord otp = fpb.getUserInfo().getOtpUserRecord();
+            final String identifier = otp.getIdentifier();
 
             if (identifier != null && identifier.length() > 0 ) {
         %>

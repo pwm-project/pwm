@@ -41,11 +41,11 @@ public class LocalDBDataStore implements DataStore {
         localDB.close();
     }
 
-    public boolean contains(String key) throws PwmDataStoreException {
+    public boolean contains(final String key) throws PwmDataStoreException {
         return localDB.contains(db, key);
     }
 
-    public String get(String key) throws PwmDataStoreException {
+    public String get(final String key) throws PwmDataStoreException {
         return localDB.get(db, key);
     }
 
@@ -53,7 +53,7 @@ public class LocalDBDataStore implements DataStore {
         return localDB.iterator(db);
     }
 
-    public void putAll(Map<String, String> keyValueMap) throws PwmDataStoreException {
+    public void putAll(final Map<String, String> keyValueMap) throws PwmDataStoreException {
         localDB.putAll(db, keyValueMap);
     }
 
@@ -77,11 +77,11 @@ public class LocalDBDataStore implements DataStore {
         }
     }
 
-    public boolean put(String key, String value) throws PwmDataStoreException {
+    public boolean put(final String key, final String value) throws PwmDataStoreException {
         return localDB.put(db, key, value);
     }
 
-    public boolean remove(String key) throws PwmDataStoreException {
+    public boolean remove(final String key) throws PwmDataStoreException {
         return localDB.remove(db, key);
     }
 

@@ -32,13 +32,13 @@ import java.util.Locale;
 import java.util.Map;
 
 public class ResponseInfoBean implements Serializable {
-    final private Map<Challenge,String> crMap;
-    final private Map<Challenge,String> helpdeskCrMap;
-    final private Locale locale;
-    final private int minRandoms;
-    final private String csIdentifier;
-    final private DataStorageMethod dataStorageMethod;
-    final private Answer.FormatType formatType;
+    private final Map<Challenge,String> crMap;
+    private final Map<Challenge,String> helpdeskCrMap;
+    private final Locale locale;
+    private final int minRandoms;
+    private final String csIdentifier;
+    private final DataStorageMethod dataStorageMethod;
+    private final Answer.FormatType formatType;
 
     private Date timestamp;
 
@@ -84,7 +84,7 @@ public class ResponseInfoBean implements Serializable {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(final Date timestamp) {
         this.timestamp = timestamp;
     }
 

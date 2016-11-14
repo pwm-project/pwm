@@ -23,7 +23,11 @@
 package password.pwm.util.operations.cr;
 
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.*;
+import com.novell.ldapchai.cr.ChaiChallenge;
+import com.novell.ldapchai.cr.ChaiChallengeSet;
+import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.ChallengeSet;
+import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.cr.bean.ChallengeBean;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
@@ -38,13 +42,23 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.ws.client.novell.pwdmgt.*;
+import password.pwm.ws.client.novell.pwdmgt.ForgotPasswordWSBean;
+import password.pwm.ws.client.novell.pwdmgt.PasswordManagement;
+import password.pwm.ws.client.novell.pwdmgt.PasswordManagementServiceLocator;
+import password.pwm.ws.client.novell.pwdmgt.ProcessChaResRequest;
+import password.pwm.ws.client.novell.pwdmgt.ProcessUserRequest;
 
 import javax.xml.rpc.Stub;
 import java.io.Serializable;
 import java.net.URL;
 import java.rmi.RemoteException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class NMASUAWSOperator implements CrOperator {
 
@@ -52,7 +66,7 @@ public class NMASUAWSOperator implements CrOperator {
 
     final PwmApplication pwmApplication;
 
-    public NMASUAWSOperator(PwmApplication pwmApplication) {
+    public NMASUAWSOperator(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
     }
 
@@ -98,12 +112,12 @@ public class NMASUAWSOperator implements CrOperator {
     }
 
     @Override
-    public void clearResponses(UserIdentity userIdentity, ChaiUser theUser, String userGUID) throws PwmUnrecoverableException {
+    public void clearResponses(final UserIdentity userIdentity, final ChaiUser theUser, final String userGUID) throws PwmUnrecoverableException {
         throw new UnsupportedOperationException("NMASUserAppWebService C/R implementation does not support clearing responses");
     }
 
     @Override
-    public void writeResponses(UserIdentity userIdentity, ChaiUser theUser, String userGuid, ResponseInfoBean responseInfoBean) throws PwmUnrecoverableException {
+    public void writeResponses(final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean) throws PwmUnrecoverableException {
         throw new UnsupportedOperationException("NMASUserAppWebService C/R implementation does not support writing responses");
     }
 
@@ -138,7 +152,7 @@ public class NMASUAWSOperator implements CrOperator {
     }
 
     private static class NovellWSResponseSet implements ResponseSet, Serializable {
-        private transient final PasswordManagement service;
+        private final transient PasswordManagement service;
         private final String userDN;
         private final ChallengeSet challengeSet;
         private final Locale locale;
@@ -146,7 +160,7 @@ public class NMASUAWSOperator implements CrOperator {
 
         private static int lastLocalIdentifier;
 
-        public NovellWSResponseSet(
+        NovellWSResponseSet(
                 final PasswordManagement service,
                 final ForgotPasswordWSBean wsBean
         )
@@ -270,12 +284,12 @@ public class NMASUAWSOperator implements CrOperator {
         }
 
         @Override
-        public List<ChallengeBean> asChallengeBeans(boolean includeAnswers) {
+        public List<ChallengeBean> asChallengeBeans(final boolean includeAnswers) {
             return Collections.emptyList();
         }
 
         @Override
-        public List<ChallengeBean> asHelpdeskChallengeBeans(boolean includeAnswers) {
+        public List<ChallengeBean> asHelpdeskChallengeBeans(final boolean includeAnswers) {
             return Collections.emptyList();
         }
     }

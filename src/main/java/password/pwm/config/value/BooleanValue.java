@@ -39,7 +39,7 @@ import java.util.Locale;
 public class BooleanValue implements StoredValue {
     boolean value;
 
-    public BooleanValue(boolean value) {
+    public BooleanValue(final boolean value) {
         this.value = value;
     }
 
@@ -47,7 +47,7 @@ public class BooleanValue implements StoredValue {
     public static StoredValueFactory factory()
     {
         return new StoredValueFactory() {
-            public BooleanValue fromJson(String value) {
+            public BooleanValue fromJson(final String value) {
                 return new BooleanValue(JsonUtil.deserialize(value, Boolean.class));
             }
 
@@ -61,13 +61,13 @@ public class BooleanValue implements StoredValue {
         };
     }
 
-    public List<String> validateValue(PwmSetting pwmSetting)
+    public List<String> validateValue(final PwmSetting pwmSetting)
     {
         return Collections.emptyList();
     }
 
     @Override
-    public List<Element> toXmlValues(String valueElementName) {
+    public List<Element> toXmlValues(final String valueElementName) {
         final Element valueElement = new Element(valueElementName);
         valueElement.addContent(String.valueOf(value));
         return Collections.singletonList(valueElement);
@@ -78,15 +78,17 @@ public class BooleanValue implements StoredValue {
         return value;
     }
 
-    public String toDebugString(Locale locale) {
-        locale = locale == null ? PwmConstants.DEFAULT_LOCALE : locale;
+    public String toDebugString(final Locale locale) {
+        final Locale loc = (locale == null)
+                ? PwmConstants.DEFAULT_LOCALE
+                : locale;
         return value
-                ? Display.getLocalizedMessage(locale,Display.Value_True,null)
-                : Display.getLocalizedMessage(locale,Display.Value_False,null);
+                ? Display.getLocalizedMessage(loc,Display.Value_True,null)
+                : Display.getLocalizedMessage(loc,Display.Value_False,null);
     }
 
     @Override
-    public Serializable toDebugJsonObject(Locale locale) {
+    public Serializable toDebugJsonObject(final Locale locale) {
         return value;
     }
 

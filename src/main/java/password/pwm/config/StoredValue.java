@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Locale;
 
 public interface StoredValue extends Serializable {
-    List<Element> toXmlValues(final String valueElementName);
+    List<Element> toXmlValues( String valueElementName);
 
     Object toNativeObject();
 
@@ -47,9 +47,9 @@ public interface StoredValue extends Serializable {
     int currentSyntaxVersion();
 
     interface StoredValueFactory {
-        StoredValue fromJson(final String input);
+        StoredValue fromJson( String input);
 
-        StoredValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
+        StoredValue fromXmlElement( Element settingElement,  PwmSecurityKey key)
                 throws PwmException;
     }
 

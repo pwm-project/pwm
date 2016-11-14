@@ -28,7 +28,7 @@ public class ReportColumnFilter {
         return userDnVisible;
     }
 
-    public void setUserDnVisible(boolean userDnVisible) {
+    public void setUserDnVisible(final boolean userDnVisible) {
         this.userDnVisible = userDnVisible;
     }
 
@@ -36,7 +36,7 @@ public class ReportColumnFilter {
         return ldapProfileVisible;
     }
 
-    public void setLdapProfileVisible(boolean ldapProfileVisible) {
+    public void setLdapProfileVisible(final boolean ldapProfileVisible) {
         this.ldapProfileVisible = ldapProfileVisible;
     }
 
@@ -44,7 +44,7 @@ public class ReportColumnFilter {
         return usernameVisible;
     }
 
-    public void setUsernameVisible(boolean usernameVisible) {
+    public void setUsernameVisible(final boolean usernameVisible) {
         this.usernameVisible = usernameVisible;
     }
 
@@ -52,7 +52,7 @@ public class ReportColumnFilter {
         return emailVisible;
     }
 
-    public void setEmailVisible(boolean emailVisible) {
+    public void setEmailVisible(final boolean emailVisible) {
         this.emailVisible = emailVisible;
     }
 
@@ -60,7 +60,7 @@ public class ReportColumnFilter {
         return userGuidVisible;
     }
 
-    public void setUserGuidVisible(boolean userGuidVisible) {
+    public void setUserGuidVisible(final boolean userGuidVisible) {
         this.userGuidVisible = userGuidVisible;
     }
 
@@ -68,7 +68,7 @@ public class ReportColumnFilter {
         return accountExpirationTimeVisible;
     }
 
-    public void setAccountExpirationTimeVisible(boolean accountExpirationTimeVisible) {
+    public void setAccountExpirationTimeVisible(final boolean accountExpirationTimeVisible) {
         this.accountExpirationTimeVisible = accountExpirationTimeVisible;
     }
 
@@ -76,7 +76,7 @@ public class ReportColumnFilter {
         return lastLoginTimeVisible;
     }
 
-    public void setLastLoginTimeVisible(boolean lastLoginTimeVisible) {
+    public void setLastLoginTimeVisible(final boolean lastLoginTimeVisible) {
         this.lastLoginTimeVisible = lastLoginTimeVisible;
     }
 
@@ -84,7 +84,7 @@ public class ReportColumnFilter {
         return passwordExpirationTimeVisible;
     }
 
-    public void setPasswordExpirationTimeVisible(boolean passwordExpirationTimeVisible) {
+    public void setPasswordExpirationTimeVisible(final boolean passwordExpirationTimeVisible) {
         this.passwordExpirationTimeVisible = passwordExpirationTimeVisible;
     }
 
@@ -92,7 +92,7 @@ public class ReportColumnFilter {
         return passwordChangeTimeVisible;
     }
 
-    public void setPasswordChangeTimeVisible(boolean passwordChangeTimeVisible) {
+    public void setPasswordChangeTimeVisible(final boolean passwordChangeTimeVisible) {
         this.passwordChangeTimeVisible = passwordChangeTimeVisible;
     }
 
@@ -100,7 +100,7 @@ public class ReportColumnFilter {
         return responseSetTimeVisible;
     }
 
-    public void setResponseSetTimeVisible(boolean responseSetTimeVisible) {
+    public void setResponseSetTimeVisible(final boolean responseSetTimeVisible) {
         this.responseSetTimeVisible = responseSetTimeVisible;
     }
 
@@ -108,7 +108,7 @@ public class ReportColumnFilter {
         return hasResponsesVisible;
     }
 
-    public void setHasResponsesVisible(boolean hasResponsesVisible) {
+    public void setHasResponsesVisible(final boolean hasResponsesVisible) {
         this.hasResponsesVisible = hasResponsesVisible;
     }
 
@@ -116,7 +116,7 @@ public class ReportColumnFilter {
         return hasHelpdeskResponsesVisible;
     }
 
-    public void setHasHelpdeskResponsesVisible(boolean hasHelpdeskResponsesVisible) {
+    public void setHasHelpdeskResponsesVisible(final boolean hasHelpdeskResponsesVisible) {
         this.hasHelpdeskResponsesVisible = hasHelpdeskResponsesVisible;
     }
 
@@ -124,7 +124,7 @@ public class ReportColumnFilter {
         return responseStorageMethodVisible;
     }
 
-    public void setResponseStorageMethodVisible(boolean responseStorageMethodVisible) {
+    public void setResponseStorageMethodVisible(final boolean responseStorageMethodVisible) {
         this.responseStorageMethodVisible = responseStorageMethodVisible;
     }
 
@@ -132,7 +132,7 @@ public class ReportColumnFilter {
         return responseFormatTypeVisible;
     }
 
-    public void setResponseFormatTypeVisible(boolean responseFormatTypeVisible) {
+    public void setResponseFormatTypeVisible(final boolean responseFormatTypeVisible) {
         this.responseFormatTypeVisible = responseFormatTypeVisible;
     }
 
@@ -140,7 +140,7 @@ public class ReportColumnFilter {
         return passwordStatusExpiredVisible;
     }
 
-    public void setPasswordStatusExpiredVisible(boolean passwordStatusExpiredVisible) {
+    public void setPasswordStatusExpiredVisible(final boolean passwordStatusExpiredVisible) {
         this.passwordStatusExpiredVisible = passwordStatusExpiredVisible;
     }
 
@@ -148,7 +148,7 @@ public class ReportColumnFilter {
         return passwordStatusPreExpiredVisible;
     }
 
-    public void setPasswordStatusPreExpiredVisible(boolean passwordStatusPreExpiredVisible) {
+    public void setPasswordStatusPreExpiredVisible(final boolean passwordStatusPreExpiredVisible) {
         this.passwordStatusPreExpiredVisible = passwordStatusPreExpiredVisible;
     }
 
@@ -156,7 +156,7 @@ public class ReportColumnFilter {
         return passwordStatusViolatesPolicyVisible;
     }
 
-    public void setPasswordStatusViolatesPolicyVisible(boolean passwordStatusViolatesPolicyVisible) {
+    public void setPasswordStatusViolatesPolicyVisible(final boolean passwordStatusViolatesPolicyVisible) {
         this.passwordStatusViolatesPolicyVisible = passwordStatusViolatesPolicyVisible;
     }
 
@@ -164,7 +164,7 @@ public class ReportColumnFilter {
         return passwordStatusWarnPeriodVisible;
     }
 
-    public void setPasswordStatusWarnPeriodVisible(boolean passwordStatusWarnPeriodVisible) {
+    public void setPasswordStatusWarnPeriodVisible(final boolean passwordStatusWarnPeriodVisible) {
         this.passwordStatusWarnPeriodVisible = passwordStatusWarnPeriodVisible;
     }
 
@@ -172,7 +172,7 @@ public class ReportColumnFilter {
         return requiresPasswordUpdateVisible;
     }
 
-    public void setRequiresPasswordUpdateVisible(boolean requiresPasswordUpdateVisible) {
+    public void setRequiresPasswordUpdateVisible(final boolean requiresPasswordUpdateVisible) {
         this.requiresPasswordUpdateVisible = requiresPasswordUpdateVisible;
     }
 
@@ -180,7 +180,7 @@ public class ReportColumnFilter {
         return requiresResponseUpdateVisible;
     }
 
-    public void setRequiresResponseUpdateVisible(boolean requiresResponseUpdateVisible) {
+    public void setRequiresResponseUpdateVisible(final boolean requiresResponseUpdateVisible) {
         this.requiresResponseUpdateVisible = requiresResponseUpdateVisible;
     }
 
@@ -188,7 +188,7 @@ public class ReportColumnFilter {
         return requiresProfileUpdateVisible;
     }
 
-    public void setRequiresProfileUpdateVisible(boolean requiresProfileUpdateVisible) {
+    public void setRequiresProfileUpdateVisible(final boolean requiresProfileUpdateVisible) {
         this.requiresProfileUpdateVisible = requiresProfileUpdateVisible;
     }
 
@@ -196,7 +196,7 @@ public class ReportColumnFilter {
         return cacheTimestampVisible;
     }
 
-    public void setCacheTimestampVisible(boolean cacheTimestampVisible) {
+    public void setCacheTimestampVisible(final boolean cacheTimestampVisible) {
         this.cacheTimestampVisible = cacheTimestampVisible;
     }
 }

@@ -60,7 +60,7 @@ public class Percent {
         this(BigDecimal.valueOf(numerator), BigDecimal.valueOf(denominator));
     }
 
-    public BigDecimal asBigDecimal(int decimals) {
+    public BigDecimal asBigDecimal(final int decimals) {
         final BigDecimal pct = asBigDecimal();
         return pct.scale() > decimals
                 ? pct.setScale(decimals, DEFAULT_ROUNDINGMODE)
@@ -83,7 +83,7 @@ public class Percent {
         return pretty(DEFAULT_SCALE);
     }
 
-    public String pretty(int decimals) {
+    public String pretty(final int decimals) {
         return asBigDecimal(decimals).toString() + "%";
     }
 

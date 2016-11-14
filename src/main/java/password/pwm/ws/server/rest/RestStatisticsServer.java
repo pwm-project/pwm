@@ -41,7 +41,11 @@ import password.pwm.ws.server.ServicePermissions;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -76,9 +80,9 @@ public class RestStatisticsServer extends AbstractRestServer {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response doPwmStatisticJsonGet(
-            final @QueryParam("statKey") String statKey,
-            final @QueryParam("statName") String statName,
-            final @QueryParam("days") String days
+            @QueryParam("statKey") final String statKey,
+            @QueryParam("statName") final String statName,
+            @QueryParam("days") final String days
     )
     {
         final ServicePermissions servicePermissions = figurePermissions();
@@ -91,7 +95,7 @@ public class RestStatisticsServer extends AbstractRestServer {
 
         try {
             final StatisticsManager statisticsManager = restRequestBean.getPwmApplication().getStatisticsManager();
-            JsonOutput jsonOutput = new JsonOutput();
+            final JsonOutput jsonOutput = new JsonOutput();
             jsonOutput.EPS = addEpsStats(statisticsManager);
 
             if (statName != null && statName.length() > 0) {
@@ -124,14 +128,14 @@ public class RestStatisticsServer extends AbstractRestServer {
         return results;
     }
 
-    private Map<String,Object> doKeyStat(final StatisticsManager statisticsManager, String statKey) {
-        if (statKey == null || statKey.length() < 1) {
-            statKey = StatisticsManager.KEY_CUMULATIVE;
-        }
+    private Map<String,Object> doKeyStat(final StatisticsManager statisticsManager, final String statKey) {
+        final String key = (statKey == null)
+                ? StatisticsManager.KEY_CUMULATIVE
+                : statKey;
 
-        final StatisticsBundle statisticsBundle = statisticsManager.getStatBundleForKey(statKey);
+        final StatisticsBundle statisticsBundle = statisticsManager.getStatBundleForKey(key);
         final Map<String,Object> outputValueMap = new TreeMap<>();
-        for (Statistic stat : Statistic.values()) {
+        for (final Statistic stat : Statistic.values()) {
             outputValueMap.put(stat.getKey(),statisticsBundle.getStatistic(stat));
         }
 

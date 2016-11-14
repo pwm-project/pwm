@@ -38,6 +38,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.FileSystemUtility;
+import password.pwm.util.Helper;
 import password.pwm.util.cli.commands.ClearResponsesCommand;
 import password.pwm.util.cli.commands.CliCommand;
 import password.pwm.util.cli.commands.ConfigDeleteCommand;
@@ -94,6 +95,7 @@ public class MainClass {
     private static MainOptions MAIN_OPTIONS;
 
     public static final Map<String,CliCommand> COMMANDS;
+
     static {
         final List<CliCommand> commandList = new ArrayList<>();
         commandList.add(new LocalDBInfoCommand());
@@ -123,18 +125,18 @@ public class MainClass {
         commandList.add(new HelpCommand());
 
         final Map<String,CliCommand> sortedMap = new TreeMap<>();
-        for (CliCommand command : commandList) {
+        for (final CliCommand command : commandList) {
             sortedMap.put(command.getCliParameters().commandName,command);
         }
         COMMANDS = Collections.unmodifiableMap(sortedMap);
     }
 
-    public static String helpTextFromCommands(Collection<CliCommand> commands) {
+    public static String helpTextFromCommands(final Collection<CliCommand> commands) {
         final StringBuilder output = new StringBuilder();
-        for (CliCommand command : commands) {
+        for (final CliCommand command : commands) {
             output.append(command.getCliParameters().commandName);
             if (command.getCliParameters().options != null) {
-                for (CliParameters.Option option : command.getCliParameters().options) {
+                for (final CliParameters.Option option : command.getCliParameters().options) {
                     output.append(" ");
                     if (option.isOptional()) {
                         output.append("<").append(option.getName()).append(">");
@@ -166,7 +168,7 @@ public class MainClass {
     }
 
     private static CliEnvironment createEnv(
-            CliParameters parameters,
+            final CliParameters parameters,
             final List<String> args
     )
             throws Exception
@@ -222,7 +224,7 @@ public class MainClass {
         final Map<String,Object> returnObj = new LinkedHashMap<>();
 
         if (cliParameters.options != null) {
-            for (CliParameters.Option option : cliParameters.options) {
+            for (final CliParameters.Option option : cliParameters.options) {
                 if (!option.isOptional() && argQueue.isEmpty()) {
                     throw new CliException("missing required option '" + option.getName() + "'");
                 }
@@ -232,7 +234,7 @@ public class MainClass {
                     switch (option.getType()) {
                         case NEW_FILE:
                             try {
-                                File theFile = new File(argument);
+                                final File theFile = new File(argument);
                                 if (theFile.exists()) {
                                     throw new CliException("file for option '" + option.getName() + "' at '" + theFile.getAbsolutePath() + "' already exists");
                                 }
@@ -248,7 +250,7 @@ public class MainClass {
 
                         case EXISTING_FILE:
                             try {
-                                File theFile = new File(argument);
+                                final File theFile = new File(argument);
                                 if (!theFile.exists()) {
                                     throw new CliException("file for option '" + option.getName() + "' at '" + theFile.getAbsolutePath() + "' does not exist");
                                 }
@@ -264,6 +266,9 @@ public class MainClass {
                         case STRING:
                             returnObj.put(option.getName(), argument);
                             break;
+
+                        default:
+                            Helper.unhandledSwitchStatement(option.getType());
                     }
                 }
             }
@@ -276,35 +281,35 @@ public class MainClass {
         return returnObj;
     }
 
-    public static void main(String[] args)
+    public static void main(final String[] args)
             throws Exception
     {
         out(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " Command Line Utility");
         MAIN_OPTIONS = MainOptions.parseMainCommandLineOptions(args, new OutputStreamWriter(System.out));
-        args = MAIN_OPTIONS.getRemainingArguments();
+        final String[] workingArgs = MAIN_OPTIONS.getRemainingArguments();
 
         initLog4j(MAIN_OPTIONS.getPwmLogLevel());
 
-        final String commandStr = args == null || args.length < 1 ? null : args[0];
+        final String commandStr = workingArgs == null || workingArgs.length < 1 ? null : workingArgs[0];
 
         if (commandStr == null) {
             out("\n");
             out(makeHelpTextOutput());
         } else {
-            for (CliCommand command : COMMANDS.values()) {
+            for (final CliCommand command : COMMANDS.values()) {
                 if (commandStr.equalsIgnoreCase(command.getCliParameters().commandName)) {
-                    executeCommand(command, commandStr, args);
+                    executeCommand(command, commandStr, workingArgs);
                     break;
                 }
             }
-            out("unknown command '" + args[0] + "'");
+            out("unknown command '" + workingArgs[0] + "'");
         }
     }
 
     private static void executeCommand(
-            CliCommand command,
-            String commandStr,
-            String[] args
+            final CliCommand command,
+            final String commandStr,
+            final String[] args
     ) {
         final List<String> argList = new LinkedList<>(Arrays.asList(args));
         argList.remove(0);
@@ -350,7 +355,7 @@ public class MainClass {
 
     }
 
-    private static void initLog4j(PwmLogLevel logLevel) {
+    private static void initLog4j(final PwmLogLevel logLevel) {
         if (logLevel == null) {
             Logger.getRootLogger().removeAllAppenders();
             Logger.getRootLogger().addAppender(new NullAppender());
@@ -428,11 +433,11 @@ public class MainClass {
         return pwmApplication;
     }
 
-    private static File locateConfigurationFile(File applicationPath) {
+    private static File locateConfigurationFile(final File applicationPath) {
         return new File(applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
     }
 
-    private static void out(CharSequence txt) {
+    private static void out(final CharSequence txt) {
         System.out.println(txt);
     }
 

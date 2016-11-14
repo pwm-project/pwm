@@ -25,7 +25,6 @@ package password.pwm.http;
 import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
-import password.pwm.util.Validator;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -33,12 +32,24 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.StringUtil;
+import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class PwmHttpRequestWrapper {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmHttpRequestWrapper.class);
@@ -50,7 +61,7 @@ public abstract class PwmHttpRequestWrapper {
         BypassValidation
     }
 
-    protected PwmHttpRequestWrapper(HttpServletRequest request, final Configuration configuration) {
+    protected PwmHttpRequestWrapper(final HttpServletRequest request, final Configuration configuration) {
         this.httpServletRequest = request;
         this.configuration = configuration;
     }
@@ -107,7 +118,7 @@ public abstract class PwmHttpRequestWrapper {
     public Map<String, String> readBodyAsJsonStringMap(final Flag... flags)
             throws IOException, PwmUnrecoverableException
     {
-        boolean bypassInputValidation = flags != null && Arrays.asList(flags).contains(Flag.BypassValidation);
+        final boolean bypassInputValidation = flags != null && Arrays.asList(flags).contains(Flag.BypassValidation);
         final String bodyString = readRequestBodyAsString();
         final Map<String, String> inputMap = JsonUtil.deserializeStringMap(bodyString);
 
@@ -136,7 +147,7 @@ public abstract class PwmHttpRequestWrapper {
         return Collections.unmodifiableMap(outputMap);
     }
 
-    public Map<String, Object> readBodyAsJsonMap(boolean bypassInputValidation)
+    public Map<String, Object> readBodyAsJsonMap(final boolean bypassInputValidation)
             throws IOException, PwmUnrecoverableException
     {
         final String bodyString = readRequestBodyAsString();
@@ -241,7 +252,7 @@ public abstract class PwmHttpRequestWrapper {
     )
             throws PwmUnrecoverableException
     {
-        boolean bypassInputValidation = flags != null && Arrays.asList(flags).contains(Flag.BypassValidation);
+        final boolean bypassInputValidation = flags != null && Arrays.asList(flags).contains(Flag.BypassValidation);
         final HttpServletRequest req = this.getHttpServletRequest();
         final boolean trim = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_INPUT_TRIM));
         final String[] rawValues = req.getParameterValues(name);
@@ -302,7 +313,7 @@ public abstract class PwmHttpRequestWrapper {
     public List<String> parameterNames() {
         final int maxChars = Integer.parseInt(configuration.readAppProperty(AppProperty.HTTP_PARAM_MAX_READ_LENGTH));
         final List<String> returnObj = new ArrayList();
-        for (Enumeration nameEnum = getHttpServletRequest().getParameterNames(); nameEnum.hasMoreElements(); ) {
+        for (final Enumeration nameEnum = getHttpServletRequest().getParameterNames(); nameEnum.hasMoreElements(); ) {
             final String paramName = nameEnum.nextElement().toString();
             final String returnName = Validator.sanitizeInputValue(configuration, paramName, maxChars);
             returnObj.add(returnName);
@@ -313,7 +324,7 @@ public abstract class PwmHttpRequestWrapper {
     public Map<String, String> readParametersAsMap()
             throws PwmUnrecoverableException {
         final Map<String, String> returnObj = new HashMap<>();
-        for (String paramName : parameterNames()) {
+        for (final String paramName : parameterNames()) {
             final String paramValue = readParameterAsString(paramName);
             returnObj.put(paramName, paramValue);
         }
@@ -324,7 +335,7 @@ public abstract class PwmHttpRequestWrapper {
             throws PwmUnrecoverableException {
         final int maxLength = Integer.parseInt(configuration.readAppProperty(AppProperty.HTTP_PARAM_MAX_READ_LENGTH));
         final Map<String, List<String>> returnObj = new HashMap<>();
-        for (String paramName : parameterNames()) {
+        for (final String paramName : parameterNames()) {
             final List<String> values = readParameterAsStrings(paramName, maxLength);
             returnObj.put(paramName, values);
         }

@@ -1,3 +1,4 @@
+
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -151,6 +152,7 @@
         });
     </script>
 </pwm:script>
+<pwm:script-ref url="/public/resources/js/admin.js"/>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
 <pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor.js"/>

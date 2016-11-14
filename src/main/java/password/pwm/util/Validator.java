@@ -116,17 +116,17 @@ public class Validator {
     public static String sanitizeInputValue(
             final Configuration config,
             final String input,
-            int maxLength
+            final int maxLength
     ) {
         String theString = input == null ? "" : input;
 
-        if (maxLength < 1) {
-            maxLength = 10 * 1024;
-        }
+        final int max = (maxLength < 1)
+                ? 10 * 1024
+                : maxLength;
 
         // strip off any length beyond the specified maxLength.
-        if (theString.length() > maxLength) {
-            theString = theString.substring(0, maxLength);
+        if (theString.length() > max) {
+            theString = theString.substring(0, max);
         }
 
         // strip off any disallowed chars.

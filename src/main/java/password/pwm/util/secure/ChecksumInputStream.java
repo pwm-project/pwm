@@ -35,7 +35,7 @@ public class ChecksumInputStream extends InputStream {
     private final MessageDigest messageDigest;
     private final InputStream wrappedStream;
 
-    public ChecksumInputStream(PwmHashAlgorithm hash, InputStream wrappedStream) throws PwmUnrecoverableException {
+    public ChecksumInputStream(final PwmHashAlgorithm hash, final InputStream wrappedStream) throws PwmUnrecoverableException {
         this.wrappedStream = wrappedStream;
 
         try {
@@ -67,7 +67,7 @@ public class ChecksumInputStream extends InputStream {
 
     @Override
     public int read(final byte[] b, final int off, final int len) throws IOException {
-        int length = wrappedStream.read(b, off, len);
+        final int length = wrappedStream.read(b, off, len);
         if (length > 0) {
             messageDigest.update(b,off,length);
         }
@@ -75,7 +75,7 @@ public class ChecksumInputStream extends InputStream {
     }
 
     @Override
-    public long skip(long n) throws IOException {
+    public long skip(final long n) throws IOException {
         throw new IOException("operation not supported");
     }
 
@@ -90,7 +90,7 @@ public class ChecksumInputStream extends InputStream {
     }
 
     @Override
-    public synchronized void mark(int readlimit) {
+    public synchronized void mark(final int readlimit) {
         wrappedStream.mark(readlimit);
     }
 

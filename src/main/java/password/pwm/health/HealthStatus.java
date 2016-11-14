@@ -39,7 +39,7 @@ public enum HealthStatus {
 
     private int severityLevel;
 
-    HealthStatus(int severityLevel) {
+    HealthStatus(final int severityLevel) {
         this.severityLevel = severityLevel;
     }
 

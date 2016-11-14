@@ -24,13 +24,23 @@ package password.pwm.config;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.LocaleHelper;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -282,6 +292,9 @@ public class FormConfiguration implements Serializable {
                 }
                 break;
 
+            default:
+                // continue for other types
+                break;
         }
 
         if (value != null && (this.getMinimumLength() > 0) && (value.length() > 0) && (value.length() < this.getMinimumLength())) {

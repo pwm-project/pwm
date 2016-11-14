@@ -35,7 +35,7 @@ public enum RecordType {
 
     private final Statistic lockStatistic;
 
-    RecordType(Statistic lockStatistic)
+    RecordType(final Statistic lockStatistic)
     {
         this.lockStatistic = lockStatistic;
     }

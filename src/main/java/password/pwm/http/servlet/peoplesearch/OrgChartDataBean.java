@@ -34,7 +34,7 @@ class OrgChartDataBean implements Serializable {
         return parent;
     }
 
-    public void setParent(OrgChartReferenceBean parent) {
+    public void setParent(final OrgChartReferenceBean parent) {
         this.parent = parent;
     }
 
@@ -42,7 +42,7 @@ class OrgChartDataBean implements Serializable {
         return self;
     }
 
-    public void setSelf(OrgChartReferenceBean self) {
+    public void setSelf(final OrgChartReferenceBean self) {
         this.self = self;
     }
 
@@ -50,7 +50,7 @@ class OrgChartDataBean implements Serializable {
         return children;
     }
 
-    public void setChildren(List<OrgChartReferenceBean> children) {
+    public void setChildren(final List<OrgChartReferenceBean> children) {
         this.children = children;
     }
 }

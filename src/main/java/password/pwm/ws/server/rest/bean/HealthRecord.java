@@ -35,7 +35,7 @@ public class HealthRecord implements Serializable {
     public String topic;
     public String detail;
 
-    public static HealthRecord fromHealthRecord(password.pwm.health.HealthRecord healthRecord, Locale locale, final Configuration config) {
+    public static HealthRecord fromHealthRecord(final password.pwm.health.HealthRecord healthRecord, final Locale locale, final Configuration config) {
         final HealthRecord bean = new HealthRecord();
         bean.status = healthRecord.getStatus();
         bean.topic = healthRecord.getTopic(locale,config);
@@ -45,7 +45,7 @@ public class HealthRecord implements Serializable {
 
     public static List<HealthRecord> fromHealthRecords(final List<password.pwm.health.HealthRecord> healthRecords, final Locale locale, final Configuration config) {
         final List<HealthRecord> beanList = new ArrayList<>();
-        for (password.pwm.health.HealthRecord record : healthRecords) {
+        for (final password.pwm.health.HealthRecord record : healthRecords) {
             if (record != null) {
                 beanList.add(fromHealthRecord(record, locale, config));
             }

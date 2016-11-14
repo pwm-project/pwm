@@ -160,7 +160,7 @@ public class WorkQueueProcessor<W extends Serializable> {
         return eldestItem;
     }
 
-    private String makeDebugText(ItemWrapper<W> itemWrapper) throws PwmOperationalException {
+    private String makeDebugText(final ItemWrapper<W> itemWrapper) throws PwmOperationalException {
         final int itemsInQueue = WorkQueueProcessor.this.queueSize();
         String traceMsg = "[" + itemWrapper.toDebugString(itemProcessor) + "]";
         if (itemsInQueue > 0) {
@@ -346,7 +346,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             return id;
         }
 
-        String toDebugString(ItemProcessor<W> itemProcessor) throws PwmOperationalException {
+        String toDebugString(final ItemProcessor<W> itemProcessor) throws PwmOperationalException {
             final Map<String,String> debugOutput = new LinkedHashMap<>();
             debugOutput.put("date", PwmConstants.DEFAULT_DATETIME_FORMAT.format(getDate()));
             debugOutput.put("id", getId());
@@ -376,7 +376,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             return maxEvents;
         }
 
-        public void setMaxEvents(int maxEvents) {
+        public void setMaxEvents(final int maxEvents) {
             this.maxEvents = maxEvents;
         }
 
@@ -384,7 +384,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             return maxSubmitWaitTime;
         }
 
-        public void setMaxSubmitWaitTime(TimeDuration maxSubmitWaitTime) {
+        public void setMaxSubmitWaitTime(final TimeDuration maxSubmitWaitTime) {
             this.maxSubmitWaitTime = maxSubmitWaitTime;
         }
 
@@ -392,7 +392,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             return retryInterval;
         }
 
-        public void setRetryInterval(TimeDuration retryInterval) {
+        public void setRetryInterval(final TimeDuration retryInterval) {
             this.retryInterval = retryInterval;
         }
 
@@ -400,7 +400,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             return retryDiscardAge;
         }
 
-        public void setRetryDiscardAge(TimeDuration retryDiscardAge) {
+        public void setRetryDiscardAge(final TimeDuration retryDiscardAge) {
             this.retryDiscardAge = retryDiscardAge;
         }
 
@@ -408,7 +408,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             return maxShutdownWaitTime;
         }
 
-        public void setMaxShutdownWaitTime(TimeDuration maxShutdownWaitTime) {
+        public void setMaxShutdownWaitTime(final TimeDuration maxShutdownWaitTime) {
             this.maxShutdownWaitTime = maxShutdownWaitTime;
         }
     }

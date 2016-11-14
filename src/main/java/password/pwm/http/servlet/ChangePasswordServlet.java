@@ -28,14 +28,22 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.*;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.RequireCurrentPasswordMode;
 import password.pwm.config.profile.PwmPasswordRule;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -47,6 +55,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmPasswordRuleValidator;
@@ -59,7 +68,11 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * User interaction servlet for changing (self) passwords.
@@ -93,7 +106,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
 
         private final HttpMethod method;
 
-        ChangePasswordAction(HttpMethod method)
+        ChangePasswordAction(final HttpMethod method)
         {
             this.method = method;
         }
@@ -183,6 +196,9 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
 
                     pwmRequest.sendRedirect(pwmRequest.getHttpServletRequest().getContextPath());
                     break;
+
+                default:
+                    Helper.unhandledSwitchStatement(action);
             }
         }
 
@@ -237,7 +253,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         }
 
         //make sure the two passwords match
-        boolean caseSensitive = uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(
+        final boolean caseSensitive = uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(
                 PwmPasswordRule.CaseSensitive);
         if (PasswordUtility.PasswordCheckInfo.MATCH_STATUS.MATCH != PasswordUtility.figureMatchStatus(caseSensitive,
                 password1, password2)) {
@@ -265,7 +281,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         LOGGER.debug(pwmRequest, "user accepted password change agreement");
         if (!cpb.isAgreementPassed()) {
             cpb.setAgreementPassed(true);
-            AuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
+            final AuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getSessionLabel(),

@@ -45,7 +45,7 @@ public interface CrOperator {
     /**
      Read a response set suitable for use in forgotten password scenarios
      */
-    public ResponseSet readResponseSet(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID)
+    ResponseSet readResponseSet(ChaiUser theUser, UserIdentity userIdentity, String userGUID)
             throws PwmUnrecoverableException;
 
     /**
@@ -55,18 +55,18 @@ public interface CrOperator {
      * @return
      * @throws PwmUnrecoverableException
      */
-    public ResponseInfoBean readResponseInfo(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID)
+    ResponseInfoBean readResponseInfo(ChaiUser theUser, UserIdentity userIdentity, String userGUID)
             throws PwmUnrecoverableException;
 
-    public void clearResponses(UserIdentity userIdentity, final ChaiUser theUser, final String userGUID)
+    void clearResponses(UserIdentity userIdentity, ChaiUser theUser, String userGUID)
             throws PwmUnrecoverableException;
 
-    public void writeResponses(UserIdentity userIdentity, final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean)
+    void writeResponses(UserIdentity userIdentity, ChaiUser theUser, String userGuid, ResponseInfoBean responseInfoBean)
             throws PwmUnrecoverableException;
 
-    public void close();
+    void close();
 
-    static class CrOperators {
+    class CrOperators {
         private static final PwmLogger LOGGER = PwmLogger.forClass(CrOperator.class);
 
         static ResponseInfoBean convertToNoAnswerInfoBean(final ResponseSet responseSet, final DataStorageMethod dataSource
@@ -91,7 +91,7 @@ public interface CrOperator {
                 crMap.put(challenge,"");
             }
 
-            ResponseInfoBean responseInfoBean = new ResponseInfoBean(
+            final ResponseInfoBean responseInfoBean = new ResponseInfoBean(
                     crMap,
                     responseSet.getHelpdeskResponses(),
                     responseSet.getLocale(),

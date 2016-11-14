@@ -49,7 +49,7 @@ public class SetupResponsesBean extends PwmSessionBean {
         return responseData;
     }
 
-    public void setResponseData(SetupData responseData) {
+    public void setResponseData(final SetupData responseData) {
         this.responseData = responseData;
     }
 
@@ -57,7 +57,7 @@ public class SetupResponsesBean extends PwmSessionBean {
         return helpdeskResponseData;
     }
 
-    public void setHelpdeskResponseData(SetupData helpdeskResponseData) {
+    public void setHelpdeskResponseData(final SetupData helpdeskResponseData) {
         this.helpdeskResponseData = helpdeskResponseData;
     }
 
@@ -65,7 +65,7 @@ public class SetupResponsesBean extends PwmSessionBean {
         return responsesSatisfied;
     }
 
-    public void setResponsesSatisfied(boolean responsesSatisfied) {
+    public void setResponsesSatisfied(final boolean responsesSatisfied) {
         this.responsesSatisfied = responsesSatisfied;
     }
 
@@ -73,7 +73,7 @@ public class SetupResponsesBean extends PwmSessionBean {
         return helpdeskResponsesSatisfied;
     }
 
-    public void setHelpdeskResponsesSatisfied(boolean helpdeskResponsesSatisfied) {
+    public void setHelpdeskResponsesSatisfied(final boolean helpdeskResponsesSatisfied) {
         this.helpdeskResponsesSatisfied = helpdeskResponsesSatisfied;
     }
 
@@ -81,7 +81,7 @@ public class SetupResponsesBean extends PwmSessionBean {
         return confirmed;
     }
 
-    public void setConfirmed(boolean confirmed) {
+    public void setConfirmed(final boolean confirmed) {
         this.confirmed = confirmed;
     }
 
@@ -89,7 +89,7 @@ public class SetupResponsesBean extends PwmSessionBean {
         return userLocale;
     }
 
-    public void setUserLocale(Locale userLocale) {
+    public void setUserLocale(final Locale userLocale) {
         this.userLocale = userLocale;
     }
 
@@ -98,7 +98,7 @@ public class SetupResponsesBean extends PwmSessionBean {
         return hasExistingResponses;
     }
 
-    public void setHasExistingResponses(boolean hasExistingResponses)
+    public void setHasExistingResponses(final boolean hasExistingResponses)
     {
         this.hasExistingResponses = hasExistingResponses;
     }
@@ -117,7 +117,7 @@ public class SetupResponsesBean extends PwmSessionBean {
             return challengeSet;
         }
 
-        public void setChallengeSet(ChallengeSet challengeSet) {
+        public void setChallengeSet(final ChallengeSet challengeSet) {
             this.challengeSet = challengeSet;
         }
 
@@ -125,7 +125,7 @@ public class SetupResponsesBean extends PwmSessionBean {
             return indexedChallenges;
         }
 
-        public void setIndexedChallenges(Map<String, Challenge> indexedChallenges) {
+        public void setIndexedChallenges(final Map<String, Challenge> indexedChallenges) {
             this.indexedChallenges = indexedChallenges;
         }
 
@@ -133,7 +133,7 @@ public class SetupResponsesBean extends PwmSessionBean {
             return simpleMode;
         }
 
-        public void setSimpleMode(boolean simpleMode) {
+        public void setSimpleMode(final boolean simpleMode) {
             this.simpleMode = simpleMode;
         }
 
@@ -141,7 +141,7 @@ public class SetupResponsesBean extends PwmSessionBean {
             return minRandomSetup;
         }
 
-        public void setMinRandomSetup(int minRandomSetup) {
+        public void setMinRandomSetup(final int minRandomSetup) {
             this.minRandomSetup = minRandomSetup;
         }
 
@@ -149,7 +149,7 @@ public class SetupResponsesBean extends PwmSessionBean {
             return responseMap;
         }
 
-        public void setResponseMap(Map<Challenge, String> responseMap) {
+        public void setResponseMap(final Map<Challenge, String> responseMap) {
             this.responseMap = responseMap;
         }
     }
@@ -158,5 +158,4 @@ public class SetupResponsesBean extends PwmSessionBean {
     public Set<SessionBeanMode> supportedModes() {
         return Collections.singleton(SessionBeanMode.LOCAL);
     }
-
 }

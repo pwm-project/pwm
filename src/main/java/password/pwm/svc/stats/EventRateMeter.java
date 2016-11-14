@@ -39,9 +39,9 @@ public class EventRateMeter implements Serializable {
     }
 
     public synchronized void markEvents(final int eventCount) {
-        long timeSinceLastUpdate = System.currentTimeMillis() - movingAverage.getLastMillis();
+        final long timeSinceLastUpdate = System.currentTimeMillis() - movingAverage.getLastMillis();
         if (timeSinceLastUpdate != 0) {
-            double eventRate  = (eventCount + remainder) / timeSinceLastUpdate;
+            final double eventRate  = (eventCount + remainder) / timeSinceLastUpdate;
             movingAverage.update(eventRate * 1000);
             remainder = 0;
         } else {
@@ -85,22 +85,22 @@ public class EventRateMeter implements Serializable {
          *  3,600,000 provides a moving average over the last hour.
          *  @param windowMillis the length of the sliding window in
          *    milliseconds */
-        public MovingAverage(long windowMillis) {
+        public MovingAverage(final long windowMillis) {
             this.windowMillis = windowMillis;
         }
 
         /** Updates the average with the latest measurement.
          *  @param sample the latest measurement in the rolling average */
-        public synchronized void update(double sample) {
-            long now = System.currentTimeMillis();
+        public synchronized void update(final double sample) {
+            final long now = System.currentTimeMillis();
 
             if (lastMillis == 0) {  // first sample
                 average = sample;
                 lastMillis = now;
                 return;
             }
-            long deltaTime = now - lastMillis;
-            double coeff = Math.exp(-1.0 * ((double)deltaTime / windowMillis));
+            final long deltaTime = now - lastMillis;
+            final double coeff = Math.exp(-1.0 * ((double)deltaTime / windowMillis));
             average = (1.0 - coeff) * sample + coeff * average;
 
             lastMillis = now;

@@ -127,7 +127,7 @@ public class PwmApplication {
 
         private String key;
 
-        AppAttribute(String key) {
+        AppAttribute(final String key) {
             this.key = key;
         }
 
@@ -174,7 +174,9 @@ public class PwmApplication {
         if (!pwmEnvironment.isInternalRuntimeInstance() && !pwmEnvironment.getFlags().contains(PwmEnvironment.ApplicationFlag.CommandLineInstance)) {
             final String log4jFileName = pwmEnvironment.getConfig().readSettingAsString(PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE);
             final File log4jFile = FileSystemUtility.figureFilepath(log4jFileName, pwmEnvironment.getApplicationPath());
-            final String consoleLevel, fileLevel;
+            final String consoleLevel;
+            final String fileLevel;
+
             switch (getApplicationMode()) {
                 case ERROR:
                 case NEW:
@@ -312,7 +314,7 @@ public class PwmApplication {
         }
 
         try {
-            Map<PwmAboutProperty,String> infoMap = PwmAboutProperty.makeInfoBean(this);
+            final Map<PwmAboutProperty,String> infoMap = PwmAboutProperty.makeInfoBean(this);
             LOGGER.trace("application info: " + JsonUtil.serializeMap(infoMap));
         } catch (Exception e) {
             LOGGER.error("error generating about application bean: " + e.getMessage());

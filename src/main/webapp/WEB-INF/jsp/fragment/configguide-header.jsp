@@ -23,8 +23,8 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<% ConfigGuideBean headerCgb = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
-<% float pctComplete = ConfigGuideServlet.stepProgress(headerCgb.getStep()).asFloat(); %>
+<% final ConfigGuideBean headerCgb = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
+<% final float pctComplete = ConfigGuideServlet.stepProgress(headerCgb.getStep()).asFloat(); %>
 <div id="header">
     <div id="header-center">
         <div id="header-page">

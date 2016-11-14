@@ -51,7 +51,7 @@ public class ConfigDeleteCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigDelete";
         cliParameters.description = "Delete configuration.";
         cliParameters.needsPwmApplication = false;

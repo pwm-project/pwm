@@ -29,14 +29,18 @@ import password.pwm.util.LocaleHelper;
 import password.pwm.util.StringUtil;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class ConfigChangeLogImpl implements Serializable, ConfigChangeLog {
     private final Map<StoredConfigReference,StoredValue> changeLog = new LinkedHashMap<>();
     private final Map<StoredConfigReference,StoredValue> originalValue = new LinkedHashMap<>();
     private final StorageEngine storedConfiguration;
 
-    public ConfigChangeLogImpl(StorageEngine storageEngine) {
+    public ConfigChangeLogImpl(final StorageEngine storageEngine) {
         this.storedConfiguration = storageEngine;
     }
 
@@ -46,7 +50,7 @@ public class ConfigChangeLogImpl implements Serializable, ConfigChangeLog {
     }
 
     @Override
-    public String changeLogAsDebugString(final Locale locale, boolean asHtml) {
+    public String changeLogAsDebugString(final Locale locale, final boolean asHtml) {
         final Map<String,String> outputMap = new TreeMap<>();
         final String SEPARATOR = LocaleHelper.getLocalizedMessage(locale, Config.Display_SettingNavigationSeparator, null);
 
@@ -72,6 +76,10 @@ public class ConfigChangeLogImpl implements Serializable, ConfigChangeLog {
                 }
                 break;
                 */
+
+                default:
+                    //continue
+                    break;
             }
         }
         final StringBuilder output = new StringBuilder();

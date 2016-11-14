@@ -38,8 +38,8 @@ public class ForgotPasswordConfWSBean  implements java.io.Serializable {
     }
 
     public ForgotPasswordConfWSBean(
-           java.lang.String configuredRtnLink,
-           boolean showReturnLink) {
+            final java.lang.String configuredRtnLink,
+            final boolean showReturnLink) {
            this.configuredRtnLink = configuredRtnLink;
            this.showReturnLink = showReturnLink;
     }
@@ -60,7 +60,7 @@ public class ForgotPasswordConfWSBean  implements java.io.Serializable {
      * 
      * @param configuredRtnLink
      */
-    public void setConfiguredRtnLink(java.lang.String configuredRtnLink) {
+    public void setConfiguredRtnLink(final java.lang.String configuredRtnLink) {
         this.configuredRtnLink = configuredRtnLink;
     }
 
@@ -80,21 +80,22 @@ public class ForgotPasswordConfWSBean  implements java.io.Serializable {
      * 
      * @param showReturnLink
      */
-    public void setShowReturnLink(boolean showReturnLink) {
+    public void setShowReturnLink(final boolean showReturnLink) {
         this.showReturnLink = showReturnLink;
     }
 
     private java.lang.Object __equalsCalc = null;
-    public synchronized boolean equals(java.lang.Object obj) {
+
+    public synchronized boolean equals(final java.lang.Object obj) {
         if (!(obj instanceof ForgotPasswordConfWSBean)) return false;
-        ForgotPasswordConfWSBean other = (ForgotPasswordConfWSBean) obj;
+        final ForgotPasswordConfWSBean other = (ForgotPasswordConfWSBean) obj;
         if (obj == null) return false;
         if (this == obj) return true;
         if (__equalsCalc != null) {
             return (__equalsCalc == obj);
         }
         __equalsCalc = obj;
-        boolean _equals;
+        final boolean _equals;
         _equals = true && 
             ((this.configuredRtnLink==null && other.getConfiguredRtnLink()==null) || 
              (this.configuredRtnLink!=null &&
@@ -105,6 +106,7 @@ public class ForgotPasswordConfWSBean  implements java.io.Serializable {
     }
 
     private boolean __hashCodeCalc = false;
+
     public synchronized int hashCode() {
         if (__hashCodeCalc) {
             return 0;
@@ -150,9 +152,9 @@ public class ForgotPasswordConfWSBean  implements java.io.Serializable {
      * Get Custom Serializer
      */
     public static org.apache.axis.encoding.Serializer getSerializer(
-           java.lang.String mechType, 
-           java.lang.Class _javaType,  
-           javax.xml.namespace.QName _xmlType) {
+            final java.lang.String mechType,
+            final java.lang.Class _javaType,
+            final javax.xml.namespace.QName _xmlType) {
         return 
           new  org.apache.axis.encoding.ser.BeanSerializer(
             _javaType, _xmlType, typeDesc);
@@ -162,9 +164,9 @@ public class ForgotPasswordConfWSBean  implements java.io.Serializable {
      * Get Custom Deserializer
      */
     public static org.apache.axis.encoding.Deserializer getDeserializer(
-           java.lang.String mechType, 
-           java.lang.Class _javaType,  
-           javax.xml.namespace.QName _xmlType) {
+            final java.lang.String mechType,
+            final java.lang.Class _javaType,
+            final javax.xml.namespace.QName _xmlType) {
         return 
           new  org.apache.axis.encoding.ser.BeanDeserializer(
             _javaType, _xmlType, typeDesc);

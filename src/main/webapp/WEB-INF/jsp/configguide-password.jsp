@@ -24,7 +24,7 @@
 
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
-<% ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
+<% final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -87,7 +87,7 @@
         function checkIfNextEnabled() {
             var password = PWM_MAIN.getObject('<%=ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD%>').value;
 
-            <% String existingPwd = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD); %>
+            <% final String existingPwd = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_CONFIG_PASSWORD); %>
             <% if (existingPwd == null || existingPwd.isEmpty()) { %>
             PWM_MAIN.getObject('button_next').disabled = true;
             if (password.length > 0) {

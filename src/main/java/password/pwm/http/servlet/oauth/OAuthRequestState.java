@@ -22,11 +22,13 @@
 
 package password.pwm.http.servlet.oauth;
 
-public class OAuthRequestState {
+import java.io.Serializable;
+
+public class OAuthRequestState implements Serializable {
     private OAuthState oAuthState;
     private boolean sessionMatch;
 
-    public OAuthRequestState(OAuthState oAuthState, boolean sessionMatch) {
+    public OAuthRequestState(final OAuthState oAuthState, final boolean sessionMatch) {
         this.oAuthState = oAuthState;
         this.sessionMatch = sessionMatch;
     }

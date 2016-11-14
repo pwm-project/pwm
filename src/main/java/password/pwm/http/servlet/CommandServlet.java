@@ -72,7 +72,7 @@ public class CommandServlet extends AbstractPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(CommandServlet.class);
 
     @Override
-    protected ProcessAction readProcessAction(PwmRequest request)
+    protected ProcessAction readProcessAction(final PwmRequest request)
             throws PwmUnrecoverableException
     {
         return null;
@@ -87,7 +87,7 @@ public class CommandServlet extends AbstractPwmServlet {
 
         String action = pwmRequest.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST);
         if (action.isEmpty()) {
-            String uri = pwmRequest.getHttpServletRequest().getRequestURI();
+            final String uri = pwmRequest.getHttpServletRequest().getRequestURI();
             if (uri != null && !uri.toLowerCase().endsWith("command") && !uri.toLowerCase().endsWith("CommandServlet")) {
                 final int lastSlash = uri.lastIndexOf("/");
                 action = uri.substring(lastSlash + 1, uri.length());
@@ -126,7 +126,7 @@ public class CommandServlet extends AbstractPwmServlet {
     {
         final String body = pwmRequest.readRequestBodyAsString();
         try {
-            Map<String, Object> map = JsonUtil.deserializeStringObjectMap(body);
+            final Map<String, Object> map = JsonUtil.deserializeStringObjectMap(body);
             LOGGER.trace("CSP Report: " + JsonUtil.serializeMap(map, JsonUtil.Flag.PrettyPrint));
         } catch (Exception e) {
             LOGGER.error("error processing csp report: " + e.getMessage() + ", body=" + body);

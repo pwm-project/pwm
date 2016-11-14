@@ -19,12 +19,12 @@ import java.util.Date;
 import java.util.Map;
 
 public class AuditRecordFactory {
-    private final static PwmLogger LOGGER = PwmLogger.forClass(AuditRecordFactory.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(AuditRecordFactory.class);
 
     private final PwmApplication pwmApplication;
     private final MacroMachine macroMachine;
 
-    public AuditRecordFactory(PwmApplication pwmApplication) throws PwmUnrecoverableException {
+    public AuditRecordFactory(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
         this.pwmApplication = pwmApplication;
         this.macroMachine = MacroMachine.forNonUserSpecific(pwmApplication, null);
     }
@@ -38,6 +38,7 @@ public class AuditRecordFactory {
         this.pwmApplication = pwmApplication;
         this.macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
     }
+
     public AuditRecordFactory(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
         this.pwmApplication = pwmRequest.getPwmApplication();
         this.macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmApplication);
@@ -172,7 +173,7 @@ public class AuditRecordFactory {
     }
 
 
-    private String makeNarrativeString(AuditRecord auditRecord) {
+    private String makeNarrativeString(final AuditRecord auditRecord) {
         final PwmDisplayBundle pwmDisplayBundle = auditRecord.getEventCode().getNarrative();
 
         String outputString = LocaleHelper.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, pwmDisplayBundle, pwmApplication.getConfig());
@@ -192,7 +193,9 @@ public class AuditRecordFactory {
     }
 
     private AuditUserDefinition userIdentityToUserDefinition(final UserIdentity userIdentity) {
-        String userDN = null, userID = null, ldapProfile = null;
+        String userDN = null;
+        String userID = null;
+        String ldapProfile = null;
 
         if (userIdentity != null) {
             userDN = userIdentity.getUserDN();
@@ -208,9 +211,9 @@ public class AuditRecordFactory {
     }
 
     public static class AuditUserDefinition {
-        private String userID;
-        private String userDN;
-        private String ldapProfile;
+        private final String userID;
+        private final String userDN;
+        private final String ldapProfile;
 
         public AuditUserDefinition(final String userID, final String userDN, final String ldapProfile) {
             this.userID = userID;

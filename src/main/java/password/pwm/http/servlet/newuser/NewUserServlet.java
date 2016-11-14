@@ -33,12 +33,25 @@ import com.novell.ldapchai.provider.ChaiSetting;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.*;
-import password.pwm.config.*;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.SessionLabel;
+import password.pwm.bean.TokenVerificationProgress;
+import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
+import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.FormUtility;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -55,7 +68,13 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.PasswordData;
+import password.pwm.util.Percent;
+import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.StringUtil;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
@@ -68,7 +87,17 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * User interaction servlet for creating new users (self registration)
@@ -105,7 +134,7 @@ public class NewUserServlet extends AbstractPwmServlet {
 
         private final Collection<HttpMethod> method;
 
-        NewUserAction(HttpMethod... method)
+        NewUserAction(final HttpMethod... method)
         {
             this.method = Collections.unmodifiableList(Arrays.asList(method));
         }
@@ -156,6 +185,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         }
 
         if (action != null) {
+            // authenticated actions
             switch (action) {
                 case checkProgress:
                     restCheckProgress(pwmRequest, newUserBean);
@@ -164,6 +194,10 @@ public class NewUserServlet extends AbstractPwmServlet {
                 case complete:
                     handleComplete(pwmRequest, newUserBean);
                     return;
+
+                default:
+                    // continue to next section
+                    break;
             }
 
             if (pwmSession.isAuthenticated()) {
@@ -198,6 +232,8 @@ public class NewUserServlet extends AbstractPwmServlet {
                     newUserBean.setAgreementPassed(true);
                     break;
 
+                default:
+                    Helper.unhandledSwitchStatement(action);
 
             }
         }
@@ -508,7 +544,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         newUserBean.setNewUserForm(null);
 
         try {
-            NewUserBean.NewUserForm newUserForm = NewUserFormUtils.readFromRequest(pwmRequest);
+            final NewUserBean.NewUserForm newUserForm = NewUserFormUtils.readFromRequest(pwmRequest);
             final PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(pwmRequest, newUserForm, true);
             passwordCheckInfoToException(passwordCheckInfo);
             newUserBean.setNewUserForm(newUserForm);
@@ -751,7 +787,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         }
 
         int attemptCount = 0;
-        String generatedDN;
+        final String generatedDN;
         while (attemptCount < configuredNames.size()) {
             final String expandedName;
             {
@@ -792,7 +828,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
         searchConfiguration.setUsername(rdnValue);
         try {
-            Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(
+            final Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(
                     searchConfiguration, 2, Collections.<String>emptyList());
             return results != null && !results.isEmpty();
         } catch (PwmOperationalException e) {
@@ -837,7 +873,8 @@ public class NewUserServlet extends AbstractPwmServlet {
 
         if (pwmApplication.getConfig().getTokenStorageMethod() == TokenStorageMethod.STORE_LDAP) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{
-                    "cannot generate new user tokens when storage type is configured as STORE_LDAP."}));
+                    "cannot generate new user tokens when storage type is configured as STORE_LDAP.",
+            }));
         }
 
         final NewUserBean newUserBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, NewUserBean.class);
@@ -1032,7 +1069,7 @@ public class NewUserServlet extends AbstractPwmServlet {
     }
 
 
-    static List<FormConfiguration> getFormDefinition(PwmRequest pwmRequest) throws PwmUnrecoverableException {
+    static List<FormConfiguration> getFormDefinition(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
         final NewUserProfile profile = getNewUserProfile(pwmRequest);
         return profile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
     }
@@ -1041,7 +1078,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         private String profileID;
         private NewUserBean.NewUserForm formData;
 
-        public NewUserTokenData(String profileID, NewUserBean.NewUserForm formData) {
+        public NewUserTokenData(final String profileID, final NewUserBean.NewUserForm formData) {
             this.profileID = profileID;
             this.formData = formData;
         }

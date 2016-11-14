@@ -70,24 +70,24 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
     }
 
     public ForgotPasswordWSBean(
-           password.pwm.ws.client.novell.pwdmgt.NameValue[] users,
-           java.lang.String[] challengeQuestions,
-           java.lang.String configuredRtnLink,
-           boolean showReturnLink,
-           boolean showHint,
-           boolean showFullDN,
-           java.lang.String userDN,
-           java.lang.String userDisplayDN,
-           java.lang.String user,
-           boolean error,
-           java.lang.String message,
-           java.lang.String action,
-           java.lang.String hint,
-           java.lang.String rules,
-           boolean chaResInUse,
-           java.lang.String locked,
-           boolean timeout,
-           java.lang.String loginAttribute) {
+            final password.pwm.ws.client.novell.pwdmgt.NameValue[] users,
+            final java.lang.String[] challengeQuestions,
+            final java.lang.String configuredRtnLink,
+            final boolean showReturnLink,
+            final boolean showHint,
+            final boolean showFullDN,
+            final java.lang.String userDN,
+            final java.lang.String userDisplayDN,
+            final java.lang.String user,
+            final boolean error,
+            final java.lang.String message,
+            final java.lang.String action,
+            final java.lang.String hint,
+            final java.lang.String rules,
+            final boolean chaResInUse,
+            final java.lang.String locked,
+            final boolean timeout,
+            final java.lang.String loginAttribute) {
            this.users = users;
            this.challengeQuestions = challengeQuestions;
            this.configuredRtnLink = configuredRtnLink;
@@ -124,15 +124,15 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param users
      */
-    public void setUsers(password.pwm.ws.client.novell.pwdmgt.NameValue[] users) {
+    public void setUsers(final password.pwm.ws.client.novell.pwdmgt.NameValue[] users) {
         this.users = users;
     }
 
-    public password.pwm.ws.client.novell.pwdmgt.NameValue getUsers(int i) {
+    public password.pwm.ws.client.novell.pwdmgt.NameValue getUsers(final int i) {
         return this.users[i];
     }
 
-    public void setUsers(int i, password.pwm.ws.client.novell.pwdmgt.NameValue _value) {
+    public void setUsers(final int i, final password.pwm.ws.client.novell.pwdmgt.NameValue _value) {
         this.users[i] = _value;
     }
 
@@ -152,15 +152,15 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param challengeQuestions
      */
-    public void setChallengeQuestions(java.lang.String[] challengeQuestions) {
+    public void setChallengeQuestions(final java.lang.String[] challengeQuestions) {
         this.challengeQuestions = challengeQuestions;
     }
 
-    public java.lang.String getChallengeQuestions(int i) {
+    public java.lang.String getChallengeQuestions(final int i) {
         return this.challengeQuestions[i];
     }
 
-    public void setChallengeQuestions(int i, java.lang.String _value) {
+    public void setChallengeQuestions(final int i, final java.lang.String _value) {
         this.challengeQuestions[i] = _value;
     }
 
@@ -180,7 +180,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param configuredRtnLink
      */
-    public void setConfiguredRtnLink(java.lang.String configuredRtnLink) {
+    public void setConfiguredRtnLink(final java.lang.String configuredRtnLink) {
         this.configuredRtnLink = configuredRtnLink;
     }
 
@@ -200,7 +200,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param showReturnLink
      */
-    public void setShowReturnLink(boolean showReturnLink) {
+    public void setShowReturnLink(final boolean showReturnLink) {
         this.showReturnLink = showReturnLink;
     }
 
@@ -220,7 +220,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param showHint
      */
-    public void setShowHint(boolean showHint) {
+    public void setShowHint(final boolean showHint) {
         this.showHint = showHint;
     }
 
@@ -240,7 +240,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param showFullDN
      */
-    public void setShowFullDN(boolean showFullDN) {
+    public void setShowFullDN(final boolean showFullDN) {
         this.showFullDN = showFullDN;
     }
 
@@ -260,7 +260,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param userDN
      */
-    public void setUserDN(java.lang.String userDN) {
+    public void setUserDN(final java.lang.String userDN) {
         this.userDN = userDN;
     }
 
@@ -280,7 +280,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param userDisplayDN
      */
-    public void setUserDisplayDN(java.lang.String userDisplayDN) {
+    public void setUserDisplayDN(final java.lang.String userDisplayDN) {
         this.userDisplayDN = userDisplayDN;
     }
 
@@ -300,7 +300,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param user
      */
-    public void setUser(java.lang.String user) {
+    public void setUser(final java.lang.String user) {
         this.user = user;
     }
 
@@ -320,7 +320,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param error
      */
-    public void setError(boolean error) {
+    public void setError(final boolean error) {
         this.error = error;
     }
 
@@ -340,7 +340,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param message
      */
-    public void setMessage(java.lang.String message) {
+    public void setMessage(final java.lang.String message) {
         this.message = message;
     }
 
@@ -360,7 +360,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param action
      */
-    public void setAction(java.lang.String action) {
+    public void setAction(final java.lang.String action) {
         this.action = action;
     }
 
@@ -380,7 +380,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param hint
      */
-    public void setHint(java.lang.String hint) {
+    public void setHint(final java.lang.String hint) {
         this.hint = hint;
     }
 
@@ -400,7 +400,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param rules
      */
-    public void setRules(java.lang.String rules) {
+    public void setRules(final java.lang.String rules) {
         this.rules = rules;
     }
 
@@ -420,7 +420,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param chaResInUse
      */
-    public void setChaResInUse(boolean chaResInUse) {
+    public void setChaResInUse(final boolean chaResInUse) {
         this.chaResInUse = chaResInUse;
     }
 
@@ -440,7 +440,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param locked
      */
-    public void setLocked(java.lang.String locked) {
+    public void setLocked(final java.lang.String locked) {
         this.locked = locked;
     }
 
@@ -460,7 +460,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param timeout
      */
-    public void setTimeout(boolean timeout) {
+    public void setTimeout(final boolean timeout) {
         this.timeout = timeout;
     }
 
@@ -480,21 +480,22 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * 
      * @param loginAttribute
      */
-    public void setLoginAttribute(java.lang.String loginAttribute) {
+    public void setLoginAttribute(final java.lang.String loginAttribute) {
         this.loginAttribute = loginAttribute;
     }
 
     private java.lang.Object __equalsCalc = null;
-    public synchronized boolean equals(java.lang.Object obj) {
+
+    public synchronized boolean equals(final java.lang.Object obj) {
         if (!(obj instanceof ForgotPasswordWSBean)) return false;
-        ForgotPasswordWSBean other = (ForgotPasswordWSBean) obj;
+        final ForgotPasswordWSBean other = (ForgotPasswordWSBean) obj;
         if (obj == null) return false;
         if (this == obj) return true;
         if (__equalsCalc != null) {
             return (__equalsCalc == obj);
         }
         __equalsCalc = obj;
-        boolean _equals;
+        final boolean _equals;
         _equals = true && 
             ((this.users==null && other.getUsers()==null) || 
              (this.users!=null &&
@@ -543,6 +544,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
     }
 
     private boolean __hashCodeCalc = false;
+
     public synchronized int hashCode() {
         if (__hashCodeCalc) {
             return 0;
@@ -553,7 +555,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
             for (int i=0;
                  i<java.lang.reflect.Array.getLength(getUsers());
                  i++) {
-                java.lang.Object obj = java.lang.reflect.Array.get(getUsers(), i);
+                final java.lang.Object obj = java.lang.reflect.Array.get(getUsers(), i);
                 if (obj != null &&
                     !obj.getClass().isArray()) {
                     _hashCode += obj.hashCode();
@@ -564,7 +566,7 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
             for (int i=0;
                  i<java.lang.reflect.Array.getLength(getChallengeQuestions());
                  i++) {
-                java.lang.Object obj = java.lang.reflect.Array.get(getChallengeQuestions(), i);
+                final java.lang.Object obj = java.lang.reflect.Array.get(getChallengeQuestions(), i);
                 if (obj != null &&
                     !obj.getClass().isArray()) {
                     _hashCode += obj.hashCode();
@@ -742,9 +744,9 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * Get Custom Serializer
      */
     public static org.apache.axis.encoding.Serializer getSerializer(
-           java.lang.String mechType, 
-           java.lang.Class _javaType,  
-           javax.xml.namespace.QName _xmlType) {
+            final java.lang.String mechType,
+            final java.lang.Class _javaType,
+            final javax.xml.namespace.QName _xmlType) {
         return 
           new  org.apache.axis.encoding.ser.BeanSerializer(
             _javaType, _xmlType, typeDesc);
@@ -754,9 +756,9 @@ public class ForgotPasswordWSBean  implements java.io.Serializable {
      * Get Custom Deserializer
      */
     public static org.apache.axis.encoding.Deserializer getDeserializer(
-           java.lang.String mechType, 
-           java.lang.Class _javaType,  
-           javax.xml.namespace.QName _xmlType) {
+            final java.lang.String mechType,
+            final java.lang.Class _javaType,
+            final javax.xml.namespace.QName _xmlType) {
         return 
           new  org.apache.axis.encoding.ser.BeanDeserializer(
             _javaType, _xmlType, typeDesc);

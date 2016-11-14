@@ -76,11 +76,11 @@ public class CacheKey {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        CacheKey cacheKey1 = (CacheKey) o;
+        final CacheKey cacheKey1 = (CacheKey) o;
 
         if (!cacheKey.equals(cacheKey1.cacheKey)) return false;
 

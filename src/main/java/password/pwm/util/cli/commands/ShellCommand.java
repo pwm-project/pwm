@@ -28,10 +28,17 @@ import password.pwm.util.cli.CliException;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.cli.MainClass;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.TreeMap;
 
 public class ShellCommand extends AbstractCliCommand {
     public static final Map<String,CliCommand> SHELL_COMMANDS;
+
     static {
         final List<CliCommand> commandList = new ArrayList<>();
         commandList.add(new ConfigUnlockCommand());
@@ -42,7 +49,7 @@ public class ShellCommand extends AbstractCliCommand {
         commandList.add(new ConfigResetHttpsCommand());
 
         final Map<String,CliCommand> sortedMap = new TreeMap<>();
-        for (CliCommand command : commandList) {
+        for (final CliCommand command : commandList) {
             sortedMap.put(command.getCliParameters().commandName,command);
         }
         SHELL_COMMANDS = Collections.unmodifiableMap(sortedMap);
@@ -67,17 +74,17 @@ public class ShellCommand extends AbstractCliCommand {
         }
     }
 
-    final void processCommand(String commandLine) {
+    final void processCommand(final String commandLine) {
         if (commandLine == null) {
             return;
         }
 
-        List<String> splitCommandLine = splitString(commandLine);
+        final List<String> splitCommandLine = splitString(commandLine);
         if (splitCommandLine.isEmpty()) {
             return;
         }
 
-        String command = splitCommandLine.get(0);
+        final String command = splitCommandLine.get(0);
 
         boolean commandExecuted = false;
         for (final CliCommand cliCommand : SHELL_COMMANDS.values()) {
@@ -138,7 +145,7 @@ public class ShellCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "Shell";
         cliParameters.description = "Command Shell";
         cliParameters.options = Collections.emptyList();

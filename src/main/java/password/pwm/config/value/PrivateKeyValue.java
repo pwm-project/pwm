@@ -39,7 +39,12 @@ import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class PrivateKeyValue extends AbstractValue {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PrivateKeyValue.class);
@@ -96,7 +101,7 @@ public class PrivateKeyValue extends AbstractValue {
         };
     }
 
-    public PrivateKeyValue(PrivateKeyCertificate privateKeyCertificate) {
+    public PrivateKeyValue(final PrivateKeyCertificate privateKeyCertificate) {
         this.privateKeyCertificate = privateKeyCertificate;
     }
 
@@ -112,7 +117,7 @@ public class PrivateKeyValue extends AbstractValue {
     }
 
     @Override
-    public List<String> validateValue(PwmSetting pwm)
+    public List<String> validateValue(final PwmSetting pwm)
     {
         return Collections.emptyList();
     }
@@ -149,7 +154,7 @@ public class PrivateKeyValue extends AbstractValue {
         return Collections.singletonList(valueElement);
     }
 
-    public String toDebugString(Locale locale) {
+    public String toDebugString(final Locale locale) {
         if (privateKeyCertificate != null) {
             return "PrivateKeyCertificate: key=" + JsonUtil.serializeMap(X509Utils.makeDebugInfoMap(privateKeyCertificate.getKey()))
                     + ", certificates=" + JsonUtil.serializeCollection(X509Utils.makeDebugInfoMap(privateKeyCertificate.getCertificates()));
@@ -172,7 +177,7 @@ public class PrivateKeyValue extends AbstractValue {
     }
 
     @Override
-    public Serializable toDebugJsonObject(Locale locale) {
+    public Serializable toDebugJsonObject(final Locale locale) {
         return (Serializable)toInfoMap(false);
     }
 }

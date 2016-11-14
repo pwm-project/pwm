@@ -46,7 +46,7 @@ public class ConfigGuideBean extends PwmSessionBean {
         return step;
     }
 
-    public void setStep(GuideStep step) {
+    public void setStep(final GuideStep step) {
         this.step = step;
     }
 
@@ -54,7 +54,7 @@ public class ConfigGuideBean extends PwmSessionBean {
         return formData;
     }
 
-    public void setFormData(Map<ConfigGuideForm.FormParameter, String> formData) {
+    public void setFormData(final Map<ConfigGuideForm.FormParameter, String> formData) {
         this.formData = formData;
     }
 
@@ -62,7 +62,7 @@ public class ConfigGuideBean extends PwmSessionBean {
         return ldapCertificates;
     }
 
-    public void setLdapCertificates(X509Certificate[] ldapCertificates) {
+    public void setLdapCertificates(final X509Certificate[] ldapCertificates) {
         this.ldapCertificates = ldapCertificates;
     }
 
@@ -70,7 +70,7 @@ public class ConfigGuideBean extends PwmSessionBean {
         return certsTrustedbyKeystore;
     }
 
-    public void setCertsTrustedbyKeystore(boolean certsTrustedbyKeystore) {
+    public void setCertsTrustedbyKeystore(final boolean certsTrustedbyKeystore) {
         this.certsTrustedbyKeystore = certsTrustedbyKeystore;
     }
 
@@ -78,7 +78,7 @@ public class ConfigGuideBean extends PwmSessionBean {
         return useConfiguredCerts;
     }
 
-    public void setUseConfiguredCerts(boolean useConfiguredCerts) {
+    public void setUseConfiguredCerts(final boolean useConfiguredCerts) {
         this.useConfiguredCerts = useConfiguredCerts;
     }
 
@@ -86,7 +86,7 @@ public class ConfigGuideBean extends PwmSessionBean {
         return databaseDriver;
     }
 
-    public void setDatabaseDriver(FileValue databaseDriver) {
+    public void setDatabaseDriver(final FileValue databaseDriver) {
         this.databaseDriver = databaseDriver;
     }
 

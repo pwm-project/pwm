@@ -37,10 +37,10 @@ public class ChallengeItemConfiguration implements Serializable {
     private String regex;
 
     public ChallengeItemConfiguration(
-            String challengeText,
-            int minimumLength,
-            int maximumLength,
-            boolean adminDefined
+            final String challengeText,
+            final int minimumLength,
+            final int maximumLength,
+            final boolean adminDefined
     )
     {
         this.text = challengeText;

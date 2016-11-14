@@ -22,8 +22,8 @@
 
 package password.pwm.util;
 
-import org.apache.commons.codec.binary.Base32;
 import net.iharder.Base64;
+import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import password.pwm.PwmConstants;
@@ -33,7 +33,14 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class StringUtil {
     private static final PwmLogger LOGGER = PwmLogger.forClass(StringUtil.class);
@@ -48,7 +55,7 @@ public abstract class StringUtil {
     public static String escapeLdapFilter(final String input) {
         final StringBuilder sb = new StringBuilder();
         for (int i = 0; i < input.length(); i++) {
-            char curChar = input.charAt(i);
+            final char curChar = input.charAt(i);
             switch (curChar) {
                 case '\\':
                     sb.append("\\5c");
@@ -80,12 +87,12 @@ public abstract class StringUtil {
      *
      */
     public static String escapeLdapDN(final String input) {
-        StringBuilder sb = new StringBuilder(); // If using JDK >= 1.5 consider using StringBuilder
+        final StringBuilder sb = new StringBuilder(); // If using JDK >= 1.5 consider using StringBuilder
         if ((input.length() > 0) && ((input.charAt(0) == ' ') || (input.charAt(0) == '#'))) {
             sb.append('\\'); // add the leading backslash if needed
         }
         for (int i = 0; i < input.length(); i++) {
-            char curChar = input.charAt(i);
+            final char curChar = input.charAt(i);
             switch (curChar) {
                 case '\\':
                     sb.append("\\\\");
@@ -142,11 +149,11 @@ public abstract class StringUtil {
         return returnMap;
     }
 
-    public static String join(Object[] inputs, String separator) {
+    public static String join(final Object[] inputs, final String separator) {
         return StringUtils.join(inputs, separator);
     }
 
-    public static String join(Collection inputs, String separator) {
+    public static String join(final Collection inputs, final String separator) {
         return StringUtils.join(inputs == null ? new String[]{} : inputs.toArray(), separator);
     }
 
@@ -274,13 +281,13 @@ public abstract class StringUtil {
         return Arrays.asList(splitValues);
     }
 
-    public static String[] createStringChunks(String str, int size) {
+    public static String[] createStringChunks(final String str, final int size) {
         if (size <= 0 || str == null || str.length() <= size) {
             return new String[] { str };
         }
 
-        int numOfChunks = str.length() - size + 1;
-        Set<String> chunks = new HashSet<>(numOfChunks);
+        final int numOfChunks = str.length() - size + 1;
+        final Set<String> chunks = new HashSet<>(numOfChunks);
 
         for (int i=0; i<numOfChunks; i++) {
             chunks.add(StringUtils.substring(str, i, i+size));
@@ -326,10 +333,10 @@ public abstract class StringUtil {
         return sb.toString();
     }
 
-    public static int[] toCodePointArray(String str) {
+    public static int[] toCodePointArray(final String str) {
         if (str != null) {
-            int len = str.length();
-            int[] acp = new int[str.codePointCount(0, len)];
+            final int len = str.length();
+            final int[] acp = new int[str.codePointCount(0, len)];
 
             for (int i = 0, j = 0; i < len; i = str.offsetByCodePoints(i, 1)) {
                 acp[j++] = str.codePointAt(i);

@@ -31,7 +31,12 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,7 +61,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
                 }
             }
 
-            public LocalizedStringValue fromXmlElement(Element settingElement, final PwmSecurityKey key)
+            public LocalizedStringValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
             {
                 final List elements = settingElement.getChildren("value");
                 final Map<String, String> values = new TreeMap<>();
@@ -89,7 +94,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
         return Collections.unmodifiableMap(value);
     }
 
-    public List<String> validateValue(PwmSetting pwmSetting) {
+    public List<String> validateValue(final PwmSetting pwmSetting) {
         if (pwmSetting.isRequired()) {
             if (value == null || value.size() < 1 || value.values().iterator().next().length() < 1) {
                 return Collections.singletonList("required value missing");
@@ -109,7 +114,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
     }
 
     @Override
-    public String toDebugString(Locale locale) {
+    public String toDebugString(final Locale locale) {
         final StringBuilder sb = new StringBuilder();
         for (final String localeKey : value.keySet()) {
             if (value.size() > 1) {

@@ -39,7 +39,8 @@ import password.pwm.ws.server.rest.RestAppDataServer;
 
 import javax.servlet.jsp.JspPage;
 import javax.servlet.jsp.PageContext;
-import java.awt.*;
+
+import java.awt.ComponentOrientation;
 import java.util.Locale;
 
 public enum PwmValue {
@@ -66,7 +67,7 @@ public enum PwmValue {
 
     private ValueOutput valueOutput;
 
-    PwmValue(ValueOutput valueOutput)
+    PwmValue(final ValueOutput valueOutput)
     {
         this.valueOutput = valueOutput;
     }
@@ -78,20 +79,20 @@ public enum PwmValue {
 
     static class CspNonceOutput implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             return pwmRequest.getCspNonce();
         }
     }
 
     static class HomeUrlOutput implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             String outputURL = pwmRequest.getConfig().readSettingAsString(PwmSetting.URL_HOME);
             if (outputURL == null || outputURL.isEmpty()) {
                 outputURL = pwmRequest.getHttpServletRequest().getContextPath();
             } else {
                 try {
-                    MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(
+                    final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(
                             pwmRequest.getPwmApplication());
                     outputURL = macroMachine.expandMacros(outputURL);
                 } catch ( PwmUnrecoverableException e) {
@@ -104,7 +105,7 @@ public enum PwmValue {
 
     static class PasswordFieldTypeOutput implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             final boolean maskPasswordFields = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_MASK_PASSWORD_FIELDS);
             return maskPasswordFields ? "password" : "text";
         }
@@ -112,7 +113,7 @@ public enum PwmValue {
 
     static class ResponseFieldTypeOutput implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             final boolean maskPasswordFields = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_MASK_PASSWORD_FIELDS);
             return maskPasswordFields ? "password" : "text";
         }
@@ -120,7 +121,7 @@ public enum PwmValue {
 
     static class CustomJavascriptOutput implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             final String customScript = pwmRequest.getConfig().readSettingAsString(
                     PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT);
             if (customScript != null && !customScript.isEmpty()) {
@@ -140,7 +141,7 @@ public enum PwmValue {
 
     static class CurrentJspFilenameOutput implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             final JspPage jspPage = (JspPage) pageContext.getPage();
             if (jspPage != null) {
                 String name = jspPage.getClass().getSimpleName();
@@ -154,7 +155,7 @@ public enum PwmValue {
 
     static class InstanceIDOutput implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             return pwmRequest.getPwmApplication().getInstanceID();
 
         }
@@ -162,7 +163,7 @@ public enum PwmValue {
 
     static class HeaderMenuNoticeOutput implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             if (PwmConstants.TRIAL_MODE) {
                 return LocaleHelper.getLocalizedMessage(pwmRequest.getLocale(), "Header_TrialMode", pwmRequest.getConfig(), Admin.class, new String[]{PwmConstants.PWM_APP_NAME});
             } else if (pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION) {
@@ -183,7 +184,7 @@ public enum PwmValue {
 
     static class ClientETag implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             return RestAppDataServer.makeClientEtag(pwmRequest);
         }
     }
@@ -197,14 +198,14 @@ public enum PwmValue {
 
     static class LocaleCodeOutput implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             return pwmRequest.getLocale().toLanguageTag();
         }
     }
 
     static class LocaleDirOutput implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             final Locale locale = pwmRequest.getLocale();
             final ComponentOrientation orient = ComponentOrientation.getOrientation(locale);
             return orient != null && !orient.isLeftToRight() ? "rtl" : "ltr";
@@ -213,7 +214,7 @@ public enum PwmValue {
 
     static class LocaleNameOutput implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             final Locale locale = pwmRequest.getLocale();
             return locale.getDisplayName(locale);
         }
@@ -221,7 +222,7 @@ public enum PwmValue {
 
     static class LocaleFlagFileOutput implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             final String flagFileName = pwmRequest.getConfig().getKnownLocaleFlagMap().get(pwmRequest.getLocale());
             return flagFileName == null ? "" : flagFileName;
         }
@@ -229,7 +230,7 @@ public enum PwmValue {
 
     static class InactiveTimeRemainingOutput implements ValueOutput {
         @Override
-        public String valueOutput(PwmRequest pwmRequest, PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
+        public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
             return IdleTimeoutCalculator.idleTimeoutForRequest(pwmRequest).asLongString();
         }
     }

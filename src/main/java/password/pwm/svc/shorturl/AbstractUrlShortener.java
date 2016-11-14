@@ -28,16 +28,18 @@ import password.pwm.error.PwmUnrecoverableException;
 import java.util.Properties;
 
 public interface AbstractUrlShortener {
-	Properties configuration = null;
+    Properties configuration = null;
 
-	/**
-	 * {@link URL}. shorten
-	 * This method should be implemented to read a short replacement
-	 * URL for the input URL.
-	 *
-	 * @param input			the URL to be shortened
-	 *
-	 * @param context		the PwmApplication, used to retrieve configuration
-	 */
-	String shorten(String input, PwmApplication context) throws PwmUnrecoverableException;
+    /**
+     * {@link java.net.URL}. shorten
+     *
+     * This method should be implemented to read a short replacement
+     * URL for the input URL.
+     *
+     * @param input             the URL to be shortened
+     *
+     * @param context           the PwmApplication, used to retrieve configuration
+     */
+
+    String shorten(String input, PwmApplication context) throws PwmUnrecoverableException;
 }

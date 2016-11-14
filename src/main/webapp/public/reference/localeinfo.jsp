@@ -158,7 +158,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%=loopLocale.getDisplayName()%>
@@ -215,7 +215,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%=loopLocale.getDisplayName()%>
@@ -273,7 +273,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%=loopLocale.getDisplayName()%>
@@ -330,7 +330,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%= loopLocale.getDisplayName() %>
@@ -362,7 +362,7 @@
                 </td>
             </tr>
             <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
-            <% boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
+            <% final boolean highLight =  (HIGHLIGHTED_LOCALES.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%= loopLocale.getDisplayName() %>
@@ -374,7 +374,7 @@
             <% } %>
         </table>
 
-    <h1><a id="aa">Missing Keys</a></h1>
+    <h1><a id="aa">End-User Highlighted Locale Missing Keys</a></h1>
     <table>
         <tr>
             <td class="title">
@@ -388,6 +388,7 @@
             </td>
         </tr>
         <% for (final PwmLocaleBundle pwmLocaleBundle : allStats.getMissingKeys().keySet()) { %>
+        <% if (!pwmLocaleBundle.isAdminOnly()) { %>
         <% for (final Locale locale : allStats.getMissingKeys().get(pwmLocaleBundle).keySet()) { %>
         <% if (HIGHLIGHTED_LOCALES.contains(locale)) { %>
         <% for (final String key : allStats.getMissingKeys().get(pwmLocaleBundle).get(locale)) { %>
@@ -402,6 +403,7 @@
                 <%=key%>
             </td>
         </tr>
+        <% } %>
         <% } %>
         <% } %>
         <% } %>

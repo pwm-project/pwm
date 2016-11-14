@@ -29,7 +29,10 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.Answer;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.*;
+import com.novell.ldapchai.provider.ChaiConfiguration;
+import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.ChaiProviderFactory;
+import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -52,7 +55,13 @@ import password.pwm.util.macro.MacroMachine;
 
 import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class LdapOperationsHelper {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LdapOperationsHelper.class);
@@ -225,9 +234,9 @@ public class LdapOperationsHelper {
                 if (!"DN".equalsIgnoreCase(guidAttributeName) && !"VENDORGUID".equalsIgnoreCase(guidAttributeName)) {
                     try {
                         // check if it is unique
-                        UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+                        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
                         searchConfiguration.setFilter("(" + guidAttributeName + "=" + guidValue + ")");
-                        UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
+                        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
                         final UserIdentity result = userSearchEngine.performSingleUserSearch(searchConfiguration);
                         exists = result != null;
                     } catch (PwmOperationalException e) {

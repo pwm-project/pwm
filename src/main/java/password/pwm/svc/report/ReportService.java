@@ -35,13 +35,21 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.PwmService;
-import password.pwm.util.*;
+import password.pwm.util.ClosableIterator;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.LocaleHelper;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -51,7 +59,14 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -94,7 +109,7 @@ public class ReportService implements PwmService {
     }
 
     @Override
-    public void init(PwmApplication pwmApplication)
+    public void init(final PwmApplication pwmApplication)
             throws PwmException
     {
         status = STATUS.OPENING;
@@ -138,7 +153,7 @@ public class ReportService implements PwmService {
                 ));
 
 
-        String startupMsg = "report service started";
+        final String startupMsg = "report service started";
         LOGGER.debug(startupMsg);
 
         executorService.submit(new InitializationTask());
@@ -438,7 +453,7 @@ public class ReportService implements PwmService {
                 try {
                     UserCacheRecord returnBean = null;
                     while (returnBean == null && this.storageKeyIterator.hasNext()) {
-                        UserCacheService.StorageKey key = this.storageKeyIterator.next();
+                        final UserCacheService.StorageKey key = this.storageKeyIterator.next();
                         returnBean = userCacheService.readStorageKey(key);
                         if (returnBean != null) {
                             if (returnBean.getCacheTimestamp() == null) {
@@ -620,7 +635,7 @@ public class ReportService implements PwmService {
         private final int maxSamples;
         private final Queue<BigInteger> samples = new LinkedList<>();
 
-        public AvgTracker(int maxSamples)
+        public AvgTracker(final int maxSamples)
         {
             this.maxSamples = maxSamples;
         }

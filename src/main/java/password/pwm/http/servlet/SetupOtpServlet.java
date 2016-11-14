@@ -34,7 +34,11 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ForceSetupPolicy;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -45,6 +49,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
 import password.pwm.util.Validator;
@@ -88,7 +93,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
 
         private final HttpMethod method;
 
-        SetupOtpAction(HttpMethod method)
+        SetupOtpAction(final HttpMethod method)
         {
             this.method = method;
         }
@@ -176,10 +181,12 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                     handleComplete(pwmRequest);
                     return;
 
-                case skip: {
+                case skip:
                     handleSkip(pwmRequest, otpBean);
                     return;
-                }
+
+                default:
+                    Helper.unhandledSwitchStatement(action);
             }
         }
         this.advanceToNextStage(pwmRequest, otpBean);
@@ -306,7 +313,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
         final String code = Validator.sanitizeInputValue(pwmApplication.getConfig(), clientValues.get("code"), 1024);
 
         try {
-            boolean passed = otpService.validateToken(
+            final boolean passed = otpService.validateToken(
                     pwmSession,
                     pwmSession.getUserInfoBean().getUserIdentity(),
                     otpUserRecord,
@@ -385,7 +392,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
             }
         }
 
-        /* TODO: handle case to HOTP */
+        //@todo: handle case to HOTP
     }
 
     private void initializeBean(
@@ -441,7 +448,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
         }
     }
 
-    private boolean canSetupOtpSecret(Configuration config) {
+    private boolean canSetupOtpSecret(final Configuration config) {
         /* TODO */
         return true;
     }

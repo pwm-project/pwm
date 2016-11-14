@@ -29,10 +29,10 @@ import java.io.Serializable;
 
 public interface SettingUIFunction {
     Serializable provideFunction(
-            final PwmRequest pwmRequest,
-            final StoredConfigurationImpl storedConfiguration,
-            final PwmSetting setting,
-            final String profile,
+             PwmRequest pwmRequest,
+            StoredConfigurationImpl storedConfiguration,
+            PwmSetting setting,
+            String profile,
             String extraData
     )
             throws Exception;

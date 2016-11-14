@@ -35,11 +35,11 @@ public class PasswordManagementServiceLocator extends org.apache.axis.client.Ser
     }
 
 
-    public PasswordManagementServiceLocator(org.apache.axis.EngineConfiguration config) {
+    public PasswordManagementServiceLocator(final org.apache.axis.EngineConfiguration config) {
         super(config);
     }
 
-    public PasswordManagementServiceLocator(java.lang.String wsdlLoc, javax.xml.namespace.QName sName) throws javax.xml.rpc.ServiceException {
+    public PasswordManagementServiceLocator(final java.lang.String wsdlLoc, final javax.xml.namespace.QName sName) throws javax.xml.rpc.ServiceException {
         super(wsdlLoc, sName);
     }
 
@@ -57,12 +57,12 @@ public class PasswordManagementServiceLocator extends org.apache.axis.client.Ser
         return PasswordManagementPortWSDDServiceName;
     }
 
-    public void setPasswordManagementPortWSDDServiceName(java.lang.String name) {
+    public void setPasswordManagementPortWSDDServiceName(final java.lang.String name) {
         PasswordManagementPortWSDDServiceName = name;
     }
 
     public password.pwm.ws.client.novell.pwdmgt.PasswordManagement getPasswordManagementPort() throws javax.xml.rpc.ServiceException {
-       java.net.URL endpoint;
+       final java.net.URL endpoint;
         try {
             endpoint = new java.net.URL(PasswordManagementPort_address);
         }
@@ -72,9 +72,9 @@ public class PasswordManagementServiceLocator extends org.apache.axis.client.Ser
         return getPasswordManagementPort(endpoint);
     }
 
-    public password.pwm.ws.client.novell.pwdmgt.PasswordManagement getPasswordManagementPort(java.net.URL portAddress) throws javax.xml.rpc.ServiceException {
+    public password.pwm.ws.client.novell.pwdmgt.PasswordManagement getPasswordManagementPort(final java.net.URL portAddress) throws javax.xml.rpc.ServiceException {
         try {
-            password.pwm.ws.client.novell.pwdmgt.PasswordManagementBindingStub _stub = new password.pwm.ws.client.novell.pwdmgt.PasswordManagementBindingStub(portAddress, this);
+            final password.pwm.ws.client.novell.pwdmgt.PasswordManagementBindingStub _stub = new password.pwm.ws.client.novell.pwdmgt.PasswordManagementBindingStub(portAddress, this);
             _stub.setPortName(getPasswordManagementPortWSDDServiceName());
             return _stub;
         }
@@ -83,7 +83,7 @@ public class PasswordManagementServiceLocator extends org.apache.axis.client.Ser
         }
     }
 
-    public void setPasswordManagementPortEndpointAddress(java.lang.String address) {
+    public void setPasswordManagementPortEndpointAddress(final java.lang.String address) {
         PasswordManagementPort_address = address;
     }
 
@@ -92,10 +92,10 @@ public class PasswordManagementServiceLocator extends org.apache.axis.client.Ser
      * If this service has no port for the given interface,
      * then ServiceException is thrown.
      */
-    public java.rmi.Remote getPort(Class serviceEndpointInterface) throws javax.xml.rpc.ServiceException {
+    public java.rmi.Remote getPort(final Class serviceEndpointInterface) throws javax.xml.rpc.ServiceException {
         try {
             if (password.pwm.ws.client.novell.pwdmgt.PasswordManagement.class.isAssignableFrom(serviceEndpointInterface)) {
-                password.pwm.ws.client.novell.pwdmgt.PasswordManagementBindingStub _stub = new password.pwm.ws.client.novell.pwdmgt.PasswordManagementBindingStub(new java.net.URL(PasswordManagementPort_address), this);
+                final password.pwm.ws.client.novell.pwdmgt.PasswordManagementBindingStub _stub = new password.pwm.ws.client.novell.pwdmgt.PasswordManagementBindingStub(new java.net.URL(PasswordManagementPort_address), this);
                 _stub.setPortName(getPasswordManagementPortWSDDServiceName());
                 return _stub;
             }
@@ -111,16 +111,16 @@ public class PasswordManagementServiceLocator extends org.apache.axis.client.Ser
      * If this service has no port for the given interface,
      * then ServiceException is thrown.
      */
-    public java.rmi.Remote getPort(javax.xml.namespace.QName portName, Class serviceEndpointInterface) throws javax.xml.rpc.ServiceException {
+    public java.rmi.Remote getPort(final javax.xml.namespace.QName portName, final Class serviceEndpointInterface) throws javax.xml.rpc.ServiceException {
         if (portName == null) {
             return getPort(serviceEndpointInterface);
         }
-        java.lang.String inputPortName = portName.getLocalPart();
+        final java.lang.String inputPortName = portName.getLocalPart();
         if ("PasswordManagementPort".equals(inputPortName)) {
             return getPasswordManagementPort();
         }
         else  {
-            java.rmi.Remote _stub = getPort(serviceEndpointInterface);
+            final java.rmi.Remote _stub = getPort(serviceEndpointInterface);
             ((org.apache.axis.client.Stub) _stub).setPortName(portName);
             return _stub;
         }
@@ -143,7 +143,7 @@ public class PasswordManagementServiceLocator extends org.apache.axis.client.Ser
     /**
     * Set the endpoint address for the specified port name.
     */
-    public void setEndpointAddress(java.lang.String portName, java.lang.String address) throws javax.xml.rpc.ServiceException {
+    public void setEndpointAddress(final java.lang.String portName, final java.lang.String address) throws javax.xml.rpc.ServiceException {
         
 if ("PasswordManagementPort".equals(portName)) {
             setPasswordManagementPortEndpointAddress(address);
@@ -157,7 +157,7 @@ if ("PasswordManagementPort".equals(portName)) {
     /**
     * Set the endpoint address for the specified port name.
     */
-    public void setEndpointAddress(javax.xml.namespace.QName portName, java.lang.String address) throws javax.xml.rpc.ServiceException {
+    public void setEndpointAddress(final javax.xml.namespace.QName portName, final java.lang.String address) throws javax.xml.rpc.ServiceException {
         setEndpointAddress(portName.getLocalPart(), address);
     }
 

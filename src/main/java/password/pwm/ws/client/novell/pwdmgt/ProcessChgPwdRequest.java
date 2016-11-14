@@ -40,9 +40,9 @@ public class ProcessChgPwdRequest  implements java.io.Serializable {
     }
 
     public ProcessChgPwdRequest(
-           java.lang.String userDN,
-           java.lang.String newPassword,
-           java.lang.String confirmPassword) {
+            final java.lang.String userDN,
+            final java.lang.String newPassword,
+            final java.lang.String confirmPassword) {
            this.userDN = userDN;
            this.newPassword = newPassword;
            this.confirmPassword = confirmPassword;
@@ -64,7 +64,7 @@ public class ProcessChgPwdRequest  implements java.io.Serializable {
      * 
      * @param userDN
      */
-    public void setUserDN(java.lang.String userDN) {
+    public void setUserDN(final java.lang.String userDN) {
         this.userDN = userDN;
     }
 
@@ -84,7 +84,7 @@ public class ProcessChgPwdRequest  implements java.io.Serializable {
      * 
      * @param newPassword
      */
-    public void setNewPassword(java.lang.String newPassword) {
+    public void setNewPassword(final java.lang.String newPassword) {
         this.newPassword = newPassword;
     }
 
@@ -104,21 +104,22 @@ public class ProcessChgPwdRequest  implements java.io.Serializable {
      * 
      * @param confirmPassword
      */
-    public void setConfirmPassword(java.lang.String confirmPassword) {
+    public void setConfirmPassword(final java.lang.String confirmPassword) {
         this.confirmPassword = confirmPassword;
     }
 
     private java.lang.Object __equalsCalc = null;
-    public synchronized boolean equals(java.lang.Object obj) {
+
+    public synchronized boolean equals(final java.lang.Object obj) {
         if (!(obj instanceof ProcessChgPwdRequest)) return false;
-        ProcessChgPwdRequest other = (ProcessChgPwdRequest) obj;
+        final ProcessChgPwdRequest other = (ProcessChgPwdRequest) obj;
         if (obj == null) return false;
         if (this == obj) return true;
         if (__equalsCalc != null) {
             return (__equalsCalc == obj);
         }
         __equalsCalc = obj;
-        boolean _equals;
+        final boolean _equals;
         _equals = true && 
             ((this.userDN==null && other.getUserDN()==null) || 
              (this.userDN!=null &&
@@ -134,6 +135,7 @@ public class ProcessChgPwdRequest  implements java.io.Serializable {
     }
 
     private boolean __hashCodeCalc = false;
+
     public synchronized int hashCode() {
         if (__hashCodeCalc) {
             return 0;
@@ -190,9 +192,9 @@ public class ProcessChgPwdRequest  implements java.io.Serializable {
      * Get Custom Serializer
      */
     public static org.apache.axis.encoding.Serializer getSerializer(
-           java.lang.String mechType, 
-           java.lang.Class _javaType,  
-           javax.xml.namespace.QName _xmlType) {
+            final java.lang.String mechType,
+            final java.lang.Class _javaType,
+            final javax.xml.namespace.QName _xmlType) {
         return 
           new  org.apache.axis.encoding.ser.BeanSerializer(
             _javaType, _xmlType, typeDesc);
@@ -202,9 +204,9 @@ public class ProcessChgPwdRequest  implements java.io.Serializable {
      * Get Custom Deserializer
      */
     public static org.apache.axis.encoding.Deserializer getDeserializer(
-           java.lang.String mechType, 
-           java.lang.Class _javaType,  
-           javax.xml.namespace.QName _xmlType) {
+            final java.lang.String mechType,
+            final java.lang.Class _javaType,
+            final javax.xml.namespace.QName _xmlType) {
         return 
           new  org.apache.axis.encoding.ser.BeanDeserializer(
             _javaType, _xmlType, typeDesc);

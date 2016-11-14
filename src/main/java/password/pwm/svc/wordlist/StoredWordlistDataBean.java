@@ -41,7 +41,7 @@ public class StoredWordlistDataBean implements Serializable {
 
         private final String label;
 
-        Source(String label) {
+        Source(final String label) {
             this.label = label;
         }
 
@@ -70,7 +70,7 @@ public class StoredWordlistDataBean implements Serializable {
         return size;
     }
 
-    public StoredWordlistDataBean(boolean completed, Source source, Date storeDate, String sha1hash, int size) {
+    public StoredWordlistDataBean(final boolean completed, final Source source, final Date storeDate, final String sha1hash, final int size) {
         this.completed = completed;
         this.source = source;
         this.storeDate = storeDate;
@@ -96,27 +96,27 @@ public class StoredWordlistDataBean implements Serializable {
             this.size = source.size;
         }
 
-        public Builder setCompleted(boolean completed) {
+        public Builder setCompleted(final boolean completed) {
             this.completed = completed;
             return this;
         }
 
-        public Builder setSource(Source source) {
+        public Builder setSource(final Source source) {
             this.source = source;
             return this;
         }
 
-        public Builder setStoreDate(Date storeDate) {
+        public Builder setStoreDate(final Date storeDate) {
             this.storeDate = storeDate;
             return this;
         }
 
-        public Builder setSha1hash(String sha1hash) {
+        public Builder setSha1hash(final String sha1hash) {
             this.sha1hash = sha1hash;
             return this;
         }
 
-        public Builder setSize(int size) {
+        public Builder setSize(final int size) {
             this.size = size;
             return this;
         }

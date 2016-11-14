@@ -37,7 +37,7 @@ public class RemoteVerificationResponseBean implements Serializable {
         return displayInstructions;
     }
 
-    public void setDisplayInstructions(String displayInstructions) {
+    public void setDisplayInstructions(final String displayInstructions) {
         this.displayInstructions = displayInstructions;
     }
 
@@ -45,7 +45,7 @@ public class RemoteVerificationResponseBean implements Serializable {
         return verificationState;
     }
 
-    public void setVerificationState(VerificationMethodSystem.VerificationState verificationState) {
+    public void setVerificationState(final VerificationMethodSystem.VerificationState verificationState) {
         this.verificationState = verificationState;
     }
 
@@ -53,7 +53,7 @@ public class RemoteVerificationResponseBean implements Serializable {
         return userPrompts;
     }
 
-    public void setUserPrompts(List<VerificationMethodSystem.UserPromptBean> userPrompts) {
+    public void setUserPrompts(final List<VerificationMethodSystem.UserPromptBean> userPrompts) {
         this.userPrompts = userPrompts;
     }
 
@@ -61,7 +61,7 @@ public class RemoteVerificationResponseBean implements Serializable {
         return errorMessage;
     }
 
-    public void setErrorMessage(String errorMessage) {
+    public void setErrorMessage(final String errorMessage) {
         this.errorMessage = errorMessage;
     }
 }

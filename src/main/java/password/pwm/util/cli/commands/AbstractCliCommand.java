@@ -50,8 +50,8 @@ public abstract class AbstractCliCommand implements CliCommand {
 
     @Override
     public void execute(
-            String cli,
-            CliEnvironment cliEnvironment
+            final String cli,
+            final CliEnvironment cliEnvironment
     )
     {
         this.cliEnvironment = cliEnvironment;

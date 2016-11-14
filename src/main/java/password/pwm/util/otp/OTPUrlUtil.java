@@ -31,11 +31,11 @@ import java.util.regex.Pattern;
  */
 public class OTPUrlUtil {
     
-    public final static String OTP_URL_PATTERN = "^otpauth:\\/\\/(totp|hotp)\\/(.*)\\?secret=([A-Z2-7\\=]{16})$";
-    public final static int OTP_URL_GROUPS = 3;
-    public final static int OTP_URL_TYPE = 1;
-    public final static int OTP_URL_IDENT = 2;
-    public final static int OTP_URL_SECRET = 3;
+    public static final String OTP_URL_PATTERN = "^otpauth:\\/\\/(totp|hotp)\\/(.*)\\?secret=([A-Z2-7\\=]{16})$";
+    public static final int OTP_URL_GROUPS = 3;
+    public static final int OTP_URL_TYPE = 1;
+    public static final int OTP_URL_IDENT = 2;
+    public static final int OTP_URL_SECRET = 3;
 
     /**
      * Convert a OTPUserRecord object into an otpauth:// url.
@@ -43,11 +43,11 @@ public class OTPUrlUtil {
      * @param otp
      * @return 
      */
-    public static String composeOtpUrl(OTPUserRecord otp) {
-        String ident = otp.getIdentifier();
-        String secret = otp.getSecret();
-        String otptype = otp.getType().toString();
-        String otpInfo = String.format("otpauth://%s/%s?secret=%s", otptype.toLowerCase(), ident, secret);
+    public static String composeOtpUrl(final OTPUserRecord otp) {
+        final String ident = otp.getIdentifier();
+        final String secret = otp.getSecret();
+        final String otptype = otp.getType().toString();
+        final String otpInfo = String.format("otpauth://%s/%s?secret=%s", otptype.toLowerCase(), ident, secret);
         return otpInfo;
     }
     
@@ -57,14 +57,14 @@ public class OTPUrlUtil {
      * @param otpInfo
      * @return 
      */
-    public static OTPUserRecord decomposeOtpUrl(String otpInfo) {
+    public static OTPUserRecord decomposeOtpUrl(final String otpInfo) {
         OTPUserRecord otp = null;
-        Pattern pattern = Pattern.compile(OTP_URL_PATTERN);
-        Matcher matcher = pattern.matcher(otpInfo);
+        final Pattern pattern = Pattern.compile(OTP_URL_PATTERN);
+        final Matcher matcher = pattern.matcher(otpInfo);
         if (matcher.matches() && matcher.groupCount() == OTP_URL_GROUPS) {
-            String type = matcher.group(OTP_URL_TYPE);
-            String ident = matcher.group(OTP_URL_IDENT);
-            String secret = matcher.group(OTP_URL_SECRET);
+            final String type = matcher.group(OTP_URL_TYPE);
+            final String ident = matcher.group(OTP_URL_IDENT);
+            final String secret = matcher.group(OTP_URL_SECRET);
             otp = new OTPUserRecord();
             otp.setType(OTPUserRecord.Type.valueOf(type.toUpperCase()));
             otp.setIdentifier(ident);

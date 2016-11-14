@@ -22,21 +22,20 @@
 
 package password.pwm.util.macro;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
-
+import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.error.PwmException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.client.rest.RestClientHelper;
 
-import com.google.gson.reflect.TypeToken;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * External macro @External1:<value>@ where 1 is incremental configuration item.
@@ -47,7 +46,7 @@ class ExternalRestMacro extends AbstractMacro {
     private final Pattern pattern;
     private final String url;
 
-    public ExternalRestMacro(
+    ExternalRestMacro(
             final int iteration,
             final String url
     ) {
@@ -73,7 +72,7 @@ class ExternalRestMacro extends AbstractMacro {
 
         try {
             if (userInfoBean != null) {
-                MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity());
+                final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity());
                 final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(userInfoBean, pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE, macroMachine);
                 sendData.put("userInfo", publicUserInfoBean);
             }

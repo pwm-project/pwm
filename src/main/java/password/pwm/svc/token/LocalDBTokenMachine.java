@@ -32,23 +32,23 @@ class LocalDBTokenMachine implements TokenMachine {
     private TokenService tokenService;
 
     LocalDBTokenMachine(
-            TokenService tokenService,
-            LocalDB localDB
+            final TokenService tokenService,
+            final LocalDB localDB
     ) {
         this.tokenService = tokenService;
         this.localDB = localDB;
     }
 
     public String generateToken(
-            SessionLabel sessionLabel,
-            TokenPayload tokenPayload
+            final SessionLabel sessionLabel,
+            final TokenPayload tokenPayload
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
         return tokenService.makeUniqueTokenForMachine(sessionLabel, this);
     }
 
-    public TokenPayload retrieveToken(String tokenKey)
+    public TokenPayload retrieveToken(final String tokenKey)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String md5sumToken = TokenService.makeTokenHash(tokenKey);
@@ -61,13 +61,13 @@ class LocalDBTokenMachine implements TokenMachine {
         return null;
     }
 
-    public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
+    public void storeToken(final String tokenKey, final TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
         final String rawValue = tokenService.toEncryptedString(tokenPayload);
         final String md5sumToken = TokenService.makeTokenHash(tokenKey);
         localDB.put(LocalDB.DB.TOKENS, md5sumToken, rawValue);
     }
 
-    public void removeToken(String tokenKey)
+    public void removeToken(final String tokenKey)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String md5sumToken = TokenService.makeTokenHash(tokenKey);

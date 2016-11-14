@@ -34,7 +34,9 @@ import java.util.Map;
 public class ActionConfiguration implements Serializable {
 
     public enum Type { webservice, ldap }
+
     public enum WebMethod { delete, get, post, put, patch }
+
     public enum LdapMethod { replace, add, remove }
 
     private String name;
@@ -101,7 +103,7 @@ public class ActionConfiguration implements Serializable {
         final String[] splitString = value.split("=");
         final String attributeName = splitString[0];
         final String attributeValue = splitString[1];
-        ActionConfiguration actionConfiguration = new ActionConfiguration();
+        final ActionConfiguration actionConfiguration = new ActionConfiguration();
         actionConfiguration.name = attributeName;
         actionConfiguration.description = attributeName;
         actionConfiguration.type = Type.ldap;

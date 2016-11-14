@@ -40,7 +40,7 @@ public enum OTPStorageFormat {
      *
      * @param useRecoveryCodes
      */
-    OTPStorageFormat(boolean useRecoveryCodes) {
+    OTPStorageFormat(final boolean useRecoveryCodes) {
         this.useRecoveryCodes = useRecoveryCodes;
         this.hashRecoveryCodes = useRecoveryCodes; // defaults to true, if recovery codes enabled.
     }
@@ -52,8 +52,8 @@ public enum OTPStorageFormat {
      * @param hashRecoveryCodes
      */
     OTPStorageFormat(
-            boolean useRecoveryCodes,
-            boolean hashRecoveryCodes
+            final boolean useRecoveryCodes,
+            final boolean hashRecoveryCodes
     ) {
         this.useRecoveryCodes = useRecoveryCodes;
         this.hashRecoveryCodes = useRecoveryCodes && hashRecoveryCodes;

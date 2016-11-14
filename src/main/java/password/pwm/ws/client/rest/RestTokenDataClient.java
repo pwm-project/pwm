@@ -22,17 +22,13 @@
 
 package password.pwm.ws.client.rest;
 
-import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
-
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -43,7 +39,10 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
+import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class RestTokenDataClient implements RestClient {
 
@@ -55,9 +54,9 @@ public class RestTokenDataClient implements RestClient {
         private String displayValue;
 
         public TokenDestinationData(
-                String email,
-                String sms,
-                String displayValue
+                final String email,
+                final String sms,
+                final String displayValue
         )
         {
             this.email = email;
@@ -83,7 +82,7 @@ public class RestTokenDataClient implements RestClient {
 
     private final PwmApplication pwmApplication;
 
-    public RestTokenDataClient(PwmApplication pwmApplication)
+    public RestTokenDataClient(final PwmApplication pwmApplication)
     {
         this.pwmApplication = pwmApplication;
     }
@@ -104,13 +103,13 @@ public class RestTokenDataClient implements RestClient {
         final Map<String,Object> sendData = new LinkedHashMap<>();
         sendData.put(DATA_KEY_TOKENDATA, tokenDestinationData);
         if (userIdentity != null) {
-            UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, sessionLabel);
+            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, sessionLabel);
             final UserInfoBean userInfoBean = userStatusReader.populateUserInfoBean(
                     locale,
                     userIdentity
             );
 
-            MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity());
+            final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity());
             final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(userInfoBean, pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE, macroMachine);
             sendData.put(RestClient.DATA_KEY_USERINFO, publicUserInfoBean);
         }
