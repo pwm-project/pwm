@@ -1,5 +1,5 @@
 import { Component } from '../component';
-import { IAugmentedJQuery, ICompileService, IPromise, IScope } from 'angular';
+import { IAugmentedJQuery, ICompileService, IDocumentService, IPromise, IScope } from 'angular';
 
 @Component({
     bindings: {
@@ -21,8 +21,9 @@ export default class AutoCompleteComponent {
     selectedIndex: number;
     show: boolean;
 
-    static $inject = [ '$compile', '$element', '$scope' ];
+    static $inject = [ '$compile', '$document', '$element', '$scope' ];
     constructor(private $compile: ICompileService,
+                private $document: IDocumentService,
                 private $element: IAugmentedJQuery,
                 private $scope: IScope) {
     }
@@ -40,6 +41,14 @@ export default class AutoCompleteComponent {
         });
 
         this.selectedIndex = -1;
+
+        // Listen for clicks outside of the auto-complete component
+        this.$document.on('click', (event: Event) => {
+            if (self.show) {
+                self.hideAutoCompleteResults();
+                self.$scope.$apply();
+            }
+        });
     }
 
     $postLink(): void {
@@ -49,7 +58,7 @@ export default class AutoCompleteComponent {
         contentTemplate.remove();
 
         var autoCompleteHtml =
-            '<ul class="results" ng-if="$ctrl.show">' +
+            '<ul class="results" ng-if="$ctrl.show" ng-click="$event.stopPropagation()">' +
             '   <li ng-repeat="item in $ctrl.items"' +
             '       ng-click="$ctrl.selectItem(item)"' +
             '       ng-class="{ \'selected\': $index == $ctrl.selectedIndex }\">' +
