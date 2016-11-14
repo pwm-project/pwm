@@ -27,6 +27,7 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
 
         // Fetch data when query changes
         this.$scope.$watch('$ctrl.query', (newValue: string) => {
+            super.disableNoResults();
             if (!newValue) {
                 self.people = [];
             }
@@ -34,6 +35,7 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
                 this.peopleService
                     .cardSearch(newValue)
                     .then((people: Person[]) => {
+                        super.enableNoResults();
                         self.people = people;
                     });
             }

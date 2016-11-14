@@ -8,6 +8,7 @@ export default class PeopleSearchBaseComponent {
     people: Person[] = [];
     query: string;
     noResults: boolean = false;
+    noResultsEnabled: boolean = false;
 
     constructor(protected $scope: IScope,
                 protected $state: angular.ui.IStateService,
@@ -23,7 +24,7 @@ export default class PeopleSearchBaseComponent {
     }
 
     noSearchResults(): boolean {
-        if (this.query && this.query.length) {
+        if (this.noResultsEnabled && this.query && this.query.length) {
             return (this.people.length == 0);
         }
 
@@ -36,5 +37,13 @@ export default class PeopleSearchBaseComponent {
 
     gotoState(state: string) {
         this.$state.go(state, { query: this.query });
+    }
+
+    disableNoResults() {
+        this.noResultsEnabled = false;
+    }
+
+    enableNoResults() {
+        this.noResultsEnabled = true;
     }
 }
