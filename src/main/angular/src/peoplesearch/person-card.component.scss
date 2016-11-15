@@ -40,10 +40,9 @@ person-card {
     height: 166px;
     width: 326px;
     max-width: 100%;
-    min-width: 310px;
 
     > .person-card-content {
-      flex-flow: row wrap;
+      flex-flow: row nowrap;
 
       > .avatar {
         flex: 0 0 $person-card-large-avatar-size;
@@ -120,7 +119,6 @@ person-card {
       flex: 0 0 $person-card-avatar-size;
       height: $person-card-avatar-size;
       margin-right: $person-card-spacing;
-      width: $person-card-avatar-size;
 
       img {
         height: 100%;
@@ -129,8 +127,8 @@ person-card {
     }
 
     > .details {
-      flex-grow: 1;
-      width: $person-card-width - $person-card-avatar-size;
+      flex: 1;
+      overflow: hidden;
 
       > div {
         line-height: 16px;

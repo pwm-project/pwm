@@ -7,8 +7,17 @@ $manager-connector-height: 16px;
 // (XS) Default display
 org-chart {
   display: block;
-  min-width: 260px;
+  max-width: 100%;
   padding-top: 10px;
+
+  > .org-chart-section {
+    width: 100%;
+
+    > person-card {
+      &[size="large"] {
+      }
+    }
+  }
 
   // (S) Too wide for full width person-card in direct reports
   &.small {
