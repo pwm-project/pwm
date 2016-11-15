@@ -21,8 +21,7 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
     }
 
     $onInit(): void {
-        super.$onInit();
-        this.fetchData(this.peopleService.search);
+        this.initialize(this.peopleService.cardSearch);
 
         let self = this;
 
@@ -33,6 +32,6 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
     }
 
     gotoCardsView() {
-        super.gotoState('search.cards');
+        this.gotoState('search.cards');
     }
 }

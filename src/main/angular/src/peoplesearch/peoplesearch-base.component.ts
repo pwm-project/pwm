@@ -3,20 +3,20 @@ import { IPromise, IScope } from 'angular';
 import SearchResult from '../models/search-result.model';
 import Person from '../models/person.model';
 
+interface ISearchFunction {
+    (query: string): IPromise<SearchResult>;
+}
+
 export default class PeopleSearchBaseComponent {
-    loading: boolean;
     query: string;
+    searchFunction: ISearchFunction;
     searchMessage: string;
     searchResult: SearchResult;
 
-    constructor(protected $scope: IScope,
+    protected constructor(protected $scope: IScope,
                 protected $state: angular.ui.IStateService,
                 protected $stateParams: angular.ui.IStateParamsService,
                 protected peopleService: IPeopleService) {}
-
-    $onInit(): void {
-        this.query = this.$stateParams['query'];
-    }
 
     gotoOrgchart(): void {
         this.$state.go('orgchart.index');
@@ -24,6 +24,25 @@ export default class PeopleSearchBaseComponent {
 
     gotoState(state: string): void {
         this.$state.go(state, { query: this.query });
+    }
+
+    initialize(searchFunction: ISearchFunction): void {
+        this.query = this.$stateParams['query'];
+        this.searchFunction = searchFunction;
+
+        const self = this;
+
+        // Fetch data when query changes
+        this.$scope.$watch('$ctrl.query', (newValue: string, oldValue: string) => {
+            if (newValue === oldValue) {
+                return;
+            }
+
+            self.setSearchMessage(null);
+            self.fetchData();
+        });
+
+        this.fetchData();
     }
 
     selectPerson(person: Person): void {
@@ -44,28 +63,19 @@ export default class PeopleSearchBaseComponent {
         }
     }
 
-    protected fetchData(searchFunction: (query: string) => IPromise<SearchResult>) {
+    protected fetchData(): void {
         const self = this;
 
-        // Fetch data when query changes
-        this.$scope.$watch('$ctrl.query', (newValue: string, oldValue: string) => {
-            if (newValue === oldValue) {
-                return;
-            }
+        if (!this.query) {
+            self.searchResult = null;
+            return;
+        }
 
-            self.setSearchMessage(null);
-
-            if (!newValue) {
-                self.searchResult = null;
-            }
-            else {
-                searchFunction
-                    .call(self.peopleService, newValue)
-                    .then((searchResult: SearchResult) => {
-                        self.searchResult = searchResult;
-                        self.setSearchMessage(searchResult);
-                    });
-            }
-        });
+        this.searchFunction
+            .call(this.peopleService, this.query)
+            .then((searchResult: SearchResult) => {
+                self.searchResult = searchResult;
+                self.setSearchMessage(searchResult);
+            });
     }
 }

@@ -18,11 +18,10 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
     }
 
     $onInit(): void {
-        super.$onInit();
-        this.fetchData(this.peopleService.cardSearch);
+        this.initialize(this.peopleService.cardSearch);
     }
 
     gotoTableView() {
-        super.gotoState('search.table');
+        this.gotoState('search.table');
     }
 }
