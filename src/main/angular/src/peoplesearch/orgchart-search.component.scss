@@ -6,13 +6,22 @@ org-chart-search {
 
   mf-app-bar {
     > .mf-app-bar-content {
-      display: block;
+      display: flex;
+      flex-flow: row wrap;
 
       > .page-content-title {
-        width: 100%;
+        order: 1;
+      }
+
+      > span[flex] {
+        order: 2;
       }
 
       > mf-auto-complete {
+        flex: 0 0 100%;
+        order: 4;
+        width: 100%;
+
         .results {
           span {
             color: #808080;
@@ -20,22 +29,35 @@ org-chart-search {
           }
         }
       }
+
+      > mf-icon-button {
+        flex: 0 0 24px;
+        order: 3;
+      }
     }
   }
 }
 
-@media (min-width: 426px) {
+@media (min-width: 490px) {
   org-chart-search {
     mf-app-bar {
       > .mf-app-bar-content {
-        display: flex;
+        flex-wrap: nowrap;
+
+        > span[flex] {
+          order: initial;
+        }
 
         > .page-content-title {
+          order: initial;
           width: auto;
         }
 
         > mf-auto-complete {
+          flex: 1 1 auto;
+          margin-right: 10px;
           max-width: 360px;
+          order: initial;
 
           > mf-search-bar {
             max-width: 100%;
@@ -45,6 +67,10 @@ org-chart-search {
             min-width: 100%;
             width: auto;
           }
+        }
+
+        > mf-icon-button {
+          order: initial;
         }
       }
     }

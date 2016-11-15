@@ -25,9 +25,9 @@ export default class PeopleSearchBaseComponent {
     }
 
     // Trigger "No Results" message when search already done loading has no results
-    hasSearchResults(): boolean {
+    showNoResults(): boolean {
         if (this.query && !this.loading) {
-            return this.people.length > 0;
+            return this.people.length === 0;
         }
 
         return false;

@@ -1,9 +1,8 @@
 <mf-app-bar>
     <div class="page-content-title" translate="Title_Organization">Organization</div>
-    <mf-auto-complete flex
-                   search="$ctrl.autoCompleteSearch(query)"
-                   item-selected="$ctrl.onAutoCompleteItemSelected(person)"
-                   item="person">
+    <mf-auto-complete search="$ctrl.autoCompleteSearch(query)"
+                      item-selected="$ctrl.onAutoCompleteItemSelected(person)"
+                      item="person">
         <content-template>
             <span ng-bind="person._displayName"></span>
         </content-template>
