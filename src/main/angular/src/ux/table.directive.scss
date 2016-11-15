@@ -8,6 +8,7 @@ mf-table {
 
   > .table-configuration {
     position: relative;
+    z-index: 100;
 
     > ul {
       background-color: #ffffff;

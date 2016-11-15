@@ -4,6 +4,7 @@ mf-dialog {
   position: fixed;
   top: 0;
   width: 100vw;
+  z-index: 1000;
 
   > .scrim {
     background-color: rgba(0, 0, 0, .54);
