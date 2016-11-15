@@ -6,7 +6,7 @@
 </mf-app-bar>
 
 <mf-search-bar search-text="$ctrl.query" auto-focus></mf-search-bar>
-<p ng-if="$ctrl.noSearchResults()">No Results</p>
+<p ng-if="!$ctrl.hasSearchResults()">No Results</p>
 
 <div class="person-card-list">
     <person-card person="person"
