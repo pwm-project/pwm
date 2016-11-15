@@ -1,11 +1,11 @@
 <mf-app-bar>
     <div class="page-content-title" translate="Title_PeopleSearch">People Search</div>
+    <mf-search-bar search-text="$ctrl.query" auto-focus></mf-search-bar>
     <span flex></span>
     <mf-icon-button icon="view-tile" ng-click="$ctrl.gotoCardsView()"></mf-icon-button>
     <mf-icon-button icon="orgchart" ng-click="$ctrl.gotoOrgchart()"></mf-icon-button>
 </mf-app-bar>
 
-<mf-search-bar search-text="$ctrl.query" auto-focus></mf-search-bar>
 <div class="search-info" ng-if="$ctrl.searchMessage" ng-bind="$ctrl.searchMessage"></div>
 
 <mf-table data="person in $ctrl.searchResult.people" ng-show="$ctrl.searchResult.people.length" on-click-item="$ctrl.selectPerson(person)">

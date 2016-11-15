@@ -6,6 +6,8 @@ mf-search-bar {
   position: relative;
 
   > input {
+    border: 1px solid #dae1e1;
+    border-radius: 2px;
     height: 100%;
     line-height: 100%;
     box-sizing: border-box;

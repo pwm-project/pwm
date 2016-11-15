@@ -4,7 +4,7 @@ people-search-cards {
     height: 100%;
 
     > .person-card-list {
-        height: 100%;
+        flex: 1 1;
         overflow: auto;
         text-align: center;
 

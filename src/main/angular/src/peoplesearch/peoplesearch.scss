@@ -24,19 +24,17 @@ body {
   }
 
   mf-search-bar {
-    margin: 10px 0;
     max-width: 450px;
   }
 
   .search-info {
+    border: 1px solid #dae1e1;
+    border-radius: 3px;
+    color: #808080;
+    display: inline-block;
+    font-size: 14px;
+    margin: 10px auto;
+    padding: 5px;
     text-align: center;
-  }
-}
-
-@media (min-width: 460px) {
-  .people-search-component {
-    .search-info {
-      text-align: left;
-    }
   }
 }
