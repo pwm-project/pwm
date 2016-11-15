@@ -1,11 +1,13 @@
 import { IPeopleService } from '../services/people.service';
+import { IPromise, IScope } from 'angular';
+import SearchResult from '../models/search-result.model';
 import Person from '../models/person.model';
-import { IScope } from 'angular';
 
 export default class PeopleSearchBaseComponent {
-    people: Person[] = [];
-    query: string;
     loading: boolean;
+    query: string;
+    searchMessage: string;
+    searchResult: SearchResult;
 
     constructor(protected $scope: IScope,
                 protected $state: angular.ui.IStateService,
@@ -24,12 +26,46 @@ export default class PeopleSearchBaseComponent {
         this.$state.go(state, { query: this.query });
     }
 
-    // Trigger "No Results" message when search already done loading has no results
-    showNoResults(): boolean {
-        if (this.query && !this.loading) {
-            return this.people.length === 0;
+    selectPerson(person: Person): void {
+        this.$state.go('.details', { personId: person.userKey, query: this.query });
+    }
+
+    protected setSearchMessage(searchResult: SearchResult) {
+        if (!searchResult) {
+            this.searchMessage = null;
+            return;
         }
 
-        return false;
+        if (searchResult.sizeExceeded) {
+            this.searchMessage = `Only showing ${searchResult.people.length} results`;
+        }
+        if (!searchResult.people.length) {
+            this.searchMessage = 'No results';
+        }
+    }
+
+    protected fetchData(searchFunction: (query: string) => IPromise<SearchResult>) {
+        const self = this;
+
+        // Fetch data when query changes
+        this.$scope.$watch('$ctrl.query', (newValue: string, oldValue: string) => {
+            if (newValue === oldValue) {
+                return;
+            }
+
+            self.setSearchMessage(null);
+
+            if (!newValue) {
+                self.searchResult = null;
+            }
+            else {
+                searchFunction
+                    .call(self.peopleService, newValue)
+                    .then((searchResult: SearchResult) => {
+                        self.searchResult = searchResult;
+                        self.setSearchMessage(searchResult);
+                    });
+            }
+        });
     }
 }

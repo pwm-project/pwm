@@ -2,17 +2,18 @@ import { IHttpService, IPromise, IQService } from 'angular';
 import Person from '../models/person.model';
 import PwmService from './pwm.service';
 import OrgChartData from '../models/orgchart-data.model';
+import SearchResult from '../models/search-result.model';
 
 export interface IPeopleService {
     autoComplete(query: string): IPromise<Person[]>;
-    cardSearch(query: string): IPromise<Person[]>;
+    cardSearch(query: string): IPromise<SearchResult>;
     getDirectReports(personId: string): IPromise<Person[]>;
     getNumberOfDirectReports(personId: string): IPromise<number>;
     getManagementChain(personId: string): IPromise<Person[]>;
     getOrgChartData(personId: string): IPromise<OrgChartData>;
     getPerson(id: string): IPromise<Person>;
     isOrgChartEnabled(id: string): IPromise<boolean>;
-    search(query: string): IPromise<Person[]>;
+    search(query: string): IPromise<SearchResult>;
 }
 
 export default class PeopleService extends PwmService implements IPeopleService {
@@ -23,7 +24,8 @@ export default class PeopleService extends PwmService implements IPeopleService 
 
     autoComplete(query: string): IPromise<Person[]> {
         return this.search(query)
-            .then((people: Person[]) => {
+            .then((searchResult: SearchResult) => {
+                let people = searchResult.people;
                 if (people && people.length > 10) {
                     return this.$q.resolve(people.slice(0, 10));
                 }
@@ -32,15 +34,23 @@ export default class PeopleService extends PwmService implements IPeopleService 
             });
     }
 
-    cardSearch(query: string): angular.IPromise<Person[]> {
-        var self = this;
+    cardSearch(query: string): angular.IPromise<SearchResult> {
+        let self = this;
+
         return this.search(query)
-            .then((people: Person[]) => {
-                var peoplePromises: IPromise<Person>[] = people.map((person: Person) => {
+            .then((searchResult: SearchResult) => {
+                let sizeExceeded = searchResult.sizeExceeded;
+
+                let peoplePromises: IPromise<Person>[] = searchResult.people.map((person: Person) => {
                     return self.getPerson(person.userKey);
                 });
 
-                return this.$q.all(peoplePromises);
+                return this.$q
+                    .all(peoplePromises)
+                    .then((people: Person[]) => {
+                        let searchResult = new SearchResult({ sizeExceeded: sizeExceeded, searchResults: people });
+                        return this.$q.resolve(searchResult);
+                    });
             });
     }
 
@@ -86,12 +96,12 @@ export default class PeopleService extends PwmService implements IPeopleService 
             .then((response) => {
                 let responseData = response.data['data'];
 
-                var manager: Person;
+                let manager: Person;
                 if ('parent' in responseData) { manager = new Person(responseData['parent']); }
-                var children = responseData['children'].map((child: any) => new Person(child));
-                var self = new Person(responseData['self']);
+                const children = responseData['children'].map((child: any) => new Person(child));
+                const self = new Person(responseData['self']);
 
-                var orgChartData = new OrgChartData(manager, children, self);
+                const orgChartData = new OrgChartData(manager, children, self);
 
                 return this.$q.resolve(orgChartData);
             });
@@ -111,17 +121,14 @@ export default class PeopleService extends PwmService implements IPeopleService 
         return this.$q.resolve(true);
     }
 
-    search(query: string): IPromise<Person[]> {
+    search(query: string): IPromise<SearchResult> {
         return this.$http.post(this.getServerUrl('search', { 'includeDisplayName': true }), {
             username: query
         }).then((response) => {
-            let people: Person[] = [];
+            let receivedData: any = response.data['data'];
+            let searchResult: SearchResult = new SearchResult(receivedData);
 
-            for (let searchResult of response.data['data']['searchResults']) {
-                people.push(new Person(searchResult));
-            }
-
-            return this.$q.resolve(people);
+            return this.$q.resolve(searchResult);
         });
     }
 }
