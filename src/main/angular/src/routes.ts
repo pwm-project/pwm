@@ -17,6 +17,14 @@ export default [
         });
         $stateProvider.state('search.table', { url: '/table', component: 'peopleSearchTable' });
         $stateProvider.state('search.cards', { url: '/cards', component: 'peopleSearchCards' });
+        $stateProvider.state('search.table.details', {
+            url: '/details/{personId}',
+            component: 'personDetailsDialogComponent'
+        });
+        $stateProvider.state('search.cards.details', {
+            url: '/details/{personId}',
+            component: 'personDetailsDialogComponent'
+        });
         $stateProvider.state('orgchart', { url: '/orgchart', abstract: true, template: '<ui-view/>' });
         $stateProvider.state('orgchart.index', { url: '', component: 'orgChartSearch' });
         $stateProvider.state('orgchart.search', { url: '/{personId}', component: 'orgChartSearch' });

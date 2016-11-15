@@ -1,0 +1,48 @@
+<mf-dialog class="person-details" on-close="$ctrl.closeDialog()">
+    <mf-app-bar>
+        <div class="page-content-title" translate="Title_Details">Details</div>
+    </mf-app-bar>
+    <div class="mf-dialog-content">
+        <person-card size="medium" person="$ctrl.person"></person-card>
+        <mf-button type="button" ng-click="$ctrl.gotoOrgChart()">
+            <mf-icon icon="orgchart"></mf-icon>
+            <span translate="Title_OrgChart">Organizational Chart</span>
+        </mf-button>
+
+        <!-- Details -->
+        <table>
+            <tbody>
+                <tr ng-repeat="(key, detail) in $ctrl.person.detail">
+                    <td ng-bind="detail.label"></td>
+                    <td ng-switch="detail.type">
+                        <div class="detail-container" ng-switch-when="userDN">
+                            <ul>
+                                <li ng-repeat="user in detail.userReferences">
+                                    <a ng-href="{{$ctrl.getPersonDetailsUrl(user.userKey)}}"
+                                       ng-bind="user.displayName"></a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="detail-container" ng-switch-default>
+                            <ul>
+                                <li ng-repeat="value in detail.values">
+                                    <a ng-href="mailto:{{value}}"
+                                       ng-bind="value"
+                                       ng-if="detail.type === 'email'"
+                                       flex></a>
+                                    <span ng-bind="value"
+                                          ng-if="detail.type !== 'email'"
+                                          flex></span>
+                                    <mf-icon-button icon="magnify"
+                                                    ng-click="$ctrl.searchText(value)"
+                                                    ng-if="detail.searchable"
+                                                    ng-attr-title="{{'Search \'' + value + '\''}}"></mf-icon-button>
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</mf-dialog>

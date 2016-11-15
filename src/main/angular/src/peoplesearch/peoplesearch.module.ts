@@ -6,6 +6,7 @@ import OrgChartSearchComponent from './orgchart-search.component';
 import PeopleSearchTableComponent from './peoplesearch-table.component';
 import PeopleSearchCardsComponent from './peoplesearch-cards.component';
 import PersonCardComponent from './person-card.component';
+import PersonDetailsDialogComponent from './person-details-dialog.component';
 import uxModule from '../ux/ux.module';
 
 require('./peoplesearch.scss');
@@ -22,6 +23,7 @@ module(moduleName, [
     .component('orgChartSearch', OrgChartSearchComponent)
     .component('personCard', PersonCardComponent)
     .component('peopleSearchTable', PeopleSearchTableComponent)
-    .component('peopleSearchCards', PeopleSearchCardsComponent);
+    .component('peopleSearchCards', PeopleSearchCardsComponent)
+    .component('personDetailsDialogComponent', PersonDetailsDialogComponent);
 
 export default moduleName;

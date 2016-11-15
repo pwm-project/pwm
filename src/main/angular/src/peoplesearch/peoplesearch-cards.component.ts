@@ -1,4 +1,5 @@
 import { Component } from '../component';
+import { DialogService } from '../ux/dialog.service';
 import IPeopleService from '../services/people.service';
 import { IScope } from 'angular';
 import Person from '../models/person.model';
@@ -47,5 +48,9 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
 
     gotoTableView() {
         super.gotoState('search.table');
+    }
+
+    selectPerson(person: Person): void {
+        this.$state.go('search.cards.details', { personId: person.userKey, query: this.query });
     }
 }

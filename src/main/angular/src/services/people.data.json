@@ -21,6 +21,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Ryan"
         ]
@@ -29,6 +30,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Jean"
         ]
@@ -53,6 +55,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Senior Sales Associate"
         ]
@@ -60,13 +63,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "#N/A"
-        ],
-        "typeMetaData": {
-          "userKey": 0
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "#N/A",
+            "userKey": 0
+          }
+        ]
       }
     }
   },
@@ -92,6 +95,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Bowman"
         ]
@@ -100,6 +104,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Ruby"
         ]
@@ -124,6 +129,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Quality Engineer"
         ]
@@ -131,13 +137,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Jean Ryan"
-        ],
-        "typeMetaData": {
-          "userKey": 1
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Jean Ryan - Senior Sales Associate",
+            "userKey": 1
+          }
+        ]
       }
     }
   },
@@ -163,6 +169,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Carter"
         ]
@@ -171,6 +178,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "William"
         ]
@@ -195,6 +203,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Community Outreach Specialist"
         ]
@@ -202,13 +211,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Jean Ryan"
-        ],
-        "typeMetaData": {
-          "userKey": 1
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Jean Ryan - Senior Sales Associate",
+            "userKey": 1
+          }
+        ]
       }
     }
   },
@@ -234,6 +243,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Snyder"
         ]
@@ -242,6 +252,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Alan"
         ]
@@ -266,6 +277,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Research Nurse"
         ]
@@ -273,13 +285,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Jean Ryan"
-        ],
-        "typeMetaData": {
-          "userKey": 1
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Jean Ryan - Senior Sales Associate",
+            "userKey": 1
+          }
+        ]
       }
     }
   },
@@ -305,6 +317,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Alvarez"
         ]
@@ -313,6 +326,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Aaron"
         ]
@@ -337,6 +351,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Financial Analyst"
         ]
@@ -344,13 +359,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Ruby Bowman"
-        ],
-        "typeMetaData": {
-          "userKey": 2
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Ruby Bowman - Quality Engineer",
+            "userKey": 2
+          }
+        ]
       }
     }
   },
@@ -376,6 +391,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Morrison"
         ]
@@ -384,6 +400,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Deborah"
         ]
@@ -408,6 +425,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Accountant II"
         ]
@@ -415,13 +433,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Ruby Bowman"
-        ],
-        "typeMetaData": {
-          "userKey": 2
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Ruby Bowman - Quality Engineer",
+            "userKey": 2
+          }
+        ]
       }
     }
   },
@@ -447,6 +465,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Hayes"
         ]
@@ -455,6 +474,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Mildred"
         ]
@@ -479,6 +499,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Design Engineer"
         ]
@@ -486,13 +507,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Ruby Bowman"
-        ],
-        "typeMetaData": {
-          "userKey": 2
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Ruby Bowman - Quality Engineer",
+            "userKey": 2
+          }
+        ]
       }
     }
   },
@@ -518,6 +539,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Holmes"
         ]
@@ -526,6 +548,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Margaret"
         ]
@@ -550,6 +573,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Structural Engineer"
         ]
@@ -557,13 +581,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "William Carter"
-        ],
-        "typeMetaData": {
-          "userKey": 3
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "William Carter - Community Outreach Specialist",
+            "userKey": 3
+          }
+        ]
       }
     }
   },
@@ -589,6 +613,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Jackson"
         ]
@@ -597,6 +622,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Jack"
         ]
@@ -621,6 +647,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Junior Executive"
         ]
@@ -628,13 +655,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "William Carter"
-        ],
-        "typeMetaData": {
-          "userKey": 3
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "William Carter - Community Outreach Specialist",
+            "userKey": 3
+          }
+        ]
       }
     }
   },
@@ -660,6 +687,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Butler"
         ]
@@ -668,6 +696,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Judy"
         ]
@@ -692,6 +721,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Chief Design Engineer"
         ]
@@ -699,13 +729,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "William Carter"
-        ],
-        "typeMetaData": {
-          "userKey": 3
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "William Carter - Community Outreach Specialist",
+            "userKey": 3
+          }
+        ]
       }
     }
   },
@@ -731,6 +761,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Gutierrez"
         ]
@@ -739,6 +770,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Tina"
         ]
@@ -763,6 +795,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Engineer IV"
         ]
@@ -770,13 +803,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Jack Jackson"
-        ],
-        "typeMetaData": {
-          "userKey": 9
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Jack Jackson - Junior Executive",
+            "userKey": 9
+          }
+        ]
       }
     }
   },
@@ -802,6 +835,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Cox"
         ]
@@ -810,6 +844,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Jose"
         ]
@@ -834,6 +869,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Human Resources Manager"
         ]
@@ -841,13 +877,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Jack Jackson"
-        ],
-        "typeMetaData": {
-          "userKey": 9
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Jack Jackson - Junior Executive",
+            "userKey": 9
+          }
+        ]
       }
     }
   },
@@ -873,6 +909,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Barnes"
         ]
@@ -881,6 +918,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Paul"
         ]
@@ -905,6 +943,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Internal Auditor"
         ]
@@ -912,13 +951,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Alan Snyder"
-        ],
-        "typeMetaData": {
-          "userKey": 4
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Alan Snyder - Research Nurse",
+            "userKey": 4
+          }
+        ]
       }
     }
   },
@@ -944,6 +983,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Stevens"
         ]
@@ -952,6 +992,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Joe"
         ]
@@ -976,6 +1017,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Automation Specialist I"
         ]
@@ -983,13 +1025,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Jack Jackson"
-        ],
-        "typeMetaData": {
-          "userKey": 9
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Jack Jackson - Junior Executive",
+            "userKey": 9
+          }
+        ]
       }
     }
   },
@@ -1015,6 +1057,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Grant"
         ]
@@ -1023,6 +1066,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Randy"
         ]
@@ -1047,6 +1091,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Safety Technician I"
         ]
@@ -1054,13 +1099,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Bruce Carroll"
-        ],
-        "typeMetaData": {
-          "userKey": 20
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Bruce Carroll - Desktop Support Technician",
+            "userKey": 20
+          }
+        ]
       }
     }
   },
@@ -1086,6 +1131,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Mason"
         ]
@@ -1094,6 +1140,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Martin"
         ]
@@ -1118,6 +1165,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Compensation Analyst"
         ]
@@ -1125,13 +1173,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Jack Jackson"
-        ],
-        "typeMetaData": {
-          "userKey": 9
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Jack Jackson - Junior Executive",
+            "userKey": 9
+          }
+        ]
       }
     }
   },
@@ -1157,6 +1205,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Porter"
         ]
@@ -1165,6 +1214,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Cynthia"
         ]
@@ -1189,6 +1239,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Data Coordiator"
         ]
@@ -1196,13 +1247,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Martin Mason"
-        ],
-        "typeMetaData": {
-          "userKey": 16
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Martin Mason - Compensation Analyst",
+            "userKey": 16
+          }
+        ]
       }
     }
   },
@@ -1228,6 +1279,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Burns"
         ]
@@ -1236,6 +1288,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Nancy"
         ]
@@ -1260,6 +1313,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Business Systems Development Analyst"
         ]
@@ -1267,13 +1321,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Cynthia Porter"
-        ],
-        "typeMetaData": {
-          "userKey": 17
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Cynthia Porter - Data Coordiator",
+            "userKey": 17
+          }
+        ]
       }
     }
   },
@@ -1299,6 +1353,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Montgomery"
         ]
@@ -1307,6 +1362,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Jimmy"
         ]
@@ -1331,6 +1387,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Structural Engineer"
         ]
@@ -1338,13 +1395,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Nancy Burns"
-        ],
-        "typeMetaData": {
-          "userKey": 18
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Nancy Burns - Business Systems Development Analyst",
+            "userKey": 18
+          }
+        ]
       }
     }
   },
@@ -1370,6 +1427,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Carroll"
         ]
@@ -1378,6 +1436,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Bruce"
         ]
@@ -1402,6 +1461,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "Desktop Support Technician"
         ]
@@ -1409,13 +1469,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "Jimmy Montgomery"
-        ],
-        "typeMetaData": {
-          "userKey": 19
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "Jimmy Montgomery - Structural Engineer",
+            "userKey": 19
+          }
+        ]
       }
     }
   },
@@ -1441,6 +1501,7 @@
         "name": "sn",
         "label": "Last Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "User"
         ]
@@ -1449,6 +1510,7 @@
         "name": "givenName",
         "label": "First Name",
         "type": "text",
+        "searchable": true,
         "values": [
           "Orphan"
         ]
@@ -1473,6 +1535,7 @@
         "name": "title",
         "label": "Title",
         "type": "text",
+        "searchable": true,
         "values": [
           "No Real Position"
         ]
@@ -1480,13 +1543,13 @@
       "manager": {
         "name": "manager",
         "label": "Manager",
-        "type": "person-link",
-        "values": [
-          "#N/A"
-        ],
-        "typeMetaData": {
-          "userKey": 0
-        }
+        "type": "userDN",
+        "userReferences": [
+          {
+            "displayName": "#N/A",
+            "userKey": 0
+          }
+        ]
       }
     }
   }

@@ -1,9 +1,9 @@
 import { Component } from '../component';
+import { IConfigService } from '../services/config.service';
 import IPeopleService from '../services/people.service';
-import { IScope } from 'angular';
 import Person from '../models/person.model';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
-import {IConfigService} from '../services/config.service';
+import { IScope } from 'angular';
 
 
 @Component({
@@ -54,5 +54,9 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
 
     gotoCardsView() {
         super.gotoState('search.cards');
+    }
+
+    selectPerson(person: Person): void {
+        this.$state.go('search.table.details', { personId: person.userKey, query: this.query });
     }
 }

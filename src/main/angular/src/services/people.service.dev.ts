@@ -11,6 +11,28 @@ export default class PeopleService implements IPeopleService {
     static $inject = ['$q'];
     constructor(private $q: IQService) {
         this.people = peopleData.map((person) => new Person(person));
+
+        // Create directReports detail (instead of managing this in people.data.json
+        this.people.forEach((person: Person) => {
+            var directReports = this.findDirectReports(person.userKey);
+
+            if (!directReports.length) {
+                return;
+            }
+
+            person.detail.directReports = {
+                name: 'directReports',
+                label: 'Direct Reports',
+                type: 'userDN',
+                userReferences: directReports
+                    .map((directReport: Person) => {
+                        return {
+                            userKey: directReport.userKey,
+                            displayName: directReport._displayName
+                        };
+                    })
+            };
+        }, this);
     }
 
     autoComplete(query: string): IPromise<Person[]> {
@@ -101,11 +123,11 @@ export default class PeopleService implements IPeopleService {
     }
 
     private findDirectReports(id: string): Person[] {
-        return this.people.filter((person: Person) => person.detail['manager']['typeMetaData'].userKey == id);
+        return this.people.filter((person: Person) => person.detail['manager']['userReferences'][0].userKey == id);
     }
 
     private findManager(person: Person): Person {
-        return this.findPerson(person.detail['manager']['typeMetaData'].userKey);
+        return this.findPerson(person.detail['manager']['userReferences'][0].userKey);
     }
 
     private findPerson(id: string): Person {

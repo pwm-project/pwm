@@ -1,0 +1,70 @@
+.person-details {
+  mf-app-bar {
+    padding: 0 5px;
+  }
+
+  .mf-dialog-content {
+    > table {
+      border: 1px solid #dae1e1;
+      border-collapse: collapse;
+      //box-sizing: border-box;
+      width: 100%;
+
+      tr {
+        height: 25px;
+
+        td {
+          border: 1px solid #dae1e1;
+          font-size: 12px;
+          height: 19px;
+          padding: 3px 5px;
+          text-align: left;
+
+          &:first-child {
+            color: #949494;
+            text-align: right;
+            padding: 3px 15px;
+          }
+
+          &:last-child {
+            > .detail-container {
+              a {
+                cursor: pointer;
+                text-decoration: underline;
+              }
+
+              > ul {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+
+                > li {
+                  display: flex;
+                  flex-direction: row;
+                  margin: 0;
+                  padding: 0;
+
+                  > [flex] {
+                    flex: 1 1;
+                  }
+
+                  > mf-icon-button {
+                    display: inline-block;
+                    flex: 0 0 16px;
+                    height: 16px;
+                    width: 16px;
+
+                    > mf-icon {
+                      font-size: 16px;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

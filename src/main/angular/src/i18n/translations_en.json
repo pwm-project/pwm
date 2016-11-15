@@ -3,6 +3,8 @@
   "Title_Management": "Management",
   "Title_DirectReports": "Direct Reports",
   "Title_Organization": "Organization",
+  "Title_OrgChart": "Organizational Chart",
+  "Title_Details": "Details",
 
   "Display_PleaseWait": "Loading..."
 }

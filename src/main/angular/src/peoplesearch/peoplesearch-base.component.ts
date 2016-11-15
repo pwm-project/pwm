@@ -1,8 +1,6 @@
-import { IScope } from 'angular';
+import { IPeopleService } from '../services/people.service';
 import Person from '../models/person.model';
-import {IPeopleService} from '../services/people.service';
-
-declare var PWM_PS: any;
+import { IScope } from 'angular';
 
 export default class PeopleSearchBaseComponent {
     people: Person[] = [];
@@ -18,8 +16,12 @@ export default class PeopleSearchBaseComponent {
         this.query = this.$stateParams['query'];
     }
 
-    selectPerson(person: Person) {
-        PWM_PS.showUserDetail(person.userKey);
+    gotoOrgchart(): void {
+        this.$state.go('orgchart.index');
+    }
+
+    gotoState(state: string): void {
+        this.$state.go(state, { query: this.query });
     }
 
     // Trigger "No Results" message when search already done loading has no results
@@ -29,13 +31,5 @@ export default class PeopleSearchBaseComponent {
         }
 
         return false;
-    }
-
-    gotoOrgchart() {
-        this.$state.go('orgchart.index');
-    }
-
-    gotoState(state: string) {
-        this.$state.go(state, { query: this.query });
     }
 }
