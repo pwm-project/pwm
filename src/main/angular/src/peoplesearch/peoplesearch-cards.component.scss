@@ -19,14 +19,21 @@ people-search-cards {
     }
 }
 
-@media (min-width: 375px) {
+@media (min-width: 410px) {
+    people-search-cards {
+        > .person-card-list {
+            > person-card {
+                margin-right: 5px;
+                width: 220px;
+            }
+        }
+    }
+}
+
+@media (min-width: 460px) {
     people-search-cards {
         > .person-card-list {
             text-align: left;
-            > person-card {
-                margin-right: 5px;
-                width: 200px;
-            }
         }
     }
 }

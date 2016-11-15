@@ -25,7 +25,7 @@ org-chart {
       > .person-card-list {
         > person-card {
           margin-right: 5px;
-          width: 200px;
+          width: 220px;
         }
       }
     }
@@ -34,10 +34,6 @@ org-chart {
   // (M) Wide enough to fit multiple person-cards next to each other inline
   &.medium {
     > .org-chart-section {
-      > .person-card-list {
-        text-align: left;
-      }
-
       &.managers {
         .manager {
           text-align: center;

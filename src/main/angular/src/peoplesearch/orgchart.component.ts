@@ -6,7 +6,7 @@ export enum OrgChartSize {
     ExtraSmall = 0,
     Small = 365,
     Medium = 410,
-    Large = 454,
+    Large = 460,
     ExtraLarge = 480
 }
 
