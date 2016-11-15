@@ -6,9 +6,9 @@
 </mf-app-bar>
 
 <mf-search-bar search-text="$ctrl.query" auto-focus></mf-search-bar>
-<p ng-if="$ctrl.showNoResults()">No Results</p>
+<div class="search-info" ng-if="$ctrl.searchMessage" ng-bind="$ctrl.searchMessage"></div>
 
-<mf-table data="person in $ctrl.people" ng-show="$ctrl.people.length" on-click-item="$ctrl.selectPerson(person)">
+<mf-table data="person in $ctrl.searchResult.people" ng-show="$ctrl.searchResult.people.length" on-click-item="$ctrl.selectPerson(person)">
     <mf-table-column ng-repeat="(key, value) in $ctrl.columnConfiguration"
                      label="value"
                      value="'person.' + key">
