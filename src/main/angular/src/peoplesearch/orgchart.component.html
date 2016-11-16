@@ -8,7 +8,7 @@
             <div class="org-chart-connector"></div>
             <person-card person="manager"
                          size="{{ $ctrl.getManagerCardSize() }}"
-                         show-direct-report-count="true"
+                         show-direct-report-count="false"
                          ng-click="$ctrl.selectPerson(manager.userKey)">
             </person-card>
         </div>
@@ -30,7 +30,8 @@
     <div class="org-chart-connector"></div>
 
     <div class="person-card-list">
-        <person-card person="directReport" show-direct-report-count="true"
+        <person-card person="directReport"
+                     show-direct-report-count="false"
                      ng-repeat="directReport in $ctrl.directReports"
                      ng-click="$ctrl.selectPerson(directReport.userKey)">
         </person-card>

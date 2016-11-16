@@ -1,7 +1,7 @@
 export default class Person {
     // Common properties
     userKey: string;
-    numOfDirectReports: number;
+    numDirectReports: number;
 
     // Autocomplete properties (via Search)
     _displayName: string;

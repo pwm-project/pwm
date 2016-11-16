@@ -7,7 +7,7 @@ import { IPeopleService } from '../services/people.service';
         directReports: '<',
         person: '<',
         size: '@',
-        showDirectReportCount: '@'
+        showDirectReportCount: '='
     },
     stylesheetUrl: require('peoplesearch/person-card.component.scss'),
     templateUrl: require('peoplesearch/person-card.component.html')
@@ -22,19 +22,17 @@ export default class PersonCardComponent {
     static $inject = ['PeopleService'];
     constructor(private peopleService: IPeopleService) {
         this.details = [];
+        this.size = 'medium';
     }
 
-    $onInit() {
-    }
-
-    $onChanges() {
+    $onChanges(): void {
         if (this.person) {
             this.setDisplayData();
 
             if (this.showDirectReportCount) {
                 this.peopleService.getNumberOfDirectReports(this.person.userKey)
-                    .then((numOfDirectReports) => {
-                        this.person.numOfDirectReports = numOfDirectReports;
+                    .then((numDirectReports) => {
+                        this.person.numDirectReports = numDirectReports;
                     }).catch((result) => {
                     console.log(result);
                 });
@@ -50,7 +48,7 @@ export default class PersonCardComponent {
         return {};
     }
 
-    private setDisplayData() {
+    private setDisplayData(): void {
         if (this.person.detail) {
             this.details = Object
                 .keys(this.person.detail)
@@ -60,7 +58,7 @@ export default class PersonCardComponent {
         }
 
         if (this.directReports) {
-            this.person.numOfDirectReports = this.directReports.length;
+            this.person.numDirectReports = this.directReports.length;
         }
     }
 }
