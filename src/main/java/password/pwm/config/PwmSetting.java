@@ -912,8 +912,6 @@ public enum PwmSetting {
             "ldap.edirectory.useNmasResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS),
     EDIRECTORY_READ_USER_PWD(
             "ldap.edirectory.readUserPwd", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS),
-    EDIRECTORY_PWD_MGT_WEBSERVICE_URL(
-            "ldap.edirectory.ws.pwdMgtURL", PwmSettingSyntax.STRING, PwmSettingCategory.EDIR_SETTINGS),
 
     EDIRECTORY_READ_CHALLENGE_SET(
             "ldap.edirectory.readChallengeSets", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_CR_SETTINGS),

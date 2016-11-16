@@ -2956,11 +2956,6 @@
             <value>true</value>
         </default>
     </setting>
-    <setting hidden="true" key="ldap.edirectory.ws.pwdMgtURL" level="1">
-        <default>
-            <value />
-        </default>
-    </setting>
     <setting hidden="false" key="ldap.edirectory.cr.minRandomDuringSetup" level="1" required="true">
         <default>
             <value>0</value>
