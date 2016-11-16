@@ -229,7 +229,7 @@ public class OAuthMachine {
         bodyEntity.setContentType(PwmConstants.ContentTypeValue.form.getHeaderValue());
         httpPost.setEntity(bodyEntity);
 
-        final X509Certificate[] certs = pwmRequest.getConfig().readSettingAsCertificate(PwmSetting.OAUTH_ID_CERTIFICATE);
+        final X509Certificate[] certs = settings.getCertificates();
 
         final HttpResponse httpResponse;
         final String bodyResponse;
@@ -251,7 +251,7 @@ public class OAuthMachine {
         }
 
         final StringBuilder debugOutput = new StringBuilder();
-        debugOutput.append(debugText).append(
+        debugOutput.append(debugText).append(" ").append(
                 TimeDuration.fromCurrent(startTime).asCompactString()).append(", status: ").append(
                 httpResponse.getStatusLine()).append("\n");
         for (final Header responseHeader : httpResponse.getAllHeaders()) {

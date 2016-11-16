@@ -28,6 +28,7 @@ import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.util.PasswordData;
 
 import java.io.Serializable;
+import java.security.cert.X509Certificate;
 
 public class OAuthSettings implements Serializable {
     private String loginURL;
@@ -37,6 +38,7 @@ public class OAuthSettings implements Serializable {
     private PasswordData secret;
     private String dnAttributeName;
     private OAuthUseCase use;
+    private X509Certificate[] certificates;
 
     private OAuthSettings() {
     }
@@ -75,6 +77,10 @@ public class OAuthSettings implements Serializable {
         return use;
     }
 
+    public X509Certificate[] getCertificates() {
+        return certificates;
+    }
+
     public boolean oAuthIsConfigured() {
         return (loginURL != null && !loginURL.isEmpty())
                 && (codeResolveUrl != null && !codeResolveUrl.isEmpty())
@@ -92,6 +98,7 @@ public class OAuthSettings implements Serializable {
         settings.clientID = config.readSettingAsString(PwmSetting.OAUTH_ID_CLIENTNAME);
         settings.secret = config.readSettingAsPassword(PwmSetting.OAUTH_ID_SECRET);
         settings.dnAttributeName = config.readSettingAsString(PwmSetting.OAUTH_ID_DN_ATTRIBUTE_NAME);
+        settings.certificates = config.readSettingAsCertificate(PwmSetting.OAUTH_ID_CERTIFICATE);
         settings.use = OAuthUseCase.Authentication;
         return settings;
     }
@@ -104,6 +111,7 @@ public class OAuthSettings implements Serializable {
         settings.clientID = config.readSettingAsString(PwmSetting.RECOVERY_OAUTH_ID_CLIENTNAME);
         settings.secret = config.readSettingAsPassword(PwmSetting.RECOVERY_OAUTH_ID_SECRET);
         settings.dnAttributeName = config.readSettingAsString(PwmSetting.RECOVERY_OAUTH_ID_DN_ATTRIBUTE_NAME);
+        settings.certificates = config.readSettingAsCertificate(PwmSetting.RECOVERY_OAUTH_ID_CERTIFICATE);
         settings.use = OAuthUseCase.ForgottenPassword;
         return settings;
     }

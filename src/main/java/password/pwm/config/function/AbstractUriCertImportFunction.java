@@ -80,7 +80,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction {
 
 
     void store(final X509Certificate[] certs, final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData, final UserIdentity userIdentity) throws PwmOperationalException, PwmUnrecoverableException {
-        storedConfiguration.writeSetting(pwmSetting, new X509CertificateValue(certs), userIdentity);
+        storedConfiguration.writeSetting(pwmSetting, profile, new X509CertificateValue(certs), userIdentity);
     }
 
 

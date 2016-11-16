@@ -22,10 +22,10 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
 <%@ page import="password.pwm.http.JspUtility"%>
 <%@ page import="password.pwm.util.otp.OTPUserRecord" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -36,9 +36,9 @@
     </jsp:include>
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
-        <% final ForgottenPasswordBean fpb = JspUtility.getSessionBean(pageContext, ForgottenPasswordBean.class); %>
         <%
-            final OTPUserRecord otp = fpb.getUserInfo().getOtpUserRecord();
+            final UserInfoBean userInfoBean = (UserInfoBean)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ForgottenPasswordUserInfo);
+            final OTPUserRecord otp = userInfoBean.getOtpUserRecord();
             final String identifier = otp.getIdentifier();
 
             if (identifier != null && identifier.length() > 0 ) {

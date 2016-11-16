@@ -22,10 +22,10 @@
 
 package password.pwm.http.bean;
 
+import com.google.gson.annotations.SerializedName;
 import com.novell.ldapchai.cr.ChallengeSet;
-import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.VerificationMethodSystem;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
@@ -44,24 +44,37 @@ import java.util.Set;
 public class ForgottenPasswordBean extends PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
-    private UserInfoBean userInfo;
-    private ResponseSet responseSet;
+    @SerializedName("u")
+    private UserIdentity userIdentity;
+
+    //@SerializedName("t")
+    //private ResponseSet responseSet;
+
+    @SerializedName("pc")
     private ChallengeSet presentableChallengeSet;
+
+    @SerializedName("l")
     private Locale userLocale;
+
+    @SerializedName("a")
     private List<FormConfiguration> attributeForm;
-    
+
+    @SerializedName("p")
     private Progress progress = new Progress();
+
+    @SerializedName("f")
     private RecoveryFlags recoveryFlags = new RecoveryFlags();
+
+    @SerializedName("fp")
     private String forgottenPasswordProfileID;
 
-    public UserInfoBean getUserInfo()
-    {
-        return userInfo;
+
+    public UserIdentity getUserIdentity() {
+        return userIdentity;
     }
 
-    public void setUserInfo(final UserInfoBean userInfo)
-    {
-        this.userInfo = userInfo;
+    public void setUserIdentity(final UserIdentity userIdentity) {
+        this.userIdentity = userIdentity;
     }
 
     public Locale getUserLocale()
@@ -79,6 +92,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return progress;
     }
 
+    /*
     public ResponseSet getResponseSet()
     {
         return responseSet;
@@ -88,6 +102,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
     {
         this.responseSet = responseSet;
     }
+    */
 
     public ChallengeSet getPresentableChallengeSet()
     {
@@ -125,12 +140,22 @@ public class ForgottenPasswordBean extends PwmSessionBean {
     }
 
     public static class Progress implements Serializable {
+        @SerializedName("s")
         private boolean tokenSent;
+
+        @SerializedName("p")
         private boolean allPassed;
+
+        @SerializedName("m")
         private final Set<IdentityVerificationMethod> satisfiedMethods = new HashSet<>();
 
+        @SerializedName("c")
         private MessageSendMethod tokenSendChoice;
+
+        @SerializedName("a")
         private String tokenSentAddress;
+
+        @SerializedName("i")
         private IdentityVerificationMethod inProgressVerificationMethod;
 
         private transient VerificationMethodSystem naafRecoveryMethod;
@@ -206,10 +231,19 @@ public class ForgottenPasswordBean extends PwmSessionBean {
     }
 
     public static class RecoveryFlags implements Serializable {
+        @SerializedName("a")
         private final boolean allowWhenLdapIntruderLocked;
+
+        @SerializedName("r")
         private final Set<IdentityVerificationMethod> requiredAuthMethods;
+
+        @SerializedName("o")
         private final Set<IdentityVerificationMethod> optionalAuthMethods;
+
+        @SerializedName("m")
         private final int minimumOptionalAuthMethods;
+
+        @SerializedName("t")
         private final MessageSendMethod tokenSendMethod;
 
         public RecoveryFlags()
@@ -272,6 +306,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
 
     @Override
     public Set<SessionBeanMode> supportedModes() {
+        //return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE, SessionBeanMode.CRYPTREQUEST)));
         return Collections.singleton(SessionBeanMode.LOCAL);
     }
 }
