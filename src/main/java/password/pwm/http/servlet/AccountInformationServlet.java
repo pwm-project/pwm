@@ -75,7 +75,7 @@ public class AccountInformationServlet extends AbstractPwmServlet {
             LOGGER.error(pwmRequest, "error reading user form data: " + e.getMessage());
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACCOUNT_INFORMATION);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.ACCOUNT_INFORMATION);
     }
 
     @Override

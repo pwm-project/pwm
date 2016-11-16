@@ -449,7 +449,8 @@ public class NMASCrOperator implements CrOperator {
 
             if (challengeSet.getMinRandomRequired() > 0) {
                 if (this.getChallengeSet().getChallenges().size() < challengeSet.getMinRandomRequired()) {
-                    LOGGER.debug("failed meetsChallengeSetRequirements, not enough questions to meet minrandom; minRandomRequired=" + challengeSet.getMinRandomRequired() + ", ChallengesInSet=" + this.getChallengeSet().getChallenges().size());
+                    LOGGER.debug("failed meetsChallengeSetRequirements, not enough questions to meet minrandom; minRandomRequired=" +
+                            challengeSet.getMinRandomRequired() + ", ChallengesInSet=" + this.getChallengeSet().getChallenges().size());
                     return false;
                 }
             }
@@ -784,9 +785,7 @@ public class NMASCrOperator implements CrOperator {
                 lastActivityTimestamp = new Date();
                 setLoginResult(new com.novell.security.nmas.client.NMASLoginResult(this.callbackHandler.awaitRetCode(), this.ldapConn));
                 lastActivityTimestamp = new Date();
-            }
-            catch (LDAPException e)
-            {
+            } catch (LDAPException e) {
                 if (loginState == NMASThreadState.ABORTED) {
                     return;
                 }
@@ -869,10 +868,10 @@ public class NMASCrOperator implements CrOperator {
         private static final PwmLogger LOGGER = PwmLogger.forClass(NMASCrPwmSaslProvider.class);
         public static final String SASL_PROVIDER_NAME = "NMAS_LOGIN";
 
-        private static final String info = "PWM NMAS Sasl Provider";
+        private static final String INFO = "PWM NMAS Sasl Provider";
 
         public NMASCrPwmSaslProvider() {
-            super("SaslClientFactory", 1.1, info);
+            super("SaslClientFactory", 1.1, INFO);
             final NMASCrPwmSaslProvider thisInstance = NMASCrPwmSaslProvider.this;
             AccessController.doPrivileged(new PrivilegedAction() {
                 public Object run() {

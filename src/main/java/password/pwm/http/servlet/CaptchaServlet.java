@@ -305,6 +305,6 @@ public class CaptchaServlet extends AbstractPwmServlet {
             final String url = configuredUrl + "?k=" + reCaptchaPublicKey + "&hl=" + pwmRequest.getLocale().toString();
             pwmRequest.setAttribute(PwmRequest.Attribute.CaptchaIframeUrl,url);
         }
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CAPTCHA);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CAPTCHA);
     }
 }

@@ -278,7 +278,7 @@ public class SessionFilter extends AbstractPwmFilter {
             pwmResponse.setHeader(PwmConstants.HttpHeader.Connection, "close");  // better chance of detecting un-sticky sessions this way
             if (mode == SessionVerificationMode.VERIFY_AND_CACHE) {
                 req.setAttribute("Location", returnURL);
-                pwmResponse.forwardToJsp(PwmConstants.JSP_URL.INIT);
+                pwmResponse.forwardToJsp(PwmConstants.JspUrl.INIT);
             } else {
                 pwmResponse.sendRedirect(returnURL);
             }

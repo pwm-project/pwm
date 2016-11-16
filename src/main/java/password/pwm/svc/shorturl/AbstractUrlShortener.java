@@ -25,10 +25,7 @@ package password.pwm.svc.shorturl;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
 
-import java.util.Properties;
-
 public interface AbstractUrlShortener {
-    Properties configuration = null;
 
     /**
      * {@link java.net.URL}. shorten

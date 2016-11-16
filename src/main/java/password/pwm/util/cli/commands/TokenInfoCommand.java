@@ -78,9 +78,9 @@ public class TokenInfoCommand extends AbstractCliCommand {
                 return false;
             }
 
-            public type getType()
+            public Type getType()
             {
-                return type.STRING;
+                return Type.STRING;
             }
 
             public String getName()

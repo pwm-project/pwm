@@ -235,7 +235,7 @@ public class LoginServlet extends AbstractPwmServlet {
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmConstants.JSP_URL url = passwordOnly ? PwmConstants.JSP_URL.LOGIN_PW_ONLY : PwmConstants.JSP_URL.LOGIN;
+        final PwmConstants.JspUrl url = passwordOnly ? PwmConstants.JspUrl.LOGIN_PW_ONLY : PwmConstants.JspUrl.LOGIN;
         pwmRequest.forwardToJsp(url);
     }
 

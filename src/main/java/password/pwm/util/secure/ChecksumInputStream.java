@@ -111,7 +111,9 @@ public class ChecksumInputStream extends InputStream {
     public byte[] closeAndFinalChecksum() throws IOException {
         final byte[] buffer = new byte[1024];
 
-        while (read(buffer) > 0); // read out the remainder of the stream contents
+        while (read(buffer) > 0) {
+            ; // read out the remainder of the stream contents
+        }
 
         return getInProgressChecksum();
     }

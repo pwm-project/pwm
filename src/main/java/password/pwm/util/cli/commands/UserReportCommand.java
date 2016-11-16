@@ -82,9 +82,9 @@ public class UserReportCommand extends AbstractCliCommand {
                 return false;
             }
 
-            public type getType()
+            public Type getType()
             {
-                return type.NEW_FILE;
+                return Type.NEW_FILE;
             }
 
             public String getName()

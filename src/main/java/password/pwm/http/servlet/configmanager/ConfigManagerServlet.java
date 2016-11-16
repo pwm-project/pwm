@@ -162,7 +162,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         }
 
         initRequestAttributes(pwmRequest);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_MODE_CONFIGURATION);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_MODE_CONFIGURATION);
     }
 
     void initRequestAttributes(final PwmRequest pwmRequest)
@@ -363,7 +363,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
         final LinkedHashMap<String,Object> outputMap = new LinkedHashMap<>(storedConfiguration.toOutputMap(pwmRequest.getLocale()));
         pwmRequest.setAttribute(PwmRequest.Attribute.ConfigurationSummaryOutput,outputMap);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_SUMMARY);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_EDITOR_SUMMARY);
     }
 
     private void showPermissions(final PwmRequest pwmRequest)
@@ -372,25 +372,25 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
         final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(storedConfiguration);
         pwmRequest.setAttribute(PwmRequest.Attribute.LdapPermissionItems,ldapPermissionCalculator);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_PERMISSIONS);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_PERMISSIONS);
     }
 
 
     public enum Page {
-        manager(PwmConstants.JSP_URL.ADMIN_DASHBOARD,"/manager"),
-        wordlists(PwmConstants.JSP_URL.ADMIN_ANALYSIS,"/wordlists"),
+        manager(PwmConstants.JspUrl.ADMIN_DASHBOARD,"/manager"),
+        wordlists(PwmConstants.JspUrl.ADMIN_ANALYSIS,"/wordlists"),
 
         ;
 
-        private final PwmConstants.JSP_URL jspURL;
+        private final PwmConstants.JspUrl jspURL;
         private final String urlSuffix;
 
-        Page(final PwmConstants.JSP_URL jspURL, final String urlSuffix) {
+        Page(final PwmConstants.JspUrl jspURL, final String urlSuffix) {
             this.jspURL = jspURL;
             this.urlSuffix = urlSuffix;
         }
 
-        public PwmConstants.JSP_URL getJspURL() {
+        public PwmConstants.JspUrl getJspURL() {
             return jspURL;
         }
 

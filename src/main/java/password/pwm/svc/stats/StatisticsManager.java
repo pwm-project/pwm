@@ -453,13 +453,21 @@ public class StatisticsManager implements PwmService {
 
         @Override
         public boolean equals(final Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             final DailyKey key = (DailyKey) o;
 
-            if (day != key.day) return false;
-            if (year != key.year) return false;
+            if (day != key.day) {
+                return false;
+            }
+            if (year != key.year) {
+                return false;
+            }
 
             return true;
         }

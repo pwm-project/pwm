@@ -121,7 +121,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
             return;
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_LOCALDB);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_LOCALDB);
     }
 
     private void doExportLocalDB(final PwmRequest pwmRequest)

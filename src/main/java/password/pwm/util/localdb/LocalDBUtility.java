@@ -66,7 +66,7 @@ public class LocalDBUtility {
     private int exportLineCounter;
     private int importLineCounter;
 
-    private int GZIP_BUFFER_SIZE = 1024 * 512;
+    private static final int GZIP_BUFFER_SIZE = 1024 * 512;
 
 
     public LocalDBUtility(final LocalDB localDB) {
@@ -281,7 +281,7 @@ public class LocalDBUtility {
     }
 
 
-    public static Map<STATS_KEY, Object> dbStats(
+    public static Map<StatsKey, Object> dbStats(
             final LocalDB localDB,
             final LocalDB.DB db
     )
@@ -310,14 +310,14 @@ public class LocalDBUtility {
         }
 
         final int avgValueLength = totalValues == 0 ? 0 : (int)(totalChars / totalValues);
-        final Map<STATS_KEY, Object> returnObj = new LinkedHashMap<>();
-        returnObj.put(STATS_KEY.TOTAL_VALUES,totalValues);
-        returnObj.put(STATS_KEY.STORED_CHARS,storedChars);
-        returnObj.put(STATS_KEY.AVG_VALUE_LENGTH,avgValueLength);
+        final Map<StatsKey, Object> returnObj = new LinkedHashMap<>();
+        returnObj.put(StatsKey.TOTAL_VALUES,totalValues);
+        returnObj.put(StatsKey.STORED_CHARS,storedChars);
+        returnObj.put(StatsKey.AVG_VALUE_LENGTH,avgValueLength);
         return returnObj;
     }
 
-    public enum STATS_KEY {
+    public enum StatsKey {
         TOTAL_VALUES,
         STORED_CHARS,
         AVG_VALUE_LENGTH,

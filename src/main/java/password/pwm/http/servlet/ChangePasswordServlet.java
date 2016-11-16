@@ -248,27 +248,27 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         } catch (PwmDataValidationException e) {
             pwmRequest.setResponseError(e.getErrorInformation());
             LOGGER.debug(pwmRequest, "failed password validation check: " + e.getErrorInformation().toDebugStr());
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE);
             return;
         }
 
         //make sure the two passwords match
         final boolean caseSensitive = uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(
                 PwmPasswordRule.CaseSensitive);
-        if (PasswordUtility.PasswordCheckInfo.MATCH_STATUS.MATCH != PasswordUtility.figureMatchStatus(caseSensitive,
+        if (PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH != PasswordUtility.figureMatchStatus(caseSensitive,
                 password1, password2)) {
             pwmRequest.setResponseError(PwmError.PASSWORD_DOESNOTMATCH.toInfo());
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE);
             return;
         }
 
         try {
             executeChangePassword(pwmRequest, password1);
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE_WAIT);
         } catch (PwmOperationalException e) {
             LOGGER.debug(e.getErrorInformation().toDebugStr());
             pwmRequest.setResponseError(e.getErrorInformation());
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE);
         }
     }
 
@@ -399,13 +399,13 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         final Configuration config = pwmApplication.getConfig();
 
         if (changePasswordBean.getChangeProgressTracker() != null) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE_WAIT);
             return;
         }
 
         if (warnPageShouldBeShown(pwmRequest, changePasswordBean)) {
             LOGGER.trace(pwmRequest, "pasword expiration is within password warn period, forwarding user to warning page");
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_WARN);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_WARN);
             return;
         }
 
@@ -414,7 +414,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
             final String expandedText = macroMachine.expandMacros(agreementMsg);
             pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText,expandedText);
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_AGREEMENT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_AGREEMENT);
             return;
         }
 
@@ -429,7 +429,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         }
 
         changePasswordBean.setAllChecksPassed(true);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE);
     }
 
     private static boolean determineIfCurrentPasswordRequired(
@@ -618,12 +618,12 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(completeMessage);
                 pwmRequest.setAttribute(PwmRequest.Attribute.CompleteText, expandedText);
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_COMPLETE);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_COMPLETE);
             } else {
                 pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_PasswordChange);
             }
         } else {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE_WAIT);
         }
     }
 
@@ -657,6 +657,6 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             throws ServletException, PwmUnrecoverableException, IOException
     {
         pwmRequest.addFormInfoToRequestAttr(PwmSetting.PASSWORD_REQUIRE_FORM,false,false);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_FORM);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_FORM);
     }
 }

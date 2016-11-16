@@ -256,7 +256,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         }
 
         if (!pwmRequest.getPwmResponse().isCommitted()) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_EDITOR);
         }
     }
 

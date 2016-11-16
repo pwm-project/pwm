@@ -59,7 +59,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmPasswordPolicy.class);
 
-    private static final PwmPasswordPolicy defaultPolicy;
+    private static final PwmPasswordPolicy DEFAULT_POLICY;
 
     private final Map<String, String> policyMap = new HashMap<>();
 
@@ -97,11 +97,11 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         } catch (Throwable t) {
             LOGGER.fatal("error initializing PwmPasswordPolicy class: " + t.getMessage(), t);
         }
-        defaultPolicy = newDefaultPolicy;
+        DEFAULT_POLICY = newDefaultPolicy;
     }
 
     public static PwmPasswordPolicy defaultPolicy() {
-        return defaultPolicy;
+        return DEFAULT_POLICY;
     }
 
 

@@ -160,7 +160,7 @@ public abstract class PwmConstants {
         INCLUDED_LOCALES = Collections.unmodifiableCollection(localeList);
     }
 
-    public enum JSP_URL {
+    public enum JspUrl {
 
         INIT("init.jsp"),
         ERROR("error.jsp"),
@@ -240,7 +240,7 @@ public abstract class PwmConstants {
         private String path;
         private static final String JSP_ROOT_URL = "/WEB-INF/jsp/";
 
-        JSP_URL(final String path) {
+        JspUrl(final String path) {
             this.path = path;
         }
 

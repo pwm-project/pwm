@@ -921,7 +921,7 @@ public class PasswordUtility {
             }
         }
 
-        final PasswordCheckInfo.MATCH_STATUS matchStatus = figureMatchStatus(passwordIsCaseSensitive ,password, confirmPassword);
+        final PasswordCheckInfo.MatchStatus matchStatus = figureMatchStatus(passwordIsCaseSensitive ,password, confirmPassword);
         if (pass) {
             switch (matchStatus) {
                 case EMPTY:
@@ -943,21 +943,21 @@ public class PasswordUtility {
     }
 
 
-    public static PasswordCheckInfo.MATCH_STATUS figureMatchStatus(
+    public static PasswordCheckInfo.MatchStatus figureMatchStatus(
             final boolean caseSensitive,
             final PasswordData password1,
             final PasswordData password2
     ) {
-        final PasswordCheckInfo.MATCH_STATUS matchStatus;
+        final PasswordCheckInfo.MatchStatus matchStatus;
         if (password2 == null) {
-            matchStatus = PasswordCheckInfo.MATCH_STATUS.EMPTY;
+            matchStatus = PasswordCheckInfo.MatchStatus.EMPTY;
         } else if (password1 == null) {
-            matchStatus = PasswordCheckInfo.MATCH_STATUS.NO_MATCH;
+            matchStatus = PasswordCheckInfo.MatchStatus.NO_MATCH;
         } else {
             if (caseSensitive) {
-                matchStatus = password1.equals(password2) ? PasswordCheckInfo.MATCH_STATUS.MATCH : PasswordCheckInfo.MATCH_STATUS.NO_MATCH;
+                matchStatus = password1.equals(password2) ? PasswordCheckInfo.MatchStatus.MATCH : PasswordCheckInfo.MatchStatus.NO_MATCH;
             } else {
-                matchStatus = password1.equalsIgnoreCase(password2) ? PasswordCheckInfo.MATCH_STATUS.MATCH : PasswordCheckInfo.MATCH_STATUS.NO_MATCH;
+                matchStatus = password1.equalsIgnoreCase(password2) ? PasswordCheckInfo.MatchStatus.MATCH : PasswordCheckInfo.MatchStatus.NO_MATCH;
             }
         }
 
@@ -969,14 +969,14 @@ public class PasswordUtility {
         private final String message;
         private final boolean passed;
         private final int strength;
-        private final MATCH_STATUS match;
+        private final MatchStatus match;
         private final int errorCode;
 
-        public enum MATCH_STATUS {
+        public enum MatchStatus {
             MATCH, NO_MATCH, EMPTY
         }
 
-        public PasswordCheckInfo(final String message, final boolean passed, final int strength, final MATCH_STATUS match, final int errorCode) {
+        public PasswordCheckInfo(final String message, final boolean passed, final int strength, final MatchStatus match, final int errorCode) {
             this.message = message;
             this.passed = passed;
             this.strength = strength;
@@ -996,7 +996,7 @@ public class PasswordUtility {
             return strength;
         }
 
-        public MATCH_STATUS getMatch() {
+        public MatchStatus getMatch() {
             return match;
         }
 

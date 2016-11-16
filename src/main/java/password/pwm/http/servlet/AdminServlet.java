@@ -148,7 +148,7 @@ public class AdminServlet extends AbstractPwmServlet {
     )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ADMIN_LOGVIEW_WINDOW);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.ADMIN_LOGVIEW_WINDOW);
     }
 
     private void downloadAuditLogCsv(
@@ -264,25 +264,25 @@ public class AdminServlet extends AbstractPwmServlet {
 
 
     public enum Page {
-        dashboard(PwmConstants.JSP_URL.ADMIN_DASHBOARD,"/dashboard"),
-        analysis(PwmConstants.JSP_URL.ADMIN_ANALYSIS,"/analysis"),
-        activity(PwmConstants.JSP_URL.ADMIN_ACTIVITY,"/activity"),
-        tokenLookup(PwmConstants.JSP_URL.ADMIN_TOKEN_LOOKUP,"/tokens"),
-        viewLog(PwmConstants.JSP_URL.ADMIN_LOGVIEW,"/logs"),
-        urlReference(PwmConstants.JSP_URL.ADMIN_URLREFERENCE,"/urls"),
-        debugUser(PwmConstants.JSP_URL.ADMIN_DEBUG,"/debug"),
+        dashboard(PwmConstants.JspUrl.ADMIN_DASHBOARD,"/dashboard"),
+        analysis(PwmConstants.JspUrl.ADMIN_ANALYSIS,"/analysis"),
+        activity(PwmConstants.JspUrl.ADMIN_ACTIVITY,"/activity"),
+        tokenLookup(PwmConstants.JspUrl.ADMIN_TOKEN_LOOKUP,"/tokens"),
+        viewLog(PwmConstants.JspUrl.ADMIN_LOGVIEW,"/logs"),
+        urlReference(PwmConstants.JspUrl.ADMIN_URLREFERENCE,"/urls"),
+        debugUser(PwmConstants.JspUrl.ADMIN_DEBUG,"/debug"),
 
         ;
 
-        private final PwmConstants.JSP_URL jspURL;
+        private final PwmConstants.JspUrl jspURL;
         private final String urlSuffix;
 
-        Page(final PwmConstants.JSP_URL jspURL, final String urlSuffix) {
+        Page(final PwmConstants.JspUrl jspURL, final String urlSuffix) {
             this.jspURL = jspURL;
             this.urlSuffix = urlSuffix;
         }
 
-        public PwmConstants.JSP_URL getJspURL() {
+        public PwmConstants.JspUrl getJspURL() {
             return jspURL;
         }
 

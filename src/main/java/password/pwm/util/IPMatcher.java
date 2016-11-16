@@ -60,9 +60,7 @@ public class IPMatcher
             try
             {
                 network = Inet6Address.getByName(parts[0]).getAddress();
-            }
-            catch (UnknownHostException e)
-            {
+            } catch (UnknownHostException e) {
                 throw new IPMatcherException(
                         "Malformed IP range specification " + ipSpec, e);
             }
@@ -78,28 +76,30 @@ public class IPMatcher
                         throw new IPMatcherException(
                                 "Malformed IP range specification " + ipSpec, nfe);
                     }
-                    if (maskBits < 0 || maskBits > 128)
+                    if (maskBits < 0 || maskBits > 128) {
                         throw new IPMatcherException("Mask bits out of range 0-128 "
                                 + ipSpec);
+                    }
 
                     final int maskBytes = maskBits/8;
-                    for (int i = 0; i < maskBytes; i++)
+                    for (int i = 0; i < maskBytes; i++) {
                         netmask[i] = (byte) 0Xff;
+                    }
                     netmask[maskBytes] = (byte) ((byte) 0Xff << 8-(maskBits % 8)); // FIXME test!
-                    for (int i = maskBytes+1; i < (128/8); i++)
+                    for (int i = maskBytes+1; i < (128/8); i++) {
                         netmask[i] = 0;
+                    }
                     break;
                 case 1: // No explicit mask:  fill the mask with 1s
-                    for (int i = 0; i < netmask.length; i++)
+                    for (int i = 0; i < netmask.length; i++) {
                         netmask[i] = (byte) 0Xff;
+                    }
                     break;
                 default:
                     throw new IPMatcherException("Malformed IP range specification "
                             + ipSpec);
             }
-        }
-        else
-        {   // assume IPv4
+        } else {   // assume IPv4
             // Allow partial IP
             boolean mustHave4 = false;
 
@@ -121,9 +121,7 @@ public class IPMatcher
                         try
                         {
                             x = Integer.parseInt(maskParts[0]);
-                        }
-                        catch (NumberFormatException nfe)
-                        {
+                        } catch (NumberFormatException nfe) {
                             throw new IPMatcherException(
                                     "Malformed IP range specification " + ipSpec, nfe);
                         }
@@ -139,9 +137,7 @@ public class IPMatcher
                         netmask[2] = (byte) ((fullMask & 0x0000FF00) >>> 8);
                         netmask[3] = (byte) (fullMask & 0x000000FF);
                         ipToBytes(ipPart, network, mustHave4);
-                    }
-                    else
-                    {
+                    } else {
                         // full subnet specified
                         ipToBytes(parts[0],network,true);
                         ipToBytes(parts[1], netmask, true);
@@ -150,8 +146,9 @@ public class IPMatcher
 
                 case 1:
                     // Get IP
-                    for (int i = 0; i < netmask.length; i++)
+                    for (int i = 0; i < netmask.length; i++) {
                         netmask[i] = -1;
+                    }
                     final int partCount = ipToBytes(ipPart, network, mustHave4);
 
                     // If partial IP, set mask for remaining bytes
@@ -214,9 +211,7 @@ public class IPMatcher
 
                 bytes[i] = (byte) (p < 128 ? p : p - 256);
             }
-        }
-        catch (NumberFormatException nfe)
-        {
+        } catch (NumberFormatException nfe) {
             throw new IPMatcherException("Malformed IP specification " + ip,
                     nfe);
         }
@@ -240,21 +235,17 @@ public class IPMatcher
     {
         byte[] candidate;
 
-        if (ipIn.indexOf(':') < 0)
-        {
+        if (ipIn.indexOf(':') < 0) {
             candidate = new byte[4];
             ipToBytes(ipIn, candidate, true);
             candidate = ip4ToIp6(candidate);
-        }
-        else
-            try
-            {
+        } else {
+            try {
                 candidate = Inet6Address.getByName(ipIn).getAddress();
+            } catch (UnknownHostException e) {
+                throw new IPMatcherException("Malformed IPv6 address ", e);
             }
-            catch (UnknownHostException e)
-            {
-                throw new IPMatcherException("Malformed IPv6 address ",e);
-            }
+        }
 
         for (int i = 0; i < netmask.length; i++)
         {
@@ -275,14 +266,17 @@ public class IPMatcher
      */
     private static byte[] ip4ToIp6(final byte[] ip4)
     {
-        if (ip4.length != 4)
+        if (ip4.length != 4) {
             throw new IllegalArgumentException("IPv4 address must be four octets");
+        }
 
         final byte[] ip6 = new byte[16];
-        for (int i = 0; i < 16-4; i++)
+        for (int i = 0; i < 16-4; i++) {
             ip6[i] = 0;
-        for (int i = 0; i < 4; i++)
-            ip6[12+i] = ip4[i];
+        }
+        for (int i = 0; i < 4; i++) {
+            ip6[12 + i] = ip4[i];
+        }
         return ip6;
     }
 
@@ -294,14 +288,17 @@ public class IPMatcher
      */
     private static byte[] ip4MaskToIp6(final byte[] ip4)
     {
-        if (ip4.length != 4)
+        if (ip4.length != 4) {
             throw new IllegalArgumentException("IPv4 mask must be four octets");
+        }
 
         final byte[] ip6 = new byte[16];
-        for (int i = 0; i < 16-4; i++)
+        for (int i = 0; i < 16-4; i++) {
             ip6[i] = (byte) 0Xff;
-        for (int i = 0; i < 4; i++)
-            ip6[12+i] = ip4[i];
+        }
+        for (int i = 0; i < 4; i++) {
+            ip6[12 + i] = ip4[i];
+        }
         return ip6;
     }
 

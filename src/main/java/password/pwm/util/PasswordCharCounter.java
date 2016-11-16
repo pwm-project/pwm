@@ -86,12 +86,15 @@ public class PasswordCharCounter {
         for (int i = 0; i < passwordLength - 1; i++) {
             int loopRepeats = 0;
             final char loopChar = passwordL.charAt(i);
-            for (int j = i; j < passwordLength; j++)
-                if (loopChar == passwordL.charAt(j))
+            for (int j = i; j < passwordLength; j++) {
+                if (loopChar == passwordL.charAt(j)) {
                     loopRepeats++;
+                }
+            }
 
-            if (loopRepeats > numberOfRepeats)
+            if (loopRepeats > numberOfRepeats) {
                 numberOfRepeats = loopRepeats;
+            }
         }
         return numberOfRepeats;
     }
@@ -103,14 +106,17 @@ public class PasswordCharCounter {
         for (int i = 0; i < passwordLength - 1; i++) {
             int loopRepeats = 0;
             final char loopChar = passwordL.charAt(i);
-            for (int j = i; j < passwordLength; j++)
-                if (loopChar == passwordL.charAt(j))
+            for (int j = i; j < passwordLength; j++) {
+                if (loopChar == passwordL.charAt(j)) {
                     loopRepeats++;
-                else
+                } else {
                     break;
+                }
+            }
 
-            if (loopRepeats > numberOfRepeats)
+            if (loopRepeats > numberOfRepeats) {
                 numberOfRepeats = loopRepeats;
+            }
         }
         return numberOfRepeats;
     }
@@ -120,13 +126,16 @@ public class PasswordCharCounter {
 
         for (int i = 0; i < passwordLength - 1; i++) {
             int loopRepeats = 0;
-            for (int j = i; j < passwordLength; j++)
-                if (Character.isDigit(password.charAt(j)))
+            for (int j = i; j < passwordLength; j++) {
+                if (Character.isDigit(password.charAt(j))) {
                     loopRepeats++;
-                else
+                } else {
                     break;
-            if (loopRepeats > numberOfRepeats)
+                }
+            }
+            if (loopRepeats > numberOfRepeats) {
                 numberOfRepeats = loopRepeats;
+            }
         }
         return numberOfRepeats;
     }
@@ -136,13 +145,16 @@ public class PasswordCharCounter {
 
         for (int i = 0; i < passwordLength - 1; i++) {
             int loopRepeats = 0;
-            for (int j = i; j < passwordLength; j++)
-                if (Character.isLetter(password.charAt(j)))
+            for (int j = i; j < passwordLength; j++) {
+                if (Character.isLetter(password.charAt(j))) {
                     loopRepeats++;
-                else
+                } else {
                     break;
-            if (loopRepeats > numberOfRepeats)
+                }
+            }
+            if (loopRepeats > numberOfRepeats) {
                 numberOfRepeats = loopRepeats;
+            }
         }
         return numberOfRepeats;
     }
@@ -152,8 +164,9 @@ public class PasswordCharCounter {
         final String passwordL = password.toString().toLowerCase();
         for (int i = 0; i < passwordLength; i++) {
             final char loopChar = passwordL.charAt(i);
-            if (sb.indexOf(String.valueOf(loopChar)) == -1)
+            if (sb.indexOf(String.valueOf(loopChar)) == -1) {
                 sb.append(loopChar);
+            }
         }
         return sb.length();
     }

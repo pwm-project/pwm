@@ -318,7 +318,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             }
 
             if (!activateUserBean.isTokenPassed()) {
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACTIVATE_USER_ENTER_CODE);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.ACTIVATE_USER_ENTER_CODE);
                 return;
             }
         }
@@ -333,7 +333,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                 final String expandedText = macroMachine.expandMacros(agreementText);
                 activateUserBean.setAgreementText(expandedText);
             }
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACTIVATE_USER_AGREEMENT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.ACTIVATE_USER_AGREEMENT);
             return;
         }
 
@@ -753,6 +753,6 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             throws ServletException, PwmUnrecoverableException, IOException 
     {
         pwmRequest.addFormInfoToRequestAttr(PwmSetting.ACTIVATE_USER_FORM,false,false);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACTIVATE_USER);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.ACTIVATE_USER);
     }
 }

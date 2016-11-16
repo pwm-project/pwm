@@ -199,7 +199,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
         if (otpBean.isHasPreExistingOtp()) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_OTP_SECRET_EXISTING);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_OTP_SECRET_EXISTING);
             return;
         }
 
@@ -246,14 +246,14 @@ public class SetupOtpServlet extends AbstractPwmServlet {
 
         if (otpBean.isCodeSeen()) {
             if (otpBean.isWritten()) {
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_OTP_SECRET_SUCCESS);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_OTP_SECRET_SUCCESS);
             } else {
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_OTP_SECRET_TEST);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_OTP_SECRET_TEST);
             }
         } else {
             final String qrCodeValue = makeQrCodeDataImageUrl(pwmRequest, otpBean.getOtpUserRecord());
             pwmRequest.setAttribute(PwmRequest.Attribute.SetupOtp_QrCodeValue, qrCodeValue);
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_OTP_SECRET);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_OTP_SECRET);
         }
     }
 

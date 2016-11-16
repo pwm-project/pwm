@@ -163,7 +163,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
             pwmRequest.setFlag(PwmRequestFlag.HIDE_IDLE, true);
             pwmRequest.setFlag(PwmRequestFlag.NO_IDLE_TIMEOUT, true);
         }
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PEOPLE_SEARCH);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.PEOPLE_SEARCH);
     }
 
     private void restLoadClientData(

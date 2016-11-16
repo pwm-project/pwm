@@ -249,12 +249,12 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
         pwmRequest.setAttribute(PwmRequest.Attribute.SetupResponses_ResponseInfo, pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean());
 
         if (setupResponsesBean.isHasExistingResponses() && !pwmRequest.getPwmSession().getUserInfoBean().isRequiresResponseConfig()) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_RESPONSES_EXISTING);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_RESPONSES_EXISTING);
             return;
         }
 
         if (!setupResponsesBean.isResponsesSatisfied()) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_RESPONSES);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_RESPONSES);
             return;
         }
 
@@ -264,14 +264,14 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
             {
                 setupResponsesBean.setHelpdeskResponsesSatisfied(true);
             } else {
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_RESPONSES_HELPDESK);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_RESPONSES_HELPDESK);
                 return;
             }
         }
 
         if (pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_SHOW_CONFIRMATION)) {
             if (!setupResponsesBean.isConfirmed()) {
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_RESPONSES_CONFIRM);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_RESPONSES_CONFIRM);
                 return;
             }
         }
@@ -597,10 +597,10 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
         }
 
         {
-            int i = 0;
+            int index = 0;
             for (final Challenge loopChallenge : challengeSet.getChallenges()) {
-                indexedChallenges.put(String.valueOf(i), loopChallenge);
-                i++;
+                indexedChallenges.put(String.valueOf(index), loopChallenge);
+                index++;
             }
         }
 

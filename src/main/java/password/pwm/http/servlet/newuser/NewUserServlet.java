@@ -265,7 +265,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                 newUserBean.setProfileID(singleID);
             } else {
                 LOGGER.trace(pwmRequest, "new user profile not yet selected, redirecting to choice page");
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_PROFILE_CHOICE);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.NEW_USER_PROFILE_CHOICE);
                 return;
             }
         }
@@ -287,7 +287,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             }
 
             if (!tokenVerificationProgress.getPassedTokens().contains(TokenVerificationProgress.TokenChannel.EMAIL)) {
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_ENTER_CODE);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.NEW_USER_ENTER_CODE);
                 return;
             }
         }
@@ -298,7 +298,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             }
 
             if (!newUserBean.getTokenVerificationProgress().getPassedTokens().contains(TokenVerificationProgress.TokenChannel.SMS)) {
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_ENTER_CODE);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.NEW_USER_ENTER_CODE);
                 return;
             }
         }
@@ -314,7 +314,7 @@ public class NewUserServlet extends AbstractPwmServlet {
                 );
                 final String expandedText = macroMachine.expandMacros(newUserAgreementText);
                 pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText, expandedText);
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_AGREEMENT);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.NEW_USER_AGREEMENT);
                 return;
             }
         }
@@ -329,7 +329,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         try {
             createUser(newUserBean.getNewUserForm(), pwmRequest, newUserDN);
             newUserBean.setCreateStartTime(new Date());
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_WAIT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.NEW_USER_WAIT);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmRequest, "error during user creation: " + e.getMessage());
             if (newUserProfile.readSettingAsBoolean(PwmSetting.NEWUSER_DELETE_ON_FAIL)) {
@@ -377,7 +377,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         try {
             final NewUserBean.NewUserForm newUserForm = NewUserFormUtils.readFromJsonRequest(pwmRequest);
             PasswordUtility.PasswordCheckInfo passwordCheckInfo = verifyForm(pwmRequest, newUserForm, true);
-            if (passwordCheckInfo.isPassed() && passwordCheckInfo.getMatch() == PasswordUtility.PasswordCheckInfo.MATCH_STATUS.MATCH) {
+            if (passwordCheckInfo.isPassed() && passwordCheckInfo.getMatch() == PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH) {
                 passwordCheckInfo = new PasswordUtility.PasswordCheckInfo(
                         Message.getLocalizedMessage(locale,
                                 Message.Success_NewUserForm, pwmApplication.getConfig()),
@@ -441,7 +441,7 @@ public class NewUserServlet extends AbstractPwmServlet {
             final ErrorInformation errorInformation = PwmError.forErrorNumber(passwordCheckInfo.getErrorCode()).toInfo();
             throw new PwmOperationalException(errorInformation);
         }
-        if (passwordCheckInfo.getMatch() != PasswordUtility.PasswordCheckInfo.MATCH_STATUS.MATCH) {
+        if (passwordCheckInfo.getMatch() != PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH) {
             final ErrorInformation errorInformation = PwmError.PASSWORD_DOESNOTMATCH.toInfo();
             throw new PwmOperationalException(errorInformation);
         }
@@ -530,9 +530,10 @@ public class NewUserServlet extends AbstractPwmServlet {
 
         if (requestedProfileID == null || requestedProfileID.isEmpty()) {
             newUserBean.setProfileID(null);
-        } if (profileIDs.contains(requestedProfileID)) {
-        newUserBean.setProfileID(requestedProfileID);
-    }
+        }
+        if (profileIDs.contains(requestedProfileID)) {
+            newUserBean.setProfileID(requestedProfileID);
+        }
 
         this.advancedToNextStage(pwmRequest, newUserBean);
     }
@@ -1036,7 +1037,7 @@ public class NewUserServlet extends AbstractPwmServlet {
 
         // be sure minimum wait time has passed
         if (new Date().before(completeTime)) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER_WAIT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.NEW_USER_WAIT);
             return;
         }
 
@@ -1104,6 +1105,6 @@ public class NewUserServlet extends AbstractPwmServlet {
             pwmRequest.setAttribute(PwmRequest.Attribute.NewUser_FormShowBackButton, showBack);
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.NEW_USER);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.NEW_USER);
     }
 }

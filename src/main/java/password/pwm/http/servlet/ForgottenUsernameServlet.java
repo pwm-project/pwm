@@ -346,7 +346,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
             throws ServletException, PwmUnrecoverableException, IOException
     {
         pwmRequest.addFormInfoToRequestAttr(PwmSetting.FORGOTTEN_USERNAME_FORM,false,false);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.FORGOTTEN_USERNAME);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.FORGOTTEN_USERNAME);
     }
 
     private static void forwardToCompletePage(final PwmRequest pwmRequest, final UserIdentity userIdentity)
@@ -357,7 +357,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
         final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(), userIdentity);
         final String expandedText = macroMachine.expandMacros(completeMessage);
         pwmRequest.setAttribute(PwmRequest.Attribute.CompleteText, expandedText);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.FORGOTTEN_USERNAME_COMPLETE);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.FORGOTTEN_USERNAME_COMPLETE);
     }
 
 }

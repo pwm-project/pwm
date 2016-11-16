@@ -32,19 +32,19 @@ import java.net.URI;
 
 public class NAAFCertImportFunction extends AbstractUriCertImportFunction {
 
-    static final PwmSetting uriSourceSetting = PwmSetting.NAAF_WS_URL;
+    static final PwmSetting URI_SOURCE_SETTING = PwmSetting.NAAF_WS_URL;
 
     @Override
     String getUri(final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData) throws PwmOperationalException {
-        final String uriString = (String)storedConfiguration.readSetting(uriSourceSetting).toNativeObject();
+        final String uriString = (String)storedConfiguration.readSetting(URI_SOURCE_SETTING).toNativeObject();
         if (uriString == null || uriString.isEmpty()) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + uriSourceSetting.toMenuLocationDebug(profile, null) + " must first be configured");
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + URI_SOURCE_SETTING.toMenuLocationDebug(profile, null) + " must first be configured");
             throw new PwmOperationalException(errorInformation);
         }
         try {
             URI.create(uriString);
         } catch (IllegalArgumentException e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + uriSourceSetting.toMenuLocationDebug(profile, null) + " has an invalid URL syntax");
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + URI_SOURCE_SETTING.toMenuLocationDebug(profile, null) + " has an invalid URL syntax");
             throw new PwmOperationalException(errorInformation);
         }
         return uriString;

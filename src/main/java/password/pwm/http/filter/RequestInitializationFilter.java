@@ -119,7 +119,7 @@ public class RequestInitializationFilter implements Filter {
 
                 LOGGER.error("unable to satisfy incoming request, application is not available");
                 resp.setStatus(500);
-                final String url = PwmConstants.JSP_URL.APP_UNAVAILABLE.getPath();
+                final String url = PwmConstants.JspUrl.APP_UNAVAILABLE.getPath();
                 servletRequest.getServletContext().getRequestDispatcher(url).forward(servletRequest, servletResponse);
             } else {
                 initializeServletRequest(req, resp, filterChain);
@@ -151,7 +151,7 @@ public class RequestInitializationFilter implements Filter {
                     e2.getMessage();
                 }
                 req.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(),errorInformation);
-                final String url = PwmConstants.JSP_URL.APP_UNAVAILABLE.getPath();
+                final String url = PwmConstants.JspUrl.APP_UNAVAILABLE.getPath();
                 req.getServletContext().getRequestDispatcher(url).forward(req, resp);
             }
             return;
@@ -197,7 +197,7 @@ public class RequestInitializationFilter implements Filter {
                     e2.getMessage();
                 }
                 req.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(),errorInformation);
-                final String url = PwmConstants.JSP_URL.APP_UNAVAILABLE.getPath();
+                final String url = PwmConstants.JspUrl.APP_UNAVAILABLE.getPath();
                 req.getServletContext().getRequestDispatcher(url).forward(req, resp);
             }
             return;

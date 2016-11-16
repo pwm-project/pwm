@@ -132,7 +132,7 @@ public class PwmLogger {
             } catch (PwmUnrecoverableException e1) {
                 /* can't be logged */
             }
-        };
+        }
         doLogEvent(level, sessionLabel, cleanedMessage, e);
     }
 

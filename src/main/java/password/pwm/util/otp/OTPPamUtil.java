@@ -78,8 +78,7 @@ public class OTPPamUtil {
                             otp.setType(OTPUserRecord.Type.HOTP);
                             otp.setAttemptCount(Long.parseLong(countStr));
                         }
-                    }
-                    else if(line.matches("^\\d{8}$")) {
+                    } else if(line.matches("^\\d{8}$")) {
                         final OTPUserRecord.RecoveryCode code = new OTPUserRecord.RecoveryCode();
                         code.setUsed(false);
                         code.setHashCode(line);

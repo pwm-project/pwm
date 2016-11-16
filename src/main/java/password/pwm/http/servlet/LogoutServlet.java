@@ -121,7 +121,7 @@ public class LogoutServlet extends ControlledPwmServlet {
             if (nextUrl.isPresent()) {
                 pwmRequest.setAttribute(PwmRequest.Attribute.NextUrl, nextUrl.get());
             }
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.LOGOUT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.LOGOUT);
             return AbstractPwmFilter.ProcessStatus.Halt;
         }
     }
@@ -133,7 +133,7 @@ public class LogoutServlet extends ControlledPwmServlet {
         )
                 throws ServletException, PwmUnrecoverableException, IOException
         {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.LOGOUT_PUBLIC);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.LOGOUT_PUBLIC);
             return AbstractPwmFilter.ProcessStatus.Halt;
         }
     }

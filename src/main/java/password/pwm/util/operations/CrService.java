@@ -538,7 +538,7 @@ public class CrService implements PwmService {
         }
 
         // ignore NMAS based CR set if so configured
-        if (responseInfoBean != null && (responseInfoBean.getDataStorageMethod() == DataStorageMethod.NMAS || responseInfoBean.getDataStorageMethod() == DataStorageMethod.NMASUAWS)) {
+        if (responseInfoBean != null && (responseInfoBean.getDataStorageMethod() == DataStorageMethod.NMAS)) {
             final boolean ignoreNmasCr = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK));
             if (ignoreNmasCr) {
                 LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: app property " + AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK.getKey()
