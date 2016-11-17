@@ -6,7 +6,7 @@ export interface IConfigService {
 }
 
 export default class ConfigService implements IConfigService {
-    static $inject = ['$http', '$q', PwmService ];
+    static $inject = ['$http', '$q', 'PwmService' ];
     constructor(private $http: IHttpService,
                 private $q: IQService,
                 private pwmService: PwmService) {
