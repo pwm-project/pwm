@@ -22,6 +22,7 @@
 
 
 var commonConfig = require('./webpack.common.js');
+var webpack = require('webpack');
 var webpackMerge = require('webpack-merge');
 
 module.exports = webpackMerge(commonConfig, {
@@ -41,5 +42,11 @@ module.exports = webpackMerge(commonConfig, {
                 ]
             }
         ]
-    }
+    },
+    plugins: [
+        new webpack.optimize.UglifyJsPlugin({
+            compress: { warnings: false },
+            comments: false
+        })
+    ]
 });
