@@ -22,11 +22,7 @@
 
 package password.pwm.config.profile;
 
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.Set;
-
+import com.novell.ldapchai.ChaiPasswordRule;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -34,7 +30,10 @@ import password.pwm.i18n.Message;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
-import com.novell.ldapchai.ChaiPasswordRule;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.Set;
 
 /**
  * Password rules
@@ -103,7 +102,9 @@ public enum PwmPasswordRule {
     static {
         try {
             final Set<String> keys = new HashSet<>();
-            for (final PwmSetting setting : PwmSetting.values()) keys.add(setting.getKey());
+            for (final PwmSetting setting : PwmSetting.values()) {
+                keys.add(setting.getKey());
+            }
             assert keys.size() == PwmSetting.values().length;
         } catch (Throwable t) {
             LOGGER.fatal("error initializing PwmPasswordRule class: " + t.getMessage(),t);
@@ -136,9 +137,15 @@ public enum PwmPasswordRule {
     }
 
     public String getKey() {
-        if (chaiPasswordRule != null) return chaiPasswordRule.getKey();
-        if (pwmSetting       != null) return pwmSetting.getKey();
-        if (appProperty      != null) return appProperty.getKey();
+        if (chaiPasswordRule != null) {
+            return chaiPasswordRule.getKey();
+        }
+        if (pwmSetting       != null) {
+            return pwmSetting.getKey();
+        }
+        if (appProperty      != null) {
+            return appProperty.getKey();
+        }
 
         return this.name();
     }

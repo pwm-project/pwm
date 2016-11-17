@@ -47,7 +47,7 @@ public class ConfigLockCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigLock";
         cliParameters.description = "Lock a configuration, prevents config from being edited without LDAP authentication.";
         cliParameters.needsPwmApplication = false;

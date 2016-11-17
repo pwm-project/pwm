@@ -22,12 +22,15 @@
 
 package password.pwm.config.profile;
 
-import password.pwm.config.*;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.VerificationMethodValue;
 
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class ForgottenPasswordProfile extends AbstractProfile {
 
@@ -36,13 +39,13 @@ public class ForgottenPasswordProfile extends AbstractProfile {
     private Set<IdentityVerificationMethod> requiredRecoveryVerificationMethods;
     private Set<IdentityVerificationMethod> optionalRecoveryVerificationMethods;
 
-    public ForgottenPasswordProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
+    public ForgottenPasswordProfile(final String identifier, final Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);
     }
 
 
     @Override
-    public String getDisplayName(Locale locale) {
+    public String getDisplayName(final Locale locale) {
         return null;
     }
 

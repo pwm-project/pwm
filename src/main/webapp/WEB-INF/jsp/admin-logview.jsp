@@ -40,7 +40,7 @@
 <% final LocalDBLogger localDBLogger = pwmRequest.getPwmApplication().getLocalDBLogger(); %>
 <body class="nihilo">
 <div id="wrapper">
-    <% String PageName = JspUtility.localizedString(pageContext,"Title_LogViewer",Admin.class);%>
+    <% final String PageName = JspUtility.localizedString(pageContext,"Title_LogViewer",Admin.class);%>
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
@@ -76,8 +76,8 @@
                         <% final PwmLogLevel configuredLevel = pwmRequest.getConfig().readSettingAsEnum(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL,PwmLogLevel.class); %>
                         <select name="level" style="width: auto;" id="select-level">
                             <% for (final PwmLogLevel level : PwmLogLevel.values()) { %>
-                            <% boolean optionSelected = level.toString().equals(selectedLevel); %>
-                            <% boolean disabled = level.compareTo(configuredLevel) < 0; %>
+                            <% final boolean optionSelected = level.toString().equals(selectedLevel); %>
+                            <% final boolean disabled = level.compareTo(configuredLevel) < 0; %>
                             <option value="<%=level%>" <%=optionSelected ?" selected": ""%><%=disabled ? " disabled" : ""%>  ><%=level%></option>
                             <% } %>
                         </select>

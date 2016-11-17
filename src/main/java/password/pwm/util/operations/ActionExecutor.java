@@ -34,7 +34,11 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmSession;
-import password.pwm.http.client.*;
+import password.pwm.http.client.PwmHttpClient;
+import password.pwm.http.client.PwmHttpClientConfiguration;
+import password.pwm.http.client.PwmHttpClientRequest;
+import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -81,6 +85,9 @@ public class ActionExecutor {
             case webservice:
                 executeWebserviceAction(pwmSession, actionConfiguration);
                 break;
+
+            default:
+                Helper.unhandledSwitchStatement(actionConfiguration.getType());
         }
 
         LOGGER.info(pwmSession, "action " + actionConfiguration.getName() + " completed successfully");
@@ -196,27 +203,28 @@ public class ActionExecutor {
             final PwmSession pwmSession,
             final ChaiUser theUser,
             final String attrName,
-            String attrValue,
-            ActionConfiguration.LdapMethod ldapMethod,
+            final String attrValue,
+            final ActionConfiguration.LdapMethod ldapMethod,
             final MacroMachine macroMachine
     )
             throws PwmOperationalException, ChaiUnavailableException
     {
-        if (ldapMethod == null) {
-            ldapMethod = ActionConfiguration.LdapMethod.replace;
-        }
+        final ActionConfiguration.LdapMethod effectiveLdapMethod = (ldapMethod == null)
+                ? ActionConfiguration.LdapMethod.replace
+                : ldapMethod;
 
-        if (macroMachine != null) {
-            attrValue  = macroMachine.expandMacros(attrValue);
-        }
+        final String effectiveAttrValue = (macroMachine != null)
+                ? macroMachine.expandMacros(attrValue)
+                : attrValue;
 
-        LOGGER.trace(pwmSession,"beginning ldap " + ldapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName);
-        switch (ldapMethod) {
+
+        LOGGER.trace(pwmSession,"beginning ldap " + effectiveLdapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName);
+        switch (effectiveLdapMethod) {
             case replace:
             {
                 try {
-                    theUser.writeStringAttribute(attrName, attrValue);
-                    LOGGER.info(pwmSession,"replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
+                    theUser.writeStringAttribute(attrName, effectiveAttrValue);
+                    LOGGER.info(pwmSession,"replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")");
                 } catch (ChaiOperationException e) {
                     final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
@@ -230,8 +238,8 @@ public class ActionExecutor {
             case add:
             {
                 try {
-                    theUser.addAttribute(attrName, attrValue);
-                    LOGGER.info(pwmSession,"added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
+                    theUser.addAttribute(attrName, effectiveAttrValue);
+                    LOGGER.info(pwmSession,"added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")");
                 } catch (ChaiOperationException e) {
                     final String errorMsg = "error adding '" + attrName + "' attribute value from user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
@@ -246,7 +254,7 @@ public class ActionExecutor {
             case remove:
             {
                 try {
-                    theUser.deleteAttribute(attrName, attrValue);
+                    theUser.deleteAttribute(attrName, effectiveAttrValue);
                     LOGGER.info(pwmSession,"deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
                 } catch (ChaiOperationException e) {
                     final String errorMsg = "error deletig '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
@@ -259,7 +267,7 @@ public class ActionExecutor {
             break;
 
             default:
-                throw new IllegalStateException("unexpected ldap method type " + ldapMethod);
+                throw new IllegalStateException("unexpected ldap method type " + effectiveLdapMethod);
         }
     }
 
@@ -271,13 +279,13 @@ public class ActionExecutor {
         private boolean expandPwmMacros = true;
         private MacroMachine macroMachine;
 
-        public ActionExecutorSettings(PwmApplication pwmApplication, ChaiUser chaiUser) {
+        public ActionExecutorSettings(final PwmApplication pwmApplication, final ChaiUser chaiUser) {
             this.pwmApplication = pwmApplication;
             this.chaiUser = chaiUser;
             this.userIdentity = null;
         }
 
-        public ActionExecutorSettings(PwmApplication pwmApplication, UserIdentity userIdentity) {
+        public ActionExecutorSettings(final PwmApplication pwmApplication, final UserIdentity userIdentity) {
             this.pwmApplication = pwmApplication;
             this.userIdentity = userIdentity;
             this.chaiUser = null;
@@ -302,13 +310,13 @@ public class ActionExecutor {
             return userIdentity;
         }
 
-        public ActionExecutorSettings setExpandPwmMacros(boolean expandPwmMacros) {
+        public ActionExecutorSettings setExpandPwmMacros(final boolean expandPwmMacros) {
             this.expandPwmMacros = expandPwmMacros;
             return this;
         }
 
 
-        public ActionExecutorSettings setMacroMachine(MacroMachine macroMachine)
+        public ActionExecutorSettings setMacroMachine(final MacroMachine macroMachine)
         {
             this.macroMachine = macroMachine;
             return this;

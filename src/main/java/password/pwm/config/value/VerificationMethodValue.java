@@ -35,7 +35,12 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class VerificationMethodValue extends AbstractValue implements StoredValue {
     private static final PwmLogger LOGGER = PwmLogger.forClass(VerificationMethodValue.class);
@@ -56,7 +61,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
         public VerificationMethodSettings() {
         }
 
-        public VerificationMethodSettings(Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings, int minOptionalRequired) {
+        public VerificationMethodSettings(final Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings, final int minOptionalRequired) {
             this.methodSettings = methodSettings;
             this.minOptionalRequired = minOptionalRequired;
         }
@@ -73,7 +78,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     public static class VerificationMethodSetting {
         private EnabledState enabledState = EnabledState.disabled;
 
-        public VerificationMethodSetting(EnabledState enabledState) {
+        public VerificationMethodSetting(final EnabledState enabledState) {
             this.enabledState = enabledState;
         }
 
@@ -86,7 +91,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
         this(new VerificationMethodSettings());
     }
 
-    public VerificationMethodValue(VerificationMethodSettings value) {
+    public VerificationMethodValue(final VerificationMethodSettings value) {
         this.value = value;
         for (final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.availableValues()) {
             if (!value.methodSettings.containsKey(recoveryVerificationMethods)) {
@@ -103,24 +108,24 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
                 if (input == null) {
                     return new VerificationMethodValue();
                 } else {
-                    VerificationMethodSettings settings = JsonUtil.deserialize(input,VerificationMethodSettings.class);
+                    final VerificationMethodSettings settings = JsonUtil.deserialize(input,VerificationMethodSettings.class);
                     return new VerificationMethodValue(settings);
                 }
             }
 
-            public VerificationMethodValue fromXmlElement(Element settingElement, final PwmSecurityKey key)
+            public VerificationMethodValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
                     throws PwmOperationalException
             {
                 final Element valueElement = settingElement.getChild("value");
                 final String inputStr = valueElement.getText();
-                VerificationMethodSettings settings = JsonUtil.deserialize(inputStr,VerificationMethodSettings.class);
+                final VerificationMethodSettings settings = JsonUtil.deserialize(inputStr,VerificationMethodSettings.class);
                 return new VerificationMethodValue(settings);
             }
         };
     }
 
     @Override
-    public List<Element> toXmlValues(String valueElementName) {
+    public List<Element> toXmlValues(final String valueElementName) {
         final Element valueElement = new Element(valueElementName);
         valueElement.addContent(new CDATA(JsonUtil.serialize(value)));
         return Collections.singletonList(valueElement);
@@ -132,12 +137,12 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     }
 
     @Override
-    public List<String> validateValue(PwmSetting pwm) {
+    public List<String> validateValue(final PwmSetting pwm) {
         return Collections.emptyList();
     }
 
     @Override
-    public String toDebugString(Locale locale) {
+    public String toDebugString(final Locale locale) {
         if (value == null) {
             return "No Verification Methods";
         }
@@ -152,6 +157,10 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
                 case required:
                     required.add(method.getLabel(null, locale));
+                    break;
+
+                default:
+                    // continue processing
                     break;
             }
             method.getLabel(null,locale);

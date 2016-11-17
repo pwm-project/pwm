@@ -26,6 +26,7 @@ import password.pwm.PwmConstants;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -35,7 +36,7 @@ import java.util.zip.ZipInputStream;
 /**
  * @author Jason D. Rivard
  */
-class ZipReader {
+class ZipReader implements Closeable {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ZipReader.class);
 
@@ -78,14 +79,7 @@ class ZipReader {
         }
     }
 
-    protected void finalize()
-            throws Throwable
-    {
-        this.close();
-        super.finalize();
-    }
-
-    void close()
+    public void close()
     {
         try {
             zipStream.close();

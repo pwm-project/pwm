@@ -23,12 +23,20 @@
 package password.pwm.http.filter;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
+import password.pwm.PwmConstants;
+import password.pwm.PwmHttpFilterAuthenticationProvider;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -36,7 +44,7 @@ import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ChangePasswordBean;
 import password.pwm.http.servlet.LoginServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.http.servlet.oauth.OAuthConsumerServlet;
+import password.pwm.http.servlet.oauth.OAuthMachine;
 import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.PasswordChangeProgressChecker;
@@ -117,7 +125,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
     }
 
     @Override
-    boolean isInterested(PwmApplicationMode mode, PwmURL pwmURL) {
+    boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
         return !pwmURL.isResourceURL();
     }
 
@@ -157,7 +165,9 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
         // check status of oauth expiration
         if (pwmSession.getLoginInfoBean().getOauthExp() != null) {
-            if (OAuthConsumerServlet.checkOAuthExpiration(pwmRequest)) {
+            final OAuthSettings oauthSettings = OAuthSettings.forSSOAuthentication(pwmRequest.getConfig());
+            final OAuthMachine oAuthMachine = new OAuthMachine(oauthSettings);
+            if (oAuthMachine.checkOAuthExpiration(pwmRequest)) {
                 pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_OAUTH_ERROR,"oauth access token has expired"));
                 return;
             }
@@ -211,7 +221,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         private Date date;
         private String guid;
 
-        public AuthRecord(Date date, String guid) {
+        public AuthRecord(final Date date, final String guid) {
             this.date = date;
             this.guid = guid;
         }
@@ -369,7 +379,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
                 LOGGER.debug(pwmRequest, "user is required to setup responses, redirecting to setup responses servlet");
                 pwmRequest.sendRedirect(PwmServletDefinition.SetupResponses);
                 return ProcessStatus.Halt;
-            } {
+            } else {
                 return ProcessStatus.Continue;
             }
         }
@@ -417,7 +427,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
         private final String className;
 
-        AuthenticationMethod(String className) {
+        AuthenticationMethod(final String className) {
             this.className = className;
         }
 
@@ -538,13 +548,14 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         )
                 throws PwmUnrecoverableException, IOException
         {
-            final OAuthSettings settings = OAuthSettings.fromConfiguration(pwmRequest.getConfig());
-            if (!settings.oAuthIsConfigured()) {
+            final OAuthSettings oauthSettings = OAuthSettings.forSSOAuthentication(pwmRequest.getConfig());
+            if (!oauthSettings.oAuthIsConfigured()) {
                 return;
             }
 
             final String originalURL = pwmRequest.getURLwithQueryString();
-            OAuthConsumerServlet.redirectUserToOAuthServer(pwmRequest, originalURL);
+            final OAuthMachine oAuthMachine = new OAuthMachine(oauthSettings);
+            oAuthMachine.redirectUserToOAuthServer(pwmRequest, originalURL, null);
             redirected = true;
         }
 

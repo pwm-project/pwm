@@ -29,7 +29,12 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TLSVersion;
 import password.pwm.util.cli.CliParameters;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -56,7 +61,7 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportHttpsTomcatConfig";
         cliParameters.description = "Export the https settings to the tomcat configuration based on a tokenized source server.xml file";
 
@@ -66,9 +71,9 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand {
                 return false;
             }
 
-            public CliParameters.Option.type getType()
+            public Type getType()
             {
-                return type.EXISTING_FILE;
+                return Type.EXISTING_FILE;
             }
 
             public String getName()

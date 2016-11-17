@@ -34,21 +34,27 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.rest.bean.HealthRecord;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class CodeIntegrityChecker {
-    final static private PwmLogger LOGGER = PwmLogger.forClass(CodeIntegrityChecker.class);
-    final static private boolean debugFlag = false;
-
+    private static final PwmLogger LOGGER = PwmLogger.forClass(CodeIntegrityChecker.class);
+    private static final boolean DEBUG_FLAG = false;
 
     private static final Map<Method,Object[]> CHECK_ENUM_METHODS = new LinkedHashMap<>();
+
     static {
         try {
             CHECK_ENUM_METHODS.put(PwmSetting.class.getMethod("getDescription", Locale.class), new Object[]{
-                    PwmConstants.DEFAULT_LOCALE
+                    PwmConstants.DEFAULT_LOCALE,
             });
             CHECK_ENUM_METHODS.put(PwmSetting.class.getMethod("getDefaultValue", PwmSettingTemplate.class), new Object[]{
-                    PwmSettingTemplate.DEFAULT
+                    PwmSettingTemplate.DEFAULT,
             });
 
 
@@ -56,10 +62,10 @@ public class CodeIntegrityChecker {
             });
 
             CHECK_ENUM_METHODS.put(PwmError.class.getMethod("getLocalizedMessage", Locale.class, Configuration.class, String[].class), new Object[]{
-                    PwmConstants.DEFAULT_LOCALE, null, null
+                    PwmConstants.DEFAULT_LOCALE, null, null,
             });
             CHECK_ENUM_METHODS.put(Message.class.getMethod("getLocalizedMessage", Locale.class, Configuration.class, String[].class), new Object[]{
-                    PwmConstants.DEFAULT_LOCALE, null, null
+                    PwmConstants.DEFAULT_LOCALE, null, null,
             });
         } catch (NoSuchMethodException e) {
             final String message = CodeIntegrityChecker.class.getSimpleName() + " error setting up static check components: " + e.getMessage();

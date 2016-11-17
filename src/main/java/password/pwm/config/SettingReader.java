@@ -49,4 +49,6 @@ public interface SettingReader {
     List<ActionConfiguration> readSettingAsAction(PwmSetting setting);
 
     PasswordData readSettingAsPassword(PwmSetting setting);
+
+    String readSettingAsString(PwmSetting oauthIdLoginUrl);
 }

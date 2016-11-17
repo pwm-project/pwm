@@ -26,8 +26,8 @@
 
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
-<% Locale userLocale = JspUtility.locale(request); %>
-<% ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
+<% final Locale userLocale = JspUtility.locale(request); %>
+<% final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -50,7 +50,7 @@
                             <%=PwmSetting.DATABASE_JDBC_DRIVER.getDescription(userLocale)%>
                             <br/>
                             <% if (configGuideBean.getDatabaseDriver() != null && !configGuideBean.getDatabaseDriver().toInfoMap().isEmpty()) { %>
-                            <% FileValue.FileInfo fileInfo = configGuideBean.getDatabaseDriver().toInfoMap().iterator().next(); %>
+                            <% final FileValue.FileInfo fileInfo = configGuideBean.getDatabaseDriver().toInfoMap().iterator().next(); %>
                             <table style="max-width: 400px">
                                 <tr>
                                     <td class="key">Name</td><td><%=fileInfo.getName()%></td>
@@ -162,14 +162,14 @@
                                 <%=PwmSetting.DB_VENDOR_TEMPLATE.getDescription(userLocale)%>
                                 <br/>
 
-                                <% String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_DB_VENDOR); %>
+                                <% final String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_DB_VENDOR); %>
 
                                 <select id="<%=ConfigGuideForm.FormParameter.PARAM_DB_VENDOR%>" name="<%=ConfigGuideForm.FormParameter.PARAM_DB_VENDOR%>">
                                     <% if (selectedTemplate == null || selectedTemplate.isEmpty()) { %>
                                     <option value="NOTSELECTED" selected disabled> -- Please select a template -- </option>
                                     <% } %>
                                     <% for (final String loopTemplate : PwmSetting.DB_VENDOR_TEMPLATE.getOptions().keySet()) { %>
-                                    <% boolean selected = loopTemplate.equals(selectedTemplate); %>
+                                    <% final boolean selected = loopTemplate.equals(selectedTemplate); %>
                                     <option value="<%=loopTemplate%>"<% if (selected) { %> selected="selected"<% } %>>
                                         <%=PwmSetting.DB_VENDOR_TEMPLATE.getOptions().get(loopTemplate)%>
                                     </option>

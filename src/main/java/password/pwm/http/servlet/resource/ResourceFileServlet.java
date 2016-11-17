@@ -45,7 +45,15 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -75,7 +83,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
 
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+    protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
             throws ServletException, IOException
     {
         PwmRequest pwmRequest = null;
@@ -120,14 +128,14 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
 
 
 
-    protected void processAction(PwmRequest pwmRequest)
+    protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, PwmUnrecoverableException
     {
         if (pwmRequest.getMethod() != HttpMethod.GET) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"unable to process resource request for request method " + pwmRequest.getMethod()));
         }
 
-        PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final ResourceServletService resourceService = pwmApplication.getResourceServletService();
         final ResourceServletConfiguration resourceConfiguration = resourceService.getResourceServletConfiguration();
 
@@ -212,9 +220,15 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
                 fromCache = handleCacheableResponse(resourceConfiguration, response, file, acceptsGzip, resourceService.getCacheMap());
                 if (fromCache || acceptsGzip) {
                     debugText.append("(");
-                    if (fromCache) debugText.append("cached");
-                    if (fromCache && acceptsGzip) debugText.append(", ");
-                    if (acceptsGzip) debugText.append("gzip");
+                    if (fromCache) {
+                        debugText.append("cached");
+                    }
+                    if (fromCache && acceptsGzip) {
+                        debugText.append(", ");
+                    }
+                    if (acceptsGzip) {
+                        debugText.append("gzip");
+                    }
                     debugText.append(")");
                 } else {
                     debugText = new StringBuilder("(not cached)");
@@ -224,7 +238,9 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
                 handleUncachedResponse(response, file, acceptsGzip);
                 debugText = new StringBuilder();
                 debugText.append("(uncacheable");
-                if (acceptsGzip) debugText.append(", gzip");
+                if (acceptsGzip) {
+                    debugText.append(", gzip");
+                }
                 debugText.append(")");
             }
             try {
@@ -393,7 +409,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         }
 
         {
-            FileResource resource = handleWebjarURIs(servletContext, resourcePathUri, resourceServletConfiguration);
+            final FileResource resource = handleWebjarURIs(servletContext, resourcePathUri, resourceServletConfiguration);
             if (resource != null) {
                 return resource;
             }

@@ -23,7 +23,6 @@
 package password.pwm.http.servlet.configeditor;
 
 import password.pwm.config.PwmSettingCategory;
-import password.pwm.config.PwmSettingSyntax;
 
 import java.io.Serializable;
 import java.util.Locale;

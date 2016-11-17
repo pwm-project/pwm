@@ -36,12 +36,20 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ShortcutsBean;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @WebServlet(
         name="ShortcutServlet",
@@ -55,7 +63,9 @@ public class ShortcutServlet extends AbstractPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ShortcutServlet.class);
 
     public enum ShortcutAction implements AbstractPwmServlet.ProcessAction {
-        selectShortcut,;
+        selectShortcut,
+
+        ;
 
         public Collection<HttpMethod> permittedMethods() {
             return Collections.singletonList(HttpMethod.GET);
@@ -97,6 +107,9 @@ public class ShortcutServlet extends AbstractPwmServlet {
                 case selectShortcut:
                     handleUserSelection(pwmRequest, shortcutsBean);
                     return;
+
+                default:
+                    Helper.unhandledSwitchStatement(action);
             }
         }
 
@@ -108,7 +121,7 @@ public class ShortcutServlet extends AbstractPwmServlet {
         final ArrayList<ShortcutItem> shortcutItems = new ArrayList<>();
         shortcutItems.addAll(shortcutsBean.getVisibleItems().values());
         pwmRequest.setAttribute(PwmRequest.Attribute.ShortcutItems, shortcutItems);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SHORTCUT);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.SHORTCUT);
     }
 
     /**
@@ -186,6 +199,6 @@ public class ShortcutServlet extends AbstractPwmServlet {
         }
 
         LOGGER.error(pwmSession, "unknown/unexpected link requested to " + link);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SHORTCUT);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.SHORTCUT);
     }
 }

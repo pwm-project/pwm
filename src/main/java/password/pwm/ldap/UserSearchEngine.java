@@ -37,7 +37,11 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DuplicateMode;
 import password.pwm.config.profile.LdapProfile;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
@@ -48,7 +52,15 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class UserSearchEngine {
 
@@ -459,7 +471,7 @@ public class UserSearchEngine {
             return filter;
         }
 
-        public void setFilter(String filter) {
+        public void setFilter(final String filter) {
             this.filter = filter;
         }
 
@@ -467,7 +479,7 @@ public class UserSearchEngine {
             return formValues;
         }
 
-        public void setFormValues(Map<FormConfiguration, String> formValues) {
+        public void setFormValues(final Map<FormConfiguration, String> formValues) {
             this.formValues = formValues;
         }
 
@@ -475,7 +487,7 @@ public class UserSearchEngine {
             return username;
         }
 
-        public void setUsername(String username) {
+        public void setUsername(final String username) {
             this.username = username;
         }
 
@@ -483,7 +495,7 @@ public class UserSearchEngine {
             return groupDN;
         }
 
-        public void setGroupDN(String groupDN) {
+        public void setGroupDN(final String groupDN) {
             this.groupDN = groupDN;
         }
 
@@ -491,7 +503,7 @@ public class UserSearchEngine {
             return contexts;
         }
 
-        public void setContexts(List<String> contexts) {
+        public void setContexts(final List<String> contexts) {
             this.contexts = contexts;
         }
 
@@ -499,7 +511,7 @@ public class UserSearchEngine {
             return chaiProvider;
         }
 
-        public void setChaiProvider(ChaiProvider chaiProvider) {
+        public void setChaiProvider(final ChaiProvider chaiProvider) {
             this.chaiProvider = chaiProvider;
         }
 
@@ -507,7 +519,7 @@ public class UserSearchEngine {
             return enableValueEscaping;
         }
 
-        public void setEnableValueEscaping(boolean enableValueEscaping) {
+        public void setEnableValueEscaping(final boolean enableValueEscaping) {
             this.enableValueEscaping = enableValueEscaping;
         }
 
@@ -515,7 +527,7 @@ public class UserSearchEngine {
             return enableContextValidation;
         }
 
-        public void setEnableContextValidation(boolean enableContextValidation) {
+        public void setEnableContextValidation(final boolean enableContextValidation) {
             this.enableContextValidation = enableContextValidation;
         }
 
@@ -530,7 +542,7 @@ public class UserSearchEngine {
             return ldapProfile;
         }
 
-        public void setLdapProfile(String ldapProfile)
+        public void setLdapProfile(final String ldapProfile)
         {
             this.ldapProfile = ldapProfile;
         }
@@ -540,7 +552,7 @@ public class UserSearchEngine {
             return searchTimeout;
         }
 
-        public void setSearchTimeout(long searchTimeout)
+        public void setSearchTimeout(final long searchTimeout)
         {
             this.searchTimeout = searchTimeout;
         }
@@ -572,7 +584,7 @@ public class UserSearchEngine {
         private final Map<UserIdentity,Map<String,String>> results;
         private boolean sizeExceeded;
 
-        public UserSearchResults(Map<String, String> headerAttributeMap, Map<UserIdentity, Map<String, String>> results, boolean sizeExceeded) {
+        public UserSearchResults(final Map<String, String> headerAttributeMap, final Map<UserIdentity, Map<String, String>> results, final boolean sizeExceeded) {
             this.headerAttributeMap = headerAttributeMap;
             this.results = Collections.unmodifiableMap(defaultSort(results, headerAttributeMap));
             this.sizeExceeded = sizeExceeded;
@@ -591,7 +603,7 @@ public class UserSearchEngine {
             final String sortAttribute = headerAttributeMap.keySet().iterator().next();
             final Comparator<UserIdentity> comparator = new Comparator<UserIdentity>() {
                 @Override
-                public int compare(UserIdentity o1, UserIdentity o2) {
+                public int compare(final UserIdentity o1, final UserIdentity o2) {
                     final String s1 = getSortValueByIdentity(o1);
                     final String s2 = getSortValueByIdentity(o2);
                     return s1.compareTo(s2);

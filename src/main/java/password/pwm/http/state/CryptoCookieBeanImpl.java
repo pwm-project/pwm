@@ -45,7 +45,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider {
     private static final PwmHttpResponseWrapper.CookiePath COOKIE_PATH = PwmHttpResponseWrapper.CookiePath.CurrentURL;
 
     @Override
-    public <E extends PwmSessionBean> E getSessionBean(PwmRequest pwmRequest, Class<E> theClass) throws PwmUnrecoverableException {
+    public <E extends PwmSessionBean> E getSessionBean(final PwmRequest pwmRequest, final Class<E> theClass) throws PwmUnrecoverableException {
         final Map<Class<? extends PwmSessionBean>,PwmSessionBean> sessionBeans = getRequestBeanMap(pwmRequest);
 
         if (sessionBeans.containsKey(theClass) && sessionBeans.get(theClass) != null) {
@@ -72,7 +72,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider {
         return newBean;
     }
 
-    private boolean validateCookie(PwmRequest pwmRequest, String cookieName, PwmSessionBean cookieBean) {
+    private boolean validateCookie(final PwmRequest pwmRequest, final String cookieName, final PwmSessionBean cookieBean) {
         if (cookieBean == null) {
             return false;
         }
@@ -135,7 +135,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider {
     }
 
     @Override
-    public <E extends PwmSessionBean> void clearSessionBean(PwmRequest pwmRequest, Class<E> userBeanClass) throws PwmUnrecoverableException {
+    public <E extends PwmSessionBean> void clearSessionBean(final PwmRequest pwmRequest, final Class<E> userBeanClass) throws PwmUnrecoverableException {
         final Map<Class<? extends PwmSessionBean>,PwmSessionBean> sessionBeans = getRequestBeanMap(pwmRequest);
         sessionBeans.put(userBeanClass, null);
         saveSessionBeans(pwmRequest);
@@ -155,7 +155,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider {
     }
 
     @Override
-    public String getSessionStateInfo(PwmRequest pwmRequest) throws PwmUnrecoverableException {
+    public String getSessionStateInfo(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
         return null;
     }
 

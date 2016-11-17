@@ -35,7 +35,7 @@ public enum ConfigurationProperty {
 
     private final String key;
 
-    ConfigurationProperty(String key)
+    ConfigurationProperty(final String key)
     {
         this.key = key;
     }

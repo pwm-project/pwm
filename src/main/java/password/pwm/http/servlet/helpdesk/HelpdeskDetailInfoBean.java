@@ -48,7 +48,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
         return userDisplayName;
     }
 
-    public void setUserDisplayName(String userDisplayName) {
+    public void setUserDisplayName(final String userDisplayName) {
         this.userDisplayName = userDisplayName;
     }
 
@@ -56,7 +56,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
         return userInfoBean;
     }
 
-    public void setUserInfoBean(UserInfoBean userInfoBean) {
+    public void setUserInfoBean(final UserInfoBean userInfoBean) {
         this.userInfoBean = userInfoBean;
     }
 
@@ -64,7 +64,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
         return intruderLocked;
     }
 
-    public void setIntruderLocked(boolean intruderLocked) {
+    public void setIntruderLocked(final boolean intruderLocked) {
         this.intruderLocked = intruderLocked;
     }
 
@@ -72,7 +72,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
         return accountEnabled;
     }
 
-    public void setAccountEnabled(boolean accountEnabled) {
+    public void setAccountEnabled(final boolean accountEnabled) {
         this.accountEnabled = accountEnabled;
     }
 
@@ -80,7 +80,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
         return lastLoginTime;
     }
 
-    public void setLastLoginTime(Date lastLoginTime) {
+    public void setLastLoginTime(final Date lastLoginTime) {
         this.lastLoginTime = lastLoginTime;
     }
 
@@ -88,7 +88,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
         return userHistory;
     }
 
-    public void setUserHistory(List<UserAuditRecord> userHistory) {
+    public void setUserHistory(final List<UserAuditRecord> userHistory) {
         this.userHistory = userHistory;
     }
 
@@ -96,7 +96,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
         return searchDetails;
     }
 
-    public void setSearchDetails(Map<FormConfiguration, List<String>> searchDetails) {
+    public void setSearchDetails(final Map<FormConfiguration, List<String>> searchDetails) {
         this.searchDetails = searchDetails;
     }
 
@@ -104,7 +104,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
         return passwordSetDelta;
     }
 
-    public void setPasswordSetDelta(String passwordSetDelta) {
+    public void setPasswordSetDelta(final String passwordSetDelta) {
         this.passwordSetDelta = passwordSetDelta;
     }
 
@@ -112,7 +112,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
         return accountExpired;
     }
 
-    public void setAccountExpired(boolean accountExpired) {
+    public void setAccountExpired(final boolean accountExpired) {
         this.accountExpired = accountExpired;
     }
 }

@@ -28,14 +28,22 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.*;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.RequireCurrentPasswordMode;
 import password.pwm.config.profile.PwmPasswordRule;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -47,6 +55,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmPasswordRuleValidator;
@@ -59,7 +68,11 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * User interaction servlet for changing (self) passwords.
@@ -93,7 +106,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
 
         private final HttpMethod method;
 
-        ChangePasswordAction(HttpMethod method)
+        ChangePasswordAction(final HttpMethod method)
         {
             this.method = method;
         }
@@ -183,6 +196,9 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
 
                     pwmRequest.sendRedirect(pwmRequest.getHttpServletRequest().getContextPath());
                     break;
+
+                default:
+                    Helper.unhandledSwitchStatement(action);
             }
         }
 
@@ -232,27 +248,27 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         } catch (PwmDataValidationException e) {
             pwmRequest.setResponseError(e.getErrorInformation());
             LOGGER.debug(pwmRequest, "failed password validation check: " + e.getErrorInformation().toDebugStr());
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE);
             return;
         }
 
         //make sure the two passwords match
-        boolean caseSensitive = uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(
+        final boolean caseSensitive = uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(
                 PwmPasswordRule.CaseSensitive);
-        if (PasswordUtility.PasswordCheckInfo.MATCH_STATUS.MATCH != PasswordUtility.figureMatchStatus(caseSensitive,
+        if (PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH != PasswordUtility.figureMatchStatus(caseSensitive,
                 password1, password2)) {
             pwmRequest.setResponseError(PwmError.PASSWORD_DOESNOTMATCH.toInfo());
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE);
             return;
         }
 
         try {
             executeChangePassword(pwmRequest, password1);
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE_WAIT);
         } catch (PwmOperationalException e) {
             LOGGER.debug(e.getErrorInformation().toDebugStr());
             pwmRequest.setResponseError(e.getErrorInformation());
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE);
         }
     }
 
@@ -265,7 +281,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         LOGGER.debug(pwmRequest, "user accepted password change agreement");
         if (!cpb.isAgreementPassed()) {
             cpb.setAgreementPassed(true);
-            AuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
+            final AuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getSessionLabel(),
@@ -383,13 +399,13 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         final Configuration config = pwmApplication.getConfig();
 
         if (changePasswordBean.getChangeProgressTracker() != null) {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE_WAIT);
             return;
         }
 
         if (warnPageShouldBeShown(pwmRequest, changePasswordBean)) {
             LOGGER.trace(pwmRequest, "pasword expiration is within password warn period, forwarding user to warning page");
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_WARN);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_WARN);
             return;
         }
 
@@ -398,7 +414,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
             final String expandedText = macroMachine.expandMacros(agreementMsg);
             pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText,expandedText);
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_AGREEMENT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_AGREEMENT);
             return;
         }
 
@@ -413,7 +429,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
         }
 
         changePasswordBean.setAllChecksPassed(true);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE);
     }
 
     private static boolean determineIfCurrentPasswordRequired(
@@ -602,12 +618,12 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(completeMessage);
                 pwmRequest.setAttribute(PwmRequest.Attribute.CompleteText, expandedText);
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_COMPLETE);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_COMPLETE);
             } else {
                 pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_PasswordChange);
             }
         } else {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_CHANGE_WAIT);
         }
     }
 
@@ -641,6 +657,6 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
             throws ServletException, PwmUnrecoverableException, IOException
     {
         pwmRequest.addFormInfoToRequestAttr(PwmSetting.PASSWORD_REQUIRE_FORM,false,false);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_FORM);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.PASSWORD_FORM);
     }
 }

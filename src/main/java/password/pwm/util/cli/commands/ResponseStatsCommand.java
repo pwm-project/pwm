@@ -43,7 +43,13 @@ import password.pwm.util.operations.CrService;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.TreeMap;
 
 public class ResponseStatsCommand extends AbstractCliCommand {
 
@@ -73,6 +79,7 @@ public class ResponseStatsCommand extends AbstractCliCommand {
     }
 
     static int userCounter = 0;
+
     ResponseStats makeStatistics(
             final PwmApplication pwmApplication,
             final List<UserIdentity> userIdentities
@@ -167,7 +174,7 @@ public class ResponseStatsCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ResponseStats";
         cliParameters.description = "Various statistics about stored responses";
         cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);

@@ -35,9 +35,10 @@ import java.util.List;
 import java.util.Map;
 
 public class SchemaManager {
-    private final static PwmLogger LOGGER = PwmLogger.forClass(SchemaManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(SchemaManager.class);
 
     private static final Map<ChaiProvider.DIRECTORY_VENDOR, Class<? extends SchemaExtender>> IMPLEMENTATIONS;
+
     static {
         final Map<ChaiProvider.DIRECTORY_VENDOR, Class<? extends SchemaExtender>> implMap = new HashMap<>();
         implMap.put(ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY, EdirSchemaExtender.class);
@@ -59,7 +60,7 @@ public class SchemaManager {
 
             final ChaiProvider.DIRECTORY_VENDOR vendor = chaiProvider.getDirectoryVendor();
             final Class<? extends SchemaExtender> implClass = IMPLEMENTATIONS.get(vendor);
-            SchemaExtender schemaExtenderImpl = implClass.newInstance();
+            final SchemaExtender schemaExtenderImpl = implClass.newInstance();
             schemaExtenderImpl.init(chaiProvider);
             return schemaExtenderImpl;
         } catch (ChaiUnavailableException e) {

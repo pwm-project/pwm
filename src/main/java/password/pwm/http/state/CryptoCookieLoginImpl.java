@@ -27,7 +27,11 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.IdleTimeoutCalculator;
 import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
@@ -50,7 +54,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider {
     private String cookieName = "SESSION";
 
     @Override
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
         cookieName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_LOGIN_NAME);
     }
 

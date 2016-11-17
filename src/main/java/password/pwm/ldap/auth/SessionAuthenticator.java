@@ -30,7 +30,11 @@ import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.*;
+import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.SessionLabel;
+import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -56,9 +60,9 @@ public class SessionAuthenticator {
     private final PwmAuthenticationSource authenticationSource;
 
     public SessionAuthenticator(
-            PwmApplication pwmApplication,
-            PwmSession pwmSession,
-            PwmAuthenticationSource authenticationSource
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final PwmAuthenticationSource authenticationSource
     )
     {
         this.pwmApplication = pwmApplication;
@@ -81,14 +85,14 @@ public class SessionAuthenticator {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
             userIdentity = userSearchEngine.resolveUsername(username, context, ldapProfile);
 
-            AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
+            final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
                     pwmApplication,
                     sessionLabel,
                     userIdentity,
                     AuthenticationType.AUTHENTICATED,
                     authenticationSource
             );
-            AuthenticationResult authResult = authEngine.authenticateUser(password);
+            final AuthenticationResult authResult = authEngine.authenticateUser(password);
             postAuthenticationSequence(userIdentity, authResult);
         } catch (PwmOperationalException e) {
             postFailureSequence(e, username, userIdentity);
@@ -105,14 +109,14 @@ public class SessionAuthenticator {
             throws PwmUnrecoverableException, PwmOperationalException
     {
         try {
-            AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
+            final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
                     pwmApplication,
                     sessionLabel,
                     userIdentity,
                     AuthenticationType.AUTHENTICATED,
                     authenticationSource
             );
-            AuthenticationResult authResult = authEngine.authenticateUser(password);
+            final AuthenticationResult authResult = authEngine.authenticateUser(password);
             postAuthenticationSequence(userIdentity, authResult);
         } catch (ChaiUnavailableException e) {
             throw PwmUnrecoverableException.fromChaiException(e);
@@ -136,14 +140,14 @@ public class SessionAuthenticator {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
             userIdentity = userSearchEngine.resolveUsername(username, null, null);
 
-            AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
+            final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
                     pwmApplication,
                     sessionLabel,
                     userIdentity,
                     requestedAuthType,
                     authenticationSource
             );
-            AuthenticationResult authResult = authEngine.authUsingUnknownPw();
+            final AuthenticationResult authResult = authEngine.authUsingUnknownPw();
             postAuthenticationSequence(userIdentity, authResult);
         } catch (ChaiUnavailableException e) {
             throw PwmUnrecoverableException.fromChaiException(e);
@@ -160,14 +164,14 @@ public class SessionAuthenticator {
             throws PwmUnrecoverableException
     {
         try {
-            AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
+            final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
                     pwmApplication,
                     sessionLabel,
                     userIdentity,
                     requestedAuthType,
                     authenticationSource
             );
-            AuthenticationResult authResult = authEngine.authUsingUnknownPw();
+            final AuthenticationResult authResult = authEngine.authUsingUnknownPw();
             postAuthenticationSequence(userIdentity, authResult);
         } catch (ChaiUnavailableException e) {
             throw PwmUnrecoverableException.fromChaiException(e);

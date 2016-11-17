@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 public class UserSessionDataCacheBean implements Serializable {
-    private Map<Permission, Permission.PERMISSION_STATUS> permissions = new HashMap<>();
+    private Map<Permission, Permission.PermissionStatus> permissions = new HashMap<>();
     private Map<String, PostChangePasswordAction> postChangePasswordActions = new HashMap<>();
 
     public void clearPermissions()
@@ -40,26 +40,26 @@ public class UserSessionDataCacheBean implements Serializable {
         permissions.clear();
     }
 
-    public Permission.PERMISSION_STATUS getPermission(final Permission permission)
+    public Permission.PermissionStatus getPermission(final Permission permission)
     {
-        final Permission.PERMISSION_STATUS status = permissions.get(permission);
-        return status == null ? Permission.PERMISSION_STATUS.UNCHECKED : status;
+        final Permission.PermissionStatus status = permissions.get(permission);
+        return status == null ? Permission.PermissionStatus.UNCHECKED : status;
     }
 
     public void setPermission(
             final Permission permission,
-            final Permission.PERMISSION_STATUS status
+            final Permission.PermissionStatus status
     )
     {
         permissions.put(permission, status);
     }
 
-    public Map<Permission, Permission.PERMISSION_STATUS> getPermissions()
+    public Map<Permission, Permission.PermissionStatus> getPermissions()
     {
         return permissions;
     }
 
-    public void setPermissions(final Map<Permission, Permission.PERMISSION_STATUS> permissions)
+    public void setPermissions(final Map<Permission, Permission.PermissionStatus> permissions)
     {
         this.permissions = permissions;
     }

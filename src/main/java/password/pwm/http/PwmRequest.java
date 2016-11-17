@@ -54,7 +54,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 // ------------------------------ FIELDS ------------------------------
@@ -75,8 +83,8 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     private final Set<PwmRequestFlag> flags = new HashSet<>();
 
     public static PwmRequest forRequest(
-            HttpServletRequest request,
-            HttpServletResponse response
+            final HttpServletRequest request,
+            final HttpServletResponse response
     )
             throws PwmUnrecoverableException
     {
@@ -134,7 +142,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return pwmApplication.getConfig();
     }
 
-    public void forwardToJsp(final PwmConstants.JSP_URL jspURL)
+    public void forwardToJsp(final PwmConstants.JspUrl jspURL)
             throws ServletException, IOException, PwmUnrecoverableException
     {
         this.getPwmResponse().forwardToJsp(jspURL);
@@ -202,7 +210,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
                 final ServletFileUpload upload = new ServletFileUpload();
 
                 // Parse the request
-                for (final FileItemIterator iter = upload.getItemIterator(this.getHttpServletRequest()); iter.hasNext();) {
+                for (final FileItemIterator iter = upload.getItemIterator(this.getHttpServletRequest()); iter.hasNext(); ) {
                     final FileItemStream item = iter.next();
 
                     if (filePartName.equals(item.getFieldName())) {
@@ -297,6 +305,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         ForgottenPasswordOptionalPageView,
         ForgottenPasswordPrompts,
         ForgottenPasswordInstructions,
+        ForgottenPasswordUserInfo,
 
         GuestCurrentExpirationDate,
         GuestMaximumExpirationDate,
@@ -316,9 +325,9 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         private final byte[] content;
 
         public FileUploadItem(
-                String name,
-                String type,
-                byte[] content
+                final String name,
+                final String type,
+                final byte[] content
         )
         {
             this.name = name;
@@ -556,7 +565,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return (String)getAttribute(PwmRequest.Attribute.CspNonce);
     }
 
-    public <T extends Serializable> T readEncryptedCookie(final String cookieName, Class<T> returnClass)
+    public <T extends Serializable> T readEncryptedCookie(final String cookieName, final Class<T> returnClass)
             throws PwmUnrecoverableException
     {
         final String strValue = this.readCookie(cookieName);
@@ -584,6 +593,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         addFormInfoToRequestAttr(formConfiguration, null, readOnly, showPasswordFields);
 
     }
+
     public void addFormInfoToRequestAttr(
             final List<FormConfiguration> formConfiguration,
             final Map<FormConfiguration, String> formDataMap,
@@ -612,7 +622,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 
     public String getURLwithoutQueryString() {
         final HttpServletRequest req = this.getHttpServletRequest();
-        String requestUri = (String) req.getAttribute("javax.servlet.forward.request_uri");
+        final String requestUri = (String) req.getAttribute("javax.servlet.forward.request_uri");
         return (requestUri == null) ? req.getRequestURI() : requestUri;
     }
 

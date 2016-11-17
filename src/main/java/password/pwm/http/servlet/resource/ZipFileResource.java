@@ -34,7 +34,7 @@ class ZipFileResource implements FileResource {
     private final ZipFile zipFile;
     private final ZipEntry zipEntry;
 
-    ZipFileResource(ZipFile zipFile, ZipEntry zipEntry) {
+    ZipFileResource(final ZipFile zipFile, final ZipEntry zipEntry) {
         this.zipFile = zipFile;
         this.zipEntry = zipEntry;
     }

@@ -66,7 +66,7 @@ public class UserCacheRecord implements Serializable {
         return summaryEpoch;
     }
 
-    public void setSummaryEpoch(String summaryEpoch)
+    public void setSummaryEpoch(final String summaryEpoch)
     {
         this.summaryEpoch = summaryEpoch;
     }
@@ -76,7 +76,7 @@ public class UserCacheRecord implements Serializable {
         return userDN;
     }
 
-    public void setUserDN(String userDN)
+    public void setUserDN(final String userDN)
     {
         this.userDN = userDN;
     }
@@ -86,7 +86,7 @@ public class UserCacheRecord implements Serializable {
         return ldapProfile;
     }
 
-    public void setLdapProfile(String ldapProfile)
+    public void setLdapProfile(final String ldapProfile)
     {
         this.ldapProfile = ldapProfile;
     }
@@ -96,7 +96,7 @@ public class UserCacheRecord implements Serializable {
         return username;
     }
 
-    public void setUsername(String username)
+    public void setUsername(final String username)
     {
         this.username = username;
     }
@@ -106,7 +106,7 @@ public class UserCacheRecord implements Serializable {
         return email;
     }
 
-    public void setEmail(String email)
+    public void setEmail(final String email)
     {
         this.email = email;
     }
@@ -115,7 +115,7 @@ public class UserCacheRecord implements Serializable {
         return userGUID;
     }
 
-    public void setUserGUID(String userGUID) {
+    public void setUserGUID(final String userGUID) {
         this.userGUID = userGUID;
     }
 
@@ -123,7 +123,7 @@ public class UserCacheRecord implements Serializable {
         return cacheTimestamp;
     }
 
-    public void setCacheTimestamp(Date cacheTimestamp) {
+    public void setCacheTimestamp(final Date cacheTimestamp) {
         this.cacheTimestamp = cacheTimestamp;
     }
 
@@ -131,7 +131,7 @@ public class UserCacheRecord implements Serializable {
         return passwordStatus;
     }
 
-    public void setPasswordStatus(PasswordStatus passwordStatus) {
+    public void setPasswordStatus(final PasswordStatus passwordStatus) {
         this.passwordStatus = passwordStatus;
     }
 
@@ -139,7 +139,7 @@ public class UserCacheRecord implements Serializable {
         return passwordExpirationTime;
     }
 
-    public void setPasswordExpirationTime(Date passwordExpirationTime) {
+    public void setPasswordExpirationTime(final Date passwordExpirationTime) {
         this.passwordExpirationTime = passwordExpirationTime;
     }
 
@@ -147,7 +147,7 @@ public class UserCacheRecord implements Serializable {
         return passwordChangeTime;
     }
 
-    public void setPasswordChangeTime(Date passwordChangeTime) {
+    public void setPasswordChangeTime(final Date passwordChangeTime) {
         this.passwordChangeTime = passwordChangeTime;
     }
 
@@ -155,7 +155,7 @@ public class UserCacheRecord implements Serializable {
         return responseSetTime;
     }
 
-    public void setResponseSetTime(Date responseSetTime) {
+    public void setResponseSetTime(final Date responseSetTime) {
         this.responseSetTime = responseSetTime;
     }
 
@@ -163,7 +163,7 @@ public class UserCacheRecord implements Serializable {
         return lastLoginTime;
     }
 
-    public void setLastLoginTime(Date lastLoginTime) {
+    public void setLastLoginTime(final Date lastLoginTime) {
         this.lastLoginTime = lastLoginTime;
     }
 
@@ -171,7 +171,7 @@ public class UserCacheRecord implements Serializable {
         return hasResponses;
     }
 
-    public void setHasResponses(boolean hasResponses) {
+    public void setHasResponses(final boolean hasResponses) {
         this.hasResponses = hasResponses;
     }
 
@@ -180,7 +180,7 @@ public class UserCacheRecord implements Serializable {
         return hasHelpdeskResponses;
     }
 
-    public void setHasHelpdeskResponses(boolean hasHelpdeskResponses)
+    public void setHasHelpdeskResponses(final boolean hasHelpdeskResponses)
     {
         this.hasHelpdeskResponses = hasHelpdeskResponses;
     }
@@ -189,7 +189,7 @@ public class UserCacheRecord implements Serializable {
         return requiresPasswordUpdate;
     }
 
-    public void setRequiresPasswordUpdate(boolean requiresPasswordUpdate) {
+    public void setRequiresPasswordUpdate(final boolean requiresPasswordUpdate) {
         this.requiresPasswordUpdate = requiresPasswordUpdate;
     }
 
@@ -197,7 +197,7 @@ public class UserCacheRecord implements Serializable {
         return requiresResponseUpdate;
     }
 
-    public void setRequiresResponseUpdate(boolean requiresResponseUpdate) {
+    public void setRequiresResponseUpdate(final boolean requiresResponseUpdate) {
         this.requiresResponseUpdate = requiresResponseUpdate;
     }
 
@@ -205,7 +205,7 @@ public class UserCacheRecord implements Serializable {
         return requiresProfileUpdate;
     }
 
-    public void setRequiresProfileUpdate(boolean requiresProfileUpdate) {
+    public void setRequiresProfileUpdate(final boolean requiresProfileUpdate) {
         this.requiresProfileUpdate = requiresProfileUpdate;
     }
 
@@ -214,7 +214,7 @@ public class UserCacheRecord implements Serializable {
         return responseStorageMethod;
     }
 
-    public void setResponseStorageMethod(DataStorageMethod responseStorageMethod)
+    public void setResponseStorageMethod(final DataStorageMethod responseStorageMethod)
     {
         this.responseStorageMethod = responseStorageMethod;
     }
@@ -224,7 +224,7 @@ public class UserCacheRecord implements Serializable {
         return responseFormatType;
     }
 
-    public void setResponseFormatType(Answer.FormatType responseFormatType)
+    public void setResponseFormatType(final Answer.FormatType responseFormatType)
     {
         this.responseFormatType = responseFormatType;
     }
@@ -234,7 +234,7 @@ public class UserCacheRecord implements Serializable {
         return hasOtpSecret;
     }
 
-    public void setHasOtpSecret(boolean hasOtpSecret)
+    public void setHasOtpSecret(final boolean hasOtpSecret)
     {
         this.hasOtpSecret = hasOtpSecret;
     }
@@ -244,7 +244,7 @@ public class UserCacheRecord implements Serializable {
         return otpSecretSetTime;
     }
 
-    public void setOtpSecretSetTime(Date otpSecretSetTime)
+    public void setOtpSecretSetTime(final Date otpSecretSetTime)
     {
         this.otpSecretSetTime = otpSecretSetTime;
     }
@@ -253,7 +253,7 @@ public class UserCacheRecord implements Serializable {
         return accountExpirationTime;
     }
 
-    public void setAccountExpirationTime(Date accountExpirationTime) {
+    public void setAccountExpirationTime(final Date accountExpirationTime) {
         this.accountExpirationTime = accountExpirationTime;
     }
 

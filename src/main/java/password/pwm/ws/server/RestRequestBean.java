@@ -39,7 +39,7 @@ public class RestRequestBean implements Serializable {
         return authenticated;
     }
 
-    public void setAuthenticated(boolean authenticated) {
+    public void setAuthenticated(final boolean authenticated) {
         this.authenticated = authenticated;
     }
 
@@ -47,7 +47,7 @@ public class RestRequestBean implements Serializable {
         return external;
     }
 
-    public void setExternal(boolean external) {
+    public void setExternal(final boolean external) {
         this.external = external;
     }
 
@@ -55,7 +55,7 @@ public class RestRequestBean implements Serializable {
         return userIdentity;
     }
 
-    public void setUserIdentity(UserIdentity userIdentity) {
+    public void setUserIdentity(final UserIdentity userIdentity) {
         this.userIdentity = userIdentity;
     }
 
@@ -63,7 +63,7 @@ public class RestRequestBean implements Serializable {
         return pwmSession;
     }
 
-    public void setPwmSession(PwmSession pwmSession) {
+    public void setPwmSession(final PwmSession pwmSession) {
         this.pwmSession = pwmSession;
     }
 
@@ -71,7 +71,7 @@ public class RestRequestBean implements Serializable {
         return pwmApplication;
     }
 
-    public void setPwmApplication(PwmApplication pwmApplication) {
+    public void setPwmApplication(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
     }
 }

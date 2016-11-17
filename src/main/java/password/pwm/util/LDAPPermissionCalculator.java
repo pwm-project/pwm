@@ -23,7 +23,15 @@
 package password.pwm.util;
 
 import com.novell.ldapchai.ChaiConstant;
-import password.pwm.config.*;
+import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.LDAPPermissionInfo;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingCategory;
+import password.pwm.config.PwmSettingTemplate;
+import password.pwm.config.PwmSettingTemplateSet;
+import password.pwm.config.UserPermission;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.StoredConfigurationImpl;
@@ -36,7 +44,16 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.queue.SmsQueueManager;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 public class LDAPPermissionCalculator implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.forClass(LDAPPermissionCalculator.class);
@@ -90,7 +107,7 @@ public class LDAPPermissionCalculator implements Serializable {
         return permissionRecords;
     }
 
-    private Collection<PermissionRecord> figureRecord(PwmSetting pwmSetting, final String profile) throws PwmUnrecoverableException {
+    private Collection<PermissionRecord> figureRecord(final PwmSetting pwmSetting, final String profile) throws PwmUnrecoverableException {
         final List<PermissionRecord> permissionRecords = new ArrayList<>();
         final Collection<LDAPPermissionInfo> permissionInfos = figurePermissionInfos(pwmSetting, profile);
         if (permissionInfos == null) {
@@ -152,7 +169,7 @@ public class LDAPPermissionCalculator implements Serializable {
                 {
                     final List<UserPermission> userPermissions = (List<UserPermission>) storedConfiguration.readSetting(pwmSetting, profile).toNativeObject();
                     if (configuration.getLdapProfiles() != null && !configuration.getLdapProfiles().isEmpty()) {
-                        for (LdapProfile ldapProfile : configuration.getLdapProfiles().values()) {
+                        for (final LdapProfile ldapProfile : configuration.getLdapProfiles().values()) {
                             final String groupAttribute = ldapProfile.readSettingAsString(PwmSetting.LDAP_USER_GROUP_ATTRIBUTE);
                             if (groupAttribute != null && !groupAttribute.trim().isEmpty()) {
                                 for (final UserPermission userPermission : userPermissions) {
@@ -167,9 +184,7 @@ public class LDAPPermissionCalculator implements Serializable {
                 break;
 
                 default:
-                {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"no ldap permission record reader handler for setting " + pwmSetting.getKey()));
-                }
 
             }
         }
@@ -266,6 +281,10 @@ public class LDAPPermissionCalculator implements Serializable {
 
             }
             break;
+
+            default:
+                //continue processing
+                break;
         }
 
         switch (pwmSetting) {
@@ -296,6 +315,10 @@ public class LDAPPermissionCalculator implements Serializable {
                 }
             }
             break;
+
+            default:
+                //continue processing
+                break;
         }
 
         return pwmSetting.getLDAPPermissionInfo();
@@ -334,7 +357,7 @@ public class LDAPPermissionCalculator implements Serializable {
         return records;
     }
 
-    final private static Set<PwmSettingTemplate> EDIR_INTERESTED_TEMPLATES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+    private static final Set<PwmSettingTemplate> EDIR_INTERESTED_TEMPLATES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             new PwmSettingTemplate[]{ PwmSettingTemplate.NOVL, PwmSettingTemplate.NOVL_IDM}
     )));
 
@@ -377,7 +400,7 @@ public class LDAPPermissionCalculator implements Serializable {
         private final LDAPPermissionInfo.Access access;
         private final LDAPPermissionInfo.Actor actor;
 
-        public PermissionRecord(String attribute, PwmSetting pwmSetting, String profile, LDAPPermissionInfo.Access access, LDAPPermissionInfo.Actor actor) {
+        public PermissionRecord(final String attribute, final PwmSetting pwmSetting, final String profile, final LDAPPermissionInfo.Access access, final LDAPPermissionInfo.Actor actor) {
             this.attribute = attribute;
             this.pwmSetting = pwmSetting;
             this.profile = profile;

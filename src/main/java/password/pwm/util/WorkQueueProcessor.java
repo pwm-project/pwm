@@ -53,7 +53,7 @@ public class WorkQueueProcessor<W extends Serializable> {
     private final Settings settings;
     private final ItemProcessor<W> itemProcessor;
 
-    private final PwmLogger LOGGER;
+    private final PwmLogger logger;
 
     private volatile WorkerThread workerThread;
 
@@ -90,12 +90,12 @@ public class WorkQueueProcessor<W extends Serializable> {
         this.settings = JsonUtil.cloneUsingJson(settings, Settings.class);
         this.queue = queue;
         this.itemProcessor = itemProcessor;
-        this.LOGGER = PwmLogger.getLogger(sourceClass.getName() + "_" + this.getClass().getSimpleName());
+        this.logger = PwmLogger.getLogger(sourceClass.getName() + "_" + this.getClass().getSimpleName());
 
         if (!queue.isEmpty()) {
-            LOGGER.debug("opening with " + queue.size() + " items in work queue");
+            logger.debug("opening with " + queue.size() + " items in work queue");
         }
-        LOGGER.trace("initializing worker thread with settings " + JsonUtil.serialize(settings));
+        logger.trace("initializing worker thread with settings " + JsonUtil.serialize(settings));
 
         this.workerThread = new WorkerThread();
         workerThread.setDaemon(true);
@@ -114,14 +114,14 @@ public class WorkQueueProcessor<W extends Serializable> {
         final Date shutdownStartTime = new Date();
 
         if (queueSize() > 0) {
-            LOGGER.debug("attempting to flush queue prior to shutdown, items in queue=" + queueSize());
+            logger.debug("attempting to flush queue prior to shutdown, items in queue=" + queueSize());
         }
         while (localWorkerThread.isRunning() && TimeDuration.fromCurrent(shutdownStartTime).isLongerThan(settings.getMaxShutdownWaitTime())) {
             Helper.pause(CLOSE_RETRY_CYCLE_INTERVAL.getTotalMilliseconds());
         }
 
         if (!queue.isEmpty()) {
-            LOGGER.warn("shutting down with " + queue.size() + " items remaining in work queue");
+            logger.warn("shutting down with " + queue.size() + " items remaining in work queue");
         }
     }
 
@@ -148,7 +148,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             eldestItem = itemWrapper.getDate();
             workerThread.notifyWorkPending();
 
-            LOGGER.trace("item submitted: " + makeDebugText(itemWrapper));
+            logger.trace("item submitted: " + makeDebugText(itemWrapper));
         }
     }
 
@@ -160,7 +160,7 @@ public class WorkQueueProcessor<W extends Serializable> {
         return eldestItem;
     }
 
-    private String makeDebugText(ItemWrapper<W> itemWrapper) throws PwmOperationalException {
+    private String makeDebugText(final ItemWrapper<W> itemWrapper) throws PwmOperationalException {
         final int itemsInQueue = WorkQueueProcessor.this.queueSize();
         String traceMsg = "[" + itemWrapper.toDebugString(itemProcessor) + "]";
         if (itemsInQueue > 0) {
@@ -186,13 +186,13 @@ public class WorkQueueProcessor<W extends Serializable> {
                     waitForWork();
                 }
             } catch (Throwable t) {
-                LOGGER.error("unexpected error processing work item queue: " + Helper.readHostileExceptionMessage(t), t);
+                logger.error("unexpected error processing work item queue: " + Helper.readHostileExceptionMessage(t), t);
             }
 
-            LOGGER.trace("worker thread beginning shutdown...");
+            logger.trace("worker thread beginning shutdown...");
 
             if (!queue.isEmpty()) {
-                LOGGER.trace("processing remaining " + queue.size() + " items");
+                logger.trace("processing remaining " + queue.size() + " items");
 
                 try {
                     final Date shutdownStartTime = new Date();
@@ -200,17 +200,17 @@ public class WorkQueueProcessor<W extends Serializable> {
                         processNextItem();
                     }
                 } catch (Throwable t) {
-                    LOGGER.error("unexpected error processing work item queue: " + Helper.readHostileExceptionMessage(t), t);
+                    logger.error("unexpected error processing work item queue: " + Helper.readHostileExceptionMessage(t), t);
                 }
             }
 
-            LOGGER.trace("thread exiting...");
+            logger.trace("thread exiting...");
             running.set(false);
         }
 
         void flushQueueAndClose() {
             shutdownFlag.set(true);
-            LOGGER.trace("shutdown flag set");
+            logger.trace("shutdown flag set");
             notifyWorkPending();
         }
 
@@ -251,12 +251,12 @@ public class WorkQueueProcessor<W extends Serializable> {
             try {
                 itemWrapper = JsonUtil.<ItemWrapper<W>>deserialize(nextStrValue, ItemWrapper.class);
                 if (TimeDuration.fromCurrent(itemWrapper.getDate()).isLongerThan(settings.getRetryDiscardAge())) {
-                    LOGGER.warn("discarding queued item due to age, item=" + makeDebugText(itemWrapper));
+                    logger.warn("discarding queued item due to age, item=" + makeDebugText(itemWrapper));
                     removeQueueTop();
                     return;
                 }
             } catch (Throwable e) {
-                LOGGER.warn("discarding stored record due to parsing error: " + e.getMessage() + ", record=" + nextStrValue);
+                logger.warn("discarding stored record due to parsing error: " + e.getMessage() + ", record=" + nextStrValue);
                 removeQueueTop();
                 return;
             }
@@ -265,24 +265,24 @@ public class WorkQueueProcessor<W extends Serializable> {
             try {
                 processResult = itemProcessor.process(itemWrapper.getWorkItem());
                 if (processResult == null) {
-                    LOGGER.warn("itemProcessor.process() returned null, removing; item=" + makeDebugText(itemWrapper));
+                    logger.warn("itemProcessor.process() returned null, removing; item=" + makeDebugText(itemWrapper));
                     removeQueueTop();
                 } else {
                     switch (processResult) {
                         case FAILED: {
-                            LOGGER.error("discarding item after process failure, item=" + makeDebugText(itemWrapper));
+                            logger.error("discarding item after process failure, item=" + makeDebugText(itemWrapper));
                             removeQueueTop();
                         }
                         break;
 
                         case RETRY: {
                             retryWakeupTime = new Date(System.currentTimeMillis() + settings.getRetryInterval().getTotalMilliseconds());
-                            LOGGER.debug("will retry item after failure, item=" + makeDebugText(itemWrapper));
+                            logger.debug("will retry item after failure, item=" + makeDebugText(itemWrapper));
                         }
                         break;
 
                         case SUCCESS: {
-                            LOGGER.trace("successfully processed item=" + makeDebugText(itemWrapper));
+                            logger.trace("successfully processed item=" + makeDebugText(itemWrapper));
                             removeQueueTop();
                         }
                         break;
@@ -296,7 +296,7 @@ public class WorkQueueProcessor<W extends Serializable> {
                     }
                 }
             } catch(Throwable e) {
-                LOGGER.error("unexpected error while processing work queue: " + e.getMessage());
+                logger.error("unexpected error while processing work queue: " + e.getMessage());
                 removeQueueTop();
             }
 
@@ -346,7 +346,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             return id;
         }
 
-        String toDebugString(ItemProcessor<W> itemProcessor) throws PwmOperationalException {
+        String toDebugString(final ItemProcessor<W> itemProcessor) throws PwmOperationalException {
             final Map<String,String> debugOutput = new LinkedHashMap<>();
             debugOutput.put("date", PwmConstants.DEFAULT_DATETIME_FORMAT.format(getDate()));
             debugOutput.put("id", getId());
@@ -376,7 +376,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             return maxEvents;
         }
 
-        public void setMaxEvents(int maxEvents) {
+        public void setMaxEvents(final int maxEvents) {
             this.maxEvents = maxEvents;
         }
 
@@ -384,7 +384,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             return maxSubmitWaitTime;
         }
 
-        public void setMaxSubmitWaitTime(TimeDuration maxSubmitWaitTime) {
+        public void setMaxSubmitWaitTime(final TimeDuration maxSubmitWaitTime) {
             this.maxSubmitWaitTime = maxSubmitWaitTime;
         }
 
@@ -392,7 +392,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             return retryInterval;
         }
 
-        public void setRetryInterval(TimeDuration retryInterval) {
+        public void setRetryInterval(final TimeDuration retryInterval) {
             this.retryInterval = retryInterval;
         }
 
@@ -400,7 +400,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             return retryDiscardAge;
         }
 
-        public void setRetryDiscardAge(TimeDuration retryDiscardAge) {
+        public void setRetryDiscardAge(final TimeDuration retryDiscardAge) {
             this.retryDiscardAge = retryDiscardAge;
         }
 
@@ -408,7 +408,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             return maxShutdownWaitTime;
         }
 
-        public void setMaxShutdownWaitTime(TimeDuration maxShutdownWaitTime) {
+        public void setMaxShutdownWaitTime(final TimeDuration maxShutdownWaitTime) {
             this.maxShutdownWaitTime = maxShutdownWaitTime;
         }
     }

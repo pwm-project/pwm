@@ -44,6 +44,7 @@ import password.pwm.http.bean.DeleteAccountBean;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
@@ -76,7 +77,7 @@ public class DeleteAccountServlet extends AbstractPwmServlet {
 
         private final HttpMethod method;
 
-        DeleteAccountAction(HttpMethod method)
+        DeleteAccountAction(final HttpMethod method)
         {
             this.method = method;
         }
@@ -99,7 +100,7 @@ public class DeleteAccountServlet extends AbstractPwmServlet {
     }
 
     @Override
-    protected void processAction(PwmRequest pwmRequest)
+    protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
@@ -131,13 +132,16 @@ public class DeleteAccountServlet extends AbstractPwmServlet {
                     handleDeleteRequest(pwmRequest, deleteAccountProfile);
                     return;
 
+                default:
+                    Helper.unhandledSwitchStatement(action);
+
             }
         }
 
         advancedToNextStage(pwmRequest, deleteAccountProfile, deleteAccountBean);
     }
 
-    private void advancedToNextStage(PwmRequest pwmRequest, final DeleteAccountProfile profile, final DeleteAccountBean bean)
+    private void advancedToNextStage(final PwmRequest pwmRequest, final DeleteAccountProfile profile, final DeleteAccountBean bean)
             throws PwmUnrecoverableException, ServletException, IOException
     {
 
@@ -151,12 +155,12 @@ public class DeleteAccountServlet extends AbstractPwmServlet {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(selfDeleteAgreementText);
                 pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText, expandedText);
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SELF_DELETE_AGREE);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.SELF_DELETE_AGREE);
                 return;
             }
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SELF_DELETE_CONFIRM);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.SELF_DELETE_CONFIRM);
     }
 
     private void handleResetRequest(
@@ -178,7 +182,7 @@ public class DeleteAccountServlet extends AbstractPwmServlet {
 
         if (!deleteAccountBean.isAgreementPassed()) {
             deleteAccountBean.setAgreementPassed(true);
-            AuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
+            final AuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getSessionLabel(),

@@ -30,7 +30,7 @@
 <body>
 <meta http-equiv="refresh" content="0;url=<pwm:context/><pwm:url url="/private/config/manager"/>"/>
 <div id="wrapper">
-    <% String PageName = JspUtility.localizedString(pageContext,"Title_UserActivity",Config.class);%>
+    <% final String PageName = JspUtility.localizedString(pageContext,"Title_UserActivity",Config.class);%>
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>

@@ -52,7 +52,11 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
 @Path("/report")
 public class RestUserReportServer extends AbstractRestServer {
@@ -62,11 +66,13 @@ public class RestUserReportServer extends AbstractRestServer {
     @GET
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doReportDetailData(
-            @QueryParam("maximum") int maximum
+            @QueryParam("maximum") final int maximum
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, LocalDBException
     {
-        maximum = maximum > 0 ? maximum : 10 * 1000;
+        final int max = (maximum > 0)
+                ? maximum
+                : 10 * 1000;
 
         final RestRequestBean restRequestBean;
         try {
@@ -92,7 +98,7 @@ public class RestUserReportServer extends AbstractRestServer {
         ClosableIterator<UserCacheRecord> cacheBeanIterator = null;
         try {
             cacheBeanIterator = reportService.iterator();
-            while (cacheBeanIterator.hasNext() && reportData.size() < maximum) {
+            while (cacheBeanIterator.hasNext() && reportData.size() < max) {
                 final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
                 if (userCacheRecord != null) {
                     reportData.add(userCacheRecord);
@@ -174,7 +180,7 @@ public class RestUserReportServer extends AbstractRestServer {
         return restResultBean.asJsonResponse();
     }
 
-    private static ReportStatusBean makeReportStatusData(ReportService reportService, Locale locale)
+    private static ReportStatusBean makeReportStatusData(final ReportService reportService, final Locale locale)
             throws LocalDBException
     {
         final NumberFormat numberFormat = NumberFormat.getInstance();
@@ -249,7 +255,7 @@ public class RestUserReportServer extends AbstractRestServer {
             return presentable;
         }
 
-        public void setPresentable(Map<String, Object> presentable) {
+        public void setPresentable(final Map<String, Object> presentable) {
             this.presentable = presentable;
         }
 
@@ -257,7 +263,7 @@ public class RestUserReportServer extends AbstractRestServer {
             return raw;
         }
 
-        public void setRaw(ReportStatusInfo raw) {
+        public void setRaw(final ReportStatusInfo raw) {
             this.raw = raw;
         }
 
@@ -265,7 +271,7 @@ public class RestUserReportServer extends AbstractRestServer {
             return controllable;
         }
 
-        public void setControllable(boolean controllable) {
+        public void setControllable(final boolean controllable) {
             this.controllable = controllable;
         }
     }

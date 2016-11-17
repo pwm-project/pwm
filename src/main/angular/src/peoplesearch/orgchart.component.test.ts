@@ -1,6 +1,3 @@
-// import 'jasmine';
-// import { OrgChartComponent } from './orgchart.component';
-
 describe('testing OrgChartComponent', () => {
     beforeEach(() => {
     });

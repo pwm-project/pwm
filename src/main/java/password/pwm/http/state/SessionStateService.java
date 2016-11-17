@@ -32,6 +32,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.svc.PwmService;
+import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Date;
@@ -56,7 +57,7 @@ public class SessionStateService implements PwmService {
     }
 
     @Override
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
         {
             final SessionBeanMode sessionBeanMode = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.SECURITY_MODULE_SESSION_MODE, SessionBeanMode.class);
             if (sessionBeanMode != null) {
@@ -90,6 +91,10 @@ public class SessionStateService implements PwmService {
 
                         case CRYPTCOOKIE:
                             sessionLoginProvider = new CryptoCookieLoginImpl();
+                            break;
+
+                        default:
+                            Helper.unhandledSwitchStatement(loginSessionMode);
                     }
                 }
                 sessionLoginProvider.init(pwmApplication);
@@ -115,7 +120,7 @@ public class SessionStateService implements PwmService {
         return null;
     }
 
-    public <E extends PwmSessionBean> E getBean(PwmRequest pwmRequest, Class<E> theClass) throws PwmUnrecoverableException {
+    public <E extends PwmSessionBean> E getBean(final PwmRequest pwmRequest, final Class<E> theClass) throws PwmUnrecoverableException {
         if (beanSupportsMode(theClass, SessionBeanMode.CRYPTCOOKIE)) {
             return sessionBeanProvider.getSessionBean(pwmRequest, theClass);
         }
@@ -134,15 +139,15 @@ public class SessionStateService implements PwmService {
         sessionBeanProvider.saveSessionBeans(pwmRequest);
     }
 
-    public void clearLoginSession(PwmRequest pwmRequest) throws PwmUnrecoverableException {
+    public void clearLoginSession(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
         sessionLoginProvider.clearLoginSession(pwmRequest);
     }
 
-    public void saveLoginSessionState(PwmRequest pwmRequest) {
+    public void saveLoginSessionState(final PwmRequest pwmRequest) {
         sessionLoginProvider.saveLoginSessionState(pwmRequest);
     }
 
-    public void readLoginSessionState(PwmRequest pwmRequest) throws PwmUnrecoverableException {
+    public void readLoginSessionState(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
         sessionLoginProvider.readLoginSessionState(pwmRequest);
     }
 
@@ -151,7 +156,7 @@ public class SessionStateService implements PwmService {
     }
 
 
-    private boolean beanSupportsMode(Class<? extends PwmSessionBean> theClass, SessionBeanMode mode) throws PwmUnrecoverableException {
+    private boolean beanSupportsMode(final Class<? extends PwmSessionBean> theClass, final SessionBeanMode mode) throws PwmUnrecoverableException {
         if (theClass == null) {
             return false;
         }
@@ -166,7 +171,7 @@ public class SessionStateService implements PwmService {
         return false;
     }
 
-    static <E extends PwmSessionBean> E newBean(final String sessionGuid, Class<E> theClass) throws PwmUnrecoverableException {
+    static <E extends PwmSessionBean> E newBean(final String sessionGuid, final Class<E> theClass) throws PwmUnrecoverableException {
         try {
             final E newBean = theClass.newInstance();
             newBean.setGuid(sessionGuid);

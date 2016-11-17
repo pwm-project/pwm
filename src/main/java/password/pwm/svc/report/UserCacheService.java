@@ -88,7 +88,7 @@ public class UserCacheService implements PwmService {
         return cacheStore.remove(storageKey);
     }
 
-    public void store(UserCacheRecord userCacheRecord)
+    public void store(final UserCacheRecord userCacheRecord)
             throws LocalDBException, PwmUnrecoverableException
     {
         final StorageKey storageKey = StorageKey.fromUserGUID(userCacheRecord.getUserGUID());
@@ -163,7 +163,7 @@ public class UserCacheService implements PwmService {
     public static class StorageKey {
         private String key;
 
-        private StorageKey(String key)
+        private StorageKey(final String key)
         {
             if (key == null || key.isEmpty()) {
                 throw new IllegalArgumentException("storage key must have a value");
@@ -202,19 +202,19 @@ public class UserCacheService implements PwmService {
 
         private final LocalDB localDB;
 
-        private CacheStoreWrapper(LocalDB localDB)
+        private CacheStoreWrapper(final LocalDB localDB)
         {
             this.localDB = localDB;
         }
 
-        private void write(StorageKey key, UserCacheRecord cacheBean)
+        private void write(final StorageKey key, final UserCacheRecord cacheBean)
                 throws LocalDBException
         {
             final String jsonValue = JsonUtil.serialize(cacheBean);
             localDB.put(DB,key.getKey(),jsonValue);
         }
 
-        private UserCacheRecord read(StorageKey key)
+        private UserCacheRecord read(final StorageKey key)
                 throws LocalDBException
         {
             final String jsonValue = localDB.get(DB,key.getKey());
@@ -229,7 +229,7 @@ public class UserCacheService implements PwmService {
             return null;
         }
 
-        private boolean remove(StorageKey key)
+        private boolean remove(final StorageKey key)
                 throws LocalDBException
         {
             return localDB.remove(DB,key.getKey());

@@ -26,24 +26,24 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.util.ClosableIterator;
 
 class StubRecordManager implements RecordManager {
-    public boolean checkSubject(String subject) {
+    public boolean checkSubject(final String subject) {
         return false;
     }
 
-    public void markSubject(String subject) {
+    public void markSubject(final String subject) {
     }
 
-    public void clearSubject(String subject) {
+    public void clearSubject(final String subject) {
     }
 
-    public boolean isAlerted(String subject) {
+    public boolean isAlerted(final String subject) {
         return false;
     }
 
-    public void markAlerted(String subject) {
+    public void markAlerted(final String subject) {
     }
 
-    public IntruderRecord readIntruderRecord(String subject) {
+    public IntruderRecord readIntruderRecord(final String subject) {
         return null;
     }
 

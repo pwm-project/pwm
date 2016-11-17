@@ -60,15 +60,15 @@ public class UrlShortenerService implements PwmService {
 
     public void init(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
         this.pwmApplication = pwmApplication;
-        Configuration config = this.pwmApplication.getConfig();
-        String classNameString = config.readSettingAsString(PwmSetting.URL_SHORTENER_CLASS);
+        final Configuration config = this.pwmApplication.getConfig();
+        final String classNameString = config.readSettingAsString(PwmSetting.URL_SHORTENER_CLASS);
         if (classNameString != null && classNameString.length() > 0) {
-            Properties sConfig = new Properties();
-            List<String> sConfigList = config.readSettingAsStringArray(PwmSetting.URL_SHORTENER_PARAMETERS);
+            final Properties sConfig = new Properties();
+            final List<String> sConfigList = config.readSettingAsStringArray(PwmSetting.URL_SHORTENER_PARAMETERS);
             // Parse configuration
             if (sConfigList != null) {
                 for (final String p : sConfigList) {
-                    List<String> pl = Arrays.asList(p.split("=", 2));
+                    final List<String> pl = Arrays.asList(p.split("=", 2));
                     if (pl.size() == 2) {
                         sConfig.put(pl.get(0), pl.get(1));
                     }
@@ -102,14 +102,14 @@ public class UrlShortenerService implements PwmService {
     }
 
 // -------------------------- OTHER METHODS --------------------------
-    public String shortenUrl(String text) throws PwmUnrecoverableException {
+    public String shortenUrl(final String text) throws PwmUnrecoverableException {
         if (theShortener != null) {
             return theShortener.shorten(text, pwmApplication);
         }
         return text;
     }
     
-    public String shortenUrlInText(String text) throws PwmUnrecoverableException {
+    public String shortenUrlInText(final String text) throws PwmUnrecoverableException {
         final String urlRegex = pwmApplication.getConfig().readAppProperty(AppProperty.URL_SHORTNER_URL_REGEX);
         try {
             final Pattern p = Pattern.compile(urlRegex);

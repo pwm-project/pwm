@@ -24,7 +24,11 @@ package password.pwm.util;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.*;
+import password.pwm.config.ChallengeItemConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingTemplateSet;
+import password.pwm.config.StoredValue;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.error.PwmException;
@@ -39,7 +43,18 @@ import password.pwm.util.macro.MacroMachine;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 public class LocaleHelper {
 
@@ -203,21 +218,21 @@ public class LocaleHelper {
         return null;
     }
 
-    public static String resolveStringKeyLocaleMap(Locale desiredLocale, final Map<String,String> inputMap) {
+    public static String resolveStringKeyLocaleMap(final Locale desiredLocale, final Map<String,String> inputMap) {
         if (inputMap == null || inputMap.isEmpty()) {
             return null;
         }
 
-        if (desiredLocale == null) {
-            desiredLocale = PwmConstants.DEFAULT_LOCALE;
-        }
+        final Locale locale = (desiredLocale == null)
+                ? PwmConstants.DEFAULT_LOCALE
+                : desiredLocale;
 
         final Map<Locale,String> localeMap = new LinkedHashMap<>();
         for (final String localeStringKey : inputMap.keySet()) {
             localeMap.put(parseLocaleString(localeStringKey),inputMap.get(localeStringKey));
         }
 
-        final Locale selectedLocale = localeResolver(desiredLocale, localeMap.keySet());
+        final Locale selectedLocale = localeResolver(locale, localeMap.keySet());
         return localeMap.get(selectedLocale);
     }
 
@@ -227,9 +242,9 @@ public class LocaleHelper {
         private final Locale locale;
 
         public DisplayMaker(
-                Locale locale,
-                Class<? extends PwmDisplayBundle> bundleClass,
-                PwmApplication pwmApplication
+                final Locale locale,
+                final Class<? extends PwmDisplayBundle> bundleClass,
+                final PwmApplication pwmApplication
         )
         {
             this.locale = locale;
@@ -237,7 +252,7 @@ public class LocaleHelper {
             this.pwmApplication = pwmApplication;
         }
 
-        public String forKey(String input, String... values) {
+        public String forKey(final String input, final String... values) {
             return LocaleHelper.getLocalizedMessage(locale,input,pwmApplication.getConfig(),bundleClass,values);
         }
     }
@@ -267,14 +282,14 @@ public class LocaleHelper {
         return Collections.unmodifiableMap(returnObj);
     }
 
-    public static String debugLabel(Locale locale) {
+    public static String debugLabel(final Locale locale) {
         if (locale == null || PwmConstants.DEFAULT_LOCALE.equals(locale)) {
             return "default";
         }
         return locale.toLanguageTag();
     }
 
-    public static String booleanString(final boolean input, PwmRequest pwmRequest) {
+    public static String booleanString(final boolean input, final PwmRequest pwmRequest) {
         final Display key = input ? Display.Value_True : Display.Value_False;
 
         return pwmRequest == null
@@ -282,12 +297,12 @@ public class LocaleHelper {
                 : Display.getLocalizedMessage(pwmRequest.getLocale(), key, pwmRequest.getConfig());
     }
 
-    public static String booleanString(final boolean input, Locale locale, Configuration configuration) {
-        Display key = input ? Display.Value_True : Display.Value_False;
+    public static String booleanString(final boolean input, final Locale locale, final Configuration configuration) {
+        final Display key = input ? Display.Value_True : Display.Value_False;
         return Display.getLocalizedMessage(locale, key, configuration);
     }
 
-    static public class LocaleStats {
+    public static class LocaleStats {
         List<Locale> localesExamined = new ArrayList<>();
         int totalKeys;
         int presentSlots;
@@ -340,7 +355,7 @@ public class LocaleHelper {
         }
     }
 
-    static public class ConfigLocaleStats {
+    public static class ConfigLocaleStats {
         List<Locale> defaultChallenges = new ArrayList<>();
         Map<Locale,String> description_percentLocalizations = new LinkedHashMap<>();
         Map<Locale,Integer> description_presentLocalizations = new LinkedHashMap<>();
@@ -368,9 +383,9 @@ public class LocaleHelper {
         final ConfigLocaleStats configLocaleStats = new ConfigLocaleStats();
         {
             final StoredValue storedValue = PwmSetting.CHALLENGE_RANDOM_CHALLENGES.getDefaultValue(PwmSettingTemplateSet.getDefault());
-            Map<String, List<ChallengeItemConfiguration>> value = ((ChallengeValue) storedValue).toNativeObject();
+            final Map<String, List<ChallengeItemConfiguration>> value = ((ChallengeValue) storedValue).toNativeObject();
 
-            for (String localeStr : value.keySet()) {
+            for (final String localeStr : value.keySet()) {
                 final Locale loopLocale = LocaleHelper.parseLocaleString(localeStr);
                 configLocaleStats.getDefaultChallenges().add(loopLocale);
             }
@@ -412,7 +427,7 @@ public class LocaleHelper {
     }
 
     private static class LocaleInfoGenerator {
-        private static final boolean debugFlag = false;
+        private static final boolean DEBUG_FLAG = false;
 
         private static void checkLocalesOnBundle(
                 final LocaleStats stats,
@@ -426,7 +441,7 @@ public class LocaleHelper {
             stats.getLocalesExamined().addAll(knownLocales());
 
             if (stats.getTotalSlots() > 0) {
-                Percent percent = new Percent(stats.getPresentSlots(),stats.getTotalSlots());
+                final Percent percent = new Percent(stats.getPresentSlots(),stats.getTotalSlots());
                 stats.totalPercentage = percent.pretty();
             } else {
                 stats.totalPercentage = Percent.ZERO.pretty();
@@ -460,7 +475,7 @@ public class LocaleHelper {
                 stats.perLocale_presentLocalizations.put(locale, stats.perLocale_presentLocalizations.get(locale) + presentKeyCount);
 
                 if (keyCount > 0) {
-                    Percent percent = new Percent(presentKeyCount, keyCount);
+                    final Percent percent = new Percent(presentKeyCount, keyCount);
                     stats.perLocale_percentLocalizations.put(locale, percent.pretty(0));
                 } else {
                     stats.perLocale_percentLocalizations.put(locale, Percent.ZERO.pretty());
@@ -486,7 +501,7 @@ public class LocaleHelper {
             try {
                 final InputStream stream = pwmLocaleBundle.getTheClass().getResourceAsStream(bundleFilename);
                 if (stream == null) {
-                    if (debugFlag) {
+                    if (DEBUG_FLAG) {
                         LOGGER.trace("missing resource bundle: bundle=" + pwmLocaleBundle.getTheClass().getName() + ", locale=" + locale.toString());
                     }
                     returnList.addAll(pwmLocaleBundle.getKeys());
@@ -495,7 +510,7 @@ public class LocaleHelper {
                     checkProperties.load(stream);
                     for (final String key : pwmLocaleBundle.getKeys()) {
                         if (!checkProperties.containsKey(key)) {
-                            if (debugFlag) {
+                            if (DEBUG_FLAG) {
                                 LOGGER.trace("missing resource: bundle=" + pwmLocaleBundle.getTheClass().toString() + ", locale=" + locale.toString() + "' key=" + key);
                             }
                             returnList.add(key);
@@ -503,7 +518,7 @@ public class LocaleHelper {
                     }
                 }
             } catch (IOException e) {
-                if (debugFlag) {
+                if (DEBUG_FLAG) {
                     LOGGER.trace("error loading resource bundle for class='" + pwmLocaleBundle.getTheClass().toString() + ", locale=" + locale.toString() + "', error: " + e.getMessage());
                 }
             }

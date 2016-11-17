@@ -37,7 +37,7 @@ import java.util.Date;
 import java.util.Map;
 
 class NGStoredConfiguration implements StoredConfiguration {
-    final static private PwmLogger LOGGER = PwmLogger.forClass(NGStoredConfiguration.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(NGStoredConfiguration.class);
     private final PwmSecurityKey configurationSecurityKey;
     private final StorageEngine engine;
 
@@ -51,7 +51,7 @@ class NGStoredConfiguration implements StoredConfiguration {
     }
 
     public String readConfigProperty(final ConfigurationProperty configurationProperty) {
-        StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
+        final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.PROPERTY,
                 configurationProperty.getKey(),
                 null
@@ -65,7 +65,7 @@ class NGStoredConfiguration implements StoredConfiguration {
 
     public void writeConfigProperty(final ConfigurationProperty configurationProperty, final String value)
     {
-        StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
+        final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.PROPERTY,
                 configurationProperty.getKey(),
                 null
@@ -74,7 +74,7 @@ class NGStoredConfiguration implements StoredConfiguration {
         engine.write(storedConfigReference, storedValue, null);
     }
 
-    public void resetSetting(PwmSetting setting, String profileID, UserIdentity userIdentity) {
+    public void resetSetting(final PwmSetting setting, final String profileID, final UserIdentity userIdentity) {
         final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.SETTING,
                 setting.getKey(),
@@ -83,25 +83,25 @@ class NGStoredConfiguration implements StoredConfiguration {
         engine.reset(storedConfigReference, userIdentity);
     }
 
-    public boolean isDefaultValue(PwmSetting setting) {
+    public boolean isDefaultValue(final PwmSetting setting) {
         return isDefaultValue(setting, null);
     }
 
-    public boolean isDefaultValue(PwmSetting setting, String profileID) {
+    public boolean isDefaultValue(final PwmSetting setting, final String profileID) {
         final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.SETTING,
                 setting.getKey(),
                 profileID
         );
-        StoredValue value = engine.read(storedConfigReference);
+        final StoredValue value = engine.read(storedConfigReference);
         return value == null;
     }
 
-    public StoredValue readSetting(PwmSetting setting) {
+    public StoredValue readSetting(final PwmSetting setting) {
         return readSetting(setting, null);
     }
 
-    public StoredValue readSetting(PwmSetting setting, String profileID) {
+    public StoredValue readSetting(final PwmSetting setting, final String profileID) {
         final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.SETTING,
                 setting.getKey(),
@@ -110,24 +110,24 @@ class NGStoredConfiguration implements StoredConfiguration {
         return engine.read(storedConfigReference);
     }
 
-    public void copyProfileID(PwmSettingCategory category, String sourceID, String destinationID, UserIdentity userIdentity)
+    public void copyProfileID(final PwmSettingCategory category, final String sourceID, final String destinationID, final UserIdentity userIdentity)
             throws PwmUnrecoverableException {
         throw new IllegalStateException("not implemented"); //@todo
     }
 
     public void writeSetting(
-            PwmSetting setting,
-            StoredValue value,
-            UserIdentity userIdentity
+            final PwmSetting setting,
+            final StoredValue value,
+            final UserIdentity userIdentity
     ) throws PwmUnrecoverableException {
         writeSetting(setting, null, value, userIdentity);
     }
 
     public void writeSetting(
-            PwmSetting setting,
-            String profileID,
-            StoredValue value,
-            UserIdentity userIdentity
+            final PwmSetting setting,
+            final String profileID,
+            final StoredValue value,
+            final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
@@ -155,7 +155,7 @@ class NGStoredConfiguration implements StoredConfiguration {
     }
 
     @Override
-    public ValueMetaData readSettingMetadata(PwmSetting setting, String profileID) {
+    public ValueMetaData readSettingMetadata(final PwmSetting setting, final String profileID) {
         final StoredConfigReference storedConfigReference = new StoredConfigReferenceBean(
                 StoredConfigReference.RecordType.SETTING,
                 setting.getKey(),

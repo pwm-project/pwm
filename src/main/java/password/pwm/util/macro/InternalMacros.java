@@ -40,6 +40,7 @@ public abstract class InternalMacros {
     private static final PwmLogger LOGGER = PwmLogger.forClass(InternalMacros.class);
 
     public static final Map<Class<? extends MacroImplementation>,MacroImplementation.Scope> INTERNAL_MACROS;
+
     static {
         final Map<Class<? extends MacroImplementation>,MacroImplementation.Scope>  defaultMacros = new HashMap<>();
         defaultMacros.put(OtpSetupTimeMacro.class, MacroImplementation.Scope.Static);
@@ -50,7 +51,7 @@ public abstract class InternalMacros {
         INTERNAL_MACROS = Collections.unmodifiableMap(defaultMacros);
     }
 
-    static abstract class InternalAbstractMacro extends AbstractMacro {
+    abstract static class InternalAbstractMacro extends AbstractMacro {
         @Override
         public MacroDefinitionFlag[] flags() {
             return new MacroDefinitionFlag[] { MacroDefinitionFlag.OnlyDebugLogging };
@@ -64,7 +65,7 @@ public abstract class InternalMacros {
             return PATTERN;
         }
 
-        public String replaceValue(String matchValue, MacroRequestInfo macroRequestInfo)
+        public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
         {
             final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
             if (userInfoBean != null && userInfoBean.getOtpUserRecord() != null && userInfoBean.getOtpUserRecord().getTimestamp() != null) {
@@ -81,7 +82,7 @@ public abstract class InternalMacros {
             return PATTERN;
         }
 
-        public String replaceValue(String matchValue, MacroRequestInfo macroRequestInfo)
+        public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
         {
             final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
             if (userInfoBean != null && userInfoBean.getResponseInfoBean() != null && userInfoBean.getResponseInfoBean().getTimestamp() != null) {
@@ -98,7 +99,7 @@ public abstract class InternalMacros {
             return PATTERN;
         }
 
-        public String replaceValue(String matchValue, MacroRequestInfo macroRequestInfo)
+        public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
                 throws MacroParseException
         {
             final String settingKeyStr = matchValue.substring(21, matchValue.length() - 1);
@@ -120,7 +121,7 @@ public abstract class InternalMacros {
             return PATTERN;
         }
 
-        public String replaceValue(String matchValue, MacroRequestInfo macroRequestInfo)
+        public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
                 throws MacroParseException
         {
             String contextName = "[context]";
@@ -148,7 +149,7 @@ public abstract class InternalMacros {
             return PATTERN;
         }
 
-        public String replaceValue(String matchValue, MacroRequestInfo macroRequestInfo)
+        public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
                 throws MacroParseException
         {
             return PwmConstants.PWM_APP_NAME;

@@ -40,7 +40,7 @@
 <% final Locale userLocale = JspUtility.locale(request); %>
 <%
     final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
-    boolean advancedMode = false;
+    final boolean advancedMode = false;
     final List<PwmSettingCategory> sortedCategories = PwmSettingCategory.valuesForReferenceDoc(userLocale);
 %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
@@ -218,7 +218,7 @@
         <% } %>
         <% if (advancedMode) { %>
         <h2><a id="settingStatistics">Setting Statistics</a></h2>
-        <% Map<PwmSetting.SettingStat,Object> settingStats = PwmSetting.getStats(); %>
+        <% final Map<PwmSetting.SettingStat,Object> settingStats = PwmSetting.getStats(); %>
         <table>
             <tr>
                 <td>
@@ -236,7 +236,7 @@
                     <%= settingStats.get(PwmSetting.SettingStat.hasProfile) %>
                 </td>
             </tr>
-            <% Map<PwmSettingSyntax,Integer> syntaxCounts = (Map<PwmSettingSyntax,Integer>)settingStats.get(PwmSetting.SettingStat.syntaxCounts); %>
+            <% final Map<PwmSettingSyntax,Integer> syntaxCounts = (Map<PwmSettingSyntax,Integer>)settingStats.get(PwmSetting.SettingStat.syntaxCounts); %>
             <% for (final PwmSettingSyntax loopSyntax : syntaxCounts.keySet()) { %>
             <tr>
                 <td>

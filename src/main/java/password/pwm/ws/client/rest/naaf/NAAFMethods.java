@@ -26,7 +26,11 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.util.LocaleHelper;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class NAAFMethods {
     public static class NAAFPasswordMethodHandler implements NAAFMethodHandler {
@@ -34,18 +38,18 @@ public class NAAFMethods {
         private NAAFLoginSequence naafLoginSequence;
 
         @Override
-        public void init(NAAFLoginSequence naafLoginSequence) {
+        public void init(final NAAFLoginSequence naafLoginSequence) {
             this.naafLoginSequence = naafLoginSequence;
         }
 
         @Override
-        public Map<String, String> getPrompts(Locale locale) {
+        public Map<String, String> getPrompts(final Locale locale) {
             final String prompt = LocaleHelper.getLocalizedMessage(locale, Display.Field_CurrentPassword, null);
             return Collections.singletonMap(PASSWORD_FIELD_NAME, prompt);
         }
 
         @Override
-        public String answerPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+        public String answerPrompts(final Map<String, String> answers) throws PwmUnrecoverableException {
             return naafLoginSequence.sendResponse(new HashMap<>(answers));
         }
     }
@@ -55,18 +59,18 @@ public class NAAFMethods {
         private NAAFLoginSequence naafLoginSequence;
 
         @Override
-        public void init(NAAFLoginSequence naafLoginSequence) {
+        public void init(final NAAFLoginSequence naafLoginSequence) {
             this.naafLoginSequence = naafLoginSequence;
         }
 
         @Override
-        public Map<String, String> getPrompts(Locale locale) {
+        public Map<String, String> getPrompts(final Locale locale) {
             final String prompt = LocaleHelper.getLocalizedMessage(locale, Display.Field_CurrentPassword, null);
             return Collections.singletonMap(PASSWORD_FIELD_NAME, prompt);
         }
 
         @Override
-        public String answerPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+        public String answerPrompts(final Map<String, String> answers) throws PwmUnrecoverableException {
             return naafLoginSequence.sendResponse(new HashMap<>(answers));
         }
     }
@@ -76,18 +80,18 @@ public class NAAFMethods {
         private NAAFLoginSequence naafLoginSequence;
 
         @Override
-        public void init(NAAFLoginSequence naafLoginSequence) {
+        public void init(final NAAFLoginSequence naafLoginSequence) {
             this.naafLoginSequence = naafLoginSequence;
         }
 
         @Override
-        public Map<String, String> getPrompts(Locale locale) {
+        public Map<String, String> getPrompts(final Locale locale) {
             final String prompt = LocaleHelper.getLocalizedMessage(locale, Display.Field_CurrentPassword, null);
             return Collections.singletonMap(PASSWORD_FIELD_NAME, prompt);
         }
 
         @Override
-        public String answerPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+        public String answerPrompts(final Map<String, String> answers) throws PwmUnrecoverableException {
             return naafLoginSequence.sendResponse(new HashMap<>(answers));
         }
     }
@@ -96,18 +100,18 @@ public class NAAFMethods {
         private NAAFLoginSequence naafLoginSequence;
 
         @Override
-        public void init(NAAFLoginSequence naafLoginSequence) {
+        public void init(final NAAFLoginSequence naafLoginSequence) {
             this.naafLoginSequence = naafLoginSequence;
         }
 
         @Override
-        public Map<String, String> getPrompts(Locale locale) throws PwmUnrecoverableException {
+        public Map<String, String> getPrompts(final Locale locale) throws PwmUnrecoverableException {
             naafLoginSequence.sendResponse(null);
             return naafLoginSequence.getLastResponseBean().getQuestions();
         }
 
         @Override
-        public String answerPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+        public String answerPrompts(final Map<String, String> answers) throws PwmUnrecoverableException {
             final HashMap<String,Object> responseData = new HashMap<>();
             responseData.put("answers",answers);
             return naafLoginSequence.sendResponse(responseData);
@@ -119,12 +123,12 @@ public class NAAFMethods {
         private boolean otpSent;
 
         @Override
-        public void init(NAAFLoginSequence naafLoginSequence) {
+        public void init(final NAAFLoginSequence naafLoginSequence) {
             this.naafLoginSequence = naafLoginSequence;
         }
 
         @Override
-        public Map<String, String> getPrompts(Locale locale) throws PwmUnrecoverableException {
+        public Map<String, String> getPrompts(final Locale locale) throws PwmUnrecoverableException {
             if (!otpSent) {
                 naafLoginSequence.sendResponse(null); // triggers sms send
                 otpSent = true;
@@ -135,7 +139,7 @@ public class NAAFMethods {
         }
 
         @Override
-        public String answerPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+        public String answerPrompts(final Map<String, String> answers) throws PwmUnrecoverableException {
             return naafLoginSequence.sendResponse(new HashMap<>(answers));
         }
     }
@@ -145,12 +149,12 @@ public class NAAFMethods {
         private boolean otpSent;
 
         @Override
-        public void init(NAAFLoginSequence naafLoginSequence) {
+        public void init(final NAAFLoginSequence naafLoginSequence) {
             this.naafLoginSequence = naafLoginSequence;
         }
 
         @Override
-        public Map<String, String> getPrompts(Locale locale) throws PwmUnrecoverableException {
+        public Map<String, String> getPrompts(final Locale locale) throws PwmUnrecoverableException {
             if (!otpSent) {
                 naafLoginSequence.sendResponse(null); // triggers sms send
                 otpSent = true;
@@ -161,7 +165,7 @@ public class NAAFMethods {
         }
 
         @Override
-        public String answerPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+        public String answerPrompts(final Map<String, String> answers) throws PwmUnrecoverableException {
             return naafLoginSequence.sendResponse(new HashMap<>(answers));
         }
     }
@@ -172,12 +176,12 @@ public class NAAFMethods {
 
 
         @Override
-        public void init(NAAFLoginSequence naafLoginSequence) {
+        public void init(final NAAFLoginSequence naafLoginSequence) {
             this.naafLoginSequence = naafLoginSequence;
         }
 
         @Override
-        public Map<String, String> getPrompts(Locale locale) throws PwmUnrecoverableException {
+        public Map<String, String> getPrompts(final Locale locale) throws PwmUnrecoverableException {
             if (!initialized) {
                 naafLoginSequence.sendResponse(null); // triggers sms send
                 initialized= true;
@@ -186,7 +190,7 @@ public class NAAFMethods {
         }
 
         @Override
-        public String answerPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+        public String answerPrompts(final Map<String, String> answers) throws PwmUnrecoverableException {
             return naafLoginSequence.sendResponse(new HashMap<>(answers));
         }
     }
@@ -195,19 +199,19 @@ public class NAAFMethods {
         private NAAFLoginSequence naafLoginSequence;
 
         @Override
-        public void init(NAAFLoginSequence naafLoginSequence) {
+        public void init(final NAAFLoginSequence naafLoginSequence) {
             this.naafLoginSequence = naafLoginSequence;
         }
 
         @Override
-        public Map<String, String> getPrompts(Locale locale) throws PwmUnrecoverableException {
+        public Map<String, String> getPrompts(final Locale locale) throws PwmUnrecoverableException {
             final Map<String,String> prompts = new LinkedHashMap<>();
             prompts.put("answer","Password");
             return prompts;
         }
 
         @Override
-        public String answerPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+        public String answerPrompts(final Map<String, String> answers) throws PwmUnrecoverableException {
             return naafLoginSequence.sendResponse(new HashMap<>(answers));
         }
     }
@@ -216,19 +220,19 @@ public class NAAFMethods {
         private NAAFLoginSequence naafLoginSequence;
 
         @Override
-        public void init(NAAFLoginSequence naafLoginSequence) {
+        public void init(final NAAFLoginSequence naafLoginSequence) {
             this.naafLoginSequence = naafLoginSequence;
         }
 
         @Override
-        public Map<String, String> getPrompts(Locale locale) throws PwmUnrecoverableException {
+        public Map<String, String> getPrompts(final Locale locale) throws PwmUnrecoverableException {
             final Map<String,String> prompts = new LinkedHashMap<>();
             prompts.put("answer","Password");
             return prompts;
         }
 
         @Override
-        public String answerPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+        public String answerPrompts(final Map<String, String> answers) throws PwmUnrecoverableException {
             return naafLoginSequence.sendResponse(new HashMap<>(answers));
         }
     }
@@ -238,12 +242,12 @@ public class NAAFMethods {
         private boolean initialized;
 
         @Override
-        public void init(NAAFLoginSequence naafLoginSequence) {
+        public void init(final NAAFLoginSequence naafLoginSequence) {
             this.naafLoginSequence = naafLoginSequence;
         }
 
         @Override
-        public Map<String, String> getPrompts(Locale locale) throws PwmUnrecoverableException {
+        public Map<String, String> getPrompts(final Locale locale) throws PwmUnrecoverableException {
             if (!initialized) {
                 naafLoginSequence.sendResponse(null); // triggers sms send
                 initialized= true;
@@ -252,9 +256,8 @@ public class NAAFMethods {
         }
 
         @Override
-        public String answerPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+        public String answerPrompts(final Map<String, String> answers) throws PwmUnrecoverableException {
             return naafLoginSequence.sendResponse(new HashMap<>(answers));
         }
     }
-
 }

@@ -91,7 +91,7 @@ public class TransactionSizeCalculator {
         private final int maxTransactions;
         private final int minTransactions;
 
-        private Settings(TimeDuration durationGoal, int maxTransactions, int minTransactions) {
+        private Settings(final TimeDuration durationGoal, final int maxTransactions, final int minTransactions) {
             this.durationGoal = durationGoal;
             this.maxTransactions = maxTransactions;
             this.minTransactions = minTransactions;
@@ -137,17 +137,17 @@ public class TransactionSizeCalculator {
         private int maxTransactions = 5003;
         private int minTransactions = 3;
 
-        public SettingsBuilder setDurationGoal(TimeDuration durationGoal) {
+        public SettingsBuilder setDurationGoal(final TimeDuration durationGoal) {
             this.durationGoal = durationGoal;
             return this;
         }
 
-        public SettingsBuilder setMaxTransactions(int maxTransactions) {
+        public SettingsBuilder setMaxTransactions(final int maxTransactions) {
             this.maxTransactions = maxTransactions;
             return this;
         }
 
-        public SettingsBuilder setMinTransactions(int minTransactions) {
+        public SettingsBuilder setMinTransactions(final int minTransactions) {
             this.minTransactions = minTransactions;
             return this;
         }

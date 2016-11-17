@@ -63,7 +63,6 @@ import password.pwm.util.operations.cr.DbCrOperator;
 import password.pwm.util.operations.cr.LdapCrOperator;
 import password.pwm.util.operations.cr.LocalDbCrOperator;
 import password.pwm.util.operations.cr.NMASCrOperator;
-import password.pwm.util.operations.cr.NMASUAWSOperator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -95,13 +94,12 @@ public class CrService implements PwmService {
     }
 
     @Override
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
         this.pwmApplication = pwmApplication;
         operatorMap.put(DataStorageMethod.DB, new DbCrOperator(pwmApplication));
         operatorMap.put(DataStorageMethod.LDAP, new LdapCrOperator(pwmApplication.getConfig()));
         operatorMap.put(DataStorageMethod.LOCALDB, new LocalDbCrOperator(pwmApplication.getLocalDB()));
         operatorMap.put(DataStorageMethod.NMAS, new NMASCrOperator(pwmApplication));
-        operatorMap.put(DataStorageMethod.NMASUAWS, new NMASUAWSOperator(pwmApplication));
     }
 
     @Override
@@ -229,7 +227,7 @@ public class CrService implements PwmService {
             if (queryMatch != null && !queryMatch.isEmpty()) {
                 LOGGER.debug(sessionLabel, "testing challenge profiles '" + profile + "'");
                 try {
-                    boolean match = LdapPermissionTester.testUserPermissions(pwmApplication,sessionLabel,userIdentity,queryMatch);
+                    final boolean match = LdapPermissionTester.testUserPermissions(pwmApplication,sessionLabel,userIdentity,queryMatch);
                     if (match) {
                         return profile;
                     }
@@ -251,7 +249,7 @@ public class CrService implements PwmService {
             throws PwmDataValidationException, PwmUnrecoverableException
     {
         //strip null keys from responseMap;
-        for (final Iterator<Challenge> iter = responseMap.keySet().iterator(); iter.hasNext();) {
+        for (final Iterator<Challenge> iter = responseMap.keySet().iterator(); iter.hasNext(); ) {
             final Challenge loopChallenge = iter.next();
             if (loopChallenge == null) {
                 iter.remove();
@@ -424,7 +422,8 @@ public class CrService implements PwmService {
             throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException
     {
 
-        int attempts = 0, successes = 0;
+        int attempts = 0;
+        int successes = 0;
         final Map<DataStorageMethod,String> errorMessages = new LinkedHashMap<>();
         final Configuration config = pwmApplication.getConfig();
 
@@ -469,7 +468,8 @@ public class CrService implements PwmService {
             throws PwmOperationalException, ChaiUnavailableException
     {
         final Configuration config = pwmApplication.getConfig();
-        int attempts = 0, successes = 0;
+        int attempts = 0;
+        int successes = 0;
 
         LOGGER.trace(sessionLabel, "beginning clear response operation for user " + theUser.getEntryDN() + " guid=" + userGUID);
 
@@ -538,7 +538,7 @@ public class CrService implements PwmService {
         }
 
         // ignore NMAS based CR set if so configured
-        if (responseInfoBean != null && (responseInfoBean.getDataStorageMethod() == DataStorageMethod.NMAS || responseInfoBean.getDataStorageMethod() == DataStorageMethod.NMASUAWS)) {
+        if (responseInfoBean != null && (responseInfoBean.getDataStorageMethod() == DataStorageMethod.NMAS)) {
             final boolean ignoreNmasCr = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK));
             if (ignoreNmasCr) {
                 LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: app property " + AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK.getKey()

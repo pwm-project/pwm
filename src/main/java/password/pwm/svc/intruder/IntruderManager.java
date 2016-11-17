@@ -34,7 +34,11 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.IntruderStorageMethod;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
@@ -48,7 +52,12 @@ import password.pwm.svc.event.SystemAuditRecord;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.*;
+import password.pwm.util.ClosableIterator;
+import password.pwm.util.DataStore;
+import password.pwm.util.DataStoreFactory;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.localdb.LocalDB;
@@ -59,7 +68,14 @@ import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
 import java.net.InetAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 // ------------------------------ FIELDS ------------------------------
 
@@ -76,7 +92,7 @@ public class IntruderManager implements Serializable, PwmService {
     private ServiceInfo serviceInfo = new ServiceInfo(Collections.<DataStorageMethod>emptyList());
 
     public IntruderManager() {
-        for (RecordType recordType : RecordType.values()) {
+        for (final RecordType recordType : RecordType.values()) {
             recordManagers.put(recordType, new StubRecordManager());
         }
     }
@@ -87,7 +103,7 @@ public class IntruderManager implements Serializable, PwmService {
     }
 
     @Override
-    public void init(PwmApplication pwmApplication)
+    public void init(final PwmApplication pwmApplication)
             throws PwmException
     {
         this.pwmApplication = pwmApplication;
@@ -262,6 +278,9 @@ public class IntruderManager implements Serializable, PwmService {
 
                 case TOKEN_DEST:
                     throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_TOKEN_DEST);
+
+                default:
+                    Helper.unhandledSwitchStatement(recordType);
             }
             throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_USER);
         }
@@ -392,7 +411,7 @@ public class IntruderManager implements Serializable, PwmService {
         }
     }
 
-    public List<Map<String,Object>> getRecords(final RecordType recordType, int maximum)
+    public List<Map<String,Object>> getRecords(final RecordType recordType, final int maximum)
             throws PwmOperationalException
     {
         final RecordManager manager = recordManagers.get(recordType);
@@ -506,7 +525,7 @@ public class IntruderManager implements Serializable, PwmService {
                 throws PwmUnrecoverableException
         {
             final List<String> subjects = attributeFormToList(formValues);
-            for (String subject : subjects) {
+            for (final String subject : subjects) {
                 mark(RecordType.ATTRIBUTE, subject, pwmSession.getLabel());
             }
         }
@@ -515,7 +534,7 @@ public class IntruderManager implements Serializable, PwmService {
                 throws PwmUnrecoverableException
         {
             final List<String> subjects = attributeFormToList(formValues);
-            for (String subject : subjects) {
+            for (final String subject : subjects) {
                 clear(RecordType.ATTRIBUTE, subject);
             }
         }
@@ -524,7 +543,7 @@ public class IntruderManager implements Serializable, PwmService {
                 throws PwmUnrecoverableException
         {
             final List<String> subjects = attributeFormToList(formValues);
-            for (String subject : subjects) {
+            for (final String subject : subjects) {
                 check(RecordType.ATTRIBUTE, subject);
             }
         }

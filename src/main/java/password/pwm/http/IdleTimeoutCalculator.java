@@ -37,7 +37,7 @@ import password.pwm.util.logging.PwmLogger;
 import java.util.concurrent.TimeUnit;
 
 public class IdleTimeoutCalculator {
-    final static private PwmLogger LOGGER = PwmLogger.forClass(IdleTimeoutCalculator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(IdleTimeoutCalculator.class);
 
     public static TimeDuration figureMaxIdleTimeout(final PwmApplication pwmApplication, final PwmSession pwmSession) {
         final Configuration configuration = pwmApplication.getConfig();

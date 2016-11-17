@@ -35,7 +35,11 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.event.AuditEvent;
@@ -52,13 +56,24 @@ import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @Path("/challenges")
 public class RestChallengesServer extends AbstractRestServer {
@@ -164,7 +179,8 @@ public class RestChallengesServer extends AbstractRestServer {
                 helpdeskChallengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getHelpdeskChallengeSet();
                 outputUsername = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID();
             } else {
-                final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());                final Locale userLocale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
+                final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
+                final Locale userLocale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
                 final CrService crService = restRequestBean.getPwmApplication().getCrService();
                 responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession().getLabel(),restRequestBean.getUserIdentity(), chaiUser);
                 final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
@@ -381,7 +397,7 @@ public class RestChallengesServer extends AbstractRestServer {
             }
 
             final String successMsg = Message.Success_Unknown.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());
-            RestResultBean resultBean = new RestResultBean();
+            final RestResultBean resultBean = new RestResultBean();
             resultBean.setError(false);
             resultBean.setSuccessMessage(successMsg);
             return resultBean.asJsonResponse();

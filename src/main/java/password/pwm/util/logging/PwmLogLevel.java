@@ -33,7 +33,7 @@ public enum PwmLogLevel {
     FATAL(Level.FATAL),
     ;
 
-    private PwmLogLevel(Level log4jLevel) {
+    PwmLogLevel(final Level log4jLevel) {
         this.log4jLevel = log4jLevel;
     }
 

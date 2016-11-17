@@ -57,7 +57,7 @@ public interface PwmService {
     class ServiceInfo implements Serializable {
         public Collection<DataStorageMethod> usedStorageMethods;
 
-        public ServiceInfo(Collection<DataStorageMethod> usedStorageMethods)
+        public ServiceInfo(final Collection<DataStorageMethod> usedStorageMethods)
         {
             this.usedStorageMethods = usedStorageMethods;
         }

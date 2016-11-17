@@ -53,7 +53,7 @@ public class AccountInformationServlet extends AbstractPwmServlet {
     private static final PwmLogger LOGGER = PwmLogger.forClass(AccountInformationServlet.class);
 
     @Override
-    protected void processAction(PwmRequest pwmRequest) throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
+    protected void processAction(final PwmRequest pwmRequest) throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
 
         if (!pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.ACCOUNT_INFORMATION_ENABLED)) {
             pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
@@ -75,11 +75,11 @@ public class AccountInformationServlet extends AbstractPwmServlet {
             LOGGER.error(pwmRequest, "error reading user form data: " + e.getMessage());
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACCOUNT_INFORMATION);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.ACCOUNT_INFORMATION);
     }
 
     @Override
-    protected ProcessAction readProcessAction(PwmRequest request) throws PwmUnrecoverableException {
+    protected ProcessAction readProcessAction(final PwmRequest request) throws PwmUnrecoverableException {
         return null;
     }
 }

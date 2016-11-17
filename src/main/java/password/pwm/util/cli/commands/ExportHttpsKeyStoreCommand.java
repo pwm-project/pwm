@@ -64,8 +64,8 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand {
             }
 
             @Override
-            public type getType() {
-                return type.STRING;
+            public Type getType() {
+                return Type.STRING;
             }
 
             @Override
@@ -74,7 +74,7 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand {
             }
         };
 
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportHttpsKeyStore";
         cliParameters.description = "Export configured or auto-generated HTTPS certificate to Java KeyStore file";
         cliParameters.options = Arrays.asList(

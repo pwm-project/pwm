@@ -49,7 +49,7 @@ public class PasswordValue implements StoredValue {
 
     boolean requiresStoredUpdate;
 
-    public PasswordValue(PasswordData passwordData) {
+    public PasswordValue(final PasswordData passwordData) {
         value = passwordData;
     }
 
@@ -119,7 +119,7 @@ public class PasswordValue implements StoredValue {
     }
 
     @Override
-    public List<String> validateValue(PwmSetting pwm)
+    public List<String> validateValue(final PwmSetting pwm)
     {
         return Collections.emptyList();
     }
@@ -151,12 +151,12 @@ public class PasswordValue implements StoredValue {
     }
 
     @Override
-    public String toDebugString(Locale locale) {
+    public String toDebugString(final Locale locale) {
         return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
 
     @Override
-    public Serializable toDebugJsonObject(Locale locale) {
+    public Serializable toDebugJsonObject(final Locale locale) {
         return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
 

@@ -35,7 +35,12 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.*;
+import password.pwm.http.PwmHttpRequestWrapper;
+import password.pwm.http.PwmHttpResponseWrapper;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmResponse;
+import password.pwm.http.PwmSession;
+import password.pwm.http.PwmURL;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.Helper;
 import password.pwm.util.StringUtil;
@@ -45,7 +50,11 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This session filter (invoked by the container through the web.xml descriptor) wraps all calls to the
@@ -62,7 +71,7 @@ public class SessionFilter extends AbstractPwmFilter {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SessionFilter.class);
 
     @Override
-    boolean isInterested(PwmApplicationMode mode, PwmURL pwmURL) {
+    boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
         return true;
     }
 
@@ -269,7 +278,7 @@ public class SessionFilter extends AbstractPwmFilter {
             pwmResponse.setHeader(PwmConstants.HttpHeader.Connection, "close");  // better chance of detecting un-sticky sessions this way
             if (mode == SessionVerificationMode.VERIFY_AND_CACHE) {
                 req.setAttribute("Location", returnURL);
-                pwmResponse.forwardToJsp(PwmConstants.JSP_URL.INIT);
+                pwmResponse.forwardToJsp(PwmConstants.JspUrl.INIT);
             } else {
                 pwmResponse.sendRedirect(returnURL);
             }
@@ -394,7 +403,7 @@ public class SessionFilter extends AbstractPwmFilter {
                     if (configuredTheme != null && configuredTheme.equalsIgnoreCase(themeReqParameter)) {
                         pwmRequest.getPwmResponse().removeCookie(themeCookieName, PwmHttpResponseWrapper.CookiePath.Application);
                     } else {
-                        int maxAge = Integer.parseInt(config.readAppProperty(AppProperty.HTTP_COOKIE_THEME_AGE));
+                        final int maxAge = Integer.parseInt(config.readAppProperty(AppProperty.HTTP_COOKIE_THEME_AGE));
                         pwmRequest.getPwmResponse().writeCookie(themeCookieName, themeReqParameter, maxAge, PwmHttpResponseWrapper.CookiePath.Application);
                     }
                 }

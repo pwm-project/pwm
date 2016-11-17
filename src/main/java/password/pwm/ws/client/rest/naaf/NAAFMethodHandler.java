@@ -32,5 +32,5 @@ public interface NAAFMethodHandler {
 
     Map<String,String> getPrompts(Locale locale) throws PwmUnrecoverableException;
 
-    String answerPrompts(final Map<String,String> answers) throws PwmUnrecoverableException;
+    String answerPrompts( Map<String,String> answers) throws PwmUnrecoverableException;
 }

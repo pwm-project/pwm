@@ -54,7 +54,7 @@ public class ClearResponsesCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ClearLocalResponses";
         cliParameters.description = "Clear all responses from the LocalDB";
 

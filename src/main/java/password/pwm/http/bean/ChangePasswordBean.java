@@ -25,7 +25,11 @@ package password.pwm.http.bean;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Jason D. Rivard
@@ -68,7 +72,7 @@ public class ChangePasswordBean extends PwmSessionBean {
         return currentPasswordPassed;
     }
 
-    public void setCurrentPasswordPassed(boolean currentPasswordPassed) {
+    public void setCurrentPasswordPassed(final boolean currentPasswordPassed) {
         this.currentPasswordPassed = currentPasswordPassed;
     }
 
@@ -76,7 +80,7 @@ public class ChangePasswordBean extends PwmSessionBean {
         return formPassed;
     }
 
-    public void setFormPassed(boolean formPassed) {
+    public void setFormPassed(final boolean formPassed) {
         this.formPassed = formPassed;
     }
 
@@ -84,7 +88,7 @@ public class ChangePasswordBean extends PwmSessionBean {
         return allChecksPassed;
     }
 
-    public void setAllChecksPassed(boolean allChecksPassed) {
+    public void setAllChecksPassed(final boolean allChecksPassed) {
         this.allChecksPassed = allChecksPassed;
     }
 
@@ -93,7 +97,7 @@ public class ChangePasswordBean extends PwmSessionBean {
         return changeProgressTracker;
     }
 
-    public void setChangeProgressTracker(PasswordChangeProgressChecker.ProgressTracker changeProgressTracker)
+    public void setChangeProgressTracker(final PasswordChangeProgressChecker.ProgressTracker changeProgressTracker)
     {
         this.changeProgressTracker = changeProgressTracker;
     }
@@ -103,7 +107,7 @@ public class ChangePasswordBean extends PwmSessionBean {
         return changePasswordMaxCompletion;
     }
 
-    public void setChangePasswordMaxCompletion(Date changePasswordMaxCompletion)
+    public void setChangePasswordMaxCompletion(final Date changePasswordMaxCompletion)
     {
         this.changePasswordMaxCompletion = changePasswordMaxCompletion;
     }
@@ -113,7 +117,7 @@ public class ChangePasswordBean extends PwmSessionBean {
         return nextAllowedTimePassed;
     }
 
-    public void setNextAllowedTimePassed(boolean nextAllowedTimePassed)
+    public void setNextAllowedTimePassed(final boolean nextAllowedTimePassed)
     {
         this.nextAllowedTimePassed = nextAllowedTimePassed;
     }
@@ -123,7 +127,7 @@ public class ChangePasswordBean extends PwmSessionBean {
         return warnPassed;
     }
 
-    public void setWarnPassed(boolean warnPassed)
+    public void setWarnPassed(final boolean warnPassed)
     {
         this.warnPassed = warnPassed;
     }

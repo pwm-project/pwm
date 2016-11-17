@@ -48,7 +48,7 @@
             <colgroup>
 
             </colgroup>
-            <% for (IdentityVerificationMethod method : methods) { %>
+            <% for (final IdentityVerificationMethod method : methods) { %>
             <% if (method.isUserSelectable()) { %>
             <tr>
                 <td>

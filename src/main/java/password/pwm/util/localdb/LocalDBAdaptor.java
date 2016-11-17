@@ -89,7 +89,7 @@ public class LocalDBAdaptor implements LocalDB {
     }
 
     @WriteOperation
-    public void init(final File dbDirectory, final Map<String, String> initParameters, Map<LocalDBProvider.Parameter,String> parameters) throws LocalDBException {
+    public void init(final File dbDirectory, final Map<String, String> initParameters, final Map<LocalDBProvider.Parameter,String> parameters) throws LocalDBException {
         innerDB.init(dbDirectory, initParameters, parameters);
     }
 

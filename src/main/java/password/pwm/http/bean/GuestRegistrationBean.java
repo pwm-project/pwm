@@ -27,7 +27,11 @@ import password.pwm.config.option.SessionBeanMode;
 import password.pwm.http.servlet.GuestRegistrationServlet;
 import password.pwm.util.FormMap;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Jason D. Rivard, Menno Pieters
@@ -46,7 +50,7 @@ public class GuestRegistrationBean extends PwmSessionBean {
         return updateUserIdentity;
     }
 
-    public void setUpdateUserIdentity(UserIdentity updateUserIdentity) {
+    public void setUpdateUserIdentity(final UserIdentity updateUserIdentity) {
         this.updateUserIdentity = updateUserIdentity;
     }
 
@@ -54,7 +58,7 @@ public class GuestRegistrationBean extends PwmSessionBean {
         return updateUserExpirationDate;
     }
 
-    public void setUpdateUserExpirationDate(Date updateUserExpirationDate) {
+    public void setUpdateUserExpirationDate(final Date updateUserExpirationDate) {
         this.updateUserExpirationDate = updateUserExpirationDate;
     }
 
@@ -62,7 +66,7 @@ public class GuestRegistrationBean extends PwmSessionBean {
         return currentPage;
     }
 
-    public void setCurrentPage(GuestRegistrationServlet.Page currentPage) {
+    public void setCurrentPage(final GuestRegistrationServlet.Page currentPage) {
         this.currentPage = currentPage;
     }
 
@@ -71,7 +75,7 @@ public class GuestRegistrationBean extends PwmSessionBean {
         return formValues;
     }
 
-    public void setFormValues(FormMap formValues)
+    public void setFormValues(final FormMap formValues)
     {
         this.formValues = formValues;
     }

@@ -16,14 +16,12 @@ export interface IPeopleService {
     search(query: string): IPromise<SearchResult>;
 }
 
-export default class PeopleService extends PwmService implements IPeopleService {
-    static $inject = ['$http', '$q'];
-    constructor(private $http: IHttpService, private $q: IQService) {
-        super();
-    }
+export default class PeopleService implements IPeopleService {
+    static $inject = ['$http', '$q', 'PwmService' ];
+    constructor(private $http: IHttpService, private $q: IQService, private pwmService: PwmService) {}
 
     autoComplete(query: string): IPromise<Person[]> {
-        return this.search(query)
+        return this.search(query, { 'includeDisplayName': true })
             .then((searchResult: SearchResult) => {
                 let people = searchResult.people;
                 if (people && people.length > 10) {
@@ -92,7 +90,7 @@ export default class PeopleService extends PwmService implements IPeopleService 
 
     getOrgChartData(personId: string): angular.IPromise<OrgChartData> {
         return this.$http
-            .post(this.getServerUrl('orgChartData'), { userKey: personId })
+            .get(this.pwmService.getServerUrl('orgChartData'), { cache: true, params: { userKey: personId } })
             .then((response) => {
                 let responseData = response.data['data'];
 
@@ -101,19 +99,17 @@ export default class PeopleService extends PwmService implements IPeopleService 
                 const children = responseData['children'].map((child: any) => new Person(child));
                 const self = new Person(responseData['self']);
 
-                const orgChartData = new OrgChartData(manager, children, self);
-
-                return this.$q.resolve(orgChartData);
+                return this.$q.resolve(new OrgChartData(manager, children, self));
             });
     }
 
     getPerson(id: string): IPromise<Person> {
-        return this.$http.post(this.getServerUrl('detail'), {
-            userKey: id
-        }).then((response) => {
-            let person: Person = new Person(response.data['data']);
-            return this.$q.resolve(person);
-        });
+        return this.$http
+            .get(this.pwmService.getServerUrl('detail'), { cache: true, params: { userKey: id } })
+            .then((response) => {
+                let person: Person = new Person(response.data['data']);
+                return this.$q.resolve(person);
+            });
     }
 
     isOrgChartEnabled(id: string): IPromise<boolean> {
@@ -121,14 +117,17 @@ export default class PeopleService extends PwmService implements IPeopleService 
         return this.$q.resolve(true);
     }
 
-    search(query: string): IPromise<SearchResult> {
-        return this.$http.post(this.getServerUrl('search', { 'includeDisplayName': true }), {
-            username: query
-        }).then((response) => {
-            let receivedData: any = response.data['data'];
-            let searchResult: SearchResult = new SearchResult(receivedData);
+    search(query: string, params?: any): IPromise<SearchResult> {
+        return this.$http
+            .get(
+                this.pwmService.getServerUrl('search', { 'includeDisplayName': true }),
+                { cache: true, params: { username: query } }
+            )
+            .then((response) => {
+                let receivedData: any = response.data['data'];
+                let searchResult: SearchResult = new SearchResult(receivedData);
 
-            return this.$q.resolve(searchResult);
-        });
+                return this.$q.resolve(searchResult);
+            });
     }
 }

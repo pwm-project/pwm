@@ -37,7 +37,7 @@ class SearchResultBean implements Serializable {
         return searchResults;
     }
 
-    public void setSearchResults(List<Map<String,Object>> searchResults) {
+    public void setSearchResults(final List<Map<String,Object>> searchResults) {
         this.searchResults = searchResults;
     }
 
@@ -45,7 +45,7 @@ class SearchResultBean implements Serializable {
         return sizeExceeded;
     }
 
-    public void setSizeExceeded(boolean sizeExceeded) {
+    public void setSizeExceeded(final boolean sizeExceeded) {
         this.sizeExceeded = sizeExceeded;
     }
 
@@ -53,7 +53,7 @@ class SearchResultBean implements Serializable {
         return aboutResultMessage;
     }
 
-    public void setAboutResultMessage(String aboutResultMessage) {
+    public void setAboutResultMessage(final String aboutResultMessage) {
         this.aboutResultMessage = aboutResultMessage;
     }
 
@@ -61,7 +61,7 @@ class SearchResultBean implements Serializable {
         return fromCache;
     }
 
-    public void setFromCache(boolean fromCache) {
+    public void setFromCache(final boolean fromCache) {
         this.fromCache = fromCache;
     }
 }

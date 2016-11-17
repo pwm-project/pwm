@@ -83,7 +83,7 @@ public class LocalSessionStateBean implements Serializable {
         return passwordModified;
     }
 
-    public void setPasswordModified(boolean passwordModified) {
+    public void setPasswordModified(final boolean passwordModified) {
         this.passwordModified = passwordModified;
     }
 
@@ -123,7 +123,7 @@ public class LocalSessionStateBean implements Serializable {
         return preCaptchaRequestURL;
     }
 
-    public void setPreCaptchaRequestURL(String preCaptchaRequestURL) {
+    public void setPreCaptchaRequestURL(final String preCaptchaRequestURL) {
         this.preCaptchaRequestURL = preCaptchaRequestURL;
     }
 
@@ -183,7 +183,7 @@ public class LocalSessionStateBean implements Serializable {
         return theme;
     }
 
-    public void setTheme(String theme) {
+    public void setTheme(final String theme) {
         this.theme = theme;
     }
 
@@ -199,7 +199,7 @@ public class LocalSessionStateBean implements Serializable {
         return sessionCreationTime;
     }
 
-    public void setSessionCreationTime(Date sessionCreationTime) {
+    public void setSessionCreationTime(final Date sessionCreationTime) {
         this.sessionCreationTime = sessionCreationTime;
     }
 
@@ -207,7 +207,7 @@ public class LocalSessionStateBean implements Serializable {
         return sessionLastAccessedTime;
     }
 
-    public void setSessionLastAccessedTime(Date sessionLastAccessedTime) {
+    public void setSessionLastAccessedTime(final Date sessionLastAccessedTime) {
         this.sessionLastAccessedTime = sessionLastAccessedTime;
     }
 
@@ -215,7 +215,7 @@ public class LocalSessionStateBean implements Serializable {
         return lastRequestURL;
     }
 
-    public void setLastRequestURL(String lastRequestURL) {
+    public void setLastRequestURL(final String lastRequestURL) {
         this.lastRequestURL = lastRequestURL;
     }
 
@@ -236,7 +236,7 @@ public class LocalSessionStateBean implements Serializable {
         return oauthInProgress;
     }
 
-    public void setOauthInProgress(boolean oauthInProgress)
+    public void setOauthInProgress(final boolean oauthInProgress)
     {
         this.oauthInProgress = oauthInProgress;
     }
@@ -245,7 +245,7 @@ public class LocalSessionStateBean implements Serializable {
         return restClientKey;
     }
 
-    public void setRestClientKey(String restClientKey) {
+    public void setRestClientKey(final String restClientKey) {
         this.restClientKey = restClientKey;
     }
 
@@ -257,7 +257,7 @@ public class LocalSessionStateBean implements Serializable {
         return sessionIdRecycleNeeded;
     }
 
-    public void setSessionIdRecycleNeeded(boolean sessionIdRecycleNeeded) {
+    public void setSessionIdRecycleNeeded(final boolean sessionIdRecycleNeeded) {
         this.sessionIdRecycleNeeded = sessionIdRecycleNeeded;
     }
 }

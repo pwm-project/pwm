@@ -51,14 +51,14 @@
         <p class="page-title">Software License Reference</p>
 
         <%
-        InputStream attributionInputStream = getClass().getResourceAsStream("/attribution.xml");
+        final InputStream attributionInputStream = getClass().getResourceAsStream("/attribution.xml");
 
         if (attributionInputStream != null) {
-            Document document = XmlUtil.parseXml(attributionInputStream);
-            Element dependencies = document.getRootElement().getChild("dependencies");
+            final Document document = XmlUtil.parseXml(attributionInputStream);
+            final Element dependencies = document.getRootElement().getChild("dependencies");
 
-            for (Element dependency : dependencies.getChildren("dependency")) {
-                String projectUrl = dependency.getChildText("projectUrl");
+            for (final Element dependency : dependencies.getChildren("dependency")) {
+                final String projectUrl = dependency.getChildText("projectUrl");
             %>
                 <div class="licenseBlock">
                     <div class="dependency-name"><%=dependency.getChildText("name") %></div>
@@ -71,9 +71,9 @@
 
                     <div class="dependency-file"><%=dependency.getChildText("artifactId") %>-<%=dependency.getChildText("version") %>.<%=dependency.getChildText("type") %></div>
                     <%
-                    Element licenses = dependency.getChild("licenses");
-                    List<Element> licenseList = licenses.getChildren("license");
-                    for (Element license : licenseList) { %>
+                    final Element licenses = dependency.getChild("licenses");
+                    final List<Element> licenseList = licenses.getChildren("license");
+                    for (final Element license : licenseList) { %>
                     <div class="dependency-license"><a href="<%=license.getChildText("url")%>" target="_blank" class="license-link"><%=license.getChildText("name")%></a></div>
                     <% } %>
                 </div>

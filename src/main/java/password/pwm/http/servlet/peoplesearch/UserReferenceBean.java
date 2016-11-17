@@ -32,7 +32,7 @@ class UserReferenceBean implements Serializable {
         return userKey;
     }
 
-    public void setUserKey(String userKey) {
+    public void setUserKey(final String userKey) {
         this.userKey = userKey;
     }
 
@@ -40,7 +40,7 @@ class UserReferenceBean implements Serializable {
         return displayName;
     }
 
-    public void setDisplayName(String displayName) {
+    public void setDisplayName(final String displayName) {
         this.displayName = displayName;
     }
 }

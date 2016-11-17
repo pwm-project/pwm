@@ -38,7 +38,12 @@ import password.pwm.util.secure.SecureEngine;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class FileValue extends AbstractValue implements StoredValue {
     private static final PwmLogger LOGGER = PwmLogger.forClass(FileValue.class);
@@ -50,8 +55,8 @@ public class FileValue extends AbstractValue implements StoredValue {
         private String filetype;
 
         public FileInformation(
-                String filename,
-                String filetype
+                final String filename,
+                final String filetype
         )
         {
             this.filename = filename;
@@ -72,7 +77,7 @@ public class FileValue extends AbstractValue implements StoredValue {
     public static class FileContent {
         private byte[] contents;
 
-        public FileContent(byte[] contents)
+        public FileContent(final byte[] contents)
         {
             this.contents = contents;
         }
@@ -82,10 +87,10 @@ public class FileValue extends AbstractValue implements StoredValue {
             return contents;
         }
 
-        public static FileContent fromEncodedString(String input)
+        public static FileContent fromEncodedString(final String input)
                 throws IOException
         {
-            byte[] convertedBytes = StringUtil.base64Decode(input);
+            final byte[] convertedBytes = StringUtil.base64Decode(input);
             return new FileContent(convertedBytes);
         }
 
@@ -113,7 +118,7 @@ public class FileValue extends AbstractValue implements StoredValue {
         }
     }
 
-    public FileValue(Map<FileInformation, FileContent> values)
+    public FileValue(final Map<FileInformation, FileContent> values)
     {
         this.values = values;
     }
@@ -122,7 +127,7 @@ public class FileValue extends AbstractValue implements StoredValue {
     {
         return new StoredValueFactory() {
 
-            public FileValue fromXmlElement(Element settingElement, final PwmSecurityKey input)
+            public FileValue fromXmlElement(final Element settingElement, final PwmSecurityKey input)
                     throws PwmOperationalException
             {
                 final List valueElements = settingElement.getChildren("value");
@@ -152,7 +157,7 @@ public class FileValue extends AbstractValue implements StoredValue {
                 return new FileValue(values);
             }
 
-            public StoredValue fromJson(String input)
+            public StoredValue fromJson(final String input)
             {
                 throw new IllegalStateException("not implemented");
             }
@@ -190,14 +195,14 @@ public class FileValue extends AbstractValue implements StoredValue {
     }
 
     @Override
-    public List<String> validateValue(PwmSetting pwm)
+    public List<String> validateValue(final PwmSetting pwm)
     {
         return Collections.emptyList();
     }
 
     @Override
     public String toDebugString(
-            Locale locale
+            final Locale locale
     )
     {
         final List<Map<String, Object>> output = asMetaData();
@@ -205,7 +210,7 @@ public class FileValue extends AbstractValue implements StoredValue {
     }
 
     @Override
-    public Serializable toDebugJsonObject(Locale locale) {
+    public Serializable toDebugJsonObject(final Locale locale) {
         return (Serializable)asMetaData();
     }
 
@@ -231,7 +236,7 @@ public class FileValue extends AbstractValue implements StoredValue {
             return Collections.emptyList();
         }
         final List<FileInfo> returnObj = new ArrayList<>();
-        for (FileValue.FileInformation fileInformation : this.values.keySet()) {
+        for (final FileValue.FileInformation fileInformation : this.values.keySet()) {
             final FileContent fileContent = this.values.get(fileInformation);
             final FileInfo loopInfo = new FileInfo();
             loopInfo.name = fileInformation.getFilename();

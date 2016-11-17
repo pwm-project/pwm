@@ -23,7 +23,11 @@
 package password.pwm.ws.server;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.Permission;
+import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
+import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.HelpdeskProfile;
@@ -229,7 +233,7 @@ public abstract class RestServerHelper {
     }
 
     public static void handleNonJsonErrorResult(final ErrorInformation errorInformation) {
-        Response.ResponseBuilder responseBuilder = Response.serverError();
+        final Response.ResponseBuilder responseBuilder = Response.serverError();
         responseBuilder.entity(errorInformation.toDebugStr() + "\n");
         throw new WebApplicationException(responseBuilder.build());
     }

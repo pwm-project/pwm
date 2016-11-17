@@ -46,7 +46,11 @@ import password.pwm.ws.server.ServicePermissions;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
@@ -67,9 +71,9 @@ public class RestSetPasswordServer extends AbstractRestServer {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doPostSetPasswordForm(
-            final @FormParam("username") String username,
-            final @FormParam("password") String password,
-            final @FormParam("random") boolean random
+            @FormParam("username") final String username,
+            @FormParam("password") final String password,
+            @FormParam("random") final boolean random
     )
             throws PwmUnrecoverableException
     {

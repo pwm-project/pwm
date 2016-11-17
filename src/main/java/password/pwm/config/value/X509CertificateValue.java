@@ -37,7 +37,12 @@ import java.io.ByteArrayInputStream;
 import java.io.Serializable;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class X509CertificateValue extends AbstractValue implements StoredValue {
     private static final PwmLogger LOGGER = PwmLogger.forClass(X509CertificateValue.class);
@@ -65,7 +70,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
         };
     }
 
-    public X509CertificateValue(X509Certificate[] certificates) {
+    public X509CertificateValue(final X509Certificate[] certificates) {
         if (certificates == null) {
             throw new NullPointerException("certificates cannot be null");
         }
@@ -76,7 +81,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
         return certificates != null && certificates.length > 0;
     }
 
-    public X509CertificateValue(Collection<X509Certificate> certificates) {
+    public X509CertificateValue(final Collection<X509Certificate> certificates) {
         if (certificates == null) {
             throw new NullPointerException("certificates cannot be null");
         }
@@ -85,7 +90,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
 
 
     @Override
-    public List<Element> toXmlValues(String valueElementName) {
+    public List<Element> toXmlValues(final String valueElementName) {
         final List<Element> returnList = new ArrayList<>();
         for (final X509Certificate value : certificates) {
             final Element valueElement = new Element(valueElementName);
@@ -105,14 +110,14 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
     }
 
     @Override
-    public List<String> validateValue(PwmSetting pwm) {
+    public List<String> validateValue(final PwmSetting pwm) {
         return Collections.emptyList();
     }
 
-    public String toDebugString(Locale locale) {
+    public String toDebugString(final Locale locale) {
             final StringBuilder sb = new StringBuilder();
-            int counter = 0;
-            for (X509Certificate cert : certificates) {
+            final int counter = 0;
+            for (final X509Certificate cert : certificates) {
                 sb.append("Certificate ").append(counter).append("\n");
                 sb.append(" Subject: ").append(cert.getSubjectDN().toString()).append("\n");
                 sb.append(" Serial: ").append(X509Utils.hexSerial(cert)).append("\n");
@@ -132,7 +137,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
     }
 
     @Override
-    public Serializable toDebugJsonObject(Locale locale) {
+    public Serializable toDebugJsonObject(final Locale locale) {
         return (Serializable)toInfoMap(false);
     }
 

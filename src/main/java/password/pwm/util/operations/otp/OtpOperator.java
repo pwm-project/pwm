@@ -24,6 +24,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package password.pwm.util.operations.otp;
 
 import password.pwm.bean.UserIdentity;
@@ -37,26 +38,26 @@ import password.pwm.util.otp.OTPUserRecord;
  */
 public interface OtpOperator {
     
-    public OTPUserRecord readOtpUserConfiguration(
-            final UserIdentity theUser,
-            final String userGUID
+    OTPUserRecord readOtpUserConfiguration(
+             UserIdentity theUser,
+             String userGUID
     )
             throws PwmUnrecoverableException;
 
-    public void writeOtpUserConfiguration(
-            final PwmSession pwmSession,
-            final UserIdentity theUser,
-            final String userGuid,
-            final OTPUserRecord otpConfig
+    void writeOtpUserConfiguration(
+             PwmSession pwmSession,
+             UserIdentity theUser,
+             String userGuid,
+             OTPUserRecord otpConfig
     )
             throws PwmUnrecoverableException;
 
-    public void clearOtpUserConfiguration(
-            final PwmSession pwmSession,
-            final UserIdentity theUser,
-            final String userGuid
+    void clearOtpUserConfiguration(
+             PwmSession pwmSession,
+             UserIdentity theUser,
+             String userGuid
     )
             throws PwmUnrecoverableException;
 
-    public void close();
+    void close();
 }

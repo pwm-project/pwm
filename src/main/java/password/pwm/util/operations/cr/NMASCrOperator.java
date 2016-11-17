@@ -26,15 +26,32 @@ import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.*;
+import com.novell.ldapchai.cr.ChaiChallenge;
+import com.novell.ldapchai.cr.ChaiChallengeSet;
+import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.ChallengeSet;
+import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.cr.bean.ChallengeBean;
-import com.novell.ldapchai.exception.*;
+import com.novell.ldapchai.exception.ChaiError;
+import com.novell.ldapchai.exception.ChaiException;
+import com.novell.ldapchai.exception.ChaiOperationException;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.impl.edir.NmasCrFactory;
 import com.novell.ldapchai.impl.edir.NmasResponseSet;
-import com.novell.ldapchai.provider.*;
+import com.novell.ldapchai.provider.ChaiConfiguration;
+import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.ChaiProviderFactory;
+import com.novell.ldapchai.provider.ChaiProviderImplementor;
+import com.novell.ldapchai.provider.ChaiSetting;
+import com.novell.ldapchai.provider.JLDAPProviderImpl;
 import com.novell.security.nmas.client.NMASCallback;
 import com.novell.security.nmas.client.NMASCompletionCallback;
-import com.novell.security.nmas.lcm.*;
+import com.novell.security.nmas.lcm.LCMEnvironment;
+import com.novell.security.nmas.lcm.LCMUserPrompt;
+import com.novell.security.nmas.lcm.LCMUserPromptCallback;
+import com.novell.security.nmas.lcm.LCMUserPromptException;
+import com.novell.security.nmas.lcm.LCMUserResponse;
 import com.novell.security.nmas.lcm.registry.GenLCMRegistry;
 import com.novell.security.nmas.lcm.registry.LCMRegistry;
 import com.novell.security.nmas.lcm.registry.LCMRegistryException;
@@ -71,7 +88,11 @@ import javax.security.sasl.SaslClientFactory;
 import javax.security.sasl.SaslException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.*;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringReader;
@@ -79,7 +100,16 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.Provider;
 import java.security.Security;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.TreeMap;
 
 public class NMASCrOperator implements CrOperator {
     private static final PwmLogger LOGGER = PwmLogger.forClass(NMASCrOperator.class);
@@ -96,6 +126,7 @@ public class NMASCrOperator implements CrOperator {
     private Provider saslProvider;
 
     private static final Map<String,Object> CR_OPTIONS_MAP;
+
     static {
         final HashMap<String,Object> crOptionsMap = new HashMap<>();
         crOptionsMap.put("com.novell.security.sasl.client.pkgs", "com.novell.sasl.client");
@@ -104,7 +135,7 @@ public class NMASCrOperator implements CrOperator {
         CR_OPTIONS_MAP = Collections.unmodifiableMap(crOptionsMap);
     }
 
-    public NMASCrOperator(PwmApplication pwmApplication) {
+    public NMASCrOperator(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
         maxThreadCount = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_THREADS_MAX_COUNT));
         final int MAX_SECONDS = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_THREADS_MAX_SECONDS));
@@ -229,7 +260,7 @@ public class NMASCrOperator implements CrOperator {
     }
 
     @Override
-    public ResponseInfoBean readResponseInfo(ChaiUser theUser, final UserIdentity userIdentity, String userGUID)
+    public ResponseInfoBean readResponseInfo(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID)
             throws PwmUnrecoverableException
     {
         try {
@@ -251,7 +282,7 @@ public class NMASCrOperator implements CrOperator {
     }
 
     public void clearResponses(
-            UserIdentity userIdentity, final ChaiUser theUser,
+            final UserIdentity userIdentity, final ChaiUser theUser,
             final String user
     )
             throws PwmUnrecoverableException
@@ -271,7 +302,7 @@ public class NMASCrOperator implements CrOperator {
     }
 
     public void writeResponses(
-            UserIdentity userIdentity, final ChaiUser theUser,
+            final UserIdentity userIdentity, final ChaiUser theUser,
             final String userGuid,
             final ResponseInfoBean responseInfoBean
     )
@@ -310,13 +341,13 @@ public class NMASCrOperator implements CrOperator {
         return new ChaiChallengeSet(challenges,challenges.size(), PwmConstants.DEFAULT_LOCALE,"NMAS-LDAP ChallengeResponse Set");
     }
 
-    private static List<String> documentToQuestions(Document doc) throws XPathExpressionException {
+    private static List<String> documentToQuestions(final Document doc) throws XPathExpressionException {
         final XPath xpath = XPathFactory.newInstance().newXPath();
         final XPathExpression challengesExpr = xpath.compile("/Challenges/Challenge/text()");
         final NodeList challenges = (NodeList)challengesExpr.evaluate(doc, XPathConstants.NODESET);
         final List<String> res = new ArrayList<>();
         for (int i = 0; i < challenges.getLength(); ++i) {
-            String question = challenges.item(i).getTextContent();
+            final String question = challenges.item(i).getTextContent();
             res.add(question);
         }
         return Collections.unmodifiableList(res);
@@ -339,12 +370,12 @@ public class NMASCrOperator implements CrOperator {
         private final PwmApplication pwmApplication;
         private final UserIdentity userIdentity;
 
-        final private ChaiConfiguration chaiConfiguration;
+        private final ChaiConfiguration chaiConfiguration;
         private ChallengeSet challengeSet;
         private transient NMASResponseSession ldapChallengeSession;
         boolean passed;
 
-        private NMASCRResponseSet(PwmApplication pwmApplication, final UserIdentity userIdentity)
+        private NMASCRResponseSet(final PwmApplication pwmApplication, final UserIdentity userIdentity)
                 throws Exception
         {
             this.pwmApplication = pwmApplication;
@@ -401,7 +432,7 @@ public class NMASCrOperator implements CrOperator {
             return getChallengeSet();
         }
 
-        public boolean meetsChallengeSetRequirements(ChallengeSet challengeSet) throws ChaiValidationException {
+        public boolean meetsChallengeSetRequirements(final ChallengeSet challengeSet) throws ChaiValidationException {
             if (challengeSet.getRequiredChallenges().size() > this.getChallengeSet().getRequiredChallenges().size()) {
                 LOGGER.debug("failed meetsChallengeSetRequirements, not enough required challenge");
                 return false;
@@ -418,7 +449,8 @@ public class NMASCrOperator implements CrOperator {
 
             if (challengeSet.getMinRandomRequired() > 0) {
                 if (this.getChallengeSet().getChallenges().size() < challengeSet.getMinRandomRequired()) {
-                    LOGGER.debug("failed meetsChallengeSetRequirements, not enough questions to meet minrandom; minRandomRequired=" + challengeSet.getMinRandomRequired() + ", ChallengesInSet=" + this.getChallengeSet().getChallenges().size());
+                    LOGGER.debug("failed meetsChallengeSetRequirements, not enough questions to meet minrandom; minRandomRequired=" +
+                            challengeSet.getMinRandomRequired() + ", ChallengesInSet=" + this.getChallengeSet().getChallenges().size());
                     return false;
                 }
             }
@@ -430,7 +462,7 @@ public class NMASCrOperator implements CrOperator {
             throw new UnsupportedOperationException("not supported");
         }
 
-        public boolean test(Map<Challenge, String> challengeStringMap)
+        public boolean test(final Map<Challenge, String> challengeStringMap)
                 throws ChaiUnavailableException
         {
             if (passed) {
@@ -461,7 +493,7 @@ public class NMASCrOperator implements CrOperator {
                 } catch (PwmException e) {
                     final String errorMsg = "error reading next challenges after testing responses: " + e.getMessage();
                     LOGGER.error("error reading next challenges after testing responses: " + e.getMessage());
-                    ChaiUnavailableException chaiUnavailableException = new ChaiUnavailableException(errorMsg,ChaiError.UNKNOWN);
+                    final ChaiUnavailableException chaiUnavailableException = new ChaiUnavailableException(errorMsg,ChaiError.UNKNOWN);
                     chaiUnavailableException.initCause(e);
                     throw chaiUnavailableException;
                 } catch (Exception e) {
@@ -491,12 +523,12 @@ public class NMASCrOperator implements CrOperator {
         }
 
         @Override
-        public List<ChallengeBean> asChallengeBeans(boolean b) {
+        public List<ChallengeBean> asChallengeBeans(final boolean b) {
             return Collections.emptyList();
         }
 
         @Override
-        public List<ChallengeBean> asHelpdeskChallengeBeans(boolean b) {
+        public List<ChallengeBean> asHelpdeskChallengeBeans(final boolean b) {
             return Collections.emptyList();
         }
     }
@@ -504,11 +536,11 @@ public class NMASCrOperator implements CrOperator {
     private class NMASResponseSession {
 
         private LDAPConnection ldapConnection;
-        final private GenLcmUI lcmEnv;
+        private final GenLcmUI lcmEnv;
         private NMASSessionThread nmasSessionThread;
         private boolean completeOnUnsupportedFailure = false;
 
-        public NMASResponseSession(String userDN, LDAPConnection ldapConnection) throws LCMRegistryException, PwmUnrecoverableException {
+        NMASResponseSession(final String userDN, final LDAPConnection ldapConnection) throws LCMRegistryException, PwmUnrecoverableException {
             this.ldapConnection = ldapConnection;
             lcmEnv = new GenLcmUI();
             final GenLCMRegistry lcmRegistry = new GenLCMRegistry();
@@ -529,7 +561,7 @@ public class NMASCrOperator implements CrOperator {
             return documentToQuestions(doc);
         }
 
-        public boolean testAnswers(List<String> answers)
+        public boolean testAnswers(final List<String> answers)
                 throws SAXException, IOException, ParserConfigurationException, PwmUnrecoverableException
         {
             if (nmasSessionThread.getLoginState() == NMASThreadState.ABORTED) {
@@ -558,14 +590,15 @@ public class NMASCrOperator implements CrOperator {
         }
 
         private boolean unsupportedCallbackHasOccurred = false;
+
         private class ChalRespCallbackHandler extends com.novell.security.nmas.client.NMASCallbackHandler
         {
-            public ChalRespCallbackHandler(LCMEnvironment lcmenvironment, LCMRegistry lcmregistry)
+            ChalRespCallbackHandler(final LCMEnvironment lcmenvironment, final LCMRegistry lcmregistry)
             {
                 super(lcmenvironment, lcmregistry);
             }
 
-            public void handle(final Callback callbacks[]) throws UnsupportedCallbackException
+            public void handle(final Callback[] callbacks) throws UnsupportedCallbackException
             {
                 LOGGER.trace("entering ChalRespCallbackHandler.handle()");
                 for (final Callback callback : callbacks) {
@@ -635,14 +668,14 @@ public class NMASCrOperator implements CrOperator {
 
         private final int threadID;
 
-        public NMASSessionThread(final NMASResponseSession nmasResponseSession)
+        NMASSessionThread(final NMASResponseSession nmasResponseSession)
         {
             this.nmasResponseSession = nmasResponseSession;
             this.threadID = threadCounter++;
             setLoginState(NMASThreadState.NEW);
         }
 
-        private void setLoginState(NMASThreadState paramInt)
+        private void setLoginState(final NMASThreadState paramInt)
         {
             this.loginState = paramInt;
         }
@@ -656,7 +689,7 @@ public class NMASCrOperator implements CrOperator {
             return lastActivityTimestamp;
         }
 
-        private synchronized void setLoginResult(com.novell.security.nmas.client.NMASLoginResult paramNMASLoginResult)
+        private synchronized void setLoginResult(final com.novell.security.nmas.client.NMASLoginResult paramNMASLoginResult)
         {
             this.loginResult = paramNMASLoginResult;
             this.loginResultReady = true;
@@ -678,9 +711,9 @@ public class NMASCrOperator implements CrOperator {
         }
 
         public void startLogin(
-                String userDN,
-                LDAPConnection ldapConnection,
-                NMASResponseSession.ChalRespCallbackHandler  paramCallbackHandler
+                final String userDN,
+                final LDAPConnection ldapConnection,
+                final NMASResponseSession.ChalRespCallbackHandler  paramCallbackHandler
         )
                 throws PwmUnrecoverableException
         {
@@ -752,9 +785,7 @@ public class NMASCrOperator implements CrOperator {
                 lastActivityTimestamp = new Date();
                 setLoginResult(new com.novell.security.nmas.client.NMASLoginResult(this.callbackHandler.awaitRetCode(), this.ldapConn));
                 lastActivityTimestamp = new Date();
-            }
-            catch (LDAPException e)
-            {
+            } catch (LDAPException e) {
                 if (loginState == NMASThreadState.ABORTED) {
                     return;
                 }
@@ -837,10 +868,10 @@ public class NMASCrOperator implements CrOperator {
         private static final PwmLogger LOGGER = PwmLogger.forClass(NMASCrPwmSaslProvider.class);
         public static final String SASL_PROVIDER_NAME = "NMAS_LOGIN";
 
-        private static final String info = "PWM NMAS Sasl Provider";
+        private static final String INFO = "PWM NMAS Sasl Provider";
 
         public NMASCrPwmSaslProvider() {
-            super("SaslClientFactory", 1.1, info);
+            super("SaslClientFactory", 1.1, INFO);
             final NMASCrPwmSaslProvider thisInstance = NMASCrPwmSaslProvider.this;
             AccessController.doPrivileged(new PrivilegedAction() {
                 public Object run() {
@@ -870,7 +901,7 @@ public class NMASCrOperator implements CrOperator {
         }
 
         @Override
-        public SaslClient createSaslClient(String[] mechanisms, String authorizationId, String protocol, String serverName, Map<String, ?> props, CallbackHandler cbh) throws SaslException {
+        public SaslClient createSaslClient(final String[] mechanisms, final String authorizationId, final String protocol, final String serverName, final Map<String, ?> props, final CallbackHandler cbh) throws SaslException {
             try {
                 LOGGER.trace("creating new SASL Client instance");
                 final SaslClientFactory realFactory = getRealSaslClientFactory();
@@ -884,12 +915,12 @@ public class NMASCrOperator implements CrOperator {
         private SaslClientFactory getRealSaslClientFactory() throws IllegalAccessException, InstantiationException, ClassNotFoundException {
             final String className = "com.novell.sasl.client.ClientFactory";
             final ClassLoader threadLocalClassLoader = Thread.currentThread().getContextClassLoader();
-            Class threadLocalClass = threadLocalClassLoader.loadClass(className);
+            final Class threadLocalClass = threadLocalClassLoader.loadClass(className);
             return (SaslClientFactory) threadLocalClass.newInstance();
         }
 
         @Override
-        public String[] getMechanismNames(Map<String, ?> props) {
+        public String[] getMechanismNames(final Map<String, ?> props) {
             try {
                 final SaslClientFactory realFactory = getRealSaslClientFactory();
                 return realFactory.getMechanismNames(props);

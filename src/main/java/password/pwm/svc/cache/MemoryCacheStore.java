@@ -36,7 +36,7 @@ class MemoryCacheStore implements CacheStore {
     private int hitCount;
     private int missCount;
 
-    MemoryCacheStore(int maxItems) {
+    MemoryCacheStore(final int maxItems) {
         memoryStore = new ConcurrentLinkedHashMap.Builder<String, ValueWrapper>()
             .maximumWeightedCapacity(maxItems)
             .build();
@@ -50,7 +50,7 @@ class MemoryCacheStore implements CacheStore {
     }
 
     @Override
-    public String read(CacheKey cacheKey)
+    public String read(final CacheKey cacheKey)
             throws PwmUnrecoverableException 
     {
         readCount++;
@@ -84,9 +84,9 @@ class MemoryCacheStore implements CacheStore {
         final String payload;
 
         private ValueWrapper(
-                CacheKey cacheKey,
-                Date expirationDate,
-                String payload
+                final CacheKey cacheKey,
+                final Date expirationDate,
+                final String payload
         )
         {
             this.cacheKey = cacheKey;

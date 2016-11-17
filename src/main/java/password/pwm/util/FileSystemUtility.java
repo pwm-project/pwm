@@ -136,7 +136,7 @@ public class FileSystemUtility {
         private final long size;
         private final String sha1sum;
 
-        public FileSummaryInformation(String filename, String filepath, Date modified, long size, String sha1sum) {
+        public FileSummaryInformation(final String filename, final String filepath, final Date modified, final long size, final String sha1sum) {
             this.filename = filename;
             this.filepath = filepath;
             this.modified = modified;

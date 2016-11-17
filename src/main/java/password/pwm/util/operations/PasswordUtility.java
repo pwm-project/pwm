@@ -39,18 +39,37 @@ import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.*;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.SessionLabel;
+import password.pwm.bean.SmsItemBean;
+import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
-import password.pwm.config.profile.*;
-import password.pwm.error.*;
+import password.pwm.config.profile.ForgottenPasswordProfile;
+import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileUtility;
+import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.bean.LoginInfoBean;
-import password.pwm.ldap.*;
+import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.LdapPermissionTester;
+import password.pwm.ldap.LdapUserDataReader;
+import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
@@ -59,12 +78,25 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.*;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.PasswordCharCounter;
+import password.pwm.util.PasswordData;
+import password.pwm.util.PostChangePasswordAction;
+import password.pwm.util.PwmPasswordRuleValidator;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Jason D. Rivard
@@ -772,7 +804,7 @@ public class PasswordUtility {
             final List<UserPermission> userPermissions = loopPolicy.getUserPermissions();
             LOGGER.debug(pwmSession, "testing password policy profile '" + profile + "'");
             try {
-                boolean match = LdapPermissionTester.testUserPermissions(pwmApplication, pwmSession, userIdentity, userPermissions);
+                final boolean match = LdapPermissionTester.testUserPermissions(pwmApplication, pwmSession, userIdentity, userPermissions);
                 if (match) {
                     return loopPolicy;
                 }
@@ -889,7 +921,7 @@ public class PasswordUtility {
             }
         }
 
-        final PasswordCheckInfo.MATCH_STATUS matchStatus = figureMatchStatus(passwordIsCaseSensitive ,password, confirmPassword);
+        final PasswordCheckInfo.MatchStatus matchStatus = figureMatchStatus(passwordIsCaseSensitive ,password, confirmPassword);
         if (pass) {
             switch (matchStatus) {
                 case EMPTY:
@@ -911,21 +943,21 @@ public class PasswordUtility {
     }
 
 
-    public static PasswordCheckInfo.MATCH_STATUS figureMatchStatus(
+    public static PasswordCheckInfo.MatchStatus figureMatchStatus(
             final boolean caseSensitive,
             final PasswordData password1,
             final PasswordData password2
     ) {
-        final PasswordCheckInfo.MATCH_STATUS matchStatus;
+        final PasswordCheckInfo.MatchStatus matchStatus;
         if (password2 == null) {
-            matchStatus = PasswordCheckInfo.MATCH_STATUS.EMPTY;
+            matchStatus = PasswordCheckInfo.MatchStatus.EMPTY;
         } else if (password1 == null) {
-            matchStatus = PasswordCheckInfo.MATCH_STATUS.NO_MATCH;
+            matchStatus = PasswordCheckInfo.MatchStatus.NO_MATCH;
         } else {
             if (caseSensitive) {
-                matchStatus = password1.equals(password2) ? PasswordCheckInfo.MATCH_STATUS.MATCH : PasswordCheckInfo.MATCH_STATUS.NO_MATCH;
+                matchStatus = password1.equals(password2) ? PasswordCheckInfo.MatchStatus.MATCH : PasswordCheckInfo.MatchStatus.NO_MATCH;
             } else {
-                matchStatus = password1.equalsIgnoreCase(password2) ? PasswordCheckInfo.MATCH_STATUS.MATCH : PasswordCheckInfo.MATCH_STATUS.NO_MATCH;
+                matchStatus = password1.equalsIgnoreCase(password2) ? PasswordCheckInfo.MatchStatus.MATCH : PasswordCheckInfo.MatchStatus.NO_MATCH;
             }
         }
 
@@ -937,14 +969,14 @@ public class PasswordUtility {
         private final String message;
         private final boolean passed;
         private final int strength;
-        private final MATCH_STATUS match;
+        private final MatchStatus match;
         private final int errorCode;
 
-        public enum MATCH_STATUS {
+        public enum MatchStatus {
             MATCH, NO_MATCH, EMPTY
         }
 
-        public PasswordCheckInfo(String message, boolean passed, int strength, MATCH_STATUS match, int errorCode) {
+        public PasswordCheckInfo(final String message, final boolean passed, final int strength, final MatchStatus match, final int errorCode) {
             this.message = message;
             this.passed = passed;
             this.strength = strength;
@@ -964,7 +996,7 @@ public class PasswordUtility {
             return strength;
         }
 
-        public MATCH_STATUS getMatch() {
+        public MatchStatus getMatch() {
             return match;
         }
 

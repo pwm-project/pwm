@@ -32,7 +32,7 @@ public class PwmHttpClientResponse implements Serializable {
     private final Map<String,String> headers;
     private final String body;
 
-    public PwmHttpClientResponse(int statusCode, String statusPhrase, Map<String, String> headers, String body) {
+    public PwmHttpClientResponse(final int statusCode, final String statusPhrase, final Map<String, String> headers, final String body) {
         this.statusCode = statusCode;
         this.statusPhrase = statusPhrase;
         this.headers = headers == null ? Collections.<String,String>emptyMap() : Collections.unmodifiableMap(headers);;

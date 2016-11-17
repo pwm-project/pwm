@@ -27,7 +27,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 
 public class MacroParseException extends PwmException {
-    public MacroParseException(String errorMsg) {
+    public MacroParseException(final String errorMsg) {
         super(new ErrorInformation(PwmError.ERROR_MACRO_PARSE_ERROR,null,new String[]{errorMsg}));
     }
 }

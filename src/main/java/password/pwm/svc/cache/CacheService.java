@@ -40,7 +40,7 @@ import java.util.Date;
 import java.util.List;
 
 public class CacheService implements PwmService {
-    private static PwmLogger LOGGER = PwmLogger.forClass(CacheService.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(CacheService.class);
 
     private MemoryCacheStore memoryCacheStore;
     private LocalDBCacheStore localDBCacheStore;
@@ -55,7 +55,7 @@ public class CacheService implements PwmService {
     }
 
     @Override
-    public void init(PwmApplication pwmApplication)
+    public void init(final PwmApplication pwmApplication)
             throws PwmException
     {
         final boolean enabled = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_ENABLE));
@@ -124,7 +124,7 @@ public class CacheService implements PwmService {
         outputTraceInfo();
     }
 
-    public String get(CacheKey cacheKey)
+    public String get(final CacheKey cacheKey)
             throws PwmUnrecoverableException {
         if (cacheKey == null) {
             return null;

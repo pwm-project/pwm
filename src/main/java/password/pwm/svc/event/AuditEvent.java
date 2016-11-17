@@ -28,7 +28,9 @@ import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.util.JsonUtil;
 
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 public enum AuditEvent {
 
@@ -82,8 +84,8 @@ public enum AuditEvent {
     private static final String JSON_KEY_XDAS_OUTCOME = "xdasOutcome";
 
 
-    final private Message message;
-    final private PwmDisplayBundle narrative;
+    private final Message message;
+    private final PwmDisplayBundle narrative;
 
     private String xdasTaxonomy;
     private String xdasOutcome;
@@ -140,7 +142,7 @@ public enum AuditEvent {
 
         private final Class clazz;
 
-        Type(Class clazz) {
+        Type(final Class clazz) {
             this.clazz = clazz;
         }
 

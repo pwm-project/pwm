@@ -30,7 +30,13 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class OptionListValue extends AbstractValue  implements StoredValue {
     final Set<String> values;
@@ -56,7 +62,7 @@ public class OptionListValue extends AbstractValue  implements StoredValue {
                 }
             }
 
-            public OptionListValue fromXmlElement(Element settingElement, final PwmSecurityKey key)
+            public OptionListValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
                     throws PwmOperationalException
             {
                 final List valueElements = settingElement.getChildren("value");
@@ -87,13 +93,13 @@ public class OptionListValue extends AbstractValue  implements StoredValue {
         return Collections.unmodifiableSet(values);
     }
 
-    public List<String> validateValue(PwmSetting pwmSetting) {
+    public List<String> validateValue(final PwmSetting pwmSetting) {
         return Collections.emptyList();
     }
 
-    public String toDebugString(Locale locale) {
+    public String toDebugString(final Locale locale) {
         final StringBuilder sb = new StringBuilder();
-        for (Iterator valueIterator = values.iterator() ; valueIterator.hasNext();) {
+        for (final Iterator valueIterator = values.iterator(); valueIterator.hasNext(); ) {
             sb.append(valueIterator.next());
             if (valueIterator.hasNext()) {
                 sb.append("\n");

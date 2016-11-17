@@ -28,7 +28,15 @@ import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmSetting;
 import password.pwm.util.LocaleHelper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 public enum PwmSettingCategory {
 
@@ -176,7 +184,7 @@ public enum PwmSettingCategory {
     private Boolean hidden;
 
 
-    PwmSettingCategory(PwmSettingCategory parent) {
+    PwmSettingCategory(final PwmSettingCategory parent) {
         this.parent = parent;
     }
 
@@ -277,7 +285,7 @@ public enum PwmSettingCategory {
         return returnObj;
     }
 
-    private password.pwm.config.PwmSetting readProfileSettingFromXml(boolean nested)
+    private password.pwm.config.PwmSetting readProfileSettingFromXml(final boolean nested)
     {
         PwmSettingCategory nextCategory = this;
         while (nextCategory != null) {
@@ -362,9 +370,9 @@ public enum PwmSettingCategory {
     }
 
     public static List<PwmSettingCategory> valuesForReferenceDoc(final Locale locale) {
-        List<PwmSettingCategory> values = new ArrayList<>(sortedValues(locale));
-        for (Iterator<PwmSettingCategory> iterator = values.iterator(); iterator.hasNext(); ) {
-            PwmSettingCategory category = iterator.next();
+        final List<PwmSettingCategory> values = new ArrayList<>(sortedValues(locale));
+        for (final Iterator<PwmSettingCategory> iterator = values.iterator(); iterator.hasNext(); ) {
+            final PwmSettingCategory category = iterator.next();
             if (category.isHidden()) {
                 iterator.remove();
             } else if (category.getSettings().isEmpty()) {

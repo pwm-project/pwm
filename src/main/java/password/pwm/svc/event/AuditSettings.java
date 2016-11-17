@@ -26,7 +26,11 @@ import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 class AuditSettings {
     private List<String> systemEmailAddresses = new ArrayList<>();

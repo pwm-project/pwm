@@ -55,7 +55,7 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
-    <% String PageName = JspUtility.localizedString(pageContext,"Title_DataAnalysis",Admin.class);%>
+    <% final String PageName = JspUtility.localizedString(pageContext,"Title_DataAnalysis",Admin.class);%>
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
@@ -190,7 +190,7 @@
                                     </form>
                                 </td>
                             </tr>
-                            <% for (Statistic loopStat : Statistic.sortedValues(locale)) { %>
+                            <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
                             <tr>
                                 <td >
                                     <span id="Statistic_Key_<%=loopStat.getKey()%>"><%= loopStat.getLabel(locale) %><span/>
@@ -262,7 +262,7 @@
                     PWM_ADMIN.refreshReportDataStatus(5 * 1000);
                 });
 
-                <% for (Statistic loopStat : Statistic.sortedValues(locale)) { %>
+                <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>
                 PWM_MAIN.showTooltip({id:'Statistic_Key_<%=loopStat.getKey()%>',width:400,position:'above',text:PWM_ADMIN.showString("Statistic_Description.<%=loopStat.getKey()%>")});
                 <% } %>
 

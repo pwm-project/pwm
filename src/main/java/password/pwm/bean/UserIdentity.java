@@ -161,15 +161,23 @@ public class UserIdentity implements Serializable, Comparable {
     }
 
     @Override
-    public boolean equals(Object o)
+    public boolean equals(final Object o)
     {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-        UserIdentity that = (UserIdentity) o;
+        final UserIdentity that = (UserIdentity) o;
 
-        if (!ldapProfile.equals(that.ldapProfile)) return false;
-        if (!userDN.equals(that.userDN)) return false;
+        if (!ldapProfile.equals(that.ldapProfile)) {
+            return false;
+        }
+        if (!userDN.equals(that.userDN)) {
+            return false;
+        }
 
         return true;
     }
@@ -183,10 +191,10 @@ public class UserIdentity implements Serializable, Comparable {
     }
 
     @Override
-    public int compareTo(Object o) {
-        String thisStr = (ldapProfile == null ? "_" : ldapProfile) + userDN;
-        UserIdentity otherIdentity = (UserIdentity)o;
-        String otherStr = (otherIdentity.ldapProfile == null ? "_" : otherIdentity.ldapProfile) + otherIdentity.userDN;
+    public int compareTo(final Object o) {
+        final String thisStr = (ldapProfile == null ? "_" : ldapProfile) + userDN;
+        final UserIdentity otherIdentity = (UserIdentity)o;
+        final String otherStr = (otherIdentity.ldapProfile == null ? "_" : otherIdentity.ldapProfile) + otherIdentity.userDN;
 
         return thisStr.compareTo(otherStr);
     }

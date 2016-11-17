@@ -109,9 +109,10 @@ public class LdapPermissionTester {
             case ldapGroup: {
                 return testGroupMatch(pwmApplication, sessionLabel, userIdentity, userPermission.getLdapBase());
             }
-        }
 
-        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "unknown permission type: " + userPermission.getType()));
+            default:
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "unknown permission type: " + userPermission.getType()));
+        }
     }
 
     public static boolean testGroupMatch(
@@ -281,7 +282,7 @@ public class LdapPermissionTester {
         if (canonicalBaseDN == null) {
             try {
                 final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-                ChaiEntry chaiEntry = ChaiFactory.createChaiEntry(ldapBase, chaiProvider);
+                final ChaiEntry chaiEntry = ChaiFactory.createChaiEntry(ldapBase, chaiProvider);
                 canonicalBaseDN = chaiEntry.readCanonicalDN();
                 final long cacheSeconds = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_LDAP_BASEDN_CANONICAL_CACHE_SECONDS));
                 final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS(cacheSeconds * 1000);

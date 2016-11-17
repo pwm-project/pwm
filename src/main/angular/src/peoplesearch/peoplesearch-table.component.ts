@@ -21,7 +21,7 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
     }
 
     $onInit(): void {
-        this.initialize(this.peopleService.cardSearch);
+        this.initialize(this.peopleService.search);
 
         let self = this;
 

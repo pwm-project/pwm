@@ -35,7 +35,7 @@ public class IntruderSettings implements Serializable {
         return checkDuration;
     }
 
-    public void setCheckDuration(TimeDuration checkDuration) {
+    public void setCheckDuration(final TimeDuration checkDuration) {
         this.checkDuration = checkDuration;
     }
 
@@ -43,7 +43,7 @@ public class IntruderSettings implements Serializable {
         return checkCount;
     }
 
-    public void setCheckCount(int checkCount) {
+    public void setCheckCount(final int checkCount) {
         this.checkCount = checkCount;
     }
 
@@ -51,7 +51,7 @@ public class IntruderSettings implements Serializable {
         return resetDuration;
     }
 
-    public void setResetDuration(TimeDuration resetDuration) {
+    public void setResetDuration(final TimeDuration resetDuration) {
         this.resetDuration = resetDuration;
     }
 }

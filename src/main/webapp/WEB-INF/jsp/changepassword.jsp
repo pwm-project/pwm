@@ -49,7 +49,7 @@
         </div>
         <%
             final String passwordPolicyChangeMessage = changepassword_pwmRequest.getPwmSession().getUserInfoBean().getPasswordPolicy().getRuleHelper().getChangeMessage();
-            MacroMachine macroMachine = JspUtility.getPwmSession(pageContext).getSessionManager().getMacroMachine(ContextManager.getPwmApplication(session));
+            final MacroMachine macroMachine = JspUtility.getPwmSession(pageContext).getSessionManager().getMacroMachine(ContextManager.getPwmApplication(session));
         %>
         <% if (passwordPolicyChangeMessage.length() > 1) { %>
         <p><%= macroMachine.expandMacros(passwordPolicyChangeMessage) %></p>

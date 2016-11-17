@@ -59,11 +59,11 @@ public class PwmPasswordPolicy implements Profile,Serializable {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmPasswordPolicy.class);
 
-    private static final PwmPasswordPolicy defaultPolicy;
+    private static final PwmPasswordPolicy DEFAULT_POLICY;
 
     private final Map<String, String> policyMap = new HashMap<>();
 
-    private transient final ChaiPasswordPolicy chaiPasswordPolicy;
+    private final transient ChaiPasswordPolicy chaiPasswordPolicy;
 
     private String profileID;
     private List<UserPermission> userPermissions;
@@ -97,11 +97,11 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         } catch (Throwable t) {
             LOGGER.fatal("error initializing PwmPasswordPolicy class: " + t.getMessage(), t);
         }
-        defaultPolicy = newDefaultPolicy;
+        DEFAULT_POLICY = newDefaultPolicy;
     }
 
     public static PwmPasswordPolicy defaultPolicy() {
-        return defaultPolicy;
+        return DEFAULT_POLICY;
     }
 
 
@@ -139,7 +139,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         return policyMap.get(rule.getKey());
     }
 
-    public void setProfileID(String profileID) {
+    public void setProfileID(final String profileID) {
         this.profileID = profileID;
     }
 
@@ -147,7 +147,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         return userPermissions;
     }
 
-    public void setUserPermissions(List<UserPermission> userPermissions) {
+    public void setUserPermissions(final List<UserPermission> userPermissions) {
         this.userPermissions = userPermissions;
     }
 
@@ -155,7 +155,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         return ruleText;
     }
 
-    public void setRuleText(String ruleText) {
+    public void setRuleText(final String ruleText) {
         this.ruleText = ruleText;
     }
 
@@ -227,6 +227,10 @@ public class PwmPasswordPolicy implements Profile,Serializable {
                                     newPasswordPolicies.put(ruleKey, String.valueOf(localValue && otherValue));
                                 }
                                 break;
+
+                            default:
+                                //continue processing
+                                break;
                         }
                 }
             }
@@ -287,7 +291,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
             return chaiRuleHelper.getDisallowedValues();
         }
 
-        public List<String> getDisallowedAttributes(Flag ... flags) {
+        public List<String> getDisallowedAttributes(final Flag ... flags) {
             final List<String> disallowedAttributes = chaiRuleHelper.getDisallowedAttributes();
 
             if (Helper.enumArrayContainsValue(flags, Flag.KeepThresholds)) {
@@ -313,11 +317,11 @@ public class PwmPasswordPolicy implements Profile,Serializable {
             }
         }
 
-        public List<Pattern> getRegExMatch(MacroMachine macroMachine) {
+        public List<Pattern> getRegExMatch(final MacroMachine macroMachine) {
             return readRegExSetting(PwmPasswordRule.RegExMatch, macroMachine);
         }
 
-        public List<Pattern> getRegExNoMatch(MacroMachine macroMachine) {
+        public List<Pattern> getRegExNoMatch(final MacroMachine macroMachine) {
             return readRegExSetting(PwmPasswordRule.RegExNoMatch, macroMachine);
         }
 
@@ -349,7 +353,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
             return StringHelper.convertStrToBoolean(value);
         }
 
-        private List<Pattern> readRegExSetting(final PwmPasswordRule rule, MacroMachine macroMachine) {
+        private List<Pattern> readRegExSetting(final PwmPasswordRule rule, final MacroMachine macroMachine) {
             final String input = passwordPolicy.policyMap.get(rule.getKey());
 
             return readRegExSetting(rule, macroMachine, input);

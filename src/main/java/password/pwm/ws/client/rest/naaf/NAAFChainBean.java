@@ -35,7 +35,7 @@ class NAAFChainBean implements Serializable {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -43,7 +43,7 @@ class NAAFChainBean implements Serializable {
         return is_trusted;
     }
 
-    public void setIs_trusted(boolean is_trusted) {
+    public void setIs_trusted(final boolean is_trusted) {
         this.is_trusted = is_trusted;
     }
 
@@ -51,7 +51,7 @@ class NAAFChainBean implements Serializable {
         return short_name;
     }
 
-    public void setShort_name(String short_name) {
+    public void setShort_name(final String short_name) {
         this.short_name = short_name;
     }
 
@@ -59,7 +59,7 @@ class NAAFChainBean implements Serializable {
         return methods;
     }
 
-    public void setMethods(List<String> methods) {
+    public void setMethods(final List<String> methods) {
         this.methods = methods;
     }
 }

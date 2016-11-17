@@ -34,7 +34,11 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.*;
+import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.FormUtility;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -64,7 +68,16 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Servlet for creating new guest users (helpdesk/admin registration)
@@ -155,6 +168,9 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                 case selectPage:
                     handleSelectPageRequest(pwmRequest, guestRegistrationBean);
                     return;
+
+                default:
+                    Helper.unhandledSwitchStatement(action);
             }
         }
 
@@ -477,7 +493,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
 
         final String expirationDateStr = pwmRequest.readParameterAsString(HTTP_PARAM_EXPIRATION_DATE);
 
-        Date expirationDate;
+        final Date expirationDate;
         try {
             expirationDate = new SimpleDateFormat("yyyy-MM-dd").parse(expirationDateStr);
         } catch (ParseException e) {
@@ -550,10 +566,10 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         calculateFutureDateFlags(pwmRequest, guestRegistrationBean);
         if (Page.search == guestRegistrationBean.getCurrentPage()) {
             pwmRequest.addFormInfoToRequestAttr(PwmSetting.GUEST_UPDATE_FORM, false, false);
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.GUEST_UPDATE_SEARCH);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.GUEST_UPDATE_SEARCH);
         } else {
             pwmRequest.addFormInfoToRequestAttr(PwmSetting.GUEST_FORM, false, false);
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.GUEST_REGISTRATION);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.GUEST_REGISTRATION);
         }
     }
 
@@ -572,7 +588,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         }
 
         pwmRequest.addFormInfoToRequestAttr(guestUpdateForm, formValueMap, false, false);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.GUEST_UPDATE);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.GUEST_UPDATE);
     }
 
     private static void checkConfiguration(final Configuration configuration)
@@ -597,7 +613,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         }
     }
 
-    private void calculateFutureDateFlags(final PwmRequest pwmRequest, GuestRegistrationBean guestRegistrationBean) {
+    private void calculateFutureDateFlags(final PwmRequest pwmRequest, final GuestRegistrationBean guestRegistrationBean) {
         final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
         final long maxValidDays = pwmRequest.getConfig().readSettingAsLong(PwmSetting.GUEST_MAX_VALID_DAYS);
@@ -607,8 +623,8 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         final String maxExpirationDate;
         {
             if (maxValidDays > 0) {
-                long futureMS = maxValidDays * 24 * 60 * 60 * 1000;
-                Date maxValidDate = new Date(new Date().getTime() + (futureMS));
+                final long futureMS = maxValidDays * 24 * 60 * 60 * 1000;
+                final Date maxValidDate = new Date(new Date().getTime() + (futureMS));
                 maxExpirationDate = DATE_FORMAT.format(maxValidDate);
             } else {
                 maxExpirationDate = "";
@@ -617,9 +633,9 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         }
         final String currentExpirationDate;
         {
-            String selectedDate = guestRegistrationBean.getFormValues().get(HTTP_PARAM_EXPIRATION_DATE);
+            final String selectedDate = guestRegistrationBean.getFormValues().get(HTTP_PARAM_EXPIRATION_DATE);
             if (selectedDate == null || selectedDate.isEmpty()) {
-                Date currentDate = guestRegistrationBean.getUpdateUserExpirationDate();
+                final Date currentDate = guestRegistrationBean.getUpdateUserExpirationDate();
 
                 if (currentDate == null) {
                     currentExpirationDate = maxExpirationDate;

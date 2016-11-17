@@ -31,7 +31,12 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.*;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -86,13 +91,13 @@ public class PwmHttpClient {
     private final SessionLabel sessionLabel;
     private final PwmHttpClientConfiguration pwmHttpClientConfiguration;
 
-    public PwmHttpClient(PwmApplication pwmApplication, SessionLabel sessionLabel) {
+    public PwmHttpClient(final PwmApplication pwmApplication, final SessionLabel sessionLabel) {
         this.pwmApplication = pwmApplication;
         this.sessionLabel = sessionLabel;
         this.pwmHttpClientConfiguration = new PwmHttpClientConfiguration.Builder().setCertificate(null).create();
     }
 
-    public PwmHttpClient(PwmApplication pwmApplication, SessionLabel sessionLabel, final PwmHttpClientConfiguration pwmHttpClientConfiguration) {
+    public PwmHttpClient(final PwmApplication pwmApplication, final SessionLabel sessionLabel, final PwmHttpClientConfiguration pwmHttpClientConfiguration) {
         this.pwmApplication = pwmApplication;
         this.sessionLabel = sessionLabel;
         this.pwmHttpClientConfiguration = pwmHttpClientConfiguration;
@@ -107,7 +112,7 @@ public class PwmHttpClient {
     public static HttpClient getHttpClient(final Configuration configuration, final PwmHttpClientConfiguration pwmHttpClientConfiguration)
             throws PwmUnrecoverableException
     {
-        HttpClientBuilder clientBuilder = HttpClientBuilder.create();
+        final HttpClientBuilder clientBuilder = HttpClientBuilder.create();
         clientBuilder.setUserAgent(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION);
         final boolean httpClientPromiscuousEnable = Boolean.parseBoolean(configuration.readAppProperty(AppProperty.SECURITY_HTTP_PROMISCUOUS_ENABLE));
 
@@ -116,13 +121,13 @@ public class PwmHttpClient {
                 clientBuilder.setSSLContext(promiscuousSSLContext());
                 clientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE);
             } else if (pwmHttpClientConfiguration != null && pwmHttpClientConfiguration.getCertificates() != null) {
-                SSLContext sslContext = SSLContext.getInstance("SSL");
-                TrustManager trustManager = new X509Utils.CertMatchingTrustManager(configuration, pwmHttpClientConfiguration.getCertificates());
+                final SSLContext sslContext = SSLContext.getInstance("SSL");
+                final TrustManager trustManager = new X509Utils.CertMatchingTrustManager(configuration, pwmHttpClientConfiguration.getCertificates());
                 sslContext.init(null, new TrustManager[]{ trustManager }, new SecureRandom());
 
-                SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
-                Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create().register("https", sslConnectionFactory).build();
-                HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
+                final SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+                final Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create().register("https", sslConnectionFactory).build();
+                final HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
 
                 clientBuilder.setSSLSocketFactory(sslConnectionFactory);
                 clientBuilder.setConnectionManager(ccm);
@@ -133,20 +138,20 @@ public class PwmHttpClient {
 
         final String proxyUrl = configuration.readSettingAsString(PwmSetting.HTTP_PROXY_URL);
         if (proxyUrl != null && proxyUrl.length() > 0) {
-            URI proxyURI = URI.create(proxyUrl);
-            String host = proxyURI.getHost();
-            int port = proxyURI.getPort();
+            final URI proxyURI = URI.create(proxyUrl);
+            final String host = proxyURI.getHost();
+            final int port = proxyURI.getPort();
 
             clientBuilder.setProxy(new HttpHost(host, port));
 
             final String userInfo = proxyURI.getUserInfo();
             if (userInfo != null && userInfo.length() > 0) {
-                String[] parts = userInfo.split(":");
+                final String[] parts = userInfo.split(":");
 
-                String username = parts[0];
-                String password = (parts.length > 1) ? parts[1] : "";
+                final String username = parts[0];
+                final String password = (parts.length > 1) ? parts[1] : "";
 
-                CredentialsProvider credsProvider = new BasicCredentialsProvider();
+                final CredentialsProvider credsProvider = new BasicCredentialsProvider();
                 credsProvider.setCredentials(new AuthScope(host, port), new UsernamePasswordCredentials(username, password));
                 clientBuilder.setDefaultCredentialsProvider(credsProvider);
                 clientBuilder.setProxyAuthenticationStrategy(new ProxyAuthenticationStrategy());
@@ -277,7 +282,7 @@ public class PwmHttpClient {
 
     protected static SSLContext promiscuousSSLContext() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
         return new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-            public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+            public boolean isTrusted(final X509Certificate[] arg0, final String arg1) throws CertificateException {
                 return true;
             }
         }).build();

@@ -103,8 +103,8 @@ public enum PwmServletDefinition {
         return pwmServletClass;
     }
 
-    private WebServlet getWebServletAnnotation(Class<? extends PwmServlet> pwmServletClass) throws PwmUnrecoverableException {
-        for (Annotation annotation : pwmServletClass.getDeclaredAnnotations()) {
+    private WebServlet getWebServletAnnotation(final Class<? extends PwmServlet> pwmServletClass) throws PwmUnrecoverableException {
+        for (final Annotation annotation : pwmServletClass.getDeclaredAnnotations()) {
             if (annotation instanceof WebServlet) {
                 return (WebServlet)annotation;
             }

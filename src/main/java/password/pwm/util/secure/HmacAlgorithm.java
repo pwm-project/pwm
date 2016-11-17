@@ -30,7 +30,7 @@ enum HmacAlgorithm {
     private final PwmSecurityKey.Type keyType;
     private final int length;
 
-    HmacAlgorithm(String algorithmName, PwmSecurityKey.Type keyType, int length) {
+    HmacAlgorithm(final String algorithmName, final PwmSecurityKey.Type keyType, final int length) {
         this.algorithmName = algorithmName;
         this.keyType = keyType;
         this.length = length;

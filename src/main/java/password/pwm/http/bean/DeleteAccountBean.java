@@ -37,7 +37,7 @@ public class DeleteAccountBean extends PwmSessionBean {
         return agreementPassed;
     }
 
-    public void setAgreementPassed(boolean agreementPassed) {
+    public void setAgreementPassed(final boolean agreementPassed) {
         this.agreementPassed = agreementPassed;
     }
 

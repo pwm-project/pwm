@@ -29,16 +29,16 @@ import password.pwm.error.PwmUnrecoverableException;
 import java.util.Iterator;
 
 interface TokenMachine {
-    String generateToken(final SessionLabel sessionLabel, final TokenPayload tokenPayload)
+    String generateToken( SessionLabel sessionLabel,  TokenPayload tokenPayload)
             throws PwmUnrecoverableException, PwmOperationalException;
 
-    TokenPayload retrieveToken(final String tokenKey)
+    TokenPayload retrieveToken( String tokenKey)
             throws PwmOperationalException, PwmUnrecoverableException;
 
-    void storeToken(final String tokenKey, final TokenPayload tokenPayload)
+    void storeToken( String tokenKey,  TokenPayload tokenPayload)
             throws PwmOperationalException, PwmUnrecoverableException;
 
-    void removeToken(final String tokenKey)
+    void removeToken( String tokenKey)
             throws PwmOperationalException, PwmUnrecoverableException;
 
     int size()

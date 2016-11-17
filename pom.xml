@@ -11,6 +11,8 @@
     <version>1.8.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
+    <name>PWM Password Self Service</name>
+
     <licenses>
         <license>
             <name>The GNU General Public License (GPL) Version 2</name>
@@ -40,6 +42,12 @@
             <id>notests</id>
             <properties>
                 <skipTests>true</skipTests>
+            </properties>
+        </profile>
+        <profile>
+            <id>nojavadocs</id>
+            <properties>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
             </properties>
         </profile>
         <profile>
@@ -153,10 +161,36 @@
                 <version>2.6</version>
                 <configuration>
                     <archiveClasses>true</archiveClasses>
-                    <!--
                     <packagingExcludes>WEB-INF/classes</packagingExcludes>
-                    -->
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.17</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>7.2</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <configLocation>checkstyle.xml</configLocation>
+                            <encoding>UTF-8</encoding>
+                            <consoleOutput>true</consoleOutput>
+                            <includeTestResources>false</includeTestResources>
+                            <failsOnError>true</failsOnError>
+                        </configuration>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -226,7 +260,7 @@
                         <artifactId>jspc-compiler-tomcat7</artifactId>
                         <version>2.0.2</version>
                     </dependency>
-                </dependencies>
+				</dependencies>
                 <configuration>
                     <includeInProject>false</includeInProject>
                 </configuration>
@@ -246,6 +280,7 @@
                     <filesets>
                         <fileset><directory>src/main/angular/dist</directory></fileset>
                         <fileset><directory>src/main/angular/node_modules</directory></fileset>
+                        <fileset><directory>src/main/webapp/public/resources/app</directory></fileset>
                     </filesets>
                 </configuration>
                 <executions>
@@ -424,6 +459,18 @@
                         </goals>
                         <configuration>
                             <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+
+                    <!-- run TypeScript compiler (You can execute directly using: "mvn frontend:npm@run-sync") -->
+                    <execution>
+                        <id>run-sync</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run sync</arguments>
                         </configuration>
                     </execution>
                 </executions>

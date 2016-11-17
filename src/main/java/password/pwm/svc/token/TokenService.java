@@ -26,7 +26,11 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.*;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SessionLabel;
+import password.pwm.bean.SmsItemBean;
+import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -34,7 +38,11 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.NewUserProfile;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
@@ -56,7 +64,14 @@ import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.SecureEngine;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -156,6 +171,9 @@ public class TokenService implements PwmService {
                     tokenMachine = new LdapTokenMachine(this, pwmApplication);
                     usedStorageMethod = DataStorageMethod.LDAP;
                     break;
+
+                default:
+                    Helper.unhandledSwitchStatement(storageMethod);
             }
             serviceInfo = new ServiceInfo(Collections.singletonList(usedStorageMethod));
         } catch (PwmException e) {
@@ -175,7 +193,12 @@ public class TokenService implements PwmService {
 
         final TimerTask cleanerTask = new CleanerTask();
 
-        final long cleanerFrequency = (maxTokenAgeMS*0.5) > MAX_CLEANER_INTERVAL_MS ? MAX_CLEANER_INTERVAL_MS : (maxTokenAgeMS*0.5) < MIN_CLEANER_INTERVAL_MS ? MIN_CLEANER_INTERVAL_MS : (long)(maxTokenAgeMS*0.5);
+        final long cleanerFrequency = (maxTokenAgeMS*0.5) > MAX_CLEANER_INTERVAL_MS
+                ? MAX_CLEANER_INTERVAL_MS
+                : (maxTokenAgeMS*0.5) < MIN_CLEANER_INTERVAL_MS
+                ? MIN_CLEANER_INTERVAL_MS
+                : (long)(maxTokenAgeMS*0.5);
+
         executorService.scheduleAtFixedRate(cleanerTask, 10 * 1000, cleanerFrequency, TimeUnit.MILLISECONDS);
         LOGGER.trace("token cleanup will occur every " + TimeDuration.asCompactString(cleanerFrequency));
 
@@ -349,7 +372,7 @@ public class TokenService implements PwmService {
     {
         final long startTime = System.currentTimeMillis();
         int cleanedTokens = 0;
-        List<String> tempKeyList = new ArrayList<>();
+        final List<String> tempKeyList = new ArrayList<>();
         final int purgeBatchSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.TOKEN_PURGE_BATCH_SIZE));
         tempKeyList.addAll(discoverPurgeableTokenKeys(purgeBatchSize));
         while (status() == STATUS.OPEN && !tempKeyList.isEmpty()) {
@@ -386,7 +409,11 @@ public class TokenService implements PwmService {
             LOGGER.error("unexpected error while cleaning expired stored tokens: " + e.getMessage());
         } finally {
             if (keyIterator != null && storageMethod == TokenStorageMethod.STORE_LOCALDB) {
-                try {((LocalDB.LocalDBIterator)keyIterator).close(); } catch (Exception e) {LOGGER.error("unexpected error returning LocalDB token DB iterator: " + e.getMessage());}
+                try {
+                    ((LocalDB.LocalDBIterator)keyIterator).close();
+                } catch (Exception e) {
+                    LOGGER.error("unexpected error returning LocalDB token DB iterator: " + e.getMessage());
+                }
             }
         }
 
@@ -545,7 +572,7 @@ public class TokenService implements PwmService {
             LOGGER.debug(pwmSession, errorInformation.toDebugStr());
 
             if (sessionUserIdentity != null) {
-                SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession, null);
+                final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession, null);
                 sessionAuthenticator.simulateBadPassword(sessionUserIdentity);
                 pwmApplication.getIntruderManager().convenience().markUserIdentity(sessionUserIdentity, pwmSession);
             }
@@ -564,7 +591,7 @@ public class TokenService implements PwmService {
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        TokenPayload tokenPayload;
+        final TokenPayload tokenPayload;
         try {
             tokenPayload = pwmApplication.getTokenService().retrieveTokenData(userEnteredCode);
         } catch (PwmOperationalException e) {

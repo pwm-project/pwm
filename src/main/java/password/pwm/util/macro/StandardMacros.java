@@ -41,13 +41,20 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 public abstract class StandardMacros {
     private static final PwmLogger LOGGER = PwmLogger.forClass(StandardMacros.class);
 
     public static final Map<Class<? extends MacroImplementation>,MacroImplementation.Scope> STANDARD_MACROS;
+
     static {
         final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> defaultMacros = new LinkedHashMap<>();
 
@@ -113,7 +120,7 @@ public abstract class StandardMacros {
                     throw new MacroParseException("error parsing length parameter: " + e.getMessage());
                 }
 
-                int maxLengthPermitted = Integer.parseInt(macroRequestInfo.getPwmApplication().getConfig().readAppProperty(AppProperty.MACRO_LDAP_ATTR_CHAR_MAX_LENGTH));
+                final int maxLengthPermitted = Integer.parseInt(macroRequestInfo.getPwmApplication().getConfig().readAppProperty(AppProperty.MACRO_LDAP_ATTR_CHAR_MAX_LENGTH));
                 if (length > maxLengthPermitted) {
                     throw new MacroParseException("maximum permitted length of LDAP attribute (" + maxLengthPermitted + ") exceeded");
                 } else if (length <= 0) {
@@ -151,7 +158,9 @@ public abstract class StandardMacros {
                 }
             }
 
-            String returnValue = ldapValue == null ? "" : ldapValue;
+            String returnValue = ldapValue == null
+                    ? ""
+                    : ldapValue;
             if (length > 0 && length < returnValue.length()) {
                 returnValue = returnValue.substring(0, length);
             }
@@ -491,7 +500,7 @@ public abstract class StandardMacros {
             final List<String> parameters = splitMacroParameters(matchValue,"RandomChar");
             int length = 1;
             if (parameters.size() > 0 && !parameters.get(0).isEmpty()) {
-                int maxLengthPermitted = Integer.parseInt(macroRequestInfo.getPwmApplication().getConfig().readAppProperty(AppProperty.MACRO_RANDOM_CHAR_MAX_LENGTH));
+                final int maxLengthPermitted = Integer.parseInt(macroRequestInfo.getPwmApplication().getConfig().readAppProperty(AppProperty.MACRO_RANDOM_CHAR_MAX_LENGTH));
                 try {
                     length = Integer.parseInt(parameters.get(0));
                     if (length > maxLengthPermitted) {
@@ -536,7 +545,8 @@ public abstract class StandardMacros {
                         + parameters.size() + ", should be 2");
             }
 
-            final int min, max;
+            final int min;
+            final int max;
             try {
                 min = Integer.parseInt(parameters.get(0));
             } catch (NumberFormatException e) {
@@ -557,6 +567,7 @@ public abstract class StandardMacros {
             return String.valueOf(PwmRandom.getInstance().nextInt(range) + min);
         }
     }
+
     public static class UUIDMacro extends AbstractMacro {
         private static final Pattern PATTERN = Pattern.compile("@UUID@");
 
@@ -576,7 +587,7 @@ public abstract class StandardMacros {
         private static final Pattern PATTERN = Pattern.compile("@Encode:[^:]+:\\[\\[.*\\]\\]@");
         // @Encode:ENCODE_TYPE:value@
 
-        private enum ENCODE_TYPE {
+        private enum EncodeType {
             urlPath,
             urlParameter,
             base64,
@@ -599,8 +610,8 @@ public abstract class StandardMacros {
                 }
             }
 
-            private static ENCODE_TYPE forString(final String input) {
-                for (final ENCODE_TYPE encodeType : ENCODE_TYPE.values()) {
+            private static EncodeType forString(final String input) {
+                for (final EncodeType encodeType : EncodeType.values()) {
                     if (encodeType.toString().equalsIgnoreCase(input)) {
                         return encodeType;
                     }
@@ -631,7 +642,7 @@ public abstract class StandardMacros {
             }
 
             final String encodeMethodStr = colonParts[1];
-            final ENCODE_TYPE encodeType = ENCODE_TYPE.forString(encodeMethodStr);
+            final EncodeType encodeType = EncodeType.forString(encodeMethodStr);
             if (encodeType == null) {
                 throw new MacroParseException("unknown encodeType '" + encodeMethodStr + "' for Encode macro");
             }

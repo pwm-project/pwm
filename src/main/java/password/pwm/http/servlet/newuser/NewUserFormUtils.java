@@ -48,7 +48,7 @@ class NewUserFormUtils {
     private static final PwmLogger LOGGER = PwmLogger.forClass(NewUserFormUtils.class);
 
 
-    static NewUserBean.NewUserForm readFromRequest(PwmRequest pwmRequest)
+    static NewUserBean.NewUserForm readFromRequest(final PwmRequest pwmRequest)
             throws PwmDataValidationException, PwmUnrecoverableException
     {
         final Locale userLocale = pwmRequest.getLocale();
@@ -134,7 +134,7 @@ class NewUserFormUtils {
 
     static Map<String, String> toTokenPayload(
             final PwmRequest pwmRequest,
-            NewUserBean.NewUserForm newUserForm
+            final NewUserBean.NewUserForm newUserForm
     )
             throws PwmUnrecoverableException
     {

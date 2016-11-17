@@ -29,7 +29,12 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -43,16 +48,16 @@ public abstract class AbstractPwmFilter implements Filter {
     }
 
     @Override
-    public void init(FilterConfig filterConfig)
+    public void init(final FilterConfig filterConfig)
             throws ServletException
     {
     }
 
     @Override
     public void doFilter(
-            ServletRequest servletRequest,
-            ServletResponse servletResponse,
-            FilterChain filterChain
+            final ServletRequest servletRequest,
+            final ServletResponse servletResponse,
+            final FilterChain filterChain
     )
             throws IOException, ServletException
     {
@@ -100,15 +105,15 @@ public abstract class AbstractPwmFilter implements Filter {
     }
 
     abstract void processFilter(
-            final PwmApplicationMode mode,
-            final PwmRequest pwmRequest,
-            final PwmFilterChain filterChain
+             PwmApplicationMode mode,
+             PwmRequest pwmRequest,
+             PwmFilterChain filterChain
     )
             throws PwmException, IOException, ServletException;
 
     abstract boolean isInterested(
-            final PwmApplicationMode mode,
-            final PwmURL pwmURL
+             PwmApplicationMode mode,
+             PwmURL pwmURL
     );
 
     @Override
@@ -122,9 +127,9 @@ public abstract class AbstractPwmFilter implements Filter {
         private final FilterChain filterChain;
 
         public PwmFilterChain(
-                ServletRequest servletRequest,
-                ServletResponse servletResponse,
-                FilterChain filterChain
+                final ServletRequest servletRequest,
+                final ServletResponse servletResponse,
+                final FilterChain filterChain
         )
         {
             this.servletRequest = servletRequest;

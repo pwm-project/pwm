@@ -99,11 +99,11 @@ public class HealthRecord implements Serializable,Comparable<HealthRecord> {
         this.old_detail = null;
     }
 
-    public static HealthRecord forMessage(HealthMessage message) {
+    public static HealthRecord forMessage(final HealthMessage message) {
         return new HealthRecord(message.getStatus(), message.getTopic(), message, null);
     }
 
-    public static HealthRecord forMessage(HealthMessage message, String... fields) {
+    public static HealthRecord forMessage(final HealthMessage message, final String... fields) {
         return new HealthRecord(message.getStatus(), message.getTopic(), message, fields);
     }
 
@@ -161,7 +161,7 @@ public class HealthRecord implements Serializable,Comparable<HealthRecord> {
     ) {
         final List<password.pwm.ws.server.rest.bean.HealthRecord> healthRecordBeans = password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords(
                 profileRecords, locale, configuration);
-        HealthData healthData = new HealthData();
+        final HealthData healthData = new HealthData();
         healthData.timestamp = new Date();
         healthData.overall = HealthMonitor.getMostSevereHealthStatus(profileRecords).toString();
         healthData.records = healthRecordBeans;

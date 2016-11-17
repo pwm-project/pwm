@@ -35,7 +35,7 @@ public class CacheStoreInfo implements Serializable {
         return storeCount;
     }
 
-    public void setStoreCount(int storeCount) {
+    public void setStoreCount(final int storeCount) {
         this.storeCount = storeCount;
     }
 
@@ -43,7 +43,7 @@ public class CacheStoreInfo implements Serializable {
         return readCount;
     }
 
-    public void setReadCount(int readCount) {
+    public void setReadCount(final int readCount) {
         this.readCount = readCount;
     }
 
@@ -51,7 +51,7 @@ public class CacheStoreInfo implements Serializable {
         return hitCount;
     }
 
-    public void setHitCount(int hitCount) {
+    public void setHitCount(final int hitCount) {
         this.hitCount = hitCount;
     }
 
@@ -59,7 +59,7 @@ public class CacheStoreInfo implements Serializable {
         return missCount;
     }
 
-    public void setMissCount(int missCount) {
+    public void setMissCount(final int missCount) {
         this.missCount = missCount;
     }
 
@@ -67,7 +67,7 @@ public class CacheStoreInfo implements Serializable {
         return itemCount;
     }
 
-    public void setItemCount(int itemCount) {
+    public void setItemCount(final int itemCount) {
         this.itemCount = itemCount;
     }
 }

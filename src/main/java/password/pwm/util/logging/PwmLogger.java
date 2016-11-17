@@ -34,6 +34,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 
 import java.io.IOException;
@@ -131,7 +132,7 @@ public class PwmLogger {
             } catch (PwmUnrecoverableException e1) {
                 /* can't be logged */
             }
-        };
+        }
         doLogEvent(level, sessionLabel, cleanedMessage, e);
     }
 
@@ -202,6 +203,9 @@ public class PwmLogger {
                 case FATAL:
                     log4jLogger.fatal(wrappedMessage, throwable);
                     break;
+
+                default:
+                    Helper.unhandledSwitchStatement(level);
             }
         } else {
             System.err.println(logEvent.toLogString());
@@ -405,8 +409,8 @@ public class PwmLogger {
         private StringBuilder buffer = new StringBuilder();
 
         private PwmLoggerAppendable(
-                PwmLogLevel logLevel,
-                SessionLabel sessionLabel
+                final PwmLogLevel logLevel,
+                final SessionLabel sessionLabel
         )
         {
             this.logLevel = logLevel;
@@ -414,7 +418,7 @@ public class PwmLogger {
         }
 
         @Override
-        public Appendable append(CharSequence csq)
+        public Appendable append(final CharSequence csq)
                 throws IOException
         {
 
@@ -424,9 +428,9 @@ public class PwmLogger {
 
         @Override
         public Appendable append(
-                CharSequence csq,
-                int start,
-                int end
+                final CharSequence csq,
+                final int start,
+                final int end
         )
                 throws IOException
         {
@@ -435,14 +439,14 @@ public class PwmLogger {
         }
 
         @Override
-        public Appendable append(char c)
+        public Appendable append(final char c)
                 throws IOException
         {
             doAppend(String.valueOf(c));
             return this;
         }
 
-        private synchronized void doAppend(CharSequence charSequence) {
+        private synchronized void doAppend(final CharSequence charSequence) {
             buffer.append(charSequence);
 
             int length = buffer.indexOf("\n");

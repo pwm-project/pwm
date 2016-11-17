@@ -149,10 +149,10 @@ class RecordManagerImpl implements RecordManager {
         return new RecordIterator<>(recordStore.iterator());
     }
 
-    public static class RecordIterator<IntruderRecord> implements ClosableIterator<IntruderRecord> {
+    static class RecordIterator<IntruderRecord> implements ClosableIterator<IntruderRecord> {
         private ClosableIterator<IntruderRecord> innerIter;
 
-        public RecordIterator(final ClosableIterator<IntruderRecord> recordIterator) throws PwmOperationalException {
+        RecordIterator(final ClosableIterator<IntruderRecord> recordIterator) throws PwmOperationalException {
             this.innerIter = recordIterator;
         }
 

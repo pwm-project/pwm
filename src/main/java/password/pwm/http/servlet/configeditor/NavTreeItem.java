@@ -40,7 +40,7 @@ class NavTreeItem implements Serializable {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -48,7 +48,7 @@ class NavTreeItem implements Serializable {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -56,7 +56,7 @@ class NavTreeItem implements Serializable {
         return parent;
     }
 
-    public void setParent(String parent) {
+    public void setParent(final String parent) {
         this.parent = parent;
     }
 
@@ -64,7 +64,7 @@ class NavTreeItem implements Serializable {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(final String category) {
         this.category = category;
     }
 
@@ -72,7 +72,7 @@ class NavTreeItem implements Serializable {
         return type;
     }
 
-    public void setType(NavTreeHelper.NavItemType type) {
+    public void setType(final NavTreeHelper.NavItemType type) {
         this.type = type;
     }
 
@@ -80,7 +80,7 @@ class NavTreeItem implements Serializable {
         return profileSetting;
     }
 
-    public void setProfileSetting(String profileSetting) {
+    public void setProfileSetting(final String profileSetting) {
         this.profileSetting = profileSetting;
     }
 
@@ -88,7 +88,7 @@ class NavTreeItem implements Serializable {
         return menuLocation;
     }
 
-    public void setMenuLocation(String menuLocation) {
+    public void setMenuLocation(final String menuLocation) {
         this.menuLocation = menuLocation;
     }
 
@@ -96,7 +96,7 @@ class NavTreeItem implements Serializable {
         return keys;
     }
 
-    public void setKeys(Set<String> keys) {
+    public void setKeys(final Set<String> keys) {
         this.keys = keys;
     }
 
@@ -104,7 +104,7 @@ class NavTreeItem implements Serializable {
         return profile;
     }
 
-    public void setProfile(String profile) {
+    public void setProfile(final String profile) {
         this.profile = profile;
     }
 }

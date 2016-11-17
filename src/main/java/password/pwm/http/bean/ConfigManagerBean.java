@@ -55,7 +55,7 @@ public class ConfigManagerBean extends PwmSessionBean {
         return passwordVerified;
     }
 
-    public void setPasswordVerified(boolean passwordVerified) {
+    public void setPasswordVerified(final boolean passwordVerified) {
         this.passwordVerified = passwordVerified;
     }
 
@@ -64,7 +64,7 @@ public class ConfigManagerBean extends PwmSessionBean {
         return prePasswordEntryUrl;
     }
 
-    public void setPrePasswordEntryUrl(String prePasswordEntryUrl)
+    public void setPrePasswordEntryUrl(final String prePasswordEntryUrl)
     {
         this.prePasswordEntryUrl = prePasswordEntryUrl;
     }
@@ -73,7 +73,7 @@ public class ConfigManagerBean extends PwmSessionBean {
         return configUnlockedWarningShown;
     }
 
-    public void setConfigUnlockedWarningShown(boolean configUnlockedWarningShown) {
+    public void setConfigUnlockedWarningShown(final boolean configUnlockedWarningShown) {
         this.configUnlockedWarningShown = configUnlockedWarningShown;
     }
 

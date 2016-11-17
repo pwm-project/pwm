@@ -42,7 +42,7 @@ public class ActivateUserBean extends PwmSessionBean {
         return tokenIssued;
     }
 
-    public void setTokenIssued(boolean tokenIssued) {
+    public void setTokenIssued(final boolean tokenIssued) {
         this.tokenIssued = tokenIssued;
     }
 
@@ -50,7 +50,7 @@ public class ActivateUserBean extends PwmSessionBean {
         return agreementPassed;
     }
 
-    public void setAgreementPassed(boolean agreementPassed) {
+    public void setAgreementPassed(final boolean agreementPassed) {
         this.agreementPassed = agreementPassed;
     }
 
@@ -58,7 +58,7 @@ public class ActivateUserBean extends PwmSessionBean {
         return formValidated;
     }
 
-    public void setFormValidated(boolean formValidated) {
+    public void setFormValidated(final boolean formValidated) {
         this.formValidated = formValidated;
     }
 
@@ -66,7 +66,7 @@ public class ActivateUserBean extends PwmSessionBean {
         return tokenPassed;
     }
 
-    public void setTokenPassed(boolean tokenPassed) {
+    public void setTokenPassed(final boolean tokenPassed) {
         this.tokenPassed = tokenPassed;
     }
 
@@ -74,7 +74,7 @@ public class ActivateUserBean extends PwmSessionBean {
         return userIdentity;
     }
 
-    public void setUserIdentity(UserIdentity userIdentity) {
+    public void setUserIdentity(final UserIdentity userIdentity) {
         this.userIdentity = userIdentity;
     }
 
@@ -91,7 +91,7 @@ public class ActivateUserBean extends PwmSessionBean {
         return agreementText;
     }
 
-    public void setAgreementText(String agreementText)
+    public void setAgreementText(final String agreementText)
     {
         this.agreementText = agreementText;
     }

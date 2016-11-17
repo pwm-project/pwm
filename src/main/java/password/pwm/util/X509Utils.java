@@ -34,7 +34,11 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
-import javax.net.ssl.*;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -120,14 +124,15 @@ public abstract class X509Utils {
 
     private static class CertReaderTrustManager implements X509TrustManager {
         private X509Certificate[] certificates;
-        public void checkClientTrusted(X509Certificate[] chain, String authType)
+
+        public void checkClientTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {}
 
         public X509Certificate[] getAcceptedIssuers() {
             return null;
         }
 
-        public void checkServerTrusted(X509Certificate[] chain, String authType)
+        public void checkServerTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
             certificates = chain;
         }
@@ -142,15 +147,15 @@ public abstract class X509Utils {
             return new X509Certificate[0];
         }
 
-        public void checkClientTrusted(X509Certificate[] certs, String authType) {
+        public void checkClientTrusted(final X509Certificate[] certs, final String authType) {
             logMsg(certs,authType);
         }
 
-        public void checkServerTrusted(X509Certificate[] certs, String authType) {
+        public void checkServerTrusted(final X509Certificate[] certs, final String authType) {
             logMsg(certs,authType);
         }
 
-        private static void logMsg(X509Certificate[] certs, String authType) {
+        private static void logMsg(final X509Certificate[] certs, final String authType) {
             if (certs != null) {
                 for (final X509Certificate cert : certs) {
                     try {
@@ -174,19 +179,19 @@ public abstract class X509Utils {
         }
 
         @Override
-        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+        public void checkClientTrusted(final X509Certificate[] x509Certificates, final String s) throws CertificateException {
         }
 
         @Override
-        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+        public void checkServerTrusted(final X509Certificate[] x509Certificates, final String s) throws CertificateException {
             if (x509Certificates == null) {
                 final String errorMsg = "no certificates in configuration trust store for this operation";
                 throw new CertificateException(errorMsg);
             }
 
-            for (X509Certificate loopCert : x509Certificates) {
+            for (final X509Certificate loopCert : x509Certificates) {
                 boolean certTrusted = false;
-                for (X509Certificate storedCert : certificates) {
+                for (final X509Certificate storedCert : certificates) {
                     if (loopCert.equals(storedCert)) {
                         if (validateTimestamps) {
                             loopCert.checkValidity();
@@ -248,7 +253,7 @@ public abstract class X509Utils {
         IncludeCertificateDetail
     }
 
-    public static List<Map<String,String>> makeDebugInfoMap(final X509Certificate[] certificates, DebugInfoFlag... flags) {
+    public static List<Map<String,String>> makeDebugInfoMap(final X509Certificate[] certificates, final DebugInfoFlag... flags) {
         final List<Map<String,String>> returnList = new ArrayList<>();
         if (certificates != null) {
             for (final X509Certificate cert : certificates) {
@@ -258,7 +263,7 @@ public abstract class X509Utils {
         return returnList;
     }
 
-    public static Map<String,String> makeDebugInfoMap(final X509Certificate cert, DebugInfoFlag... flags) {
+    public static Map<String,String> makeDebugInfoMap(final X509Certificate cert, final DebugInfoFlag... flags) {
         final Map<String,String> returnMap = new LinkedHashMap<>();
         returnMap.put(CertDebugInfoKey.subject.toString(), cert.getSubjectDN().toString());
         returnMap.put(CertDebugInfoKey.serial.toString(), X509Utils.hexSerial(cert));

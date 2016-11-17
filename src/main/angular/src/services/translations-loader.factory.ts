@@ -1,18 +1,19 @@
-import { IQService } from 'angular';
 import 'angular-translate';
+import { IQService } from 'angular';
+import PwmService from './pwm.service';
 
-declare var PWM_GLOBAL: any;
+export default [
+    '$q',
+    'PwmService',
+    ($q: IQService, pwmService: PwmService) => {
+        return function () {
+            var deferred = $q.defer();
 
-export default ['$q', ($q: IQService) => {
-    // return loaderFn
-    return function (options) {
-        var deferred = $q.defer();
+            pwmService.startupFunctions.push(() => {
+                deferred.resolve(pwmService.localeStrings['Display']);
+            });
 
-        PWM_GLOBAL['startupFunctions'].push(() => {
-            deferred.resolve(PWM_GLOBAL['localeStrings']['Display']);
-        });
-
-        // resolve with translation data
-        return deferred.promise;
-    };
-}];
+            // resolve with translation data
+            return deferred.promise;
+        };
+    }];

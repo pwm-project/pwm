@@ -36,7 +36,7 @@ public class HealthData implements Serializable {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp)
+    public void setTimestamp(final Date timestamp)
     {
         this.timestamp = timestamp;
     }
@@ -46,7 +46,7 @@ public class HealthData implements Serializable {
         return overall;
     }
 
-    public void setOverall(String overall)
+    public void setOverall(final String overall)
     {
         this.overall = overall;
     }
@@ -56,7 +56,7 @@ public class HealthData implements Serializable {
         return records;
     }
 
-    public void setRecords(List<HealthRecord> records)
+    public void setRecords(final List<HealthRecord> records)
     {
         this.records = records;
     }

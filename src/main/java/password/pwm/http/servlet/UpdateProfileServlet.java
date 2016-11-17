@@ -31,11 +31,20 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.*;
+import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.FormUtility;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.UpdateAttributesProfile;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -59,7 +68,15 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * User interaction servlet for updating user attributes
@@ -89,7 +106,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
         private final HttpMethod method;
 
-        UpdateProfileAction(HttpMethod method)
+        UpdateProfileAction(final HttpMethod method)
         {
             this.method = method;
         }
@@ -154,6 +171,9 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
                 case enterCode:
                     handleEnterCodeRequest(pwmRequest, updateProfileBean);
                     break;
+
+                default:
+                    Helper.unhandledSwitchStatement(action);
             }
         }
 
@@ -218,7 +238,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(updateProfileAgreementText);
                 pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText, expandedText);
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_AGREEMENT);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.UPDATE_ATTRIBUTES_AGREEMENT);
                 return;
             }
         }
@@ -265,7 +285,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
                     if (!updateProfileBean.getTokenVerificationProgress().getPassedTokens().contains(tokenChannel)) {
                         updateProfileBean.getTokenVerificationProgress().setPhase(tokenChannel);
-                        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_ENTER_CODE);
+                        pwmRequest.forwardToJsp(PwmConstants.JspUrl.UPDATE_ATTRIBUTES_ENTER_CODE);
                         return;
                     }
                 }
@@ -300,7 +320,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
         if (!updateProfileBean.isAgreementPassed()) {
             updateProfileBean.setAgreementPassed(true);
-            AuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
+            final AuditRecord auditRecord = new AuditRecordFactory(pwmRequest).createUserAuditRecord(
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getSessionLabel(),
@@ -481,7 +501,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         final List<FormConfiguration> form = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<FormConfiguration,String> formValueMap = formMapFromBean(updateAttributesProfile, updateProfileBean);
         pwmRequest.addFormInfoToRequestAttr(form, formValueMap, false, false);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.UPDATE_ATTRIBUTES);
     }
 
     static void forwardToConfirmForm(final PwmRequest pwmRequest, final UpdateAttributesProfile updateAttributesProfile, final UpdateProfileBean updateProfileBean)
@@ -490,7 +510,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         final List<FormConfiguration> form = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<FormConfiguration,String> formValueMap = formMapFromBean(updateAttributesProfile, updateProfileBean);
         pwmRequest.addFormInfoToRequestAttr(form, formValueMap, true, false);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_CONFIRM);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.UPDATE_ATTRIBUTES_CONFIRM);
     }
 
     static Map<FormConfiguration, String> formMapFromBean(final UpdateAttributesProfile updateAttributesProfile, final UpdateProfileBean updateProfileBean) throws PwmUnrecoverableException {
@@ -508,7 +528,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         return formValueMap;
     }
 
-    static Map<String,String> formDataFromLdap(final PwmRequest pwmRequest, UpdateAttributesProfile updateAttributesProfile)
+    static Map<String,String> formDataFromLdap(final PwmRequest pwmRequest, final UpdateAttributesProfile updateAttributesProfile)
             throws PwmUnrecoverableException
     {
         final UserDataReader userDataReader = pwmRequest.getPwmSession().getSessionManager().getUserDataReader(pwmRequest.getPwmApplication());
@@ -573,7 +593,8 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
         if (pwmApplication.getConfig().getTokenStorageMethod() == TokenStorageMethod.STORE_LDAP) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,null,new String[]{
-                    "cannot generate new user tokens when storage type is configured as STORE_LDAP."}));
+                    "cannot generate new user tokens when storage type is configured as STORE_LDAP.",
+            }));
         }
 
         final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmApplication);

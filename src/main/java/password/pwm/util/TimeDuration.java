@@ -27,6 +27,7 @@ import password.pwm.i18n.Display;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -78,6 +79,10 @@ public class TimeDuration implements Comparable, Serializable {
 
     public static TimeDuration fromCurrent(final Date date) {
         return new TimeDuration(System.currentTimeMillis(), date.getTime());
+    }
+
+    public static TimeDuration fromCurrent(final Instant instant) {
+        return new TimeDuration(System.currentTimeMillis(), instant.toEpochMilli());
     }
 
     public static String compactFromCurrent(final long ms) {

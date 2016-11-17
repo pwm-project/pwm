@@ -73,7 +73,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
     }
 
     @Override
-    boolean isInterested(PwmApplicationMode mode, PwmURL pwmURL) {
+    boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
         return !pwmURL.isResourceURL();
     }
 

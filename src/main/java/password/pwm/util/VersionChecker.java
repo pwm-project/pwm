@@ -48,7 +48,11 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 public class VersionChecker implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(VersionChecker.class);
@@ -184,7 +188,9 @@ public class VersionChecker implements PwmService {
         try {
             final Map<String,String> responseMap = doCurrentVersionFetch();
             versionCheckInfoCache = new VersionCheckInfoCache(null, responseMap.get(KEY_VERSION), responseMap.get(KEY_BUILD));
-            LOGGER.info("version check to " + VERSION_CHECK_URL +" completed, current-build=" + versionCheckInfoCache.getCurrentBuild() + ", current-version=" + versionCheckInfoCache.getCurrentVersion());
+            LOGGER.info("version check to " + VERSION_CHECK_URL +" completed, current-build="
+                    + versionCheckInfoCache.getCurrentBuild()
+                    + ", current-version=" + versionCheckInfoCache.getCurrentVersion());
         } catch (Exception e) {
             final String errorMsg = "unable to reach version check service '" + VERSION_CHECK_URL + "', error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNREACHABLE_CLOUD_SERVICE, errorMsg);
@@ -229,7 +235,7 @@ public class VersionChecker implements PwmService {
         final ArrayList<HealthRecord> returnRecords = new ArrayList<>();
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) { // version checking
-            VersionCheckInfoCache checkInfoCache = getVersionCheckInfo();
+            final VersionCheckInfoCache checkInfoCache = getVersionCheckInfo();
             if (checkInfoCache.getLastError() == null) {
                 if (!isVersionCurrent()) {
                     returnRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthTopic.Application,
@@ -251,7 +257,7 @@ public class VersionChecker implements PwmService {
         private String currentVersion;
         private String currentBuild;
 
-        private VersionCheckInfoCache(ErrorInformation lastError, String currentVersion, String currentBuild) {
+        private VersionCheckInfoCache(final ErrorInformation lastError, final String currentVersion, final String currentBuild) {
             this.lastCheckTimestamp = new Date();
             this.lastError = lastError;
             this.currentVersion = currentVersion;

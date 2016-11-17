@@ -74,7 +74,7 @@ public class JspThrowableHandlerTag extends TagSupport {
         Locale userLocale = PwmConstants.DEFAULT_LOCALE;
         Configuration configuration = null;
         try {
-            PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest)pageContext.getRequest(), (HttpServletResponse)pageContext.getResponse());
+            final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest)pageContext.getRequest(), (HttpServletResponse)pageContext.getResponse());
             userLocale = pwmRequest.getLocale();
             configuration = pwmRequest.getConfig();
         } catch (Exception e) {

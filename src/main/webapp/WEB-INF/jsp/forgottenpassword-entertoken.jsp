@@ -36,7 +36,7 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ForgottenPassword" displayIfMissing="true"/></div>
         <% final ForgottenPasswordBean fpb = JspUtility.getSessionBean(pageContext, ForgottenPasswordBean.class); %>
-        <% String destination = fpb.getProgress().getTokenSentAddress(); %>
+        <% final String destination = fpb.getProgress().getTokenSentAddress(); %>
         <p><pwm:display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>

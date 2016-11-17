@@ -41,7 +41,7 @@ public abstract class PwmSessionBean implements Serializable {
         return guid;
     }
 
-    public void setGuid(String guid) {
+    public void setGuid(final String guid) {
         this.guid = guid;
     }
 
@@ -49,7 +49,7 @@ public abstract class PwmSessionBean implements Serializable {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(final Date timestamp) {
         this.timestamp = timestamp;
     }
 

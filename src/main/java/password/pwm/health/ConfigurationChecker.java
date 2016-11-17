@@ -186,25 +186,6 @@ public class ConfigurationChecker implements HealthChecker {
             }
         }
 
-        {
-            final String novellUserAppURL = config.readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
-            if (novellUserAppURL != null && novellUserAppURL.length() > 0) {
-                try {
-                    final URI url = new URI(novellUserAppURL);
-                    final boolean secure = "https".equalsIgnoreCase(url.getScheme());
-                    if (!secure) {
-                        records.add(HealthRecord.forMessage(HealthMessage.Config_URLNotSecure,PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL.toMenuLocationDebug(null,locale)));
-                    }
-                } catch (URISyntaxException e) {
-                    records.add(HealthRecord.forMessage(HealthMessage.Config_ParseError,
-                            e.getMessage(),
-                            PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL.toMenuLocationDebug(null,locale),
-                            novellUserAppURL
-                    ));
-                }
-            }
-        }
-
 
         /*
         if (config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
@@ -248,8 +229,8 @@ public class ConfigurationChecker implements HealthChecker {
     static class VerifyResponseLdapAttribute implements ConfigHealthCheck {
         @Override
         public List<HealthRecord> healthCheck(
-                Configuration config,
-                Locale locale
+                final Configuration config,
+                final Locale locale
         ) {
             final List<HealthRecord> records = new ArrayList<>();
             final PwmSetting[] interestedSettings = new PwmSetting[]{PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE};
@@ -273,7 +254,7 @@ public class ConfigurationChecker implements HealthChecker {
 
     static class VerifyDbConfiguredIfNeeded implements ConfigHealthCheck {
         @Override
-        public List<HealthRecord> healthCheck(Configuration config, Locale locale) {
+        public List<HealthRecord> healthCheck(final Configuration config, final Locale locale) {
             final List<HealthRecord> records = new ArrayList<>();
             if (!config.hasDbConfigured()) {
                 if (config.helper().shouldHaveDbConfigured()) {
@@ -298,7 +279,7 @@ public class ConfigurationChecker implements HealthChecker {
 
     static class VerifyPasswordPolicyConfigs implements ConfigHealthCheck {
         @Override
-        public List<HealthRecord> healthCheck(Configuration config, Locale locale) {
+        public List<HealthRecord> healthCheck(final Configuration config, final Locale locale) {
             final List<HealthRecord> records = new ArrayList<>();
             for (final String profileID : config.getPasswordProfileIDs()) {
                 try {
@@ -314,7 +295,7 @@ public class ConfigurationChecker implements HealthChecker {
 
     interface ConfigHealthCheck {
         List<HealthRecord> healthCheck(
-                final Configuration configuration,
-                final Locale locale);
+                 Configuration configuration,
+                 Locale locale);
     }
 }
