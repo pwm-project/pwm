@@ -8,7 +8,10 @@ export default [
         $locationProvider: angular.ILocationProvider
     ) => {
         $urlRouterProvider.otherwise('/search/cards');
-        $locationProvider.html5Mode(true);
+        $locationProvider.html5Mode({
+            enabled: true,
+            requireBase: false
+        });
 
         $stateProvider.state('search', {
             url: '/search?query',

@@ -1,12 +1,9 @@
 import { IConfigService } from './config.service';
 import { IPromise, IQService } from 'angular';
-import PwmService from './pwm.service';
 
-export default class ConfigService extends PwmService implements IConfigService {
-    static $inject = ['$q'];
-    constructor(private $q: IQService) {
-        super();
-    }
+export default class ConfigService implements IConfigService {
+    static $inject = [ '$q' ];
+    constructor(private $q: IQService) {}
 
     getColumnConfiguration(): IPromise<any> {
         return this.$q.resolve({
