@@ -23,8 +23,8 @@
 
 import { IPeopleService } from '../services/people.service';
 import { IPromise, IScope } from 'angular';
-import SearchResult from '../models/search-result.model';
 import Person from '../models/person.model';
+import SearchResult from '../models/search-result.model';
 
 interface ISearchFunction {
     (query: string): IPromise<SearchResult>;
@@ -33,13 +33,14 @@ interface ISearchFunction {
 export default class PeopleSearchBaseComponent {
     query: string;
     searchFunction: ISearchFunction;
-    searchMessage: string;
+    searchMessage: (string | IPromise<string>);
     searchResult: SearchResult;
 
     protected constructor(protected $scope: IScope,
-                protected $state: angular.ui.IStateService,
-                protected $stateParams: angular.ui.IStateParamsService,
-                protected peopleService: IPeopleService) {}
+                          protected $state: angular.ui.IStateService,
+                          protected $stateParams: angular.ui.IStateParamsService,
+                          protected $translate: angular.translate.ITranslateService,
+                          protected peopleService: IPeopleService) {}
 
     gotoOrgchart(): void {
         this.$state.go('orgchart.index');
@@ -78,11 +79,15 @@ export default class PeopleSearchBaseComponent {
             return;
         }
 
+        var self = this;
+
         if (searchResult.sizeExceeded) {
-            this.searchMessage = `Only showing ${searchResult.people.length} results`;
+            this.$translate('TooManySearchResults', { numResults: searchResult.people.length })
+                .then((translation: string) => { self.searchMessage = translation; });
         }
         if (!searchResult.people.length) {
-            this.searchMessage = 'No results';
+            this.$translate('NoSearchResults')
+                .then((translation: string) => { self.searchMessage = translation; });
         }
     }
 

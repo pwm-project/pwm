@@ -6,5 +6,10 @@
   "Title_OrgChart": "Organizational Chart",
   "Title_Details": "Details",
 
-  "Display_PleaseWait": "Loading..."
+  "Display_PleaseWait": "Loading...",
+
+  "TooManySearchResults": "Only showing {{numResults}} results",
+  "NoSearchResults": "No results",
+
+  "SearchLabel": "Search"
 }

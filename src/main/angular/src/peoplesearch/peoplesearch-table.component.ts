@@ -34,13 +34,14 @@ import { IScope } from 'angular';
 export default class PeopleSearchTableComponent extends PeopleSearchBaseComponent {
     columnConfiguration: any;
 
-    static $inject = [ '$scope', '$state', '$stateParams', 'ConfigService', 'PeopleService' ];
+    static $inject = [ '$scope', '$state', '$stateParams', '$translate', 'ConfigService', 'PeopleService' ];
     constructor($scope: IScope,
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
+                $translate: angular.translate.ITranslateService,
                 private configService: IConfigService,
                 peopleService: IPeopleService) {
-        super($scope, $state, $stateParams, peopleService);
+        super($scope, $state, $stateParams, $translate, peopleService);
     }
 
     $onInit(): void {

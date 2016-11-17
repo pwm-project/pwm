@@ -32,12 +32,13 @@ import { IScope } from 'angular';
     templateUrl: require('peoplesearch/peoplesearch-cards.component.html')
 })
 export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponent {
-    static $inject = [ '$scope', '$state', '$stateParams', 'PeopleService' ];
+    static $inject = [ '$scope', '$state', '$stateParams', '$translate', 'PeopleService' ];
     constructor($scope: IScope,
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
+                $translate: angular.translate.ITranslateService,
                 peopleService: IPeopleService) {
-        super($scope, $state, $stateParams, peopleService);
+        super($scope, $state, $stateParams, $translate, peopleService);
     }
 
     $onInit(): void {
