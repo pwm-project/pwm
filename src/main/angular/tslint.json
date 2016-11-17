@@ -7,6 +7,10 @@
     ],
     "curly": true,
     "eofline": true,
+    "file-header": [
+      true,
+      "Copyright \\(c\\)"
+    ],
     "indent": [
       true,
       "spaces"
