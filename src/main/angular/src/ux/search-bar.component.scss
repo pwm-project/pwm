@@ -31,33 +31,44 @@ mf-search-bar {
   > input {
     border: 1px solid #dae1e1;
     border-radius: 2px;
+    box-sizing: border-box;
+    flex: 1 1 100%;
     height: 100%;
     line-height: 100%;
-    box-sizing: border-box;
+    padding: 0 0 0 20px;
     width: 100%;
   }
 
   > .placeholder {
-    color: rgba(0, 0, 0, 0.50);
-    left: 2px;
+    color: #808080;
+    left: 20px;
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
   }
 
   > mf-icon {
+    color: #808080;
     cursor: pointer;
     font-size: 16px;
     height: $mf-search-bar-height - 2px;
     padding: 0;
     position: absolute;
-    right: 1px;
     top: 50%;
     transform: translateY(-50%);
     width: $mf-search-bar-height - 2px;
 
-    &:hover {
-      color: #0088ce;
+    &.clear-input {
+      right: 1px;
+
+      &:hover {
+        color: #0088ce;
+      }
+    }
+
+    &.search-icon {
+      margin: 0 2px;
+      left: 0;
     }
   }
 }

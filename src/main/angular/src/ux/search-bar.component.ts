@@ -24,6 +24,8 @@
 import { Component } from '../component';
 import { IAugmentedJQuery, ICompileService, IScope, ITimeoutService } from 'angular';
 
+const FOCUSED_CLASS_NAME = 'mf-focused';
+
 @Component({
     bindings: {
         autoFocus: '@',
@@ -35,6 +37,7 @@ import { IAugmentedJQuery, ICompileService, IScope, ITimeoutService } from 'angu
 })
 export default class SearchBarComponent {
     autoFocus: boolean;
+    focused: boolean;
     searchText: string;
 
     static $inject = [ '$compile', '$element', '$scope', '$timeout' ];
@@ -69,7 +72,6 @@ export default class SearchBarComponent {
         switch (event.keyCode) {
             case 27: // Escape
                 this.clearSearchText();
-
                 break;
         }
     }

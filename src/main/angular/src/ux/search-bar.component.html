@@ -1,8 +1,10 @@
+<mf-icon class="search-icon" icon="magnify"></mf-icon>
 <input type="text"
-       ng-model="$ctrl.searchText"
        ng-keydown="$ctrl.onInputKeyDown($event)"
+       ng-model="$ctrl.searchText"
+       ng-trim="false"
        title="Search Box"
        autocomplete="off" />
-<span class="placeholder" ng-hide="$ctrl.searchText">{{$ctrl.placeholder || ('SearchLabel' | translate) }}</span>
-<mf-icon icon="close" ng-click="$ctrl.clearSearchText()"></mf-icon>
+<span class="placeholder" ng-hide="$ctrl.searchText.length">{{$ctrl.placeholder || ('SearchLabel' | translate) }}</span>
+<mf-icon class="clear-input" icon="close" ng-click="$ctrl.clearSearchText()"></mf-icon>
 <!-- loader graphic -->
