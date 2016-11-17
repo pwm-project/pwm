@@ -31,6 +31,7 @@ interface ISearchFunction {
 }
 
 export default class PeopleSearchBaseComponent {
+    loading: boolean;
     query: string;
     searchFunction: ISearchFunction;
     searchMessage: (string | IPromise<string>);
@@ -73,21 +74,22 @@ export default class PeopleSearchBaseComponent {
         this.$state.go('.details', { personId: person.userKey, query: this.query });
     }
 
-    protected setSearchMessage(searchResult: SearchResult) {
-        if (!searchResult) {
-            this.searchMessage = null;
+    protected setSearchMessage(message: (string | IPromise<string>)) {
+        if (!message) {
+            this.clearSearchMessage();
             return;
         }
 
-        var self = this;
-
-        if (searchResult.sizeExceeded) {
-            this.$translate('TooManySearchResults', { numResults: searchResult.people.length })
-                .then((translation: string) => { self.searchMessage = translation; });
+        if (typeof message === 'string') {
+            this.searchMessage = message;
         }
-        if (!searchResult.people.length) {
-            this.$translate('NoSearchResults')
-                .then((translation: string) => { self.searchMessage = translation; });
+        else {
+            var self = this;
+
+            message.then((translation: string) => {
+                self.searchMessage = translation;
+                // self.$scope.$apply();
+            });
         }
     }
 
@@ -99,11 +101,29 @@ export default class PeopleSearchBaseComponent {
             return;
         }
 
+        this.loading = true;
+
         this.searchFunction
             .call(this.peopleService, this.query)
             .then((searchResult: SearchResult) => {
                 self.searchResult = searchResult;
-                self.setSearchMessage(searchResult);
+                self.clearSearchMessage();
+
+                // Too many results returned
+                if (searchResult.sizeExceeded) {
+                    self.setSearchMessage(self.$translate('Display_SearchResultsExceeded'));
+                }
+                // No results returned. Not an else if statement so that the more important message is presented
+                if (!searchResult.people.length) {
+                    self.setSearchMessage(self.$translate('Display_SearchResultsNone'));
+                }
+            })
+            .finally(() => {
+                self.loading = false;
             });
+    }
+
+    private clearSearchMessage(): void  {
+        this.searchMessage = null;
     }
 }

@@ -4,6 +4,11 @@
   "files": [ "../images/icons/**/*.svg" ],
   "fixedWidth": true,
   "fontName": "icons",
+  "formatOptions": {
+    "ttf": {
+      "ts": 1451512800000
+    }
+  },
   "html": true,
   "normalize": true,
   "types": [ "eot", "woff", "ttf", "svg" ]

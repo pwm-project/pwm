@@ -26,6 +26,7 @@ var webpack = require('webpack');
 var webpackMerge = require('webpack-merge');
 
 module.exports = webpackMerge(commonConfig, {
+    devtool: 'source-map',
     entry: {
         'peoplesearch.ng': './src/main'
     },
@@ -46,7 +47,8 @@ module.exports = webpackMerge(commonConfig, {
     plugins: [
         new webpack.optimize.UglifyJsPlugin({
             compress: { warnings: false },
-            comments: false
+            comments: false,
+            sourceMap: true
         })
     ]
 });

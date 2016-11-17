@@ -35,7 +35,6 @@ module.exports = {
         port: 4000,
         historyApiFallback: true
     },
-    devtool: 'cheap-module-source-map',
     // Externals copied to /dist via CopyWebpackPlugin
     externals:
     {

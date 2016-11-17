@@ -43,9 +43,13 @@ module('app', [
     .config([
         '$translateProvider',
         ($translateProvider: angular.translate.ITranslateProvider) => {
-            $translateProvider.useLoader('translationsLoader');
-            $translateProvider.useSanitizeValueStrategy('escapeParameters');
-            $translateProvider.preferredLanguage('en');
+            $translateProvider
+                .translations('fallback', require('i18n/translations_en.json'))
+                .useLoader('translationsLoader')
+                .useSanitizeValueStrategy('escapeParameters')
+                .preferredLanguage('en')
+                .fallbackLanguage('fallback')
+                .forceAsyncReload(true);
         }])
     .service('PeopleService', PeopleService)
     .service('PwmService', PwmService)

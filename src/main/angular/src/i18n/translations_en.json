@@ -8,8 +8,8 @@
 
   "Display_PleaseWait": "Loading...",
 
-  "TooManySearchResults": "Only showing {{numResults}} results",
-  "NoSearchResults": "No results",
+  "Display_SearchResultsExceeded": "Search results exceeded maximum search size.",
+  "Display_SearchResultsNone": "No results.",
 
-  "SearchLabel": "Search"
+  "Placeholder_Search": "Search"
 }
