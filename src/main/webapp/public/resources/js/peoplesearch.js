@@ -220,12 +220,9 @@ PWM_PS.submitLikeUserSearch = function(value) {
 
 PWM_PS.showUserDetail = function(userKey) {
     console.log('beginning showUserDetail, userKey=' + userKey);
-    var sendData = {
-        userKey:userKey
-    };
     PWM_MAIN.showWaitDialog({
         loadFunction:function(){
-            var url = "PeopleSearch?processAction=detail";
+            var url = "PeopleSearch?processAction=detail&userKey=" + userKey;
             var loadFunction = function(data) {
                 if (data['error'] == true) {
                     PWM_MAIN.closeWaitDialog();
@@ -245,7 +242,7 @@ PWM_PS.showUserDetail = function(userKey) {
                     }
                 });
             };
-            PWM_MAIN.ajaxRequest(url, loadFunction, {content:sendData});
+            PWM_MAIN.ajaxRequest(url, loadFunction, {method:'GET'});
         }
     });
 };

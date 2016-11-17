@@ -42,7 +42,6 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -77,11 +76,11 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
     private static final String PARAM_USERKEY = "userKey";
 
     public enum PeopleSearchActions implements ProcessAction {
-        search(HttpMethod.POST),
-        detail(HttpMethod.POST),
+        search(HttpMethod.GET),
+        detail(HttpMethod.GET),
         photo(HttpMethod.GET),
         clientData(HttpMethod.GET),
-        orgChartData(HttpMethod.POST),
+        orgChartData(HttpMethod.GET),
 
         ;
 
@@ -139,7 +138,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
                     return;
 
                 case detail:
-                    restUserDetailRequest(pwmRequest, peopleSearchConfiguration);
+                    restUserDetailRequest(pwmRequest);
                     return;
 
                 case photo:
@@ -197,10 +196,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final String bodyString = pwmRequest.readRequestBodyAsString();
-        final Map<String, String> valueMap = JsonUtil.deserializeStringMap(bodyString);
-
-        final String username = Validator.sanitizeInputValue(pwmRequest.getConfig(), valueMap.get("username"), 1024);
+        final String username = pwmRequest.readParameterAsString("username", PwmHttpRequestWrapper.Flag.BypassValidation);
         final boolean includeDisplayName = pwmRequest.readParameterAsBoolean("includeDisplayName");
 
         // if not in cache, build results from ldap
@@ -224,14 +220,9 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
             throw new PwmUnrecoverableException(PwmError.ERROR_SERVICE_NOT_AVAILABLE);
         }
 
-        final Map<String, String> requestInputMap = pwmRequest.readBodyAsJsonStringMap();
-        if (requestInputMap == null) {
-            return;
-        }
-
         final UserIdentity userIdentity;
         {
-            final String userKey = requestInputMap.get(PARAM_USERKEY);
+            final String userKey = pwmRequest.readParameterAsString(PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation);
             if (userKey == null || userKey.isEmpty()) {
                 userIdentity = pwmRequest.getUserInfoIfLoggedIn();
                 if (userIdentity == null) {
@@ -255,18 +246,11 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
 
 
     private void restUserDetailRequest(
-            final PwmRequest pwmRequest,
-            final PeopleSearchConfiguration peopleSearchConfiguration
+            final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final Map<String, String> valueMap = pwmRequest.readBodyAsJsonStringMap();
-
-        if (valueMap == null) {
-            return;
-        }
-
-        final String userKey = valueMap.get(PARAM_USERKEY);
+        final String userKey = pwmRequest.readParameterAsString(PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation);
         if (userKey == null || userKey.isEmpty()) {
             return;
         }

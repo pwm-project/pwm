@@ -81,8 +81,8 @@ export default class PeopleService extends PwmService implements IPeopleService 
     }
 
     getOrgChartData(personId: string): angular.IPromise<OrgChartData> {
-        return this.$http
-            .post(this.getServerUrl('orgChartData'), { userKey: personId })
+
+        return this.$http.get(this.getServerUrl('orgChartData'), { params: { userKey: personId } })
             .then((response) => {
                 let responseData = response.data['data'];
 
@@ -98,9 +98,8 @@ export default class PeopleService extends PwmService implements IPeopleService 
     }
 
     getPerson(id: string): IPromise<Person> {
-        return this.$http.post(this.getServerUrl('detail'), {
-            userKey: id
-        }).then((response) => {
+        return this.$http.get(this.getServerUrl('detail'), { params: { userKey: id } })
+            .then((response) => {
             let person: Person = new Person(response.data['data']);
             return this.$q.resolve(person);
         });
@@ -112,9 +111,8 @@ export default class PeopleService extends PwmService implements IPeopleService 
     }
 
     search(query: string): IPromise<Person[]> {
-        return this.$http.post(this.getServerUrl('search', { 'includeDisplayName': true }), {
-            username: query
-        }).then((response) => {
+        return this.$http.get(this.getServerUrl('search', { 'includeDisplayName': true }), { params: { username: query } })
+        .then((response) => {
             let people: Person[] = [];
 
             for (let searchResult of response.data['data']['searchResults']) {
