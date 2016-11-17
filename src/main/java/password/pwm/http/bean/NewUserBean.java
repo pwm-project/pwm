@@ -28,7 +28,12 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class NewUserBean extends PwmSessionBean {
     private String profileID;
@@ -46,9 +51,9 @@ public class NewUserBean extends PwmSessionBean {
         private PasswordData confirmPassword;
 
         public NewUserForm(
-                Map<String, String> formData,
-                PasswordData newUserPassword,
-                PasswordData confirmPassword
+                final Map<String, String> formData,
+                final PasswordData newUserPassword,
+                final PasswordData confirmPassword
         )
         {
             this.formData = formData;
@@ -71,7 +76,7 @@ public class NewUserBean extends PwmSessionBean {
             return confirmPassword;
         }
 
-        public boolean isConsistentWith(NewUserForm otherForm) throws PwmUnrecoverableException {
+        public boolean isConsistentWith(final NewUserForm otherForm) throws PwmUnrecoverableException {
             if (otherForm == null) {
                 return false;
             }
@@ -100,7 +105,7 @@ public class NewUserBean extends PwmSessionBean {
         return profileID;
     }
 
-    public void setProfileID(String profileID) {
+    public void setProfileID(final String profileID) {
         this.profileID = profileID;
     }
 
@@ -108,7 +113,7 @@ public class NewUserBean extends PwmSessionBean {
         return agreementPassed;
     }
 
-    public void setAgreementPassed(boolean agreementPassed) {
+    public void setAgreementPassed(final boolean agreementPassed) {
         this.agreementPassed = agreementPassed;
     }
 
@@ -125,7 +130,7 @@ public class NewUserBean extends PwmSessionBean {
         return createStartTime;
     }
 
-    public void setCreateStartTime(Date createStartTime)
+    public void setCreateStartTime(final Date createStartTime)
     {
         this.createStartTime = createStartTime;
     }
@@ -135,7 +140,7 @@ public class NewUserBean extends PwmSessionBean {
         return newUserForm;
     }
 
-    public void setNewUserForm(NewUserForm newUserForm)
+    public void setNewUserForm(final NewUserForm newUserForm)
     {
         this.newUserForm = newUserForm;
     }
@@ -144,7 +149,7 @@ public class NewUserBean extends PwmSessionBean {
         return urlSpecifiedProfile;
     }
 
-    public void setUrlSpecifiedProfile(boolean urlSpecifiedProfile) {
+    public void setUrlSpecifiedProfile(final boolean urlSpecifiedProfile) {
         this.urlSpecifiedProfile = urlSpecifiedProfile;
     }
 

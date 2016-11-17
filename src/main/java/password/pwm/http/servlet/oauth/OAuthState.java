@@ -22,21 +22,40 @@
 
 package password.pwm.http.servlet.oauth;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 import java.util.Date;
 
+/*
+    This serialized JSON object is passed to the browser during the OAuth request sequence.  The state is forwarded to the OAuth server and then returned (without
+    modification when the OAuth server redirects back here.
+ */
 class OAuthState implements Serializable {
-
     private static int oauthStateIdCounter = 0;
 
+    @SerializedName("c")
     private final int stateID = oauthStateIdCounter++;
+
+    @SerializedName("t")
     private final Date issueTime = new Date();
+
+    @SerializedName("i")
     private String sessionID;
+
+    @SerializedName("n")
     private String nextUrl;
 
-    public OAuthState(String sessionID, String nextUrl) {
-        this.sessionID = sessionID;
-        this.nextUrl = nextUrl;
+    @SerializedName("u")
+    private OAuthUseCase use;
+
+    @SerializedName("f")
+    private String forgottenProfileId;
+
+    @SerializedName("v")
+    private int version = 1;
+
+    private OAuthState() {
     }
 
     public static int getOauthStateIdCounter() {
@@ -58,4 +77,34 @@ class OAuthState implements Serializable {
     public String getNextUrl() {
         return nextUrl;
     }
+
+    public OAuthUseCase getUseCase() {
+        return use;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public String getForgottenProfileId() {
+        return forgottenProfileId;
+    }
+
+    public static OAuthState newSSOAuthenticationState(final String sessionID, final String nextUrl) {
+        final OAuthState state = new OAuthState();
+        state.sessionID = sessionID;
+        state.nextUrl = nextUrl;
+        state.use = OAuthUseCase.Authentication;
+        return state;
+    }
+
+    public static OAuthState newForgottenPasswordState(final String sessionID, final String forgottenProfileId) {
+        final OAuthState state = new OAuthState();
+        state.sessionID = sessionID;
+        state.forgottenProfileId = forgottenProfileId;
+        state.use = OAuthUseCase.ForgottenPassword;
+        return state;
+    }
+
+
 }

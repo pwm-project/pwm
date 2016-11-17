@@ -25,9 +25,9 @@ package password.pwm.http.servlet.resource;
 import java.io.Serializable;
 
 final class CacheKey implements Serializable {
-    final private String fileName;
-    final private boolean acceptsGzip;
-    final private long fileModificationTimestamp;
+    private final String fileName;
+    private final boolean acceptsGzip;
+    private final long fileModificationTimestamp;
 
     CacheKey(final FileResource file, final boolean acceptsGzip) {
         this.fileName = file.getName();
@@ -36,11 +36,15 @@ final class CacheKey implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-        CacheKey cacheKey = (CacheKey) o;
+        final CacheKey cacheKey = (CacheKey) o;
 
         return acceptsGzip == cacheKey.acceptsGzip &&
                 fileModificationTimestamp == cacheKey.fileModificationTimestamp &&

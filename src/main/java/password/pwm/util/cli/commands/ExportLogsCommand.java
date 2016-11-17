@@ -55,7 +55,7 @@ public class ExportLogsCommand extends AbstractCliCommand {
         Writer outputWriter = null;
         try {
             outputWriter = new OutputStreamWriter(new FileOutputStream(outputFile));
-            for (final Iterator<String> iter = logQueue.descendingIterator(); iter.hasNext();) {
+            for (final Iterator<String> iter = logQueue.descendingIterator(); iter.hasNext(); ) {
                 final String loopString = iter.next();
                 final PwmLogEvent logEvent = PwmLogEvent.fromEncodedString(loopString);
                 if (logEvent != null) {
@@ -76,7 +76,7 @@ public class ExportLogsCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportLogs";
         cliParameters.description = "Export all logs in the LocalDB";
         cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);

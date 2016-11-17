@@ -47,7 +47,7 @@ public class HelpdeskClientDataBean implements Serializable {
         return helpdesk_search_columns;
     }
 
-    public void setHelpdesk_search_columns(Map<String, String> helpdesk_search_columns) {
+    public void setHelpdesk_search_columns(final Map<String, String> helpdesk_search_columns) {
         this.helpdesk_search_columns = helpdesk_search_columns;
     }
 
@@ -55,7 +55,7 @@ public class HelpdeskClientDataBean implements Serializable {
         return helpdesk_setting_maskPasswords;
     }
 
-    public void setHelpdesk_setting_maskPasswords(boolean helpdesk_setting_maskPasswords) {
+    public void setHelpdesk_setting_maskPasswords(final boolean helpdesk_setting_maskPasswords) {
         this.helpdesk_setting_maskPasswords = helpdesk_setting_maskPasswords;
     }
 
@@ -63,7 +63,7 @@ public class HelpdeskClientDataBean implements Serializable {
         return helpdesk_setting_clearResponses;
     }
 
-    public void setHelpdesk_setting_clearResponses(HelpdeskClearResponseMode helpdesk_setting_clearResponses) {
+    public void setHelpdesk_setting_clearResponses(final HelpdeskClearResponseMode helpdesk_setting_clearResponses) {
         this.helpdesk_setting_clearResponses = helpdesk_setting_clearResponses;
     }
 
@@ -71,7 +71,7 @@ public class HelpdeskClientDataBean implements Serializable {
         return helpdesk_setting_PwUiMode;
     }
 
-    public void setHelpdesk_setting_PwUiMode(HelpdeskUIMode helpdesk_setting_PwUiMode) {
+    public void setHelpdesk_setting_PwUiMode(final HelpdeskUIMode helpdesk_setting_PwUiMode) {
         this.helpdesk_setting_PwUiMode = helpdesk_setting_PwUiMode;
     }
 
@@ -79,7 +79,7 @@ public class HelpdeskClientDataBean implements Serializable {
         return helpdesk_setting_tokenSendMethod;
     }
 
-    public void setHelpdesk_setting_tokenSendMethod(MessageSendMethod helpdesk_setting_tokenSendMethod) {
+    public void setHelpdesk_setting_tokenSendMethod(final MessageSendMethod helpdesk_setting_tokenSendMethod) {
         this.helpdesk_setting_tokenSendMethod = helpdesk_setting_tokenSendMethod;
     }
 
@@ -87,7 +87,7 @@ public class HelpdeskClientDataBean implements Serializable {
         return actions;
     }
 
-    public void setActions(Map<String, ActionInformation> actions) {
+    public void setActions(final Map<String, ActionInformation> actions) {
         this.actions = actions;
     }
 
@@ -95,7 +95,7 @@ public class HelpdeskClientDataBean implements Serializable {
         return verificationMethods;
     }
 
-    public void setVerificationMethods(Map<String, Collection<IdentityVerificationMethod>> verificationMethods) {
+    public void setVerificationMethods(final Map<String, Collection<IdentityVerificationMethod>> verificationMethods) {
         this.verificationMethods = verificationMethods;
     }
 
@@ -103,7 +103,7 @@ public class HelpdeskClientDataBean implements Serializable {
         return verificationForm;
     }
 
-    public void setVerificationForm(List verificationForm) {
+    public void setVerificationForm(final List verificationForm) {
         this.verificationForm = verificationForm;
     }
 
@@ -115,7 +115,7 @@ public class HelpdeskClientDataBean implements Serializable {
             return name;
         }
 
-        public void setName(String name) {
+        public void setName(final String name) {
             this.name = name;
         }
 
@@ -123,7 +123,7 @@ public class HelpdeskClientDataBean implements Serializable {
             return description;
         }
 
-        public void setDescription(String description) {
+        public void setDescription(final String description) {
             this.description = description;
         }
     }
@@ -136,7 +136,7 @@ public class HelpdeskClientDataBean implements Serializable {
             return name;
         }
 
-        public void setName(String name) {
+        public void setName(final String name) {
             this.name = name;
         }
 
@@ -144,7 +144,7 @@ public class HelpdeskClientDataBean implements Serializable {
             return label;
         }
 
-        public void setLabel(String label) {
+        public void setLabel(final String label) {
             this.label = label;
         }
     }

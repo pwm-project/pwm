@@ -36,7 +36,7 @@
     <div id="centerbody">
         <div id="page-content-title"><pwm:display key="Title_ActivateUser" displayIfMissing="true"/></div>
         <% final ActivateUserBean activateUserBean = JspUtility.getSessionBean(pageContext, ActivateUserBean.class); %>
-        <% String destination = activateUserBean.getTokenDisplayText(); %>
+        <% final String destination = activateUserBean.getTokenDisplayText(); %>
         <p><pwm:display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>

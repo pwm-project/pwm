@@ -22,29 +22,50 @@
 
 package password.pwm.config.function;
 
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.Helper;
 
 import java.net.URI;
 
 public class OAuthCertImportFunction extends AbstractUriCertImportFunction {
 
-    final static PwmSetting uriSourceSetting = PwmSetting.OAUTH_ID_CODERESOLVE_URL;
 
     @Override
-    String getUri(StoredConfigurationImpl storedConfiguration, PwmSetting pwmSetting, String profile, String extraData) throws PwmOperationalException {
-        final String uriString = (String)storedConfiguration.readSetting(uriSourceSetting).toNativeObject();
-        if (uriString == null || uriString.isEmpty()) {
-            ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + uriSourceSetting.toMenuLocationDebug(profile, null) + " must first be configured");
+    String getUri(final StoredConfigurationImpl storedConfiguration, final PwmSetting pwmSetting, final String profile, final String extraData) throws PwmOperationalException {
+
+        final String uriString;
+        final String menuDebugLocation;
+
+        switch (pwmSetting) {
+            case OAUTH_ID_CERTIFICATE:
+                uriString = (String)storedConfiguration.readSetting(PwmSetting.OAUTH_ID_CODERESOLVE_URL).toNativeObject();
+                menuDebugLocation = PwmSetting.OAUTH_ID_CODERESOLVE_URL.toMenuLocationDebug(null, PwmConstants.DEFAULT_LOCALE);
+                break;
+
+            case RECOVERY_OAUTH_ID_CERTIFICATE:
+                uriString = (String)storedConfiguration.readSetting(PwmSetting.RECOVERY_OAUTH_ID_CODERESOLVE_URL, profile).toNativeObject();
+                menuDebugLocation = PwmSetting.RECOVERY_OAUTH_ID_CERTIFICATE.toMenuLocationDebug(profile, PwmConstants.DEFAULT_LOCALE);
+                break;
+
+            default:
+                Helper.unhandledSwitchStatement(pwmSetting);
+                return null;
+        }
+
+
+        if (uriString.isEmpty()) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + menuDebugLocation + " must first be configured");
             throw new PwmOperationalException(errorInformation);
         }
         try {
             URI.create(uriString);
         } catch (IllegalArgumentException e) {
-            ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + uriSourceSetting.toMenuLocationDebug(profile, null) + " has an invalid URL syntax");
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Setting " + menuDebugLocation + " has an invalid URL syntax");
             throw new PwmOperationalException(errorInformation);
         }
         return uriString;

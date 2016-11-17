@@ -23,11 +23,16 @@
 package password.pwm.http.servlet.peoplesearch;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.Permission;
+import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
@@ -35,8 +40,8 @@ import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -45,7 +50,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @WebServlet(
         name="PeopleSearchServlet",
@@ -67,17 +76,17 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
     private static final String PARAM_USERKEY = "userKey";
 
     public enum PeopleSearchActions implements ProcessAction {
-        search(HttpMethod.POST),
-        detail(HttpMethod.POST),
+        search(HttpMethod.GET),
+        detail(HttpMethod.GET),
         photo(HttpMethod.GET),
         clientData(HttpMethod.GET),
-        orgChartData(HttpMethod.POST),
+        orgChartData(HttpMethod.GET),
 
         ;
 
         private final HttpMethod method;
 
-        PeopleSearchActions(HttpMethod method) {
+        PeopleSearchActions(final HttpMethod method) {
             this.method = method;
         }
 
@@ -129,7 +138,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
                     return;
 
                 case detail:
-                    restUserDetailRequest(pwmRequest, peopleSearchConfiguration);
+                    restUserDetailRequest(pwmRequest);
                     return;
 
                 case photo:
@@ -143,6 +152,9 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
                 case orgChartData:
                     restOrgChartData(pwmRequest, peopleSearchConfiguration);
                     return;
+
+                default:
+                    Helper.unhandledSwitchStatement(peopleSearchAction);
             }
         }
 
@@ -150,7 +162,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
             pwmRequest.setFlag(PwmRequestFlag.HIDE_IDLE, true);
             pwmRequest.setFlag(PwmRequestFlag.NO_IDLE_TIMEOUT, true);
         }
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PEOPLE_SEARCH);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.PEOPLE_SEARCH);
     }
 
     private void restLoadClientData(
@@ -184,10 +196,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final String bodyString = pwmRequest.readRequestBodyAsString();
-        final Map<String, String> valueMap = JsonUtil.deserializeStringMap(bodyString);
-
-        final String username = Validator.sanitizeInputValue(pwmRequest.getConfig(), valueMap.get("username"), 1024);
+        final String username = pwmRequest.readParameterAsString("username", PwmHttpRequestWrapper.Flag.BypassValidation);
         final boolean includeDisplayName = pwmRequest.readParameterAsBoolean("includeDisplayName");
 
         // if not in cache, build results from ldap
@@ -211,14 +220,9 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
             throw new PwmUnrecoverableException(PwmError.ERROR_SERVICE_NOT_AVAILABLE);
         }
 
-        final Map<String, String> requestInputMap = pwmRequest.readBodyAsJsonStringMap();
-        if (requestInputMap == null) {
-            return;
-        }
-
         final UserIdentity userIdentity;
         {
-            final String userKey = requestInputMap.get(PARAM_USERKEY);
+            final String userKey = pwmRequest.readParameterAsString(PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation);
             if (userKey == null || userKey.isEmpty()) {
                 userIdentity = pwmRequest.getUserInfoIfLoggedIn();
                 if (userIdentity == null) {
@@ -242,18 +246,11 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
 
 
     private void restUserDetailRequest(
-            final PwmRequest pwmRequest,
-            final PeopleSearchConfiguration peopleSearchConfiguration
+            final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final Map<String, String> valueMap = pwmRequest.readBodyAsJsonStringMap();
-
-        if (valueMap == null) {
-            return;
-        }
-
-        final String userKey = valueMap.get(PARAM_USERKEY);
+        final String userKey = pwmRequest.readParameterAsString(PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation);
         if (userKey == null || userKey.isEmpty()) {
             return;
         }
@@ -309,7 +306,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
             final long maxCacheSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS);
             final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
             resp.setContentType(photoData.getMimeType());
-            resp.setDateHeader("Expires", System.currentTimeMillis() + (maxCacheSeconds * 1000l));
+            resp.setDateHeader("Expires", System.currentTimeMillis() + (maxCacheSeconds * 1000L));
             resp.setHeader("Cache-Control", "public, max-age=" + maxCacheSeconds);
 
             outputStream = pwmRequest.getPwmResponse().getOutputStream();

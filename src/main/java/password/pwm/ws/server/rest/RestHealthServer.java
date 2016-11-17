@@ -58,9 +58,9 @@ import java.util.List;
 
 @Path("/health")
 public class RestHealthServer extends AbstractRestServer {
-    final private static PwmLogger LOGGER = PwmLogger.forClass(RestHealthServer.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(RestHealthServer.class);
 
-    final private static String PARAM_IMMEDIATE_REFRESH = "refreshImmediate";
+    private static final String PARAM_IMMEDIATE_REFRESH = "refreshImmediate";
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
@@ -133,7 +133,7 @@ public class RestHealthServer extends AbstractRestServer {
     )
             throws PwmUnrecoverableException
     {
-        boolean allowImmediate = pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION
+        final boolean allowImmediate = pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION
                 && pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
 
         return refreshImmediate && allowImmediate

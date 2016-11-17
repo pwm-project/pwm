@@ -77,7 +77,7 @@ public class ServicePermissions implements Serializable {
         return authRequired;
     }
 
-    public void setAuthRequired(boolean authRequired) {
+    public void setAuthRequired(final boolean authRequired) {
         preModifyCheck();
         this.authRequired = authRequired;
     }
@@ -86,7 +86,7 @@ public class ServicePermissions implements Serializable {
         return blockExternal;
     }
 
-    public void setBlockExternal(boolean blockExternal) {
+    public void setBlockExternal(final boolean blockExternal) {
         preModifyCheck();
         this.blockExternal = blockExternal;
     }
@@ -95,7 +95,7 @@ public class ServicePermissions implements Serializable {
         return adminOnly;
     }
 
-    public void setAdminOnly(boolean adminOnly) {
+    public void setAdminOnly(final boolean adminOnly) {
         preModifyCheck();
         this.adminOnly = adminOnly;
     }
@@ -105,7 +105,7 @@ public class ServicePermissions implements Serializable {
         return helpdeskPermitted;
     }
 
-    public void setHelpdeskPermitted(boolean helpdeskPermitted)
+    public void setHelpdeskPermitted(final boolean helpdeskPermitted)
     {
         preModifyCheck();
         this.helpdeskPermitted = helpdeskPermitted;
@@ -125,7 +125,7 @@ public class ServicePermissions implements Serializable {
         return publicDuringConfig;
     }
 
-    public void setPublicDuringConfig(boolean publicDuringConfig)
+    public void setPublicDuringConfig(final boolean publicDuringConfig)
     {
         this.publicDuringConfig = publicDuringConfig;
     }

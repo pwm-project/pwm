@@ -43,15 +43,15 @@ public class CliEnvironment {
     final MainOptions mainOptions;
 
     public CliEnvironment(
-            ConfigurationReader configurationReader,
-            File configurationFile,
-            Configuration config,
-            File applicationPath,
-            PwmApplication pwmApplication,
-            LocalDB localDB,
-            Writer debugWriter,
-            Map<String, Object> options,
-            MainOptions mainOptions
+            final ConfigurationReader configurationReader,
+            final File configurationFile,
+            final Configuration config,
+            final File applicationPath,
+            final PwmApplication pwmApplication,
+            final LocalDB localDB,
+            final Writer debugWriter,
+            final Map<String, Object> options,
+            final MainOptions mainOptions
     )
     {
         this.configurationReader = configurationReader;

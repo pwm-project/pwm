@@ -26,8 +26,8 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
-<% String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP); %>
+<% final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
+<% final String selectedTemplate = configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_TEMPLATE_LDAP); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -43,7 +43,7 @@
                 <option value="NOTSELECTED" selected disabled>-- Please select a template --</option>
                 <% } %>
                 <% for (final String loopTemplate : PwmSetting.TEMPLATE_LDAP.getOptions().keySet()) { %>
-                <% boolean selected = loopTemplate.equals(selectedTemplate); %>
+                <% final boolean selected = loopTemplate.equals(selectedTemplate); %>
                 <option value="<%=loopTemplate%>"<% if (selected) { %> selected="selected"<% } %>>
                     <%=PwmSetting.TEMPLATE_LDAP.getOptions().get(loopTemplate)%>
                 </option>

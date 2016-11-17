@@ -20,19 +20,34 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+package password.pwm.http.servlet.oauth;
+
+import java.io.Serializable;
+import java.time.Instant;
+
 /**
- * PasswordManagementService.java
- *
- * This file was auto-generated from WSDL
- * by the Apache Axis 1.4 Apr 22, 2006 (06:55:48 PDT) WSDL2Java emitter.
+ * This Json object gets sent as a redirect from the oauth consumer servlet to the ForgttenPasswordServlet.
  */
+public class OAuthForgottenPasswordResults implements Serializable {
+    private final boolean authenticated;
+    private final String username;
+    private final Instant timestamp;
 
-package password.pwm.ws.client.novell.pwdmgt;
+    public OAuthForgottenPasswordResults(final boolean authenticated, final String username) {
+        this.authenticated = authenticated;
+        this.username = username;
+        this.timestamp = Instant.now();
+    }
 
-public interface PasswordManagementService extends javax.xml.rpc.Service {
-    public java.lang.String getPasswordManagementPortAddress();
+    public boolean isAuthenticated() {
+        return authenticated;
+    }
 
-    public password.pwm.ws.client.novell.pwdmgt.PasswordManagement getPasswordManagementPort() throws javax.xml.rpc.ServiceException;
+    public String getUsername() {
+        return username;
+    }
 
-    public password.pwm.ws.client.novell.pwdmgt.PasswordManagement getPasswordManagementPort(java.net.URL portAddress) throws javax.xml.rpc.ServiceException;
+    public Instant getTimestamp() {
+        return timestamp;
+    }
 }

@@ -37,10 +37,23 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.Reader;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -53,10 +66,10 @@ public class LocalDBUtility {
     private int exportLineCounter;
     private int importLineCounter;
 
-    private int GZIP_BUFFER_SIZE = 1024 * 512;
+    private static final int GZIP_BUFFER_SIZE = 1024 * 512;
 
 
-    public LocalDBUtility(LocalDB localDB) {
+    public LocalDBUtility(final LocalDB localDB) {
         this.localDB = localDB;
     }
 
@@ -104,7 +117,7 @@ public class LocalDBUtility {
         final CSVPrinter csvPrinter = Helper.makeCsvPrinter(new GZIPOutputStream(outputStream, GZIP_BUFFER_SIZE));
         try {
             csvPrinter.printComment(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " LocalDB export on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-            for (LocalDB.DB loopDB : LocalDB.DB.values()) {
+            for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
                 if (loopDB.isBackup()) {
                     csvPrinter.printComment("Export of " + loopDB.toString());
                     final LocalDB.LocalDBIterator<String> localDBIterator = localDB.iterator(loopDB);
@@ -268,14 +281,14 @@ public class LocalDBUtility {
     }
 
 
-    public static Map<STATS_KEY, Object> dbStats(
+    public static Map<StatsKey, Object> dbStats(
             final LocalDB localDB,
             final LocalDB.DB db
     )
     {
         int totalValues = 0;
         long storedChars = 0;
-        long totalChars = 0;
+        final long totalChars = 0;
 
         LocalDB.LocalDBIterator<String> iter = null;
         try {
@@ -296,15 +309,15 @@ public class LocalDBUtility {
             }
         }
 
-        int avgValueLength = totalValues == 0 ? 0 : (int)(totalChars / totalValues);
-        final Map<STATS_KEY, Object> returnObj = new LinkedHashMap<>();
-        returnObj.put(STATS_KEY.TOTAL_VALUES,totalValues);
-        returnObj.put(STATS_KEY.STORED_CHARS,storedChars);
-        returnObj.put(STATS_KEY.AVG_VALUE_LENGTH,avgValueLength);
+        final int avgValueLength = totalValues == 0 ? 0 : (int)(totalChars / totalValues);
+        final Map<StatsKey, Object> returnObj = new LinkedHashMap<>();
+        returnObj.put(StatsKey.TOTAL_VALUES,totalValues);
+        returnObj.put(StatsKey.STORED_CHARS,storedChars);
+        returnObj.put(StatsKey.AVG_VALUE_LENGTH,avgValueLength);
         return returnObj;
     }
 
-    public enum STATS_KEY {
+    public enum StatsKey {
         TOTAL_VALUES,
         STORED_CHARS,
         AVG_VALUE_LENGTH,
@@ -338,7 +351,7 @@ public class LocalDBUtility {
                 localDB.get(LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey()));
     }
 
-    static boolean hasBooleanParameter(LocalDBProvider.Parameter parameter, Map<LocalDBProvider.Parameter, String> parameters) {
+    static boolean hasBooleanParameter(final LocalDBProvider.Parameter parameter, final Map<LocalDBProvider.Parameter, String> parameters) {
         return parameters != null && parameters.containsKey(parameter) && Boolean.parseBoolean(parameters.get(parameter));
     }
 }

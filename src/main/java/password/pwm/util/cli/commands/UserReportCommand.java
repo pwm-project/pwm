@@ -82,9 +82,9 @@ public class UserReportCommand extends AbstractCliCommand {
                 return false;
             }
 
-            public type getType()
+            public Type getType()
             {
-                return type.NEW_FILE;
+                return Type.NEW_FILE;
             }
 
             public String getName()
@@ -94,7 +94,7 @@ public class UserReportCommand extends AbstractCliCommand {
         };
 
 
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportUserReportDetail";
         cliParameters.description = "Output user report details to the output file (csv format)";
         cliParameters.options = Collections.singletonList(outputFileOption);

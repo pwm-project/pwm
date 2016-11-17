@@ -25,9 +25,9 @@ package password.pwm.svc.wordlist;
 import java.io.Serializable;
 
 public class WordlistConfiguration implements Serializable {
-    final private boolean caseSensitive;
-    final private int checkSize;
-    final private String autoImportUrl;
+    private final boolean caseSensitive;
+    private final int checkSize;
+    private final String autoImportUrl;
 
     public WordlistConfiguration(
             final boolean caseSensitive,

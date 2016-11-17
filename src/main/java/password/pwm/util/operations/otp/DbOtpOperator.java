@@ -25,6 +25,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package password.pwm.util.operations.otp;
 
 import password.pwm.PwmApplication;
@@ -48,14 +49,14 @@ import password.pwm.util.otp.OTPUserRecord;
  */
 public class DbOtpOperator extends AbstractOtpOperator {
 
-    final static private PwmLogger LOGGER = PwmLogger.forClass(DbOtpOperator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(DbOtpOperator.class);
 
-    public DbOtpOperator(PwmApplication pwmApplication) {
+    public DbOtpOperator(final PwmApplication pwmApplication) {
         super.setPwmApplication(pwmApplication);
     }
     
     @Override
-    public OTPUserRecord readOtpUserConfiguration(UserIdentity theUser, String userGUID) throws PwmUnrecoverableException {
+    public OTPUserRecord readOtpUserConfiguration(final UserIdentity theUser, final String userGUID) throws PwmUnrecoverableException {
         LOGGER.trace(String.format("Enter: readOtpUserConfiguration(%s, %s)", theUser, userGUID));
         if (userGUID == null || userGUID.length() < 1) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save otp to db, user does not have a GUID"));

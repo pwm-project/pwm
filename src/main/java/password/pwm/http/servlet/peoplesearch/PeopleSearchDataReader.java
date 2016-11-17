@@ -74,12 +74,12 @@ import java.util.Set;
 import java.util.TreeMap;
 
 public class PeopleSearchDataReader {
-    final private static PwmLogger LOGGER = PwmLogger.forClass(PeopleSearchDataReader.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PeopleSearchDataReader.class);
 
-    final private PwmRequest pwmRequest;
-    final private PeopleSearchConfiguration config;
+    private final PwmRequest pwmRequest;
+    private final PeopleSearchConfiguration config;
 
-    public PeopleSearchDataReader(PwmRequest pwmRequest) {
+    public PeopleSearchDataReader(final PwmRequest pwmRequest) {
         this.pwmRequest = pwmRequest;
         this.config= new PeopleSearchConfiguration(pwmRequest.getConfig());
     }
@@ -412,9 +412,9 @@ public class PeopleSearchDataReader {
     {
         final Set<String> searchAttributes = getSearchAttributes(pwmRequest.getConfig());
         final Map<String,AttributeDetailBean> returnObj = new LinkedHashMap<>();
-        for (FormConfiguration formConfiguration : detailForm) {
+        for (final FormConfiguration formConfiguration : detailForm) {
             if (formConfiguration.isRequired() || searchResults.containsKey(formConfiguration.getName())) {
-                AttributeDetailBean bean = new AttributeDetailBean();
+                final AttributeDetailBean bean = new AttributeDetailBean();
                 bean.setName(formConfiguration.getName());
                 bean.setLabel(formConfiguration.getLabel(pwmRequest.getLocale()));
                 bean.setType(formConfiguration.getType());
@@ -481,7 +481,7 @@ public class PeopleSearchDataReader {
         } else {
             userInfoBean = null;
         }
-        UserDataReader userDataReader = new LdapUserDataReader(userIdentity, chaiUser);
+        final UserDataReader userDataReader = new LdapUserDataReader(userIdentity, chaiUser);
         return new MacroMachine(pwmRequest.getPwmApplication(), pwmRequest.getSessionLabel(), userInfoBean, null, userDataReader);
     }
 
@@ -576,8 +576,8 @@ public class PeopleSearchDataReader {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "ldap photo attribute is not configured"));
         }
 
-        byte[] photoData;
-        String mimeType;
+        final byte[] photoData;
+        final String mimeType;
         try {
             final ChaiUser chaiUser = getChaiUser(userIdentity);
             final byte[][] photoAttributeData = chaiUser.readMultiByteAttribute(attribute);
@@ -637,7 +637,7 @@ public class PeopleSearchDataReader {
 
         final List<Map<String,Object>> resultOutput = new ArrayList<>(results.resultsAsJsonOutput(pwmRequest.getPwmApplication(),null));
         if (includeDisplayName) {
-            for (Map<String,Object> map : resultOutput) {
+            for (final Map<String,Object> map : resultOutput) {
                 final String userKey = (String)map.get("userKey");
                 if (userKey != null) {
                     final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication());

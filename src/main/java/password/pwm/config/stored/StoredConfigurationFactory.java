@@ -28,7 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 interface StoredConfigurationFactory {
-    StoredConfiguration fromXml(final InputStream inputStream) throws PwmUnrecoverableException;
+    StoredConfiguration fromXml( InputStream inputStream) throws PwmUnrecoverableException;
 
-    void toXml(final OutputStream outputStream);
+    void toXml( OutputStream outputStream);
 }

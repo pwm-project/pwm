@@ -94,7 +94,7 @@ public class PwmSettingXml {
             final InputStream xmlInputStream = PwmSetting.class.getClassLoader().getResourceAsStream("password/pwm/config/PwmSetting.xml");
             final SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             final Schema schema = factory.newSchema(new StreamSource(xsdInputStream));
-            Validator validator = schema.newValidator();
+            final Validator validator = schema.newValidator();
             validator.validate(new StreamSource(xmlInputStream));
         } catch (Exception e) {
             throw new IllegalStateException("error validating PwmSetting.xml schema using PwmSetting.xsd definition: " + e.getMessage());

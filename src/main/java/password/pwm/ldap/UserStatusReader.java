@@ -29,11 +29,25 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.*;
-import password.pwm.config.*;
+import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.SessionLabel;
+import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.FormUtility;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.UserPermission;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.ForceSetupPolicy;
-import password.pwm.config.profile.*;
+import password.pwm.config.profile.ChallengeProfile;
+import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.ProfileUtility;
+import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -50,7 +64,13 @@ import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.otp.OTPUserRecord;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class UserStatusReader {
 
@@ -70,9 +90,9 @@ public class UserStatusReader {
     }
 
     public UserStatusReader(
-            PwmApplication pwmApplication,
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
-            Settings settings
+            final Settings settings
     )
     {
         this.pwmApplication = pwmApplication;
@@ -99,7 +119,7 @@ public class UserStatusReader {
         if (userInfoBean != null && passwordPolicy.getRuleHelper().readBooleanValue(PwmPasswordRule.EnforceAtLogin)) {
             if (currentPassword != null) {
                 try {
-                    PwmPasswordRuleValidator passwordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, passwordPolicy);
+                    final PwmPasswordRuleValidator passwordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, passwordPolicy);
                     passwordRuleValidator.testPassword(currentPassword, null, userInfoBean, theUser);
                 } catch (PwmDataValidationException | PwmUnrecoverableException e) {
                     LOGGER.debug(sessionLabel, "user " + userDN + " password does not conform to current password policy (" + e.getMessage() + "), marking as requiring change.");
@@ -130,7 +150,7 @@ public class UserStatusReader {
             }
 
             if (ldapPasswordExpirationTime != null) {
-                TimeDuration expirationInterval = TimeDuration.fromCurrent(ldapPasswordExpirationTime);
+                final TimeDuration expirationInterval = TimeDuration.fromCurrent(ldapPasswordExpirationTime);
                 LOGGER.trace(sessionLabel, "read password expiration time: "
                                 + PwmConstants.DEFAULT_DATETIME_FORMAT.format(ldapPasswordExpirationTime)
                                 + ", " + expirationInterval.asCompactString() + " from now"

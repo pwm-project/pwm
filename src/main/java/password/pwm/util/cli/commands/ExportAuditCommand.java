@@ -57,7 +57,7 @@ public class ExportAuditCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportAudit";
         cliParameters.description = "Dump all audit records in the LocalDB to a csv file";
         cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_NEW_OUTPUT_FILE);

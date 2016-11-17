@@ -31,7 +31,7 @@ public class ValueMetaData implements Serializable {
     private Date modifyDate;
     private UserIdentity userIdentity;
 
-    public ValueMetaData(Date modifyDate, UserIdentity userIdentity) {
+    public ValueMetaData(final Date modifyDate, final UserIdentity userIdentity) {
         this.modifyDate = modifyDate;
         this.userIdentity = userIdentity;
     }

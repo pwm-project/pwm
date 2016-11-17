@@ -25,14 +25,18 @@ package password.pwm.ldap.schema;
 import password.pwm.util.JsonUtil;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.TreeMap;
 
 public class SchemaDefinition implements Serializable {
     private SchemaType schemaType;
     private String name;
     private String definition;
 
-    public SchemaDefinition(SchemaType schemaType, String name, String definition) {
+    public SchemaDefinition(final SchemaType schemaType, final String name, final String definition) {
         this.schemaType = schemaType;
         this.name = name;
         this.definition = definition;
@@ -43,7 +47,7 @@ public class SchemaDefinition implements Serializable {
         final TreeMap<String,SchemaDefinition> returnObj = new TreeMap<>();
         for (final String key : Collections.list(resourceBundle.getKeys())) {
             final String value = resourceBundle.getString(key);
-            SchemaDefinition schemaDefinition = JsonUtil.deserialize(value, SchemaDefinition.class);
+            final SchemaDefinition schemaDefinition = JsonUtil.deserialize(value, SchemaDefinition.class);
             returnObj.put(key, schemaDefinition);
         }
         return new ArrayList<>(returnObj.values());

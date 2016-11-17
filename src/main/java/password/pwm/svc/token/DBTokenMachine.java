@@ -34,21 +34,21 @@ class DBTokenMachine implements TokenMachine {
     private DatabaseAccessorImpl databaseAccessor;
     private TokenService tokenService;
 
-    DBTokenMachine(TokenService tokenService, DatabaseAccessorImpl databaseAccessor) {
+    DBTokenMachine(final TokenService tokenService, final DatabaseAccessorImpl databaseAccessor) {
         this.tokenService = tokenService;
         this.databaseAccessor = databaseAccessor;
     }
 
     public String generateToken(
-            SessionLabel sessionLabel,
-            TokenPayload tokenPayload
+            final SessionLabel sessionLabel,
+            final TokenPayload tokenPayload
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
         return tokenService.makeUniqueTokenForMachine(sessionLabel, this);
     }
 
-    public TokenPayload retrieveToken(String tokenKey)
+    public TokenPayload retrieveToken(final String tokenKey)
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String md5sumToken = TokenService.makeTokenHash(tokenKey);
@@ -61,13 +61,13 @@ class DBTokenMachine implements TokenMachine {
         return null;
     }
 
-    public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
+    public void storeToken(final String tokenKey, final TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
         final String rawValue = tokenService.toEncryptedString(tokenPayload);
         final String md5sumToken = TokenService.makeTokenHash(tokenKey);
         databaseAccessor.put(DatabaseTable.TOKENS, md5sumToken, rawValue);
     }
 
-    public void removeToken(String tokenKey) throws PwmOperationalException, PwmUnrecoverableException {
+    public void removeToken(final String tokenKey) throws PwmOperationalException, PwmUnrecoverableException {
         final String md5sumToken = TokenService.makeTokenHash(tokenKey);
         databaseAccessor.remove(DatabaseTable.TOKENS,tokenKey);
         databaseAccessor.remove(DatabaseTable.TOKENS,md5sumToken);

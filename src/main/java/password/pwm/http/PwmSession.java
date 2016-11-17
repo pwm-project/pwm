@@ -26,7 +26,11 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.*;
+import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.SessionLabel;
+import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -44,7 +48,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Jason D. Rivard
@@ -61,14 +69,14 @@ public class PwmSession implements Serializable {
     private UserSessionDataCacheBean userSessionDataCacheBean;
 
     private Settings settings = new Settings();
-    private final static Object creationLock = new Object();
+    private static final Object CREATION_LOCK = new Object();
 
     private transient SessionManager sessionManager;
 
     public static PwmSession createPwmSession(final PwmApplication pwmApplication)
             throws PwmUnrecoverableException
     {
-        synchronized (creationLock) {
+        synchronized (CREATION_LOCK) {
             return new PwmSession(pwmApplication);
         }
     }
@@ -198,12 +206,6 @@ public class PwmSession implements Serializable {
         userInfoBean = null;
         loginInfoBean = null;
         userSessionDataCacheBean = null;
-    }
-
-    protected void finalize()
-            throws Throwable
-    {
-        super.finalize();
     }
 
     public TimeDuration getIdleTime() {

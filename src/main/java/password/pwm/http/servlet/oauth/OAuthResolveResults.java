@@ -35,7 +35,7 @@ class OAuthResolveResults implements Serializable {
         return accessToken;
     }
 
-    public void setAccessToken(String accessToken)
+    public void setAccessToken(final String accessToken)
     {
         this.accessToken = accessToken;
     }
@@ -45,7 +45,7 @@ class OAuthResolveResults implements Serializable {
         return expiresSeconds;
     }
 
-    public void setExpiresSeconds(int expiresSeconds)
+    public void setExpiresSeconds(final int expiresSeconds)
     {
         this.expiresSeconds = expiresSeconds;
     }
@@ -55,7 +55,7 @@ class OAuthResolveResults implements Serializable {
         return refreshToken;
     }
 
-    public void setRefreshToken(String refreshToken)
+    public void setRefreshToken(final String refreshToken)
     {
         this.refreshToken = refreshToken;
     }

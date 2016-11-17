@@ -375,17 +375,33 @@ PWM_CFGEDIT.showChangeLog=function(confirmText, confirmFunction) {
         if (data['error']) {
             PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
         } else {
-            var bodyText = '<div class="changeLogViewBox">';
-            bodyText += data['data']['html'];
-            bodyText += '</div>';
-            if (confirmText != undefined) {
-                bodyText += '<br/><div>' + confirmText + '</div>';
-            }
-            if (confirmFunction == undefined) {
-                PWM_MAIN.showDialog({title: "Unsaved Configuration Editor Changes", text: bodyText, dialogClass:'wide', showClose: true});
-            } else {
-                PWM_MAIN.showConfirmDialog({title: "Unsaved Configuration Editor Changes", text: bodyText, dialogClass:'wide', showClose: true, okAction:confirmFunction});
-            }
+            var showChangeLogDialog = function() {
+                var bodyText = '<div class="changeLogViewBox">';
+                bodyText += data['data']['html'];
+                bodyText += '</div>';
+
+                if (data['data']['health']) {
+                    bodyText += '<br/><div>Configuration Concerns:</div>';
+                    bodyText += '<div><ul>';
+                    for (var i in data['data']['health']['records']) {
+                        var detail = data['data']['health']['records'][i]['detail'];
+                        bodyText += '<li>' + detail + '</li>';
+                    }
+                    bodyText += '</ul></div>';
+                }
+
+                if (confirmText != undefined) {
+                    bodyText += '<br/><div>' + confirmText + '</div>';
+                }
+                if (confirmFunction == undefined) {
+                    PWM_MAIN.showDialog({title: "Unsaved Configuration Editor Changes", text: bodyText, dialogClass:'wide', showClose: true});
+                } else {
+                    PWM_MAIN.showConfirmDialog({title: "Unsaved Configuration Editor Changes", text: bodyText, dialogClass:'wide', showClose: true, okAction:confirmFunction});
+                }
+            };
+
+                showChangeLogDialog()
+
         }
     };
     PWM_MAIN.showWaitDialog({loadFunction: function () {

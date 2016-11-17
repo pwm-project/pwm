@@ -33,7 +33,7 @@ public class UpdateAttributesProfile extends AbstractProfile implements Profile 
 
     private static final ProfileType PROFILE_TYPE = ProfileType.UpdateAttributes;
 
-    protected UpdateAttributesProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
+    protected UpdateAttributesProfile(final String identifier, final Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);
     }
 
@@ -44,7 +44,7 @@ public class UpdateAttributesProfile extends AbstractProfile implements Profile 
     }
 
     @Override
-    public String getDisplayName(Locale locale)
+    public String getDisplayName(final Locale locale)
     {
         return this.getIdentifier();
     }

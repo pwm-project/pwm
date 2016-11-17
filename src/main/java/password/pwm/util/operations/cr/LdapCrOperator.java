@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.util.operations.cr;
 
 import com.novell.ldapchai.ChaiUser;
@@ -46,7 +47,7 @@ public class LdapCrOperator implements CrOperator {
 
     private final Configuration config;
 
-    public LdapCrOperator(Configuration config) {
+    public LdapCrOperator(final Configuration config) {
         this.config = config;
     }
 
@@ -65,18 +66,19 @@ public class LdapCrOperator implements CrOperator {
         return null;
     }
 
-    public ResponseInfoBean readResponseInfo(ChaiUser theUser, final UserIdentity userIdentity, String userGUID)
+    public ResponseInfoBean readResponseInfo(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID)
             throws PwmUnrecoverableException
     {
         try {
             final ResponseSet responseSet = readResponseSet(theUser, userIdentity, userGUID);
             return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean(responseSet, DataStorageMethod.LDAP);
         } catch (ChaiException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,"unexpected error reading response info " + e.getMessage()));
+            final String errorMsg = "unexpected error reading response info " + e.getMessage();
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,errorMsg));
         }
     }
 
-    public void clearResponses(UserIdentity userIdentity, final ChaiUser theUser, final String userGuid)
+    public void clearResponses(final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid)
             throws PwmUnrecoverableException
     {
         final LdapProfile ldapProfile = userIdentity.getLdapProfile(config);
@@ -96,7 +98,9 @@ public class LdapCrOperator implements CrOperator {
         } catch (ChaiOperationException e) {
             final String errorMsg;
             if (e.getErrorCode() == ChaiError.NO_ACCESS) {
-                errorMsg = "permission error clearing responses to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to clear responses: " + e.getMessage();
+                errorMsg = "permission error clearing responses to ldap attribute '"
+                        + ldapStorageAttribute
+                        + "', user does not appear to have correct permissions to clear responses: " + e.getMessage();
             } else {
                 errorMsg = "error clearing responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
             }
@@ -109,7 +113,7 @@ public class LdapCrOperator implements CrOperator {
         }
     }
 
-    public void writeResponses(UserIdentity userIdentity, final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean)
+    public void writeResponses(final UserIdentity userIdentity, final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean)
             throws PwmUnrecoverableException
     {
         final LdapProfile ldapProfile = userIdentity.getLdapProfile(config);
@@ -133,7 +137,9 @@ public class LdapCrOperator implements CrOperator {
         } catch (ChaiException e) {
             final String errorMsg;
             if (e.getErrorCode() == ChaiError.NO_ACCESS) {
-                errorMsg = "permission error writing user responses to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to save responses: " + e.getMessage();
+                errorMsg = "permission error writing user responses to ldap attribute '"
+                        + ldapStorageAttribute
+                        + "', user does not appear to have correct permissions to save responses: " + e.getMessage();
             } else {
                 errorMsg = "error writing user responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
             }

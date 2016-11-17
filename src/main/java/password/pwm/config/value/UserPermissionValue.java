@@ -26,9 +26,9 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.StoredValue;
 import password.pwm.config.UserPermission;
+import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
 import password.pwm.util.JsonUtil;
@@ -66,7 +66,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
                 }
             }
 
-            public UserPermissionValue fromXmlElement(Element settingElement, final PwmSecurityKey key)
+            public UserPermissionValue fromXmlElement(final Element settingElement, final PwmSecurityKey key)
                     throws PwmOperationalException
             {
                 final boolean newType = "2".equals(
@@ -106,7 +106,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
         return Collections.unmodifiableList(values);
     }
 
-    public List<String> validateValue(PwmSetting pwmSetting) {
+    public List<String> validateValue(final PwmSetting pwmSetting) {
         final List<String> returnObj = new ArrayList<>();
         for (final UserPermission userPermission : values) {
             try {
@@ -128,8 +128,8 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
             return;
         }
 
-        int leftParens = StringUtils.countMatches(filter, "(");
-        int rightParens = StringUtils.countMatches(filter,")");
+        final int leftParens = StringUtils.countMatches(filter, "(");
+        final int rightParens = StringUtils.countMatches(filter,")");
 
         if (leftParens != rightParens) {
             throw new IllegalArgumentException("unbalanced parentheses");
@@ -142,7 +142,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
         return 2;
     }
 
-    public String toDebugString(Locale locale) {
+    public String toDebugString(final Locale locale) {
         if (values != null && !values.isEmpty()) {
             final StringBuilder sb = new StringBuilder();
             int counter = 0;

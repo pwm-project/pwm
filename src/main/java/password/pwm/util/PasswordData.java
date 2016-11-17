@@ -34,6 +34,7 @@ import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /*
  * A in-memory password value wrapper.  Instances of this class cannot be serialized.  The actual password value is encrypted using a
@@ -46,9 +47,9 @@ public class PasswordData implements Serializable {
     private final byte[] passwordData;
     private final String keyHash; // not a secure value, used to detect if key is same over time.
 
-    private static final transient PwmSecurityKey staticKey;
-    private static final transient String staticKeyHash;
-    private static final transient ErrorInformation initializationError;
+    private static final transient PwmSecurityKey STATIC_KEY;
+    private static final transient String STATIC_KEY_HASH;
+    private static final transient ErrorInformation INITIALIZATION_ERROR;
 
     private String passwordHashCache;
 
@@ -70,12 +71,12 @@ public class PasswordData implements Serializable {
                 newInitializationError = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error initializing password data class: " + e.getMessage());
             }
         }
-        staticKey = newKey;
-        staticKeyHash = newKeyHash;
-        initializationError = newInitializationError;
+        STATIC_KEY = newKey;
+        STATIC_KEY_HASH = newKeyHash;
+        INITIALIZATION_ERROR = newInitializationError;
     }
 
-    public PasswordData(String passwordData)
+    public PasswordData(final String passwordData)
             throws PwmUnrecoverableException
     {
         checkInitStatus();
@@ -85,22 +86,22 @@ public class PasswordData implements Serializable {
         if (passwordData.isEmpty()) {
             throw new NullPointerException("password data can not be empty");
         }
-        this.passwordData = SecureEngine.encryptToBytes(passwordData, staticKey, PwmConstants.IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
-        this.keyHash = staticKeyHash;
+        this.passwordData = SecureEngine.encryptToBytes(passwordData, STATIC_KEY, PwmConstants.IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
+        this.keyHash = STATIC_KEY_HASH;
     }
 
     private void checkInitStatus()
             throws PwmUnrecoverableException
     {
-        if (staticKey == null || staticKeyHash == null || initializationError != null) {
-            throw new PwmUnrecoverableException(initializationError);
+        if (STATIC_KEY == null || STATIC_KEY_HASH == null || INITIALIZATION_ERROR != null) {
+            throw new PwmUnrecoverableException(INITIALIZATION_ERROR);
         }
     }
 
     private void checkCurrentStatus()
             throws PwmUnrecoverableException
     {
-        if (!keyHash.equals(staticKeyHash)) {
+        if (!keyHash.equals(STATIC_KEY_HASH)) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CRYPT_ERROR,"in-memory password is no longer valid"));
         }
     }
@@ -109,7 +110,7 @@ public class PasswordData implements Serializable {
             throws PwmUnrecoverableException
     {
         checkCurrentStatus();
-        return SecureEngine.decryptBytes(passwordData, staticKey, PwmConstants.IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
+        return SecureEngine.decryptBytes(passwordData, STATIC_KEY, PwmConstants.IN_MEMORY_PASSWORD_ENCRYPT_METHOD);
     }
 
     @Override
@@ -119,16 +120,23 @@ public class PasswordData implements Serializable {
     }
 
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
         return equals(obj, false);
     }
 
-    public boolean equalsIgnoreCase(PasswordData obj) {
+    @Override
+    public int hashCode() {
+        int result = Arrays.hashCode(passwordData);
+        result = 31 * result + keyHash.hashCode();
+        return result;
+    }
+
+    public boolean equalsIgnoreCase(final PasswordData obj) {
         return equals(obj, true);
     }
 
-    private boolean equals(Object obj, boolean ignoreCase)
+    private boolean equals(final Object obj, final boolean ignoreCase)
     {
         if (obj == null) {
             return false;

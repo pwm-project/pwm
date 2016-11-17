@@ -74,7 +74,7 @@ public class StringValue extends AbstractValue implements StoredValue {
         return value;
     }
 
-    public List<String> validateValue(PwmSetting pwmSetting) {
+    public List<String> validateValue(final PwmSetting pwmSetting) {
         if (pwmSetting.isRequired()) {
             if (value == null || value.length() < 1) {
                 return Collections.singletonList("required value missing");
@@ -102,7 +102,7 @@ public class StringValue extends AbstractValue implements StoredValue {
 
     @Override
     public String toDebugString(
-            Locale locale
+            final Locale locale
     )
     {
         return value == null ? "" : value;

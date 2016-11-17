@@ -33,7 +33,7 @@ public class CrChallengeItemBean implements Serializable {
     public int maxQuestionCharsInAnswer;
     public boolean enforceWordlist;
 
-    public CrChallengeItemBean(String challengeText, int minLength, int maxLength, boolean adminDefined, boolean required, int maxQuestionCharsInAnswer, boolean enforceWordlist) {
+    public CrChallengeItemBean(final String challengeText, final int minLength, final int maxLength, final boolean adminDefined, final boolean required, final int maxQuestionCharsInAnswer, final boolean enforceWordlist) {
         this.challengeText = challengeText;
         this.minLength = minLength;
         this.maxLength = maxLength;

@@ -28,10 +28,13 @@ import password.pwm.util.Helper;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static password.pwm.util.localdb.LocalDB.DB;
 
 
 /**
@@ -42,7 +45,7 @@ public class Memory_LocalDB implements LocalDBProvider {
 
     private static final long MIN_FREE_MEMORY = 1024 * 1024;  // 1mb
     private LocalDB.Status state = LocalDB.Status.NEW;
-    private Map<DB, Map<String, String>> maps = new HashMap<>();
+    private Map<LocalDB.DB, Map<String, String>> maps = new HashMap<>();
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -68,7 +71,7 @@ public class Memory_LocalDB implements LocalDBProvider {
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public Memory_LocalDB() {
-        for (final DB db : LocalDB.DB.values()) {
+        for (final LocalDB.DB db : LocalDB.DB.values()) {
             final Map<String, String> newMap = new ConcurrentHashMap<>();
             maps.put(db, newMap);
         }
@@ -77,25 +80,25 @@ public class Memory_LocalDB implements LocalDBProvider {
 // ------------------------ INTERFACE METHODS ------------------------
 
 
-// --------------------- Interface PwmDB ---------------------
+// --------------------- Interface PwmLocalDB.DB ---------------------
 
     @LocalDB.WriteOperation
     public void close()
             throws LocalDBException {
         state = LocalDB.Status.CLOSED;
-        for (final DB db : LocalDB.DB.values()) {
+        for (final LocalDB.DB db : LocalDB.DB.values()) {
             maps.get(db).clear();
         }
     }
 
-    public boolean contains(final DB db, final String key)
+    public boolean contains(final LocalDB.DB db, final String key)
             throws LocalDBException {
         opertationPreCheck();
         final Map<String, String> map = maps.get(db);
         return map.containsKey(key);
     }
 
-    public String get(final DB db, final String key)
+    public String get(final LocalDB.DB db, final String key)
             throws LocalDBException {
         opertationPreCheck();
         final Map<String, String> map = maps.get(db);
@@ -103,9 +106,9 @@ public class Memory_LocalDB implements LocalDBProvider {
     }
 
     @LocalDB.WriteOperation
-    public void init(final File dbDirectory, final Map<String, String> initParameters, Map<LocalDBProvider.Parameter,String> parameters)
+    public void init(final File dbDirectory, final Map<String, String> initParameters, final Map<LocalDBProvider.Parameter,String> parameters)
             throws LocalDBException {
-        boolean readOnly = LocalDBUtility.hasBooleanParameter(Parameter.readOnly, parameters);
+        final boolean readOnly = LocalDBUtility.hasBooleanParameter(Parameter.readOnly, parameters);
         if (readOnly) {
             maps = Collections.unmodifiableMap(maps);
         }
@@ -118,12 +121,12 @@ public class Memory_LocalDB implements LocalDBProvider {
         state = LocalDB.Status.OPEN;
     }
 
-    public LocalDB.LocalDBIterator<String> iterator(final DB db) throws LocalDBException {
+    public LocalDB.LocalDBIterator<String> iterator(final LocalDB.DB db) throws LocalDBException {
         return new DbIterator(db);
     }
 
     @LocalDB.WriteOperation
-    public void putAll(final DB db, final Map<String, String> keyValueMap)
+    public void putAll(final LocalDB.DB db, final Map<String, String> keyValueMap)
             throws LocalDBException {
         opertationPreCheck();
 
@@ -134,7 +137,7 @@ public class Memory_LocalDB implements LocalDBProvider {
     }
 
     @LocalDB.WriteOperation
-    public boolean put(final DB db, final String key, final String value)
+    public boolean put(final LocalDB.DB db, final String key, final String value)
             throws LocalDBException {
         opertationPreCheck();
 
@@ -143,7 +146,7 @@ public class Memory_LocalDB implements LocalDBProvider {
     }
 
     @LocalDB.WriteOperation
-    public boolean remove(final DB db, final String key)
+    public boolean remove(final LocalDB.DB db, final String key)
             throws LocalDBException {
         opertationPreCheck();
 
@@ -151,10 +154,10 @@ public class Memory_LocalDB implements LocalDBProvider {
         return null != map.remove(key);
     }
 
-    public void returnIterator(final DB db) throws LocalDBException {
+    public void returnIterator(final LocalDB.DB db) throws LocalDBException {
     }
 
-    public int size(final DB db)
+    public int size(final LocalDB.DB db)
             throws LocalDBException {
         opertationPreCheck();
 
@@ -163,7 +166,7 @@ public class Memory_LocalDB implements LocalDBProvider {
     }
 
     @LocalDB.WriteOperation
-    public void truncate(final DB db)
+    public void truncate(final LocalDB.DB db)
             throws LocalDBException {
         opertationPreCheck();
 
@@ -171,7 +174,7 @@ public class Memory_LocalDB implements LocalDBProvider {
         map.clear();
     }
 
-    public void removeAll(final DB db, final Collection<String> keys) throws LocalDBException {
+    public void removeAll(final LocalDB.DB db, final Collection<String> keys) throws LocalDBException {
         opertationPreCheck();
 
         maps.get(db).keySet().removeAll(keys);
@@ -190,7 +193,7 @@ public class Memory_LocalDB implements LocalDBProvider {
     private class DbIterator<K> implements LocalDB.LocalDBIterator<String> {
         private final Iterator<String> iterator;
 
-        private DbIterator(final DB db) {
+        private DbIterator(final LocalDB.DB db) {
             iterator = maps.get(db).keySet().iterator();
         }
 

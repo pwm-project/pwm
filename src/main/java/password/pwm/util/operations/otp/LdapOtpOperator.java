@@ -47,7 +47,7 @@ public class LdapOtpOperator extends AbstractOtpOperator {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(LdapOtpOperator.class);
 
-    public LdapOtpOperator(PwmApplication pwmApplication) {
+    public LdapOtpOperator(final PwmApplication pwmApplication) {
         setPwmApplication(pwmApplication);
     }
 
@@ -60,9 +60,9 @@ public class LdapOtpOperator extends AbstractOtpOperator {
      * @throws PwmUnrecoverableException
      */
     @Override
-    public OTPUserRecord readOtpUserConfiguration(UserIdentity userIdentity, String userGUID) throws PwmUnrecoverableException {
-        Configuration config = getPwmApplication().getConfig();
-        String ldapStorageAttribute = config.readSettingAsString(PwmSetting.OTP_SECRET_LDAP_ATTRIBUTE);
+    public OTPUserRecord readOtpUserConfiguration(final UserIdentity userIdentity, final String userGUID) throws PwmUnrecoverableException {
+        final Configuration config = getPwmApplication().getConfig();
+        final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.OTP_SECRET_LDAP_ATTRIBUTE);
         if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
             final String errorMsg = "ldap storage attribute is not configured, unable to read OTP secret";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg);
@@ -108,7 +108,7 @@ public class LdapOtpOperator extends AbstractOtpOperator {
             final String userGuid,
             final OTPUserRecord otpConfig
     ) throws PwmUnrecoverableException {
-        Configuration config = pwmApplication.getConfig();
+        final Configuration config = pwmApplication.getConfig();
         final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.OTP_SECRET_LDAP_ATTRIBUTE);
         if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
             final String errorMsg = "ldap storage attribute is not configured, unable to write OTP secret";
@@ -133,7 +133,9 @@ public class LdapOtpOperator extends AbstractOtpOperator {
         } catch (ChaiException ex) {
             final String errorMsg;
             if (ex.getErrorCode() == ChaiError.NO_ACCESS) {
-                errorMsg = "permission error writing OTP secret to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to save OTP secret: " + ex.getMessage();
+                errorMsg = "permission error writing OTP secret to ldap attribute '"
+                        + ldapStorageAttribute
+                        + "', user does not appear to have correct permissions to save OTP secret: " + ex.getMessage();
             } else {
                 errorMsg = "error writing OTP secret to ldap attribute '" + ldapStorageAttribute + "': " + ex.getMessage();
             }
@@ -161,7 +163,7 @@ public class LdapOtpOperator extends AbstractOtpOperator {
             final UserIdentity userIdentity,
             final String userGuid
     ) throws PwmUnrecoverableException {
-        Configuration config = pwmApplication.getConfig();
+        final Configuration config = pwmApplication.getConfig();
         final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.OTP_SECRET_LDAP_ATTRIBUTE);
         if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
             final String errorMsg = "ldap storage attribute is not configured, unable to clear OTP secret";
@@ -177,7 +179,9 @@ public class LdapOtpOperator extends AbstractOtpOperator {
         } catch (ChaiOperationException e) {
             final String errorMsg;
             if (e.getErrorCode() == ChaiError.NO_ACCESS) {
-                errorMsg = "permission error clearing responses to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to clear OTP secret: " + e.getMessage();
+                errorMsg = "permission error clearing responses to ldap attribute '"
+                        + ldapStorageAttribute
+                        + "', user does not appear to have correct permissions to clear OTP secret: " + e.getMessage();
             } else {
                 errorMsg = "error clearing OTP secret to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
             }

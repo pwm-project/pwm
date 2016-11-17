@@ -43,7 +43,13 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
@@ -53,14 +59,14 @@ import java.util.List;
 @Path("/randompassword")
 public class RestRandomPasswordServer extends AbstractRestServer {
     private static final PwmLogger LOGGER = PwmLogger.forClass(RestRandomPasswordServer.class);
-    private static final ServicePermissions servicePermissions = new ServicePermissions();
+    private static final ServicePermissions SERVICE_PERMISSIONS = new ServicePermissions();
 
     static {
-        servicePermissions.setAdminOnly(false);
-        servicePermissions.setAuthRequired(false);
-        servicePermissions.setBlockExternal(true);
-        servicePermissions.setHelpdeskPermitted(true);
-        servicePermissions.setPublicDuringConfig(true);
+        SERVICE_PERMISSIONS.setAdminOnly(false);
+        SERVICE_PERMISSIONS.setAuthRequired(false);
+        SERVICE_PERMISSIONS.setBlockExternal(true);
+        SERVICE_PERMISSIONS.setHelpdeskPermitted(true);
+        SERVICE_PERMISSIONS.setPublicDuringConfig(true);
     }
 
     public static class JsonOutput implements Serializable
@@ -82,18 +88,18 @@ public class RestRandomPasswordServer extends AbstractRestServer {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doPostRandomPasswordForm(
-            final @FormParam("username") String username,
-            final @FormParam("strength") int strength,
-            final @FormParam("maxLength") int maxLength,
-            final @FormParam("minLength") int minLength,
-            final @FormParam("chars") String chars,
-            final @FormParam("noUser") boolean noUser
+            @FormParam("username") final String username,
+            @FormParam("strength") final int strength,
+            @FormParam("maxLength") final int maxLength,
+            @FormParam("minLength") final int minLength,
+            @FormParam("chars") final String chars,
+            @FormParam("noUser") final boolean noUser
     )
             throws PwmUnrecoverableException
     {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -125,18 +131,18 @@ public class RestRandomPasswordServer extends AbstractRestServer {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String doPlainRandomPassword(
-            final @QueryParam("username") String username,
-            final @QueryParam("strength") int strength,
-            final @QueryParam("minLength") int minLength,
-            final @QueryParam("maxLength") int maxLength,
-            final @QueryParam("chars") String chars,
-            final @QueryParam("noUser") boolean noUser
+            @QueryParam("username") final String username,
+            @QueryParam("strength") final int strength,
+            @QueryParam("minLength") final int minLength,
+            @QueryParam("maxLength") final int maxLength,
+            @QueryParam("chars") final String chars,
+            @QueryParam("noUser") final boolean noUser
     )
             throws PwmUnrecoverableException
     {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, username);
         } catch (PwmUnrecoverableException e) {
             RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
             return null;
@@ -171,7 +177,7 @@ public class RestRandomPasswordServer extends AbstractRestServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, SERVICE_PERMISSIONS, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }

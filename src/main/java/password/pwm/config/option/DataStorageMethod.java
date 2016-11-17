@@ -28,6 +28,5 @@ public enum DataStorageMethod implements ConfigurationOption {
     LDAP,
     LOCALDB,
     NMAS,
-    NMASUAWS,
     CRYPTO
 }

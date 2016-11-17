@@ -36,7 +36,15 @@ import password.pwm.http.PwmSession;
 import password.pwm.util.Helper;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class LdapUserDataReader implements Serializable, UserDataReader {
 
@@ -53,8 +61,8 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
     }
 
     public LdapUserDataReader(
-            UserIdentity userIdentity,
-            ChaiUser user
+            final UserIdentity userIdentity,
+            final ChaiUser user
     ) {
         this.userIdentity = userIdentity;
         this.user = user;
@@ -99,7 +107,7 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
     )
             throws ChaiUnavailableException, ChaiOperationException
     {
-        Map<String,String> results = readStringAttributes(Collections.singletonList(attribute), flags);
+        final Map<String,String> results = readStringAttributes(Collections.singletonList(attribute), flags);
         if (results == null || results.isEmpty()) {
             return null;
         }
@@ -187,7 +195,7 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
     }
 
     @Override
-    public List<String> readMultiStringAttribute(String attribute, Flag... flags) throws ChaiUnavailableException, ChaiOperationException {
+    public List<String> readMultiStringAttribute(final String attribute, final Flag... flags) throws ChaiUnavailableException, ChaiOperationException {
         return readMultiStringAttributesImpl(Collections.singletonList(attribute), Collections.singletonList(PrivateFlag.MultiValueRead), flags).get(attribute);
     }
 }

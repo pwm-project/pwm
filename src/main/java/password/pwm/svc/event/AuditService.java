@@ -34,20 +34,34 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.UserEventStorageMethod;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.LocaleHelper;
+import password.pwm.util.StringUtil;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class AuditService implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(AuditService.class);
@@ -70,7 +84,7 @@ public class AuditService implements PwmService {
         return status;
     }
 
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
         this.status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
@@ -223,6 +237,10 @@ public class AuditService implements PwmService {
                     sendAsEmail(pwmApplication, null, record, toAddress, settings.getAlertFromAddress());
                 }
                 break;
+
+            default:
+                Helper.unhandledSwitchStatement(record.getEventCode().getType());
+
         }
     }
 
@@ -334,7 +352,7 @@ public class AuditService implements PwmService {
     }
 
 
-    public int outputVaultToCsv(OutputStream outputStream, final Locale locale, final boolean includeHeader)
+    public int outputVaultToCsv(final OutputStream outputStream, final Locale locale, final boolean includeHeader)
             throws IOException
     {
         final Configuration config = null;
@@ -362,7 +380,7 @@ public class AuditService implements PwmService {
         }
 
         int counter = 0;
-        for (final Iterator<AuditRecord> recordIterator = readVault(); recordIterator.hasNext();) {
+        for (final Iterator<AuditRecord> recordIterator = readVault(); recordIterator.hasNext(); ) {
             final AuditRecord loopRecord = recordIterator.next();
             counter++;
 

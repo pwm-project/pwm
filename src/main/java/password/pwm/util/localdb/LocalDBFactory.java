@@ -53,13 +53,13 @@ public class LocalDBFactory {
             final File dbDirectory,
             final boolean readonly,
             final PwmApplication pwmApplication,
-            Configuration config
+            final Configuration configuration
     )
             throws Exception
     {
-        if (config == null && pwmApplication != null) {
-            config = pwmApplication.getConfig();
-        }
+        final Configuration config = (configuration == null && pwmApplication != null)
+                ? pwmApplication.getConfig()
+                : configuration;
 
         final long startTime = System.currentTimeMillis();
 
@@ -81,7 +81,7 @@ public class LocalDBFactory {
         final LocalDBProvider dbProvider = createInstance(className);
         LOGGER.debug("initializing " + className + " localDBProvider instance");
 
-        LocalDB localDB = new LocalDBAdaptor(dbProvider, pwmApplication);
+        final LocalDB localDB = new LocalDBAdaptor(dbProvider, pwmApplication);
 
         initInstance(dbProvider, dbDirectory, initParameters, className, parameters);
         final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);

@@ -22,6 +22,13 @@
 
 package password.pwm.bean.pub;
 
+import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
+import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.http.tag.PasswordRequirementsTag;
+import password.pwm.util.macro.MacroMachine;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
@@ -29,13 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import password.pwm.bean.PasswordStatus;
-import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
-import password.pwm.config.profile.PwmPasswordRule;
-import password.pwm.http.tag.PasswordRequirementsTag;
-import password.pwm.util.macro.MacroMachine;
 
 public class PublicUserInfoBean implements Serializable {
     public String userDN;

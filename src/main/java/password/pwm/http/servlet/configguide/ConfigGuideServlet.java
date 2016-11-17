@@ -42,16 +42,36 @@ import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.value.FileValue;
-import password.pwm.error.*;
-import password.pwm.health.*;
-import password.pwm.http.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.DatabaseStatusChecker;
+import password.pwm.health.HealthMessage;
+import password.pwm.health.HealthMonitor;
+import password.pwm.health.HealthRecord;
+import password.pwm.health.HealthStatus;
+import password.pwm.health.HealthTopic;
+import password.pwm.health.LDAPStatusChecker;
+import password.pwm.http.ContextManager;
+import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmHttpRequestWrapper;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmSession;
+import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.LDAPPermissionCalculator;
+import password.pwm.util.Percent;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.X509Utils;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.bean.HealthData;
@@ -63,8 +83,18 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.net.*;
-import java.util.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @WebServlet(
@@ -98,7 +128,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
         private final HttpMethod method;
 
-        ConfigGuideAction(HttpMethod method)
+        ConfigGuideAction(final HttpMethod method)
         {
             this.method = method;
         }
@@ -206,6 +236,9 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
                 case skipGuide:
                     restSkipGuide(pwmRequest);
                     return;
+
+                default:
+                    Helper.unhandledSwitchStatement(action);
             }
         }
 
@@ -354,9 +387,12 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
                 records.addAll(DatabaseStatusChecker.checkNewDatabaseStatus(tempConfiguration));
             }
             break;
+
+            default:
+                Helper.unhandledSwitchStatement(configGuideBean.getStep());
         }
 
-        HealthData jsonOutput = new HealthData();
+        final HealthData jsonOutput = new HealthData();
         jsonOutput.records = password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords(records,
                 pwmRequest.getLocale(), tempConfiguration);
         jsonOutput.timestamp = new Date();
@@ -366,7 +402,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         pwmRequest.outputJsonResult(restResultBean);
     }
 
-    public static Percent stepProgress(GuideStep step) {
+    public static Percent stepProgress(final GuideStep step) {
         final int ordinal = step.ordinal();
         final int total = GuideStep.values().length - 2;
         return new Percent(ordinal,total);
@@ -523,8 +559,8 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             final ContextManager contextManager,
             final StoredConfigurationImpl storedConfiguration
     ) throws PwmOperationalException, PwmUnrecoverableException {
-        ConfigurationReader configReader = contextManager.getConfigReader();
-        PwmApplication pwmApplication = contextManager.getPwmApplication();
+        final ConfigurationReader configReader = contextManager.getConfigReader();
+        final PwmApplication pwmApplication = contextManager.getPwmApplication();
 
         try {
             // add a random security key
@@ -550,7 +586,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         final ConfigGuideBean configGuideBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest,ConfigGuideBean.class);
 
         if (configGuideBean.getStep() == GuideStep.LDAP_PERMISSIONS) {
-            LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(ConfigGuideForm.generateStoredConfig(configGuideBean));
+            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(ConfigGuideForm.generateStoredConfig(configGuideBean));
             pwmRequest.setAttribute(PwmRequest.Attribute.LdapPermissionItems,ldapPermissionCalculator);
         }
 
@@ -561,7 +597,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         servletContext.getRequestDispatcher(destURL).forward(req, pwmRequest.getPwmResponse().getHttpServletResponse());
     }
 
-    public static SchemaOperationResult extendSchema(ConfigGuideBean configGuideBean, final boolean doSchemaExtension) {
+    public static SchemaOperationResult extendSchema(final ConfigGuideBean configGuideBean, final boolean doSchemaExtension) {
         final Map<ConfigGuideForm.FormParameter,String> form = configGuideBean.getFormData();
         final boolean ldapServerSecure = "true".equalsIgnoreCase(form.get(ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE));
         final String ldapUrl = "ldap" + (ldapServerSecure ? "s" : "") + "://" + form.get(ConfigGuideForm.FormParameter.PARAM_LDAP_HOST) + ":" + form.get(ConfigGuideForm.FormParameter.PARAM_LDAP_PORT);
@@ -584,10 +620,10 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             throws IOException
     {
         try {
-            SchemaOperationResult schemaOperationResult = extendSchema(configGuideBean, true);
+            final SchemaOperationResult schemaOperationResult = extendSchema(configGuideBean, true);
             pwmRequest.outputJsonResult(new RestResultBean(schemaOperationResult.getOperationLog()));
         } catch (Exception e) {
-            ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
             pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
             LOGGER.error(pwmRequest, e.getMessage(), e);
         }
@@ -595,7 +631,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
 
 
 
-    private void checkLdapServer(ConfigGuideBean configGuideBean) throws PwmOperationalException, IOException {
+    private void checkLdapServer(final ConfigGuideBean configGuideBean) throws PwmOperationalException, IOException {
         final Map<ConfigGuideForm.FormParameter,String> formData = configGuideBean.getFormData();
         final String host = formData.get(ConfigGuideForm.FormParameter.PARAM_LDAP_HOST);
         final int port = Integer.parseInt(formData.get(ConfigGuideForm.FormParameter.PARAM_LDAP_PORT));

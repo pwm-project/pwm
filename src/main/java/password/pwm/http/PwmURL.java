@@ -28,7 +28,12 @@ import password.pwm.util.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class PwmURL {
     private URI uri;
@@ -189,7 +194,7 @@ public class PwmURL {
             return Collections.emptyList();
         }
         final List<String> urlSegments = new ArrayList<>(Arrays.asList(input.split("/")));
-        for (Iterator<String> iterator = urlSegments.iterator(); iterator.hasNext(); ) {
+        for (final Iterator<String> iterator = urlSegments.iterator(); iterator.hasNext(); ) {
             final String segment = iterator.next();
             if (segment == null || segment.isEmpty()) {
                 iterator.remove();
@@ -209,7 +214,9 @@ public class PwmURL {
         if (parameters != null) {
             for (final String key : parameters.keySet()) {
                 final String value = parameters.get(key);
-                final String encodedValue = StringUtil.urlEncode(value);
+                final String encodedValue = value == null
+                        ? ""
+                        : StringUtil.urlEncode(value);
 
                 output.append(output.toString().contains("?") ? "&" : "?");
                 output.append(key);
@@ -238,11 +245,20 @@ public class PwmURL {
             throw new NullPointerException("scheme cannot be null");
         }
         switch (scheme) {
-            case "http": return 80;
-            case "https": return 443;
-            case "ldap": return 389;
-            case "ldaps": return 636;
+            case "http":
+                return 80;
+
+            case "https":
+                return 443;
+
+            case "ldap":
+                return 389;
+
+            case "ldaps":
+                return 636;
+
+            default:
+                throw new IllegalArgumentException("unknown scheme: " + scheme);
         }
-        throw new IllegalArgumentException("unknown scheme: " + scheme);
     }
 }

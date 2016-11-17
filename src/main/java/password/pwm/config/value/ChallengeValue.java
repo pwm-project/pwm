@@ -33,10 +33,15 @@ import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class ChallengeValue extends AbstractValue implements StoredValue {
-    final static private PwmLogger LOGGER = PwmLogger.forClass(ChallengeValue.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ChallengeValue.class);
     final Map<String, List<ChallengeItemConfiguration>> values; //locale str as key.
 
     ChallengeValue(final Map<String, List<ChallengeItemConfiguration>> values) {
@@ -113,7 +118,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
         return Collections.unmodifiableMap(values);
     }
 
-    public List<String> validateValue(PwmSetting pwmSetting) {
+    public List<String> validateValue(final PwmSetting pwmSetting) {
         if (pwmSetting.isRequired()) {
             if (values == null || values.size() < 1 || values.keySet().iterator().next().length() < 1) {
                 return Collections.singletonList("required value missing");
@@ -183,7 +188,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
         return new ChallengeItemConfiguration(challengeText, minLength, maxLength, adminDefined);
     }
 
-    public String toDebugString(Locale locale) {
+    public String toDebugString(final Locale locale) {
         if (values == null) {
             return "No Actions";
         }
@@ -191,7 +196,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
         for (final String localeKey : values.keySet()) {
             final List<ChallengeItemConfiguration> challengeItems = values.get(localeKey);
             sb.append("Locale: ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append("\n");
-            for (ChallengeItemConfiguration challengeItemBean : challengeItems) {
+            for (final ChallengeItemConfiguration challengeItemBean : challengeItems) {
                 sb.append(" ChallengeItem: [AdminDefined: ").append(challengeItemBean.isAdminDefined());
                 sb.append(" MinLength:").append(challengeItemBean.getMinLength());
                 sb.append(" MaxLength:").append(challengeItemBean.getMaxLength());

@@ -35,16 +35,16 @@ public interface DatabaseAccessor {
     /**
      * Indicates if the method is actually performing an DB operation.
      */
-    public
     @Retention(RetentionPolicy.RUNTIME)
+    public
     @interface DbOperation {
     }
 
     /**
      * Indicates if the method may cause a modification of the database.
      */
-    public
     @Retention(RetentionPolicy.RUNTIME)
+    public
     @interface DbModifyOperation {
     }
 

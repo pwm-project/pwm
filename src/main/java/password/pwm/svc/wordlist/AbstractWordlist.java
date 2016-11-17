@@ -54,7 +54,13 @@ import password.pwm.util.secure.SecureEngine;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -388,7 +394,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
                 }
 
                 if (autoImportError != null) {
-                    int retrySeconds = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.APPLICATION_WORDLIST_RETRY_SECONDS));
+                    final int retrySeconds = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.APPLICATION_WORDLIST_RETRY_SECONDS));
                     LOGGER.error("auto-import of remote wordlist failed, will retry in " + (new TimeDuration(retrySeconds, TimeUnit.SECONDS).asCompactString()));
                     executorService.schedule(new Runnable() {
                         @Override

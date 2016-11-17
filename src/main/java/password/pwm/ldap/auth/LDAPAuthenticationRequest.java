@@ -25,7 +25,11 @@ package password.pwm.ldap.auth;
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.*;
+import com.novell.ldapchai.exception.ChaiError;
+import com.novell.ldapchai.exception.ChaiException;
+import com.novell.ldapchai.exception.ChaiOperationException;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.impl.oracleds.entry.OracleDSEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiSetting;
@@ -80,11 +84,11 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
 
 
     LDAPAuthenticationRequest(
-            PwmApplication pwmApplication,
-            SessionLabel sessionLabel,
-            UserIdentity userIdentity,
-            AuthenticationType requestedAuthType,
-            PwmAuthenticationSource authenticationSource
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity,
+            final AuthenticationType requestedAuthType,
+            final PwmAuthenticationSource authenticationSource
     )
     {
         this.pwmApplication = pwmApplication;
@@ -97,11 +101,11 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
     }
 
     static AuthenticationRequest createLDAPAuthenticationRequest(
-            PwmApplication pwmApplication,
-            SessionLabel sessionLabel,
-            UserIdentity userIdentity,
-            AuthenticationType requestedAuthType,
-            PwmAuthenticationSource authenticationSource
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity,
+            final AuthenticationType requestedAuthType,
+            final PwmAuthenticationSource authenticationSource
     ) {
         return new LDAPAuthenticationRequest(pwmApplication, sessionLabel, userIdentity, requestedAuthType, authenticationSource);
     }
@@ -396,7 +400,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         if (!configAlwaysUseProxy && requestedAuthType == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
             log(PwmLogLevel.DEBUG, "attempting to set temporary random password");
 
-            PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
+            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
                     pwmApplication,
                     sessionLabel,
                     userIdentity,
@@ -405,7 +409,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
             );
 
             // create random password for user
-            RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = new RandomPasswordGenerator.RandomGeneratorConfig();
+            final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = new RandomPasswordGenerator.RandomGeneratorConfig();
             randomGeneratorConfig.setSeedlistPhrases(RandomPasswordGenerator.DEFAULT_SEED_PHRASES);
             randomGeneratorConfig.setPasswordPolicy(passwordPolicy);
 
@@ -532,7 +536,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         LOGGER.log(level, sessionLabel,"authID=" + operationNumber + ", " + message);
     }
 
-    private String makeAuditLogMessage(AuthenticationType authenticationType) {
+    private String makeAuditLogMessage(final AuthenticationType authenticationType) {
         return "type=" + authenticationType.toString()
                 + ", "
                 + "source="

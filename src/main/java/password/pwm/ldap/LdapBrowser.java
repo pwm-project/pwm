@@ -31,23 +31,30 @@ import com.novell.ldapchai.util.ChaiUtility;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
-import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 public class LdapBrowser {
-    final static private PwmLogger LOGGER = PwmLogger.forClass(LdapBrowser.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LdapBrowser.class);
     final StoredConfigurationImpl storedConfiguration;
 
     private Map<String,ChaiProvider> providerCache = new HashMap<>();
 
-    public LdapBrowser(StoredConfigurationImpl storedConfiguration) throws PwmUnrecoverableException {
+    public LdapBrowser(final StoredConfigurationImpl storedConfiguration) throws PwmUnrecoverableException {
         this.storedConfiguration = storedConfiguration;
     }
 
@@ -90,7 +97,7 @@ public class LdapBrowser {
         }
         result.setDn(dn);
         result.setProfileID(profileID);
-        Configuration configuration = new Configuration(storedConfiguration);
+        final Configuration configuration = new Configuration(storedConfiguration);
         if (configuration.getLdapProfiles().size() > 1) {
             result.getProfileList().addAll(configuration.getLdapProfiles().keySet());
         }
@@ -162,7 +169,7 @@ public class LdapBrowser {
             for (final String resultDN : results.keySet()) {
                 boolean hasSubs = false;
                 if (results.get(resultDN).containsKey("subordinateCount")) { // only eDir actually returns this operational attribute
-                    Integer subordinateCount = Integer.parseInt(results.get(resultDN).get("subordinateCount").iterator().next());
+                    final Integer subordinateCount = Integer.parseInt(results.get(resultDN).get("subordinateCount").iterator().next());
                     hasSubs = subordinateCount > 0;
                 } else {
                     final SearchHelper searchHelper = new SearchHelper();
@@ -187,7 +194,7 @@ public class LdapBrowser {
         final ChaiProvider chaiProvider = getChaiProvider(profile);
         final Set<String> adRootValues = new HashSet<>();
         if (chaiProvider.getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
-            ChaiEntry chaiEntry = ChaiUtility.getRootDSE(chaiProvider);
+            final ChaiEntry chaiEntry = ChaiUtility.getRootDSE(chaiProvider);
             adRootValues.addAll(chaiEntry.readMultiStringAttribute("namingContexts"));
         }
         return adRootValues;
@@ -218,7 +225,7 @@ public class LdapBrowser {
             return dn;
         }
 
-        public void setDn(String dn) {
+        public void setDn(final String dn) {
             this.dn = dn;
         }
 
@@ -226,7 +233,7 @@ public class LdapBrowser {
             return profileID;
         }
 
-        public void setProfileID(String profileID) {
+        public void setProfileID(final String profileID) {
             this.profileID = profileID;
         }
 
@@ -234,7 +241,7 @@ public class LdapBrowser {
             return parentDN;
         }
 
-        public void setParentDN(String parentDN) {
+        public void setParentDN(final String parentDN) {
             this.parentDN = parentDN;
         }
 
@@ -246,7 +253,7 @@ public class LdapBrowser {
             return maxResults;
         }
 
-        public void setMaxResults(boolean maxResults) {
+        public void setMaxResults(final boolean maxResults) {
             this.maxResults = maxResults;
         }
 
@@ -267,7 +274,7 @@ public class LdapBrowser {
             return entryName;
         }
 
-        public void setEntryName(String entryName) {
+        public void setEntryName(final String entryName) {
             this.entryName = entryName;
         }
 
@@ -275,7 +282,7 @@ public class LdapBrowser {
             return dn;
         }
 
-        public void setDn(String dn) {
+        public void setDn(final String dn) {
             this.dn = dn;
         }
     }

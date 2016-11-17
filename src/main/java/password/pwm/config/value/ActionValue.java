@@ -29,12 +29,19 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.X509Utils;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class ActionValue extends AbstractValue implements StoredValue {
     final List<ActionConfiguration> values;
@@ -66,7 +73,7 @@ public class ActionValue extends AbstractValue implements StoredValue {
             }
 
             public ActionValue fromXmlElement(
-                    Element settingElement,
+                    final Element settingElement,
                     final PwmSecurityKey input
             )
                     throws PwmOperationalException
@@ -107,7 +114,7 @@ public class ActionValue extends AbstractValue implements StoredValue {
         return Collections.unmodifiableList(values);
     }
 
-    public List<String> validateValue(PwmSetting pwmSetting) {
+    public List<String> validateValue(final PwmSetting pwmSetting) {
         if (pwmSetting.isRequired()) {
             if (values == null || values.size() < 1 || values.get(0) == null) {
                 return Collections.singletonList("required value missing");
@@ -134,7 +141,7 @@ public class ActionValue extends AbstractValue implements StoredValue {
         return Collections.emptyList();
     }
 
-    public String toDebugString(Locale locale) {
+    public String toDebugString(final Locale locale) {
         final StringBuilder sb = new StringBuilder();
         int counter = 0;
         for (final ActionConfiguration actionConfiguration : values) {
@@ -160,8 +167,11 @@ public class ActionValue extends AbstractValue implements StoredValue {
                     sb.append("method=" + actionConfiguration.getLdapMethod());
                     sb.append(" attribute=" + actionConfiguration.getAttributeName());
                     sb.append(" value=" + actionConfiguration.getAttributeValue());
-
                 }
+                break;
+
+                default:
+                    Helper.unhandledSwitchStatement(actionConfiguration.getType());
             }
             sb.append("]");
             counter++;
@@ -178,7 +188,7 @@ public class ActionValue extends AbstractValue implements StoredValue {
         final List<Map<String,Object>> tempObj = JsonUtil.deserialize(originalJson, new TypeToken<List<Map<String,Object>>>() {
         });
         for (final Map<String,Object> mapObj : tempObj) {
-            ActionConfiguration actionConfiguration = forName((String)mapObj.get("name"));
+            final ActionConfiguration actionConfiguration = forName((String)mapObj.get("name"));
             if (actionConfiguration != null && actionConfiguration.getCertificates() != null) {
                 final List<Map<String,String>> certificateInfos = new ArrayList<>();
                 for (final X509Certificate certificate : actionConfiguration.getCertificates()) {

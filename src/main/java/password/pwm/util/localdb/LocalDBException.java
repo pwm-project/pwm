@@ -30,11 +30,11 @@ public class LocalDBException extends PwmDataStoreException {
 // --------------------------- CONSTRUCTORS ---------------------------
 
 
-    public LocalDBException(ErrorInformation error) {
+    public LocalDBException(final ErrorInformation error) {
         super(error);
     }
 
-    public LocalDBException(PwmError error) {
+    public LocalDBException(final PwmError error) {
         super(error);
     }
 }

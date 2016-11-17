@@ -30,7 +30,7 @@ import java.io.InputStream;
 class RealFileResource implements FileResource {
     private final File realFile;
 
-    RealFileResource(File realFile) {
+    RealFileResource(final File realFile) {
         this.realFile = realFile;
     }
 

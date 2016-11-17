@@ -28,7 +28,7 @@ public class HelpdeskVerificationResponseBean implements Serializable {
     private boolean passed;
     private String verificationState;
 
-    public HelpdeskVerificationResponseBean(boolean passed, String verificationState) {
+    public HelpdeskVerificationResponseBean(final boolean passed, final String verificationState) {
         this.passed = passed;
         this.verificationState = verificationState;
     }

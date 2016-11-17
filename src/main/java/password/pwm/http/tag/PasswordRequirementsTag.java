@@ -215,7 +215,7 @@ public class PasswordRequirementsTag extends TagSupport {
                 for (final String loopValue : setValue) {
                     fieldValue.append(" ");
 
-                    String expandedValue = macroMachine.expandMacros(loopValue);
+                    final String expandedValue = macroMachine.expandMacros(loopValue);
                     fieldValue.append(StringUtil.escapeHtml(expandedValue));
                 }
                 returnValues.add(
@@ -321,7 +321,7 @@ public class PasswordRequirementsTag extends TagSupport {
         return form;
     }
 
-    public void setForm(String form) {
+    public void setForm(final String form) {
         this.form = form;
     }
 
@@ -353,7 +353,7 @@ public class PasswordRequirementsTag extends TagSupport {
             if (configuredRuleText != null && configuredRuleText.length() > 0) {
                 pageContext.getOut().write(configuredRuleText);
             } else {
-                MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
+                final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
 
                 final String pre = prepend != null && prepend.length() > 0 ? prepend : "";
                 final String sep = separator != null && separator.length() > 0 ? separator : "<br/>";

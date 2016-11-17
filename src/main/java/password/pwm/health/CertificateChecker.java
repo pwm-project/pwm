@@ -52,17 +52,18 @@ public class CertificateChecker implements HealthChecker {
     private static final PwmLogger LOGGER = PwmLogger.forClass(CertificateChecker.class);
 
     @Override
-    public List<HealthRecord> doHealthCheck(PwmApplication pwmApplication) {
+    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication) {
         final List<HealthRecord> records = new ArrayList<>();
         records.addAll(doHealthCheck(pwmApplication.getConfig()));
         try {
             records.addAll(doActionHealthCheck(pwmApplication.getConfig()));
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("error while checking action certificates: " + e.getMessage(),e);
-        } return records;
+        }
+        return records;
     }
 
-    private static List<HealthRecord> doHealthCheck(Configuration configuration) {
+    private static List<HealthRecord> doHealthCheck(final Configuration configuration) {
         final List<HealthRecord> returnList = new ArrayList<>();
         for (final PwmSetting setting : PwmSetting.values()) {
             if (setting.getSyntax() == PwmSettingSyntax.X509CERT && !setting.getCategory().hasProfiles()) {
@@ -84,13 +85,13 @@ public class CertificateChecker implements HealthChecker {
         final StoredConfigurationImpl storedConfiguration = configuration.getStoredConfiguration();
 
         final List<HealthRecord> returnList = new ArrayList<>();
-        List<StoredConfigReference> modifiedReferences = StoredConfigurationUtil.modifiedSettings(storedConfiguration);
-        for (StoredConfigReference storedConfigReference : modifiedReferences) {
+        final List<StoredConfigReference> modifiedReferences = StoredConfigurationUtil.modifiedSettings(storedConfiguration);
+        for (final StoredConfigReference storedConfigReference : modifiedReferences) {
             if (storedConfigReference.getRecordType() == StoredConfigReference.RecordType.SETTING) {
                 final PwmSetting pwmSetting = PwmSetting.forKey(storedConfigReference.getRecordID());
                 if (pwmSetting != null && pwmSetting.getSyntax() == PwmSettingSyntax.ACTION) {
-                    ActionValue value = (ActionValue)storedConfiguration.readSetting(pwmSetting, storedConfigReference.getProfileID());
-                    for (ActionConfiguration actionConfiguration : value.toNativeObject()) {
+                    final ActionValue value = (ActionValue)storedConfiguration.readSetting(pwmSetting, storedConfigReference.getProfileID());
+                    for (final ActionConfiguration actionConfiguration : value.toNativeObject()) {
                         final X509Certificate[] certificates = actionConfiguration.getCertificates();
                         returnList.addAll(doHealthCheck(configuration, pwmSetting, storedConfigReference.getProfileID(), certificates));
                     }
@@ -100,7 +101,7 @@ public class CertificateChecker implements HealthChecker {
         return Collections.unmodifiableList(returnList);
     }
 
-    private static List<HealthRecord> doHealthCheck(Configuration configuration, PwmSetting setting, final String profileID, X509Certificate[] certificates) {
+    private static List<HealthRecord> doHealthCheck(final Configuration configuration, final PwmSetting setting, final String profileID, final X509Certificate[] certificates) {
         final long warnDurationMs = 1000 * Long.parseLong(configuration.readAppProperty(AppProperty.HEALTH_CERTIFICATE_WARN_SECONDS));
 
         if (certificates != null) {

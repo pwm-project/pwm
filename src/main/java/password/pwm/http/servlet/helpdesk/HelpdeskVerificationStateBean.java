@@ -36,7 +36,14 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 class HelpdeskVerificationStateBean implements Serializable {
@@ -86,7 +93,7 @@ class HelpdeskVerificationStateBean implements Serializable {
 
 
     void purgeOldRecords() {
-        for (Iterator<HelpdeskValidationRecord> iterator = records.iterator(); iterator.hasNext(); ) {
+        for (final Iterator<HelpdeskValidationRecord> iterator = records.iterator(); iterator.hasNext(); ) {
             final HelpdeskValidationRecord record = iterator.next();
             final Date timestamp = record.getTimestamp();
             final TimeDuration age = TimeDuration.fromCurrent(timestamp);
@@ -113,7 +120,7 @@ class HelpdeskVerificationStateBean implements Serializable {
         private String username;
         private String method;
 
-        public ViewableValidationRecord(Date timestamp, String profile, String username, String method) {
+        ViewableValidationRecord(final Date timestamp, final String profile, final String username, final String method) {
             this.timestamp = timestamp;
             this.profile = profile;
             this.username = username;
@@ -142,7 +149,7 @@ class HelpdeskVerificationStateBean implements Serializable {
         private UserIdentity identity;
         private IdentityVerificationMethod method;
 
-        public HelpdeskValidationRecord(Date timestamp, UserIdentity identity, IdentityVerificationMethod method) {
+        HelpdeskValidationRecord(final Date timestamp, final UserIdentity identity, final IdentityVerificationMethod method) {
             this.timestamp = timestamp;
             this.identity = identity;
             this.method = method;

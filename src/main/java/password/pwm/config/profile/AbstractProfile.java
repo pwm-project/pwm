@@ -22,21 +22,35 @@
 
 package password.pwm.config.profile;
 
-import password.pwm.config.*;
+import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingCategory;
+import password.pwm.config.PwmSettingSyntax;
+import password.pwm.config.SettingReader;
+import password.pwm.config.StoredValue;
+import password.pwm.config.UserPermission;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.VerificationMethodValue;
 import password.pwm.util.PasswordData;
 
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractProfile implements Profile, SettingReader {
 
-    final protected String identifier;
-    final protected Map<PwmSetting,StoredValue> storedValueMap;
+    protected final String identifier;
+    protected final Map<PwmSetting,StoredValue> storedValueMap;
 
-    protected AbstractProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
+    protected AbstractProfile(final String identifier, final Map<PwmSetting, StoredValue> storedValueMap) {
         this.identifier = identifier;
         this.storedValueMap = storedValueMap;
     }
@@ -66,12 +80,12 @@ public abstract class AbstractProfile implements Profile, SettingReader {
     }
 
     @Override
-    public <E extends Enum<E>> Set<E> readSettingAsOptionList(final PwmSetting setting, Class<E> enumClass) {
+    public <E extends Enum<E>> Set<E> readSettingAsOptionList(final PwmSetting setting, final Class<E> enumClass) {
         return Configuration.JavaTypeConverter.valueToOptionList(setting, storedValueMap.get(setting), enumClass);
     }
 
     @Override
-    public <E extends Enum<E>> E readSettingAsEnum(PwmSetting setting, Class<E> enumClass) {
+    public <E extends Enum<E>> E readSettingAsEnum(final PwmSetting setting, final Class<E> enumClass) {
         return Configuration.JavaTypeConverter.valueToEnum(setting, storedValueMap.get(setting), enumClass);
     }
 
@@ -133,7 +147,7 @@ public abstract class AbstractProfile implements Profile, SettingReader {
         return valueMap;
     }
 
-    public Set<IdentityVerificationMethod> readVerificationMethods(final PwmSetting pwmSetting, VerificationMethodValue.EnabledState enabledState) {
+    public Set<IdentityVerificationMethod> readVerificationMethods(final PwmSetting pwmSetting, final VerificationMethodValue.EnabledState enabledState) {
         final Set<IdentityVerificationMethod> result = new LinkedHashSet<>();
         final StoredValue configValue = storedValueMap.get(pwmSetting);
         final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = (VerificationMethodValue.VerificationMethodSettings)configValue.toNativeObject();

@@ -32,7 +32,11 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -106,7 +110,7 @@ public class LoginInfoBean implements Serializable {
         return type;
     }
 
-    public void setType(AuthenticationType type)
+    public void setType(final AuthenticationType type)
     {
         this.type = type;
     }
@@ -116,7 +120,7 @@ public class LoginInfoBean implements Serializable {
         return pw;
     }
 
-    public void setUserCurrentPassword(PasswordData userCurrentPassword)
+    public void setUserCurrentPassword(final PasswordData userCurrentPassword)
     {
         this.pw = userCurrentPassword;
     }
@@ -136,7 +140,7 @@ public class LoginInfoBean implements Serializable {
         return oauthExp;
     }
 
-    public void setOauthExp(Date oauthExp)
+    public void setOauthExp(final Date oauthExp)
     {
         this.oauthExp = oauthExp;
     }
@@ -146,7 +150,7 @@ public class LoginInfoBean implements Serializable {
         return oauthRefToken;
     }
 
-    public void setOauthRefToken(String oauthRefToken)
+    public void setOauthRefToken(final String oauthRefToken)
     {
         this.oauthRefToken = oauthRefToken;
     }
@@ -159,7 +163,7 @@ public class LoginInfoBean implements Serializable {
         return authSource;
     }
 
-    public void setAuthSource(PwmAuthenticationSource authSource) {
+    public void setAuthSource(final PwmAuthenticationSource authSource) {
         this.authSource = authSource;
     }
 
@@ -167,7 +171,7 @@ public class LoginInfoBean implements Serializable {
         return guid;
     }
 
-    public void setGuid(String guid) {
+    public void setGuid(final String guid) {
         this.guid = guid;
     }
 
@@ -175,7 +179,7 @@ public class LoginInfoBean implements Serializable {
         return reqCounter;
     }
 
-    public void setReqCounter(int reqCounter) {
+    public void setReqCounter(final int reqCounter) {
         this.reqCounter = reqCounter;
     }
 
@@ -183,7 +187,7 @@ public class LoginInfoBean implements Serializable {
         return userIdentity;
     }
 
-    public void setUserIdentity(UserIdentity userIdentity) {
+    public void setUserIdentity(final UserIdentity userIdentity) {
         this.userIdentity = userIdentity;
     }
 
@@ -191,7 +195,7 @@ public class LoginInfoBean implements Serializable {
         return auth;
     }
 
-    public void setAuthenticated(boolean authenticated) {
+    public void setAuthenticated(final boolean authenticated) {
         this.auth = authenticated;
     }
 
@@ -199,7 +203,7 @@ public class LoginInfoBean implements Serializable {
         return pw;
     }
 
-    public void setPw(PasswordData pw) {
+    public void setPw(final PasswordData pw) {
         this.pw = pw;
     }
 
@@ -207,11 +211,11 @@ public class LoginInfoBean implements Serializable {
         return reqTime;
     }
 
-    public void setReqTime(Date reqTime) {
+    public void setReqTime(final Date reqTime) {
         this.reqTime = reqTime;
     }
 
-    public boolean isLoginFlag(LoginFlag loginStateFlag) {
+    public boolean isLoginFlag(final LoginFlag loginStateFlag) {
         return loginFlags.contains(loginStateFlag);
     }
 

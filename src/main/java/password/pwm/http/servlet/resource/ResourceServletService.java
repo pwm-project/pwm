@@ -97,7 +97,7 @@ public class ResourceServletService implements PwmService {
     }
 
     @Override
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
         this.pwmApplication = pwmApplication;
         status = STATUS.OPENING;
         try {

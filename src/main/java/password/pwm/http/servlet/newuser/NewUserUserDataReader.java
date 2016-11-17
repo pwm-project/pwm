@@ -26,7 +26,12 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.ldap.UserDataReader;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 class NewUserUserDataReader implements UserDataReader {
     private final Map<String, String> attributeData;
@@ -44,8 +49,8 @@ class NewUserUserDataReader implements UserDataReader {
 
     @Override
     public String readStringAttribute(
-            String attribute,
-            Flag...flags
+            final String attribute,
+            final Flag...flags
     )
             throws ChaiUnavailableException, ChaiOperationException
     {
@@ -53,7 +58,7 @@ class NewUserUserDataReader implements UserDataReader {
     }
 
     @Override
-    public Date readDateAttribute(String attribute)
+    public Date readDateAttribute(final String attribute)
             throws ChaiUnavailableException, ChaiOperationException
     {
         return null;
@@ -61,8 +66,8 @@ class NewUserUserDataReader implements UserDataReader {
 
     @Override
     public Map<String, String> readStringAttributes(
-            Collection<String> attributes,
-            Flag... flags
+            final Collection<String> attributes,
+            final Flag... flags
     )
             throws ChaiUnavailableException, ChaiOperationException
     {
@@ -74,7 +79,7 @@ class NewUserUserDataReader implements UserDataReader {
     }
 
     @Override
-    public List<String> readMultiStringAttribute(String attribute, Flag... flags) throws ChaiUnavailableException, ChaiOperationException {
+    public List<String> readMultiStringAttribute(final String attribute, final Flag... flags) throws ChaiUnavailableException, ChaiOperationException {
         final String value = readStringAttribute(attribute, flags);
         return value == null ? null : Collections.singletonList(value);
     }

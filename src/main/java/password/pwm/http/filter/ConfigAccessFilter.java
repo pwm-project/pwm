@@ -24,7 +24,11 @@ package password.pwm.http.filter;
 
 import eu.bitwalker.useragentutils.Browser;
 import eu.bitwalker.useragentutils.UserAgent;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.Permission;
+import password.pwm.PwmApplication;
+import password.pwm.PwmApplicationMode;
+import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationProperty;
@@ -60,7 +64,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
 
     @Override
-    void processFilter(PwmApplicationMode mode, PwmRequest pwmRequest, PwmFilterChain filterChain) throws PwmException, IOException, ServletException {
+    void processFilter(final PwmApplicationMode mode, final PwmRequest pwmRequest, final PwmFilterChain filterChain) throws PwmException, IOException, ServletException {
         final PwmApplicationMode appMode = pwmRequest.getPwmApplication().getApplicationMode();
         if (appMode == PwmApplicationMode.NEW) {
             filterChain.doFilter();
@@ -81,7 +85,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
     }
 
     @Override
-    boolean isInterested(PwmApplicationMode mode, PwmURL pwmURL) {
+    boolean isInterested(final PwmApplicationMode mode, final PwmURL pwmURL) {
         return pwmURL.isConfigManagerURL();
     }
 
@@ -251,18 +255,18 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
         pwmRequest.setAttribute(PwmRequest.Attribute.ConfigLoginHistory, configLoginHistory);
         pwmRequest.setAttribute(PwmRequest.Attribute.ConfigPasswordRememberTime,time);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_LOGIN);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_LOGIN);
 
     }
 
     private static ConfigLoginHistory readConfigLoginHistory(final PwmRequest pwmRequest) {
-        ConfigLoginHistory configLoginHistory = pwmRequest.getPwmApplication().readAppAttribute(PwmApplication.AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class);
+        final ConfigLoginHistory configLoginHistory = pwmRequest.getPwmApplication().readAppAttribute(PwmApplication.AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class);
         return configLoginHistory == null
                 ? new ConfigLoginHistory()
                 : configLoginHistory;
     }
 
-    private static void updateLoginHistory(final PwmRequest pwmRequest, final UserIdentity userIdentity, boolean successful) {
+    private static void updateLoginHistory(final PwmRequest pwmRequest, final UserIdentity userIdentity, final boolean successful) {
         final ConfigLoginHistory configLoginHistory = readConfigLoginHistory(pwmRequest);
         final ConfigLoginEvent event = new ConfigLoginEvent(
                 userIdentity == null ? "n/a" : userIdentity.toDisplayString(),
@@ -279,8 +283,8 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
         private String password;
 
         private PersistentLoginInfo(
-                Date expireDate,
-                String password
+                final Date expireDate,
+                final String password
         )
         {
             this.expireDate = expireDate;
@@ -301,10 +305,10 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
 
     public static class ConfigLoginHistory implements Serializable {
-        final private List<ConfigLoginEvent> successEvents = new ArrayList<>();
-        final private List<ConfigLoginEvent> failedEvents = new ArrayList<>();
+        private final List<ConfigLoginEvent> successEvents = new ArrayList<>();
+        private final List<ConfigLoginEvent> failedEvents = new ArrayList<>();
 
-        void addEvent(ConfigLoginEvent event, int maxEvents, boolean successful) {
+        void addEvent(final ConfigLoginEvent event, final int maxEvents, final boolean successful) {
             final List<ConfigLoginEvent> events = successful ? successEvents : failedEvents;
             events.add(event);
             if (maxEvents > 0) {
@@ -324,11 +328,11 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
     }
 
     public static class ConfigLoginEvent implements Serializable {
-        final private String userIdentity;
-        final private Date date;
-        final private String networkAddress;
+        private final String userIdentity;
+        private final Date date;
+        private final String networkAddress;
 
-        public ConfigLoginEvent(String userIdentity, Date date, String networkAddress) {
+        public ConfigLoginEvent(final String userIdentity, final Date date, final String networkAddress) {
             this.userIdentity = userIdentity;
             this.date = date;
             this.networkAddress = networkAddress;
@@ -370,6 +374,11 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                 case IE9:
                 case IE10:
                     badBrowser = true;
+                    break;
+
+                default:
+                    //other browsers okay
+                    break;
 
             }
         } catch (Exception e) {

@@ -60,7 +60,7 @@ public class ImportLocalDBCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ImportLocalDB";
         cliParameters.description = "Import the entire LocalDB contents from a backup file";
         cliParameters.options = Collections.singletonList(CliParameters.REQUIRED_EXISTING_INPUT_FILE);

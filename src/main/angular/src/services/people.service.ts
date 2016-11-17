@@ -92,7 +92,7 @@ export default class PeopleService extends PwmService implements IPeopleService 
 
     getOrgChartData(personId: string): angular.IPromise<OrgChartData> {
         return this.$http
-            .post(this.getServerUrl('orgChartData'), { userKey: personId })
+            .get(this.getServerUrl('orgChartData'), { params: { userKey: personId } })
             .then((response) => {
                 let responseData = response.data['data'];
 
@@ -108,12 +108,12 @@ export default class PeopleService extends PwmService implements IPeopleService 
     }
 
     getPerson(id: string): IPromise<Person> {
-        return this.$http.post(this.getServerUrl('detail'), {
-            userKey: id
-        }).then((response) => {
-            let person: Person = new Person(response.data['data']);
-            return this.$q.resolve(person);
-        });
+        return this.$http
+            .get(this.getServerUrl('detail'), { params: { userKey: id } })
+            .then((response) => {
+                let person: Person = new Person(response.data['data']);
+                return this.$q.resolve(person);
+            });
     }
 
     isOrgChartEnabled(id: string): IPromise<boolean> {
@@ -122,13 +122,13 @@ export default class PeopleService extends PwmService implements IPeopleService 
     }
 
     search(query: string): IPromise<SearchResult> {
-        return this.$http.post(this.getServerUrl('search', { 'includeDisplayName': true }), {
-            username: query
-        }).then((response) => {
-            let receivedData: any = response.data['data'];
-            let searchResult: SearchResult = new SearchResult(receivedData);
+        return this.$http
+            .get(this.getServerUrl('search', { 'includeDisplayName': true }), { params: { username: query } })
+            .then((response) => {
+                let receivedData: any = response.data['data'];
+                let searchResult: SearchResult = new SearchResult(receivedData);
 
-            return this.$q.resolve(searchResult);
-        });
+                return this.$q.resolve(searchResult);
+            });
     }
 }

@@ -24,16 +24,21 @@ package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
-import password.pwm.util.Validator;
 import password.pwm.bean.UserIdentity;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
+import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -73,7 +78,7 @@ public class LoginServlet extends AbstractPwmServlet {
 
         private final HttpMethod method;
 
-        LoginServletAction(HttpMethod method)
+        LoginServletAction(final HttpMethod method)
         {
             this.method = method;
         }
@@ -116,6 +121,9 @@ public class LoginServlet extends AbstractPwmServlet {
                 case restLogin:
                     processRestLogin(pwmRequest, passwordOnly);
                     break;
+
+                default:
+                    Helper.unhandledSwitchStatement(action);
             }
 
             return;
@@ -227,7 +235,7 @@ public class LoginServlet extends AbstractPwmServlet {
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmConstants.JSP_URL url = passwordOnly ? PwmConstants.JSP_URL.LOGIN_PW_ONLY : PwmConstants.JSP_URL.LOGIN;
+        final PwmConstants.JspUrl url = passwordOnly ? PwmConstants.JspUrl.LOGIN_PW_ONLY : PwmConstants.JspUrl.LOGIN;
         pwmRequest.forwardToJsp(url);
     }
 

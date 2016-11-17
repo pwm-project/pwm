@@ -28,7 +28,11 @@ import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.PwmConstants;
-import password.pwm.config.*;
+import password.pwm.config.ChallengeItemConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.StoredValue;
+import password.pwm.config.UserPermission;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.error.ErrorInformation;
@@ -38,7 +42,12 @@ import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class ChallengeProfile implements Profile, Serializable {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ChallengeProfile.class);
@@ -113,12 +122,12 @@ public class ChallengeProfile implements Profile, Serializable {
     }
 
     public static ChallengeProfile createChallengeProfile(
-            String profileID,
-            Locale locale,
-            ChallengeSet challengeSet,
-            ChallengeSet helpdeskChallengeSet,
-            int minRandomSetup,
-            int minHelpdeskRandomSetup
+            final String profileID,
+            final Locale locale,
+            final ChallengeSet challengeSet,
+            final ChallengeSet helpdeskChallengeSet,
+            final int minRandomSetup,
+            final int minHelpdeskRandomSetup
     ) {
         return new ChallengeProfile(profileID, locale, challengeSet, helpdeskChallengeSet, minRandomSetup, minHelpdeskRandomSetup, null);
     }
@@ -165,14 +174,17 @@ public class ChallengeProfile implements Profile, Serializable {
             final StoredConfiguration storedConfiguration,
             final PwmSetting requiredChallenges,
             final PwmSetting randomChallenges,
-            int minimumRands
-    ) throws PwmOperationalException {
+            final int minimumRands
+    )
+            throws PwmOperationalException
+    {
         final List<ChallengeItemConfiguration> requiredQuestions = valueToChallengeItemArray(
                 storedConfiguration.readSetting(requiredChallenges, profileID), locale);
         final List<ChallengeItemConfiguration> randomQuestions = valueToChallengeItemArray(
                 storedConfiguration.readSetting(randomChallenges, profileID), locale);
 
         final List<Challenge> challenges = new ArrayList<>();
+        int randoms = minimumRands;
 
         if (requiredQuestions != null) {
             for (final ChallengeItemConfiguration item : requiredQuestions) {
@@ -207,15 +219,15 @@ public class ChallengeProfile implements Profile, Serializable {
                 }
             }
 
-            if (minimumRands > randomQuestions.size()) {
-                minimumRands = randomQuestions.size();
+            if (randoms > randomQuestions.size()) {
+                randoms = randomQuestions.size();
             }
         } else {
-            minimumRands = 0;
+            randoms = 0;
         }
 
         try {
-            return new ChaiChallengeSet(challenges, minimumRands, locale, PwmConstants.PWM_APP_NAME + "-defined " + PwmConstants.SERVLET_VERSION);
+            return new ChaiChallengeSet(challenges, randoms, locale, PwmConstants.PWM_APP_NAME + "-defined " + PwmConstants.SERVLET_VERSION);
         } catch (ChaiValidationException e) {
             throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"invalid challenge set configuration: " + e.getMessage()));
         }

@@ -44,10 +44,10 @@ import java.util.Map;
 public interface LocalDB {
 // -------------------------- OTHER METHODS --------------------------
 
-    public static final int MAX_KEY_LENGTH = 128;
-    public static final int MAX_VALUE_LENGTH = 1024 * 100;
+    int MAX_KEY_LENGTH = 128;
+    int MAX_VALUE_LENGTH = 1024 * 100;
 
-    public static enum Status {
+    enum Status {
         NEW, OPEN, CLOSED
     }
 
@@ -152,21 +152,21 @@ public interface LocalDB {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    public
     @Retention(RetentionPolicy.RUNTIME)
-            @interface ReadOperation {
+    @interface
+    ReadOperation {
     }
 
-    public
     @Retention(RetentionPolicy.RUNTIME)
-            @interface WriteOperation {
+    @interface
+    WriteOperation {
     }
 
 
-    public static interface LocalDBIterator<K> extends ClosableIterator<String> {
+    interface LocalDBIterator<K> extends ClosableIterator<String> {
     }
 
-    public static class TransactionItem implements Serializable, Comparable {
+    class TransactionItem implements Serializable, Comparable {
         private final DB db;
         private final String key;
         private final String value;
@@ -200,8 +200,12 @@ public interface LocalDB {
 
         @Override
         public boolean equals(final Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             final TransactionItem that = (TransactionItem) o;
 

@@ -28,7 +28,7 @@ import password.pwm.error.PwmUnrecoverableException;
 public interface SchemaExtender {
     void init(ChaiProvider chaiProvider) throws PwmUnrecoverableException;
 
-    public SchemaOperationResult extendSchema() throws PwmUnrecoverableException;
+    SchemaOperationResult extendSchema() throws PwmUnrecoverableException;
 
-    public SchemaOperationResult checkExistingSchema() throws PwmUnrecoverableException;
+    SchemaOperationResult checkExistingSchema() throws PwmUnrecoverableException;
 }

@@ -92,7 +92,7 @@ import java.util.TreeMap;
 public class Configuration implements Serializable, SettingReader {
 // ------------------------------ FIELDS ------------------------------
 
-    private final static PwmLogger LOGGER = PwmLogger.forClass(Configuration.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(Configuration.class);
 
     private final StoredConfigurationImpl storedConfiguration;
 
@@ -154,12 +154,12 @@ public class Configuration implements Serializable, SettingReader {
         return availableLocaleMap.get(matchedLocale);
     }
 
-    public <E extends Enum<E>> E readSettingAsEnum(PwmSetting setting,  Class<E> enumClass) {
+    public <E extends Enum<E>> E readSettingAsEnum(final PwmSetting setting, final Class<E> enumClass) {
         final StoredValue value = readStoredValue(setting);
         return JavaTypeConverter.valueToEnum(setting, value, enumClass);
     }
 
-    public <E extends Enum<E>> Set<E> readSettingAsOptionList(final PwmSetting setting,  Class<E> enumClass) {
+    public <E extends Enum<E>> Set<E> readSettingAsOptionList(final PwmSetting setting, final Class<E> enumClass) {
         return JavaTypeConverter.valueToOptionList(setting, readStoredValue(setting), enumClass);
     }
 
@@ -189,7 +189,7 @@ public class Configuration implements Serializable, SettingReader {
         return JavaTypeConverter.valueToPassword(readStoredValue(setting));
     }
 
-    public static abstract class JavaTypeConverter {
+    public abstract static class JavaTypeConverter {
         public static long valueToLong(final StoredValue value) {
             if (!(value instanceof NumericValue)) {
                 throw new IllegalArgumentException("setting value is not readable as number");
@@ -198,22 +198,30 @@ public class Configuration implements Serializable, SettingReader {
         }
 
         public static String valueToString(final StoredValue value) {
-            if (value == null) return null;
+            if (value == null) {
+                return null;
+            }
             if ((!(value instanceof StringValue)) && (!(value instanceof BooleanValue))) {
                 throw new IllegalArgumentException("setting value is not readable as string");
             }
             final Object nativeObject = value.toNativeObject();
-            if (nativeObject == null) return null;
+            if (nativeObject == null) {
+                return null;
+            }
             return nativeObject.toString();
         }
 
         public static PasswordData valueToPassword(final StoredValue value) {
-            if (value == null) return null;
+            if (value == null) {
+                return null;
+            }
             if ((!(value instanceof PasswordValue))) {
                 throw new IllegalArgumentException("setting value is not readable as password");
             }
             final Object nativeObject = value.toNativeObject();
-            if (nativeObject == null) return null;
+            if (nativeObject == null) {
+                return null;
+            }
             return (PasswordData)nativeObject;
         }
         
@@ -227,7 +235,9 @@ public class Configuration implements Serializable, SettingReader {
 
 
         public static List<FormConfiguration> valueToForm(final StoredValue value) {
-            if (value == null) return null;
+            if (value == null) {
+                return null;
+            }
             if ((!(value instanceof FormValue))) {
                 throw new IllegalArgumentException("setting value is not readable as form");
             }
@@ -241,7 +251,7 @@ public class Configuration implements Serializable, SettingReader {
             }
 
             final List<String> results = new ArrayList<>((List<String>)value.toNativeObject());
-            for (final Iterator iter = results.iterator(); iter.hasNext();) {
+            for (final Iterator iter = results.iterator(); iter.hasNext(); ) {
                 final Object loopString = iter.next();
                 if (loopString == null || loopString.toString().length() < 1) {
                     iter.remove();
@@ -260,7 +270,7 @@ public class Configuration implements Serializable, SettingReader {
             }
 
             final List<UserPermission> results = new ArrayList<>((List<UserPermission>)value.toNativeObject());
-            for (final Iterator iter = results.iterator(); iter.hasNext();) {
+            for (final Iterator iter = results.iterator(); iter.hasNext(); ) {
                 final Object loopString = iter.next();
                 if (loopString == null || loopString.toString().length() < 1) {
                     iter.remove();
@@ -306,7 +316,7 @@ public class Configuration implements Serializable, SettingReader {
             return availableLocaleMap.get(matchedLocale);
         }
 
-        public static <E extends Enum<E>> E valueToEnum(final PwmSetting setting, StoredValue value, Class<E> enumClass) {
+        public static <E extends Enum<E>> E valueToEnum(final PwmSetting setting, final StoredValue value, final Class<E> enumClass) {
             if (PwmSettingSyntax.SELECT != setting.getSyntax()) {
                 throw new IllegalArgumentException("may not read SELECT enum value for setting: " + setting.toString());
             }
@@ -325,7 +335,7 @@ public class Configuration implements Serializable, SettingReader {
             return null;
         }
 
-        public static <E extends Enum<E>> Set<E> valueToOptionList(final PwmSetting setting, final StoredValue value,  Class<E> enumClass) {
+        public static <E extends Enum<E>> Set<E> valueToOptionList(final PwmSetting setting, final StoredValue value, final Class<E> enumClass) {
             if (PwmSettingSyntax.OPTIONLIST != setting.getSyntax()) {
                 throw new IllegalArgumentException("may not read optionlist value for setting: " + setting.toString());
             }
@@ -497,6 +507,10 @@ public class Configuration implements Serializable, SettingReader {
                     returnCollection.add(LocaleHelper.parseLocaleString(localeStr));
                 }
                 break;
+
+            default:
+                // ignore other types
+                break;
         }
 
         return returnCollection;
@@ -511,7 +525,7 @@ public class Configuration implements Serializable, SettingReader {
     }
 
     public Map<FileValue.FileInformation,FileValue.FileContent> readSettingAsFile(final PwmSetting setting) {
-        FileValue fileValue = (FileValue)storedConfiguration.readSetting(setting);
+        final FileValue fileValue = (FileValue)storedConfiguration.readSetting(setting);
         return (Map)fileValue.toNativeObject();
     }
 
@@ -540,6 +554,7 @@ public class Configuration implements Serializable, SettingReader {
     }
 
     private PwmSecurityKey tempInstanceKey = null;
+
     public PwmSecurityKey getSecurityKey() throws PwmUnrecoverableException {
         final PasswordData configValue = readSettingAsPassword(PwmSetting.PWM_SECURITY_KEY);
 
@@ -656,7 +671,7 @@ public class Configuration implements Serializable, SettingReader {
             return TokenStorageMethod.valueOf(readSettingAsString(PwmSetting.TOKEN_STORAGEMETHOD));
         } catch (Exception e) {
             final String errorMsg = "unknown storage method specified: " + readSettingAsString(PwmSetting.TOKEN_STORAGEMETHOD);
-            ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
             LOGGER.warn(errorInformation.toDebugStr());
             return null;
         }
@@ -683,7 +698,7 @@ public class Configuration implements Serializable, SettingReader {
         return true;
     }
 
-    public String readAppProperty(AppProperty property) {
+    public String readAppProperty(final AppProperty property) {
         final Map<String,String> configurationValues = StringUtil.convertStringListToNameValuePair(this.readSettingAsStringArray(PwmSetting.APP_PROPERTY_OVERRIDES),"=");
         if (configurationValues.containsKey(property.getKey())) {
             return configurationValues.get(property.getKey());
@@ -707,11 +722,6 @@ public class Configuration implements Serializable, SettingReader {
                 } else {
                     readPreferences.add(DataStorageMethod.LDAP);
                 }
-            }
-
-            final String wsURL = readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
-            if (wsURL != null && wsURL.length() > 0) {
-                readPreferences.add(DataStorageMethod.NMASUAWS);
             }
 
 
@@ -743,7 +753,7 @@ public class Configuration implements Serializable, SettingReader {
                     PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE,
                     PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE,
                     PwmSetting.INTRUDER_STORAGE_METHOD,
-                    PwmSetting.EVENTS_USER_STORAGE_METHOD
+                    PwmSetting.EVENTS_USER_STORAGE_METHOD,
             };
 
             for (final PwmSetting loopSetting : settingsToCheck) {
@@ -883,7 +893,7 @@ public class Configuration implements Serializable, SettingReader {
 
     public Set<PwmSetting> nonDefaultSettings() {
         final HashSet returnSet = new HashSet();
-        for (StoredConfigurationImpl.SettingValueRecord valueRecord : this.storedConfiguration.modifiedSettings()) {
+        for (final StoredConfigurationImpl.SettingValueRecord valueRecord : this.storedConfiguration.modifiedSettings()) {
             returnSet.add(valueRecord.getSetting());
         }
         return returnSet;

@@ -27,7 +27,12 @@ import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.StoredValue;
 import password.pwm.config.UserPermission;
 import password.pwm.config.stored.StoredConfigurationImpl;
-import password.pwm.config.value.*;
+import password.pwm.config.value.FileValue;
+import password.pwm.config.value.PasswordValue;
+import password.pwm.config.value.StringArrayValue;
+import password.pwm.config.value.StringValue;
+import password.pwm.config.value.UserPermissionValue;
+import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.util.PasswordData;
@@ -84,7 +89,7 @@ public class ConfigGuideForm {
 
         private final PwmSetting pwmSetting;
 
-        FormParameter(PwmSetting pwmSetting) {
+        FormParameter(final PwmSetting pwmSetting) {
             this.pwmSetting = pwmSetting;
         }
 

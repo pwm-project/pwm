@@ -22,17 +22,7 @@
 
 package password.pwm.http.servlet;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -45,9 +35,18 @@ import password.pwm.http.PwmURL;
 import password.pwm.svc.report.ReportColumnFilter;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.reports.ReportUtils;
 import password.pwm.ws.server.RestResultBean;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 
 @WebServlet(
         name = "AdminServlet",
@@ -73,7 +72,7 @@ public class AdminServlet extends AbstractPwmServlet {
 
         private final Collection<HttpMethod> method;
 
-        AdminAction(HttpMethod... method)
+        AdminAction(final HttpMethod... method)
         {
             this.method = Collections.unmodifiableList(Arrays.asList(method));
         }
@@ -135,6 +134,9 @@ public class AdminServlet extends AbstractPwmServlet {
                 case clearIntruderTable:
                     processClearIntruderTable(pwmRequest);
                     return;
+
+                default:
+                    Helper.unhandledSwitchStatement(action);
             }
         }
 
@@ -146,7 +148,7 @@ public class AdminServlet extends AbstractPwmServlet {
     )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ADMIN_LOGVIEW_WINDOW);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.ADMIN_LOGVIEW_WINDOW);
     }
 
     private void downloadAuditLogCsv(
@@ -245,7 +247,7 @@ public class AdminServlet extends AbstractPwmServlet {
 
         //pwmApplication.getIntruderManager().clear();
 
-        RestResultBean restResultBean = new RestResultBean();
+        final RestResultBean restResultBean = new RestResultBean();
         pwmRequest.outputJsonResult(restResultBean);
     }
 
@@ -262,25 +264,25 @@ public class AdminServlet extends AbstractPwmServlet {
 
 
     public enum Page {
-        dashboard(PwmConstants.JSP_URL.ADMIN_DASHBOARD,"/dashboard"),
-        analysis(PwmConstants.JSP_URL.ADMIN_ANALYSIS,"/analysis"),
-        activity(PwmConstants.JSP_URL.ADMIN_ACTIVITY,"/activity"),
-        tokenLookup(PwmConstants.JSP_URL.ADMIN_TOKEN_LOOKUP,"/tokens"),
-        viewLog(PwmConstants.JSP_URL.ADMIN_LOGVIEW,"/logs"),
-        urlReference(PwmConstants.JSP_URL.ADMIN_URLREFERENCE,"/urls"),
-        debugUser(PwmConstants.JSP_URL.ADMIN_DEBUG,"/debug"),
+        dashboard(PwmConstants.JspUrl.ADMIN_DASHBOARD,"/dashboard"),
+        analysis(PwmConstants.JspUrl.ADMIN_ANALYSIS,"/analysis"),
+        activity(PwmConstants.JspUrl.ADMIN_ACTIVITY,"/activity"),
+        tokenLookup(PwmConstants.JspUrl.ADMIN_TOKEN_LOOKUP,"/tokens"),
+        viewLog(PwmConstants.JspUrl.ADMIN_LOGVIEW,"/logs"),
+        urlReference(PwmConstants.JspUrl.ADMIN_URLREFERENCE,"/urls"),
+        debugUser(PwmConstants.JspUrl.ADMIN_DEBUG,"/debug"),
 
         ;
 
-        private final PwmConstants.JSP_URL jspURL;
+        private final PwmConstants.JspUrl jspURL;
         private final String urlSuffix;
 
-        Page(PwmConstants.JSP_URL jspURL, String urlSuffix) {
+        Page(final PwmConstants.JspUrl jspURL, final String urlSuffix) {
             this.jspURL = jspURL;
             this.urlSuffix = urlSuffix;
         }
 
-        public PwmConstants.JSP_URL getJspURL() {
+        public PwmConstants.JspUrl getJspURL() {
             return jspURL;
         }
 

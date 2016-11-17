@@ -35,21 +35,26 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class EdirSchemaExtender implements SchemaExtender {
     private static final PwmLogger LOGGER = PwmLogger.forClass(EdirSchemaExtender.class);
 
-    private final static String LDAP_SCHEMA_DN = "cn=schema";
-    private final static String LDAP_SCHEMA_ATTR_ATTRS = "attributeTypes";
-    private final static String LDAP_SCHEMA_ATTR_CLASSES = "objectClasses";
+    private static final String LDAP_SCHEMA_DN = "cn=schema";
+    private static final String LDAP_SCHEMA_ATTR_ATTRS = "attributeTypes";
+    private static final String LDAP_SCHEMA_ATTR_CLASSES = "objectClasses";
 
     private ChaiEntry schemaEntry;
 
     private final StringBuilder activityLog = new StringBuilder();
     private final Map<String,SchemaDefinition.State> stateMap = new HashMap();
 
-    public void init(ChaiProvider chaiProvider) throws PwmUnrecoverableException {
+    public void init(final ChaiProvider chaiProvider) throws PwmUnrecoverableException {
         try {
             schemaEntry = ChaiFactory.createChaiEntry(LDAP_SCHEMA_DN, chaiProvider);
         } catch (ChaiUnavailableException e) {
@@ -83,7 +88,7 @@ public class EdirSchemaExtender implements SchemaExtender {
         return allStatesCorrect;
     }
 
-    private void execute(boolean readOnly) throws PwmUnrecoverableException {
+    private void execute(final boolean readOnly) throws PwmUnrecoverableException {
         activityLog.delete(0,activityLog.length());
         logActivity("connecting to " + schemaEntry.getChaiProvider().getChaiConfiguration().bindURLsAsList().iterator().next());
         stateMap.clear();
@@ -109,7 +114,7 @@ public class EdirSchemaExtender implements SchemaExtender {
 
     }
 
-    private void checkObjectclass(boolean readOnly, SchemaDefinition schemaDefinition, Map<String, SchemaParser> existingAttrs)
+    private void checkObjectclass(final boolean readOnly, final SchemaDefinition schemaDefinition, final Map<String, SchemaParser> existingAttrs)
             throws ChaiUnavailableException
     {
         final String name = schemaDefinition.getName();
@@ -146,12 +151,12 @@ public class EdirSchemaExtender implements SchemaExtender {
         }
     }
 
-    private void checkAttribute(boolean readOnly, SchemaDefinition schemaDefinition, Map<String, SchemaParser> existingAttrs) throws ChaiUnavailableException {
+    private void checkAttribute(final boolean readOnly, final SchemaDefinition schemaDefinition, final Map<String, SchemaParser> existingAttrs) throws ChaiUnavailableException {
         final String name = schemaDefinition.getName();
         if (existingAttrs.containsKey(name)) {
             final SchemaParser existingValue = existingAttrs.get(name);
             logActivity("attribute '" + name + "' exists");
-            boolean attributeIsCorrect = checkAttributeCorrectness(schemaDefinition, existingValue );
+            final boolean attributeIsCorrect = checkAttributeCorrectness(schemaDefinition, existingValue );
             stateMap.put(name, attributeIsCorrect ? SchemaDefinition.State.correct : SchemaDefinition.State.incorrect);
 
             if (!readOnly && !attributeIsCorrect) {
@@ -180,7 +185,7 @@ public class EdirSchemaExtender implements SchemaExtender {
         }
     }
 
-    private boolean checkObjectclassCorrectness(SchemaDefinition schemaDefinition, SchemaParser existingAttr) {
+    private boolean checkObjectclassCorrectness(final SchemaDefinition schemaDefinition, final SchemaParser existingAttr) {
         boolean checkPassed = true;
         try {
             final SchemaParser schemaDef = new SchemaParser(schemaDefinition.getDefinition());
@@ -207,7 +212,7 @@ public class EdirSchemaExtender implements SchemaExtender {
         return checkPassed;
     }
 
-    private boolean checkAttributeCorrectness(SchemaDefinition schemaDefinition, SchemaParser existingAttr) {
+    private boolean checkAttributeCorrectness(final SchemaDefinition schemaDefinition, final SchemaParser existingAttr) {
         boolean checkPassed = true;
         try {
             final SchemaParser schemaDef = new SchemaParser(schemaDefinition.getDefinition());

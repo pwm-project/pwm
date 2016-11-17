@@ -73,7 +73,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
     // -------------------------- STATIC METHODS --------------------------
     private final PwmApplication pwmApplication;
 
-    LdapXmlUserHistory(PwmApplication pwmApplication) {
+    LdapXmlUserHistory(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
     }
 
@@ -280,7 +280,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
         private String sourceHost;
 
 
-        private StoredEvent(AuditEvent auditEvent, long timestamp, String message, String sourceAddress, String sourceHost) {
+        private StoredEvent(final AuditEvent auditEvent, final long timestamp, final String message, final String sourceAddress, final String sourceHost) {
             this.auditEvent = auditEvent;
             this.timestamp = timestamp;
             this.message = message;

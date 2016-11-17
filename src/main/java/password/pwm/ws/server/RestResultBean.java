@@ -53,7 +53,7 @@ public class RestResultBean implements Serializable {
         return error;
     }
 
-    public void setError(boolean error) {
+    public void setError(final boolean error) {
         this.error = error;
     }
 
@@ -61,7 +61,7 @@ public class RestResultBean implements Serializable {
         return errorCode;
     }
 
-    public void setErrorCode(int errorCode) {
+    public void setErrorCode(final int errorCode) {
         this.errorCode = errorCode;
     }
 
@@ -69,7 +69,7 @@ public class RestResultBean implements Serializable {
         return errorMessage;
     }
 
-    public void setErrorMessage(String errorMessage) {
+    public void setErrorMessage(final String errorMessage) {
         this.errorMessage = errorMessage;
     }
 
@@ -77,7 +77,7 @@ public class RestResultBean implements Serializable {
         return successMessage;
     }
 
-    public void setSuccessMessage(String successMessage) {
+    public void setSuccessMessage(final String successMessage) {
         this.successMessage = successMessage;
     }
 
@@ -85,7 +85,7 @@ public class RestResultBean implements Serializable {
         return data;
     }
 
-    public void setData(Serializable data) {
+    public void setData(final Serializable data) {
         this.data = data;
     }
 
@@ -93,7 +93,7 @@ public class RestResultBean implements Serializable {
         return errorDetail;
     }
 
-    public void setErrorDetail(String errorDetail) {
+    public void setErrorDetail(final String errorDetail) {
         this.errorDetail = errorDetail;
     }
 

@@ -35,7 +35,7 @@ class OrgChartReferenceBean implements Serializable {
         return photoURL;
     }
 
-    public void setPhotoURL(String photoURL) {
+    public void setPhotoURL(final String photoURL) {
         this.photoURL = photoURL;
     }
 
@@ -43,7 +43,7 @@ class OrgChartReferenceBean implements Serializable {
         return userKey;
     }
 
-    public void setUserKey(String userKey) {
+    public void setUserKey(final String userKey) {
         this.userKey = userKey;
     }
 
@@ -51,7 +51,7 @@ class OrgChartReferenceBean implements Serializable {
         return displayNames;
     }
 
-    public void setDisplayNames(List<String> displayNames) {
+    public void setDisplayNames(final List<String> displayNames) {
         this.displayNames = displayNames;
     }
 }

@@ -46,22 +46,22 @@ public class PwmIfTag extends BodyTagSupport {
     private PwmRequestFlag requestFlag;
     private PwmSetting setting;
 
-    public void setTest(PwmIfTest test)
+    public void setTest(final PwmIfTest test)
     {
         this.test = test;
     }
 
-    public void setPermission(Permission permission)
+    public void setPermission(final Permission permission)
     {
         this.permission = permission;
     }
 
-    public void setNegate(boolean negate)
+    public void setNegate(final boolean negate)
     {
         this.negate = negate;
     }
 
-    public void setRequestFlag(PwmRequestFlag requestFlag) {
+    public void setRequestFlag(final PwmRequestFlag requestFlag) {
         this.requestFlag = requestFlag;
     }
 
@@ -83,7 +83,7 @@ public class PwmIfTag extends BodyTagSupport {
                             (HttpServletResponse) pageContext.getResponse());
                     final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-                    PwmIfTest testEnum = test;
+                    final PwmIfTest testEnum = test;
                     if (testEnum != null) {
                         try {
                             final PwmIfOptions options = new PwmIfOptions(negate, setting, permission, requestFlag);

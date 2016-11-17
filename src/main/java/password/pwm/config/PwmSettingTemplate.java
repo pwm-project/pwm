@@ -64,7 +64,7 @@ public enum PwmSettingTemplate {
         return requiredAttribute != null && "true".equalsIgnoreCase(requiredAttribute.getValue());
     }
 
-    private static Element readTemplateElement(PwmSettingTemplate pwmSettingTemplate) {
+    private static Element readTemplateElement(final PwmSettingTemplate pwmSettingTemplate) {
         final Element element = PwmSettingXml.readTemplateXml(pwmSettingTemplate);
         if (element == null) {
             throw new IllegalStateException("missing PwmSetting.xml template element for " + pwmSettingTemplate);

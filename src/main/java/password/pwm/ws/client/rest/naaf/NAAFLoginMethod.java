@@ -38,7 +38,7 @@ public enum NAAFLoginMethod {
     private final String naafName;
     private final Class<? extends NAAFMethodHandler> naafMethodHandler;
 
-    NAAFLoginMethod(String naafName, Class<? extends NAAFMethodHandler> naafMethodHandler) {
+    NAAFLoginMethod(final String naafName, final Class<? extends NAAFMethodHandler> naafMethodHandler) {
         this.naafName = naafName;
         this.naafMethodHandler = naafMethodHandler;
     }

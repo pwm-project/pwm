@@ -31,7 +31,7 @@ class MemoryFileResource implements FileResource {
     private final byte[] contents;
     private final long lastModified;
 
-    MemoryFileResource(String name, byte[] contents, long lastModified) {
+    MemoryFileResource(final String name, final byte[] contents, final long lastModified) {
         this.name = name;
         this.contents = contents;
         this.lastModified = lastModified;

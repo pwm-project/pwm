@@ -35,7 +35,11 @@ import password.pwm.i18n.Display;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.macro.MacroMachine;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class PwmNAAFVerificationMethod implements VerificationMethodSystem {
     private PwmApplication pwmApplication;
@@ -47,7 +51,7 @@ public class PwmNAAFVerificationMethod implements VerificationMethodSystem {
         private final String identifier;
         private final String displayPrompt;
 
-        public UserPromptImpl(String identifier, String displayPrompt) {
+        UserPromptImpl(final String identifier, final String displayPrompt) {
             this.identifier = identifier;
             this.displayPrompt = displayPrompt;
         }
@@ -80,7 +84,7 @@ public class PwmNAAFVerificationMethod implements VerificationMethodSystem {
     }
 
     @Override
-    public ErrorInformation respondToPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+    public ErrorInformation respondToPrompts(final Map<String, String> answers) throws PwmUnrecoverableException {
 
         final String errorMsg = naafLoginSequence.answerPrompts(answers);
         if (errorMsg == null) {
@@ -97,7 +101,7 @@ public class PwmNAAFVerificationMethod implements VerificationMethodSystem {
     }
 
     @Override
-    public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean, SessionLabel sessionLabel, Locale locale)
+    public void init(final PwmApplication pwmApplication, final UserInfoBean userInfoBean, final SessionLabel sessionLabel, final Locale locale)
             throws PwmUnrecoverableException
     {
         this.pwmApplication = pwmApplication;
@@ -110,10 +114,10 @@ public class PwmNAAFVerificationMethod implements VerificationMethodSystem {
         serverUrl = macroMachine.expandMacros(serverUrl);
         naafUsername = macroMachine.expandMacros(naafUsername);
 
-        NAAFEndPoint naafEndPoint = new NAAFEndPoint(pwmApplication, serverUrl, locale);
+        final NAAFEndPoint naafEndPoint = new NAAFEndPoint(pwmApplication, serverUrl, locale);
         naafEndPoint.establishEndpointSession();
 
-        Set<NAAFLoginMethod> loginMethods = pwmApplication.getConfig().readSettingAsOptionList(PwmSetting.NAAF_METHODS, NAAFLoginMethod.class);
+        final Set<NAAFLoginMethod> loginMethods = pwmApplication.getConfig().readSettingAsOptionList(PwmSetting.NAAF_METHODS, NAAFLoginMethod.class);
         naafLoginSequence = new NAAFLoginSequence(naafEndPoint, loginMethods, naafUsername, locale);
     }
 }

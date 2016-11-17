@@ -33,13 +33,13 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%
-    ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);
+    final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);
     final Set<PwmSettingTemplate> templateSet =  ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().getTemplates();
-    boolean builtinExtenderAvailable = templateSet.contains(PwmSettingTemplate.NOVL) || templateSet.contains(PwmSettingTemplate.NOVL_IDM);
+    final boolean builtinExtenderAvailable = templateSet.contains(PwmSettingTemplate.NOVL) || templateSet.contains(PwmSettingTemplate.NOVL_IDM);
     boolean existingSchemaGood = false;
     String schemaActivityLog = "";
     try {
-        SchemaOperationResult schemaManager = ConfigGuideServlet.extendSchema(configGuideBean,false);
+        final SchemaOperationResult schemaManager = ConfigGuideServlet.extendSchema(configGuideBean,false);
         existingSchemaGood = schemaManager.isSuccess();
         schemaActivityLog = schemaManager.getOperationLog();
     } catch (Exception e) {
@@ -104,10 +104,10 @@
                 <p>This configuration expects the LDAP server's schema to be extended or you can adjust the configuration to use pre-existing defined attributes in your LDAP directory.</p>
                 <p>LDIF files to process the schema extension are included for several directory types.</p>
                 <p>For reference, the standard schema definition is displayed below.</p>
-                <%List<SchemaDefinition> schemaDefinitions = SchemaDefinition.getPwmSchemaDefinitions();%>
+                <%final List<SchemaDefinition> schemaDefinitions = SchemaDefinition.getPwmSchemaDefinitions();%>
                 <div class="overflow-panel-medium border">
                     <code>
-                        <% for (SchemaDefinition defintion : schemaDefinitions) { %>
+                        <% for (final SchemaDefinition defintion : schemaDefinitions) { %>
                         Type: <%=defintion.getSchemaType()%><br/>
                         Name: <%=defintion.getName()%><br/>
                         Definition: <%=defintion.getDefinition()%><br/>

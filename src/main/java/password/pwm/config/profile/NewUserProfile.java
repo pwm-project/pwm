@@ -51,7 +51,7 @@ public class NewUserProfile extends AbstractProfile {
     private Date newUserPasswordPolicyCacheTime;
     private final Map<Locale,PwmPasswordPolicy> newUserPasswordPolicyCache = new HashMap<>();
 
-    protected NewUserProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
+    protected NewUserProfile(final String identifier, final Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);
     }
 
@@ -67,7 +67,7 @@ public class NewUserProfile extends AbstractProfile {
     }
 
     @Override
-    public String getDisplayName(Locale locale) {
+    public String getDisplayName(final Locale locale) {
         final String value = this.readSettingAsLocalizedString(PwmSetting.NEWUSER_PROFILE_DISPLAY_NAME, locale);
         return value != null && !value.isEmpty() ? value : this.getIdentifier();
     }

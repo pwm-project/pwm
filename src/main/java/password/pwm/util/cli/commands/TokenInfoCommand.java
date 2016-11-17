@@ -78,9 +78,9 @@ public class TokenInfoCommand extends AbstractCliCommand {
                 return false;
             }
 
-            public type getType()
+            public Type getType()
             {
-                return type.STRING;
+                return Type.STRING;
             }
 
             public String getName()
@@ -89,7 +89,7 @@ public class TokenInfoCommand extends AbstractCliCommand {
             }
         };
 
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "TokenInfo";
         cliParameters.description = "Get information about an issued token";
         cliParameters.options = Collections.singletonList(tokenValue);

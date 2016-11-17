@@ -40,7 +40,7 @@ class AttributeDetailBean implements Serializable {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -48,7 +48,7 @@ class AttributeDetailBean implements Serializable {
         return label;
     }
 
-    public void setLabel(String label) {
+    public void setLabel(final String label) {
         this.label = label;
     }
 
@@ -56,7 +56,7 @@ class AttributeDetailBean implements Serializable {
         return type;
     }
 
-    public void setType(FormConfiguration.Type type) {
+    public void setType(final FormConfiguration.Type type) {
         this.type = type;
     }
 
@@ -64,7 +64,7 @@ class AttributeDetailBean implements Serializable {
         return values;
     }
 
-    public void setValues(List<String> values) {
+    public void setValues(final List<String> values) {
         this.values = values;
     }
 
@@ -72,7 +72,7 @@ class AttributeDetailBean implements Serializable {
         return userReferences;
     }
 
-    public void setUserReferences(Collection<UserReferenceBean> userReferences) {
+    public void setUserReferences(final Collection<UserReferenceBean> userReferences) {
         this.userReferences = userReferences;
     }
 
@@ -80,7 +80,7 @@ class AttributeDetailBean implements Serializable {
         return searchable;
     }
 
-    public void setSearchable(boolean searchable) {
+    public void setSearchable(final boolean searchable) {
         this.searchable = searchable;
     }
 

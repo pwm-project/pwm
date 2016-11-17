@@ -50,7 +50,7 @@ public class OTPUserRecord implements Serializable {
             return salt;
         }
 
-        public void setSalt(String salt)
+        public void setSalt(final String salt)
         {
             this.salt = salt;
         }
@@ -60,7 +60,7 @@ public class OTPUserRecord implements Serializable {
             return hashMethod;
         }
 
-        public void setHashMethod(String hashMethod)
+        public void setHashMethod(final String hashMethod)
         {
             this.hashMethod = hashMethod;
         }
@@ -70,7 +70,7 @@ public class OTPUserRecord implements Serializable {
             return hashCount;
         }
 
-        public void setHashCount(int hashCount)
+        public void setHashCount(final int hashCount)
         {
             this.hashCount = hashCount;
         }
@@ -90,7 +90,7 @@ public class OTPUserRecord implements Serializable {
             return hashCode;
         }
 
-        public void setHashCode(String hashCode)
+        public void setHashCode(final String hashCode)
         {
             this.hashCode = hashCode;
         }
@@ -100,7 +100,7 @@ public class OTPUserRecord implements Serializable {
             return used;
         }
 
-        public void setUsed(boolean used)
+        public void setUsed(final boolean used)
         {
             this.used = used;
         }
@@ -110,7 +110,7 @@ public class OTPUserRecord implements Serializable {
         return identifier;
     }
 
-    public void setIdentifier(String identifier) {
+    public void setIdentifier(final String identifier) {
         this.identifier = identifier;
     }
 
@@ -118,7 +118,7 @@ public class OTPUserRecord implements Serializable {
         return secret;
     }
 
-    public void setSecret(String secret) {
+    public void setSecret(final String secret) {
         this.secret = secret;
     }
 
@@ -127,7 +127,7 @@ public class OTPUserRecord implements Serializable {
         return recoveryCodes;
     }
 
-    public void setRecoveryCodes(List<RecoveryCode> recoveryCodes)
+    public void setRecoveryCodes(final List<RecoveryCode> recoveryCodes)
     {
         this.recoveryCodes = recoveryCodes;
     }
@@ -136,7 +136,7 @@ public class OTPUserRecord implements Serializable {
         return type;
     }
 
-    public void setType(Type type) {
+    public void setType(final Type type) {
         this.type = type;
     }
 
@@ -145,7 +145,7 @@ public class OTPUserRecord implements Serializable {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp)
+    public void setTimestamp(final Date timestamp)
     {
         this.timestamp = timestamp;
     }
@@ -155,7 +155,7 @@ public class OTPUserRecord implements Serializable {
         return version;
     }
 
-    public void setVersion(String version)
+    public void setVersion(final String version)
     {
         this.version = version;
     }
@@ -165,7 +165,7 @@ public class OTPUserRecord implements Serializable {
         return attemptCount;
     }
 
-    public void setAttemptCount(long attemptCount)
+    public void setAttemptCount(final long attemptCount)
     {
         this.attemptCount = attemptCount;
     }
@@ -175,7 +175,7 @@ public class OTPUserRecord implements Serializable {
         return recoveryInfo;
     }
 
-    public void setRecoveryInfo(RecoveryInfo recoveryInfo)
+    public void setRecoveryInfo(final RecoveryInfo recoveryInfo)
     {
         this.recoveryInfo = recoveryInfo;
     }

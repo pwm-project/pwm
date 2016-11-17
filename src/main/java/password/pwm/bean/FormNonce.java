@@ -41,7 +41,7 @@ public class FormNonce implements Serializable {
     @SerializedName("p")
     private final String payload;
 
-    public FormNonce(String sessionGUID, Date timestamp,  int reqCounter, String payload) {
+    public FormNonce(final String sessionGUID, final Date timestamp, final int reqCounter, final String payload) {
         this.sessionGUID = sessionGUID;
         this.timestamp = timestamp;
         this.reqCounter = reqCounter;

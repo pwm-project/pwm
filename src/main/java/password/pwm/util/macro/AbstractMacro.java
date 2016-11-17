@@ -45,7 +45,7 @@ public abstract class AbstractMacro implements MacroImplementation {
         return result;
     }
 
-    static List<String> splitMacroParameters(final String input, String... ignoreValues) {
+    static List<String> splitMacroParameters(final String input, final String... ignoreValues) {
         final String strippedInput = stripMacroDelimiters(input);
         final String[] splitInput = strippedInput.split(PATTERN_PARAMETER_SPLIT);
         final List<String> returnObj = new ArrayList<>();

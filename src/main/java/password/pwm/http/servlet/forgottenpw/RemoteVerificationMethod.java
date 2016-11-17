@@ -25,7 +25,10 @@ package password.pwm.http.servlet.forgottenpw;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.VerificationMethodSystem;
-import password.pwm.bean.*;
+import password.pwm.bean.RemoteVerificationRequestBean;
+import password.pwm.bean.RemoteVerificationResponseBean;
+import password.pwm.bean.SessionLabel;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -41,7 +44,11 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.PwmRandom;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class RemoteVerificationMethod implements VerificationMethodSystem {
 
@@ -80,7 +87,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem {
     }
 
     @Override
-    public ErrorInformation respondToPrompts(Map<String, String> answers) throws PwmUnrecoverableException {
+    public ErrorInformation respondToPrompts(final Map<String, String> answers) throws PwmUnrecoverableException {
         sendRemoteRequest(answers);
         if (lastResponse != null) {
             final String errorMsg = lastResponse.getErrorMessage();
@@ -99,7 +106,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem {
     }
 
     @Override
-    public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean, SessionLabel sessionLabel, Locale locale) throws PwmUnrecoverableException {
+    public void init(final PwmApplication pwmApplication, final UserInfoBean userInfoBean, final SessionLabel sessionLabel, final Locale locale) throws PwmUnrecoverableException {
         pwmHttpClient = new PwmHttpClient(pwmApplication, sessionLabel);
         this.userInfoBean = userInfoBean;
         this.sessionLabel = sessionLabel;
@@ -125,13 +132,13 @@ public class RemoteVerificationMethod implements VerificationMethodSystem {
         headers.put(PwmConstants.HttpHeader.Content_Type.getHttpName(), PwmConstants.ContentTypeValue.json.getHeaderValue());
         headers.put(PwmConstants.HttpHeader.Accept_Language.getHttpName(), locale.toLanguageTag());
 
-        RemoteVerificationRequestBean remoteVerificationRequestBean = new RemoteVerificationRequestBean();
+        final RemoteVerificationRequestBean remoteVerificationRequestBean = new RemoteVerificationRequestBean();
         remoteVerificationRequestBean.setResponseSessionID(this.remoteSessionID);
-        MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity());
+        final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity());
         remoteVerificationRequestBean.setUserInfo(PublicUserInfoBean.fromUserInfoBean(userInfoBean, pwmApplication.getConfig(), locale, macroMachine));
         remoteVerificationRequestBean.setUserResponses(userResponses);
 
-        PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
+        final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(
                 HttpMethod.POST,
                 url,
                 JsonUtil.serialize(remoteVerificationRequestBean),

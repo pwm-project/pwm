@@ -239,7 +239,7 @@
             <% } %>
         </tr>
         <% } %>
-        <% ResponseInfoBean responseInfoBean = userinfo_pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean(); %>
+        <% final ResponseInfoBean responseInfoBean = userinfo_pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean(); %>
         <% if (viewStatusFields.contains(ViewStatusFields.ResponsesStored)) { %>
         <tr>
             <td class="key">

@@ -33,7 +33,7 @@ public enum TLSVersion {
 
     private final String tomcatValueName;
 
-    TLSVersion(String tomcatValueName) {
+    TLSVersion(final String tomcatValueName) {
         this.tomcatValueName = tomcatValueName;
     }
 

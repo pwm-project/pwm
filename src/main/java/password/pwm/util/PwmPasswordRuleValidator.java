@@ -27,6 +27,8 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -39,7 +41,11 @@ import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordPolicy.RuleHelper;
 import password.pwm.config.profile.PwmPasswordRule;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.logging.PwmLogger;
@@ -47,11 +53,16 @@ import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.client.rest.RestClientHelper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 
 public class PwmPasswordRuleValidator {
 
@@ -72,9 +83,9 @@ public class PwmPasswordRuleValidator {
     }
 
     public PwmPasswordRuleValidator(
-            PwmApplication pwmApplication,
-            PwmPasswordPolicy policy,
-            Locale locale
+            final PwmApplication pwmApplication,
+            final PwmPasswordPolicy policy,
+            final Locale locale
     )
     {
         this.pwmApplication = pwmApplication;
@@ -477,6 +488,9 @@ public class PwmPasswordRuleValidator {
                     complexityPoints++;
                 }
                 break;
+
+            default:
+                Helper.unhandledSwitchStatement(complexityLevel);
         }
 
         switch (complexityLevel) {
@@ -493,6 +507,9 @@ public class PwmPasswordRuleValidator {
                     return errorList;
                 }
                 break;
+
+            default:
+                Helper.unhandledSwitchStatement(complexityLevel);
         }
 
         if (charCounter.getUpperCharCount() < 1) {
@@ -514,28 +531,35 @@ public class PwmPasswordRuleValidator {
         return errorList;
     }
 
+    // escape characters permitted because they match the exact AD specification
+    @SuppressWarnings("checkstyle:avoidescapedunicodecharacters")
     private static boolean checkContainsTokens(final String baseValue, final String checkPattern) {
-        if (baseValue == null || baseValue.length() == 0)
+        if (baseValue == null || baseValue.length() == 0) {
             return false;
+        }
 
-        if (checkPattern == null || checkPattern.length() == 0)
+        if (checkPattern == null || checkPattern.length() == 0) {
             return false;
+        }
 
         final String baseValueLower = baseValue.toLowerCase();
+
         final String[] tokens = checkPattern.toLowerCase().split("[,\\.\\-\u2013\u2014_ \u00a3\\t]+");
+
         if (tokens != null && tokens.length > 0) {
             for (final String token : tokens) {
                 if (token.length() > 2) {
-                    if (baseValueLower.contains(token))
+                    if (baseValueLower.contains(token)) {
                         return true;
+                    }
                 }
             }
         }
         return false;
     }
 
-    final static private String REST_RESPONSE_KEY_ERROR = "error";
-    final static private String REST_RESPONSE_KEY_ERROR_MSG = "errorMessage";
+    private static final String REST_RESPONSE_KEY_ERROR = "error";
+    private static final String REST_RESPONSE_KEY_ERROR_MSG = "errorMessage";
 
     public List<ErrorInformation> invokeExternalRuleMethods(
             final Configuration config,
@@ -568,7 +592,7 @@ public class PwmPasswordRuleValidator {
             sendData.put("policy",policyData);
         }
         if (uiBean != null) {
-            MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, uiBean.getUserIdentity());
+            final MacroMachine macroMachine = MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, uiBean.getUserIdentity());
             final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(uiBean, pwmApplication.getConfig(), locale, macroMachine);
             sendData.put("userInfo", publicUserInfoBean);
         }

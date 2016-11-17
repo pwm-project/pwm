@@ -44,6 +44,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.health.HealthTopic;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.WorkQueueProcessor;
@@ -64,7 +65,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static password.pwm.health.HealthTopic.Audit;
 
 public class SyslogAuditService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(SyslogAuditService.class);
@@ -111,12 +111,12 @@ public class SyslogAuditService {
 
     private class SyslogItemProcessor implements WorkQueueProcessor.ItemProcessor<String> {
         @Override
-        public WorkQueueProcessor.ProcessResult process(String workItem) {
+        public WorkQueueProcessor.ProcessResult process(final String workItem) {
             return processEvent(workItem);
         }
 
         @Override
-        public String convertToDebugString(String workItem) {
+        public String convertToDebugString(final String workItem) {
             return JsonUtil.serialize(workItem);
         }
     }
@@ -164,7 +164,7 @@ public class SyslogAuditService {
         return syslogInstance;
     }
 
-    public void add(AuditRecord event) throws PwmOperationalException {
+    public void add(final AuditRecord event) throws PwmOperationalException {
         try {
             final String syslogMsg = convertAuditRecordToSyslogMessage(event, configuration);
             workQueueProcessor.submit(syslogMsg);
@@ -178,7 +178,7 @@ public class SyslogAuditService {
         if (lastError != null) {
             final ErrorInformation errorInformation = lastError;
             if (TimeDuration.fromCurrent(errorInformation.getDate()).isShorterThan(WARNING_WINDOW_MS)) {
-                healthRecords.add(new HealthRecord(HealthStatus.WARN, Audit,
+                healthRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.Audit,
                         errorInformation.toUserStr(PwmConstants.DEFAULT_LOCALE, configuration)));
             }
         }
@@ -270,7 +270,7 @@ public class SyslogAuditService {
         private String host;
         private int port;
 
-        public SyslogConfig(Protocol protocol, String host, int port) {
+        public SyslogConfig(final Protocol protocol, final String host, final int port) {
             this.protocol = protocol;
             this.host = host;
             this.port = port;
@@ -293,7 +293,7 @@ public class SyslogAuditService {
                 throw new IllegalArgumentException("input cannot be null");
             }
 
-            final String parts[] = input.split(",");
+            final String[] parts = input.split(",");
             if (parts.length != 3) {
                 throw new IllegalArgumentException("input must have three comma separated parts.");
             }
@@ -354,7 +354,7 @@ public class SyslogAuditService {
         @Override
         public AbstractSyslogWriter createWriter()
         {
-            LocalTrustSyslogWriterClass newClass = new LocalTrustSyslogWriterClass();
+            final LocalTrustSyslogWriterClass newClass = new LocalTrustSyslogWriterClass();
             newClass.initialize(this);
             return newClass;
         }

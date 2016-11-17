@@ -31,7 +31,11 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmDataValidationException;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
@@ -44,7 +48,15 @@ import password.pwm.util.StringUtil;
 import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class FormUtility {
 
@@ -54,7 +66,7 @@ public class FormUtility {
         ReturnEmptyValues
     }
 
-    final private static String NEGATIVE_CACHE_HIT = "NEGATIVE_CACHE_HIT";
+    private static final String NEGATIVE_CACHE_HIT = "NEGATIVE_CACHE_HIT";
 
     public static Map<FormConfiguration, String> readFormValuesFromMap(
             final Map<String,String> inputMap,
@@ -117,20 +129,20 @@ public class FormUtility {
     }
 
     public static boolean checkboxValueIsChecked(final String value) {
-        boolean bValue = false;
+        boolean booleanValue = false;
         if (value != null) {
             if (Boolean.parseBoolean(value)) {
-                bValue = true;
+                booleanValue = true;
             } else if ("on".equalsIgnoreCase(value)) {
-                bValue = true;
+                booleanValue = true;
             } else if ("checked".equalsIgnoreCase(value)) {
-                bValue = true;
+                booleanValue = true;
             }
         }
-        return bValue;
+        return booleanValue;
     }
 
-    public static Map<String,String> asStringMap(Map<FormConfiguration, String> input) {
+    public static Map<String,String> asStringMap(final Map<FormConfiguration, String> input) {
         final Map<String,String> returnObj = new HashMap<>();
         for (final FormConfiguration formConfiguration : input.keySet()) {
             returnObj.put(formConfiguration.getName(), input.get(formConfiguration));
@@ -225,7 +237,7 @@ public class FormUtility {
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
         searchConfiguration.setFilter(filter.toString());
 
-        int resultSearchSizeLimit = 1 + (excludeDN == null ? 0 : excludeDN.size());
+        final int resultSearchSizeLimit = 1 + (excludeDN == null ? 0 : excludeDN.size());
         final long cacheLifetimeMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_FORM_UNIQUE_VALUE_LIFETIME_MS));
         final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS(cacheLifetimeMS);
 
@@ -366,7 +378,7 @@ public class FormUtility {
             throws PwmUnrecoverableException
     {
         final Map<FormConfiguration, List<String>> valueMap = populateFormMapFromLdap(formFields, sessionLabel, userDataReader);
-        for (FormConfiguration formConfiguration : formFields) {
+        for (final FormConfiguration formConfiguration : formFields) {
             if (valueMap.containsKey(formConfiguration)) {
                 final List<String> values = valueMap.get(formConfiguration);
                 if (values != null && !values.isEmpty()) {

@@ -30,7 +30,13 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.PwmURL;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
@@ -47,7 +53,7 @@ import java.util.zip.GZIPOutputStream;
 public class GZIPFilter implements Filter {
     private static final PwmLogger LOGGER = PwmLogger.forClass(GZIPFilter.class);
 
-    public void init(FilterConfig filterConfig)
+    public void init(final FilterConfig filterConfig)
             throws ServletException
     {
     }
@@ -57,12 +63,12 @@ public class GZIPFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
+    public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain)
             throws IOException, ServletException
     {
         final String acceptEncoding = ((HttpServletRequest)servletRequest).getHeader(PwmConstants.HttpHeader.Accept_Encoding.getHttpName());
         if (acceptEncoding != null && acceptEncoding.contains("gzip") && isEnabled(servletRequest)) {
-            GZIPHttpServletResponseWrapper gzipResponse = new GZIPHttpServletResponseWrapper((HttpServletResponse)servletResponse);
+            final GZIPHttpServletResponseWrapper gzipResponse = new GZIPHttpServletResponseWrapper((HttpServletResponse)servletResponse);
             gzipResponse.addHeader("Content-Encoding", "gzip");
             filterChain.doFilter(servletRequest, gzipResponse);
             gzipResponse.finish();
@@ -99,7 +105,7 @@ public class GZIPFilter implements Filter {
         private ServletOutputStream outputStream;
         private PrintWriter printWriter;
 
-        public GZIPHttpServletResponseWrapper(HttpServletResponse response) throws IOException {
+        public GZIPHttpServletResponseWrapper(final HttpServletResponse response) throws IOException {
             super(response);
         }
 
@@ -151,7 +157,7 @@ public class GZIPFilter implements Filter {
         }
 
         @Override
-        public void setContentLength(int len) {
+        public void setContentLength(final int len) {
         }
 
         private void initGzip() throws IOException {
@@ -164,7 +170,7 @@ public class GZIPFilter implements Filter {
         private ServletOutputStream servletOutputStream;
         private GZIPOutputStream gzipStream;
 
-        public ServletResponseGZIPOutputStream(ServletOutputStream output) throws IOException {
+        public ServletResponseGZIPOutputStream(final ServletOutputStream output) throws IOException {
             servletOutputStream = output;
             gzipStream = new GZIPOutputStream(output);
         }
@@ -182,12 +188,12 @@ public class GZIPFilter implements Filter {
         }
 
         @Override
-        public void write(final byte b[]) throws IOException {
+        public void write(final byte[] b) throws IOException {
             write(b, 0, b.length);
         }
 
         @Override
-        public void write(final byte b[], final int off, final int len) throws IOException {
+        public void write(final byte[] b, final int off, final int len) throws IOException {
             if (!open.get()) {
                 throw new IOException("Stream closed!");
             }
@@ -195,7 +201,7 @@ public class GZIPFilter implements Filter {
         }
 
         @Override
-        public void write(int b) throws IOException {
+        public void write(final int b) throws IOException {
             if (!open.get()) {
                 throw new IOException("Stream closed!");
             }

@@ -22,17 +22,21 @@
 
 package password.pwm.http.bean;
 
+import com.google.gson.annotations.SerializedName;
 import com.novell.ldapchai.cr.ChallengeSet;
-import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.VerificationMethodSystem;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.SessionBeanMode;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * @author Jason D. Rivard
@@ -40,24 +44,37 @@ import java.util.*;
 public class ForgottenPasswordBean extends PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
-    private UserInfoBean userInfo;
-    private ResponseSet responseSet;
+    @SerializedName("u")
+    private UserIdentity userIdentity;
+
+    //@SerializedName("t")
+    //private ResponseSet responseSet;
+
+    @SerializedName("pc")
     private ChallengeSet presentableChallengeSet;
+
+    @SerializedName("l")
     private Locale userLocale;
+
+    @SerializedName("a")
     private List<FormConfiguration> attributeForm;
-    
+
+    @SerializedName("p")
     private Progress progress = new Progress();
+
+    @SerializedName("f")
     private RecoveryFlags recoveryFlags = new RecoveryFlags();
+
+    @SerializedName("fp")
     private String forgottenPasswordProfileID;
 
-    public UserInfoBean getUserInfo()
-    {
-        return userInfo;
+
+    public UserIdentity getUserIdentity() {
+        return userIdentity;
     }
 
-    public void setUserInfo(UserInfoBean userInfo)
-    {
-        this.userInfo = userInfo;
+    public void setUserIdentity(final UserIdentity userIdentity) {
+        this.userIdentity = userIdentity;
     }
 
     public Locale getUserLocale()
@@ -65,7 +82,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return userLocale;
     }
 
-    public void setUserLocale(Locale userLocale)
+    public void setUserLocale(final Locale userLocale)
     {
         this.userLocale = userLocale;
     }
@@ -75,22 +92,24 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return progress;
     }
 
+    /*
     public ResponseSet getResponseSet()
     {
         return responseSet;
     }
 
-    public void setResponseSet(ResponseSet responseSet)
+    public void setResponseSet(final ResponseSet responseSet)
     {
         this.responseSet = responseSet;
     }
+    */
 
     public ChallengeSet getPresentableChallengeSet()
     {
         return presentableChallengeSet;
     }
 
-    public void setPresentableChallengeSet(ChallengeSet presentableChallengeSet)
+    public void setPresentableChallengeSet(final ChallengeSet presentableChallengeSet)
     {
         this.presentableChallengeSet = presentableChallengeSet;
     }
@@ -100,12 +119,12 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return attributeForm;
     }
 
-    public void setAttributeForm(List<FormConfiguration> attributeForm)
+    public void setAttributeForm(final List<FormConfiguration> attributeForm)
     {
         this.attributeForm = attributeForm;
     }
 
-    public void setProgress(Progress progress)
+    public void setProgress(final Progress progress)
     {
         this.progress = progress;
     }
@@ -115,18 +134,28 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return recoveryFlags;
     }
 
-    public void setRecoveryFlags(RecoveryFlags recoveryFlags)
+    public void setRecoveryFlags(final RecoveryFlags recoveryFlags)
     {
         this.recoveryFlags = recoveryFlags;
     }
 
     public static class Progress implements Serializable {
+        @SerializedName("s")
         private boolean tokenSent;
+
+        @SerializedName("p")
         private boolean allPassed;
+
+        @SerializedName("m")
         private final Set<IdentityVerificationMethod> satisfiedMethods = new HashSet<>();
 
+        @SerializedName("c")
         private MessageSendMethod tokenSendChoice;
+
+        @SerializedName("a")
         private String tokenSentAddress;
+
+        @SerializedName("i")
         private IdentityVerificationMethod inProgressVerificationMethod;
 
         private transient VerificationMethodSystem naafRecoveryMethod;
@@ -141,7 +170,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             return tokenSent;
         }
 
-        public void setTokenSent(boolean tokenSent)
+        public void setTokenSent(final boolean tokenSent)
         {
             this.tokenSent = tokenSent;
         }
@@ -151,7 +180,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             return allPassed;
         }
 
-        public void setAllPassed(boolean allPassed)
+        public void setAllPassed(final boolean allPassed)
         {
             this.allPassed = allPassed;
         }
@@ -161,7 +190,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             return tokenSendChoice;
         }
 
-        public void setTokenSendChoice(MessageSendMethod tokenSendChoice)
+        public void setTokenSendChoice(final MessageSendMethod tokenSendChoice)
         {
             this.tokenSendChoice = tokenSendChoice;
         }
@@ -171,7 +200,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             return tokenSentAddress;
         }
 
-        public void setTokenSentAddress(String tokenSentAddress)
+        public void setTokenSentAddress(final String tokenSentAddress)
         {
             this.tokenSentAddress = tokenSentAddress;
         }
@@ -180,11 +209,11 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             return inProgressVerificationMethod;
         }
 
-        public void setInProgressVerificationMethod(IdentityVerificationMethod inProgressVerificationMethod) {
+        public void setInProgressVerificationMethod(final IdentityVerificationMethod inProgressVerificationMethod) {
             this.inProgressVerificationMethod = inProgressVerificationMethod;
         }
 
-        public void setNaafRecoveryMethod(VerificationMethodSystem naafRecoveryMethod) {
+        public void setNaafRecoveryMethod(final VerificationMethodSystem naafRecoveryMethod) {
             this.naafRecoveryMethod = naafRecoveryMethod;
         }
 
@@ -196,16 +225,25 @@ public class ForgottenPasswordBean extends PwmSessionBean {
             return remoteRecoveryMethod;
         }
 
-        public void setRemoteRecoveryMethod(VerificationMethodSystem remoteRecoveryMethod) {
+        public void setRemoteRecoveryMethod(final VerificationMethodSystem remoteRecoveryMethod) {
             this.remoteRecoveryMethod = remoteRecoveryMethod;
         }
     }
 
     public static class RecoveryFlags implements Serializable {
+        @SerializedName("a")
         private final boolean allowWhenLdapIntruderLocked;
+
+        @SerializedName("r")
         private final Set<IdentityVerificationMethod> requiredAuthMethods;
+
+        @SerializedName("o")
         private final Set<IdentityVerificationMethod> optionalAuthMethods;
+
+        @SerializedName("m")
         private final int minimumOptionalAuthMethods;
+
+        @SerializedName("t")
         private final MessageSendMethod tokenSendMethod;
 
         public RecoveryFlags()
@@ -258,7 +296,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         return forgottenPasswordProfileID;
     }
 
-    public void setForgottenPasswordProfileID(String forgottenPasswordProfileID) {
+    public void setForgottenPasswordProfileID(final String forgottenPasswordProfileID) {
         this.forgottenPasswordProfileID = forgottenPasswordProfileID;
     }
 
@@ -268,6 +306,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
 
     @Override
     public Set<SessionBeanMode> supportedModes() {
+        //return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SessionBeanMode.LOCAL, SessionBeanMode.CRYPTCOOKIE, SessionBeanMode.CRYPTREQUEST)));
         return Collections.singleton(SessionBeanMode.LOCAL);
     }
 }

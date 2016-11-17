@@ -56,7 +56,18 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class StatisticsManager implements PwmService {
 
@@ -212,7 +223,7 @@ public class StatisticsManager implements PwmService {
         return sb.toString();
     }
 
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
         for (final Statistic.EpsType type : Statistic.EpsType.values()) {
             for (final Statistic.EpsDuration duration : Statistic.EpsDuration.values()) {
                 epsMeterMap.put(type.toString() + duration.toString(), new EventRateMeter(duration.getTimeDuration()));
@@ -442,13 +453,21 @@ public class StatisticsManager implements PwmService {
 
         @Override
         public boolean equals(final Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             final DailyKey key = (DailyKey) o;
 
-            if (day != key.day) return false;
-            if (year != key.year) return false;
+            if (day != key.day) {
+                return false;
+            }
+            if (year != key.year) {
+                return false;
+            }
 
             return true;
         }
@@ -541,7 +560,7 @@ public class StatisticsManager implements PwmService {
             headers.add("KEY");
             headers.add("YEAR");
             headers.add("DAY");
-            for (Statistic stat : Statistic.values()) {
+            for (final Statistic stat : Statistic.values()) {
                 headers.add(stat.getLabel(locale));
             }
             csvPrinter.printRecord(headers);

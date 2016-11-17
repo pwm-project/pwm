@@ -34,14 +34,14 @@ import java.util.List;
 public class NumericValue extends AbstractValue implements StoredValue {
     long value;
 
-    public NumericValue(long value) {
+    public NumericValue(final long value) {
         this.value = value;
     }
 
     public static StoredValueFactory factory()
     {
         return new StoredValueFactory() {
-            public NumericValue fromJson(String value)
+            public NumericValue fromJson(final String value)
             {
                 return new NumericValue(JsonUtil.deserialize(value, Long.class));
             }
@@ -56,7 +56,7 @@ public class NumericValue extends AbstractValue implements StoredValue {
     }
 
     @Override
-    public List<Element> toXmlValues(String valueElementName) {
+    public List<Element> toXmlValues(final String valueElementName) {
         final Element valueElement = new Element(valueElementName);
         valueElement.addContent(Long.toString(value));
         return Collections.singletonList(valueElement);
@@ -68,7 +68,7 @@ public class NumericValue extends AbstractValue implements StoredValue {
     }
 
     @Override
-    public List<String> validateValue(PwmSetting pwmSetting) {
+    public List<String> validateValue(final PwmSetting pwmSetting) {
         return Collections.emptyList();
     }
 }

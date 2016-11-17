@@ -35,21 +35,35 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.*;
+import password.pwm.util.BasicAuthInfo;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.PasswordData;
+import password.pwm.util.StringUtil;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.WorkQueueProcessor;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -123,7 +137,7 @@ public class SmsQueueManager implements PwmService {
 
     private class SmsItemProcessor implements WorkQueueProcessor.ItemProcessor<SmsItemBean> {
         @Override
-        public WorkQueueProcessor.ProcessResult process(SmsItemBean workItem) {
+        public WorkQueueProcessor.ProcessResult process(final SmsItemBean workItem) {
             try {
                 for (final String msgPart : splitMessage(workItem.getMessage())) {
                     smsSendEngine.sendSms(workItem.getTo(), msgPart);
@@ -146,7 +160,7 @@ public class SmsQueueManager implements PwmService {
         }
 
         @Override
-        public String convertToDebugString(SmsItemBean workItem) {
+        public String convertToDebugString(final SmsItemBean workItem) {
             final Map<String,Object> debugOutputMap = new LinkedHashMap<>();
 
             debugOutputMap.put("to", workItem.getTo());
@@ -256,7 +270,7 @@ public class SmsQueueManager implements PwmService {
 
 
     protected static String smsDataEncode(final String data, final SmsDataEncoding encoding) {
-        String returnData;
+        final String returnData;
         switch (encoding) {
             case NONE:
                 returnData = data;
@@ -391,7 +405,7 @@ public class SmsQueueManager implements PwmService {
         private final Configuration config;
         private String lastResponseBody;
 
-        private SmsSendEngine(Configuration configuration)
+        private SmsSendEngine(final Configuration configuration)
         {
             this.config = configuration;
         }

@@ -26,7 +26,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<% ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
+<% final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
@@ -76,7 +76,7 @@
                                 <input class="configNumericInput" type="number" min="0" max="65535" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PORT%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_PORT%>" value="<%=configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_PORT)%>"/>
                             </td>
                             <td>
-                                <% boolean secureChecked = "true".equalsIgnoreCase(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE));%>
+                                <% final boolean secureChecked = "true".equalsIgnoreCase(configGuideBean.getFormData().get(ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE));%>
                                 <label class="checkboxWrapper">
                                     <input type="checkbox" id="widget_<%=ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE%>" name="nope" <%=secureChecked ? "checked" : ""%>/> Secure
                                     <input type="hidden" id="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE%>" name="<%=ConfigGuideForm.FormParameter.PARAM_LDAP_SECURE%>" value="uninitialized"/>

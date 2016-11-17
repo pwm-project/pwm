@@ -29,7 +29,10 @@ import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiErrors;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.*;
+import com.novell.ldapchai.provider.ChaiConfiguration;
+import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.ChaiProviderFactory;
+import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -37,7 +40,12 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.*;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingCategory;
+import password.pwm.config.PwmSettingFlag;
+import password.pwm.config.PwmSettingSyntax;
+import password.pwm.config.UserPermission;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
@@ -60,12 +68,22 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class LDAPStatusChecker implements HealthChecker {
 
-    final private static PwmLogger LOGGER = PwmLogger.forClass(LDAPStatusChecker.class);
-    final private static String TOPIC = "LDAP";
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LDAPStatusChecker.class);
+    private static final String TOPIC = "LDAP";
 
     public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication)
     {
@@ -90,7 +108,7 @@ public class LDAPStatusChecker implements HealthChecker {
             returnRecords.addAll(profileRecords);
         }
 
-        for (LdapProfile ldapProfile : pwmApplication.getLdapConnectionService().getLastLdapFailure().keySet()) {
+        for (final LdapProfile ldapProfile : pwmApplication.getLdapConnectionService().getLastLdapFailure().keySet()) {
             final ErrorInformation errorInfo = pwmApplication.getLdapConnectionService().getLastLdapFailure().get(ldapProfile);
             if (errorInfo != null) {
                 final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate().getTime());
@@ -218,7 +236,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
                         final PasswordStatus passwordStatus;
                         {
-                            UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, PwmConstants.HEALTH_SESSION_LABEL);
+                            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, PwmConstants.HEALTH_SESSION_LABEL);
                             passwordStatus = userStatusReader.readPasswordStatus(theUser, passwordPolicy, null, null);
                         }
 
@@ -375,7 +393,7 @@ public class LDAPStatusChecker implements HealthChecker {
                         new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorString.toString()));
                 return returnRecords;
             } catch (Exception e) {
-                HealthRecord record = HealthRecord.forMessage(HealthMessage.LDAP_No_Connection, e.getMessage());
+                final HealthRecord record = HealthRecord.forMessage(HealthMessage.LDAP_No_Connection, e.getMessage());
                 returnRecords.add(record);
                 pwmApplication.getLdapConnectionService().setLastLdapFailure(ldapProfile,
                         new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,record.getDetail(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())));
@@ -412,7 +430,7 @@ public class LDAPStatusChecker implements HealthChecker {
     }
 
     private static List<HealthRecord> checkAd(final PwmApplication pwmApplication, final Configuration config, final LdapProfile ldapProfile) {
-        List<HealthRecord> returnList = new ArrayList<>();
+        final List<HealthRecord> returnList = new ArrayList<>();
         final List<String> serverURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
         for (final String loopURL : serverURLs) {
             try {
@@ -620,7 +638,7 @@ public class LDAPStatusChecker implements HealthChecker {
                         } else if (pwmSetting.getSyntax() == PwmSettingSyntax.STRING_ARRAY) {
                             final List<String> values = config.getLdapProfiles().get(profile).readSettingAsStringArray(pwmSetting);
                             if (values != null) {
-                                for (String value : values) {
+                                for (final String value : values) {
                                     final String errorMsg = validateDN(pwmApplication, value, profile);
                                     if (errorMsg != null) {
                                         returnList.add(HealthRecord.forMessage(HealthMessage.Config_DNValueValidity, pwmSetting.toMenuLocationDebug(profile, PwmConstants.DEFAULT_LOCALE), errorMsg));
@@ -689,6 +707,9 @@ public class LDAPStatusChecker implements HealthChecker {
                     }
                 }
                 break;
+
+                default:
+                    Helper.unhandledSwitchStatement(userPermission.getType());
             }
         }
         return returnList;
@@ -725,7 +746,7 @@ public class LDAPStatusChecker implements HealthChecker {
         }
         final String[] EXAMPLE_SUFFIXES = new String[]{
                 "DC=site,DC=example,DC=net",
-                "ou=groups,o=example"
+                "ou=groups,o=example",
         };
         for (final String suffix : EXAMPLE_SUFFIXES) {
             if (dnValue.endsWith(suffix)) {
@@ -740,8 +761,8 @@ public class LDAPStatusChecker implements HealthChecker {
             final Configuration config,
             final Locale locale,
             final String profileID,
-            boolean testContextless,
-            boolean fullTest
+            final boolean testContextless,
+            final boolean fullTest
 
     )
             throws PwmUnrecoverableException

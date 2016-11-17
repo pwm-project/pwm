@@ -45,7 +45,7 @@ public class ConfigSetPasswordCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigSetPassword";
         cliParameters.description = "Sets the configuration password";
         cliParameters.options = Collections.singletonList(CliParameters.OPTIONAL_PASSWORD);

@@ -32,8 +32,16 @@ import password.pwm.config.value.FileValue;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -117,7 +125,7 @@ class ResourceServletConfiguration {
     }
 
     private static class Parsers {
-        static Map<String,String> parseWebJarMappings(String input)
+        static Map<String,String> parseWebJarMappings(final String input)
         {
             final Map<String,String> webJarMappings = JsonUtil.deserializeStringMap(input);
             return Collections.unmodifiableMap(webJarMappings);
@@ -173,7 +181,7 @@ class ResourceServletConfiguration {
     }
 
 
-    private static Map<String, FileResource> makeMemoryFileMapFromZipInput(byte[] content)
+    private static Map<String, FileResource> makeMemoryFileMapFromZipInput(final byte[] content)
             throws IOException
     {
         final ZipInputStream stream = new ZipInputStream(new ByteArrayInputStream(content));
@@ -202,7 +210,7 @@ class ResourceServletConfiguration {
             return url;
         }
 
-        public void setUrl(String url) {
+        public void setUrl(final String url) {
             this.url = url;
         }
 
@@ -210,7 +218,7 @@ class ResourceServletConfiguration {
             return zipFile;
         }
 
-        public void setZipFile(String zipFile) {
+        public void setZipFile(final String zipFile) {
             this.zipFile = zipFile;
         }
     }

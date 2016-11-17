@@ -47,7 +47,7 @@ public class ConfigUnlockCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigUnlock";
         cliParameters.description = "Unlock a configuration, allows config to be edited without LDAP authentication.";
         cliParameters.needsPwmApplication = false;

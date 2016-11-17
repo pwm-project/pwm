@@ -24,7 +24,15 @@ package password.pwm.i18n;
 
 import password.pwm.PwmConstants;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.Set;
 
 public enum PwmLocaleBundle {
     DISPLAY(Display.class, false),
@@ -67,7 +75,7 @@ public enum PwmLocaleBundle {
 
     public static Collection<PwmLocaleBundle> userFacingValues() {
         final List<PwmLocaleBundle> returnValue = new ArrayList<>(allValues());
-        for (Iterator<PwmLocaleBundle> iter = returnValue.iterator(); iter.hasNext(); ) {
+        for (final Iterator<PwmLocaleBundle> iter = returnValue.iterator(); iter.hasNext(); ) {
             if (iter.next().isAdminOnly()) {
                 iter.remove();
             }

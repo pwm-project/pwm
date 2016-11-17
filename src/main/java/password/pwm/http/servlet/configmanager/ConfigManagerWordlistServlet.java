@@ -37,6 +37,7 @@ import password.pwm.svc.wordlist.StoredWordlistDataBean;
 import password.pwm.svc.wordlist.Wordlist;
 import password.pwm.svc.wordlist.WordlistConfiguration;
 import password.pwm.svc.wordlist.WordlistType;
+import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -59,7 +60,7 @@ import java.util.Map;
         }
 )
 public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
-    final static private PwmLogger LOGGER = PwmLogger.forClass(ConfigManagerWordlistServlet.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigManagerWordlistServlet.class);
 
     public enum ConfigManagerAction implements ProcessAction {
         clearWordlist(HttpMethod.POST),
@@ -70,7 +71,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
 
         private final HttpMethod method;
 
-        ConfigManagerAction(HttpMethod method)
+        ConfigManagerAction(final HttpMethod method)
         {
             this.method = method;
         }
@@ -109,11 +110,14 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
                 case readWordlistData:
                     restReadWordlistData(pwmRequest);
                     return;
+
+                default:
+                    Helper.unhandledSwitchStatement(processAction);
             }
             return;
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_WORDLISTS);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_WORDLISTS);
     }
 
     void restUploadWordlist(final PwmRequest pwmRequest)
@@ -182,7 +186,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
         final LinkedHashMap<WordlistType,WordlistDataBean> outputData = new LinkedHashMap<>();
         final NumberFormat numberFormat = NumberFormat.getInstance(pwmRequest.getLocale());
 
-        for (WordlistType wordlistType : WordlistType.values()) {
+        for (final WordlistType wordlistType : WordlistType.values()) {
             final Wordlist wordlist = wordlistType.forType(pwmRequest.getPwmApplication());
             final StoredWordlistDataBean storedWordlistDataBean = wordlist.readMetadata();
             final WordlistConfiguration wordlistConfiguration = wordlistType.forType(pwmRequest.getPwmApplication()).getConfiguration();
@@ -233,11 +237,12 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
         public Map<String, String> getPresentableData() {
             return presentableData;
         }
+
         public boolean isAllowUpload() {
             return allowUpload;
         }
 
-        public void setAllowUpload(boolean allowUpload) {
+        public void setAllowUpload(final boolean allowUpload) {
             this.allowUpload = allowUpload;
         }
 
@@ -245,7 +250,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
             return allowClear;
         }
 
-        public void setAllowClear(boolean allowClear) {
+        public void setAllowClear(final boolean allowClear) {
             this.allowClear = allowClear;
         }
     }

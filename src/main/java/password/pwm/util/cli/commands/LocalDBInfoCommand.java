@@ -44,7 +44,7 @@ public class LocalDBInfoCommand extends AbstractCliCommand {
         out("examining LocalDB, this may take a while.... ");
         for (final LocalDB.DB db : LocalDB.DB.values()) {
             out("---" + db.toString() + "---");
-            final Map<LocalDBUtility.STATS_KEY,Object> stats = LocalDBUtility.dbStats(localDB, db);
+            final Map<LocalDBUtility.StatsKey,Object> stats = LocalDBUtility.dbStats(localDB, db);
             out(JsonUtil.serializeMap(stats, JsonUtil.Flag.PrettyPrint));
         }
         out("completed LocalDBInfo in " + TimeDuration.fromCurrent(startTime).asCompactString());
@@ -53,7 +53,7 @@ public class LocalDBInfoCommand extends AbstractCliCommand {
     @Override
     public CliParameters getCliParameters()
     {
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "LocalDBInfo";
         cliParameters.description = "Report information about the LocalDB";
         cliParameters.needsLocalDB = true;

@@ -27,10 +27,10 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
 public class PrivateKeyCertificate implements Serializable {
-    final private X509Certificate[] certificates;
-    final private PrivateKey key;
+    private final X509Certificate[] certificates;
+    private final PrivateKey key;
 
-    public PrivateKeyCertificate(X509Certificate certificates[], PrivateKey key) {
+    public PrivateKeyCertificate(final X509Certificate[] certificates, final PrivateKey key) {
         this.certificates = certificates;
         this.key = key;
     }

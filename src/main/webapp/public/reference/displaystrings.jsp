@@ -46,12 +46,12 @@
     <div id="centerbody" style="width:95%">
         <%@ include file="reference-nav.jsp"%>
         <ol>
-                <% for (PwmLocaleBundle bundle : PwmLocaleBundle.values()) { %>
+                <% for (final PwmLocaleBundle bundle : PwmLocaleBundle.values()) { %>
                 <li><a href="#displayStrings_<%=bundle.getTheClass().getSimpleName()%>"><%=bundle.getTheClass().getSimpleName()%></a></li>
                 <% } %>
         </ol>
         <br/>
-        <% for (PwmLocaleBundle bundle : PwmLocaleBundle.values()) { %>
+        <% for (final PwmLocaleBundle bundle : PwmLocaleBundle.values()) { %>
         <h2>
             <a id="displayStrings_<%=bundle.getTheClass().getSimpleName()%>"><%=bundle.getTheClass().getSimpleName()%></a>
             <% if (bundle.isAdminOnly()) { %> (admin-only) <% } %>

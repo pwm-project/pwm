@@ -36,7 +36,13 @@ import password.pwm.svc.report.ReportSummaryData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 public abstract class AlertHandler {
     private static final PwmLogger LOGGER = PwmLogger.forClass(AlertHandler.class);

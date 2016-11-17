@@ -24,10 +24,10 @@ package password.pwm.http;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
-import password.pwm.util.Validator;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.StringUtil;
+import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.Cookie;

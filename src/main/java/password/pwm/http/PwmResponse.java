@@ -46,7 +46,7 @@ import java.util.Arrays;
 public class PwmResponse extends PwmHttpResponseWrapper {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmResponse.class);
 
-    final private PwmRequest pwmRequest;
+    private final PwmRequest pwmRequest;
 
     public enum Flag {
         AlwaysShowMessage,
@@ -54,16 +54,16 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     }
 
     public PwmResponse(
-            HttpServletResponse response,
-            PwmRequest pwmRequest,
-            Configuration configuration
+            final HttpServletResponse response,
+            final PwmRequest pwmRequest,
+            final Configuration configuration
     ) {
         super(pwmRequest.getHttpServletRequest(), response, configuration);
         this.pwmRequest = pwmRequest;
     }
 
     public void forwardToJsp(
-            final PwmConstants.JSP_URL jspURL
+            final PwmConstants.JspUrl jspURL
     )
             throws ServletException, IOException, PwmUnrecoverableException
     {
@@ -84,7 +84,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         servletContext.getRequestDispatcher(url).forward(httpServletRequest, this.getHttpServletResponse());
     }
 
-    public void forwardToSuccessPage(Message message, final String... field)
+    public void forwardToSuccessPage(final Message message, final String... field)
             throws ServletException, PwmUnrecoverableException, IOException
 
     {
@@ -113,7 +113,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         }
 
         try {
-            forwardToJsp(PwmConstants.JSP_URL.SUCCESS);
+            forwardToJsp(PwmConstants.JspUrl.SUCCESS);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unexpected error sending user to success page: " + e.toString());
         }
@@ -138,12 +138,12 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
         } else if (pwmRequest.isHtmlRequest()) {
             try {
-                forwardToJsp(PwmConstants.JSP_URL.ERROR);
+                forwardToJsp(PwmConstants.JspUrl.ERROR);
             } catch (PwmUnrecoverableException e) {
                 LOGGER.error("unexpected error sending user to error page: " + e.toString());
             }
         } else {
-            boolean showDetail = Helper.determineIfDetailErrorMsgShown(pwmRequest.getPwmApplication());
+            final boolean showDetail = Helper.determineIfDetailErrorMsgShown(pwmRequest.getPwmApplication());
             final String errorStatusText = showDetail
                     ? errorInformation.toDebugStr()
                     : errorInformation.toUserStr(pwmRequest.getPwmSession(),pwmRequest.getPwmApplication());

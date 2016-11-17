@@ -375,9 +375,16 @@ input[type=password]::-ms-reveal{display: none;}
     content: "\f085";
 }
 
+
 .tile-image.selfdelete-image:before {
     content: "\f235";
 }
+
+.tile-image.orgchart-image:before {
+    content: "\f0e8";
+}
+
+
 
 .tile-title {
     color: #434c50;

@@ -34,7 +34,7 @@ import java.util.Iterator;
 
 public interface AuditVault {
 
-    void init(final PwmApplication pwmApplication, final LocalDB localDB, final Settings settings) throws LocalDBException, PwmException;
+    void init( PwmApplication pwmApplication,  LocalDB localDB,  Settings settings) throws LocalDBException, PwmException;
 
     void close();
 
@@ -45,6 +45,7 @@ public interface AuditVault {
     Iterator<AuditRecord> readVault();
 
     String sizeToDebugString();
+
     void add(AuditRecord record) throws PwmOperationalException;
 
     class Settings {
@@ -52,7 +53,7 @@ public interface AuditVault {
         private TimeDuration maxRecordAge;
 
 
-        public Settings(long maxRecordCount, TimeDuration maxRecordAge) {
+        public Settings(final long maxRecordCount, final TimeDuration maxRecordAge) {
             this.maxRecordCount = maxRecordCount;
             this.maxRecordAge = maxRecordAge;
         }

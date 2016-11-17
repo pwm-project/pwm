@@ -43,7 +43,7 @@ public class SessionStateInfoBean implements PublishedBean {
         return label;
     }
 
-    public void setLabel(String label) {
+    public void setLabel(final String label) {
         this.label = label;
     }
 
@@ -51,7 +51,7 @@ public class SessionStateInfoBean implements PublishedBean {
         return createTime;
     }
 
-    public void setCreateTime(Date createTime) {
+    public void setCreateTime(final Date createTime) {
         this.createTime = createTime;
     }
 
@@ -59,7 +59,7 @@ public class SessionStateInfoBean implements PublishedBean {
         return lastTime;
     }
 
-    public void setLastTime(Date lastTime) {
+    public void setLastTime(final Date lastTime) {
         this.lastTime = lastTime;
     }
 
@@ -67,7 +67,7 @@ public class SessionStateInfoBean implements PublishedBean {
         return idle;
     }
 
-    public void setIdle(String idle) {
+    public void setIdle(final String idle) {
         this.idle = idle;
     }
 
@@ -75,7 +75,7 @@ public class SessionStateInfoBean implements PublishedBean {
         return locale;
     }
 
-    public void setLocale(Locale locale) {
+    public void setLocale(final Locale locale) {
         this.locale = locale;
     }
 
@@ -83,7 +83,7 @@ public class SessionStateInfoBean implements PublishedBean {
         return ldapProfile;
     }
 
-    public void setLdapProfile(String ldapProfile) {
+    public void setLdapProfile(final String ldapProfile) {
         this.ldapProfile = ldapProfile;
     }
 
@@ -91,7 +91,7 @@ public class SessionStateInfoBean implements PublishedBean {
         return userDN;
     }
 
-    public void setUserDN(String userDN) {
+    public void setUserDN(final String userDN) {
         this.userDN = userDN;
     }
 
@@ -99,7 +99,7 @@ public class SessionStateInfoBean implements PublishedBean {
         return userID;
     }
 
-    public void setUserID(String userID) {
+    public void setUserID(final String userID) {
         this.userID = userID;
     }
 
@@ -107,7 +107,7 @@ public class SessionStateInfoBean implements PublishedBean {
         return srcAddress;
     }
 
-    public void setSrcAddress(String srcAddress) {
+    public void setSrcAddress(final String srcAddress) {
         this.srcAddress = srcAddress;
     }
 
@@ -115,7 +115,7 @@ public class SessionStateInfoBean implements PublishedBean {
         return srcHost;
     }
 
-    public void setSrcHost(String srcHost) {
+    public void setSrcHost(final String srcHost) {
         this.srcHost = srcHost;
     }
 
@@ -123,7 +123,7 @@ public class SessionStateInfoBean implements PublishedBean {
         return lastUrl;
     }
 
-    public void setLastUrl(String lastUrl) {
+    public void setLastUrl(final String lastUrl) {
         this.lastUrl = lastUrl;
     }
 
@@ -131,7 +131,7 @@ public class SessionStateInfoBean implements PublishedBean {
         return intruderAttempts;
     }
 
-    public void setIntruderAttempts(int intruderAttempts) {
+    public void setIntruderAttempts(final int intruderAttempts) {
         this.intruderAttempts = intruderAttempts;
     }
 }

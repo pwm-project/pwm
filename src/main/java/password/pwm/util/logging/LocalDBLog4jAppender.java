@@ -33,13 +33,13 @@ public class LocalDBLog4jAppender extends AppenderSkeleton {
 
     private LocalDBLogger localDBLogger;
 
-    public LocalDBLog4jAppender(LocalDBLogger localDBLogger)
+    public LocalDBLog4jAppender(final LocalDBLogger localDBLogger)
     {
         this.localDBLogger = localDBLogger;
     }
 
     @Override
-    protected void append(LoggingEvent loggingEvent) {
+    protected void append(final LoggingEvent loggingEvent) {
         final Object message = loggingEvent.getMessage();
         final ThrowableInformation throwableInformation = loggingEvent.getThrowableInformation();
         final Level level = loggingEvent.getLevel();

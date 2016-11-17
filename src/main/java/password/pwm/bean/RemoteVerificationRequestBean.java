@@ -36,7 +36,7 @@ public class RemoteVerificationRequestBean implements Serializable {
         return responseSessionID;
     }
 
-    public void setResponseSessionID(String responseSessionID) {
+    public void setResponseSessionID(final String responseSessionID) {
         this.responseSessionID = responseSessionID;
     }
 
@@ -44,7 +44,7 @@ public class RemoteVerificationRequestBean implements Serializable {
         return userInfo;
     }
 
-    public void setUserInfo(PublicUserInfoBean userInfo) {
+    public void setUserInfo(final PublicUserInfoBean userInfo) {
         this.userInfo = userInfo;
     }
 
@@ -52,7 +52,7 @@ public class RemoteVerificationRequestBean implements Serializable {
         return userResponses;
     }
 
-    public void setUserResponses(Map<String, String> userResponses) {
+    public void setUserResponses(final Map<String, String> userResponses) {
         this.userResponses = userResponses;
     }
 }

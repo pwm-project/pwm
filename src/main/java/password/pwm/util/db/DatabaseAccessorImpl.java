@@ -41,7 +41,11 @@ import password.pwm.health.HealthTopic;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.*;
+import password.pwm.util.ClosableIterator;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.PasswordData;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
@@ -49,8 +53,20 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.Driver;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author Jason D. Rivard
@@ -177,7 +193,10 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             final TimeDuration errorAge = TimeDuration.fromCurrent(lastError.getDate().getTime());
 
             if (errorAge.isShorterThan(TimeDuration.HOUR)) {
-                returnRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthTopic.Database, "Database server was recently unavailable (" + errorAge.asLongString(PwmConstants.DEFAULT_LOCALE) + " ago at " + lastError.getDate().toString()+ "): " + lastError.toDebugStr()));
+                final String msg = "Database server was recently unavailable ("
+                        + errorAge.asLongString(PwmConstants.DEFAULT_LOCALE)
+                        + " ago at " + lastError.getDate().toString()+ "): " + lastError.toDebugStr();
+                returnRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthTopic.Database, msg));
             }
         }
 
@@ -577,7 +596,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             LOGGER.trace("attempting remove operation for table=" + table + ", key=" + key);
         }
 
-        boolean result = contains(table, key);
+        final boolean result = contains(table, key);
         if (result) {
             final StringBuilder sqlText = new StringBuilder();
             sqlText.append("DELETE FROM ").append(table.toString()).append(" WHERE " + KEY_COLUMN + "=?");
@@ -793,7 +812,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         }
     }
 
-    private void updateStats(boolean readOperation, boolean writeOperation) {
+    private void updateStats(final boolean readOperation, final boolean writeOperation) {
         if (pwmApplication != null && pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING) {
             final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
             if (statisticsManager != null && statisticsManager.status() == STATUS.OPEN) {

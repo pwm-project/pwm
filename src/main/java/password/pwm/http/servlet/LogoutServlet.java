@@ -23,8 +23,6 @@
 package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -76,7 +74,7 @@ public class LogoutServlet extends ControlledPwmServlet {
 
         private final Class<? extends ProcessActionHandler> handlerClass;
 
-        LogoutAction(Class<? extends ProcessActionHandler> handlerClass) {
+        LogoutAction(final Class<? extends ProcessActionHandler> handlerClass) {
             this.handlerClass = handlerClass;
         }
 
@@ -90,8 +88,7 @@ public class LogoutServlet extends ControlledPwmServlet {
 
     }
 
-    @Nullable
-    protected LogoutAction readProcessAction(@NotNull final PwmRequest request)
+    protected LogoutAction readProcessAction(final PwmRequest request)
             throws PwmUnrecoverableException {
         try {
             return LogoutAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
@@ -100,12 +97,12 @@ public class LogoutServlet extends ControlledPwmServlet {
         }
     }
 
-    protected void processAction(@NotNull final PwmRequest pwmRequest)
+    protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
 
         final LogoutAction logoutAction = readProcessAction(pwmRequest);
         if (logoutAction != null) {
-            AbstractPwmFilter.ProcessStatus status = dispatchMethod(pwmRequest);
+            final AbstractPwmFilter.ProcessStatus status = dispatchMethod(pwmRequest);
             if (status == AbstractPwmFilter.ProcessStatus.Halt) {
                 return;
             }
@@ -124,7 +121,7 @@ public class LogoutServlet extends ControlledPwmServlet {
             if (nextUrl.isPresent()) {
                 pwmRequest.setAttribute(PwmRequest.Attribute.NextUrl, nextUrl.get());
             }
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.LOGOUT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.LOGOUT);
             return AbstractPwmFilter.ProcessStatus.Halt;
         }
     }
@@ -136,7 +133,7 @@ public class LogoutServlet extends ControlledPwmServlet {
         )
                 throws ServletException, PwmUnrecoverableException, IOException
         {
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.LOGOUT_PUBLIC);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.LOGOUT_PUBLIC);
             return AbstractPwmFilter.ProcessStatus.Halt;
         }
     }
@@ -238,7 +235,7 @@ public class LogoutServlet extends ControlledPwmServlet {
 
 
             final String urlParameter = pwmRequest.readParameterAsString(PARAM_URL);
-            URI uri = URI.create(urlParameter);
+            final URI uri = URI.create(urlParameter);
             String path = uri.getPath();
             if (path != null && path.startsWith(pwmRequest.getContextPath())) {
                 path = path.substring(pwmRequest.getContextPath().length(), path.length());
@@ -247,7 +244,7 @@ public class LogoutServlet extends ControlledPwmServlet {
             PwmServletDefinition matchedServlet = null;
 
             outerLoop:
-            for (PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values()) {
+            for (final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values()) {
                 for (final String urlPattern : pwmServletDefinition.urlPatterns()) {
                     if (urlPattern.equals(path)) {
                         matchedServlet = pwmServletDefinition;
@@ -306,6 +303,6 @@ public class LogoutServlet extends ControlledPwmServlet {
     }
 
     interface ProcessActionHandler {
-        AbstractPwmFilter.ProcessStatus processAction(final PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException;
+        AbstractPwmFilter.ProcessStatus processAction(PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException;
     }
 }

@@ -109,7 +109,7 @@ h3 {
 
 #header-warning {
     box-shadow: 4px 4px 2px #B2B1B9;
-    animation: slideInTop 0.2s;
+    animation: slideInTop 0.15s;
     border:none;
     border-radius: 2px;
 }

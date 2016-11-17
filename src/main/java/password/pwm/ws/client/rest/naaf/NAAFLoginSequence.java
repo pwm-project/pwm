@@ -32,7 +32,12 @@ import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class NAAFLoginSequence {
     private static final PwmLogger LOGGER = PwmLogger.forClass(NAAFLoginSequence.class);
@@ -156,6 +161,12 @@ public class NAAFLoginSequence {
             case FAILED:
             case OK:
                 currentState = null;
+                break;
+
+            default:
+                // unknown status so continue process
+                break;
+
         }
         if (currentState == null) {
             cycleMethods();

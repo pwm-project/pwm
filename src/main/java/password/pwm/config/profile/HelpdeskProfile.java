@@ -28,13 +28,18 @@ import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.VerificationMethodValue;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class HelpdeskProfile extends AbstractProfile implements Profile {
 
     private static final ProfileType PROFILE_TYPE = ProfileType.Helpdesk;
 
-    protected HelpdeskProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
+    protected HelpdeskProfile(final String identifier, final Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);
     }
 
@@ -44,7 +49,7 @@ public class HelpdeskProfile extends AbstractProfile implements Profile {
     }
 
     @Override
-    public String getDisplayName(Locale locale)
+    public String getDisplayName(final Locale locale)
     {
         return this.getIdentifier();
     }

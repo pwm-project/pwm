@@ -45,7 +45,7 @@ public enum IdentityVerificationMethod implements ConfigurationOption {
     private final boolean userSelectable;
     private final Display displayKey;
 
-    IdentityVerificationMethod(boolean userSelectable, Display displayKey) {
+    IdentityVerificationMethod(final boolean userSelectable, final Display displayKey) {
         this.userSelectable = userSelectable;
         this.displayKey = displayKey;
     }

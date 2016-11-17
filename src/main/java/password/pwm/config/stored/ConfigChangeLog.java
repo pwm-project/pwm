@@ -34,7 +34,7 @@ public interface ConfigChangeLog {
 
     void updateChangeLog(StoredConfigReference reference, StoredValue newValue);
 
-    public void updateChangeLog(final StoredConfigReference reference, final StoredValue currentValue, final StoredValue newValue);
+    void updateChangeLog( StoredConfigReference reference,  StoredValue currentValue,  StoredValue newValue);
 
-    public Collection<StoredConfigReference> changedValues();
+    Collection<StoredConfigReference> changedValues();
 }

@@ -32,7 +32,7 @@ import java.io.InputStream;
 
 public interface Wordlist extends PwmService {
 
-    boolean containsWord(final String word);
+    boolean containsWord( String word);
 
     int size();
 

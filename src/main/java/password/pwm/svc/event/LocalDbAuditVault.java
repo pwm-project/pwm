@@ -26,7 +26,11 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.Percent;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
@@ -107,7 +111,7 @@ public class LocalDbAuditVault implements AuditVault {
     private static class IteratorWrapper implements Iterator<AuditRecord> {
         private Iterator<String> innerIter;
 
-        private IteratorWrapper(Iterator<String> innerIter) {
+        private IteratorWrapper(final Iterator<String> innerIter) {
             this.innerIter = innerIter;
         }
 
@@ -164,7 +168,7 @@ public class LocalDbAuditVault implements AuditVault {
         return null;
     }
 
-    public void add(AuditRecord record) {
+    public void add(final AuditRecord record) {
         if (record == null) {
             return;
         }
@@ -185,7 +189,7 @@ public class LocalDbAuditVault implements AuditVault {
         }
     }
 
-    private void removeRecords(int count) {
+    private void removeRecords(final int count) {
         auditDB.removeFirst(count);
         readOldestRecord();
     }

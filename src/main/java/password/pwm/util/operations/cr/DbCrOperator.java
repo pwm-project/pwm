@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.util.operations.cr;
 
 import com.novell.ldapchai.ChaiUser;
@@ -43,11 +44,11 @@ import password.pwm.util.logging.PwmLogger;
 
 public class DbCrOperator implements CrOperator {
 
-    final static private PwmLogger LOGGER = PwmLogger.forClass(DbCrOperator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(DbCrOperator.class);
 
     final PwmApplication pwmApplication;
 
-    public DbCrOperator(PwmApplication pwmApplication) {
+    public DbCrOperator(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
     }
 
@@ -89,7 +90,7 @@ public class DbCrOperator implements CrOperator {
         return null;
     }
 
-    public ResponseInfoBean readResponseInfo(ChaiUser theUser, final UserIdentity userIdentity, String userGUID)
+    public ResponseInfoBean readResponseInfo(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID)
             throws PwmUnrecoverableException
     {
         try {
@@ -100,7 +101,7 @@ public class DbCrOperator implements CrOperator {
         }
     }
 
-    public void clearResponses(UserIdentity userIdentity, final ChaiUser theUser, final String userGUID)
+    public void clearResponses(final UserIdentity userIdentity, final ChaiUser theUser, final String userGUID)
             throws PwmUnrecoverableException
     {
         if (userGUID == null || userGUID.length() < 1) {
@@ -120,7 +121,7 @@ public class DbCrOperator implements CrOperator {
     }
 
     @Override
-    public void writeResponses(UserIdentity userIdentity, ChaiUser theUser, String userGUID, ResponseInfoBean responseInfoBean)
+    public void writeResponses(final UserIdentity userIdentity, final ChaiUser theUser, final String userGUID, final ResponseInfoBean responseInfoBean)
             throws PwmUnrecoverableException
     {
         if (userGUID == null || userGUID.length() < 1) {

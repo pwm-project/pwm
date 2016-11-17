@@ -70,9 +70,9 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand {
                 return false;
             }
 
-            public type getType()
+            public Type getType()
             {
-                return type.STRING;
+                return Type.STRING;
             }
 
             public String getName()
@@ -87,9 +87,9 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand {
                 return false;
             }
 
-            public type getType()
+            public Type getType()
             {
-                return type.STRING;
+                return Type.STRING;
             }
 
             public String getName()
@@ -104,9 +104,9 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand {
                 return true;
             }
 
-            public type getType()
+            public Type getType()
             {
-                return type.STRING;
+                return Type.STRING;
             }
 
             public String getName()
@@ -115,7 +115,7 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand {
             }
         };
 
-        CliParameters cliParameters = new CliParameters();
+        final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "LdapSchemaExtend";
         cliParameters.description = "Extend an LDAP schema with standard extensions";
         cliParameters.options = Arrays.asList(new CliParameters.Option[]{ldapUrlOption, bindDN, bindPassword});

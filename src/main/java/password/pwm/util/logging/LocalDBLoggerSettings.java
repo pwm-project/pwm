@@ -34,8 +34,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class LocalDBLoggerSettings implements Serializable {
-    final static int MINIMUM_MAXIMUM_EVENTS = 100;
-    final static TimeDuration MINIMUM_MAX_AGE = TimeDuration.HOUR;
+    static final int MINIMUM_MAXIMUM_EVENTS = 100;
+    static final TimeDuration MINIMUM_MAX_AGE = TimeDuration.HOUR;
 
     private final int maxEvents;
     private final TimeDuration maxAge;
@@ -49,12 +49,12 @@ public class LocalDBLoggerSettings implements Serializable {
     }
 
     private LocalDBLoggerSettings(
-            int maxEvents,
-            TimeDuration maxAge,
-            Set<Flag> flags,
-            int maxBufferSize,
-            TimeDuration maxBufferWaitTime,
-            int maxTrimSize
+            final int maxEvents,
+            final TimeDuration maxAge,
+            final Set<Flag> flags,
+            final int maxBufferSize,
+            final TimeDuration maxBufferWaitTime,
+            final int maxTrimSize
     ) {
         this.maxEvents = maxEvents < 1 ? 0 : Math.max(MINIMUM_MAXIMUM_EVENTS, maxEvents);
         this.maxAge = maxAge == null || maxAge.isShorterThan(MINIMUM_MAX_AGE) ? MINIMUM_MAX_AGE : maxAge;
@@ -118,32 +118,32 @@ public class LocalDBLoggerSettings implements Serializable {
         private TimeDuration maxBufferWaitTime = new TimeDuration(1, TimeUnit.MINUTES);
         private int maxTrimSize = 501;
 
-        public Builder setMaxEvents(int maxEvents) {
+        public Builder setMaxEvents(final int maxEvents) {
             this.maxEvents = maxEvents;
             return this;
         }
 
-        public Builder setMaxAge(TimeDuration maxAge) {
+        public Builder setMaxAge(final TimeDuration maxAge) {
             this.maxAge = maxAge;
             return this;
         }
 
-        public Builder setFlags(Set<Flag> flags) {
+        public Builder setFlags(final Set<Flag> flags) {
             this.flags = flags;
             return this;
         }
 
-        public Builder setMaxTrimSize(int maxTrimSize) {
+        public Builder setMaxTrimSize(final int maxTrimSize) {
             this.maxTrimSize = maxTrimSize;
             return this;
         }
 
-        public Builder setMaxBufferSize(int maxBufferSize) {
+        public Builder setMaxBufferSize(final int maxBufferSize) {
             this.maxBufferSize = maxBufferSize;
             return this;
         }
 
-        public Builder setMaxBufferWaitTime(TimeDuration maxBufferWaitTime) {
+        public Builder setMaxBufferWaitTime(final TimeDuration maxBufferWaitTime) {
             this.maxBufferWaitTime = maxBufferWaitTime;
             return this;
         }

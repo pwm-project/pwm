@@ -42,7 +42,7 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
-    <% String PageName = JspUtility.localizedString(pageContext,"Title_TokenLookup",Admin.class);%>
+    <% final String PageName = JspUtility.localizedString(pageContext,"Title_TokenLookup",Admin.class);%>
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
@@ -112,7 +112,7 @@
                     Destination(s)
                 </td>
                 <td>
-                    <%for (Iterator destIter = tokenPayload.getDest().iterator(); destIter.hasNext();) { %>
+                    <%for (final Iterator destIter = tokenPayload.getDest().iterator(); destIter.hasNext();) { %>
                     <%=destIter.next()%>
                     <% if (destIter.hasNext()) { %>
                     <br/>
@@ -126,7 +126,7 @@
                 </td>
                 <td>
                     <table>
-                        <%for (String key : tokenPayload.getData().keySet()) { %>
+                        <%for (final String key : tokenPayload.getData().keySet()) { %>
                         <tr>
                             <td>
                                 <%=key%>

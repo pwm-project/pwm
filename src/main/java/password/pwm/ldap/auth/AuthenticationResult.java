@@ -31,9 +31,9 @@ public class AuthenticationResult {
     private final PasswordData userPassword;
 
     public AuthenticationResult(
-            ChaiProvider userProvider,
-            AuthenticationType authenticationType,
-            PasswordData userPassword
+            final ChaiProvider userProvider,
+            final AuthenticationType authenticationType,
+            final PasswordData userPassword
     )
     {
         this.userProvider = userProvider;

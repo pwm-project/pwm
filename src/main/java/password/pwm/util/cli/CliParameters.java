@@ -34,7 +34,7 @@ public class CliParameters {
     public List<Option> options;
 
     public interface Option {
-        enum type {
+        enum Type {
             EXISTING_FILE,
             NEW_FILE,
             STRING
@@ -42,7 +42,7 @@ public class CliParameters {
 
         boolean isOptional();
 
-        type getType();
+        Type getType();
 
         String getName();
     }
@@ -53,9 +53,9 @@ public class CliParameters {
             return false;
         }
 
-        public type getType()
+        public Type getType()
         {
-            return type.NEW_FILE;
+            return Type.NEW_FILE;
         }
 
         public String getName()
@@ -70,9 +70,9 @@ public class CliParameters {
             return false;
         }
 
-        public type getType()
+        public Type getType()
         {
-            return type.EXISTING_FILE;
+            return Type.EXISTING_FILE;
         }
 
         public String getName()
@@ -87,9 +87,9 @@ public class CliParameters {
             return true;
         }
 
-        public type getType()
+        public Type getType()
         {
-            return type.STRING;
+            return Type.STRING;
         }
 
         public String getName()

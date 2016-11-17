@@ -32,7 +32,11 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
-import password.pwm.config.profile.*;
+import password.pwm.config.profile.DeleteAccountProfile;
+import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.profile.Profile;
+import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.UpdateAttributesProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -61,7 +65,7 @@ public class SessionManager implements Serializable {
 
     private ChaiProvider chaiProvider;
 
-    final private PwmSession pwmSession;
+    private final PwmSession pwmSession;
 
     private transient UserDataReader userDataReader;
 
@@ -114,11 +118,6 @@ public class SessionManager implements Serializable {
 
 // ------------------------ CANONICAL METHODS ------------------------
 
-    protected void finalize()
-            throws Throwable {
-        super.finalize();
-        this.closeConnections();
-    }
 
     public void closeConnections() {
         if (chaiProvider != null) {
@@ -227,8 +226,8 @@ public class SessionManager implements Serializable {
             return false;
         }
 
-        Permission.PERMISSION_STATUS status = pwmSession.getUserSessionDataCacheBean().getPermission(permission);
-        if (status == Permission.PERMISSION_STATUS.UNCHECKED) {
+        Permission.PermissionStatus status = pwmSession.getUserSessionDataCacheBean().getPermission(permission);
+        if (status == Permission.PermissionStatus.UNCHECKED) {
             if (devDebugMode) {
                 LOGGER.debug(pwmSession.getLabel(), String.format("checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey()));
             }
@@ -236,13 +235,13 @@ public class SessionManager implements Serializable {
             final PwmSetting setting = permission.getPwmSetting();
             final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission(setting);
             final boolean result = LdapPermissionTester.testUserPermissions(pwmApplication, pwmSession.getLabel(), pwmSession.getUserInfoBean().getUserIdentity(), userPermission);
-            status = result ? Permission.PERMISSION_STATUS.GRANTED : Permission.PERMISSION_STATUS.DENIED;
+            status = result ? Permission.PermissionStatus.GRANTED : Permission.PermissionStatus.DENIED;
             pwmSession.getUserSessionDataCacheBean().setPermission(permission, status);
             LOGGER.debug(pwmSession.getLabel(), String.format("permission %s for user %s is %s",
                     permission.toString(), pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey(),
                     status.toString()));
         }
-        return status == Permission.PERMISSION_STATUS.GRANTED;
+        return status == Permission.PermissionStatus.GRANTED;
     }
 
     public MacroMachine getMacroMachine(final PwmApplication pwmApplication)

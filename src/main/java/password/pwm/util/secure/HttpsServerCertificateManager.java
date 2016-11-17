@@ -24,7 +24,11 @@ package password.pwm.util.secure;
 
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
@@ -49,11 +53,22 @@ import password.pwm.util.StringUtil;
 import password.pwm.util.X509Utils;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -144,7 +159,7 @@ public class HttpsServerCertificateManager
         private final X509Certificate x509Certificate;
         private String keypairb64;
 
-        public StoredCertData(X509Certificate x509Certificate, KeyPair keypair)
+        public StoredCertData(final X509Certificate x509Certificate, final KeyPair keypair)
                 throws IOException
         {
             this.x509Certificate = x509Certificate;
@@ -175,7 +190,7 @@ public class HttpsServerCertificateManager
     {
         private final Configuration config;
 
-        public SelfCertGenerator(Configuration config)
+        public SelfCertGenerator(final Configuration config)
         {
             this.config = config;
         }

@@ -52,7 +52,7 @@
 
     final PwmApplication pwmApplication = formPwmRequest.getPwmApplication();
     final Locale formLocale = formPwmRequest.getLocale();
-    for (FormConfiguration loopConfiguration : formConfigurationList) {
+    for (final FormConfiguration loopConfiguration : formConfigurationList) {
         String currentValue = formDataMap != null ? formDataMap.get(loopConfiguration) : "";
         currentValue = currentValue == null ? "" : currentValue;
         currentValue = StringUtil.escapeHtml(currentValue);
@@ -80,7 +80,7 @@
     <% if (loopConfiguration.getDescription(formLocale) != null && loopConfiguration.getDescription(formLocale).length() > 0) { %>
     <p><%=loopConfiguration.getDescription(formLocale)%></p>
     <% } %>
-    <% boolean readonly = loopConfiguration.isReadonly() || forceReadOnly; %>
+    <% final boolean readonly = loopConfiguration.isReadonly() || forceReadOnly; %>
     <% if (readonly) { %>
         <span id="<%=loopConfiguration.getName()%>">
         <span class="pwm-icon pwm-icon-chevron-circle-right"></span>
