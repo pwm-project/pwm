@@ -16,10 +16,6 @@ export default class TableDirectiveController {
         this.columns = [];
     }
 
-    $onInit(): void {
-
-    }
-
     addColumn(label: string, valueExpression: string): void {
         this.columns.push(new Column(label, valueExpression));
     }
@@ -34,7 +30,7 @@ export default class TableDirectiveController {
     }
 
     getItems(): any[] {
-        if (this.sortColumn) {
+        if (this.items && this.sortColumn) {
             var self = this;
 
             return this.items.concat().sort((item1: any, item2: any): number => {
