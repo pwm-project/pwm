@@ -1485,7 +1485,7 @@
     <setting hidden="false" key="security.cspHeader" level="2">
         <default>
             <!--<value><![CDATA[]]></value>-->
-            <value><![CDATA[default-src 'self'; connect-src 'self' blob:; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'unsafe-inline' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/csp-report]]></value>
+            <value><![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'unsafe-inline' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/csp-report]]></value>
             <!-- 'unsafe-inline' on script-src is included for backward compatibility of CSP Level1 browsers.  CSP2 and future ignore it when the nonce is specified -->
         </default>
     </setting>
