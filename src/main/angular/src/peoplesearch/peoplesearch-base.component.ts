@@ -52,7 +52,7 @@ export default class PeopleSearchBaseComponent {
     }
 
     initialize(searchFunction: ISearchFunction): void {
-        this.query = this.$stateParams['query'];
+        this.query = (this.$stateParams['query'] || '').trim();
         this.searchFunction = searchFunction;
 
         const self = this;

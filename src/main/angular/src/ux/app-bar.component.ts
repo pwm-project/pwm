@@ -22,6 +22,12 @@
 
 
 import { Component } from '../component';
+import { IAugmentedJQuery } from 'angular';
+import ElementSizeService from './element-size.service';
+
+export enum AppBarSize {
+    Large = 415
+}
 
 @Component({
     stylesheetUrl: require('ux/app-bar.component.scss'),
@@ -29,4 +35,15 @@ import { Component } from '../component';
     transclude: true
 })
 export default class AppBarComponent {
+    static $inject = [ '$element', 'MfElementSizeService' ];
+    constructor(private $element: IAugmentedJQuery, private elementSizeService: ElementSizeService) {
+    }
+
+    $onDestroy(): void {
+        // TODO: remove $window click listener
+    }
+
+    $onInit(): void {
+        this.elementSizeService.watchWidth(this.$element, AppBarSize);
+    }
 }
