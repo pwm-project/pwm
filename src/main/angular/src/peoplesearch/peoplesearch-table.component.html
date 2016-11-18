@@ -17,7 +17,10 @@
          ng-if="$ctrl.loading || $ctrl.searchMessage"
          ng-bind="$ctrl.loading ? ('Display_PleaseWait' | translate) : $ctrl.searchMessage"></div>
 
-    <mf-table data="person in $ctrl.searchResult.people" ng-show="$ctrl.searchResult.people.length" on-click-item="$ctrl.selectPerson(person)">
+    <mf-table data="person in $ctrl.searchResult.people"
+              ng-show="$ctrl.searchResult.people.length"
+              search-highlight="$ctrl.query"
+              on-click-item="$ctrl.selectPerson(person)">
         <mf-table-column ng-repeat="(key, value) in $ctrl.columnConfiguration"
                          label="value"
                          value="'person.' + key">

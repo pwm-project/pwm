@@ -34,6 +34,7 @@ import uiRouter from 'angular-ui-router';
 require('./icons.json');
 
 module('app', [
+    'ngSanitize',
     uiRouter,
     peopleSearchModule,
     'pascalprecht.translate'

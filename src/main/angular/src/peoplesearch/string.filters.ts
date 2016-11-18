@@ -21,12 +21,16 @@
  */
 
 
-export function DasherizeFilter(): (input: string) => string {
-    return (input: string): string => {
-        return input
-            .replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
-                return (index == 0 ? '' : '-') + letter.toLowerCase();
-            })
-            .replace(/\s+/g, '');
+export function HighlightFilter() {
+    return (input: string, searchText: string): string => {
+        if (!searchText || !searchText.length) {
+            return input;
+        }
+
+        const searchTextRegExp = new RegExp(searchText, 'gi');
+
+        return input.replace(searchTextRegExp, function (match) {
+            return `<span class="highlight">${match}</span>`;
+        });
     };
 }

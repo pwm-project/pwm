@@ -23,6 +23,7 @@
 
 import { IScope } from 'angular';
 import Column from './../models/column.model';
+import { IFilterService } from 'angular';
 import * as angular from 'angular';
 
 export default class TableDirectiveController {
@@ -30,12 +31,13 @@ export default class TableDirectiveController {
     items: any[];
     itemName: string;
     onClickItem: (scope: IScope, locals: any) => void;
+    searchHighlight: string;
     showConfiguration: boolean = false;
     sortColumn: Column;
     reverseSort: boolean = false;
 
-    static $inject = [ '$scope' ];
-    constructor(private $scope: IScope) {
+    static $inject = [ '$filter', '$scope' ];
+    constructor(private $filter: IFilterService, private $scope: IScope) {
         this.columns = [];
     }
 
@@ -86,7 +88,18 @@ export default class TableDirectiveController {
         return this.items;
     }
 
-    getValue(item: any, valueExpression: string) {
+    getDisplayValue(item: any, valueExpression: string): any {
+        let value = this.getValue(item, valueExpression);
+
+        if (this.searchHighlight) {
+            return this
+                .$filter<(input: string, searchText: string) => string>('highlight')(value, this.searchHighlight);
+        }
+
+        return value;
+    }
+
+    getValue(item: any, valueExpression: string): any {
         const locals: any = {};
         // itemName comes from directive's link function
         locals[this.itemName] = item;

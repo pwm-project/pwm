@@ -22,7 +22,7 @@
 
 
 import { module } from 'angular';
-import { DasherizeFilter } from './string.filters';
+import { HighlightFilter } from './string.filters';
 import { FullNameFilter } from './person.filters';
 import OrgChartComponent from './orgchart.component';
 import OrgChartSearchComponent from './orgchart-search.component';
@@ -40,8 +40,8 @@ module(moduleName, [
     'pascalprecht.translate',
     uxModule
 ])
-    .filter('dasherize', DasherizeFilter)
     .filter('fullName', FullNameFilter)
+    .filter('highlight', HighlightFilter)
     .component('orgChart', OrgChartComponent)
     .component('orgChartSearch', OrgChartSearchComponent)
     .component('personCard', PersonCardComponent)

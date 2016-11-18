@@ -56,6 +56,9 @@ class TableDirective implements IDirective {
         $scope.$watch(dataExpression.collectionExpression, (items: any[]) => {
             controller.items = items;
         });
+        $scope.$watch(instanceAttributes['searchHighlight'], (searchHighlight: string) => {
+            controller.searchHighlight = searchHighlight;
+        });
 
         // Listen for clicks outside of the configuration panel
         this.$document.on('click', () => {
