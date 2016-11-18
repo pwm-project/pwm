@@ -1,6 +1,7 @@
 <mf-app-bar>
     <div class="page-content-title" translate="Title_Organization">Organization</div>
-    <mf-auto-complete search="$ctrl.autoCompleteSearch(query)"
+    <mf-auto-complete query="$ctrl.query"
+                      search="$ctrl.autoCompleteSearch(query)"
                       item-selected="$ctrl.onAutoCompleteItemSelected(person)"
                       item="person">
         <content-template>

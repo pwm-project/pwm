@@ -44,7 +44,7 @@ export default class PeopleSearchBaseComponent {
                           protected peopleService: IPeopleService) {}
 
     gotoOrgchart(): void {
-        this.$state.go('orgchart.index');
+        this.gotoState('orgchart.index');
     }
 
     gotoState(state: string): void {

@@ -22,7 +22,7 @@
 
 
 import { Component } from '../component';
-import { IPromise, IQService, IScope } from 'angular';
+import { isArray, isString, IPromise, IQService, IScope } from 'angular';
 import { IPeopleService } from '../services/people.service';
 import Person from '../models/person.model';
 import OrgChartData from '../models/orgchart-data.model';
@@ -35,6 +35,7 @@ export default class OrgChartSearchComponent {
     directReports: Person[];
     managementChain: Person[];
     person: Person;
+    query: string;
 
     static $inject = [ '$q', '$scope', '$state', '$stateParams', 'PeopleService' ];
     constructor(private $q: IQService,
@@ -45,9 +46,19 @@ export default class OrgChartSearchComponent {
     }
 
     $onInit(): void {
-        var self = this;
+        const self = this;
 
-        var personId: string = this.$stateParams['personId'];
+        // Read query from state parameters
+        const queryParameter = this.$stateParams['query'];
+        // If multiple query parameters are defined, use the first one
+        if (isArray(queryParameter)) {
+            this.query = queryParameter[0].trim();
+        }
+        else if (isString(queryParameter)) {
+            this.query = queryParameter.trim();
+        }
+
+        let personId: string = this.$stateParams['personId'];
 
         this.fetchOrgChartData(personId)
             .then((orgChartData: OrgChartData) => {
@@ -77,7 +88,7 @@ export default class OrgChartSearchComponent {
     }
 
     gotoSearchState(state: string) {
-        this.$state.go(state);
+        this.$state.go(state, { query: this.query });
     }
 
     onAutoCompleteItemSelected(person: Person): void {

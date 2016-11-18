@@ -51,7 +51,7 @@ export default [
             url: '/details/{personId}',
             component: 'personDetailsDialogComponent'
         });
-        $stateProvider.state('orgchart', { url: '/orgchart', abstract: true, template: '<ui-view/>' });
+        $stateProvider.state('orgchart', { url: '/orgchart?query', abstract: true, template: '<ui-view/>' });
         $stateProvider.state('orgchart.index', { url: '', component: 'orgChartSearch' });
         $stateProvider.state('orgchart.search', { url: '/{personId}', component: 'orgChartSearch' });
         $stateProvider.state('orgchart.search.details', { url: '/details', component: 'personDetailsDialogComponent' });

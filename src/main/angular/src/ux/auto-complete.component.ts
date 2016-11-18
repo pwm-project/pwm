@@ -29,7 +29,8 @@ import { IAugmentedJQuery, ICompileService, IDocumentService, IPromise, IScope }
         'search': '&',
         'itemSelected': '&',
         'item': '@',
-        'itemText': '@'
+        'itemText': '@',
+        'query': '='
     },
     templateUrl: require('ux/auto-complete.component.html'),
     transclude: true,

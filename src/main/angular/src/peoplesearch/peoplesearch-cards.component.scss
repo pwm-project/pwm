@@ -20,55 +20,51 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-
 people-search-cards {
-    display: flex;
-    flex-flow: column nowrap;
-    height: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
 
-  &.small {
-    > .person-card-list {
-      margin: 0 auto;
-      > person-card {
-        width: 220px;
+  // At medium size, cards are centered and no longer take up 100% width
+  &.medium {
+    > .people-search-component-content {
+      > .person-card-list {
+        > person-card {
+          margin: 0 auto;
+          display: block;
+          width: 220px;
+        }
       }
     }
   }
 
-  // For medium and large displays, adjust card size and position to display
-  &.medium {
+  // At large size, cards fit next to each other
+  &.large {
     > .people-search-component-content {
       > .person-card-list {
-        margin: 0;
+        text-align: left;margin: 0;
         > person-card {
+          display: inline-block;
           margin-right: 5px;
         }
       }
     }
   }
 
-  &.large {
-    > .people-search-component-content {
-      > .person-card-list {
-        text-align: left;
+  > .people-search-component-content {
+    flex: 1 1;
+    overflow: auto;
+    text-align: center;
+
+    > .person-card-list {
+      > person-card {
+        display: inline-block;
+        width: 100%;
+
+        &:not(:last-child) {
+          margin-bottom: 5px;
+        }
       }
     }
   }
-
-    > .people-search-component-content {
-        flex: 1 1;
-        overflow: auto;
-        text-align: center;
-
-        > .person-card-list {
-            > person-card {
-                display: inline-block;
-                width: 100%;
-
-                &:not(:last-child) {
-                    margin-bottom: 5px;
-                }
-            }
-        }
-    }
 }

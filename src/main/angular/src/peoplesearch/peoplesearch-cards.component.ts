@@ -28,8 +28,8 @@ import { IAugmentedJQuery, IScope } from 'angular';
 import ElementSizeService from '../ux/element-size.service';
 
 export enum PeopleSearchCardsSize {
-    Small = 365,
-    Medium = 400,
+    Small = 0,
+    Medium = 365,
     Large = 450
 }
 
