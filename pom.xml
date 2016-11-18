@@ -747,6 +747,11 @@
             <artifactId>angular-translate</artifactId>
             <version>2.13.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>angular-sanitize</artifactId>
+            <version>1.5.8</version>
+        </dependency>
     </dependencies>
 
     <repositories>
