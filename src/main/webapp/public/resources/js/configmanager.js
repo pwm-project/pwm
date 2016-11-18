@@ -136,9 +136,9 @@ PWM_CONFIG.closeHeaderWarningPanel = function() {
     console.log('action closeHeader');
     PWM_CONFIG.headerResizeListener.pause();
 
-    PWM_MAIN.setStyle('header-warning','display','none');
-    PWM_MAIN.setStyle('header-warning-backdrop','display','none');
-    PWM_MAIN.setStyle('button-openHeader','display','inherit');
+    PWM_MAIN.addCssClass('header-warning','nodisplay');
+    PWM_MAIN.addCssClass('header-warning-backdrop','nodisplay');
+    //PWM_MAIN.removeCssClass('button-openHeader','nodisplay');
 };
 
 PWM_CONFIG.openHeaderWarningPanel = function() {
@@ -148,15 +148,14 @@ PWM_CONFIG.openHeaderWarningPanel = function() {
     }
 
     require(['dojo/dom','dijit/place','dojo/on'], function(dom, place, on) {
-        place.around(dom.byId("header-warning"), dom.byId("header-username-caret"), ["below-alt"], false);
+        PWM_MAIN.removeCssClass('header-warning-backdrop','nodisplay');
+        PWM_MAIN.removeCssClass('header-warning','nodisplay');
+        //PWM_MAIN.addCssClass('button-openHeader','nodisplay');
+        place.around(PWM_MAIN.getObject("header-warning"), PWM_MAIN.getObject("header-username-caret"), ["below-alt"], false);
 
-        on.once(dom.byId("header-warning-backdrop"), "click", function(event) {
+        on.once(PWM_MAIN.getObject("header-warning-backdrop"), "click", function(event) {
             PWM_CONFIG.closeHeaderWarningPanel();
         });
-
-        PWM_MAIN.setStyle('header-warning-backdrop','display','inherit');
-        PWM_MAIN.setStyle('header-warning','display','inherit');
-        PWM_MAIN.setStyle('button-openHeader','display','none');
     });
 };
 
@@ -324,10 +323,10 @@ PWM_CONFIG.initConfigHeader = function() {
     });
 
     require(["dojo/dom-construct", "dojo/_base/window", "dojo/dom", "dijit/place", "dojo/on"], function(domConstruct, win, dom, place, on){
-        domConstruct.create("div", { id: "header-warning-backdrop" }, win.body());
+        domConstruct.create("div", { id: "header-warning-backdrop", class:"nodisplay" }, win.body());
 
         PWM_CONFIG.headerResizeListener = on.pausable(window, "resize", function () {
-            place.around(dom.byId("header-warning"), dom.byId("header-menu-wrapper"), ["below-alt"], false);
+            place.around(dom.byId("header-warning"), dom.byId("header-username-caret"), ["below-alt"], false);
         });
 
         PWM_CONFIG.headerResizeListener.pause();
