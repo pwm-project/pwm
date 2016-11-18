@@ -24,25 +24,40 @@
 import { Component } from '../component';
 import IPeopleService from '../services/people.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
-import { IScope } from 'angular';
+import { IAugmentedJQuery, IScope } from 'angular';
+import ElementSizeService from '../ux/element-size.service';
 
+export enum PeopleSearchCardsSize {
+    Small = 365,
+    Medium = 400,
+    Large = 450
+}
 
 @Component({
     stylesheetUrl: require('peoplesearch/peoplesearch-cards.component.scss'),
     templateUrl: require('peoplesearch/peoplesearch-cards.component.html')
 })
 export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponent {
-    static $inject = [ '$scope', '$state', '$stateParams', '$translate', 'PeopleService' ];
-    constructor($scope: IScope,
+    static $inject = [
+        '$element', '$scope', '$state', '$stateParams', '$translate', 'MfElementSizeService', 'PeopleService'
+    ];
+    constructor(private $element: IAugmentedJQuery,
+                $scope: IScope,
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
+                private elementSizeService: ElementSizeService,
                 peopleService: IPeopleService) {
         super($scope, $state, $stateParams, $translate, peopleService);
     }
 
+    $onDestroy(): void {
+        // TODO: remove $window click listener
+    }
+
     $onInit(): void {
         this.initialize(this.peopleService.cardSearch);
+        this.elementSizeService.watchWidth(this.$element, PeopleSearchCardsSize);
     }
 
     gotoTableView() {

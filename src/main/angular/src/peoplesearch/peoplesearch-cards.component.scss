@@ -26,6 +26,35 @@ people-search-cards {
     flex-flow: column nowrap;
     height: 100%;
 
+  &.small {
+    > .person-card-list {
+      margin: 0 auto;
+      > person-card {
+        width: 220px;
+      }
+    }
+  }
+
+  // For medium and large displays, adjust card size and position to display
+  &.medium {
+    > .people-search-component-content {
+      > .person-card-list {
+        margin: 0;
+        > person-card {
+          margin-right: 5px;
+        }
+      }
+    }
+  }
+
+  &.large {
+    > .people-search-component-content {
+      > .person-card-list {
+        text-align: left;
+      }
+    }
+  }
+
     > .people-search-component-content {
         flex: 1 1;
         overflow: auto;
@@ -39,29 +68,6 @@ people-search-cards {
                 &:not(:last-child) {
                     margin-bottom: 5px;
                 }
-            }
-        }
-    }
-}
-
-@media (min-width: 410px) {
-    people-search-cards {
-        > .people-search-component-content {
-            > .person-card-list {
-                > person-card {
-                    margin-right: 5px;
-                    width: 220px;
-                }
-            }
-        }
-    }
-}
-
-@media (min-width: 460px) {
-    people-search-cards {
-        > .people-search-component-content {
-            > .person-card-list {
-                text-align: left;
             }
         }
     }

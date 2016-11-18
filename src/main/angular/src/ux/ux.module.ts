@@ -32,6 +32,7 @@ import IconComponent from './icon.component';
 import SearchBarComponent from './search-bar.component';
 import TableDirectiveFactory from './table.directive';
 import TableColumnDirectiveFactory from './table-column.directive';
+import ElementSizeService from './element-size.service';
 
 var moduleName = 'peoplesearch.ux';
 
@@ -44,7 +45,8 @@ module(moduleName, [ ])
     .component('mfIcon', IconComponent)
     .component('mfSearchBar', SearchBarComponent)
     .directive('mfTable', TableDirectiveFactory)
-    .directive('mfTableColumn', TableColumnDirectiveFactory);
+    .directive('mfTableColumn', TableColumnDirectiveFactory)
+    .service('MfElementSizeService', ElementSizeService);
     // .service('MfDialogService', DialogService);
 
 export default moduleName;
