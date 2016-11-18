@@ -22,7 +22,7 @@
 
 
 import { IPeopleService } from '../services/people.service';
-import { IPromise, IScope } from 'angular';
+import { isArray, isString, IPromise, IScope } from 'angular';
 import Person from '../models/person.model';
 import SearchResult from '../models/search-result.model';
 
@@ -52,8 +52,17 @@ export default class PeopleSearchBaseComponent {
     }
 
     initialize(searchFunction: ISearchFunction): void {
-        this.query = (this.$stateParams['query'] || '').trim();
         this.searchFunction = searchFunction;
+
+        // Read query from state parameters
+        var queryParameter = this.$stateParams['query'];
+        // If multiple query parameters are defined, use the first one
+        if (isArray(queryParameter)) {
+            this.query = queryParameter[0].trim();
+        }
+        else if (isString(queryParameter)) {
+            this.query = queryParameter.trim();
+        }
 
         const self = this;
 

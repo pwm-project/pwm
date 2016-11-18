@@ -23,7 +23,7 @@
 
 export function HighlightFilter() {
     return (input: string, searchText: string): string => {
-        if (!searchText || !searchText.length) {
+        if (!input || !searchText || !searchText.length) {
             return input;
         }
 
