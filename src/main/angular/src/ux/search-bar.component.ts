@@ -24,12 +24,10 @@
 import { Component } from '../component';
 import { IAugmentedJQuery, ICompileService, IScope, ITimeoutService } from 'angular';
 
-const FOCUSED_CLASS_NAME = 'mf-focused';
 
 @Component({
     bindings: {
         autoFocus: '@',
-        placeholder: '<',
         searchText: '='
     },
     templateUrl: require('ux/search-bar.component.html'),

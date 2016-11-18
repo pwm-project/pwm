@@ -3,12 +3,8 @@
        ng-keydown="$ctrl.onInputKeyDown($event)"
        ng-model="$ctrl.searchText"
        ng-trim="false"
+       ng-attr-placeholder="{{ ('Placeholder_Search' | translate) }}"
        title="Search Box"
        autocomplete="off" />
-<span class="placeholder"
-      ng-hide="$ctrl.searchText.length"
-      ng-bind="$ctrl.placeholder || ('Placeholder_Search' | translate)">
-    Search
-</span>
 <mf-icon class="clear-input" icon="close" ng-click="$ctrl.clearSearchText()"></mf-icon>
 <!-- loader graphic -->
