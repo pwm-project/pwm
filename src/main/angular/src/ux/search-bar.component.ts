@@ -58,7 +58,7 @@ export default class SearchBarComponent {
     }
 
     clearSearchText(): void {
-        this.searchText = '';
+        this.$element.find('input').val('');
         this.focusInput();
     }
 
