@@ -24,7 +24,7 @@
 <div class="org-chart-section">
     <person-card person="$ctrl.person"
                  direct-reports="$ctrl.directReports"
-                 disable-focus="true"
+                 ng-click="$ctrl.onClickPerson()"
                  size="large"
                  show-direct-report-count="true"></person-card>
 </div>

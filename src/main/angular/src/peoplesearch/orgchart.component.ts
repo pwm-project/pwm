@@ -141,6 +141,12 @@ export default class OrgChartComponent {
         return !(this.hasDirectReports() || this.hasManagementChain());
     }
 
+    onClickPerson(): void {
+        if (this.person) {
+            this.$state.go('orgchart.search.details', { personId: this.person.userKey });
+        }
+    }
+
     selectPerson(userKey: string): void {
         this.$state.go('orgchart.search', { personId: userKey });
     }

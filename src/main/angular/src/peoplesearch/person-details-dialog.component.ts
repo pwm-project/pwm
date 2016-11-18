@@ -61,6 +61,6 @@ export default class PersonDetailsDialogComponent {
     }
 
     searchText(text: string): void {
-        this.$state.go('^', { query: text });
+        this.$state.go('search.table', { query: text });
     }
 }

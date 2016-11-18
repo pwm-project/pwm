@@ -66,12 +66,6 @@ person-card {
     width: 326px;
     max-width: 100%;
 
-    &:focus,
-    &:hover {
-      background-color: $person-card-hover-bg-color;
-      outline: none;
-    }
-
     > .person-card-content {
       flex-flow: row nowrap;
 
