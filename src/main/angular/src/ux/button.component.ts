@@ -25,7 +25,7 @@ import { Component } from '../component';
 
 @Component({
     stylesheetUrl: require('ux/button.component.scss'),
-    template: '<ng-transclude></ng-transclude>',
+    template: '<button type="button"><ng-transclude></ng-transclude></button>',
     transclude: true
 })
 export default class ButtonComponent {

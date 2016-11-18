@@ -44,7 +44,7 @@ export default class TableDirectiveController {
     }
 
     clickItem(item: any, event: Event) {
-        var locals = {};
+        const locals = {};
         locals[this.itemName] = item;
 
         this.onClickItem(this.$scope, locals);
@@ -54,13 +54,13 @@ export default class TableDirectiveController {
 
     getItems(): any[] {
         if (this.items && this.sortColumn) {
-            var self = this;
+            const self = this;
 
             return this.items.concat().sort((item1: any, item2: any): number => {
-                var value1 = self.getValue(item1, self.sortColumn.valueExpression);
-                var value2 = self.getValue(item2, self.sortColumn.valueExpression);
+                const value1 = self.getValue(item1, self.sortColumn.valueExpression);
+                const value2 = self.getValue(item2, self.sortColumn.valueExpression);
 
-                var result = 0;
+                let result = 0;
 
                 // value 1 is undefined but not value 2
                 if (angular.isUndefined(value1) && !angular.isUndefined(value2)) {
@@ -87,7 +87,7 @@ export default class TableDirectiveController {
     }
 
     getValue(item: any, valueExpression: string) {
-        var locals: any = {};
+        const locals: any = {};
         // itemName comes from directive's link function
         locals[this.itemName] = item;
 

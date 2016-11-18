@@ -29,15 +29,17 @@ import { IPeopleService } from '../services/people.service';
 @Component({
     bindings: {
         directReports: '<',
+        disableFocus: '<',
         person: '<',
         size: '@',
-        showDirectReportCount: '='
+        showDirectReportCount: '<'
     },
     stylesheetUrl: require('peoplesearch/person-card.component.scss'),
     templateUrl: require('peoplesearch/person-card.component.html')
 })
 export default class PersonCardComponent {
     private details: any[]; // For large style cards
+    private disableFocus: boolean;
     private person: Person;
     private directReports: Person[];
     private size: string;
@@ -50,8 +52,10 @@ export default class PersonCardComponent {
     }
 
     $onInit(): void {
-        this.$element[0].tabIndex = 0;
-        this.$element.on('keydown', this.onKeyDown.bind(this));
+        if (!this.disableFocus) {
+            this.$element[0].tabIndex = 0;
+            this.$element.on('keydown', this.onKeyDown.bind(this));
+        }
     }
 
     $onChanges(): void {
@@ -67,6 +71,10 @@ export default class PersonCardComponent {
                 });
             }
         }
+    }
+
+    $onDestroy(): void {
+        this.$element.off('keydown', this.onKeyDown.bind(this));
     }
 
     getAvatarStyle(): any {

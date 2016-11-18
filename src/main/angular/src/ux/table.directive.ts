@@ -25,7 +25,7 @@ import { IAttributes, IAugmentedJQuery, IDirective, IDocumentService, IParseServ
 import TableDirectiveController from './table.directive.controller';
 
 require('ux/table.directive.scss');
-var templateUrl = require('ux/table.directive.html');
+const templateUrl = require('ux/table.directive.html');
 
 class DataExpression {
     constructor(public itemName: string,
@@ -49,7 +49,7 @@ class TableDirective implements IDirective {
             controller.onClickItem = this.$parse(instanceAttributes['onClickItem']);
         }
 
-        var dataExpression: DataExpression = this.parseDataExpression(instanceAttributes['data']);
+        const dataExpression: DataExpression = this.parseDataExpression(instanceAttributes['data']);
 
         controller.itemName = dataExpression.itemName;
         // Collection may not be immediately available (i.e. promise). Watch its value for changes
@@ -58,8 +58,15 @@ class TableDirective implements IDirective {
         });
 
         // Listen for clicks outside of the configuration panel
-        this.$document.on('click', (event: Event) => {
+        this.$document.on('click', () => {
             if (controller.showConfiguration) {
+                controller.hideConfiguration();
+                $scope.$apply();
+            }
+        });
+
+        this.$document.on('keydown', (event) => {
+            if (event.keyCode === 27) { // Escape
                 controller.hideConfiguration();
                 $scope.$apply();
             }
@@ -73,7 +80,7 @@ class TableDirective implements IDirective {
 
     parseDataExpression(dataExpression: string): any {
         // Parse data expression from [data] attribute
-        var match: RegExpMatchArray = dataExpression.match(/^\s*(.+)\s+in\s+(.*?)\s*$/);
+        let match: RegExpMatchArray = dataExpression.match(/^\s*(.+)\s+in\s+(.*?)\s*$/);
         if (!match) {
             throw Error('Expected expression in [data] attribute in form of "[ITEM] in [COLLECTION]"');
         }

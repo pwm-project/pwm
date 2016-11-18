@@ -22,20 +22,26 @@
 
 
 mf-button {
-  background-color: #f6f9f8;
-  border: 1px solid #dae1e1;
-  border-radius: 3px;
-  color: #434c50;
-  cursor: pointer;
   display: inline-block;
-  font-size: 14px;
-  height: 26px;
-  line-height: 26px;
   margin: 10px 0;
-  padding: 0 10px;
 
-  &:hover {
-    border-color: #28a9e1;
-    color: #0088ce;
+  > button {
+    background-color: #f6f9f8;
+    border: 1px solid #dae1e1;
+    border-radius: 3px;
+    color: #434c50;
+    cursor: pointer;
+    display: block;
+    font-size: 14px;
+    height: 26px;
+    line-height: 26px;
+    padding: 0 10px;
+
+    &:focus,
+    &:hover {
+      border-color: #28a9e1;
+      color: #0088ce;
+      outline: none;
+    }
   }
 }

@@ -22,7 +22,11 @@
 </div>
 
 <div class="org-chart-section">
-    <person-card person="$ctrl.person" direct-reports="$ctrl.directReports" size="large" show-direct-report-count="true"></person-card>
+    <person-card person="$ctrl.person"
+                 direct-reports="$ctrl.directReports"
+                 disable-focus="true"
+                 size="large"
+                 show-direct-report-count="true"></person-card>
 </div>
 
 <div class="org-chart-section direct-reports" ng-if="$ctrl.hasDirectReports()">

@@ -132,12 +132,12 @@ export default class AutoCompleteComponent {
                     this.selectItem(item);
                 }
                 break;
-            case 9:
+            case 9: // Tab
                 if (!this.query) {
                     return;
                 }
 
-            if (event.shiftKey) {
+                if (event.shiftKey) {
                     this.selectPreviousItem();
                 }
                 else {

@@ -44,8 +44,6 @@ export default class DialogComponent {
             if (event.keyCode === 27) { // ESC
                 self.closeDialog();
             }
-
-            event.stopImmediatePropagation();
         };
     }
 
