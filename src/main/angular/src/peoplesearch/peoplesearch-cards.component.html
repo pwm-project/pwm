@@ -6,15 +6,17 @@
     <mf-icon-button icon="orgchart" ng-click="$ctrl.gotoOrgchart()"></mf-icon-button>
 </mf-app-bar>
 
-<div class="search-info"
-     ng-if="$ctrl.loading || $ctrl.searchMessage"
-     ng-bind="$ctrl.loading ? ('Display_PleaseWait' | translate) : $ctrl.searchMessage"></div>
+<div class="people-search-component-content">
+    <div class="search-info"
+         ng-if="$ctrl.loading || $ctrl.searchMessage"
+         ng-bind="$ctrl.loading ? ('Display_PleaseWait' | translate) : $ctrl.searchMessage"></div>
 
-<div class="person-card-list">
-    <person-card person="person"
-                 ng-repeat="person in $ctrl.searchResult.people"
-                 ng-click="$ctrl.selectPerson(person)">
-    </person-card>
+    <div class="person-card-list">
+        <person-card person="person"
+                     ng-repeat="person in $ctrl.searchResult.people"
+                     ng-click="$ctrl.selectPerson(person)">
+        </person-card>
+    </div>
+
+    <ui-view></ui-view>
 </div>
-
-<ui-view></ui-view>

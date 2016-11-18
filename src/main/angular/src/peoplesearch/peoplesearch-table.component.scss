@@ -26,8 +26,9 @@ people-search-table {
     flex-flow: column nowrap;
     height: 100%;
 
-    > mf-table {
+    > .people-search-component-content {
         flex: 1 1;
         overflow: auto;
+        text-align: center;
     }
 }

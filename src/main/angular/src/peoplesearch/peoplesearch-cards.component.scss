@@ -26,17 +26,19 @@ people-search-cards {
     flex-flow: column nowrap;
     height: 100%;
 
-    > .person-card-list {
+    > .people-search-component-content {
         flex: 1 1;
         overflow: auto;
         text-align: center;
 
-        > person-card {
-            display: inline-block;
-            width: 100%;
+        > .person-card-list {
+            > person-card {
+                display: inline-block;
+                width: 100%;
 
-            &:not(:last-child) {
-                margin-bottom: 5px;
+                &:not(:last-child) {
+                    margin-bottom: 5px;
+                }
             }
         }
     }
@@ -44,10 +46,12 @@ people-search-cards {
 
 @media (min-width: 410px) {
     people-search-cards {
-        > .person-card-list {
-            > person-card {
-                margin-right: 5px;
-                width: 220px;
+        > .people-search-component-content {
+            > .person-card-list {
+                > person-card {
+                    margin-right: 5px;
+                    width: 220px;
+                }
             }
         }
     }
@@ -55,8 +59,10 @@ people-search-cards {
 
 @media (min-width: 460px) {
     people-search-cards {
-        > .person-card-list {
-            text-align: left;
+        > .people-search-component-content {
+            > .person-card-list {
+                text-align: left;
+            }
         }
     }
 }
