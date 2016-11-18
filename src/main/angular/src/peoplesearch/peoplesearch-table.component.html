@@ -2,8 +2,14 @@
     <div class="page-content-title" translate="Title_PeopleSearch">People Search</div>
     <mf-search-bar search-text="$ctrl.query" auto-focus></mf-search-bar>
     <span flex></span>
-    <mf-icon-button icon="view-tile" ng-click="$ctrl.gotoCardsView()"></mf-icon-button>
-    <mf-icon-button icon="orgchart" ng-click="$ctrl.gotoOrgchart()"></mf-icon-button>
+    <mf-icon-button
+            icon="view-tile"
+            ng-click="$ctrl.gotoCardsView()"
+            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
+    <mf-icon-button
+            icon="orgchart"
+            ng-click="$ctrl.gotoOrgchart()"
+            ng-attr-title="{{ 'Title_OrgChart' | translate }}"></mf-icon-button>
 </mf-app-bar>
 
 <div class="people-search-component-content">

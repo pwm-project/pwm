@@ -31,7 +31,6 @@ $mf-icon-button-hover-color: #0088ce;
 
 mf-icon-button {
   background-color: $mf-icon-button-bg-color;
-  border: 1px solid transparent;
   box-sizing: border-box;
   color: $mf-icon-button-color;
   cursor: pointer;
@@ -40,14 +39,28 @@ mf-icon-button {
   height: $mf-icon-button-size;
   width: $mf-icon-button-size;
 
-  &:hover {
-    background-color: $mf-icon-button-hover-bg-color;
-    border-color: $mf-icon-button-hover-border-color;
-    color: $mf-icon-button-hover-color;
-  }
-
-  > mf-icon {
+  > button {
+    background: transparent none;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    color: inherit;
+    display: block;
     height: 100%;
+    padding: 0;
+    margin: 0;
     width: 100%;
+
+    &:focus,
+    &:hover {
+      background-color: $mf-icon-button-hover-bg-color;
+      border-color: #dae1e1;
+      color: $mf-icon-button-hover-color;
+      outline: none;
+    }
+
+    > mf-icon {
+      height: 100%;
+      width: 100%;
+    }
   }
 }

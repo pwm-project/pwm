@@ -21,6 +21,7 @@
  */
 
 
+import { IAugmentedJQuery } from 'angular';
 import { Component } from '../component';
 import Person from '../models/person.model';
 import { IPeopleService } from '../services/people.service';
@@ -42,10 +43,15 @@ export default class PersonCardComponent {
     private size: string;
     private showDirectReportCount: boolean;
 
-    static $inject = ['PeopleService'];
-    constructor(private peopleService: IPeopleService) {
+    static $inject = ['$element', 'PeopleService'];
+    constructor(private $element: IAugmentedJQuery, private peopleService: IPeopleService) {
         this.details = [];
         this.size = 'medium';
+    }
+
+    $onInit(): void {
+        this.$element[0].tabIndex = 0;
+        this.$element.on('keydown', this.onKeyDown.bind(this));
     }
 
     $onChanges(): void {
@@ -69,6 +75,15 @@ export default class PersonCardComponent {
         }
 
         return {};
+    }
+
+    private onKeyDown(event: KeyboardEvent): void {
+        if (event.keyCode === 13 || event.keyCode === 32) { // 13 = Enter, 32 = Space
+            this.$element.triggerHandler('click');
+
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }
     }
 
     private setDisplayData(): void {

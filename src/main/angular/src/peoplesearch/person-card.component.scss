@@ -50,9 +50,11 @@ person-card {
   &[ng-click] {
     cursor: pointer;
 
+    &:focus,
     &:hover {
       background-color: $person-card-hover-bg-color;
       border-color: $person-card-border-color;
+      outline: none;
     }
   }
 
@@ -63,6 +65,12 @@ person-card {
     height: 166px;
     width: 326px;
     max-width: 100%;
+
+    &:focus,
+    &:hover {
+      background-color: $person-card-hover-bg-color;
+      outline: none;
+    }
 
     > .person-card-content {
       flex-flow: row nowrap;
@@ -88,8 +96,15 @@ person-card {
     width: 120px;
 
     &[ng-click] {
+      &:focus,
       &:hover {
         background-color: transparent;
+
+        > .person-card-content {
+          > .avatar {
+            border-color: $person-card-border-color !important;
+          }
+        }
       }
     }
 

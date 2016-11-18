@@ -41,6 +41,7 @@ export default class AutoCompleteComponent {
     itemSelected: (item: any) => void;
     query: string;
     search: (query: any) => IPromise<any[]>;
+    searchMessage: string;
     selectedIndex: number;
     show: boolean;
 
@@ -52,7 +53,7 @@ export default class AutoCompleteComponent {
     }
 
     $onInit(): void {
-        var self = this;
+        const self = this;
 
         this.$scope.$watch('$ctrl.query', () => {
             self.search({ query: self.query })
@@ -76,19 +77,22 @@ export default class AutoCompleteComponent {
 
     $postLink(): void {
         // Remove content template from dom
-        var contentTemplate: IAugmentedJQuery = this.$element.find('content-template');
+        const contentTemplate: IAugmentedJQuery = this.$element.find('content-template');
         // noinspection TypeScriptUnresolvedFunction
         contentTemplate.remove();
 
-        var autoCompleteHtml =
+        const autoCompleteHtml =
             '<ul class="results" ng-if="$ctrl.show" ng-click="$event.stopPropagation()">' +
             '   <li ng-repeat="item in $ctrl.items"' +
             '       ng-click="$ctrl.selectItem(item)"' +
             '       ng-class="{ \'selected\': $index == $ctrl.selectedIndex }\">' +
             contentTemplate.html().replace(new RegExp(this.item, 'g'), 'item') +
             '   </li>' +
+            '   <li class="search-message" ng-if="$ctrl.show && $ctrl.query && !$ctrl.items.length">' +
+            '       <span translate="Display_SearchResultsNone"></span>' +
+            '   </li>' +
             '</ul>';
-        var compiledElement = this.$compile(autoCompleteHtml)(this.$scope);
+        const compiledElement = this.$compile(autoCompleteHtml)(this.$scope);
 
         this.$element.append(compiledElement);
     }
@@ -124,24 +128,31 @@ export default class AutoCompleteComponent {
                 break;
             case 13: // Enter
                 if (this.hasItems() && this.show) {
-                    var item = this.getSelectedItem();
+                    const item = this.getSelectedItem();
                     this.selectItem(item);
                 }
                 break;
             case 9:
-                if (event.shiftKey) {
+                if (!this.query) {
+                    return;
+                }
+
+            if (event.shiftKey) {
                     this.selectPreviousItem();
                 }
                 else {
                     this.selectNextItem();
                 }
+
                 event.preventDefault();
                 break;
         }
     }
 
     selectItem(item: any): void {
-        var data = {};
+        this.hideAutoCompleteResults();
+
+        const data = {};
         data[this.item] = item;
         this.itemSelected(data);
     }
@@ -181,7 +192,7 @@ export default class AutoCompleteComponent {
     }
 
     private showAutoCompleteResults(): void  {
-        if (this.hasItems()) {
+        if (this.hasItems() || !/^\s*$/.test(this.query)) {
             this.show = true;
         }
     }

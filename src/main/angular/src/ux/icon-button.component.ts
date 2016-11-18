@@ -28,6 +28,6 @@ import { Component } from '../component';
         icon: '@'
     },
     stylesheetUrl: require('ux/icon-button.component.scss'),
-    template: `<mf-icon icon="{{$ctrl.icon}}"></mf-icon>`
+    template: `<button type="button"><mf-icon icon="{{$ctrl.icon}}"></mf-icon></button>`
 })
 export default class IconButtonComponent {}
