@@ -24,6 +24,7 @@
 import { Component } from '../component';
 import { IPeopleService } from '../services/people.service';
 import Person from '../models/person.model';
+import { IAugmentedJQuery, IScope, ITimeoutService } from 'angular';
 
 @Component({
     stylesheetUrl: require('peoplesearch/person-details-dialog.component.scss'),
@@ -32,20 +33,29 @@ import Person from '../models/person.model';
 export default class PersonDetailsDialogComponent {
     person: Person;
 
-    static $inject = [ '$state', '$stateParams', 'PeopleService' ];
-    constructor(private $state: angular.ui.IStateService,
+    static $inject = [ '$element', '$state', '$stateParams', '$timeout', 'PeopleService' ];
+    constructor(private $element: IAugmentedJQuery,
+                private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
+                private $timeout: ITimeoutService,
                 private peopleService: IPeopleService) {
     }
 
     $onInit(): void {
-        var personId = this.$stateParams['personId'];
+        const personId = this.$stateParams['personId'];
 
         this.peopleService
             .getPerson(personId)
             .then((person: Person) => {
                 this.person = person;
             });
+    }
+
+    $postLink() {
+        const self = this;
+        this.$timeout(() => {
+            self.$element.find('button')[0].focus();
+        }, 100);
     }
 
     closeDialog(): void {

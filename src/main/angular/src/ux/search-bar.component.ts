@@ -38,22 +38,22 @@ export default class SearchBarComponent {
     focused: boolean;
     searchText: string;
 
-    static $inject = [ '$compile', '$element', '$scope', '$timeout' ];
+    static $inject = [ '$compile', '$element', '$scope' ];
     constructor(private $compile: ICompileService,
                 private $element: IAugmentedJQuery,
-                private $scope: IScope,
-                private $timeout: ITimeoutService) {
+                private $scope: IScope) {
     }
 
     $onInit(): void {
-        var self = this;
-
         this.autoFocus = this.autoFocus !== undefined;
+    }
 
+    $postLink() {
+        const self = this;
         if (this.autoFocus) {
-            this.$timeout(() => {
+            this.$scope.$evalAsync(() => {
                 self.focusInput();
-            }, 100);
+            });
         }
     }
 
