@@ -40,6 +40,8 @@ import password.pwm.http.PwmURL;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.http.client.PwmHttpClientResponse;
+import password.pwm.svc.PwmService;
+import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.logging.PwmLogger;
@@ -195,7 +197,7 @@ public class CaptchaUtility {
     )
             throws PwmUnrecoverableException
     {
-        if (!checkIfCaptchaEnabled(pwmRequest)) {
+        if (!checkIfCaptchaConfigEnabled(pwmRequest)) {
             return false;
         }
 
@@ -204,6 +206,10 @@ public class CaptchaUtility {
         }
 
         if (checkRequestForCaptchaSkipCookie(pwmRequest)) {
+            return false;
+        }
+
+        if (!checkIntruderCount(pwmRequest)) {
             return false;
         }
 
@@ -233,7 +239,7 @@ public class CaptchaUtility {
         return enabled;
     }
 
-    private static boolean checkIfCaptchaEnabled(
+    public static boolean checkIfCaptchaConfigEnabled(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException
@@ -273,6 +279,33 @@ public class CaptchaUtility {
             } else {
                 LOGGER.error(pwmRequest, "skipCaptcha value is in request, however value '" + skipCaptcha + "' does not match configured value");
             }
+        }
+
+        return false;
+    }
+
+    private static boolean checkIntruderCount(final PwmRequest pwmRequest) {
+        final long maxIntruderCount = pwmRequest.getConfig().readSettingAsLong(PwmSetting.CAPTCHA_INTRUDER_COUNT_TRIGGER);
+
+        if (maxIntruderCount == 0) {
+            return false;
+        }
+
+        final int currentSessionAttempts = pwmRequest.getPwmSession().getSessionStateBean().getIntruderAttempts();
+        if (currentSessionAttempts >= maxIntruderCount) {
+            LOGGER.debug(pwmRequest, "session intruder attempt count '" + currentSessionAttempts + "', therefore captcha will be required");
+            return true;
+        }
+
+        final IntruderManager intruderManager = pwmRequest.getPwmApplication().getIntruderManager();
+        if (intruderManager == null || intruderManager.status() != PwmService.STATUS.OPEN) {
+            return false;
+        }
+
+        final int intruderAttemptCount = intruderManager.countForNetworkEndpointInRequest(pwmRequest);
+        if (intruderAttemptCount >= maxIntruderCount) {
+            LOGGER.debug(pwmRequest, "network intruder attempt count '" + intruderAttemptCount + "', therefore captcha will be required");
+            return true;
         }
 
         return false;

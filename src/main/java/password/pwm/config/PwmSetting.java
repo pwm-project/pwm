@@ -540,6 +540,8 @@ public enum PwmSetting {
             "captcha.skip.param", PwmSettingSyntax.STRING, PwmSettingCategory.CAPTCHA),
     CAPTCHA_SKIP_COOKIE(
             "captcha.skip.cookie", PwmSettingSyntax.STRING, PwmSettingCategory.CAPTCHA),
+    CAPTCHA_INTRUDER_COUNT_TRIGGER(
+            "captcha.intruderAttemptTrigger", PwmSettingSyntax.NUMERIC, PwmSettingCategory.CAPTCHA),
 
     // intruder detection
     INTRUDER_ENABLE(

@@ -25,7 +25,7 @@ package password.pwm.http.servlet.peoplesearch;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 
-class PeopleSearchConfiguration {
+public class PeopleSearchConfiguration {
     private final String photoAttribute;
     private final String photoUrlOverride;
     private final boolean photosEnabled;
@@ -33,7 +33,7 @@ class PeopleSearchConfiguration {
     private final String orgChartParentAttr;
     private final String orgChartChildAttr;
 
-    PeopleSearchConfiguration(final Configuration configuration) {
+    public PeopleSearchConfiguration(final Configuration configuration) {
         photoAttribute = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_ATTRIBUTE);
         photoUrlOverride = configuration.readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_URL_OVERRIDE);
         photosEnabled = (photoAttribute != null && !photoAttribute.isEmpty())

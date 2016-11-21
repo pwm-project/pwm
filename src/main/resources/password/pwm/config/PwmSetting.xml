@@ -1365,6 +1365,15 @@
             <value />
         </default>
     </setting>
+    <setting hidden="false" key="captcha.intruderAttemptTrigger" level="2">
+        <properties>
+            <property key="Minimum">0</property>
+            <property key="Maximum">10</property>
+        </properties>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
     <setting hidden="false" key="security.page.enableRequestSequence" level="2" required="true">
         <default>
             <value>true</value>
