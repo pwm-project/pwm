@@ -98,17 +98,13 @@ export default class AutoCompleteComponent {
         this.$element.append(compiledElement);
     }
 
-    onInputBlur(): void {
-        this.hideAutoCompleteResults();
-    }
-
-    onInputFocus(): void {
+    onSearchBarFocus(): void {
         if (this.hasItems()) {
             this.showAutoCompleteResults();
         }
     }
 
-    onInputKeyDown(event: KeyboardEvent): void {
+    onSearchBarKeyDown(event: KeyboardEvent): void {
         switch (event.keyCode) {
             case 40: // ArrowDown
                 this.selectNextItem();
