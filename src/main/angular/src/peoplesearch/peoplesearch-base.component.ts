@@ -64,18 +64,24 @@ export default class PeopleSearchBaseComponent {
             this.query = queryParameter.trim();
         }
 
-        const self = this;
+        this.fetchData();
+    }
 
-        // Fetch data when query changes
-        this.$scope.$watch('$ctrl.query', (newValue: string, oldValue: string) => {
-            if (newValue === oldValue) {
-                return;
-            }
+    onSearchBoxKeyDown(event: KeyboardEvent): void {
+        switch (event.keyCode) {
+            case 27: // ESC
+                this.clearSearch();
+                break;
+        }
+    }
 
-            self.setSearchMessage(null);
-            self.fetchData();
-        });
+    onSearchTextChange(value: string): void {
+        if (value === this.query) {
+            return;
+        }
 
+        this.query = value;
+        this.setSearchMessage(null);
         this.fetchData();
     }
 
@@ -106,7 +112,7 @@ export default class PeopleSearchBaseComponent {
         const self = this;
 
         if (!this.query) {
-            self.searchResult = null;
+            this.clearSearch();
             return;
         }
 
@@ -130,6 +136,12 @@ export default class PeopleSearchBaseComponent {
             .finally(() => {
                 self.loading = false;
             });
+    }
+
+    private clearSearch(): void {
+        this.query = null;
+        this.searchResult = null;
+        this.clearSearchMessage();
     }
 
     private clearSearchMessage(): void  {

@@ -31,7 +31,7 @@
     <tbody>
         <tr ng-repeat="item in table.getItems()" ng-click="table.clickItem(item, $event)">
             <td ng-repeat="column in table.getVisibleColumns()"
-                ng-bind-html="table.getDisplayValue(item, column.valueExpression)"></td>
+                ng-bind="table.getValue(item, column.valueExpression)"></td>
         </tr>
     </tbody>
 </table>

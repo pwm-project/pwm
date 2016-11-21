@@ -1,6 +1,9 @@
 <mf-app-bar>
     <div class="page-content-title" translate="Title_PeopleSearch">People Search</div>
-    <mf-search-bar search-text="$ctrl.query" auto-focus></mf-search-bar>
+    <mf-search-bar search-text="$ctrl.query"
+                   on-search-text-change="$ctrl.onSearchTextChange(value)"
+                   on-key-down="$ctrl.onSearchBoxKeyDown($event)"
+                   auto-focus></mf-search-bar>
     <span flex></span>
     <mf-icon-button
             icon="view-tile"

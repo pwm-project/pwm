@@ -47,7 +47,7 @@ export default class PeopleService implements IPeopleService {
         return this.search(query, { 'includeDisplayName': true })
             .then((searchResult: SearchResult) => {
                 let people = searchResult.people;
-                console.log(people);
+
                 if (people && people.length > 10) {
                     return this.$q.resolve(people.slice(0, 10));
                 }

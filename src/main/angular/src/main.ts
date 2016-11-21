@@ -58,5 +58,5 @@ module('app', [
     .factory('translationsLoader', TranslationsLoaderFactory);
 
 // Attach to the page document
-bootstrap(document, ['app']);
+bootstrap(document, ['app'], { strictDi: true });
 

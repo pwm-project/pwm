@@ -39,7 +39,13 @@ export enum PeopleSearchCardsSize {
 })
 export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponent {
     static $inject = [
-        '$element', '$scope', '$state', '$stateParams', '$translate', 'MfElementSizeService', 'PeopleService'
+        '$element',
+        '$scope',
+        '$state',
+        '$stateParams',
+        '$translate',
+        'MfElementSizeService',
+        'PeopleService'
     ];
     constructor(private $element: IAugmentedJQuery,
                 $scope: IScope,

@@ -66,9 +66,10 @@ export default class PersonCardComponent {
                 this.peopleService.getNumberOfDirectReports(this.person.userKey)
                     .then((numDirectReports) => {
                         this.person.numDirectReports = numDirectReports;
-                    }).catch((result) => {
-                    console.log(result);
-                });
+                    })
+                    .catch(() => {
+                        // TODO: error handling
+                    });
             }
         }
     }

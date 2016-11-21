@@ -77,8 +77,8 @@ export default class OrgChartSearchComponent {
                         self.person = data['person'];
                     });
                 })
-                .catch((result) => {
-                    console.log(result);
+                .catch(() => {
+                    // TODO: error handling
                 });
             });
     }
@@ -92,7 +92,11 @@ export default class OrgChartSearchComponent {
     }
 
     onAutoCompleteItemSelected(person: Person): void {
-        this.$state.go('orgchart.search', { personId: person.userKey });
+        this.$state.go('orgchart.search', { personId: person.userKey, query: null });
+    }
+
+    onSearchTextChange(value: string): void {
+        this.query = value;
     }
 
     private fetchOrgChartData(personId): IPromise<OrgChartData> {

@@ -22,13 +22,17 @@
 
 
 import { Component } from '../component';
-import { IAugmentedJQuery, ICompileService, IScope, ITimeoutService } from 'angular';
+import { IAugmentedJQuery, ICompileService, IScope } from 'angular';
 
 
 @Component({
     bindings: {
         autoFocus: '@',
-        searchText: '='
+        onSearchTextChange: '&',
+        onBlur: '&',
+        onFocus: '&',
+        onKeyDown: '&',
+        searchText: '<'
     },
     templateUrl: require('ux/search-bar.component.html'),
     stylesheetUrl: require('ux/search-bar.component.scss')
@@ -36,6 +40,7 @@ import { IAugmentedJQuery, ICompileService, IScope, ITimeoutService } from 'angu
 export default class SearchBarComponent {
     autoFocus: boolean;
     focused: boolean;
+    onSearchTextChange: Function;
     searchText: string;
 
     static $inject = [ '$compile', '$element', '$scope' ];
@@ -46,6 +51,16 @@ export default class SearchBarComponent {
 
     $onInit(): void {
         this.autoFocus = this.autoFocus !== undefined;
+
+        var self = this;
+
+        this.$scope.$watch('$ctrl.searchText', (newValue: string, oldValue: string) => {
+            if (newValue === oldValue) {
+                return;
+            }
+
+            self.onSearchTextChange({ value: newValue });
+        });
     }
 
     $postLink() {
@@ -65,13 +80,5 @@ export default class SearchBarComponent {
 
     focusInput() {
         this.$element.find('input')[0].focus();
-    }
-
-    onInputKeyDown(event: KeyboardEvent): void {
-        switch (event.keyCode) {
-            case 27: // Escape
-                this.clearSearchText();
-                break;
-        }
     }
 }

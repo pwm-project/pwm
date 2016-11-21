@@ -39,10 +39,6 @@ export default class AppBarComponent {
     constructor(private $element: IAugmentedJQuery, private elementSizeService: ElementSizeService) {
     }
 
-    $onDestroy(): void {
-        // TODO: remove $window click listener
-    }
-
     $onInit(): void {
         this.elementSizeService.watchWidth(this.$element, AppBarSize);
     }

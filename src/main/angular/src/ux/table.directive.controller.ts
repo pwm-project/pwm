@@ -88,16 +88,16 @@ export default class TableDirectiveController {
         return this.items;
     }
 
-    getDisplayValue(item: any, valueExpression: string): any {
-        let value = this.getValue(item, valueExpression);
-
-        if (this.searchHighlight) {
-            return this
-                .$filter<(input: string, searchText: string) => string>('highlight')(value, this.searchHighlight);
-        }
-
-        return value;
-    }
+    // getDisplayValue(item: any, valueExpression: string): any {
+    //     let value = this.getValue(item, valueExpression);
+    //
+    //     if (this.searchHighlight) {
+    //         return this
+    //             .$filter<(input: string, searchText: string) => string>('highlight')(value, this.searchHighlight);
+    //     }
+    //
+    //     return value;
+    // }
 
     getValue(item: any, valueExpression: string): any {
         const locals: any = {};

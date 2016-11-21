@@ -20,6 +20,7 @@
       120
     ],
     "no-bitwise": true,
+    "no-console": [true, "log", "error"],
     "no-duplicate-variable": true,
     "no-eval": true,
     "no-arg": true,
