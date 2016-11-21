@@ -71,10 +71,6 @@ public class PwmURL {
         return isPwmServletURL(PwmServletDefinition.Logout);
     }
 
-    public boolean isCaptchaURL() {
-        return isPwmServletURL(PwmServletDefinition.Captcha);
-    }
-
     public boolean isForgottenPasswordServlet() {
         return isPwmServletURL(PwmServletDefinition.ForgottenPassword);
     }

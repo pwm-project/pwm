@@ -223,7 +223,6 @@ public abstract class PwmConstants {
         GUEST_UPDATE_SEARCH("guest-search.jsp"),
         ACCOUNT_INFORMATION("accountinformation.jsp"),
         SHORTCUT("shortcut.jsp"),
-        CAPTCHA("captcha.jsp"),
         PEOPLE_SEARCH("peoplesearch.jsp"),
         CONFIG_MANAGER_EDITOR("configeditor.jsp"),
         CONFIG_MANAGER_EDITOR_SUMMARY("configmanager-summary.jsp"),

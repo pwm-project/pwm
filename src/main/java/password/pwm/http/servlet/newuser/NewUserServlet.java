@@ -58,6 +58,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.NewUserBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.util.CaptchaUtility;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserDataReader;
@@ -541,6 +542,14 @@ public class NewUserServlet extends AbstractPwmServlet {
     private void handleProcessFormRequest(final PwmRequest pwmRequest, final NewUserBean newUserBean)
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
+        if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
+            LOGGER.debug(pwmRequest, errorInfo);
+            pwmRequest.setResponseError(errorInfo);
+            forwardToFormPage(pwmRequest, newUserBean);
+            return;
+        }
+
         newUserBean.setFormPassed(false);
         newUserBean.setNewUserForm(null);
 

@@ -125,7 +125,6 @@ public class ApplicationModeFilter extends AbstractPwmFilter {
                         || pwmURL.isConfigGuideURL()
                         || pwmURL.isCommandServletURL()
                         || pwmURL.isReferenceURL()
-                        || pwmURL.isCaptchaURL()
                         || pwmURL.isLoginServlet()
                         || pwmURL.isLogoutURL()
                         || pwmURL.isOauthConsumer()

@@ -65,7 +65,7 @@
                             </div>
                         </div>
                     </a>
-                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>#/orgchart">
+                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>/orgchart/">
                         <div class="tile">
                             <div class="tile-content">
                                 <div class="tile-image orgchart-image"></div>
