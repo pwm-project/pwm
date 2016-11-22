@@ -96,7 +96,11 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
                 this.peopleService
                     .getPerson(person.userKey)
                     .then((person: Person) => {
-                        self.searchResult.people.push(person);
+                        // searchResult may be overwritten by ESC->[LETTER] typed in after a search
+                        // has started but before all calls to peopleService.getPerson have resolved
+                        if (self.searchResult) {
+                            self.searchResult.people.push(person);
+                        }
                     });
             },
             this);
