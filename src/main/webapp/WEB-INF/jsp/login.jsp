@@ -41,10 +41,15 @@
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <div class="sign-in">
-                <div style="margin-top: 15px;"><input type="text" name="username" id="username" placeholder="<pwm:display key="Field_Username"/>" class="inputfield" <pwm:autofocus/> required="required"></div>
-                <div style="margin-top: 15px;"><input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" required="required" class="inputfield passwordfield"/></div>
+                <div class="formFieldWrapper">
+                    <input type="text" name="username" id="username" placeholder="<pwm:display key="Field_Username"/>" class="inputfield" <pwm:autofocus/> required="required">
+                </div>
+                <div class="formFieldWrapper">
+                    <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" required="required" class="inputfield passwordfield"/>
+                </div>
                 <input type="hidden" id="<%=PwmConstants.PARAM_POST_LOGIN_URL%>" name="<%=PwmConstants.PARAM_POST_LOGIN_URL%>"
                        value="<%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).readParameterAsString(PwmConstants.PARAM_POST_LOGIN_URL))%>"/>
+                <%@ include file="/WEB-INF/jsp/fragment/captcha-embed.jsp"%>
                 <div class="buttonbar">
                     <button type="submit" class="btn" <pwm:autofocus/> name="button" id="submitBtn">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-sign-in"></span></pwm:if>
@@ -122,6 +127,7 @@
 <pwm:if test="<%=PwmIfTest.forwardUrlDefined%>">
     <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 </pwm:if>
+<% if (!CaptchaUtility.checkIfCaptchaConfigEnabled(JspUtility.getPwmRequest(pageContext))) { %>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
@@ -131,6 +137,7 @@
         });
     </script>
 </pwm:script>
+<% } %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

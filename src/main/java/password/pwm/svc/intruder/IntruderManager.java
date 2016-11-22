@@ -42,6 +42,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserStatusReader;
@@ -600,5 +601,19 @@ public class IntruderManager implements Serializable, PwmService {
     public ServiceInfo serviceInfo()
     {
         return serviceInfo;
+    }
+
+    public int countForNetworkEndpointInRequest(final PwmRequest pwmRequest) {
+        final String srcAddress = pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress();
+        if (srcAddress == null || srcAddress.isEmpty()) {
+            return 0;
+        }
+
+        final IntruderRecord intruderRecord = recordManagers.get(RecordType.ADDRESS).readIntruderRecord(srcAddress);
+        if (intruderRecord == null) {
+            return 0;
+        }
+
+        return intruderRecord.getAttemptCount();
     }
 }

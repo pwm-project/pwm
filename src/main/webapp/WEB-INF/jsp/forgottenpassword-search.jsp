@@ -42,6 +42,8 @@
             <br/>
             <jsp:include page="fragment/form.jsp"/>
 
+            <%@ include file="/WEB-INF/jsp/fragment/captcha-embed.jsp"%>
+
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.search%>"/>
                 <button type="submit" class="btn" name="search" id="submitBtn">

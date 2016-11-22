@@ -400,6 +400,11 @@ PWM_MAIN.handleLoginFormSubmit = function(form, event) {
                 }
             };
             PWM_MAIN.ajaxRequest(url,loadFunction,options);
+            try {
+                grecaptcha.reset(); // reset the
+            } catch (e) {
+                console.log("error resetting the captcha: " + e)
+            }
         }});
     });
 };

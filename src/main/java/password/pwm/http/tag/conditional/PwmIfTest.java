@@ -35,6 +35,7 @@ import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
+import password.pwm.http.servlet.peoplesearch.PeopleSearchConfiguration;
 import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
 
@@ -57,6 +58,8 @@ public enum PwmIfTest {
     setupChallengeEnabled(new BooleanPwmSettingTest(PwmSetting.CHALLENGE_ENABLE)),
     shortcutsEnabled(new BooleanPwmSettingTest(PwmSetting.SHORTCUT_ENABLE)),
     peopleSearchEnabled(new BooleanPwmSettingTest(PwmSetting.PEOPLE_SEARCH_ENABLE)),
+    orgChartEnabled(new OrgChartEnabled()),
+
     accountInfoEnabled(new BooleanPwmSettingTest(PwmSetting.ACCOUNT_INFORMATION_ENABLED)),
 
     forgottenPasswordEnabled(new BooleanPwmSettingTest(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)),
@@ -399,4 +402,14 @@ public enum PwmIfTest {
 
     }
 
+    private static class OrgChartEnabled implements Test {
+        @Override
+        public boolean test(final PwmRequest pwmRequest, final PwmIfOptions options) throws ChaiUnavailableException, PwmUnrecoverableException {
+            if (!pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) {
+                return false;
+            }
+
+            return new PeopleSearchConfiguration(pwmRequest.getConfig()).isOrgChartEnabled();
+        }
+    }
 }

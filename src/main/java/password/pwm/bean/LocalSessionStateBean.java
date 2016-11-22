@@ -40,7 +40,6 @@ import java.util.Locale;
 public class LocalSessionStateBean implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    private String preCaptchaRequestURL;
     private String srcAddress;
     private String srcHostname;
     private String forwardURL;
@@ -53,7 +52,6 @@ public class LocalSessionStateBean implements Serializable {
     private String sessionVerificationKey = "key";
     private String restClientKey;
 
-    private boolean passedCaptcha;
     private boolean debugInitialized;
     private boolean sessionVerified;
 
@@ -119,14 +117,6 @@ public class LocalSessionStateBean implements Serializable {
         this.logoutURL = logoutURL;
     }
 
-    public String getPreCaptchaRequestURL() {
-        return preCaptchaRequestURL;
-    }
-
-    public void setPreCaptchaRequestURL(final String preCaptchaRequestURL) {
-        this.preCaptchaRequestURL = preCaptchaRequestURL;
-    }
-
     public String getSessionID() {
         return sessionID;
     }
@@ -149,14 +139,6 @@ public class LocalSessionStateBean implements Serializable {
 
     public void setSrcHostname(final String srcHostname) {
         this.srcHostname = srcHostname;
-    }
-
-    public boolean isPassedCaptcha() {
-        return passedCaptcha;
-    }
-
-    public void setPassedCaptcha(final boolean passedCaptcha) {
-        this.passedCaptcha = passedCaptcha;
     }
 
     public String getSessionVerificationKey() {

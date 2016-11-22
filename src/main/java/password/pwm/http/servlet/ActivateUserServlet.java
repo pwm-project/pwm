@@ -66,6 +66,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
+import password.pwm.util.CaptchaUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.logging.PwmLogger;
@@ -207,6 +208,14 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Configuration config = pwmApplication.getConfig();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
+
+        if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
+            LOGGER.debug(pwmRequest, errorInfo);
+            pwmRequest.setResponseError(errorInfo);
+            return;
+        }
+
 
         pwmApplication.getSessionStateService().clearBean(pwmRequest, ActivateUserBean.class);
         final List<FormConfiguration> configuredActivationForm = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM);
