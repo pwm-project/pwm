@@ -8,7 +8,7 @@
 
     <groupId>org.pwm-project</groupId>
     <artifactId>pwm</artifactId>
-    <version>1.8.0-SNAPSHOT</version>
+    <version>1.8.0.1</version>
     <packaging>war</packaging>
 
     <licenses>
@@ -23,6 +23,26 @@
         <name>Pwm Project</name>
         <url>http://www.pwm-project.org</url>
     </organization>
+
+    <scm>
+        <url>ssh://git@servicesmadesimpler.govnet.qld.gov.au:7999/cas/pwm-project.git</url>
+        <connection>scm:git:ssh://git@servicesmadesimpler.govnet.qld.gov.au:7999/cas/pwm-project.git</connection>
+        <developerConnection>scm:git:ssh://git@servicesmadesimpler.govnet.qld.gov.au:7999/cas/pwm-project.git</developerConnection>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>nexus</id>
+            <name>Nexus</name>
+            <url>http://167.123.61.7:8081/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus</id>
+            <name>Nexus</name>
+            <url>http://167.123.61.7:8081/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
 
     <properties>
         <maven.compiler.source>1.7</maven.compiler.source>
