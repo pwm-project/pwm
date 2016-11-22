@@ -6,9 +6,14 @@
                    auto-focus></mf-search-bar>
     <span flex></span>
     <mf-icon-button
+            icon="view-tile"
+            disabled="true"
+            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
+    <mf-icon-button
             icon="view-list"
             ng-click="$ctrl.gotoTableView()"
             ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
+    <div class="mf-divider vertical"></div>
     <mf-icon-button
             icon="orgchart"
             ng-click="$ctrl.gotoOrgchart()"

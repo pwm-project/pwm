@@ -25,9 +25,11 @@ import { Component } from '../component';
 
 @Component({
     bindings: {
-        icon: '@'
+        icon: '@',
+        disabled: '<'
     },
     stylesheetUrl: require('ux/icon-button.component.scss'),
-    template: `<button type="button"><mf-icon icon="{{$ctrl.icon}}"></mf-icon></button>`
+    template: `<button type="button" ng-disabled="$ctrl.disabled"><mf-icon icon="{{$ctrl.icon}}"></mf-icon></button>`
 })
-export default class IconButtonComponent {}
+export default class IconButtonComponent {
+}

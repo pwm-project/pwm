@@ -21,7 +21,8 @@
  */
 
 
-$mf-app-bar-height: 26px;
+$mf-app-bar-height: 29px;
+$mf-app-bar-icon-size: 24px;
 
 mf-app-bar {
   display: block;
@@ -32,17 +33,11 @@ mf-app-bar {
     > .mf-app-bar-content {
       > mf-auto-complete,
       > mf-search-bar {
-        margin: 2px 10px 2px 0;
+        margin: 0 10px;
         max-width: 320px;
-        flex: 1 1 255px;
+        flex: 1000 1;
         order: initial;
         width: auto;
-      }
-
-      > mf-icon-button,
-      > span[flex],
-      > .page-content-title {
-        order: initial;
       }
     }
   }
@@ -50,27 +45,36 @@ mf-app-bar {
   > .mf-app-bar-content {
     display: flex;
     flex-flow: row wrap;
+    line-height: $mf-app-bar-height;
 
     > mf-auto-complete,
     > mf-search-bar {
-      order: 3;
+      height: $mf-app-bar-height;
+      margin-top: 5px;
+      order: 1;
       width: 100%;
-    }
-
-    > mf-icon-button {
-      order: 2;
     }
 
     > span[flex] {
       flex: 1 1;
-      order: 1;
     }
 
     > .page-content-title {
       height: $mf-app-bar-height;
       line-height: $mf-app-bar-height;
-      margin-right: 10px;
-      order: 0;
+    }
+
+    > mf-icon-button {
+      margin-top: ($mf-app-bar-height - $mf-app-bar-icon-size) / 2;
+    }
+  }
+
+  .mf-divider {
+    &.vertical {
+      background-color: transparentize(#808080, .50);
+      height: $mf-app-bar-height;
+      margin: 0 5px;
+      width: 1px;
     }
   }
 }
