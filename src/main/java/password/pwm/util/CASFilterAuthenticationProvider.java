@@ -70,20 +70,20 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
     private static final PwmLogger LOGGER = PwmLogger.forClass(CASFilterAuthenticationProvider.class);
 
     public static boolean isFilterEnabled(final PwmRequest pwmRequest) {
-    	final String clearPassUrl = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
-    	
-    	if (!(clearPassUrl == null || clearPassUrl.trim().isEmpty())) {
-    		return true;
-    	}
-    	
+        final String clearPassUrl = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
+        
+        if (!(clearPassUrl == null || clearPassUrl.trim().isEmpty())) {
+            return true;
+        }
+        
         final String alg = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAS_CLEARPASS_ALGORITHM);
-		final Map<FileInformation, FileContent> privatekey = pwmRequest.getConfig().readSettingAsFile(PwmSetting.CAS_CLEARPASS_KEY);
-		
-		if (!privatekey.isEmpty() && (!(alg == null || alg.trim().isEmpty()))) {
-			return true;
-		}
+        final Map<FileInformation, FileContent> privatekey = pwmRequest.getConfig().readSettingAsFile(PwmSetting.CAS_CLEARPASS_KEY);
+        
+        if (!privatekey.isEmpty() && (!(alg == null || alg.trim().isEmpty()))) {
+            return true;
+        }
     
-    	return false;
+        return false;
     }
     
     @Override
@@ -134,46 +134,45 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
             return false;
         }
 
-		final String username = assertion.getPrincipal().getName();
-		PasswordData password = null;
-	    AttributePrincipal attributePrincipal = assertion.getPrincipal();
-		Map<String, Object> casAttributes = attributePrincipal.getAttributes();
-		
-		final String encodedPsw = (String) casAttributes.get("credential");
-		if (encodedPsw == null) {
-			LOGGER.trace("No credential");
-		} else {
-			final Map<FileInformation, FileContent> privatekey = pwmRequest.getConfig().readSettingAsFile(PwmSetting.CAS_CLEARPASS_KEY);
-			final String alg = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAS_CLEARPASS_ALGORITHM);
+        final String username = assertion.getPrincipal().getName();
+        PasswordData password = null;
+        final AttributePrincipal attributePrincipal = assertion.getPrincipal();
+        final Map<String, Object> casAttributes = attributePrincipal.getAttributes();
+        
+        final String encodedPsw = (String) casAttributes.get("credential");
+        if (encodedPsw == null) {
+            LOGGER.trace("No credential");
+        } else {
+            final Map<FileInformation, FileContent> privatekey = pwmRequest.getConfig().readSettingAsFile(PwmSetting.CAS_CLEARPASS_KEY);
+            final String alg = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAS_CLEARPASS_ALGORITHM);
 
-			password = decryptPassword(alg, privatekey, encodedPsw);
-		}
-		
-		// If using the old method
-		final String clearPassUrl = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
-		if ((clearPassUrl != null && clearPassUrl.length() > 0) && (password == null || password.getStringValue().length() < 1)) {
-			LOGGER.trace(pwmSession, "Using CAS clearpass via proxy");
-			// read cas proxy ticket
-			final String proxyTicket = assertion.getPrincipal().getProxyTicketFor(clearPassUrl);
-			if (proxyTicket == null) {
-				LOGGER.trace(pwmSession,"no CAS proxy ticket available, skipping CAS authentication attempt");
-				return false;
-			}
+            password = decryptPassword(alg, privatekey, encodedPsw);
+        }
+        
+        // If using the old method
+        final String clearPassUrl = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
+        if ((clearPassUrl != null && clearPassUrl.length() > 0) && (password == null || password.getStringValue().length() < 1)) {
+            LOGGER.trace(pwmSession, "Using CAS clearpass via proxy");
+            // read cas proxy ticket
+            final String proxyTicket = assertion.getPrincipal().getProxyTicketFor(clearPassUrl);
+            if (proxyTicket == null) {
+                LOGGER.trace(pwmSession,"no CAS proxy ticket available, skipping CAS authentication attempt");
+                return false;
+            }
 
-			final String clearPassRequestUrl = clearPassUrl + "?" + "ticket="
-					+ proxyTicket + "&" + "service="
-					+ StringUtil.urlEncode(clearPassUrl);
+            final String clearPassRequestUrl = clearPassUrl + "?" + "ticket="
+                    + proxyTicket + "&" + "service="
+                    + StringUtil.urlEncode(clearPassUrl);
 
-			String response;
-			try {
-				response = CommonUtils.getResponseFromServer(
-						new URL(clearPassRequestUrl), new HttpsURLConnectionFactory(), "UTF-8");
-				password = new PasswordData(XmlUtils.getTextForElement(response, "credentials"));
-			} catch (MalformedURLException e) {
-				LOGGER.error(pwmSession, "Invalid CAS clearPassUrl");
-			}
-			
-		}
+            try {
+                final String response = CommonUtils.getResponseFromServer(
+                        new URL(clearPassRequestUrl), new HttpsURLConnectionFactory(), "UTF-8");
+                password = new PasswordData(XmlUtils.getTextForElement(response, "credentials"));
+            } catch (MalformedURLException e) {
+                LOGGER.error(pwmSession, "Invalid CAS clearPassUrl");
+            }
+            
+        }
         if (password == null || password.getStringValue().length() < 1) {
             final String errorMsg = "CAS server did not return credentials for user '" + username + "'";
             LOGGER.trace(pwmSession, errorMsg);
@@ -188,77 +187,64 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
         return true;
     }
 
-	private static PasswordData decryptPassword(final String alg,
-			Map<FileInformation, FileContent> privatekey, final String encodedPsw)
-			{
-		PasswordData password = null;
-		
-		if (alg == null || alg.trim().isEmpty()) {
-			return password;
-		}
-		
+    private static PasswordData decryptPassword(final String alg,
+            final Map<FileInformation, FileContent> privatekey, final String encodedPsw)
+            {
+        PasswordData password = null;
+        
+        if (alg == null || alg.trim().isEmpty()) {
+            return password;
+        }
+        
         final byte[] privateKeyBytes;
         if (privatekey != null && !privatekey.isEmpty()) {
             final FileValue.FileInformation fileInformation1 = privatekey.keySet().iterator().next();
             final FileValue.FileContent fileContent = privatekey.get(fileInformation1);
             privateKeyBytes = fileContent.getContents();
         } else {
-        	privateKeyBytes = null;
+            privateKeyBytes = null;
         }
-		
-		if (privateKeyBytes != null) {
-			final PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(privateKeyBytes);
-			KeyFactory kf;
-			try {
-				kf = KeyFactory.getInstance(alg);
-			} catch (NoSuchAlgorithmException e1) {
-				LOGGER.error("Decryption failed", e1);
-				return password;
-			}
-			PrivateKey privateKey;
-			try {
-				privateKey = kf.generatePrivate(spec);
-			} catch (InvalidKeySpecException e1) {
-				LOGGER.error("Decryption failed", e1);
-				return password;			}
-			Cipher cipher;
-			try {
-				cipher = Cipher.getInstance(privateKey.getAlgorithm());
-			} catch (NoSuchAlgorithmException | NoSuchPaddingException e1) {
-				LOGGER.error("Decryption failed", e1);
-				return password;			}
-			byte[] cred64;
-			try {
-				cred64 = StringUtil.base64Decode(encodedPsw);
-			} catch (IOException e1) {
-				LOGGER.error("Decryption failed", e1);
-				return password;			}
-			try {
-				cipher.init(Cipher.DECRYPT_MODE, privateKey);
-			} catch (InvalidKeyException e1) {
-				LOGGER.error("Decryption failed", e1);
-				return password;
-			}
-			byte[] cipherData = null;
-			try {
-
-				cipherData = cipher.doFinal(cred64);
-			} catch (IllegalBlockSizeException e) {
-				LOGGER.error("Decryption failed", e);
-				return password;
-			} catch (BadPaddingException e) {
-				LOGGER.error("Decryption failed", e);
-				return password;
-			}
-			if (cipherData != null) {
-				try {
-					password = new PasswordData(new String(cipherData));
-				} catch (PwmUnrecoverableException e) {
-					LOGGER.error("Decryption failed", e);
-					return password;
-				}
-			}
-		}
-		return password;
-	}
+        
+        if (privateKeyBytes != null) {
+            final PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(privateKeyBytes);
+            try {
+                final KeyFactory kf = KeyFactory.getInstance(alg);
+                final PrivateKey privateKey = kf.generatePrivate(spec);
+                final Cipher cipher = Cipher.getInstance(privateKey.getAlgorithm());
+                final byte[] cred64 = StringUtil.base64Decode(encodedPsw);
+                cipher.init(Cipher.DECRYPT_MODE, privateKey);
+                final byte[] cipherData = cipher.doFinal(cred64);
+            } catch (NoSuchAlgorithmException e1) {
+                LOGGER.error("Decryption failed", e1);
+                return password;
+            } catch (InvalidKeySpecException e1) {
+                LOGGER.error("Decryption failed", e1);
+                return password;
+            } catch (NoSuchAlgorithmException | NoSuchPaddingException e1) {
+                LOGGER.error("Decryption failed", e1);
+                return password;
+            } catch (IOException e1) {
+                LOGGER.error("Decryption failed", e1);
+                return password;
+            } catch (InvalidKeyException e1) {
+                LOGGER.error("Decryption failed", e1);
+                return password;
+            } catch (IllegalBlockSizeException e) {
+                LOGGER.error("Decryption failed", e);
+                return password;
+            } catch (BadPaddingException e) {
+                LOGGER.error("Decryption failed", e);
+                return password;
+            }
+            if (cipherData != null) {
+                try {
+                    password = new PasswordData(new String(cipherData));
+                } catch (PwmUnrecoverableException e) {
+                    LOGGER.error("Decryption failed", e);
+                    return password;
+                }
+            }
+        }
+        return password;
+    }
 }

@@ -292,9 +292,9 @@ public class AuthenticationFilter extends AbstractPwmFilter {
     public static ProcessStatus attemptAuthenticationMethods(final PwmRequest pwmRequest) throws IOException, ServletException {
         final Set<AuthenticationMethod> authenticationMethods = new HashSet<>(Arrays.asList(AuthenticationMethod.values()));
         {
-        	if (!CASFilterAuthenticationProvider.isFilterEnabled(pwmRequest)) {
-        		authenticationMethods.remove(AuthenticationMethod.CAS);
-        	}
+            if (!CASFilterAuthenticationProvider.isFilterEnabled(pwmRequest)) {
+                authenticationMethods.remove(AuthenticationMethod.CAS);
+            }
         }
         for (final AuthenticationMethod authenticationMethod : authenticationMethods) {
             if (!pwmRequest.isAuthenticated()) {
