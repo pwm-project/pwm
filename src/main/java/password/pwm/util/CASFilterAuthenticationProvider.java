@@ -214,6 +214,14 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
                 final byte[] cred64 = StringUtil.base64Decode(encodedPsw);
                 cipher.init(Cipher.DECRYPT_MODE, privateKey);
                 final byte[] cipherData = cipher.doFinal(cred64);
+                if (cipherData != null) {
+                    try {
+                        password = new PasswordData(new String(cipherData));
+                    } catch (PwmUnrecoverableException e) {
+                        LOGGER.error("Decryption failed", e);
+                        return password;
+                    }
+                }
             } catch (NoSuchAlgorithmException e1) {
                 LOGGER.error("Decryption failed", e1);
                 return password;
@@ -235,14 +243,6 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
             } catch (BadPaddingException e) {
                 LOGGER.error("Decryption failed", e);
                 return password;
-            }
-            if (cipherData != null) {
-                try {
-                    password = new PasswordData(new String(cipherData));
-                } catch (PwmUnrecoverableException e) {
-                    LOGGER.error("Decryption failed", e);
-                    return password;
-                }
             }
         }
         return password;
