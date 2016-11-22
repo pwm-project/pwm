@@ -228,7 +228,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
             } catch (InvalidKeySpecException e1) {
                 LOGGER.error("Decryption failed", e1);
                 return password;
-            } catch (NoSuchAlgorithmException | NoSuchPaddingException e1) {
+            } catch (NoSuchPaddingException e1) {
                 LOGGER.error("Decryption failed", e1);
                 return password;
             } catch (IOException e1) {
