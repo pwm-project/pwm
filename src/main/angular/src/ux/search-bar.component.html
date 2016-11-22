@@ -1,8 +1,11 @@
+<mf-icon class="search-icon" icon="magnify"></mf-icon>
 <input type="text"
+       ng-blur="$ctrl.onBlur({ $event: $event })"
+       ng-focus="$ctrl.onFocus({ $event: $event })"
+       ng-keydown="$ctrl.onKeyDown({ $event: $event })"
        ng-model="$ctrl.searchText"
-       ng-keydown="$ctrl.onInputKeyDown($event)"
+       ng-attr-placeholder="{{ ('Placeholder_Search' | translate) }}"
        title="Search Box"
        autocomplete="off" />
-<span class="placeholder" ng-hide="$ctrl.searchText">{{$ctrl.placeholder || 'Search' }}</span>
-<mf-icon icon="close" ng-click="$ctrl.clearSearchText()"></mf-icon>
+<mf-icon-button class="clear-input" icon="close" ng-click="$ctrl.clearSearchText()"></mf-icon-button>
 <!-- loader graphic -->

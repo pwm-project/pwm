@@ -1,46 +1,72 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2016 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+
 import { Component } from '../component';
 import IPeopleService from '../services/people.service';
-import { IScope } from 'angular';
-import Person from '../models/person.model';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
+import { IAugmentedJQuery, IScope } from 'angular';
+import ElementSizeService from '../ux/element-size.service';
 
+export enum PeopleSearchCardsSize {
+    Small = 0,
+    Medium = 365,
+    Large = 450
+}
 
 @Component({
     stylesheetUrl: require('peoplesearch/peoplesearch-cards.component.scss'),
     templateUrl: require('peoplesearch/peoplesearch-cards.component.html')
 })
 export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponent {
-    columnConfiguration: any;
-
-    static $inject = [ '$scope', '$state', '$stateParams', 'PeopleService' ];
-    constructor($scope: IScope,
+    static $inject = [
+        '$element',
+        '$scope',
+        '$state',
+        '$stateParams',
+        '$translate',
+        'MfElementSizeService',
+        'PeopleService'
+    ];
+    constructor(private $element: IAugmentedJQuery,
+                $scope: IScope,
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
+                $translate: angular.translate.ITranslateService,
+                private elementSizeService: ElementSizeService,
                 peopleService: IPeopleService) {
-        super($scope, $state, $stateParams, peopleService);
+        super($scope, $state, $stateParams, $translate, peopleService);
+    }
+
+    $onDestroy(): void {
+        // TODO: remove $window click listener
     }
 
     $onInit(): void {
-        super.$onInit();
-
-        var self = this;
-
-        // Fetch data when query changes
-        this.$scope.$watch('$ctrl.query', (newValue: string) => {
-            if (!newValue) {
-                self.people = [];
-            }
-            else {
-                this.peopleService
-                    .cardSearch(newValue)
-                    .then((people: Person[]) => {
-                        self.people = people;
-                    });
-            }
-        });
+        this.initialize(this.peopleService.cardSearch);
+        this.elementSizeService.watchWidth(this.$element, PeopleSearchCardsSize);
     }
 
     gotoTableView() {
-        super.gotoState('search.table');
+        this.gotoState('search.table');
     }
 }

@@ -1,3 +1,26 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2016 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+
 $org-chart-connector-color: #808080;
 $org-chart-secondary-connector-color: #dae1e1;
 $org-chart-text-color: #808080;
@@ -7,8 +30,16 @@ $manager-connector-height: 16px;
 // (XS) Default display
 org-chart {
   display: block;
-  min-width: 300px;
-  padding-top: 10px;
+  max-width: 100%;
+
+  > .org-chart-section {
+    width: 100%;
+
+    > person-card {
+      &[size="large"] {
+      }
+    }
+  }
 
   // (S) Too wide for full width person-card in direct reports
   &.small {
@@ -16,7 +47,7 @@ org-chart {
       > .person-card-list {
         > person-card {
           margin-right: 5px;
-          width: 200px;
+          width: 220px;
         }
       }
     }
@@ -25,10 +56,6 @@ org-chart {
   // (M) Wide enough to fit multiple person-cards next to each other inline
   &.medium {
     > .org-chart-section {
-      > .person-card-list {
-        text-align: left;
-      }
-
       &.managers {
         .manager {
           text-align: center;
@@ -49,7 +76,7 @@ org-chart {
       }
 
       .org-chart-connector {
-        left: 169px;
+        left: 172px;
         margin: 0;
       }
 
@@ -136,10 +163,6 @@ org-chart {
           }
         }
       }
-
-      .org-chart-connector {
-        left: 172px;
-      }
     }
   }
 
@@ -185,7 +208,7 @@ org-chart {
 
             > .person-card-content {
               > .avatar {
-                background: $org-chart-secondary-connector-color url('../../images/icons/m_question_mark.svg');
+                background: $org-chart-secondary-connector-color;
                 border-color: $org-chart-secondary-connector-color;
               }
             }

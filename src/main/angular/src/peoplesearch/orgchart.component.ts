@@ -1,12 +1,36 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2016 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+
 import { Component } from '../component';
 import { element, IAugmentedJQuery, IFilterService, IScope, IWindowService } from 'angular';
+import ElementSizeService from '../ux/element-size.service';
 import Person from '../models/person.model';
 
 export enum OrgChartSize {
     ExtraSmall = 0,
     Small = 365,
     Medium = 410,
-    Large = 454,
+    Large = 450,
     ExtraLarge = 480
 }
 
@@ -22,6 +46,7 @@ export enum OrgChartSize {
 export default class OrgChartComponent {
     directReports: Person[];
     elementWidth: number;
+    isExtraLargeLayout: boolean;
     managementChain: Person[];
     person: Person;
 
@@ -37,33 +62,26 @@ export default class OrgChartComponent {
     private maxVisibleManagers: number;
     private visibleManagers: Person[];
 
-    static $inject = [ '$element', '$filter', '$scope', '$state', '$window' ];
+    static $inject = [ '$element', '$filter', '$scope', '$state', '$window', 'MfElementSizeService' ];
     constructor(
         private $element: IAugmentedJQuery,
         private $filter: IFilterService,
         private $scope: IScope,
         private $state: angular.ui.IStateService,
-        private $window: IWindowService) {
+        private $window: IWindowService,
+        private elementSizeService: ElementSizeService) {
     }
 
     $onDestroy(): void {
-        element(this.$window).off();
+        // TODO: remove $window click listener
     }
 
     $onInit(): void {
-        var self = this;
-
-        this.updateLayout();
-
         // OrgChartComponent has different functionality at different widths. On element resize, we
         // want to update the state of the component and trigger a $digest
-        element(this.$window).on('resize', () => {
-            self.elementWidth = self.getElementWidth();
-            self.$scope.$apply();
-        });
-        this.$scope.$watch('$ctrl.elementWidth', () => {
-            self.updateLayout();
-        });
+        this.elementSizeService
+            .watchWidth(this.$element, OrgChartSize)
+            .onResize(this.onResize.bind(this));
 
         // In large displays managers are displayed in a row. Any time this property changes, we want
         // to force our manager list to be recalculated in this.getManagementChain() so it returns the correct
@@ -74,12 +92,12 @@ export default class OrgChartComponent {
     }
 
     getManagerCardSize(): string {
-        return this.isExtraLargeLayout() ? 'small' : 'normal';
+        return this.isExtraLargeLayout ? 'small' : 'normal';
     }
 
     getManagementChain(): Person[] {
         // Display managers in a row
-        if (this.isExtraLargeLayout()) {
+        if (this.isExtraLargeLayout) {
             // All managers can fit on screen
             if (this.maxVisibleManagers >= this.managementChain.length) {
                 return this.managementChain;
@@ -90,7 +108,7 @@ export default class OrgChartComponent {
                 // Show a blank manager as last manager in the chain in place of
                 // the last visible manager. Blank manager links to the new last visible manager.
                 this.visibleManagers = this.managementChain.slice(0, this.maxVisibleManagers - 1);
-                var lastManager = this.managementChain[this.maxVisibleManagers - 2];
+                const lastManager = this.managementChain[this.maxVisibleManagers - 2];
 
                 this.visibleManagers.push(new Person({
                     userKey: lastManager.userKey,
@@ -118,8 +136,14 @@ export default class OrgChartComponent {
         return !(this.hasDirectReports() || this.hasManagementChain());
     }
 
+    onClickPerson(): void {
+        if (this.person) {
+            this.$state.go('orgchart.search.details', { personId: this.person.userKey });
+        }
+    }
+
     selectPerson(userKey: string): void {
-        this.$state.go('orgchart', { personId: userKey });
+        this.$state.go('orgchart.search', { personId: userKey });
     }
 
     showingOverflow(): boolean {
@@ -128,67 +152,15 @@ export default class OrgChartComponent {
             this.visibleManagers.length < this.managementChain.length;
     }
 
-    private getElementWidth() {
-        return this.$element[0].clientWidth;
-    }
+    private onResize(newValue: number): void {
+        this.isExtraLargeLayout = (newValue >= OrgChartSize.ExtraLarge);
 
-    private isExtraLargeLayout(): boolean {
-        return this.elementSize === OrgChartSize.ExtraLarge;
+        this.maxVisibleManagers = Math.floor(
+         (newValue - 115 /* left margin */) / 125 /* card width + right margin */);
     }
 
     // Remove all displayed managers so the list is updated on element resize
     private resetManagerList(): void {
         this.visibleManagers = null;
-    }
-
-    private setElementClass(): void {
-        var className: string = [
-            OrgChartSize.Small,
-            OrgChartSize.ExtraSmall,
-            OrgChartSize.Medium,
-            OrgChartSize.Large,
-            OrgChartSize.ExtraLarge
-        ]
-            .filter((size: OrgChartSize): boolean => {
-                return size <= this.elementSize;
-            })
-            .map((size: OrgChartSize): string => {
-                return this.$filter<(input: string) => string>('dasherize')(OrgChartSize[size]);
-            })
-            .join(' ');
-
-        this.$element[0].className = '';
-        this.$element.addClass(className);
-    }
-
-    private setElementSize(): void {
-        var elementWidth: number = this.getElementWidth();
-
-        if (elementWidth < OrgChartSize.Small) {
-            this.elementSize = OrgChartSize.ExtraSmall;
-        }
-        else if (elementWidth < OrgChartSize.Medium) {
-            this.elementSize = OrgChartSize.Small;
-        }
-        else if (elementWidth < OrgChartSize.Large) {
-            this.elementSize = OrgChartSize.Medium;
-        }
-        else if (elementWidth < OrgChartSize.ExtraLarge) {
-            this.elementSize = OrgChartSize.Large;
-        }
-        else {
-            this.elementSize = OrgChartSize.ExtraLarge;
-        }
-    }
-
-    private setMaxVisibleManagers(): void {
-        this.maxVisibleManagers = Math.floor(
-            (this.getElementWidth() - 115 /* left margin */) / 125 /* card width + right margin */);
-    }
-
-    private updateLayout(): void {
-        this.setElementSize();
-        this.setElementClass();
-        this.setMaxVisibleManagers();
     }
 }
