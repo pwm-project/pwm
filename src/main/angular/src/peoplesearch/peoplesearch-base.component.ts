@@ -22,22 +22,18 @@
 
 
 import { IPeopleService } from '../services/people.service';
-import { isArray, isString, IPromise, IScope } from 'angular';
+import { isArray, isString, IPromise, IQService, IScope } from 'angular';
 import Person from '../models/person.model';
 import SearchResult from '../models/search-result.model';
 
-interface ISearchFunction {
-    (query: string): IPromise<SearchResult>;
-}
-
-export default class PeopleSearchBaseComponent {
+abstract class PeopleSearchBaseComponent {
     loading: boolean;
     query: string;
-    searchFunction: ISearchFunction;
     searchMessage: (string | IPromise<string>);
     searchResult: SearchResult;
 
-    protected constructor(protected $scope: IScope,
+    constructor(protected $q: IQService,
+                          protected $scope: IScope,
                           protected $state: angular.ui.IStateService,
                           protected $stateParams: angular.ui.IStateParamsService,
                           protected $translate: angular.translate.ITranslateService,
@@ -49,22 +45,6 @@ export default class PeopleSearchBaseComponent {
 
     gotoState(state: string): void {
         this.$state.go(state, { query: this.query });
-    }
-
-    initialize(searchFunction: ISearchFunction): void {
-        this.searchFunction = searchFunction;
-
-        // Read query from state parameters
-        var queryParameter = this.$stateParams['query'];
-        // If multiple query parameters are defined, use the first one
-        if (isArray(queryParameter)) {
-            this.query = queryParameter[0].trim();
-        }
-        else if (isString(queryParameter)) {
-            this.query = queryParameter.trim();
-        }
-
-        this.fetchData();
     }
 
     onSearchBoxKeyDown(event: KeyboardEvent): void {
@@ -99,29 +79,39 @@ export default class PeopleSearchBaseComponent {
             this.searchMessage = message;
         }
         else {
-            var self = this;
+            const self = this;
 
             message.then((translation: string) => {
                 self.searchMessage = translation;
-                // self.$scope.$apply();
             });
         }
     }
 
-    protected fetchData(): void {
+    protected clearSearch(): void {
+        this.query = null;
+        this.searchResult = null;
+        this.clearSearchMessage();
+    }
+
+    protected clearSearchMessage(): void  {
+        this.searchMessage = null;
+    }
+
+    abstract fetchData(): void;
+
+    protected fetchSearchData(): IPromise<SearchResult> {
         const self = this;
 
         if (!this.query) {
             this.clearSearch();
-            return;
+            return null;
         }
 
         this.loading = true;
 
-        this.searchFunction
-            .call(this.peopleService, this.query)
+        return this.peopleService
+            .search(this.query)
             .then((searchResult: SearchResult) => {
-                self.searchResult = searchResult;
                 self.clearSearchMessage();
 
                 // Too many results returned
@@ -132,19 +122,26 @@ export default class PeopleSearchBaseComponent {
                 if (!searchResult.people.length) {
                     self.setSearchMessage(self.$translate('Display_SearchResultsNone'));
                 }
+
+                return this.$q.resolve(searchResult);
             })
             .finally(() => {
                 self.loading = false;
             });
     }
 
-    private clearSearch(): void {
-        this.query = null;
-        this.searchResult = null;
-        this.clearSearchMessage();
-    }
+    protected initialize(): void {
+        // Read query from state parameters
+        const queryParameter = this.$stateParams['query'];
 
-    private clearSearchMessage(): void  {
-        this.searchMessage = null;
+        // If multiple query parameters are defined, use the first one
+        if (isArray(queryParameter)) {
+            this.query = queryParameter[0].trim();
+        }
+        else if (isString(queryParameter)) {
+            this.query = queryParameter.trim();
+        }
     }
 }
+
+export default PeopleSearchBaseComponent;
