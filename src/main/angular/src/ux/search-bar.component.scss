@@ -78,3 +78,17 @@ mf-search-bar {
     width: $mf-search-bar-height - 2px;
   }
 }
+
+[dir="rtl"] {
+  mf-search-bar {
+    > .clear-input {
+      right: auto;
+      left: 1px;
+    }
+
+    > .search-icon {
+      left: auto;
+      right: 0;
+    }
+  }
+}

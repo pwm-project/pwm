@@ -41,11 +41,11 @@
           font-size: 12px;
           height: 19px;
           padding: 3px 5px;
-          text-align: left;
+          text-align: start;
 
           &:first-child {
             color: #949494;
-            text-align: right;
+            text-align: end;
             padding: 3px 15px;
           }
 
@@ -92,4 +92,3 @@
     }
   }
 }
-

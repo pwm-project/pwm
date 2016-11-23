@@ -88,3 +88,24 @@ mf-dialog {
     }
   }
 }
+
+[dir="rtl"] {
+  mf-dialog {
+    > .mf-dialog-container {
+      > mf-icon-button {
+        right: auto;
+        left: 1px;
+      }
+    }
+  }
+
+  @media (min-width: 420px) {
+    mf-dialog {
+      > .mf-dialog-container {
+        left: auto;
+        right: 50%;
+        transform: translate(50%, -50%);
+      }
+    }
+  }
+}

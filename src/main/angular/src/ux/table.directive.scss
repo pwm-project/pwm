@@ -42,7 +42,7 @@ mf-table {
       margin: 0;
       padding: 10px;
       position: absolute;
-      text-align: left;
+      text-align: start;
       top: 0;
 
       > li {
@@ -81,7 +81,7 @@ mf-table {
       font-weight: normal;
       overflow: hidden;
       padding: 5px;
-      text-align: left;
+      text-align: start;
       vertical-align: top;
     }
 
@@ -110,11 +110,20 @@ mf-table {
     }
 
     tr {
-      &:not(:last-child) {
-        > th,
-        > td {
-          border-bottom: 1px solid #dae1e1;
-        }
+      > th,
+      > td {
+        border-bottom: 1px solid #dae1e1;
+      }
+    }
+  }
+}
+
+[dir="rtl"] {
+  mf-table {
+    > .table-configuration {
+      > ul {
+        left: auto;
+        right: 26px;
       }
     }
   }
