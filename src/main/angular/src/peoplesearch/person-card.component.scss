@@ -43,7 +43,7 @@ person-card {
   height: $person-card-height;
   padding: $person-card-spacing;
   position: relative;
-  text-align: left;
+  text-align: start;
   vertical-align: top;
   width: $person-card-width;
 
@@ -72,12 +72,7 @@ person-card {
       > .avatar {
         flex: 0 0 $person-card-large-avatar-size;
         height: $person-card-large-avatar-size;
-        margin-right: 15px;
         width: $person-card-large-avatar-size;
-
-        img {
-          width: 100%;
-        }
       }
     }
   }
@@ -198,6 +193,42 @@ person-card {
       text-align: center;
       top: 3px;
       min-width: 25px;
+    }
+  }
+}
+
+[dir="rtl"] {
+  person-card {
+    &[size="large"] {
+      > .person-card-content {
+        > .avatar {
+        }
+      }
+    }
+
+    &[size="small"] {
+      > .person-card-content {
+        > .avatar {
+          margin: 0 auto;
+        }
+
+        > .reports {
+          left: 20px;
+          right: auto;
+        }
+      }
+    }
+
+    > .person-card-content {
+      > .avatar {
+        margin-left: $person-card-spacing;
+        margin-right: 0;
+      }
+
+      > .reports {
+        left: 3px;
+        right: initial;
+      }
     }
   }
 }

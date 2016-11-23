@@ -75,10 +75,6 @@ export default class PeopleService implements IPeopleService {
             });
     }
 
-    cardSearch(query: string): angular.IPromise<SearchResult> {
-        return this.search(query);
-    }
-
     getDirectReports(id: string): angular.IPromise<Person[]> {
         const people = this.findDirectReports(id);
 

@@ -42,7 +42,6 @@
 
 <%-- TODO: change these to the 'min' versions (i.e. angular.min.js) --%>
 <pwm:script-ref url="/public/resources/angular/angular.js" />
-<pwm:script-ref url="/public/resources/angular-sanitize/angular-sanitize.js" />
 <pwm:script-ref url="/public/resources/angular-ui-router/release/angular-ui-router.js" />
 <pwm:script-ref url="/public/resources/angular-translate/dist/angular-translate.js" />
 
