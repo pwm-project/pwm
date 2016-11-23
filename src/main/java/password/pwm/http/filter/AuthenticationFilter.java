@@ -55,6 +55,7 @@ import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
+import password.pwm.util.CASFilterAuthenticationProvider;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
@@ -291,8 +292,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
     public static ProcessStatus attemptAuthenticationMethods(final PwmRequest pwmRequest) throws IOException, ServletException {
         final Set<AuthenticationMethod> authenticationMethods = new HashSet<>(Arrays.asList(AuthenticationMethod.values()));
         {
-            final String casUrl = pwmRequest.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
-            if (casUrl == null || casUrl.trim().isEmpty()) {
+            if (!CASFilterAuthenticationProvider.isFilterEnabled(pwmRequest)) {
                 authenticationMethods.remove(AuthenticationMethod.CAS);
             }
         }

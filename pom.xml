@@ -35,6 +35,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <build.number>0</build.number>  <!-- default in case not set on command line -->
         <build.revision>0</build.revision>  <!-- default in case not set on command line -->
+		<!-- Properties used for CAS configuration -->
+		<cas.server>https://cas.localdomain.local:8443/cas/</cas.server>
+		<pwm.server>https://pwm.localdomain.local:8443</pwm.server>
     </properties>
 
     <profiles>
@@ -96,6 +99,64 @@
                 <jspc.skip>true</jspc.skip>
             </properties>
         </profile>
+		<!-- Enables CAS configuration -->
+		<profile>
+			<id>cas</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-war-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>prepare-exploded-war</id>
+								<goals>
+									<goal>exploded</goal>
+								</goals>
+								<phase>prepare-package</phase>
+							</execution>
+							<execution>
+								<id>default-war</id>
+								<configuration>
+									<webXml>${project.build.directory}/${project.build.finalName}-cas/WEB-INF/web.xml</webXml>
+									<filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Replaces web.xml -->
+					<plugin>
+						<groupId>com.google.code.maven-replacer-plugin</groupId>
+						<artifactId>replacer</artifactId>
+						<version>1.5.3</version>
+						<executions>
+							<execution>
+								<id>enable-cas</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>replace</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<ignoreErrors>true</ignoreErrors>
+							<file>${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml</file>
+							<outputDir>${project.build.directory}/${project.build.finalName}-cas/WEB-INF/</outputDir>
+							<preserveDir>false</preserveDir>
+							<replacements>
+								<replacement>
+									<token><![CDATA[<!-- uncomment and set parameters for CAS integration]]></token>
+									<value><![CDATA[<!-- uncomment and set parameters for CAS integration -->]]></value>
+								</replacement>
+								<replacement>
+									<token><![CDATA[ End CAS Config -->]]></token>
+									<value><![CDATA[<!--    End CAS Config -->]]></value>
+								</replacement>
+							</replacements>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
     </profiles>
 
     <build>
@@ -125,6 +186,13 @@
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <version>2.2</version>
+                <!-- See http://tomcat.apache.org/tomcat-7.0-doc/ssl-howto.html#Configuration 
+                	if you want to configure this Use the hostname as the first/last name field -->
+                <configuration>
+                    <httpsPort>8443</httpsPort>
+                    <keystorePass>changeit</keystorePass>
+                    <warSourceDirectory>${project.build.directory}/${project.build.finalName}</warSourceDirectory>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -692,8 +760,6 @@
             <artifactId>slf4j-nop</artifactId>
             <version>1.7.21</version>
         </dependency>
-
-
 
         <!-- client webjar dependencies -->
         <!-- changes in client dependencies require updating AppProperty.properties:http.resources.webjarMappings -->
