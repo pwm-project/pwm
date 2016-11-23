@@ -33,6 +33,7 @@ export default class Person {
     detail: any;
     displayNames: string[];
     photoURL: string;
+    links: any[];
 
     // Search properties (not available in details)
     givenName: string;
@@ -52,6 +53,7 @@ export default class Person {
         this.detail = options.detail;
         this.displayNames = options.displayNames;
         this.photoURL = options.photoURL;
+        this.links = options.links;
 
         // Search properties
         this.givenName = options.givenName;

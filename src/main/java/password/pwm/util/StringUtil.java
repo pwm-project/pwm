@@ -347,4 +347,8 @@ public abstract class StringUtil {
 
         return new int[0];
     }
+
+    public static boolean isEmpty(final CharSequence input) {
+        return StringUtils.isEmpty(input);
+    }
 }

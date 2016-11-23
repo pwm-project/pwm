@@ -221,9 +221,6 @@
                             <resources>
                                 <resource>
                                     <directory>src/main/angular/dist</directory>
-                                    <includes>
-                                        <include>*.ng.js*</include>
-                                    </includes>
                                 </resource>
                             </resources>
                         </configuration>

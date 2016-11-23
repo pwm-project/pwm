@@ -21,6 +21,11 @@
  */
 
 
+.detail-link {
+  text-align: center;
+  width:100%;
+}
+
 .person-details {
   mf-app-bar {
     padding: 0 5px;
@@ -50,6 +55,7 @@
           }
 
           &:last-child {
+
             > .detail-container {
               a {
                 cursor: pointer;

@@ -15,6 +15,13 @@
         <!-- Details -->
         <table>
             <tbody>
+                <tr ng-repeat="reference in $ctrl.person.links">
+                    <td colspan="2">
+                        <div class="detail-link">
+                            <a ng-href="{{reference.link}}"><span ng-bind="reference.name"></span></a>
+                        </div>
+                    </td>
+                </tr>
                 <tr ng-repeat="(key, detail) in $ctrl.person.detail">
                     <td ng-bind="detail.label"></td>
                     <td ng-switch="detail.type">
@@ -33,8 +40,12 @@
                                        ng-bind="value"
                                        ng-if="detail.type === 'email'"
                                        flex></a>
+                                    <a ng-href="tel:{{value}}"
+                                       ng-bind="value"
+                                       ng-if="detail.type === 'tel'"
+                                       flex></a>
                                     <span ng-bind="value"
-                                          ng-if="detail.type !== 'email'"
+                                          ng-if="detail.type !== 'email' && detail.type !== 'tel'"
                                           flex></span>
                                     <mf-icon-button icon="magnify"
                                                     ng-click="$ctrl.searchText(value)"

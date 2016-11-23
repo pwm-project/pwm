@@ -53,6 +53,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -212,9 +213,36 @@ public class PeopleSearchDataReader {
             userDetailBean.setDisplayNames(displayName);
         }
 
+        userDetailBean.setLinks(makeUserDetailLinks(userIdentity));
+
         LOGGER.trace(pwmRequest.getPwmSession(), "finished building userDetail result in " + TimeDuration.fromCurrent(startTime).asCompactString());
         storeDataInCache(pwmRequest.getPwmApplication(), cacheKey, userDetailBean);
         return userDetailBean;
+    }
+
+    private List<LinkReferenceBean> makeUserDetailLinks(final UserIdentity actorIdentity) throws PwmUnrecoverableException {
+        final String userLinksStr = pwmRequest.getConfig().readAppProperty(AppProperty.PEOPLESEARCH_VIEW_DETAIL_LINKS);
+        if (StringUtil.isEmpty(userLinksStr)) {
+            return Collections.emptyList();
+        }
+        final Map<String,String> linkMap;
+        try {
+            linkMap = JsonUtil.deserializeStringMap(userLinksStr);
+        } catch (Exception e) {
+            LOGGER.warn(pwmRequest, "error de-serializing configured app property json for detail links: " + e.getMessage());
+            return Collections.emptyList();
+        }
+        final List<LinkReferenceBean> returnList = new ArrayList<>();
+        final MacroMachine macroMachine = getMacroMachine(actorIdentity);
+        for (final String key : linkMap.keySet()) {
+            final String value = linkMap.get(key);
+            final String parsedValue = macroMachine.expandMacros(value);
+            final LinkReferenceBean linkReference = new LinkReferenceBean();
+            linkReference.setName(key);
+            linkReference.setLink(parsedValue);
+            returnList.add(linkReference);
+        }
+        return returnList;
     }
 
     private List<String> readUserMultiAttributeValues(
@@ -247,8 +275,8 @@ public class PeopleSearchDataReader {
     }
 
     private CacheKey makeCacheKey(
-            final String operationIdentifer,
-            final String dataIdentifer
+            final String operationIdentifier,
+            final String dataIdentifier
     )
             throws PwmUnrecoverableException
     {
@@ -258,7 +286,7 @@ public class PeopleSearchDataReader {
         } else {
             userIdentity = null;
         }
-        final String keyString = operationIdentifer + "|" + pwmRequest.getPwmApplication().getSecureService().hash(dataIdentifer);
+        final String keyString = operationIdentifier + "|" + pwmRequest.getPwmApplication().getSecureService().hash(dataIdentifier);
         return CacheKey.makeCacheKey(
                 this.getClass(),
                 userIdentity,
