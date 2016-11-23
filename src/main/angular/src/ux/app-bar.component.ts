@@ -26,7 +26,7 @@ import { IAugmentedJQuery } from 'angular';
 import ElementSizeService from './element-size.service';
 
 export enum AppBarSize {
-    Large = 415
+    Large = 413
 }
 
 @Component({

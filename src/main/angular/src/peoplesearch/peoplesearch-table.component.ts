@@ -25,7 +25,8 @@ import { Component } from '../component';
 import { IConfigService } from '../services/config.service';
 import IPeopleService from '../services/people.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
-import { IScope } from 'angular';
+import { IQService, IScope } from 'angular';
+import SearchResult from '../models/search-result.model';
 
 @Component({
     stylesheetUrl: require('peoplesearch/peoplesearch-table.component.scss'),
@@ -34,18 +35,20 @@ import { IScope } from 'angular';
 export default class PeopleSearchTableComponent extends PeopleSearchBaseComponent {
     columnConfiguration: any;
 
-    static $inject = [ '$scope', '$state', '$stateParams', '$translate', 'ConfigService', 'PeopleService' ];
-    constructor($scope: IScope,
+    static $inject = [ '$q', '$scope', '$state', '$stateParams', '$translate', 'ConfigService', 'PeopleService' ];
+    constructor($q: IQService,
+                $scope: IScope,
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
                 private configService: IConfigService,
                 peopleService: IPeopleService) {
-        super($scope, $state, $stateParams, $translate, peopleService);
+        super($q, $scope, $state, $stateParams, $translate, peopleService);
     }
 
     $onInit(): void {
-        this.initialize(this.peopleService.search);
+        this.initialize();
+        this.fetchData();
 
         let self = this;
 
@@ -57,5 +60,16 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
 
     gotoCardsView() {
         this.gotoState('search.cards');
+    }
+
+    fetchData() {
+        let searchResult = this.fetchSearchData();
+        if (searchResult) {
+            searchResult.then(this.onSearchResult.bind(this));
+        }
+    }
+
+    private onSearchResult(searchResult: SearchResult): void {
+        this.searchResult = searchResult;
     }
 }

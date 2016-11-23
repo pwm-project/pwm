@@ -32,15 +32,6 @@ org-chart {
   display: block;
   max-width: 100%;
 
-  > .org-chart-section {
-    width: 100%;
-
-    > person-card {
-      &[size="large"] {
-      }
-    }
-  }
-
   // (S) Too wide for full width person-card in direct reports
   &.small {
     > .org-chart-section {
@@ -67,7 +58,7 @@ org-chart {
   // (L) Wide enough to show main person offset to the right. Manager should now be locked in place (instead of centered)
   &.large {
     > .org-chart-section {
-      text-align: left;
+      text-align: start;
 
       > person-card {
         &[size="large"] {
@@ -88,7 +79,7 @@ org-chart {
         .manager {
           display: block;
           margin-left: 135px;
-          text-align: left;
+          text-align: start;
         }
       }
     }
@@ -169,6 +160,7 @@ org-chart {
   > .org-chart-section {
     position: relative;
     text-align: center;
+    width: 100%;
 
     &.direct-reports {
       > .org-chart-connector {
@@ -237,7 +229,7 @@ org-chart {
       line-height: 14px;
       margin: 0;
       padding: 15px 0 5px 0;
-      text-align: left;
+      text-align: start;
     }
 
     > person-card {
@@ -269,6 +261,95 @@ org-chart {
       right: 0;
       top: 0;
       width: 5px;
+    }
+  }
+}
+
+[dir="rtl"] {
+  // (XS) Default display
+  org-chart {
+    // (S) Too wide for full width person-card in direct reports
+    &.small {
+      > .org-chart-section {
+        > .person-card-list {
+          > person-card {
+            margin-left: 5px;
+            margin-right: auto;
+          }
+        }
+      }
+    }
+
+    // (L) Wide enough to show main person offset to the right. Manager should now be locked in place (instead of centered)
+    &.large {
+      > .org-chart-section {
+        > person-card {
+          &[size="large"] {
+            margin: 0 128px 0 0;
+          }
+        }
+
+        .org-chart-connector {
+          left: initial;
+          right: 172px;
+        }
+
+        &.managers {
+          .org-chart-connector {
+            left: initial;
+            right: 34px;
+          }
+
+          .manager {
+            margin-left: auto;
+            margin-right: 135px;
+          }
+        }
+      }
+    }
+
+    // (XL) Wide enough to display several managers horizontally
+    &.extra-large {
+      > .org-chart-section {
+        &.managers {
+          margin-left: auto;
+
+          > h3 {
+            left: initial;
+            right: 0;
+          }
+
+          .org-chart-connector {
+            left: initial;
+            right: 42px;
+          }
+
+          .manager {
+            margin-left: 5px;
+            margin-right: 0;
+
+            &:first-child {
+              margin-right: 115px;
+
+              > .org-chart-connector {
+                left: initial;
+                right: 57px;
+              }
+            }
+
+            &:not(:first-child) {
+              > .org-chart-connector {
+                left: initial;
+                right: -37px;
+              }
+            }
+
+            &:last-child {
+              margin-left: 0;
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -22,6 +22,7 @@
 
 
 $mf-icon-button-color: #808080;
+$mf-icon-button-disabled-color: transparentize($mf-icon-button-color, .50);
 $mf-icon-button-size: 24px;
 $mf-icon-button-bg-color: transparent;
 
@@ -39,25 +40,41 @@ mf-icon-button {
   height: $mf-icon-button-size;
   width: $mf-icon-button-size;
 
+  &:not([disabled]) {
+    > button {
+      cursor: inherit;
+
+      &:focus,
+      &:hover {
+        background-color: $mf-icon-button-hover-bg-color;
+        border-color: #dae1e1;
+        color: $mf-icon-button-hover-color;
+        outline: none;
+      }
+    }
+  }
+
+  &[disabled] {
+    color: $mf-icon-button-disabled-color;
+
+    > button {
+      &:focus,
+      &:hover {
+        outline: none;
+      }
+    }
+  }
+
   > button {
     background: transparent none;
     border: 1px solid transparent;
     border-radius: 2px;
     color: inherit;
-    cursor: inherit;
     display: block;
     height: 100%;
     padding: 0;
     margin: 0;
     width: 100%;
-
-    &:focus,
-    &:hover {
-      background-color: $mf-icon-button-hover-bg-color;
-      border-color: #dae1e1;
-      color: $mf-icon-button-hover-color;
-      outline: none;
-    }
 
     > mf-icon {
       height: 100%;
