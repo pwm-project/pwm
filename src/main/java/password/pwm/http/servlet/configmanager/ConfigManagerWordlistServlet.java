@@ -117,7 +117,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
             return;
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_WORDLISTS);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_WORDLISTS);
     }
 
     void restUploadWordlist(final PwmRequest pwmRequest)

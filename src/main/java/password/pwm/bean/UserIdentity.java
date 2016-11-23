@@ -163,13 +163,21 @@ public class UserIdentity implements Serializable, Comparable {
     @Override
     public boolean equals(final Object o)
     {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         final UserIdentity that = (UserIdentity) o;
 
-        if (!ldapProfile.equals(that.ldapProfile)) return false;
-        if (!userDN.equals(that.userDN)) return false;
+        if (!ldapProfile.equals(that.ldapProfile)) {
+            return false;
+        }
+        if (!userDN.equals(that.userDN)) {
+            return false;
+        }
 
         return true;
     }

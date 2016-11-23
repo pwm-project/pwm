@@ -106,7 +106,11 @@ public class EventRateMeter implements Serializable {
             lastMillis = now;
         }
 
-        /** Returns the last computed average value. */
+        /**
+         * Returns the last computed average value.
+         *
+         * @return current average value
+         * */
         public double getAverage() {
             update(0);
             return average;

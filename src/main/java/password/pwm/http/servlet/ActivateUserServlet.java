@@ -66,6 +66,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
+import password.pwm.util.CaptchaUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.logging.PwmLogger;
@@ -208,6 +209,14 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final Configuration config = pwmApplication.getConfig();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
 
+        if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
+            LOGGER.debug(pwmRequest, errorInfo);
+            pwmRequest.setResponseError(errorInfo);
+            return;
+        }
+
+
         pwmApplication.getSessionStateService().clearBean(pwmRequest, ActivateUserBean.class);
         final List<FormConfiguration> configuredActivationForm = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM);
 
@@ -318,7 +327,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             }
 
             if (!activateUserBean.isTokenPassed()) {
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACTIVATE_USER_ENTER_CODE);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.ACTIVATE_USER_ENTER_CODE);
                 return;
             }
         }
@@ -333,7 +342,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                 final String expandedText = macroMachine.expandMacros(agreementText);
                 activateUserBean.setAgreementText(expandedText);
             }
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACTIVATE_USER_AGREEMENT);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.ACTIVATE_USER_AGREEMENT);
             return;
         }
 
@@ -753,6 +762,6 @@ public class ActivateUserServlet extends AbstractPwmServlet {
             throws ServletException, PwmUnrecoverableException, IOException 
     {
         pwmRequest.addFormInfoToRequestAttr(PwmSetting.ACTIVATE_USER_FORM,false,false);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACTIVATE_USER);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.ACTIVATE_USER);
     }
 }

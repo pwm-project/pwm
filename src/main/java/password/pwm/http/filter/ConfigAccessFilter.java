@@ -255,7 +255,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
         pwmRequest.setAttribute(PwmRequest.Attribute.ConfigLoginHistory, configLoginHistory);
         pwmRequest.setAttribute(PwmRequest.Attribute.ConfigPasswordRememberTime,time);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_LOGIN);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_LOGIN);
 
     }
 

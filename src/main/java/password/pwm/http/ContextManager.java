@@ -355,9 +355,9 @@ public class ContextManager implements Serializable {
 
     private static class JavaVersionCheck implements EnvironmentTest {
         public ErrorInformation doTest() {
-            String sVersion = java.lang.System.getProperty("java.version");
-            sVersion = sVersion.substring(0, 3);
-            final Float f = Float.valueOf(sVersion);
+            String stringVersion = java.lang.System.getProperty("java.version");
+            stringVersion = stringVersion.substring(0, 3);
+            final Float f = Float.valueOf(stringVersion);
             if (f < PwmConstants.JAVA_MINIMUM_VERSION) {
                 final String errorMsg = "the minimum java version required is Java v" + PwmConstants.JAVA_MINIMUM_VERSION;
                 outputError(errorMsg);

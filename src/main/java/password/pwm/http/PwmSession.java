@@ -69,14 +69,14 @@ public class PwmSession implements Serializable {
     private UserSessionDataCacheBean userSessionDataCacheBean;
 
     private Settings settings = new Settings();
-    private static final Object creationLock = new Object();
+    private static final Object CREATION_LOCK = new Object();
 
     private transient SessionManager sessionManager;
 
     public static PwmSession createPwmSession(final PwmApplication pwmApplication)
             throws PwmUnrecoverableException
     {
-        synchronized (creationLock) {
+        synchronized (CREATION_LOCK) {
             return new PwmSession(pwmApplication);
         }
     }
@@ -243,11 +243,11 @@ public class PwmSession implements Serializable {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, "unable to read context manager"));
         }
 
+        final LocalSessionStateBean ssBean = this.getSessionStateBean();
         final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
         final Locale requestedLocale = LocaleHelper.parseLocaleString(localeString);
         if (knownLocales.contains(requestedLocale) || localeString.equalsIgnoreCase("default")) {
             LOGGER.debug(this, "setting session locale to '" + localeString + "'");
-            final LocalSessionStateBean ssBean = this.getSessionStateBean();
             ssBean.setLocale(localeString.equalsIgnoreCase("default") ? PwmConstants.DEFAULT_LOCALE : requestedLocale);
             if (this.isAuthenticated()) {
                 try {
@@ -260,6 +260,7 @@ public class PwmSession implements Serializable {
             return true;
         } else {
             LOGGER.error(this, "ignoring unknown locale value set request for locale '" + localeString + "'");
+            ssBean.setLocale(PwmConstants.DEFAULT_LOCALE);
             return false;
         }
     }

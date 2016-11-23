@@ -193,7 +193,10 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             final TimeDuration errorAge = TimeDuration.fromCurrent(lastError.getDate().getTime());
 
             if (errorAge.isShorterThan(TimeDuration.HOUR)) {
-                returnRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthTopic.Database, "Database server was recently unavailable (" + errorAge.asLongString(PwmConstants.DEFAULT_LOCALE) + " ago at " + lastError.getDate().toString()+ "): " + lastError.toDebugStr()));
+                final String msg = "Database server was recently unavailable ("
+                        + errorAge.asLongString(PwmConstants.DEFAULT_LOCALE)
+                        + " ago at " + lastError.getDate().toString()+ "): " + lastError.toDebugStr();
+                returnRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthTopic.Database, msg));
             }
         }
 

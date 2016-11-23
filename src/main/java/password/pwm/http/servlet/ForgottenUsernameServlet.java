@@ -47,6 +47,7 @@ import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.CaptchaUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -127,6 +128,14 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
+
+        if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
+            LOGGER.debug(pwmRequest, errorInfo);
+            pwmRequest.setResponseError(errorInfo);
+            forwardToFormJsp(pwmRequest);
+            return;
+        }
 
         final String contextParam = pwmRequest.readParameterAsString(PwmConstants.PARAM_CONTEXT);
         final String ldapProfile = pwmRequest.readParameterAsString(PwmConstants.PARAM_LDAP_PROFILE);
@@ -346,7 +355,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
             throws ServletException, PwmUnrecoverableException, IOException
     {
         pwmRequest.addFormInfoToRequestAttr(PwmSetting.FORGOTTEN_USERNAME_FORM,false,false);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.FORGOTTEN_USERNAME);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.FORGOTTEN_USERNAME);
     }
 
     private static void forwardToCompletePage(final PwmRequest pwmRequest, final UserIdentity userIdentity)
@@ -357,7 +366,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
         final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(), userIdentity);
         final String expandedText = macroMachine.expandMacros(completeMessage);
         pwmRequest.setAttribute(PwmRequest.Attribute.CompleteText, expandedText);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.FORGOTTEN_USERNAME_COMPLETE);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.FORGOTTEN_USERNAME_COMPLETE);
     }
 
 }

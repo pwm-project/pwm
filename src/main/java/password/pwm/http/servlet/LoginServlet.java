@@ -36,6 +36,7 @@ import password.pwm.http.PwmURL;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.util.CaptchaUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.Validator;
@@ -135,13 +136,9 @@ public class LoginServlet extends AbstractPwmServlet {
     private void processLogin(final PwmRequest pwmRequest, final boolean passwordOnly)
             throws PwmUnrecoverableException, ServletException, IOException, ChaiUnavailableException
     {
-        final String username = pwmRequest.readParameterAsString(PwmConstants.PARAM_USERNAME);
-        final PasswordData password = pwmRequest.readParameterAsPassword(PwmConstants.PARAM_PASSWORD);
-        final String context = pwmRequest.readParameterAsString(PwmConstants.PARAM_CONTEXT);
-        final String ldapProfile = pwmRequest.readParameterAsString(PwmConstants.PARAM_LDAP_PROFILE);
-
+        final Map<String,String> valueMap = pwmRequest.readParametersAsMap();
         try {
-            handleLoginRequest(pwmRequest, username, password, context, ldapProfile, passwordOnly);
+            handleLoginRequest(pwmRequest, valueMap, passwordOnly);
         } catch (PwmOperationalException e) {
             pwmRequest.setResponseError(e.getErrorInformation());
             forwardToJSP(pwmRequest, passwordOnly);
@@ -166,22 +163,16 @@ public class LoginServlet extends AbstractPwmServlet {
             return;
         }
 
-        final String username = valueMap.get(PwmConstants.PARAM_USERNAME);
-        final String passwordStr = valueMap.get(PwmConstants.PARAM_PASSWORD);
-        final PasswordData password = passwordStr != null && passwordStr.length() > 0
-                ? new PasswordData(passwordStr)
-                : null;
-        final String context = valueMap.get(PwmConstants.PARAM_CONTEXT);
-        final String ldapProfile = valueMap.get(PwmConstants.PARAM_LDAP_PROFILE);
-
         try {
-            handleLoginRequest(pwmRequest, username, password, context, ldapProfile, passwordOnly);
+            handleLoginRequest(pwmRequest, valueMap, passwordOnly);
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInformation = e.getErrorInformation();
             LOGGER.trace(pwmRequest, "returning rest login error to client: " + errorInformation.toDebugStr());
             pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
             return;
         }
+
+        pwmRequest.readParametersAsMap();
 
         // login has succeeded
         final String nextLoginUrl = determinePostLoginUrl(pwmRequest, valueMap.get(PwmConstants.PARAM_POST_LOGIN_URL));
@@ -194,20 +185,31 @@ public class LoginServlet extends AbstractPwmServlet {
 
     private void handleLoginRequest(
             final PwmRequest pwmRequest,
-            final String username,
-            final PasswordData password,
-            final String context,
-            final String ldapProfile,
+            final Map<String,String> valueMap,
             final boolean passwordOnly
     )
             throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
+        final String username = valueMap.get(PwmConstants.PARAM_USERNAME);
+        final String passwordStr = valueMap.get(PwmConstants.PARAM_PASSWORD);
+        final PasswordData password = passwordStr != null && passwordStr.length() > 0
+                ? new PasswordData(passwordStr)
+                : null;
+        final String context = valueMap.get(PwmConstants.PARAM_CONTEXT);
+        final String ldapProfile = valueMap.get(PwmConstants.PARAM_LDAP_PROFILE);
+        final String recaptchaResponse = valueMap.get("g-recaptcha-response");
+
+
         if (!passwordOnly && (username == null || username.isEmpty())) {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"missing username parameter"));
         }
 
         if (password == null) {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"missing password parameter"));
+        }
+
+        if (!CaptchaUtility.verifyReCaptcha(pwmRequest, recaptchaResponse)) {
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE, "captcha incorrect"));
         }
 
         final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
@@ -235,7 +237,7 @@ public class LoginServlet extends AbstractPwmServlet {
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmConstants.JSP_URL url = passwordOnly ? PwmConstants.JSP_URL.LOGIN_PW_ONLY : PwmConstants.JSP_URL.LOGIN;
+        final PwmConstants.JspUrl url = passwordOnly ? PwmConstants.JspUrl.LOGIN_PW_ONLY : PwmConstants.JspUrl.LOGIN;
         pwmRequest.forwardToJsp(url);
     }
 

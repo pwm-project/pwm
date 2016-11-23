@@ -238,7 +238,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(updateProfileAgreementText);
                 pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText, expandedText);
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_AGREEMENT);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.UPDATE_ATTRIBUTES_AGREEMENT);
                 return;
             }
         }
@@ -285,7 +285,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
                     if (!updateProfileBean.getTokenVerificationProgress().getPassedTokens().contains(tokenChannel)) {
                         updateProfileBean.getTokenVerificationProgress().setPhase(tokenChannel);
-                        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_ENTER_CODE);
+                        pwmRequest.forwardToJsp(PwmConstants.JspUrl.UPDATE_ATTRIBUTES_ENTER_CODE);
                         return;
                     }
                 }
@@ -501,7 +501,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         final List<FormConfiguration> form = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<FormConfiguration,String> formValueMap = formMapFromBean(updateAttributesProfile, updateProfileBean);
         pwmRequest.addFormInfoToRequestAttr(form, formValueMap, false, false);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.UPDATE_ATTRIBUTES);
     }
 
     static void forwardToConfirmForm(final PwmRequest pwmRequest, final UpdateAttributesProfile updateAttributesProfile, final UpdateProfileBean updateProfileBean)
@@ -510,7 +510,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         final List<FormConfiguration> form = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<FormConfiguration,String> formValueMap = formMapFromBean(updateAttributesProfile, updateProfileBean);
         pwmRequest.addFormInfoToRequestAttr(form, formValueMap, true, false);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_CONFIRM);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.UPDATE_ATTRIBUTES_CONFIRM);
     }
 
     static Map<FormConfiguration, String> formMapFromBean(final UpdateAttributesProfile updateAttributesProfile, final UpdateProfileBean updateProfileBean) throws PwmUnrecoverableException {

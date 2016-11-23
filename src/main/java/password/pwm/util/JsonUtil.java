@@ -159,32 +159,32 @@ public class JsonUtil {
      * GsonSerializer that stores dates in ISO 8601 format, with a deserialier that also reads local-platform format reading.
      */
     private static class DateTypeAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
-        private static final DateFormat isoDateFormat;
-        private static final DateFormat gsonDateFormat;
+        private static final DateFormat ISO_DATE_FORMAT;
+        private static final DateFormat GSON_DATE_FORMAT;
 
         static {
-            isoDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            isoDateFormat.setTimeZone(TimeZone.getTimeZone("Zulu"));
+            ISO_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            ISO_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
 
-            gsonDateFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT);
-            gsonDateFormat.setTimeZone(TimeZone.getDefault());
+            GSON_DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT);
+            GSON_DATE_FORMAT.setTimeZone(TimeZone.getDefault());
         }
 
         private DateTypeAdapter() {
         }
 
         public synchronized JsonElement serialize(final Date date, final Type type, final JsonSerializationContext jsonSerializationContext) {
-            return new JsonPrimitive(isoDateFormat.format(date));
+            return new JsonPrimitive(ISO_DATE_FORMAT.format(date));
         }
 
         public synchronized Date deserialize(final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext) {
             try {
-                return isoDateFormat.parse(jsonElement.getAsString());
+                return ISO_DATE_FORMAT.parse(jsonElement.getAsString());
             } catch (ParseException e) { /* noop */ }
 
             // for backwards compatibility
             try {
-                return gsonDateFormat.parse(jsonElement.getAsString());
+                return GSON_DATE_FORMAT.parse(jsonElement.getAsString());
             } catch (ParseException e) {
                 LOGGER.error("unable to parse stored json Date.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage());
                 throw new JsonParseException(e);
@@ -196,15 +196,15 @@ public class JsonUtil {
      * GsonSerializer that stores instants in ISO 8601 format, with a deserialier that also reads local-platform format reading.
      */
     private static class InstantTypeAdapter implements JsonSerializer<Instant>, JsonDeserializer<Instant> {
-        private static final DateFormat isoDateFormat;
-        private static final DateFormat gsonDateFormat;
+        private static final DateFormat ISO_DATE_FORMAT;
+        private static final DateFormat GSON_DATE_FORMAT;
 
         static {
-            isoDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            isoDateFormat.setTimeZone(TimeZone.getTimeZone("Zulu"));
+            ISO_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            ISO_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
 
-            gsonDateFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT);
-            gsonDateFormat.setTimeZone(TimeZone.getDefault());
+            GSON_DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT);
+            GSON_DATE_FORMAT.setTimeZone(TimeZone.getDefault());
         }
 
         private InstantTypeAdapter() {

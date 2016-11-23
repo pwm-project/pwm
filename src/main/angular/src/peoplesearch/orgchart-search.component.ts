@@ -1,5 +1,28 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2016 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+
 import { Component } from '../component';
-import { IPromise, IQService, IScope } from 'angular';
+import { isArray, isString, IPromise, IQService, IScope } from 'angular';
 import { IPeopleService } from '../services/people.service';
 import Person from '../models/person.model';
 import OrgChartData from '../models/orgchart-data.model';
@@ -12,6 +35,7 @@ export default class OrgChartSearchComponent {
     directReports: Person[];
     managementChain: Person[];
     person: Person;
+    query: string;
 
     static $inject = [ '$q', '$scope', '$state', '$stateParams', 'PeopleService' ];
     constructor(private $q: IQService,
@@ -22,9 +46,19 @@ export default class OrgChartSearchComponent {
     }
 
     $onInit(): void {
-        var self = this;
+        const self = this;
 
-        var personId: string = this.$stateParams['personId'];
+        // Read query from state parameters
+        const queryParameter = this.$stateParams['query'];
+        // If multiple query parameters are defined, use the first one
+        if (isArray(queryParameter)) {
+            this.query = queryParameter[0].trim();
+        }
+        else if (isString(queryParameter)) {
+            this.query = queryParameter.trim();
+        }
+
+        let personId: string = this.$stateParams['personId'];
 
         this.fetchOrgChartData(personId)
             .then((orgChartData: OrgChartData) => {
@@ -43,8 +77,8 @@ export default class OrgChartSearchComponent {
                         self.person = data['person'];
                     });
                 })
-                .catch((result) => {
-                    console.log(result);
+                .catch(() => {
+                    // TODO: error handling
                 });
             });
     }
@@ -53,8 +87,16 @@ export default class OrgChartSearchComponent {
         return this.peopleService.autoComplete(query);
     }
 
+    gotoSearchState(state: string) {
+        this.$state.go(state, { query: this.query });
+    }
+
     onAutoCompleteItemSelected(person: Person): void {
-        this.$state.go('orgchart', { personId: person.userKey });
+        this.$state.go('orgchart.search', { personId: person.userKey, query: null });
+    }
+
+    onSearchTextChange(value: string): void {
+        this.query = value;
     }
 
     private fetchOrgChartData(personId): IPromise<OrgChartData> {

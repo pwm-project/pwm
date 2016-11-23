@@ -540,6 +540,8 @@ public enum PwmSetting {
             "captcha.skip.param", PwmSettingSyntax.STRING, PwmSettingCategory.CAPTCHA),
     CAPTCHA_SKIP_COOKIE(
             "captcha.skip.cookie", PwmSettingSyntax.STRING, PwmSettingCategory.CAPTCHA),
+    CAPTCHA_INTRUDER_COUNT_TRIGGER(
+            "captcha.intruderAttemptTrigger", PwmSettingSyntax.NUMERIC, PwmSettingCategory.CAPTCHA),
 
     // intruder detection
     INTRUDER_ENABLE(
@@ -912,8 +914,6 @@ public enum PwmSetting {
             "ldap.edirectory.useNmasResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS),
     EDIRECTORY_READ_USER_PWD(
             "ldap.edirectory.readUserPwd", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_SETTINGS),
-    EDIRECTORY_PWD_MGT_WEBSERVICE_URL(
-            "ldap.edirectory.ws.pwdMgtURL", PwmSettingSyntax.STRING, PwmSettingCategory.EDIR_SETTINGS),
 
     EDIRECTORY_READ_CHALLENGE_SET(
             "ldap.edirectory.readChallengeSets", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.EDIR_CR_SETTINGS),

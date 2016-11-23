@@ -237,7 +237,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         }
 
         pwmRequest.setAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled, !helpdeskProfile.readRequiredVerificationMethods().isEmpty());
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.HELPDESK_SEARCH);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.HELPDESK_SEARCH);
     }
 
     private void restClientData(final PwmRequest pwmRequest, final HelpdeskProfile helpdeskProfile)
@@ -512,7 +512,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
 
         StatisticsManager.incrementStat(pwmRequest, Statistic.HELPDESK_USER_LOOKUP);
         pwmRequest.setAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled, !helpdeskProfile.readOptionalVerificationMethods().isEmpty());
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.HELPDESK_DETAIL);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.HELPDESK_DETAIL);
     }
 
     private void restSearchRequest(

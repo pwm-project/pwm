@@ -39,6 +39,9 @@
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="searchForm" class="pwm-form" id="searchForm" autocomplete="off">
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <jsp:include page="fragment/form.jsp"/>
+
+            <%@ include file="/WEB-INF/jsp/fragment/captcha-embed.jsp"%>
+
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="search"/>
                 <button type="submit" class="btn" name="search" id="submitBtn">

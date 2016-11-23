@@ -63,7 +63,6 @@ import password.pwm.util.operations.cr.DbCrOperator;
 import password.pwm.util.operations.cr.LdapCrOperator;
 import password.pwm.util.operations.cr.LocalDbCrOperator;
 import password.pwm.util.operations.cr.NMASCrOperator;
-import password.pwm.util.operations.cr.NMASUAWSOperator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -101,7 +100,6 @@ public class CrService implements PwmService {
         operatorMap.put(DataStorageMethod.LDAP, new LdapCrOperator(pwmApplication.getConfig()));
         operatorMap.put(DataStorageMethod.LOCALDB, new LocalDbCrOperator(pwmApplication.getLocalDB()));
         operatorMap.put(DataStorageMethod.NMAS, new NMASCrOperator(pwmApplication));
-        operatorMap.put(DataStorageMethod.NMASUAWS, new NMASUAWSOperator(pwmApplication));
     }
 
     @Override
@@ -540,7 +538,7 @@ public class CrService implements PwmService {
         }
 
         // ignore NMAS based CR set if so configured
-        if (responseInfoBean != null && (responseInfoBean.getDataStorageMethod() == DataStorageMethod.NMAS || responseInfoBean.getDataStorageMethod() == DataStorageMethod.NMASUAWS)) {
+        if (responseInfoBean != null && (responseInfoBean.getDataStorageMethod() == DataStorageMethod.NMAS)) {
             final boolean ignoreNmasCr = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK));
             if (ignoreNmasCr) {
                 LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: app property " + AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK.getKey()

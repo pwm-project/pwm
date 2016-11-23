@@ -193,7 +193,12 @@ public class TokenService implements PwmService {
 
         final TimerTask cleanerTask = new CleanerTask();
 
-        final long cleanerFrequency = (maxTokenAgeMS*0.5) > MAX_CLEANER_INTERVAL_MS ? MAX_CLEANER_INTERVAL_MS : (maxTokenAgeMS*0.5) < MIN_CLEANER_INTERVAL_MS ? MIN_CLEANER_INTERVAL_MS : (long)(maxTokenAgeMS*0.5);
+        final long cleanerFrequency = (maxTokenAgeMS*0.5) > MAX_CLEANER_INTERVAL_MS
+                ? MAX_CLEANER_INTERVAL_MS
+                : (maxTokenAgeMS*0.5) < MIN_CLEANER_INTERVAL_MS
+                ? MIN_CLEANER_INTERVAL_MS
+                : (long)(maxTokenAgeMS*0.5);
+
         executorService.scheduleAtFixedRate(cleanerTask, 10 * 1000, cleanerFrequency, TimeUnit.MILLISECONDS);
         LOGGER.trace("token cleanup will occur every " + TimeDuration.asCompactString(cleanerFrequency));
 

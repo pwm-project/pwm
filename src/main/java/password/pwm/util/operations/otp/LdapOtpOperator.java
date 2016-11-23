@@ -133,7 +133,9 @@ public class LdapOtpOperator extends AbstractOtpOperator {
         } catch (ChaiException ex) {
             final String errorMsg;
             if (ex.getErrorCode() == ChaiError.NO_ACCESS) {
-                errorMsg = "permission error writing OTP secret to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to save OTP secret: " + ex.getMessage();
+                errorMsg = "permission error writing OTP secret to ldap attribute '"
+                        + ldapStorageAttribute
+                        + "', user does not appear to have correct permissions to save OTP secret: " + ex.getMessage();
             } else {
                 errorMsg = "error writing OTP secret to ldap attribute '" + ldapStorageAttribute + "': " + ex.getMessage();
             }
@@ -177,7 +179,9 @@ public class LdapOtpOperator extends AbstractOtpOperator {
         } catch (ChaiOperationException e) {
             final String errorMsg;
             if (e.getErrorCode() == ChaiError.NO_ACCESS) {
-                errorMsg = "permission error clearing responses to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to clear OTP secret: " + e.getMessage();
+                errorMsg = "permission error clearing responses to ldap attribute '"
+                        + ldapStorageAttribute
+                        + "', user does not appear to have correct permissions to clear OTP secret: " + e.getMessage();
             } else {
                 errorMsg = "error clearing OTP secret to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
             }

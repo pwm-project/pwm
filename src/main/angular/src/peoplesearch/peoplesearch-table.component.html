@@ -1,14 +1,39 @@
 <mf-app-bar>
     <div class="page-content-title" translate="Title_PeopleSearch">People Search</div>
+    <mf-search-bar search-text="$ctrl.query"
+                   on-search-text-change="$ctrl.onSearchTextChange(value)"
+                   on-key-down="$ctrl.onSearchBoxKeyDown($event)"
+                   auto-focus></mf-search-bar>
     <span flex></span>
-    <mf-icon-button icon="view-grid" ng-click="$ctrl.gotoCardsView()"></mf-icon-button>
+    <mf-icon-button
+            icon="view-tile"
+            ng-click="$ctrl.gotoCardsView()"
+            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
+    <mf-icon-button
+            icon="view-list"
+            disabled="true"
+            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
+    <div class="mf-divider vertical"></div>
+    <mf-icon-button
+            icon="orgchart"
+            ng-click="$ctrl.gotoOrgchart()"
+            ng-attr-title="{{ 'Title_OrgChart' | translate }}"></mf-icon-button>
 </mf-app-bar>
 
-<mf-search-bar search-text="$ctrl.query" auto-focus></mf-search-bar>
+<div class="people-search-component-content">
+    <div class="search-info"
+         ng-if="$ctrl.loading || $ctrl.searchMessage"
+         ng-bind="$ctrl.loading ? ('Display_PleaseWait' | translate) : $ctrl.searchMessage"></div>
 
-<mf-table data="person in $ctrl.people" ng-show="$ctrl.people.length" on-click-item="$ctrl.selectPerson(person)">
-    <mf-table-column ng-repeat="(key, value) in $ctrl.columnConfiguration"
-                     label="value"
-                     value="'person.' + key">
-    </mf-table-column>
-</mf-table>
+    <mf-table data="person in $ctrl.searchResult.people"
+              ng-show="$ctrl.searchResult.people.length"
+              search-highlight="$ctrl.query"
+              on-click-item="$ctrl.selectPerson(person)">
+        <mf-table-column ng-repeat="(key, value) in $ctrl.columnConfiguration"
+                         label="value"
+                         value="'person.' + key">
+        </mf-table-column>
+    </mf-table>
+
+    <ui-view></ui-view>
+</div>

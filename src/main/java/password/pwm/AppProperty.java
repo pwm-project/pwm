@@ -215,6 +215,7 @@ public enum AppProperty {
     PEOPLESEARCH_DISPLAYNAME_USEALLMACROS           ("peoplesearch.displayName.enableAllMacros"),
     PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN             ("peoplesearch.values.verifyUserDN"),
     PEOPLESEARCH_VALUE_MAXCOUNT                     ("peoplesearch.values.maxCount"),
+    PEOPLESEARCH_VIEW_DETAIL_LINKS                  ("peoplesearch.view.detail.links"),
     QUEUE_EMAIL_RETRY_TIMEOUT_MS                    ("queue.email.retryTimeoutMs"),
     QUEUE_EMAIL_MAX_AGE_MS                          ("queue.email.maxAgeMs"),
     QUEUE_EMAIL_MAX_COUNT                           ("queue.email.maxCount"),

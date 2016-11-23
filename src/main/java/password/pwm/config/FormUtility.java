@@ -129,17 +129,17 @@ public class FormUtility {
     }
 
     public static boolean checkboxValueIsChecked(final String value) {
-        boolean bValue = false;
+        boolean booleanValue = false;
         if (value != null) {
             if (Boolean.parseBoolean(value)) {
-                bValue = true;
+                booleanValue = true;
             } else if ("on".equalsIgnoreCase(value)) {
-                bValue = true;
+                booleanValue = true;
             } else if ("checked".equalsIgnoreCase(value)) {
-                bValue = true;
+                booleanValue = true;
             }
         }
-        return bValue;
+        return booleanValue;
     }
 
     public static Map<String,String> asStringMap(final Map<FormConfiguration, String> input) {

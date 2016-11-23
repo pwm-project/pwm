@@ -1,32 +1,87 @@
-people-search-cards {
-    display: flex;
-    flex-flow: column nowrap;
-    height: 100%;
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2016 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
-    > .person-card-list {
-        height: 100%;
-        overflow: auto;
-        text-align: center;
+people-search-cards {
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
+
+  // At medium size, cards are centered and no longer take up 100% width
+  &.medium {
+    > .people-search-component-content {
+      > .person-card-list {
+        > person-card {
+          margin: 0 auto;
+          display: block;
+          width: 220px;
+        }
+      }
+    }
+  }
+
+  // At large size, cards fit next to each other
+  &.large {
+    > .people-search-component-content {
+      > .person-card-list {
+        text-align: start;
+        margin: 0;
 
         > person-card {
-            display: inline-block;
-            width: 100%;
-
-            &:not(:last-child) {
-                margin-bottom: 5px;
-            }
+          display: inline-block;
+          margin-right: 5px;
         }
+      }
     }
+  }
+
+  > .people-search-component-content {
+    flex: 1 1;
+    overflow: auto;
+    text-align: center;
+
+    > .person-card-list {
+      > person-card {
+        display: inline-block;
+        width: 100%;
+
+        &:not(:last-child) {
+          margin-bottom: 5px;
+        }
+      }
+    }
+  }
 }
 
-@media (min-width: 375px) {
-    people-search-cards {
-        > .person-card-list {
-            text-align: left;
-            > person-card {
-                margin-right: 5px;
-                width: 200px;
-            }
+[dir="rtl"] {
+  people-search-cards {
+    &.large {
+      > .people-search-component-content {
+        .person-card-list {
+          > person-card {
+            margin-right: auto;
+            margin-left: 5px;
+          }
         }
+      }
     }
+  }
 }

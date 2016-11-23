@@ -91,8 +91,6 @@ table {
 }
 
 table.nomargin {
-    border-collapse: collapse;
-    border: 1px solid #dae1e1;
     width: 100%;
     margin:0;
     padding: 0;
@@ -529,7 +527,6 @@ div.progress-container > div {
 
 #header-warning-backdrop {
     bottom: 0;
-    display: none;
     left: 0;
     position: absolute;
     right: 0;

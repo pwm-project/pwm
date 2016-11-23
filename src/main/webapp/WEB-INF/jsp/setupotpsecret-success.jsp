@@ -45,7 +45,7 @@
         <p><pwm:display key="Success_OtpSetup" bundle="Message"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <% if (otpBean.getRecoveryCodes() != null && !otpBean.getRecoveryCodes().isEmpty()) %>
+        <% if (otpBean.getRecoveryCodes() != null && !otpBean.getRecoveryCodes().isEmpty()) { %>
         <table style="text-align: center">
             <tr>
                 <td><b><%=ident%></b></td>
@@ -64,6 +64,7 @@
                 </td>
             </tr>
         </table>
+        <% } %>
         <div class="buttonbar">
             <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <div class="buttonbar">

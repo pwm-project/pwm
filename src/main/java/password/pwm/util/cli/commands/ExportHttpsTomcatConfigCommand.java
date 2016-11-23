@@ -71,9 +71,9 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand {
                 return false;
             }
 
-            public CliParameters.Option.type getType()
+            public Type getType()
             {
-                return type.EXISTING_FILE;
+                return Type.EXISTING_FILE;
             }
 
             public String getName()

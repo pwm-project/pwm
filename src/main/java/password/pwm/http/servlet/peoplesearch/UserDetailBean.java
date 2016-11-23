@@ -23,6 +23,7 @@
 package password.pwm.http.servlet.peoplesearch;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ class UserDetailBean implements Serializable {
     private String userKey;
     private Map<String, AttributeDetailBean> detail;
     private String photoURL;
+    private List<LinkReferenceBean> links = Collections.emptyList();
 
     public List<String> getDisplayNames() {
         return displayNames;
@@ -62,5 +64,13 @@ class UserDetailBean implements Serializable {
 
     public void setPhotoURL(final String photoURL) {
         this.photoURL = photoURL;
+    }
+
+    public List<LinkReferenceBean> getLinks() {
+        return links;
+    }
+
+    public void setLinks(final List<LinkReferenceBean> links) {
+        this.links = links;
     }
 }

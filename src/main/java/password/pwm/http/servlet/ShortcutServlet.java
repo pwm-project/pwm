@@ -121,7 +121,7 @@ public class ShortcutServlet extends AbstractPwmServlet {
         final ArrayList<ShortcutItem> shortcutItems = new ArrayList<>();
         shortcutItems.addAll(shortcutsBean.getVisibleItems().values());
         pwmRequest.setAttribute(PwmRequest.Attribute.ShortcutItems, shortcutItems);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SHORTCUT);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.SHORTCUT);
     }
 
     /**
@@ -199,6 +199,6 @@ public class ShortcutServlet extends AbstractPwmServlet {
         }
 
         LOGGER.error(pwmSession, "unknown/unexpected link requested to " + link);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SHORTCUT);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.SHORTCUT);
     }
 }

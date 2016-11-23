@@ -105,6 +105,7 @@ public class PasscodeGenerator {
 
     /**
      * @return A decimal timeout code
+     *
      */
     public String generateTimeoutCode() throws GeneralSecurityException {
         return generateResponseCode(clock.getCurrentInterval());

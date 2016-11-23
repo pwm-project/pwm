@@ -198,22 +198,30 @@ public class Configuration implements Serializable, SettingReader {
         }
 
         public static String valueToString(final StoredValue value) {
-            if (value == null) return null;
+            if (value == null) {
+                return null;
+            }
             if ((!(value instanceof StringValue)) && (!(value instanceof BooleanValue))) {
                 throw new IllegalArgumentException("setting value is not readable as string");
             }
             final Object nativeObject = value.toNativeObject();
-            if (nativeObject == null) return null;
+            if (nativeObject == null) {
+                return null;
+            }
             return nativeObject.toString();
         }
 
         public static PasswordData valueToPassword(final StoredValue value) {
-            if (value == null) return null;
+            if (value == null) {
+                return null;
+            }
             if ((!(value instanceof PasswordValue))) {
                 throw new IllegalArgumentException("setting value is not readable as password");
             }
             final Object nativeObject = value.toNativeObject();
-            if (nativeObject == null) return null;
+            if (nativeObject == null) {
+                return null;
+            }
             return (PasswordData)nativeObject;
         }
         
@@ -227,7 +235,9 @@ public class Configuration implements Serializable, SettingReader {
 
 
         public static List<FormConfiguration> valueToForm(final StoredValue value) {
-            if (value == null) return null;
+            if (value == null) {
+                return null;
+            }
             if ((!(value instanceof FormValue))) {
                 throw new IllegalArgumentException("setting value is not readable as form");
             }
@@ -712,11 +722,6 @@ public class Configuration implements Serializable, SettingReader {
                 } else {
                     readPreferences.add(DataStorageMethod.LDAP);
                 }
-            }
-
-            final String wsURL = readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
-            if (wsURL != null && wsURL.length() > 0) {
-                readPreferences.add(DataStorageMethod.NMASUAWS);
             }
 
 

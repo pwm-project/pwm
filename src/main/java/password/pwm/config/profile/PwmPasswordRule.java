@@ -102,7 +102,9 @@ public enum PwmPasswordRule {
     static {
         try {
             final Set<String> keys = new HashSet<>();
-            for (final PwmSetting setting : PwmSetting.values()) keys.add(setting.getKey());
+            for (final PwmSetting setting : PwmSetting.values()) {
+                keys.add(setting.getKey());
+            }
             assert keys.size() == PwmSetting.values().length;
         } catch (Throwable t) {
             LOGGER.fatal("error initializing PwmPasswordRule class: " + t.getMessage(),t);
@@ -135,9 +137,15 @@ public enum PwmPasswordRule {
     }
 
     public String getKey() {
-        if (chaiPasswordRule != null) return chaiPasswordRule.getKey();
-        if (pwmSetting       != null) return pwmSetting.getKey();
-        if (appProperty      != null) return appProperty.getKey();
+        if (chaiPasswordRule != null) {
+            return chaiPasswordRule.getKey();
+        }
+        if (pwmSetting       != null) {
+            return pwmSetting.getKey();
+        }
+        if (appProperty      != null) {
+            return appProperty.getKey();
+        }
 
         return this.name();
     }

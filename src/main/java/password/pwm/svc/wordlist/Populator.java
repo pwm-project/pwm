@@ -107,7 +107,9 @@ class Populator {
     }
 
     private void init() throws LocalDBException, IOException {
-        if (abortFlag) return;
+        if (abortFlag) {
+            return;
+        }
 
         localDB.truncate(rootWordlist.getWordlistDB());
 

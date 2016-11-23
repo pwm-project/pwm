@@ -1,3 +1,26 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2016 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+
 $text-color: #000000;
 $text-color-subtext: #808080;
 
@@ -5,7 +28,7 @@ $person-card-bg-color: #eef2f2;
 $person-card-hover-bg-color: #f6f9f8;
 $person-card-border-color: #28a9e1;
 $person-card-height: 82px;
-$person-card-width: 200px;
+$person-card-width: 220px;
 $person-card-avatar-size: 50px;
 $person-card-spacing: 10px;
 
@@ -16,18 +39,23 @@ person-card {
   border: 1px solid $person-card-bg-color;
   border-radius: 3px;
   box-sizing: border-box;
-  cursor: pointer;
   display: block;
   height: $person-card-height;
   padding: $person-card-spacing;
   position: relative;
-  text-align: left;
+  text-align: start;
   vertical-align: top;
   width: $person-card-width;
 
-  &:hover {
-    background-color: $person-card-hover-bg-color;
-    border-color: $person-card-border-color;
+  &[ng-click] {
+    cursor: pointer;
+
+    &:focus,
+    &:hover {
+      background-color: $person-card-hover-bg-color;
+      border-color: $person-card-border-color;
+      outline: none;
+    }
   }
 
   &[size="large"] {
@@ -35,22 +63,16 @@ person-card {
     border: 3px solid #808080;
     border-radius: 3px;
     height: 166px;
-    width: 326px;
+    width: 316px;
     max-width: 100%;
-    min-width: 310px;
 
     > .person-card-content {
-      flex-flow: row wrap;
+      flex-flow: row nowrap;
 
       > .avatar {
         flex: 0 0 $person-card-large-avatar-size;
         height: $person-card-large-avatar-size;
-        margin-right: 15px;
         width: $person-card-large-avatar-size;
-
-        img {
-          width: 100%;
-        }
       }
     }
   }
@@ -61,6 +83,19 @@ person-card {
     height: 96px;
     padding: 0;
     width: 120px;
+
+    &[ng-click] {
+      &:focus,
+      &:hover {
+        background-color: transparent;
+
+        > .person-card-content {
+          > .avatar {
+            border-color: $person-card-border-color !important;
+          }
+        }
+      }
+    }
 
     > .person-card-content {
       display: block;
@@ -111,7 +146,6 @@ person-card {
       flex: 0 0 $person-card-avatar-size;
       height: $person-card-avatar-size;
       margin-right: $person-card-spacing;
-      width: $person-card-avatar-size;
 
       img {
         height: 100%;
@@ -120,8 +154,8 @@ person-card {
     }
 
     > .details {
-      flex-grow: 1;
-      width: $person-card-width - $person-card-avatar-size;
+      flex: 1;
+      overflow: hidden;
 
       > div {
         line-height: 16px;
@@ -159,6 +193,42 @@ person-card {
       text-align: center;
       top: 3px;
       min-width: 25px;
+    }
+  }
+}
+
+[dir="rtl"] {
+  person-card {
+    &[size="large"] {
+      > .person-card-content {
+        > .avatar {
+        }
+      }
+    }
+
+    &[size="small"] {
+      > .person-card-content {
+        > .avatar {
+          margin: 0 auto;
+        }
+
+        > .reports {
+          left: 20px;
+          right: auto;
+        }
+      }
+    }
+
+    > .person-card-content {
+      > .avatar {
+        margin-left: $person-card-spacing;
+        margin-right: 0;
+      }
+
+      > .reports {
+        left: 3px;
+        right: initial;
+      }
     }
   }
 }

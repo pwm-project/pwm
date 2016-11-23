@@ -1,14 +1,36 @@
 <mf-app-bar>
     <div class="page-content-title" translate="Title_PeopleSearch">People Search</div>
+    <mf-search-bar search-text="$ctrl.query"
+                   on-search-text-change="$ctrl.onSearchTextChange(value)"
+                   on-key-down="$ctrl.onSearchBoxKeyDown($event)"
+                   auto-focus></mf-search-bar>
     <span flex></span>
-    <mf-icon-button icon="table-large" ng-click="$ctrl.gotoTableView()"></mf-icon-button>
+    <mf-icon-button
+            icon="view-tile"
+            disabled="true"
+            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
+    <mf-icon-button
+            icon="view-list"
+            ng-click="$ctrl.gotoTableView()"
+            ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
+    <div class="mf-divider vertical"></div>
+    <mf-icon-button
+            icon="orgchart"
+            ng-click="$ctrl.gotoOrgchart()"
+            ng-attr-title="{{ 'Title_OrgChart' | translate }}"></mf-icon-button>
 </mf-app-bar>
 
-<mf-search-bar search-text="$ctrl.query" auto-focus></mf-search-bar>
+<div class="people-search-component-content">
+    <div class="search-info"
+         ng-if="$ctrl.loading || $ctrl.searchMessage"
+         ng-bind="$ctrl.loading ? ('Display_PleaseWait' | translate) : $ctrl.searchMessage"></div>
 
-<div class="person-card-list">
-    <person-card person="person"
-                 ng-repeat="person in $ctrl.people"
-                 ng-click="$ctrl.selectPerson(person)">
-    </person-card>
+    <div class="person-card-list">
+        <person-card person="person"
+                     ng-repeat="person in $ctrl.searchResult.people"
+                     ng-click="$ctrl.selectPerson(person)">
+        </person-card>
+    </div>
+
+    <ui-view></ui-view>
 </div>

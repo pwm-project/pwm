@@ -852,7 +852,7 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
             }
         })(loopSetting);
     }
-    if (category == 'LDAP_PROFILE') {
+    if (category == 'LDAP_BASE') {
         PWM_MAIN.addEventHandler('button-test-LDAP_PROFILE', 'click', function(){PWM_CFGEDIT.ldapHealthCheck();});
     } else if (category == 'DATABASE_SETTINGS') {
         PWM_MAIN.addEventHandler('button-test-DATABASE_SETTINGS', 'click', function(){PWM_CFGEDIT.databaseHealthCheck();});

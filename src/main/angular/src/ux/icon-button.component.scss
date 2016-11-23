@@ -1,4 +1,28 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2016 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+
 $mf-icon-button-color: #808080;
+$mf-icon-button-disabled-color: transparentize($mf-icon-button-color, .50);
 $mf-icon-button-size: 24px;
 $mf-icon-button-bg-color: transparent;
 
@@ -8,7 +32,6 @@ $mf-icon-button-hover-color: #0088ce;
 
 mf-icon-button {
   background-color: $mf-icon-button-bg-color;
-  border: 1px solid transparent;
   box-sizing: border-box;
   color: $mf-icon-button-color;
   cursor: pointer;
@@ -17,14 +40,45 @@ mf-icon-button {
   height: $mf-icon-button-size;
   width: $mf-icon-button-size;
 
-  &:hover {
-    background-color: $mf-icon-button-hover-bg-color;
-    border-color: $mf-icon-button-hover-border-color;
-    color: $mf-icon-button-hover-color;
+  &:not([disabled]) {
+    > button {
+      cursor: inherit;
+
+      &:focus,
+      &:hover {
+        background-color: $mf-icon-button-hover-bg-color;
+        border-color: #dae1e1;
+        color: $mf-icon-button-hover-color;
+        outline: none;
+      }
+    }
   }
 
-  > mf-icon {
+  &[disabled] {
+    color: $mf-icon-button-disabled-color;
+
+    > button {
+      &:focus,
+      &:hover {
+        outline: none;
+      }
+    }
+  }
+
+  > button {
+    background: transparent none;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    color: inherit;
+    display: block;
     height: 100%;
+    padding: 0;
+    margin: 0;
     width: 100%;
+
+    > mf-icon {
+      height: 100%;
+      width: 100%;
+    }
   }
 }

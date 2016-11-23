@@ -160,7 +160,7 @@ public abstract class PwmConstants {
         INCLUDED_LOCALES = Collections.unmodifiableCollection(localeList);
     }
 
-    public enum JSP_URL {
+    public enum JspUrl {
 
         INIT("init.jsp"),
         ERROR("error.jsp"),
@@ -223,7 +223,6 @@ public abstract class PwmConstants {
         GUEST_UPDATE_SEARCH("guest-search.jsp"),
         ACCOUNT_INFORMATION("accountinformation.jsp"),
         SHORTCUT("shortcut.jsp"),
-        CAPTCHA("captcha.jsp"),
         PEOPLE_SEARCH("peoplesearch.jsp"),
         CONFIG_MANAGER_EDITOR("configeditor.jsp"),
         CONFIG_MANAGER_EDITOR_SUMMARY("configmanager-summary.jsp"),
@@ -240,7 +239,7 @@ public abstract class PwmConstants {
         private String path;
         private static final String JSP_ROOT_URL = "/WEB-INF/jsp/";
 
-        JSP_URL(final String path) {
+        JspUrl(final String path) {
             this.path = path;
         }
 

@@ -1,8 +1,15 @@
 {
   "Title_PeopleSearch": "People Search",
   "Title_Management": "Management",
-  "Title_DirectReports": "Direct Reports",
+  "Title_DirectReports": "Direct Report(s)",
   "Title_Organization": "Organization",
+  "Title_OrgChart": "Organizational Chart",
+  "Title_Details": "Details",
 
-  "Display_PleaseWait": "Loading..."
+  "Display_PleaseWait": "Loading...",
+
+  "Display_SearchResultsExceeded": "Search results exceeded maximum search size.",
+  "Display_SearchResultsNone": "No results.",
+
+  "Placeholder_Search": "Search"
 }

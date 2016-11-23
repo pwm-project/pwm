@@ -1365,6 +1365,15 @@
             <value />
         </default>
     </setting>
+    <setting hidden="false" key="captcha.intruderAttemptTrigger" level="2">
+        <properties>
+            <property key="Minimum">0</property>
+            <property key="Maximum">10</property>
+        </properties>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
     <setting hidden="false" key="security.page.enableRequestSequence" level="2" required="true">
         <default>
             <value>true</value>
@@ -2810,8 +2819,8 @@
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.detail.form" level="1" required="true">
@@ -2841,6 +2850,7 @@
         <options>
             <option value="text">text</option>
             <option value="email">email</option>
+            <option value="tel">telephone</option>
             <option value="userDN">userDN</option>
         </options>
     </setting>
@@ -2867,7 +2877,7 @@
             <value>@LDAP:telephoneNumber@</value>
         </default>
         <properties>
-            <property key="Maximum">4</property>
+            <property key="Maximum">7</property>
         </properties>
     </setting>
     <setting hidden="false" key="peopleSearch.displayName.user" level="1" required="true">
@@ -2954,11 +2964,6 @@
         </default>
         <default template="NOVL_IDM">
             <value>true</value>
-        </default>
-    </setting>
-    <setting hidden="true" key="ldap.edirectory.ws.pwdMgtURL" level="1">
-        <default>
-            <value />
         </default>
     </setting>
     <setting hidden="false" key="ldap.edirectory.cr.minRandomDuringSetup" level="1" required="true">

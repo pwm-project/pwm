@@ -91,8 +91,8 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand {
             }
 
             @Override
-            public type getType() {
-                return type.STRING;
+            public Type getType() {
+                return Type.STRING;
             }
 
             @Override
@@ -108,8 +108,8 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand {
             }
 
             @Override
-            public type getType() {
-                return type.STRING;
+            public Type getType() {
+                return Type.STRING;
             }
 
             @Override

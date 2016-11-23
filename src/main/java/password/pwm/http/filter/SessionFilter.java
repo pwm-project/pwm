@@ -215,16 +215,6 @@ public class SessionFilter extends AbstractPwmFilter {
             }
         }
 
-        final String skipCaptcha = pwmRequest.readParameterAsString(PwmConstants.PARAM_SKIP_CAPTCHA);
-        if (skipCaptcha != null && skipCaptcha.length() > 0) {
-            final String configValue = config.readSettingAsString(PwmSetting.CAPTCHA_SKIP_PARAM);
-            if (configValue != null && configValue.equals(skipCaptcha)) {
-                LOGGER.trace(pwmSession, "valid skipCaptcha value in request, skipping captcha check for this session");
-                ssBean.setPassedCaptcha(true);
-            } else {
-                LOGGER.error(pwmSession, "skipCaptcha value is in request, however value '" + skipCaptcha + "' does not match configured value");
-            }
-        }
 
         if ("true".equalsIgnoreCase(pwmRequest.readParameterAsString(
                 pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_PASSWORD_EXPIRED)))) {
@@ -278,7 +268,7 @@ public class SessionFilter extends AbstractPwmFilter {
             pwmResponse.setHeader(PwmConstants.HttpHeader.Connection, "close");  // better chance of detecting un-sticky sessions this way
             if (mode == SessionVerificationMode.VERIFY_AND_CACHE) {
                 req.setAttribute("Location", returnURL);
-                pwmResponse.forwardToJsp(PwmConstants.JSP_URL.INIT);
+                pwmResponse.forwardToJsp(PwmConstants.JspUrl.INIT);
             } else {
                 pwmResponse.sendRedirect(returnURL);
             }

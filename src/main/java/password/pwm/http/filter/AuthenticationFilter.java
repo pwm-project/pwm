@@ -379,7 +379,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
                 LOGGER.debug(pwmRequest, "user is required to setup responses, redirecting to setup responses servlet");
                 pwmRequest.sendRedirect(PwmServletDefinition.SetupResponses);
                 return ProcessStatus.Halt;
-            } {
+            } else {
                 return ProcessStatus.Continue;
             }
         }

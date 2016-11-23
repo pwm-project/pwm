@@ -39,7 +39,6 @@ import java.lang.annotation.Annotation;
 public enum PwmServletDefinition {
     Login(password.pwm.http.servlet.LoginServlet.class),
     Logout(password.pwm.http.servlet.LogoutServlet.class),
-    Captcha(password.pwm.http.servlet.CaptchaServlet.class),
     OAuthConsumer(OAuthConsumerServlet.class),
     Command(password.pwm.http.servlet.CommandServlet.class),
     //Resource(password.pwm.http.servlet.ResourceFileServlet.class),

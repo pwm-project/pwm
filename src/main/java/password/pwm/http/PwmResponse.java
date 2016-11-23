@@ -63,7 +63,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     }
 
     public void forwardToJsp(
-            final PwmConstants.JSP_URL jspURL
+            final PwmConstants.JspUrl jspURL
     )
             throws ServletException, IOException, PwmUnrecoverableException
     {
@@ -113,7 +113,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         }
 
         try {
-            forwardToJsp(PwmConstants.JSP_URL.SUCCESS);
+            forwardToJsp(PwmConstants.JspUrl.SUCCESS);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unexpected error sending user to success page: " + e.toString());
         }
@@ -138,7 +138,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
         } else if (pwmRequest.isHtmlRequest()) {
             try {
-                forwardToJsp(PwmConstants.JSP_URL.ERROR);
+                forwardToJsp(PwmConstants.JspUrl.ERROR);
             } catch (PwmUnrecoverableException e) {
                 LOGGER.error("unexpected error sending user to error page: " + e.toString());
             }

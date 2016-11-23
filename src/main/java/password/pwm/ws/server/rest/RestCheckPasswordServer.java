@@ -76,7 +76,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
     {
         public int version;
         public int strength;
-        public PasswordUtility.PasswordCheckInfo.MATCH_STATUS match;
+        public PasswordUtility.PasswordCheckInfo.MatchStatus match;
         public String message;
         public boolean passed;
         public int errorCode;

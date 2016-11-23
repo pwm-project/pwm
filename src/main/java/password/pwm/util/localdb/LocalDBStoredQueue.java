@@ -144,10 +144,10 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
     }
 
     public <T> T[] toArray(final T[] a) {
-        int i = 0;
+        int index = 0;
         for (final Iterator<String> innerIter = this.iterator(); innerIter.hasNext(); ) {
-            a[i] = (T) innerIter.next();
-            i++;
+            a[index] = (T) innerIter.next();
+            index++;
         }
         return a;
     }
@@ -503,8 +503,12 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
 
         @Override
         public boolean equals(final Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             final Position position = (Position) o;
 
@@ -525,7 +529,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         private boolean developerDebug = false;
         private static final int DEBUG_MAX_ROWS = 50;
         private static final int DEBUG_MAX_WIDTH = 120;
-        private static final Set<LocalDB.DB> DEBUG_IGNORED_DBs = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+        private static final Set<LocalDB.DB> DEBUG_IGNORED_DB = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
                 new LocalDB.DB[] { LocalDB.DB.EVENTLOG_EVENTS }
         )));
 
@@ -834,7 +838,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
         }
 
         void debugOutput(final String input) {
-            if (!developerDebug || DEBUG_IGNORED_DBs.contains(DB)) {
+            if (!developerDebug || DEBUG_IGNORED_DB.contains(DB)) {
                 return;
             }
 

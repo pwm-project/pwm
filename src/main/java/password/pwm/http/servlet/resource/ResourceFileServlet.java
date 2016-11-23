@@ -220,9 +220,15 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
                 fromCache = handleCacheableResponse(resourceConfiguration, response, file, acceptsGzip, resourceService.getCacheMap());
                 if (fromCache || acceptsGzip) {
                     debugText.append("(");
-                    if (fromCache) debugText.append("cached");
-                    if (fromCache && acceptsGzip) debugText.append(", ");
-                    if (acceptsGzip) debugText.append("gzip");
+                    if (fromCache) {
+                        debugText.append("cached");
+                    }
+                    if (fromCache && acceptsGzip) {
+                        debugText.append(", ");
+                    }
+                    if (acceptsGzip) {
+                        debugText.append("gzip");
+                    }
                     debugText.append(")");
                 } else {
                     debugText = new StringBuilder("(not cached)");
@@ -232,7 +238,9 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
                 handleUncachedResponse(response, file, acceptsGzip);
                 debugText = new StringBuilder();
                 debugText.append("(uncacheable");
-                if (acceptsGzip) debugText.append(", gzip");
+                if (acceptsGzip) {
+                    debugText.append(", gzip");
+                }
                 debugText.append(")");
             }
             try {

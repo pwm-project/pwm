@@ -42,7 +42,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(CryptoCookieBeanImpl.class);
 
-    private static final PwmHttpResponseWrapper.CookiePath COOKIE_PATH = PwmHttpResponseWrapper.CookiePath.CurrentURL;
+    private static final PwmHttpResponseWrapper.CookiePath COOKIE_PATH = PwmHttpResponseWrapper.CookiePath.PwmServlet;
 
     @Override
     public <E extends PwmSessionBean> E getSessionBean(final PwmRequest pwmRequest, final Class<E> theClass) throws PwmUnrecoverableException {

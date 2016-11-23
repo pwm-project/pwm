@@ -73,7 +73,8 @@ public class LdapCrOperator implements CrOperator {
             final ResponseSet responseSet = readResponseSet(theUser, userIdentity, userGUID);
             return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean(responseSet, DataStorageMethod.LDAP);
         } catch (ChaiException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,"unexpected error reading response info " + e.getMessage()));
+            final String errorMsg = "unexpected error reading response info " + e.getMessage();
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,errorMsg));
         }
     }
 
@@ -97,7 +98,9 @@ public class LdapCrOperator implements CrOperator {
         } catch (ChaiOperationException e) {
             final String errorMsg;
             if (e.getErrorCode() == ChaiError.NO_ACCESS) {
-                errorMsg = "permission error clearing responses to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to clear responses: " + e.getMessage();
+                errorMsg = "permission error clearing responses to ldap attribute '"
+                        + ldapStorageAttribute
+                        + "', user does not appear to have correct permissions to clear responses: " + e.getMessage();
             } else {
                 errorMsg = "error clearing responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
             }
@@ -134,7 +137,9 @@ public class LdapCrOperator implements CrOperator {
         } catch (ChaiException e) {
             final String errorMsg;
             if (e.getErrorCode() == ChaiError.NO_ACCESS) {
-                errorMsg = "permission error writing user responses to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to save responses: " + e.getMessage();
+                errorMsg = "permission error writing user responses to ldap attribute '"
+                        + ldapStorageAttribute
+                        + "', user does not appear to have correct permissions to save responses: " + e.getMessage();
             } else {
                 errorMsg = "error writing user responses to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
             }

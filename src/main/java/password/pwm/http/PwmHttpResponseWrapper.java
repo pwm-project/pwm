@@ -26,6 +26,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.StringUtil;
 import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
@@ -50,6 +51,7 @@ public class PwmHttpResponseWrapper {
         Application,
         Private,
         CurrentURL,
+        PwmServlet,
 
         ;
 
@@ -64,11 +66,28 @@ public class PwmHttpResponseWrapper {
                 case CurrentURL:
                     return httpServletRequest.getRequestURI();
 
+                case PwmServlet:
+                    return determinePwmServletPath(httpServletRequest);
+
                 default:
                     throw new IllegalStateException("undefined CookiePath type: " + this);
             }
 
         }
+    }
+
+    private static String determinePwmServletPath(final HttpServletRequest httpServletRequest) {
+        final String context = httpServletRequest.getContextPath();
+        final String requestPath = httpServletRequest.getRequestURI();
+        for (final PwmServletDefinition servletDefinition : PwmServletDefinition.values()) {
+            for (final String pattern : servletDefinition.urlPatterns()) {
+                final String testPath = context + pattern;
+                if (requestPath.startsWith(testPath)) {
+                    return testPath;
+                }
+            }
+        }
+        return requestPath;
     }
 
     public enum Flag {

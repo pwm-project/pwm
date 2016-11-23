@@ -155,12 +155,12 @@ public class DeleteAccountServlet extends AbstractPwmServlet {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(selfDeleteAgreementText);
                 pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText, expandedText);
-                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SELF_DELETE_AGREE);
+                pwmRequest.forwardToJsp(PwmConstants.JspUrl.SELF_DELETE_AGREE);
                 return;
             }
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SELF_DELETE_CONFIRM);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.SELF_DELETE_CONFIRM);
     }
 
     private void handleResetRequest(

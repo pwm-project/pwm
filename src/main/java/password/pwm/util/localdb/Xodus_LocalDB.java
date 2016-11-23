@@ -96,7 +96,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
         }
     },new ConditionalTaskExecutor.TimeDurationConditional(STATS_OUTPUT_INTERVAL).setNextTimeFromNow(1, TimeUnit.MINUTES));
 
-    private BindMachine bindMachine = new BindMachine(BindMachine.DEFAULT_enableCompression, BindMachine.DEFAULT_minCompressionLength);
+    private BindMachine bindMachine = new BindMachine(BindMachine.DEFAULT_ENABLE_COMPRESSION, BindMachine.DEFAULT_MIN_COMPRESSION_LENGTH);
 
 
     @Override
@@ -129,11 +129,11 @@ public class Xodus_LocalDB implements LocalDBProvider {
         {
             final boolean compressionEnabled = initParameters.containsKey(Property.Compression_Enabled.getKeyName())
                     ? Boolean.parseBoolean(initParameters.get(Property.Compression_Enabled.getKeyName()))
-                    : BindMachine.DEFAULT_enableCompression;
+                    : BindMachine.DEFAULT_ENABLE_COMPRESSION;
 
             final int compressionMinLength = initParameters.containsKey(Property.Compression_MinLength.getKeyName())
                     ? Integer.parseInt(initParameters.get(Property.Compression_MinLength.getKeyName()))
-                    : BindMachine.DEFAULT_minCompressionLength;
+                    : BindMachine.DEFAULT_MIN_COMPRESSION_LENGTH;
 
             bindMachine = new BindMachine(compressionEnabled, compressionMinLength);
         }
@@ -412,8 +412,8 @@ public class Xodus_LocalDB implements LocalDBProvider {
         private static final byte COMPRESSED_PREFIX = 98;
         private static final byte UNCOMPRESSED_PREFIX = 99;
 
-        static final int DEFAULT_minCompressionLength = 16;
-        static final boolean DEFAULT_enableCompression = false;
+        private static final int DEFAULT_MIN_COMPRESSION_LENGTH = 16;
+        private static final boolean DEFAULT_ENABLE_COMPRESSION = false;
 
         private final int minCompressionLength;
         private final boolean enableCompression;

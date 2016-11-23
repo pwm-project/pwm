@@ -68,7 +68,7 @@ public enum Permission {
 
 // -------------------------- ENUMERATIONS --------------------------
 
-    public enum PERMISSION_STATUS {
+    public enum PermissionStatus {
         UNCHECKED,
         GRANTED,
         DENIED

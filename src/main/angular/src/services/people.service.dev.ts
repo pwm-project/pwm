@@ -1,9 +1,34 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2016 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+
 import { IPromise, IQService } from 'angular';
 import Person from '../models/person.model';
 import { IPeopleService } from './people.service';
 import OrgChartData from '../models/orgchart-data.model';
+import SearchResult from '../models/search-result.model';
 
-var peopleData = require('./people.data');
+const peopleData = require('./people.data');
+const MAX_RESULTS = 10;
 
 export default class PeopleService implements IPeopleService {
     private people: Person[];
@@ -11,11 +36,37 @@ export default class PeopleService implements IPeopleService {
     static $inject = ['$q'];
     constructor(private $q: IQService) {
         this.people = peopleData.map((person) => new Person(person));
+
+        // Create directReports detail (instead of managing this in people.data.json
+        this.people.forEach((person: Person) => {
+            const directReports = this.findDirectReports(person.userKey);
+
+            if (!directReports.length) {
+                return;
+            }
+
+            person.detail.directReports = {
+                name: 'directReports',
+                label: 'Direct Reports',
+                type: 'userDN',
+                userReferences: directReports
+                    .map((directReport: Person) => {
+                        return {
+                            userKey: directReport.userKey,
+                            displayName: directReport._displayName
+                        };
+                    })
+            };
+        }, this);
     }
 
     autoComplete(query: string): IPromise<Person[]> {
         return this.search(query)
-            .then((people: Person[]) => {
+            .then((searchResult: SearchResult) => {
+                let people = searchResult.people;
+                // Alphabetize results by _displayName
+                people = people.sort((person1, person2) => person1._displayName.localeCompare(person2._displayName));
+
                 if (people && people.length > 10) {
                     return this.$q.resolve(people.slice(0, 10));
                 }
@@ -24,21 +75,17 @@ export default class PeopleService implements IPeopleService {
             });
     }
 
-    cardSearch(query: string): angular.IPromise<Person[]> {
-        return this.search(query);
-    }
-
     getDirectReports(id: string): angular.IPromise<Person[]> {
-        var people = this.findDirectReports(id);
+        const people = this.findDirectReports(id);
 
         return this.$q.resolve(people);
     }
 
     getManagementChain(id: string): angular.IPromise<Person[]> {
-        var person = this.findPerson(id);
+        let person = this.findPerson(id);
 
         if (person) {
-            var managementChain: Person[] = [];
+            const managementChain: Person[] = [];
 
             while (person = this.findManager(person)) {
                 managementChain.push(person);
@@ -55,11 +102,11 @@ export default class PeopleService implements IPeopleService {
             personId = '9';
         }
 
-        var self = this.findPerson(personId);
-        var manager = this.findManager(self);
-        var children = this.findDirectReports(personId);
+        const self = this.findPerson(personId);
+        const manager = this.findManager(self);
+        const children = this.findDirectReports(personId);
 
-        var orgChartData = new OrgChartData(manager, children, self);
+        const orgChartData = new OrgChartData(manager, children, self);
 
         return this.$q.resolve(orgChartData);
     }
@@ -72,7 +119,7 @@ export default class PeopleService implements IPeopleService {
     }
 
     getPerson(id: string): IPromise<Person> {
-        var person = this.findPerson(id);
+        const person = this.findPerson(id);
 
         if (person) {
             return this.$q.resolve(person);
@@ -85,29 +132,32 @@ export default class PeopleService implements IPeopleService {
         return this.$q.resolve(true);
     }
 
-    search(query: string): angular.IPromise<Person[]> {
-        var people = this.people.filter((person: Person) => {
+    search(query: string): angular.IPromise<SearchResult> {
+        let people = this.people.filter((person: Person) => {
             if (!query) {
                 return false;
             }
-            var fullName = `${person.givenName} ${person.sn}`;
-            return fullName.toLowerCase().indexOf(query.toLowerCase()) >= 0;
+            return person._displayName.toLowerCase().indexOf(query.toLowerCase()) >= 0;
         });
 
-        return this.$q.resolve(people);
+        const sizeExceeded = (people.length > MAX_RESULTS);
+        if (sizeExceeded) {
+            people = people.slice(MAX_RESULTS);
+        }
 
+        return this.$q.resolve(new SearchResult({sizeExceeded: sizeExceeded, searchResults: people}));
     }
 
     private findDirectReports(id: string): Person[] {
-        return this.people.filter((person: Person) => person.detail['manager']['typeMetaData'].userKey == id);
+        return this.people.filter((person: Person) => person.detail['manager']['userReferences'][0].userKey == id);
     }
 
     private findManager(person: Person): Person {
-        return this.findPerson(person.detail['manager']['typeMetaData'].userKey);
+        return this.findPerson(person.detail['manager']['userReferences'][0].userKey);
     }
 
     private findPerson(id: string): Person {
-        var people = this.people.filter((person: Person) => person.userKey == id);
+        const people = this.people.filter((person: Person) => person.userKey == id);
 
         if (people.length) {
             return people[0];

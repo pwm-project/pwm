@@ -531,20 +531,27 @@ public class PwmPasswordRuleValidator {
         return errorList;
     }
 
+    // escape characters permitted because they match the exact AD specification
+    @SuppressWarnings("checkstyle:avoidescapedunicodecharacters")
     private static boolean checkContainsTokens(final String baseValue, final String checkPattern) {
-        if (baseValue == null || baseValue.length() == 0)
+        if (baseValue == null || baseValue.length() == 0) {
             return false;
+        }
 
-        if (checkPattern == null || checkPattern.length() == 0)
+        if (checkPattern == null || checkPattern.length() == 0) {
             return false;
+        }
 
         final String baseValueLower = baseValue.toLowerCase();
+
         final String[] tokens = checkPattern.toLowerCase().split("[,\\.\\-\u2013\u2014_ \u00a3\\t]+");
+
         if (tokens != null && tokens.length > 0) {
             for (final String token : tokens) {
                 if (token.length() > 2) {
-                    if (baseValueLower.contains(token))
+                    if (baseValueLower.contains(token)) {
                         return true;
+                    }
                 }
             }
         }

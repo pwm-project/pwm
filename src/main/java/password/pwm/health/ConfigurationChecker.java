@@ -186,25 +186,6 @@ public class ConfigurationChecker implements HealthChecker {
             }
         }
 
-        {
-            final String novellUserAppURL = config.readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
-            if (novellUserAppURL != null && novellUserAppURL.length() > 0) {
-                try {
-                    final URI url = new URI(novellUserAppURL);
-                    final boolean secure = "https".equalsIgnoreCase(url.getScheme());
-                    if (!secure) {
-                        records.add(HealthRecord.forMessage(HealthMessage.Config_URLNotSecure,PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL.toMenuLocationDebug(null,locale)));
-                    }
-                } catch (URISyntaxException e) {
-                    records.add(HealthRecord.forMessage(HealthMessage.Config_ParseError,
-                            e.getMessage(),
-                            PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL.toMenuLocationDebug(null,locale),
-                            novellUserAppURL
-                    ));
-                }
-            }
-        }
-
 
         /*
         if (config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {

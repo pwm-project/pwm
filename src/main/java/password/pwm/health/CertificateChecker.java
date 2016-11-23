@@ -59,7 +59,8 @@ public class CertificateChecker implements HealthChecker {
             records.addAll(doActionHealthCheck(pwmApplication.getConfig()));
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("error while checking action certificates: " + e.getMessage(),e);
-        } return records;
+        }
+        return records;
     }
 
     private static List<HealthRecord> doHealthCheck(final Configuration configuration) {

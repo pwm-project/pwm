@@ -142,7 +142,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return pwmApplication.getConfig();
     }
 
-    public void forwardToJsp(final PwmConstants.JSP_URL jspURL)
+    public void forwardToJsp(final PwmConstants.JspUrl jspURL)
             throws ServletException, IOException, PwmUnrecoverableException
     {
         this.getPwmResponse().forwardToJsp(jspURL);
@@ -305,6 +305,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         ForgottenPasswordOptionalPageView,
         ForgottenPasswordPrompts,
         ForgottenPasswordInstructions,
+        ForgottenPasswordUserInfo,
 
         GuestCurrentExpirationDate,
         GuestMaximumExpirationDate,

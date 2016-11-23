@@ -1,8 +1,31 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2016 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+
 import { IAttributes, IAugmentedJQuery, IDirective, IDocumentService, IParseService, IScope } from 'angular';
 import TableDirectiveController from './table.directive.controller';
 
 require('ux/table.directive.scss');
-var templateUrl = require('ux/table.directive.html');
+const templateUrl = require('ux/table.directive.html');
 
 class DataExpression {
     constructor(public itemName: string,
@@ -26,20 +49,30 @@ class TableDirective implements IDirective {
             controller.onClickItem = this.$parse(instanceAttributes['onClickItem']);
         }
 
-        var dataExpression: DataExpression = this.parseDataExpression(instanceAttributes['data']);
+        const dataExpression: DataExpression = this.parseDataExpression(instanceAttributes['data']);
 
         controller.itemName = dataExpression.itemName;
         // Collection may not be immediately available (i.e. promise). Watch its value for changes
         $scope.$watch(dataExpression.collectionExpression, (items: any[]) => {
             controller.items = items;
         });
+        $scope.$watch(instanceAttributes['searchHighlight'], (searchHighlight: string) => {
+            controller.searchHighlight = searchHighlight;
+        });
 
         // Listen for clicks outside of the configuration panel
-        this.$document.bind('click', (event: Event) => {
-            controller.hideConfiguration();
-            $scope.$apply();
+        this.$document.on('click', () => {
+            if (controller.showConfiguration) {
+                controller.hideConfiguration();
+                $scope.$apply();
+            }
+        });
 
-            event.stopImmediatePropagation();
+        this.$document.on('keydown', (event) => {
+            if (event.keyCode === 27) { // Escape
+                controller.hideConfiguration();
+                $scope.$apply();
+            }
         });
 
         // Clean up event listeners
@@ -50,7 +83,7 @@ class TableDirective implements IDirective {
 
     parseDataExpression(dataExpression: string): any {
         // Parse data expression from [data] attribute
-        var match: RegExpMatchArray = dataExpression.match(/^\s*(.+)\s+in\s+(.*?)\s*$/);
+        let match: RegExpMatchArray = dataExpression.match(/^\s*(.+)\s+in\s+(.*?)\s*$/);
         if (!match) {
             throw Error('Expected expression in [data] attribute in form of "[ITEM] in [COLLECTION]"');
         }

@@ -566,10 +566,10 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         calculateFutureDateFlags(pwmRequest, guestRegistrationBean);
         if (Page.search == guestRegistrationBean.getCurrentPage()) {
             pwmRequest.addFormInfoToRequestAttr(PwmSetting.GUEST_UPDATE_FORM, false, false);
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.GUEST_UPDATE_SEARCH);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.GUEST_UPDATE_SEARCH);
         } else {
             pwmRequest.addFormInfoToRequestAttr(PwmSetting.GUEST_FORM, false, false);
-            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.GUEST_REGISTRATION);
+            pwmRequest.forwardToJsp(PwmConstants.JspUrl.GUEST_REGISTRATION);
         }
     }
 
@@ -588,7 +588,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         }
 
         pwmRequest.addFormInfoToRequestAttr(guestUpdateForm, formValueMap, false, false);
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.GUEST_UPDATE);
+        pwmRequest.forwardToJsp(PwmConstants.JspUrl.GUEST_UPDATE);
     }
 
     private static void checkConfiguration(final Configuration configuration)

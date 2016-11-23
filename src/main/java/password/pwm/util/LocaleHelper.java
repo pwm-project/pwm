@@ -427,7 +427,7 @@ public class LocaleHelper {
     }
 
     private static class LocaleInfoGenerator {
-        private static final boolean debugFlag = false;
+        private static final boolean DEBUG_FLAG = false;
 
         private static void checkLocalesOnBundle(
                 final LocaleStats stats,
@@ -501,7 +501,7 @@ public class LocaleHelper {
             try {
                 final InputStream stream = pwmLocaleBundle.getTheClass().getResourceAsStream(bundleFilename);
                 if (stream == null) {
-                    if (debugFlag) {
+                    if (DEBUG_FLAG) {
                         LOGGER.trace("missing resource bundle: bundle=" + pwmLocaleBundle.getTheClass().getName() + ", locale=" + locale.toString());
                     }
                     returnList.addAll(pwmLocaleBundle.getKeys());
@@ -510,7 +510,7 @@ public class LocaleHelper {
                     checkProperties.load(stream);
                     for (final String key : pwmLocaleBundle.getKeys()) {
                         if (!checkProperties.containsKey(key)) {
-                            if (debugFlag) {
+                            if (DEBUG_FLAG) {
                                 LOGGER.trace("missing resource: bundle=" + pwmLocaleBundle.getTheClass().toString() + ", locale=" + locale.toString() + "' key=" + key);
                             }
                             returnList.add(key);
@@ -518,7 +518,7 @@ public class LocaleHelper {
                     }
                 }
             } catch (IOException e) {
-                if (debugFlag) {
+                if (DEBUG_FLAG) {
                     LOGGER.trace("error loading resource bundle for class='" + pwmLocaleBundle.getTheClass().toString() + ", locale=" + locale.toString() + "', error: " + e.getMessage());
                 }
             }

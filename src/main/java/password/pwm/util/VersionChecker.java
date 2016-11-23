@@ -188,7 +188,9 @@ public class VersionChecker implements PwmService {
         try {
             final Map<String,String> responseMap = doCurrentVersionFetch();
             versionCheckInfoCache = new VersionCheckInfoCache(null, responseMap.get(KEY_VERSION), responseMap.get(KEY_BUILD));
-            LOGGER.info("version check to " + VERSION_CHECK_URL +" completed, current-build=" + versionCheckInfoCache.getCurrentBuild() + ", current-version=" + versionCheckInfoCache.getCurrentVersion());
+            LOGGER.info("version check to " + VERSION_CHECK_URL +" completed, current-build="
+                    + versionCheckInfoCache.getCurrentBuild()
+                    + ", current-version=" + versionCheckInfoCache.getCurrentVersion());
         } catch (Exception e) {
             final String errorMsg = "unable to reach version check service '" + VERSION_CHECK_URL + "', error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNREACHABLE_CLOUD_SERVICE, errorMsg);

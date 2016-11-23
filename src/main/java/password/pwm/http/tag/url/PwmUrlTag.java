@@ -65,9 +65,9 @@ public class PwmUrlTag extends PwmAbstractTag {
 
         String workingUrl = url;
 
-        for (final PwmThemeURL theme_url : PwmThemeURL.values()) {
-            if (theme_url.token().equals(url)) {
-                workingUrl = figureThemeURL(pwmRequest, theme_url);
+        for (final PwmThemeURL themeUrl : PwmThemeURL.values()) {
+            if (themeUrl.token().equals(url)) {
+                workingUrl = figureThemeURL(pwmRequest, themeUrl);
                 workingUrl = insertContext(pageContext, workingUrl);
             }
         }

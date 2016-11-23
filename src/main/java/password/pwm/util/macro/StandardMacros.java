@@ -587,7 +587,7 @@ public abstract class StandardMacros {
         private static final Pattern PATTERN = Pattern.compile("@Encode:[^:]+:\\[\\[.*\\]\\]@");
         // @Encode:ENCODE_TYPE:value@
 
-        private enum ENCODE_TYPE {
+        private enum EncodeType {
             urlPath,
             urlParameter,
             base64,
@@ -610,8 +610,8 @@ public abstract class StandardMacros {
                 }
             }
 
-            private static ENCODE_TYPE forString(final String input) {
-                for (final ENCODE_TYPE encodeType : ENCODE_TYPE.values()) {
+            private static EncodeType forString(final String input) {
+                for (final EncodeType encodeType : EncodeType.values()) {
                     if (encodeType.toString().equalsIgnoreCase(input)) {
                         return encodeType;
                     }
@@ -642,7 +642,7 @@ public abstract class StandardMacros {
             }
 
             final String encodeMethodStr = colonParts[1];
-            final ENCODE_TYPE encodeType = ENCODE_TYPE.forString(encodeMethodStr);
+            final EncodeType encodeType = EncodeType.forString(encodeMethodStr);
             if (encodeType == null) {
                 throw new MacroParseException("unknown encodeType '" + encodeMethodStr + "' for Encode macro");
             }

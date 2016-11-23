@@ -76,8 +76,7 @@ import java.util.regex.Pattern;
  *
  * @author Jason D. Rivard
  */
-public class
-        Helper {
+public class Helper {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(Helper.class);

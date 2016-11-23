@@ -44,7 +44,7 @@ import java.util.TreeSet;
 
 public class CodeIntegrityChecker {
     private static final PwmLogger LOGGER = PwmLogger.forClass(CodeIntegrityChecker.class);
-    private static final boolean debugFlag = false;
+    private static final boolean DEBUG_FLAG = false;
 
     private static final Map<Method,Object[]> CHECK_ENUM_METHODS = new LinkedHashMap<>();
 
