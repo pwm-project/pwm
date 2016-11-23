@@ -257,4 +257,15 @@ public class PwmURL {
                 throw new IllegalArgumentException("unknown scheme: " + scheme);
         }
     }
+
+    public String getPostServletPath(final PwmServletDefinition pwmServletDefinition) {
+        final String path = this.uri.getPath();
+        for (final String pattern : pwmServletDefinition.urlPatterns()) {
+            final String patternWithContext = this.contextPath + pattern;
+            if (path.startsWith(patternWithContext)) {
+                return path.substring(patternWithContext.length());
+            }
+        }
+        return "";
+    }
 }
