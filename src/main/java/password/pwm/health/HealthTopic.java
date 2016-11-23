@@ -28,6 +28,7 @@ import password.pwm.util.LocaleHelper;
 import java.util.Locale;
 
 public enum HealthTopic {
+    Appliance,
     Application,
     Configuration,
     LDAP,

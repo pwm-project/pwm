@@ -375,6 +375,8 @@ public abstract class PwmConstants {
         XSessionID("X-" + PwmConstants.PWM_APP_NAME + "-SessionID"),
         XNoise("X-" + PwmConstants.PWM_APP_NAME + "-Noise"),
 
+        SsprAuthorizationToken("sspr-authorization-token"),
+
         ;
 
         private final String httpName;
