@@ -687,6 +687,9 @@ public class HelpdeskServlet extends AbstractPwmServlet {
             intruderManager.convenience().clearUserIdentity(userIdentity);
         }
 
+        // send notice email
+        sendUnlockNoticeEmail(pwmRequest, helpdeskProfile, userIdentity);
+
         final boolean useProxy = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
         try {
             final ChaiUser chaiUser = useProxy ?
@@ -1232,4 +1235,37 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         final RestResultBean restResultBean = new RestResultBean(responseBean);
         pwmRequest.outputJsonResult(restResultBean);
     }
+
+    private static void sendUnlockNoticeEmail(
+            final PwmRequest pwmRequest,
+            final HelpdeskProfile helpdeskProfile,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final Configuration config = pwmRequest.getConfig();
+        final Locale locale = pwmRequest.getLocale();
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_HELPDESK_UNLOCK, locale);
+
+        if (configuredEmailSetting == null) {
+            LOGGER.debug(pwmRequest, "skipping send helpdesk unlock notice email for '" + userIdentity + "' no email configured");
+            return;
+        }
+
+        final HelpdeskDetailInfoBean helpdeskDetailInfoBean = makeHelpdeskDetailInfo(pwmRequest, helpdeskProfile, userIdentity);
+        final MacroMachine macroMachine = new MacroMachine(
+                pwmApplication,
+                pwmRequest.getSessionLabel(),
+                helpdeskDetailInfoBean.getUserInfoBean(),
+                null,
+                LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity)
+        );
+
+        pwmApplication.getEmailQueue().submitEmail(
+                configuredEmailSetting,
+                helpdeskDetailInfoBean.getUserInfoBean(),
+                macroMachine
+        );
+    }
+
 }
