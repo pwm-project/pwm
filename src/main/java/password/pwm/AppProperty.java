@@ -235,6 +235,7 @@ public enum     AppProperty {
     SECURITY_HTTPSSERVER_SELF_FUTURESECONDS         ("security.httpsServer.selfCert.futureSeconds"),
     SECURITY_HTTPSSERVER_SELF_ALG                   ("security.httpsServer.selfCert.alg"),
     SECURITY_HTTPSSERVER_SELF_KEY_SIZE              ("security.httpsServer.selfCert.keySize"),
+    SECURITY_LOGIN_HIDDEN_ERROR_TYPES               ("security.login.hiddenErrorTypes"),
     SECURITY_RESPONSES_HASH_ITERATIONS              ("security.responses.hashIterations"),
     SECURITY_INPUT_TRIM                             ("security.input.trim"),
     SECURITY_INPUT_PASSWORD_TRIM                    ("security.input.password.trim"),
