@@ -29,7 +29,7 @@ import java.util.ResourceBundle;
  * by an associated {@code AppProperty.properties} file.  Properties can be overridden by the application administrator in
  * the configuration using the setting {@link password.pwm.config.PwmSetting#APP_PROPERTY_OVERRIDES}.
  */
-public enum AppProperty {
+public enum     AppProperty {
 
     APPLICATION_FILELOCK_FILENAME                   ("application.fileLock.filename"),
     APPLICATION_FILELOCK_WAIT_SECONDS               ("application.fileLock.waitSeconds"),

@@ -746,6 +746,8 @@ public enum PwmSetting {
             "recovery.oauth.idserver.secret", PwmSettingSyntax.PASSWORD, PwmSettingCategory.RECOVERY_OAUTH),
     RECOVERY_OAUTH_ID_DN_ATTRIBUTE_NAME(
             "recovery.oauth.idserver.dnAttributeName", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH),
+    RECOVERY_OAUTH_ID_USERNAME_SEND_VALUE(
+            "recovery.oauth.idserver.usernameSendValue", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH),
 
 
     // forgotten username

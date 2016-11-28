@@ -2170,6 +2170,11 @@
     <setting hidden="false" key="recovery.oauth.idserver.dnAttributeName" level="2">
         <default/>
     </setting>
+    <setting hidden="false" key="recovery.oauth.idserver.usernameSendValue" level="2">
+        <flag>MacroSupport</flag>
+        <example>@LDAP:DN@</example>
+        <default/>
+    </setting>
     <setting hidden="false" key="recovery.enable" level="1">
         <default>
             <value>true</value>

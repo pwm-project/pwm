@@ -31,6 +31,7 @@ import org.apache.http.util.EntityUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -44,16 +45,20 @@ import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -89,6 +94,7 @@ public class OAuthMachine {
     public void redirectUserToOAuthServer(
             final PwmRequest pwmRequest,
             final String nextUrl,
+            final UserIdentity userIdentity,
             final String forgottenPasswordProfile
     )
             throws PwmUnrecoverableException, IOException
@@ -107,6 +113,13 @@ public class OAuthMachine {
         urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_RESPONSE_TYPE),code);
         urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_STATE),state);
         urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI), redirectUri);
+
+        if (userIdentity != null) {
+            final String parametersValue = figureUsernameGrantParam(pwmRequest, userIdentity);
+            if (StringUtil.isEmpty(parametersValue)) {
+                urlParams.put("parameters", parametersValue);
+            }
+        }
 
         final String redirectUrl = PwmURL.appendAndEncodeUrlParameters(settings.getLoginURL(), urlParams);
 
@@ -401,5 +414,49 @@ public class OAuthMachine {
 
         final String jsonValue = JsonUtil.serialize(oAuthState);
         return pwmRequest.getPwmApplication().getSecureService().encryptToString(jsonValue);
+    }
+
+    private String figureUsernameGrantParam(
+            final PwmRequest pwmRequest,
+            final UserIdentity userIdentity
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        if (userIdentity == null) {
+            return null;
+        }
+
+        final String macroText = settings.getUsernameSendValue();
+        if (StringUtil.isEmpty(macroText)) {
+            return null;
+        }
+
+        final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest, userIdentity);
+        final String username = macroMachine.expandMacros(macroText);
+        LOGGER.debug(pwmRequest, "calculated username value for user as: " + username);
+
+        final String grantUrl = settings.getLoginURL();
+        final String signUrl = grantUrl.replace("/grant","/sign");
+
+        final Map<String, String> requestPayload;
+        {
+            final Map<String, String> dataPayload = new HashMap<>();
+            dataPayload.put("username", username);
+
+            final List<Map<String,String>> listWrapper = new ArrayList<>();
+            listWrapper.add(dataPayload);
+
+            requestPayload = new HashMap<>();
+            requestPayload.put("data",  JsonUtil.serializeCollection(listWrapper));
+        }
+
+        LOGGER.debug(pwmRequest, "preparing to send username to OAuth /sign endpoint for future injection to /grant redirect");
+        final RestResults restResults = makeHttpRequest(pwmRequest, "OAuth pre-inject username signing service",settings, signUrl, requestPayload);
+
+        final String resultBody = restResults.getResponseBody();
+        final Map<String,String> resultBodyMap = JsonUtil.deserializeStringMap(resultBody);
+        final String data = resultBodyMap.get("data");
+        LOGGER.debug(pwmRequest, "oauth /sign endpoint returned signed username data: " + data);
+        return data;
     }
 }

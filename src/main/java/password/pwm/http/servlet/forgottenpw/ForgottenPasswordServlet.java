@@ -63,7 +63,6 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.http.servlet.AbstractPwmServlet;
-import password.pwm.util.CaptchaUtility;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.oauth.OAuthForgottenPasswordResults;
 import password.pwm.http.servlet.oauth.OAuthMachine;
@@ -85,6 +84,7 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
+import password.pwm.util.CaptchaUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
@@ -1680,7 +1680,8 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                 final OAuthSettings oAuthSettings = OAuthSettings.forForgottenPassword(forgottenPasswordProfile);
                 final OAuthMachine oAuthMachine = new OAuthMachine(oAuthSettings);
                 pwmRequest.getPwmApplication().getSessionStateService().saveSessionBeans(pwmRequest);
-                oAuthMachine.redirectUserToOAuthServer(pwmRequest, null, forgottenPasswordProfile.getIdentifier());
+                final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
+                oAuthMachine.redirectUserToOAuthServer(pwmRequest, null, userIdentity, forgottenPasswordProfile.getIdentifier());
                 break;
 
 

@@ -39,6 +39,9 @@ public class OAuthSettings implements Serializable {
     private String dnAttributeName;
     private OAuthUseCase use;
     private X509Certificate[] certificates;
+    private String usernameSendValue;
+
+
 
     private OAuthSettings() {
     }
@@ -81,6 +84,10 @@ public class OAuthSettings implements Serializable {
         return certificates;
     }
 
+    public String getUsernameSendValue() {
+        return usernameSendValue;
+    }
+
     public boolean oAuthIsConfigured() {
         return (loginURL != null && !loginURL.isEmpty())
                 && (codeResolveUrl != null && !codeResolveUrl.isEmpty())
@@ -113,6 +120,7 @@ public class OAuthSettings implements Serializable {
         settings.dnAttributeName = config.readSettingAsString(PwmSetting.RECOVERY_OAUTH_ID_DN_ATTRIBUTE_NAME);
         settings.certificates = config.readSettingAsCertificate(PwmSetting.RECOVERY_OAUTH_ID_CERTIFICATE);
         settings.use = OAuthUseCase.ForgottenPassword;
+        settings.usernameSendValue = config.readSettingAsString(PwmSetting.RECOVERY_OAUTH_ID_USERNAME_SEND_VALUE);
         return settings;
     }
 }
