@@ -36,6 +36,21 @@ body {
   }
 }
 
+a {
+  color: #0088ce;
+  cursor: pointer;
+  font-weight: normal;
+  text-decoration: none;
+
+  &:focus {
+    outline: 1px solid #28a9e1;
+  }
+
+  &:hover {
+    background-color: #f6f9f8;
+  }
+}
+
 .people-search-component {
   display: flex;
   flex-flow: column nowrap;

@@ -52,9 +52,17 @@ person-card {
 
     &:focus,
     &:hover {
+      outline: none;
+    }
+
+    &:focus {
+      background-color: #fff6ce;
+      border-color: #ffd92d;
+    }
+
+    &:hover {
       background-color: $person-card-hover-bg-color;
       border-color: $person-card-border-color;
-      outline: none;
     }
   }
 
@@ -88,7 +96,17 @@ person-card {
       &:focus,
       &:hover {
         background-color: transparent;
+      }
 
+      &:focus {
+        > .person-card-content {
+          > .avatar {
+            border-color: #ffd92d !important;
+          }
+        }
+      }
+
+      &:hover {
         > .person-card-content {
           > .avatar {
             border-color: $person-card-border-color !important;
@@ -143,6 +161,7 @@ person-card {
     > .avatar {
       background: transparent url('../../images/user.png') no-repeat center center;
       background-size: contain;
+      border-radius: 3px;
       flex: 0 0 $person-card-avatar-size;
       height: $person-card-avatar-size;
       margin-right: $person-card-spacing;

@@ -27,69 +27,78 @@
   }
 
   .mf-dialog-content {
-    > table {
-      border: 1px solid #dae1e1;
-      border-collapse: collapse;
-      //box-sizing: border-box;
-      width: 100%;
+    > .person-details-header {
+      background-color: #eef2f2;
 
-      tr {
-        height: 25px;
+      > person-card {
+        height: 110px;
+        max-width: 100%;
+        width: 100%;
 
-        td {
-          border: 1px solid #dae1e1;
-          font-size: 12px;
-          height: 19px;
-          padding: 3px 5px;
-          text-align: start;
-
-          &:first-child {
-            color: #949494;
-            text-align: end;
-            padding: 3px 15px;
+        > .person-card-content {
+          > .avatar {
+            flex-basis: 100px;
+            height: 100px;
+            width: 100px;
           }
+        }
+      }
+    }
 
-          &:last-child {
-            > .detail-container {
-              > ul {
-                > li {
-                  display: flex;
-                  flex-direction: row;
+    > .person-details-content {
+      padding: 10px;
+      > table {
+        border: none;
+        border-collapse: collapse;
+        width: 100%;
 
-                  > [flex] {
-                    flex: 1 1;
-                  }
+        tr {
+          height: 25px;
 
-                  > mf-icon-button {
-                    display: inline-block;
-                    flex: 0 0 16px;
-                    height: 16px;
-                    width: 16px;
+          td {
+            border: none;
+            font-size: 12px;
+            height: 19px;
+            text-align: start;
 
-                    > button {
-                      > mf-icon {
-                        font-size: 16px;
+            &:first-child {
+              color: #949494;
+              width: 100px;
+              text-align: end;
+              padding: 3px 0;
+            }
+
+            &:last-child {
+              padding: 3px 10px;
+
+              > .detail-container {
+                > ul {
+                  > li {
+                    > mf-icon-button {
+                      display: inline-block;
+                      height: 16px;
+                      width: 16px;
+
+                      > button {
+                        > mf-icon {
+                          font-size: 16px;
+                        }
                       }
                     }
                   }
                 }
               }
             }
-          }
 
-          a {
-            cursor: pointer;
-            text-decoration: underline;
-          }
-
-          ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-
-            > li {
+            ul {
+              list-style: none;
               margin: 0;
               padding: 0;
+
+              > li {
+                margin: 0;
+                padding: 0;
+              }
             }
           }
         }
