@@ -27,19 +27,19 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
+import password.pwm.http.bean.LoginServletBean;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
-import password.pwm.util.Validator;
+import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -74,6 +74,7 @@ public class LoginServlet extends AbstractPwmServlet {
     public enum LoginServletAction implements ProcessAction {
         login(HttpMethod.POST),
         restLogin(HttpMethod.POST),
+        receiveUrl(HttpMethod.GET),
 
         ;
 
@@ -112,8 +113,6 @@ public class LoginServlet extends AbstractPwmServlet {
         final LoginServletAction action = readProcessAction(pwmRequest);
 
         if (action != null) {
-            Validator.validatePwmFormID(pwmRequest);
-
             switch (action) {
                 case login:
                     processLogin(pwmRequest, passwordOnly);
@@ -121,6 +120,10 @@ public class LoginServlet extends AbstractPwmServlet {
 
                 case restLogin:
                     processRestLogin(pwmRequest, passwordOnly);
+                    break;
+
+                case receiveUrl:
+                    processReceiveUrl(pwmRequest);
                     break;
 
                 default:
@@ -146,10 +149,7 @@ public class LoginServlet extends AbstractPwmServlet {
         }
 
         // login has succeeded
-        pwmRequest.sendRedirect(determinePostLoginUrl(
-                pwmRequest,
-                pwmRequest.readParameterAsString(PwmConstants.PARAM_POST_LOGIN_URL)
-        ));
+        pwmRequest.sendRedirect(determinePostLoginUrl(pwmRequest));
     }
 
     private void processRestLogin(final PwmRequest pwmRequest, final boolean passwordOnly)
@@ -175,12 +175,28 @@ public class LoginServlet extends AbstractPwmServlet {
         pwmRequest.readParametersAsMap();
 
         // login has succeeded
-        final String nextLoginUrl = determinePostLoginUrl(pwmRequest, valueMap.get(PwmConstants.PARAM_POST_LOGIN_URL));
+        final String nextLoginUrl = determinePostLoginUrl(pwmRequest);
         final RestResultBean restResultBean = new RestResultBean();
         final HashMap<String,String> resultMap = new HashMap<>(Collections.singletonMap("nextURL", nextLoginUrl));
         restResultBean.setData(resultMap);
         LOGGER.debug(pwmRequest, "rest login succeeded");
         pwmRequest.outputJsonResult(restResultBean);
+    }
+
+    private void processReceiveUrl(final PwmRequest pwmRequest)
+            throws PwmUnrecoverableException, IOException
+    {
+        final String encryptedNextUrl = pwmRequest.readParameterAsString(PwmConstants.PARAM_POST_LOGIN_URL);
+        if (!StringUtil.isEmpty(encryptedNextUrl)) {
+            final String nextUrl = pwmRequest.getPwmApplication().getSecureService().decryptStringValue(encryptedNextUrl);
+            if (!StringUtil.isEmpty(nextUrl)) {
+                final LoginServletBean loginServletBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, LoginServletBean.class);
+                LOGGER.trace(pwmRequest, "received nextUrl and storing in module bean, value: " + nextUrl);
+                loginServletBean.setNextUrl(nextUrl);
+            }
+        }
+
+        pwmRequest.sendRedirect(PwmServletDefinition.Login);
     }
 
     private void handleLoginRequest(
@@ -241,21 +257,16 @@ public class LoginServlet extends AbstractPwmServlet {
         pwmRequest.forwardToJsp(url);
     }
 
-    private static String determinePostLoginUrl(final PwmRequest pwmRequest, final String inputValue)
+    private static String determinePostLoginUrl(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException
     {
-        String decryptedValue = null;
-        try {
-            if (inputValue != null && !inputValue.isEmpty()) {
-                decryptedValue = pwmRequest.getPwmApplication().getSecureService().decryptStringValue(inputValue);
-            }
-        } catch (PwmException e) {
-            LOGGER.warn(pwmRequest, "unable to decrypt post login redirect parameter: " + e.getMessage());
-        }
+        final LoginServletBean loginServletBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, LoginServletBean.class);
+        final String decryptedValue = loginServletBean.getNextUrl();
 
         if (decryptedValue != null && !decryptedValue.isEmpty()) {
             final PwmURL originalPwmURL = new PwmURL(URI.create(decryptedValue),pwmRequest.getContextPath());
             if (!originalPwmURL.isLoginServlet()) {
+                loginServletBean.setNextUrl(null);
                 return decryptedValue;
             }
         }
@@ -270,13 +281,18 @@ public class LoginServlet extends AbstractPwmServlet {
 
         final String encryptedRedirUrl = pwmRequest.getPwmApplication().getSecureService().encryptToString(originalRequestedUrl);
 
+        final Map<String,String> paramMap = new HashMap<>();
+        paramMap.put(PwmConstants.PARAM_POST_LOGIN_URL, encryptedRedirUrl);
+        paramMap.put(PwmConstants.PARAM_ACTION_REQUEST, LoginServletAction.receiveUrl.toString());
+
         final String redirectUrl = PwmURL.appendAndEncodeUrlParameters(
                 pwmRequest.getContextPath() + PwmServletDefinition.Login.servletUrl(),
-                Collections.singletonMap(PwmConstants.PARAM_POST_LOGIN_URL, encryptedRedirUrl)
+                paramMap
         );
 
-        pwmRequest.sendRedirect(redirectUrl);
+        LOGGER.trace(pwmRequest, "redirecting to self to set nextUrl to: " + originalRequestedUrl);
 
+        pwmRequest.sendRedirect(redirectUrl);
     }
 }
 

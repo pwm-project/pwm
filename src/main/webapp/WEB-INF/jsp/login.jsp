@@ -47,8 +47,6 @@
                 <div class="formFieldWrapper">
                     <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password" id="password" placeholder="<pwm:display key="Field_Password"/>" required="required" class="inputfield passwordfield"/>
                 </div>
-                <input type="hidden" id="<%=PwmConstants.PARAM_POST_LOGIN_URL%>" name="<%=PwmConstants.PARAM_POST_LOGIN_URL%>"
-                       value="<%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).readParameterAsString(PwmConstants.PARAM_POST_LOGIN_URL))%>"/>
                 <%@ include file="/WEB-INF/jsp/fragment/captcha-embed.jsp"%>
                 <div class="buttonbar">
                     <button type="submit" class="btn" <pwm:autofocus/> name="button" id="submitBtn">
