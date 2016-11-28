@@ -21,11 +21,6 @@
  */
 
 
-.detail-link {
-  text-align: center;
-  width:100%;
-}
-
 .person-details {
   mf-app-bar {
     padding: 0 5px;
@@ -55,23 +50,11 @@
           }
 
           &:last-child {
-
             > .detail-container {
-              a {
-                cursor: pointer;
-                text-decoration: underline;
-              }
-
               > ul {
-                list-style: none;
-                margin: 0;
-                padding: 0;
-
                 > li {
                   display: flex;
                   flex-direction: row;
-                  margin: 0;
-                  padding: 0;
 
                   > [flex] {
                     flex: 1 1;
@@ -91,6 +74,22 @@
                   }
                 }
               }
+            }
+          }
+
+          a {
+            cursor: pointer;
+            text-decoration: underline;
+          }
+
+          ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+
+            > li {
+              margin: 0;
+              padding: 0;
             }
           }
         }

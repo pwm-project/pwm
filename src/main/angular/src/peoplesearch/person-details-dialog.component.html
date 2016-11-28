@@ -15,11 +15,14 @@
         <!-- Details -->
         <table>
             <tbody>
-                <tr ng-repeat="reference in $ctrl.person.links">
-                    <td colspan="2">
-                        <div class="detail-link">
-                            <a ng-href="{{reference.link}}"><span ng-bind="reference.name"></span></a>
-                        </div>
+                <tr>
+                    <td></td>
+                    <td>
+                        <ul>
+                            <li ng-repeat="reference in $ctrl.person.links">
+                                <a ng-href="{{reference.link}}"><span ng-bind="reference.name"></span></a>
+                            </li>
+                        </ul>
                     </td>
                 </tr>
                 <tr ng-repeat="(key, detail) in $ctrl.person.detail">
