@@ -50,14 +50,6 @@ export default class OrgChartComponent {
     managementChain: Person[];
     person: Person;
 
-    emptyPerson: Person = new Person({
-        displayNames: [
-            'No Managers'
-        ],
-        photoURL: null,
-        userKey: null
-    });
-
     private elementSize: OrgChartSize = OrgChartSize.ExtraSmall;
     private maxVisibleManagers: number;
     private visibleManagers: Person[];
@@ -130,10 +122,6 @@ export default class OrgChartComponent {
 
     hasManagementChain(): boolean {
         return this.managementChain && !!this.managementChain.length;
-    }
-
-    isPersonOrphan(): boolean {
-        return !(this.hasDirectReports() || this.hasManagementChain());
     }
 
     onClickPerson(): void {

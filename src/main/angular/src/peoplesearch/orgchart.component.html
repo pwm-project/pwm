@@ -1,8 +1,8 @@
 <div class="org-chart-section managers"
      ng-class="{ 'overflow': $ctrl.showingOverflow() }"
-     ng-if="$ctrl.hasManagementChain() || $ctrl.isPersonOrphan()">
+     ng-if="$ctrl.hasManagementChain()">
     <h3 translate="Title_Management">Management</h3>
-    <div ng-if="!$ctrl.isPersonOrphan()">
+    <div>
         <div class="manager"
              ng-repeat="manager in $ctrl.getManagementChain() track by $id(manager.displayNames)">
             <div class="org-chart-connector"></div>
@@ -11,12 +11,6 @@
                          show-direct-report-count="false"
                          ng-click="$ctrl.selectPerson(manager.userKey)">
             </person-card>
-        </div>
-    </div>
-    <div ng-if="$ctrl.isPersonOrphan()">
-        <div class="manager empty-manager">
-            <div class="org-chart-connector"></div>
-            <person-card person="$ctrl.emptyPerson" size="{{ $ctrl.getManagerCardSize() }}"></person-card>
         </div>
     </div>
 </div>
