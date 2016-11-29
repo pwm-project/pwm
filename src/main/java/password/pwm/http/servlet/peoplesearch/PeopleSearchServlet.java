@@ -204,7 +204,10 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
         final SearchResultBean searchResultBean = peopleSearchDataReader.makeSearchResultBean(username, includeDisplayName);
         searchResultBean.setFromCache(false);
         final RestResultBean restResultBean = new RestResultBean(searchResultBean);
+
+        addExpiresHeadersToResponse(pwmRequest);
         pwmRequest.outputJsonResult(restResultBean);
+
         LOGGER.trace(pwmRequest, "returning " + searchResultBean.getSearchResults().size() + " results for search request '" + username + "'");
     }
 
@@ -236,6 +239,8 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
         try {
             final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader(pwmRequest);
             final OrgChartDataBean orgChartData = peopleSearchDataReader.makeOrgChartData(userIdentity);
+
+            addExpiresHeadersToResponse(pwmRequest);
             pwmRequest.outputJsonResult(new RestResultBean(orgChartData));
             StatisticsManager.incrementStat(pwmRequest, Statistic.PEOPLESEARCH_ORGCHART);
         } catch (PwmException e) {
@@ -258,6 +263,8 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
         try {
             final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader(pwmRequest);
             final UserDetailBean detailData = peopleSearchDataReader.makeUserDetailRequest(userKey);
+
+            addExpiresHeadersToResponse(pwmRequest);
             pwmRequest.outputJsonResult(new RestResultBean(detailData));
             pwmRequest.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PEOPLESEARCH_DETAILS);
         } catch (PwmOperationalException e) {
@@ -301,21 +308,20 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
             return;
         }
 
-        OutputStream outputStream = null;
-        try {
-            final long maxCacheSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS);
+        addExpiresHeadersToResponse(pwmRequest);
+
+        try (OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream()) {
             final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
             resp.setContentType(photoData.getMimeType());
-            resp.setDateHeader("Expires", System.currentTimeMillis() + (maxCacheSeconds * 1000L));
-            resp.setHeader("Cache-Control", "public, max-age=" + maxCacheSeconds);
 
-            outputStream = pwmRequest.getPwmResponse().getOutputStream();
             outputStream.write(photoData.getContents());
-
-        } finally {
-            if (outputStream != null) {
-                outputStream.close();
-            }
         }
+    }
+
+    private void addExpiresHeadersToResponse(final PwmRequest pwmRequest) {
+        final long maxCacheSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS);
+        final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
+        resp.setDateHeader("Expires", System.currentTimeMillis() + (maxCacheSeconds * 1000L));
+        resp.setHeader("Cache-Control", "private, max-age=" + maxCacheSeconds);
     }
 }
