@@ -25,19 +25,22 @@ import { IPeopleService } from '../services/people.service';
 import { isArray, isString, IPromise, IQService, IScope } from 'angular';
 import Person from '../models/person.model';
 import SearchResult from '../models/search-result.model';
+import {IConfigService} from '../services/config.service';
 
 abstract class PeopleSearchBaseComponent {
     loading: boolean;
     query: string;
     searchMessage: (string | IPromise<string>);
     searchResult: SearchResult;
+    orgChartEnabled: boolean;
 
     constructor(protected $q: IQService,
-                          protected $scope: IScope,
-                          protected $state: angular.ui.IStateService,
-                          protected $stateParams: angular.ui.IStateParamsService,
-                          protected $translate: angular.translate.ITranslateService,
-                          protected peopleService: IPeopleService) {}
+                protected $scope: IScope,
+                protected $state: angular.ui.IStateService,
+                protected $stateParams: angular.ui.IStateParamsService,
+                protected $translate: angular.translate.ITranslateService,
+                protected configService: IConfigService,
+                protected peopleService: IPeopleService) {}
 
     gotoOrgchart(): void {
         this.gotoState('orgchart.index');
@@ -131,6 +134,11 @@ abstract class PeopleSearchBaseComponent {
     }
 
     protected initialize(): void {
+        // Determine whether org-chart should appear
+        this.configService.orgChartEnabled().then((orgChartEnabled: boolean) => {
+            this.orgChartEnabled = orgChartEnabled;
+        });
+
         // Read query from state parameters
         const queryParameter = this.$stateParams['query'];
 

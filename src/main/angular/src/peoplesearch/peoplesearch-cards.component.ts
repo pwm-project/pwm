@@ -48,6 +48,7 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
         '$stateParams',
         '$translate',
         'MfElementSizeService',
+        'ConfigService',
         'PeopleService'
     ];
     constructor(private $element: IAugmentedJQuery,
@@ -57,8 +58,9 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
                 private elementSizeService: ElementSizeService,
+                configService,
                 peopleService: IPeopleService) {
-        super($q, $scope, $state, $stateParams, $translate, peopleService);
+        super($q, $scope, $state, $stateParams, $translate, configService, peopleService);
     }
 
     $onDestroy(): void {

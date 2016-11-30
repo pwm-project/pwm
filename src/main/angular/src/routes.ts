@@ -21,6 +21,9 @@
  */
 
 
+import { IConfigService } from './services/config.service';
+import { IQService } from 'angular';
+
 export default [
     '$stateProvider',
     '$urlRouterProvider',
@@ -51,7 +54,31 @@ export default [
             url: '/details/{personId}',
             component: 'personDetailsDialogComponent'
         });
-        $stateProvider.state('orgchart', { url: '/orgchart?query', abstract: true, template: '<ui-view/>' });
+        $stateProvider.state('orgchart', { url: '/orgchart?query',
+            abstract: true,
+            template: '<ui-view/>',
+            resolve: {
+                enabled: [
+                    '$q',
+                    'ConfigService',
+                    ($q: IQService, configService: IConfigService) => {
+                        let deferred = $q.defer();
+
+                        configService
+                            .orgChartEnabled()
+                            .then((orgChartEnabled: boolean) => {
+                                if (!orgChartEnabled) {
+                                    deferred.reject('OrgChart disabled');
+                                }
+                                else {
+                                    deferred.resolve();
+                                }
+                            });
+
+                        return deferred.promise;
+                    }]
+            }
+        });
         $stateProvider.state('orgchart.index', { url: '', component: 'orgChartSearch' });
         $stateProvider.state('orgchart.search', { url: '/{personId}', component: 'orgChartSearch' });
         $stateProvider.state('orgchart.search.details', { url: '/details', component: 'personDetailsDialogComponent' });

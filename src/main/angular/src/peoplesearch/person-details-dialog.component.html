@@ -5,7 +5,7 @@
                          person="$ctrl.person"
                          disable-focus="true"
                          show-direct-report-count="false"></person-card>
-            <mf-button type="button" ng-click="$ctrl.gotoOrgChart()">
+            <mf-button type="button" ng-click="$ctrl.gotoOrgChart()" ng-if="$ctrl.orgChartEnabled">
                 <mf-icon icon="orgchart"></mf-icon>
                 <span translate="Title_OrgChart">Organizational Chart</span>
             </mf-button>

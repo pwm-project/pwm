@@ -13,10 +13,11 @@
             icon="view-list"
             ng-click="$ctrl.gotoTableView()"
             ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
-    <div class="mf-divider vertical"></div>
+    <div class="mf-divider vertical" ng-if="$ctrl.orgChartEnabled"></div>
     <mf-icon-button
             icon="orgchart"
             ng-click="$ctrl.gotoOrgchart()"
+            ng-if="$ctrl.orgChartEnabled"
             ng-attr-title="{{ 'Title_OrgChart' | translate }}"></mf-icon-button>
 </mf-app-bar>
 
