@@ -28,6 +28,7 @@
 
     <div class="person-card-list">
         <person-card person="person"
+                     show-image="$ctrl.photosEnabled"
                      ng-repeat="person in $ctrl.searchResult.people"
                      ng-click="$ctrl.selectPerson(person)">
         </person-card>

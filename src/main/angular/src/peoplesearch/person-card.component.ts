@@ -31,6 +31,7 @@ import { IPeopleService } from '../services/people.service';
         directReports: '<',
         disableFocus: '<',
         person: '<',
+        showImage: '<',
         size: '@',
         showDirectReportCount: '<'
     },
@@ -44,6 +45,7 @@ export default class PersonCardComponent {
     private directReports: Person[];
     private size: string;
     private showDirectReportCount: boolean;
+    private showImage: boolean;
 
     static $inject = ['$element', 'PeopleService'];
     constructor(private $element: IAugmentedJQuery, private peopleService: IPeopleService) {
@@ -79,11 +81,19 @@ export default class PersonCardComponent {
     }
 
     getAvatarStyle(): any {
+        if (!this.showImage) {
+            return { 'background-image': 'url()' };
+        }
+
         if (this.person && this.person.photoURL) {
             return { 'background-image': 'url(' + this.person.photoURL + ')' };
         }
 
         return {};
+    }
+
+    isSmall(): boolean {
+        return this.size === 'small';
     }
 
     private onKeyDown(event: KeyboardEvent): void {

@@ -7,6 +7,7 @@
              ng-repeat="manager in $ctrl.getManagementChain() track by $id(manager.displayNames)">
             <div class="org-chart-connector"></div>
             <person-card person="manager"
+                         show-image="$ctrl.showImages || ($ctrl.showingOverflow() && $last)"
                          size="{{ $ctrl.getManagerCardSize() }}"
                          show-direct-report-count="false"
                          ng-click="$ctrl.selectPerson(manager.userKey)">
@@ -16,7 +17,9 @@
     <div ng-if="$ctrl.isPersonOrphan()">
         <div class="manager empty-manager">
             <div class="org-chart-connector"></div>
-            <person-card person="$ctrl.emptyPerson" size="{{ $ctrl.getManagerCardSize() }}"></person-card>
+            <person-card person="$ctrl.emptyPerson"
+                         show-image="$ctrl.showImages"
+                         size="{{ $ctrl.getManagerCardSize() }}"></person-card>
         </div>
     </div>
 </div>
@@ -26,7 +29,8 @@
                  direct-reports="$ctrl.directReports"
                  ng-click="$ctrl.onClickPerson()"
                  size="large"
-                 show-direct-report-count="true"></person-card>
+                 show-direct-report-count="true"
+                 show-image="$ctrl.showImages"></person-card>
 </div>
 
 <div class="org-chart-section direct-reports" ng-if="$ctrl.hasDirectReports()">
@@ -36,6 +40,7 @@
     <div class="person-card-list">
         <person-card person="directReport"
                      show-direct-report-count="false"
+                     show-image="$ctrl.showImages"
                      ng-repeat="directReport in $ctrl.directReports"
                      ng-click="$ctrl.selectPerson(directReport.userKey)">
         </person-card>

@@ -40,6 +40,8 @@ export enum PeopleSearchCardsSize {
     templateUrl: require('peoplesearch/peoplesearch-cards.component.html')
 })
 export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponent {
+    photosEnabled: boolean;
+
     static $inject = [
         '$element',
         '$q',
@@ -70,6 +72,10 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
     $onInit(): void {
         this.initialize();
         this.fetchData();
+
+        this.configService.photosEnabled().then((photosEnabled: boolean) => {
+            this.photosEnabled = photosEnabled;
+        });
 
         this.elementSizeService.watchWidth(this.$element, PeopleSearchCardsSize);
     }

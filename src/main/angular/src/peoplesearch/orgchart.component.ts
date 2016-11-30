@@ -38,7 +38,8 @@ export enum OrgChartSize {
     bindings: {
         directReports: '<',
         managementChain: '<',
-        person: '<'
+        person: '<',
+        showImages: '<'
     },
     stylesheetUrl: require('peoplesearch/orgchart.component.scss'),
     templateUrl: require('peoplesearch/orgchart.component.html')
@@ -154,7 +155,9 @@ export default class OrgChartComponent {
 
     private onResize(newValue: number): void {
         this.isExtraLargeLayout = (newValue >= OrgChartSize.ExtraLarge);
-
+        if (!this.isExtraLargeLayout) {
+            this.resetManagerList();
+        }
         this.maxVisibleManagers = Math.floor(
          (newValue - 115 /* left margin */) / 125 /* card width + right margin */);
     }

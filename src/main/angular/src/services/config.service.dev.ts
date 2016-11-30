@@ -39,7 +39,7 @@ export default class ConfigService implements IConfigService {
     }
 
     photosEnabled(): IPromise<boolean> {
-        return this.$q.resolve(true);
+        return this.$q.resolve(false);
     }
 
     orgChartEnabled(): IPromise<boolean> {
