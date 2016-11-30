@@ -22,9 +22,10 @@
 
 
 import { Component } from '../component';
+import { IConfigService } from '../services/config.service';
 import { IPeopleService } from '../services/people.service';
 import Person from '../models/person.model';
-import { IAugmentedJQuery, IScope, ITimeoutService } from 'angular';
+import { IAugmentedJQuery, ITimeoutService } from 'angular';
 
 @Component({
     stylesheetUrl: require('peoplesearch/person-details-dialog.component.scss'),
@@ -32,17 +33,29 @@ import { IAugmentedJQuery, IScope, ITimeoutService } from 'angular';
 })
 export default class PersonDetailsDialogComponent {
     person: Person;
+    photosEnabled: boolean;
+    orgChartEnabled: boolean;
 
-    static $inject = [ '$element', '$state', '$stateParams', '$timeout', 'PeopleService' ];
+    static $inject = [ '$element', '$state', '$stateParams', '$timeout', 'ConfigService', 'PeopleService' ];
+
     constructor(private $element: IAugmentedJQuery,
                 private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
                 private $timeout: ITimeoutService,
+                private configService: IConfigService,
                 private peopleService: IPeopleService) {
     }
 
     $onInit(): void {
         const personId = this.$stateParams['personId'];
+
+        this.configService.orgChartEnabled().then((orgChartEnabled: boolean) => {
+            this.orgChartEnabled = orgChartEnabled;
+        });
+
+        this.configService.photosEnabled().then((photosEnabled: boolean) => {
+            this.photosEnabled = photosEnabled;
+        });
 
         this.peopleService
             .getPerson(personId)

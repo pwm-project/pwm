@@ -26,6 +26,7 @@ import { isArray, isString, IPromise, IQService, IScope } from 'angular';
 import { IPeopleService } from '../services/people.service';
 import Person from '../models/person.model';
 import OrgChartData from '../models/orgchart-data.model';
+import {IConfigService} from '../services/config.service';
 
 @Component({
     stylesheetUrl: require('peoplesearch/orgchart-search.component.scss'),
@@ -35,18 +36,24 @@ export default class OrgChartSearchComponent {
     directReports: Person[];
     managementChain: Person[];
     person: Person;
+    photosEnabled: boolean;
     query: string;
 
-    static $inject = [ '$q', '$scope', '$state', '$stateParams', 'PeopleService' ];
+    static $inject = [ '$q', '$scope', '$state', '$stateParams', 'ConfigService', 'PeopleService' ];
     constructor(private $q: IQService,
                 private $scope: IScope,
                 private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
+                private configService: IConfigService,
                 private peopleService: IPeopleService) {
     }
 
     $onInit(): void {
         const self = this;
+
+        this.configService.photosEnabled().then((photosEnabled: boolean) => {
+            this.photosEnabled = photosEnabled;
+        });
 
         // Read query from state parameters
         const queryParameter = this.$stateParams['query'];

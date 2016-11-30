@@ -26,6 +26,7 @@ import ConfigService from './services/config.service.dev';
 import peopleSearchModule from './peoplesearch/peoplesearch.module';
 import PeopleService from './services/people.service.dev';
 import routes from './routes';
+import routeErrorHandler from './route-error-handler';
 import uiRouter from 'angular-ui-router';
 
 // fontgen-loader needs this :(
@@ -43,6 +44,7 @@ module('app', [
         $translateProvider.useSanitizeValueStrategy('escapeParameters');
         $translateProvider.preferredLanguage('en');
     }])
+    .run(routeErrorHandler)
     .service('PeopleService', PeopleService)
     .service('ConfigService', ConfigService);
 

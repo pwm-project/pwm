@@ -13,10 +13,11 @@
             icon="view-list"
             ng-click="$ctrl.gotoTableView()"
             ng-attr-title="{{ 'Title_PeopleSearch' | translate }}"></mf-icon-button>
-    <div class="mf-divider vertical"></div>
+    <div class="mf-divider vertical" ng-if="$ctrl.orgChartEnabled"></div>
     <mf-icon-button
             icon="orgchart"
             ng-click="$ctrl.gotoOrgchart()"
+            ng-if="$ctrl.orgChartEnabled"
             ng-attr-title="{{ 'Title_OrgChart' | translate }}"></mf-icon-button>
 </mf-app-bar>
 
@@ -27,6 +28,7 @@
 
     <div class="person-card-list">
         <person-card person="person"
+                     show-image="$ctrl.photosEnabled"
                      ng-repeat="person in $ctrl.searchResult.people"
                      ng-click="$ctrl.selectPerson(person)">
         </person-card>

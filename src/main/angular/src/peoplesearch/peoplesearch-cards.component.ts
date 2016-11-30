@@ -40,6 +40,8 @@ export enum PeopleSearchCardsSize {
     templateUrl: require('peoplesearch/peoplesearch-cards.component.html')
 })
 export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponent {
+    photosEnabled: boolean;
+
     static $inject = [
         '$element',
         '$q',
@@ -48,6 +50,7 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
         '$stateParams',
         '$translate',
         'MfElementSizeService',
+        'ConfigService',
         'PeopleService'
     ];
     constructor(private $element: IAugmentedJQuery,
@@ -57,8 +60,9 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
                 private elementSizeService: ElementSizeService,
+                configService,
                 peopleService: IPeopleService) {
-        super($q, $scope, $state, $stateParams, $translate, peopleService);
+        super($q, $scope, $state, $stateParams, $translate, configService, peopleService);
     }
 
     $onDestroy(): void {
@@ -68,6 +72,10 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
     $onInit(): void {
         this.initialize();
         this.fetchData();
+
+        this.configService.photosEnabled().then((photosEnabled: boolean) => {
+            this.photosEnabled = photosEnabled;
+        });
 
         this.elementSizeService.watchWidth(this.$element, PeopleSearchCardsSize);
     }

@@ -41,9 +41,9 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
-                private configService: IConfigService,
+                configService: IConfigService,
                 peopleService: IPeopleService) {
-        super($q, $scope, $state, $stateParams, $translate, peopleService);
+        super($q, $scope, $state, $stateParams, $translate, configService, peopleService);
     }
 
     $onInit(): void {
@@ -53,7 +53,7 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         let self = this;
 
         // The table columns are dynamic and configured via a service
-        this.configService.getColumnConfiguration().then((columnConfiguration: any) => {
+        this.configService.getColumnConfig().then((columnConfiguration: any) => {
             self.columnConfiguration = columnConfiguration;
         });
     }

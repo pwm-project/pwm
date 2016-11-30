@@ -24,22 +24,34 @@
 import { IHttpService, IPromise, IQService } from 'angular';
 import PwmService from './pwm.service';
 
+const COLUMN_CONFIG = 'peoplesearch_search_columns';
+const PHOTO_ENABLED = 'peoplesearch_enablePhoto';
+const ORGCHART_ENABLED = 'peoplesearch_orgChartEnabled';
+
 export interface IConfigService {
-    getColumnConfiguration(): IPromise<any>;
+    getColumnConfig(): IPromise<any>;
+    photosEnabled(): IPromise<boolean>;
+    orgChartEnabled(): IPromise<boolean>;
+    getValue(key: string): IPromise<any>;
 }
 
 export default class ConfigService implements IConfigService {
+
     static $inject = ['$http', '$q', 'PwmService' ];
     constructor(private $http: IHttpService,
                 private $q: IQService,
                 private pwmService: PwmService) {
     }
 
-    getColumnConfiguration(): IPromise<any> {
+    getColumnConfig(): IPromise<any> { return this.getValue(COLUMN_CONFIG); }
+    photosEnabled(): IPromise<boolean> { return this.getValue(PHOTO_ENABLED); }
+    orgChartEnabled(): IPromise<boolean> { return this.getValue(ORGCHART_ENABLED); }
+
+    getValue(key: string): IPromise<any> {
         return this.$http
             .get(this.pwmService.getServerUrl('clientData'), { cache: true })
             .then((response) => {
-                return this.$q.resolve(response.data['data']['peoplesearch_search_columns']);
+                return this.$q.resolve(response.data['data'][key]);
             });
     }
 }

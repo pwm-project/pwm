@@ -21,32 +21,17 @@
  */
 
 
-import { IConfigService } from './config.service';
-import { IPromise, IQService } from 'angular';
+import { IAngularEvent, IRootScopeService } from 'angular';
+import { IStateService } from 'angular-ui-router';
 
-export default class ConfigService implements IConfigService {
-    static $inject = [ '$q' ];
-    constructor(private $q: IQService) {}
-
-    getColumnConfig(): IPromise<any> {
-        return this.$q.resolve({
-            givenName: 'First Name',
-            sn: 'Last Name',
-            title: 'Title',
-            mail: 'Email',
-            telephoneNumber: 'Telephone'
+export default [
+    '$transitions',
+    '$state',
+    ($transitions, $state: IStateService) => {
+        $transitions.onError({}, (transition) => {
+            if (transition._error === 'OrgChart disabled') {
+                $state.go('search.cards');
+            }
         });
     }
-
-    photosEnabled(): IPromise<boolean> {
-        return this.$q.resolve(false);
-    }
-
-    orgChartEnabled(): IPromise<boolean> {
-        return this.$q.resolve(true);
-    };
-
-    getValue(key: string): IPromise<any> {
-        return null;
-    }
-}
+];
