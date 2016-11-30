@@ -229,6 +229,7 @@ public abstract class PwmConstants {
         CONFIG_MANAGER_PERMISSIONS("configmanager-permissions.jsp"),
         CONFIG_MANAGER_MODE_CONFIGURATION("configmanager.jsp"),
         CONFIG_MANAGER_WORDLISTS("configmanager-wordlists.jsp"),
+        CONFIG_MANAGER_CERTIFICATES("configmanager-certificates.jsp"),
         CONFIG_MANAGER_LOCALDB("configmanager-localdb.jsp"),
         CONFIG_MANAGER_LOGIN("configmanager-login.jsp"),
         HELPDESK_SEARCH("helpdesk.jsp"),

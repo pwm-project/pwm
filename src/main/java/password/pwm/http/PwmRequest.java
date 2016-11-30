@@ -297,6 +297,8 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         ConfigLoginHistory,
         ApplicationPath,
 
+        ConfigHasCertificates,
+
         CaptchaClientUrl,
         CaptchaIframeUrl,
         CaptchaPublicKey,

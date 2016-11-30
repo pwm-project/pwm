@@ -40,7 +40,6 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
-import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
@@ -86,7 +85,6 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         downloadConfig(HttpMethod.GET),
         generateSupportZip(HttpMethod.GET),
         uploadConfig(HttpMethod.POST),
-        uploadWordlist(HttpMethod.POST),
         summary(HttpMethod.GET),
         permissions(HttpMethod.GET),
         viewLog(HttpMethod.GET),
@@ -375,39 +373,6 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_PERMISSIONS);
     }
 
-
-    public enum Page {
-        manager(PwmConstants.JspUrl.ADMIN_DASHBOARD,"/manager"),
-        wordlists(PwmConstants.JspUrl.ADMIN_ANALYSIS,"/wordlists"),
-
-        ;
-
-        private final PwmConstants.JspUrl jspURL;
-        private final String urlSuffix;
-
-        Page(final PwmConstants.JspUrl jspURL, final String urlSuffix) {
-            this.jspURL = jspURL;
-            this.urlSuffix = urlSuffix;
-        }
-
-        public PwmConstants.JspUrl getJspURL() {
-            return jspURL;
-        }
-
-        public String getUrlSuffix() {
-            return urlSuffix;
-        }
-
-        public static Page forUrl(final PwmURL pwmURL) {
-            final String url = pwmURL.toString();
-            for (final Page page : Page.values()) {
-                if (url.endsWith(page.urlSuffix)) {
-                    return page;
-                }
-            }
-            return null;
-        }
-    }
 
     private void downloadPermissionReportCsv(
             final PwmRequest pwmRequest
