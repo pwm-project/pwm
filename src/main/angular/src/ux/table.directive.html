@@ -18,10 +18,10 @@
             <th ng-repeat="column in table.getVisibleColumns()">
                 <div class="column-header">
                     <span class="label" ng-bind="column.label" ng-click="table.sortOnColumn(column)"></span>
-                    <mf-icon icon="down_thin"
+                    <mf-icon icon="down_thick"
                              ng-if="table.sortColumn === column && table.reverseSort"
                              ng-click="table.toggleSortOrder()"></mf-icon>
-                    <mf-icon icon="up_thin"
+                    <mf-icon icon="up_thick"
                              ng-if="table.sortColumn === column && !table.reverseSort"
                              ng-click="table.toggleSortOrder()"></mf-icon>
                 </div>
