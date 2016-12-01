@@ -21,20 +21,22 @@
  */
 
 
-import { IPromise, IQService } from 'angular';
+import { IPromise, IQService, ITimeoutService } from 'angular';
 import Person from '../models/person.model';
 import { IPeopleService } from './people.service';
 import OrgChartData from '../models/orgchart-data.model';
 import SearchResult from '../models/search-result.model';
 
 const peopleData = require('./people.data');
+
 const MAX_RESULTS = 10;
+const SIMULATED_RESPONSE_TIME = 0;
 
 export default class PeopleService implements IPeopleService {
     private people: Person[];
 
-    static $inject = ['$q'];
-    constructor(private $q: IQService) {
+    static $inject = ['$q', '$timeout' ];
+    constructor(private $q: IQService, private $timeout: ITimeoutService) {
         this.people = peopleData.map((person) => new Person(person));
 
         // Create directReports detail (instead of managing this in people.data.json
@@ -119,33 +121,62 @@ export default class PeopleService implements IPeopleService {
     }
 
     getPerson(id: string): IPromise<Person> {
-        const person = this.findPerson(id);
+        let self = this;
 
-        if (person) {
-            return this.$q.resolve(person);
-        }
+        let deferred = this.$q.defer();
+        let deferredAbort = this.$q.defer();
 
-        return this.$q.reject(`Person with id: "${id}" not found.`);
-    }
+        let timeoutPromise = this.$timeout(() => {
+            const person = this.findPerson(id);
 
-    isOrgChartEnabled(id: string): angular.IPromise<boolean> {
-        return this.$q.resolve(true);
+            if (person) {
+                deferred.resolve(person);
+            }
+            else {
+                deferred.reject(`Person with id: "${id}" not found.`);
+            }
+        }, SIMULATED_RESPONSE_TIME);
+
+        // To simulate an abortable promise, edit SIMULATED_RESPONSE_TIME
+        deferred.promise['_httpTimeout'] = deferredAbort;
+        deferredAbort.promise.then(() => {
+            self.$timeout.cancel(timeoutPromise);
+            deferred.resolve();
+        });
+
+        return deferred.promise;
     }
 
     search(query: string): angular.IPromise<SearchResult> {
-        let people = this.people.filter((person: Person) => {
-            if (!query) {
-                return false;
+        let self = this;
+
+        let deferred = this.$q.defer();
+        let deferredAbort = this.$q.defer();
+
+        let timeoutPromise = this.$timeout(() => {
+            let people = this.people.filter((person: Person) => {
+                if (!query) {
+                    return false;
+                }
+                return person._displayName.toLowerCase().indexOf(query.toLowerCase()) >= 0;
+            });
+
+            const sizeExceeded = (people.length > MAX_RESULTS);
+            if (sizeExceeded) {
+                people = people.slice(MAX_RESULTS);
             }
-            return person._displayName.toLowerCase().indexOf(query.toLowerCase()) >= 0;
+
+            deferred.resolve(new SearchResult({sizeExceeded: sizeExceeded, searchResults: people}));
+        }, SIMULATED_RESPONSE_TIME * 6);
+
+        // To simulate an abortable promise, edit SIMULATED_RESPONSE_TIME
+        deferred.promise['_httpTimeout'] = deferredAbort;
+        deferredAbort.promise.then(() => {
+            self.$timeout.cancel(timeoutPromise);
+            deferred.resolve();
         });
 
-        const sizeExceeded = (people.length > MAX_RESULTS);
-        if (sizeExceeded) {
-            people = people.slice(MAX_RESULTS);
-        }
-
-        return this.$q.resolve(new SearchResult({sizeExceeded: sizeExceeded, searchResults: people}));
+        return deferred.promise;
     }
 
     private findDirectReports(id: string): Person[] {

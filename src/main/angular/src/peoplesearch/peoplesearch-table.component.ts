@@ -27,6 +27,7 @@ import IPeopleService from '../services/people.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import { IQService, IScope } from 'angular';
 import SearchResult from '../models/search-result.model';
+import PromiseService from '../services/promise.service';
 
 @Component({
     stylesheetUrl: require('peoplesearch/peoplesearch-table.component.scss'),
@@ -42,8 +43,9 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
                 configService: IConfigService,
-                peopleService: IPeopleService) {
-        super($q, $scope, $state, $stateParams, $translate, configService, peopleService);
+                peopleService: IPeopleService,
+                promiseService: PromiseService) {
+        super($q, $scope, $state, $stateParams, $translate, configService, peopleService, promiseService);
     }
 
     $onInit(): void {

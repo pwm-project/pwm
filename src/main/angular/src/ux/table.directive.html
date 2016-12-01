@@ -1,7 +1,7 @@
 <ng-transclude></ng-transclude>
 
 <div class="table-configuration">
-    <mf-icon-button icon="settings" ng-click="table.toggleConfigurationVisibility($event)"></mf-icon-button>
+    <mf-icon-button icon="configure_thin" ng-click="table.toggleConfigurationVisibility($event)"></mf-icon-button>
     <ul ng-if="table.showConfiguration" ng-click="$event.stopPropagation()">
         <li ng-repeat="column in table.columns">
             <label class="label">
@@ -18,10 +18,10 @@
             <th ng-repeat="column in table.getVisibleColumns()">
                 <div class="column-header">
                     <span class="label" ng-bind="column.label" ng-click="table.sortOnColumn(column)"></span>
-                    <mf-icon icon="chevron-down"
+                    <mf-icon icon="down_thin"
                              ng-if="table.sortColumn === column && table.reverseSort"
                              ng-click="table.toggleSortOrder()"></mf-icon>
-                    <mf-icon icon="chevron-up"
+                    <mf-icon icon="up_thin"
                              ng-if="table.sortColumn === column && !table.reverseSort"
                              ng-click="table.toggleSortOrder()"></mf-icon>
                 </div>
