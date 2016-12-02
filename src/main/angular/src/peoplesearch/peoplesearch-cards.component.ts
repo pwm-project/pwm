@@ -23,7 +23,7 @@
 
 import { Component } from '../component';
 import ElementSizeService from '../ux/element-size.service';
-import { IAugmentedJQuery, IPromise, IQService, IScope } from 'angular';
+import { isString, IAugmentedJQuery, IQService, IScope } from 'angular';
 import IConfigService from '../services/config.service';
 import IPeopleService from '../services/people.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
@@ -113,19 +113,25 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
                 // Store this promise because it is abortable
                 let promise = this.peopleService.getPerson(person.userKey);
 
-                promise.then((person: Person) => {
-                    // Aborted request
-                    if (!person) {
-                        return;
-                    }
-                    // searchResult may be overwritten by ESC->[LETTER] typed in after a search
-                    // has started but before all calls to peopleService.getPerson have resolved
-                    if (self.searchResult) {
-                        self.searchResult.people.push(person);
-                    }
+                promise
+                    .then((person: Person) => {
+                        // Aborted request
+                        if (!person) {
+                            return;
+                        }
 
-                    self.removePendingRequest(promise);
-                });
+                        // searchResult may be overwritten by ESC->[LETTER] typed in after a search
+                        // has started but before all calls to peopleService.getPerson have resolved
+                        if (self.searchResult) {
+                            self.searchResult.people.push(person);
+                        }
+                    },
+                    (error) => {
+                        self.setErrorMessage(error);
+                    })
+                    .finally(() => {
+                        self.removePendingRequest(promise);
+                    });
 
                 return promise;
             }

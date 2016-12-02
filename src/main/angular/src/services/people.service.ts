@@ -21,7 +21,7 @@
  */
 
 
-import { IHttpService, IPromise, IQService } from 'angular';
+import { isString, IHttpService, ILogService, IPromise, IQService } from 'angular';
 import Person from '../models/person.model';
 import PwmService from './pwm.service';
 import OrgChartData from '../models/orgchart-data.model';
@@ -38,8 +38,11 @@ export interface IPeopleService {
 }
 
 export default class PeopleService implements IPeopleService {
-    static $inject = ['$http', '$q', 'PwmService' ];
-    constructor(private $http: IHttpService, private $q: IQService, private pwmService: PwmService) {}
+    static $inject = ['$http', '$log', '$q', 'PwmService' ];
+    constructor(private $http: IHttpService,
+                private $log: ILogService,
+                private $q: IQService,
+                private pwmService: PwmService) {}
 
     autoComplete(query: string): IPromise<Person[]> {
         return this.search(query, { 'includeDisplayName': true })
@@ -67,9 +70,9 @@ export default class PeopleService implements IPeopleService {
         });
     }
 
-    getNumberOfDirectReports(personId: string): IPromise<number> {
-        return this.getOrgChartData(personId).then((orgChartData: OrgChartData) => {
-            return this.$q.resolve(orgChartData.children.length);
+    getNumberOfDirectReports(id: string): IPromise<number> {
+        return this.getDirectReports(id).then((people: Person[]) => {
+            return this.$q.resolve(people.length);
         });
     }
 
@@ -79,30 +82,37 @@ export default class PeopleService implements IPeopleService {
     }
 
     private getManagerRecursive(id: string, people: Person[]): IPromise<Person[]> {
-        return this.getOrgChartData(id).then((orgChartData: OrgChartData) => {
-            if (orgChartData.manager) {
-                people.push(orgChartData.manager);
+        return this.getOrgChartData(id)
+            .then((orgChartData: OrgChartData) => {
+                if (orgChartData.manager) {
+                    people.push(orgChartData.manager);
 
-                return this.getManagerRecursive(orgChartData.manager.userKey, people);
-            }
+                    return this.getManagerRecursive(orgChartData.manager.userKey, people);
+                }
 
-            return this.$q.resolve(people);
-        });
+                return this.$q.resolve(people);
+            });
     }
 
     getOrgChartData(personId: string): angular.IPromise<OrgChartData> {
         return this.$http
             .get(this.pwmService.getServerUrl('orgChartData'), { cache: true, params: { userKey: personId } })
-            .then((response) => {
-                let responseData = response.data['data'];
+            .then(
+                (response) => {
+                    if (response.data['error']) {
+                        return this.handlePwmError(response);
+                    }
 
-                let manager: Person;
-                if ('parent' in responseData) { manager = new Person(responseData['parent']); }
-                const children = responseData['children'].map((child: any) => new Person(child));
-                const self = new Person(responseData['self']);
+                    let responseData = response.data['data'];
 
-                return this.$q.resolve(new OrgChartData(manager, children, self));
-            });
+                    let manager: Person;
+                    if ('parent' in responseData) { manager = new Person(responseData['parent']); }
+                    const children = responseData['children'].map((child: any) => new Person(child));
+                    const self = new Person(responseData['self']);
+
+                    return this.$q.resolve(new OrgChartData(manager, children, self));
+                },
+                this.handleHttpError);
     }
 
     getPerson(id: string): IPromise<Person> {
@@ -116,11 +126,16 @@ export default class PeopleService implements IPeopleService {
                 timeout: httpTimeout.promise
             });
 
-        let promise = request
-            .then((response) => {
+        let promise = request.then(
+            (response) => {
+                if (response.data['error']) {
+                    return this.handlePwmError(response);
+                }
+
                 let person: Person = new Person(response.data['data']);
                 return this.$q.resolve(person);
-            });
+            },
+            this.handleHttpError);
 
         promise['_httpTimeout'] = httpTimeout;
 
@@ -138,16 +153,32 @@ export default class PeopleService implements IPeopleService {
                 timeout: httpTimeout.promise
             });
 
-        let promise = request
-            .then((response) => {
+        let promise = request.then(
+            (response) => {
+                if (response.data['error']) {
+                    return this.handlePwmError(response);
+                }
+
                 let receivedData: any = response.data['data'];
                 let searchResult: SearchResult = new SearchResult(receivedData);
 
                 return this.$q.resolve(searchResult);
-            });
+            },
+            this.handleHttpError);
 
         promise['_httpTimeout'] = httpTimeout;
 
         return promise;
+    }
+
+    private handleHttpError(error): void {
+        this.$log.error(error);
+    }
+
+    private handlePwmError(response): IPromise<any> {
+        const errorMessage = `${response.data['errorCode']}: ${response.data['errorMessage']}`;
+        this.$log.error(errorMessage);
+
+        return this.$q.reject(response.data['errorMessage']);
     }
 }

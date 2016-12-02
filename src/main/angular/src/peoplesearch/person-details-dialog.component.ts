@@ -59,9 +59,13 @@ export default class PersonDetailsDialogComponent {
 
         this.peopleService
             .getPerson(personId)
-            .then((person: Person) => {
-                this.person = person;
-            });
+            .then(
+                (person: Person) => {
+                    this.person = person;
+                },
+                (error) => {
+                    // TODO: Handle error. NOOP for now will not assign person
+                });
     }
 
     $postLink() {

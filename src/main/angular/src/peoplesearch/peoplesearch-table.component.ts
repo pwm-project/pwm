@@ -55,9 +55,13 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         let self = this;
 
         // The table columns are dynamic and configured via a service
-        this.configService.getColumnConfig().then((columnConfiguration: any) => {
-            self.columnConfiguration = columnConfiguration;
-        });
+        this.configService.getColumnConfig().then(
+            (columnConfiguration: any) => {
+                self.columnConfiguration = columnConfiguration;
+            },
+            (error) => {
+                self.setErrorMessage(error);
+            });
     }
 
     gotoCardsView() {
