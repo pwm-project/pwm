@@ -55,7 +55,8 @@ import { IAttributes, IAugmentedJQuery, IDocumentService, IPromise, IScope } fro
                        ng-class="{ \'selected\': $index == $ctrl.selectedIndex }\">` +
                 contentTemplate.html().replace(new RegExp($attrs['item'], 'g'), 'item') +
                     `</li>
-                    <li class="search-message" ng-if="$ctrl.show && $ctrl.searchText && !$ctrl.items.length">
+                    <li class="search-message" 
+                        ng-if="$ctrl.show && $ctrl.searchText && !$ctrl.loading && !$ctrl.items.length">
                         <span translate="Display_SearchResultsNone"></span>
                     </li>
                 </ul>`;
@@ -66,6 +67,7 @@ export default class AutoCompleteComponent {
     item: string;
     items: any[];
     itemSelected: (item: any) => void;
+    loading: boolean;
     onSearchTextChange: Function;
     searchText: string;
     searchFunction: (query: any) => IPromise<any[]>;
@@ -94,7 +96,7 @@ export default class AutoCompleteComponent {
     }
 
     $postLink(): void {
-        var self = this;
+        let self = this;
 
         // Listen for clicks outside of the auto-complete component
         // Implemented as a click event instead of a blur event, so the results list can be clicked
@@ -188,11 +190,15 @@ export default class AutoCompleteComponent {
     }
 
     private fetchAutoCompleteData(value: string): void {
-        var self = this;
+        this.loading = true;
+        const self = this;
         this.searchFunction({ query: value })
             .then((results: any[]) => {
                 self.items = results;
                 self.resetSelection();
+            })
+            .finally(() => {
+                self.loading = false;
             });
     }
 

@@ -21,7 +21,7 @@
  */
 
 
-import { IAugmentedJQuery } from 'angular';
+import { isString, IAugmentedJQuery } from 'angular';
 import { Component } from '../component';
 import Person from '../models/person.model';
 import { IPeopleService } from '../services/people.service';
@@ -66,12 +66,13 @@ export default class PersonCardComponent {
 
             if (this.showDirectReportCount) {
                 this.peopleService.getNumberOfDirectReports(this.person.userKey)
-                    .then((numDirectReports) => {
-                        this.person.numDirectReports = numDirectReports;
-                    })
-                    .catch(() => {
-                        // TODO: error handling
-                    });
+                    .then(
+                        (numDirectReports) => {
+                            this.person.numDirectReports = numDirectReports;
+                        },
+                        (error) => {
+                            // TODO: handle error. NOOP is fine for now because it won't try to display the result
+                        });
             }
         }
     }

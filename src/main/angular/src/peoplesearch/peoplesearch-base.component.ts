@@ -30,12 +30,13 @@ import PromiseService from '../services/promise.service';
 import IPwmService from '../services/pwm.service';
 
 abstract class PeopleSearchBaseComponent {
+    errorMessage: string;
     inputDebounce: number;
-    protected pendingRequests: IPromise<any>[] = [];
-    query: string;
-    searchMessage: (string | IPromise<string>);
-    searchResult: SearchResult;
     orgChartEnabled: boolean;
+    protected pendingRequests: IPromise<any>[] = [];
+    searchMessage: string;
+    searchResult: SearchResult;
+    query: string;
 
     constructor(protected $q: IQService,
                 protected $scope: IScope,
@@ -46,6 +47,10 @@ abstract class PeopleSearchBaseComponent {
                 protected peopleService: IPeopleService,
                 protected promiseService: PromiseService,
                 protected pwmService: IPwmService) {}
+
+    getMessage(): string {
+        return this.errorMessage || this.searchMessage;
+    }
 
     gotoOrgchart(): void {
         this.gotoState('orgchart.index');
@@ -69,7 +74,8 @@ abstract class PeopleSearchBaseComponent {
         }
 
         this.query = value;
-        this.setSearchMessage(null);
+        this.clearSearchMessage();
+        this.clearErrorMessage();
         this.fetchData();
     }
 
@@ -98,27 +104,33 @@ abstract class PeopleSearchBaseComponent {
         }
     }
 
-    protected setSearchMessage(message: (string | IPromise<string>)) {
-        if (!message) {
+    protected setErrorMessage(message: string) {
+        this.errorMessage = message;
+    }
+
+    protected clearErrorMessage() {
+        this.errorMessage = null;
+    }
+
+    // If message is a string it will be translated. If it is a promise it will assign the string from the resolved
+    // promise
+    protected setSearchMessage(translationKey: string) {
+        if (!translationKey) {
             this.clearSearchMessage();
             return;
         }
 
-        if (typeof message === 'string') {
-            this.searchMessage = message;
-        }
-        else {
-            const self = this;
-
-            message.then((translation: string) => {
-                self.searchMessage = translation;
-            });
-        }
+        const self = this;
+        this.$translate(translationKey.toString())
+            .then((translation: string) => {
+            self.searchMessage = translation;
+        });
     }
 
     protected clearSearch(): void {
         this.query = null;
         this.searchResult = null;
+        this.clearErrorMessage();
         this.clearSearchMessage();
         this.abortPendingRequests();
     }
@@ -145,26 +157,34 @@ abstract class PeopleSearchBaseComponent {
         this.pendingRequests.push(promise);
 
         return promise
-            .then((searchResult: SearchResult) => {
-                self.clearSearchMessage();
+            .then(
+                (searchResult: SearchResult) => {
+                    self.clearErrorMessage();
+                    self.clearSearchMessage();
 
-                // Aborted request
-                if (!searchResult) {
-                    return;
-                }
+                    // Aborted request
+                    if (!searchResult) {
+                        return;
+                    }
 
+                    // Too many results returned
+                    if (searchResult.sizeExceeded) {
+                        self.setSearchMessage('Display_SearchResultsExceeded');
+                    }
+
+                    // No results returned. Not an else if statement so that the more important message is presented
+                    if (!searchResult.people.length) {
+                        self.setSearchMessage('Display_SearchResultsNone');
+                    }
+
+                    return this.$q.resolve(searchResult);
+                },
+                (error) => {
+                    self.setErrorMessage(error);
+                    self.clearSearchMessage();
+                })
+            .finally(() => {
                 self.removePendingRequest(promise);
-
-                // Too many results returned
-                if (searchResult.sizeExceeded) {
-                    self.setSearchMessage(self.$translate('Display_SearchResultsExceeded'));
-                }
-                // No results returned. Not an else if statement so that the more important message is presented
-                if (!searchResult.people.length) {
-                    self.setSearchMessage(self.$translate('Display_SearchResultsNone'));
-                }
-
-                return this.$q.resolve(searchResult);
             });
     }
 

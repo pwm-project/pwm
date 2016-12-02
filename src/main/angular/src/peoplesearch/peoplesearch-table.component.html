@@ -24,8 +24,9 @@
 
 <div class="people-search-component-content">
     <div class="search-info-container">
-        <div class="search-info" ng-if="$ctrl.loading || $ctrl.searchMessage"
-             ng-bind="$ctrl.loading ? ('Display_PleaseWait' | translate) : $ctrl.searchMessage">
+        <div class="search-info"
+             ng-if="$ctrl.loading || $ctrl.searchMessage || $ctrl.errorMessage"
+             ng-bind="$ctrl.getMessage() || ('Display_PleaseWait' | translate)">
         </div>
     </div>
 
