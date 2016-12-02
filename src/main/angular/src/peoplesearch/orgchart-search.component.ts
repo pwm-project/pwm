@@ -27,6 +27,7 @@ import { IPeopleService } from '../services/people.service';
 import Person from '../models/person.model';
 import OrgChartData from '../models/orgchart-data.model';
 import {IConfigService} from '../services/config.service';
+import PwmService from '../services/pwm.service';
 
 @Component({
     stylesheetUrl: require('peoplesearch/orgchart-search.component.scss'),
@@ -34,23 +35,26 @@ import {IConfigService} from '../services/config.service';
 })
 export default class OrgChartSearchComponent {
     directReports: Person[];
+    inputDebounce: number;
     managementChain: Person[];
     person: Person;
     photosEnabled: boolean;
     query: string;
 
-    static $inject = [ '$q', '$scope', '$state', '$stateParams', 'ConfigService', 'PeopleService' ];
+    static $inject = [ '$q', '$scope', '$state', '$stateParams', 'ConfigService', 'PeopleService', 'PwmService' ];
     constructor(private $q: IQService,
                 private $scope: IScope,
                 private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
                 private configService: IConfigService,
-                private peopleService: IPeopleService) {
+                private peopleService: IPeopleService,
+                private pwmService: PwmService) {
     }
 
     $onInit(): void {
         const self = this;
 
+        this.inputDebounce = this.pwmService.ajaxTypingWait;
         this.configService.photosEnabled().then((photosEnabled: boolean) => {
             this.photosEnabled = photosEnabled;
         });

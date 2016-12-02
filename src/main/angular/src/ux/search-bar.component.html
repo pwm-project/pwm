@@ -4,7 +4,7 @@
        ng-focus="$ctrl.onFocus({ $event: $event })"
        ng-keydown="$ctrl.onKeyDown({ $event: $event })"
        ng-model="$ctrl.searchText"
-       ng-model-options="{ debounce: 300 }"
+       ng-model-options="{ debounce: $ctrl.inputDebounce }"
        ng-attr-placeholder="{{ ('Placeholder_Search' | translate) }}"
        title="Search Box"
        autocomplete="off" />

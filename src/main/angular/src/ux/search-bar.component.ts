@@ -28,6 +28,7 @@ import { IAugmentedJQuery, ICompileService, IScope } from 'angular';
 @Component({
     bindings: {
         autoFocus: '@',
+        inputDebounce: '<',
         onSearchTextChange: '&',
         onBlur: '&',
         onFocus: '&',
@@ -39,6 +40,7 @@ import { IAugmentedJQuery, ICompileService, IScope } from 'angular';
 })
 export default class SearchBarComponent {
     autoFocus: boolean;
+    inputDebounce: number;
     focused: boolean;
     onSearchTextChange: Function;
     searchText: string;
