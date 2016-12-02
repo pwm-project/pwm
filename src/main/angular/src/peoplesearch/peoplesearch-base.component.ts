@@ -27,9 +27,11 @@ import Person from '../models/person.model';
 import SearchResult from '../models/search-result.model';
 import { IConfigService } from '../services/config.service';
 import PromiseService from '../services/promise.service';
+import PwmService from '../services/pwm.service';
 
 abstract class PeopleSearchBaseComponent {
     errorMessage: string;
+    inputDebounce: number;
     orgChartEnabled: boolean;
     protected pendingRequests: IPromise<any>[] = [];
     searchMessage: string;
@@ -43,7 +45,8 @@ abstract class PeopleSearchBaseComponent {
                 protected $translate: angular.translate.ITranslateService,
                 protected configService: IConfigService,
                 protected peopleService: IPeopleService,
-                protected promiseService: PromiseService) {}
+                protected promiseService: PromiseService,
+                protected pwmService: PwmService) {}
 
     getMessage(): string {
         return this.errorMessage || this.searchMessage;
@@ -186,6 +189,8 @@ abstract class PeopleSearchBaseComponent {
     }
 
     protected initialize(): void {
+        this.inputDebounce = this.pwmService.ajaxTypingWait;
+
         // Determine whether org-chart should appear
         this.configService.orgChartEnabled().then((orgChartEnabled: boolean) => {
             this.orgChartEnabled = orgChartEnabled;

@@ -58,6 +58,14 @@ export default class PwmService {
         return url;
     }
 
+    get ajaxTypingWait(): number {
+        if (this.PWM_GLOBAL) {
+            return this.PWM_GLOBAL['client.ajaxTypingWait'] || 700;
+        }
+
+        return 700;
+    }
+
     get localeStrings(): any {
         if (this.PWM_GLOBAL) {
             return this.PWM_GLOBAL['localeStrings'];

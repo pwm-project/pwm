@@ -30,6 +30,7 @@ import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import Person from '../models/person.model';
 import PromiseService from '../services/promise.service';
 import SearchResult from '../models/search-result.model';
+import PwmService from '../services/pwm.service';
 
 export enum PeopleSearchCardsSize {
     Small = 0,
@@ -54,7 +55,8 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
         'MfElementSizeService',
         'ConfigService',
         'PeopleService',
-        'PromiseService'
+        'PromiseService',
+        'PwmService'
     ];
     constructor(private $element: IAugmentedJQuery,
                 $q: IQService,
@@ -65,8 +67,9 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
                 private elementSizeService: ElementSizeService,
                 configService: IConfigService,
                 peopleService: IPeopleService,
-                promiseService: PromiseService) {
-        super($q, $scope, $state, $stateParams, $translate, configService, peopleService, promiseService);
+                promiseService: PromiseService,
+                pwmService: PwmService) {
+        super($q, $scope, $state, $stateParams, $translate, configService, peopleService, promiseService, pwmService);
     }
 
     $onDestroy(): void {

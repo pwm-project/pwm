@@ -23,10 +23,12 @@
 
 import { Component } from '../component';
 import { IAttributes, IAugmentedJQuery, IDocumentService, IPromise, IScope } from 'angular';
+import PwmService from '../services/pwm.service';
 
 @Component({
     bindings: {
         'onSearchTextChange': '&',
+        'inputDebounce': '<',
         'itemSelected': '&',
         'item': '@',
         'itemText': '@',
@@ -42,7 +44,8 @@ import { IAttributes, IAugmentedJQuery, IDocumentService, IPromise, IScope } fro
             contentTemplate.detach();
 
             return `
-                <mf-search-bar search-text="$ctrl.searchText"
+                <mf-search-bar input-debounce="$ctrl.inputDebounce"
+                               search-text="$ctrl.searchText"
                                on-search-text-change="$ctrl.onSearchBarTextChange(value)"                           
                                on-key-down="$ctrl.onSearchBarKeyDown($event)"
                                ng-click="$ctrl.onSearchBarClick($event)"

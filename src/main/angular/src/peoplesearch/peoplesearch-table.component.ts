@@ -28,6 +28,7 @@ import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import { IQService, IScope } from 'angular';
 import SearchResult from '../models/search-result.model';
 import PromiseService from '../services/promise.service';
+import PwmService from '../services/pwm.service';
 
 @Component({
     stylesheetUrl: require('peoplesearch/peoplesearch-table.component.scss'),
@@ -36,7 +37,17 @@ import PromiseService from '../services/promise.service';
 export default class PeopleSearchTableComponent extends PeopleSearchBaseComponent {
     columnConfiguration: any;
 
-    static $inject = [ '$q', '$scope', '$state', '$stateParams', '$translate', 'ConfigService', 'PeopleService' ];
+    static $inject = [
+        '$q',
+        '$scope',
+        '$state',
+        '$stateParams',
+        '$translate',
+        'ConfigService',
+        'PeopleService',
+        'PromiseService',
+        'PwmService'
+    ];
     constructor($q: IQService,
                 $scope: IScope,
                 $state: angular.ui.IStateService,
@@ -44,8 +55,9 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
                 $translate: angular.translate.ITranslateService,
                 configService: IConfigService,
                 peopleService: IPeopleService,
-                promiseService: PromiseService) {
-        super($q, $scope, $state, $stateParams, $translate, configService, peopleService, promiseService);
+                promiseService: PromiseService,
+                pwmService: PwmService) {
+        super($q, $scope, $state, $stateParams, $translate, configService, peopleService, promiseService, pwmService);
     }
 
     $onInit(): void {
