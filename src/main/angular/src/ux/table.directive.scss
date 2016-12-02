@@ -40,15 +40,22 @@ mf-table {
       left: 26px;
       list-style: none;
       margin: 0;
+      max-width: 300px;
       padding: 10px;
       position: absolute;
+      right: 10px;
       text-align: start;
       top: 0;
 
       > li {
+        // Chrome does not show the ellipsis properly for the 'label' element in rtl displays
         height: 24px;
         line-height: 24px;
         user-select: none;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
 
         > label {
           cursor: pointer;
@@ -122,7 +129,7 @@ mf-table {
   mf-table {
     > .table-configuration {
       > ul {
-        left: auto;
+        left: 10px;
         right: 26px;
       }
     }
