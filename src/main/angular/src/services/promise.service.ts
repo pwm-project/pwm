@@ -21,32 +21,16 @@
  */
 
 
-import { IConfigService } from './config.service';
 import { IPromise, IQService } from 'angular';
 
-export default class ConfigService implements IConfigService {
+// Pattern explained at https://www.bennadel.com/blog/2731-canceling-a-promise-in-angularjs.htm
+export default class PromiseService {
     static $inject = [ '$q' ];
     constructor(private $q: IQService) {}
 
-    getColumnConfig(): IPromise<any> {
-        return this.$q.resolve({
-            givenName: 'First Name',
-            sn: 'Last Name',
-            title: 'Title',
-            mail: 'Email',
-            telephoneNumber: 'Telephone'
-        });
-    }
-
-    photosEnabled(): IPromise<boolean> {
-        return this.$q.resolve(true);
-    }
-
-    orgChartEnabled(): IPromise<boolean> {
-        return this.$q.resolve(true);
-    };
-
-    getValue(key: string): IPromise<any> {
-        return null;
+    abort(promise: IPromise<any>) {
+        if (promise && promise['_httpTimeout'] && promise['_httpTimeout'].resolve) {
+            promise['_httpTimeout'].resolve();
+        }
     }
 }

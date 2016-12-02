@@ -34,7 +34,6 @@ export interface IPeopleService {
     getManagementChain(personId: string): IPromise<Person[]>;
     getOrgChartData(personId: string): IPromise<OrgChartData>;
     getPerson(id: string): IPromise<Person>;
-    isOrgChartEnabled(id: string): IPromise<boolean>;
     search(query: string): IPromise<SearchResult>;
 }
 
@@ -107,30 +106,48 @@ export default class PeopleService implements IPeopleService {
     }
 
     getPerson(id: string): IPromise<Person> {
-        return this.$http
-            .get(this.pwmService.getServerUrl('detail'), { cache: true, params: { userKey: id } })
+        // Deferred object used for aborting requests. See promise.service.ts for more information
+        let httpTimeout = this.$q.defer();
+
+        let request = this.$http
+            .get(this.pwmService.getServerUrl('detail'), {
+                cache: true,
+                params: { userKey: id },
+                timeout: httpTimeout.promise
+            });
+
+        let promise = request
             .then((response) => {
                 let person: Person = new Person(response.data['data']);
                 return this.$q.resolve(person);
             });
-    }
 
-    isOrgChartEnabled(id: string): IPromise<boolean> {
-        // TODO: need to read this from the server
-        return this.$q.resolve(true);
+        promise['_httpTimeout'] = httpTimeout;
+
+        return promise;
     }
 
     search(query: string, params?: any): IPromise<SearchResult> {
-        return this.$http
-            .get(
-                this.pwmService.getServerUrl('search', params),
-                { cache: true, params: { username: query } }
-            )
+        // Deferred object used for aborting requests. See promise.service.ts for more information
+        let httpTimeout = this.$q.defer();
+
+        let request = this.$http
+            .get(this.pwmService.getServerUrl('search', params), {
+                cache: true,
+                params: { username: query },
+                timeout: httpTimeout.promise
+            });
+
+        let promise = request
             .then((response) => {
                 let receivedData: any = response.data['data'];
                 let searchResult: SearchResult = new SearchResult(receivedData);
 
                 return this.$q.resolve(searchResult);
             });
+
+        promise['_httpTimeout'] = httpTimeout;
+
+        return promise;
     }
 }

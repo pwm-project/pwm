@@ -25,10 +25,11 @@ import { IPeopleService } from '../services/people.service';
 import { isArray, isString, IPromise, IQService, IScope } from 'angular';
 import Person from '../models/person.model';
 import SearchResult from '../models/search-result.model';
-import {IConfigService} from '../services/config.service';
+import { IConfigService } from '../services/config.service';
+import PromiseService from '../services/promise.service';
 
 abstract class PeopleSearchBaseComponent {
-    loading: boolean;
+    protected pendingRequests: IPromise<any>[] = [];
     query: string;
     searchMessage: (string | IPromise<string>);
     searchResult: SearchResult;
@@ -40,7 +41,8 @@ abstract class PeopleSearchBaseComponent {
                 protected $stateParams: angular.ui.IStateParamsService,
                 protected $translate: angular.translate.ITranslateService,
                 protected configService: IConfigService,
-                protected peopleService: IPeopleService) {}
+                protected peopleService: IPeopleService,
+                protected promiseService: PromiseService) {}
 
     gotoOrgchart(): void {
         this.gotoState('orgchart.index');
@@ -72,6 +74,27 @@ abstract class PeopleSearchBaseComponent {
         this.$state.go('.details', { personId: person.userKey, query: this.query });
     }
 
+    get loading(): boolean {
+        return !!this.pendingRequests.length;
+    }
+
+    protected abortPendingRequests() {
+        for (let index = 0; index < this.pendingRequests.length; index++) {
+            let pendingRequest = this.pendingRequests[index];
+            this.promiseService.abort(pendingRequest);
+        }
+
+        this.pendingRequests = [];
+    }
+
+    protected removePendingRequest(promise: IPromise<any>) {
+        let index = this.pendingRequests.indexOf(promise);
+
+        if (index > -1) {
+            this.pendingRequests.splice(index, 1);
+        }
+    }
+
     protected setSearchMessage(message: (string | IPromise<string>)) {
         if (!message) {
             this.clearSearchMessage();
@@ -94,6 +117,7 @@ abstract class PeopleSearchBaseComponent {
         this.query = null;
         this.searchResult = null;
         this.clearSearchMessage();
+        this.abortPendingRequests();
     }
 
     protected clearSearchMessage(): void  {
@@ -103,19 +127,30 @@ abstract class PeopleSearchBaseComponent {
     abstract fetchData(): void;
 
     protected fetchSearchData(): IPromise<SearchResult> {
-        const self = this;
+        this.abortPendingRequests();
+        this.searchResult = null;
 
         if (!this.query) {
             this.clearSearch();
             return null;
         }
 
-        this.loading = true;
+        const self = this;
 
-        return this.peopleService
-            .search(this.query)
+        let promise = this.peopleService.search(this.query);
+
+        this.pendingRequests.push(promise);
+
+        return promise
             .then((searchResult: SearchResult) => {
                 self.clearSearchMessage();
+
+                // Aborted request
+                if (!searchResult) {
+                    return;
+                }
+
+                self.removePendingRequest(promise);
 
                 // Too many results returned
                 if (searchResult.sizeExceeded) {
@@ -127,9 +162,6 @@ abstract class PeopleSearchBaseComponent {
                 }
 
                 return this.$q.resolve(searchResult);
-            })
-            .finally(() => {
-                self.loading = false;
             });
     }
 
