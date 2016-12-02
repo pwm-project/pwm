@@ -25,6 +25,7 @@ import { bootstrap, module } from 'angular';
 import ConfigService from './services/config.service.dev';
 import peopleSearchModule from './peoplesearch/peoplesearch.module';
 import PeopleService from './services/people.service.dev';
+import PwmService from './services/pwm.service.dev';
 import routes from './routes';
 import routeErrorHandler from './route-error-handler';
 import uiRouter from 'angular-ui-router';
@@ -46,6 +47,7 @@ module('app', [
     }])
     .run(routeErrorHandler)
     .service('PeopleService', PeopleService)
+    .service('PwmService', PwmService)
     .service('ConfigService', ConfigService);
 
 // Attach to the page document

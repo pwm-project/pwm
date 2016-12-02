@@ -23,7 +23,14 @@
 
 import { ILogService, IWindowService } from 'angular';
 
-export default class PwmService {
+export interface IPwmService {
+    getServerUrl(processAction: string, additionalParameters?: any): string;
+    ajaxTypingWait: number;
+    localeStrings: any;
+    startupFunctions: any[];
+}
+
+export default class PwmService implements IPwmService {
     PWM_GLOBAL: any;
     PWM_MAIN: any;
 

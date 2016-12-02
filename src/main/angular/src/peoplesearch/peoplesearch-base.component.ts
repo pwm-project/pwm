@@ -27,7 +27,7 @@ import Person from '../models/person.model';
 import SearchResult from '../models/search-result.model';
 import { IConfigService } from '../services/config.service';
 import PromiseService from '../services/promise.service';
-import PwmService from '../services/pwm.service';
+import IPwmService from '../services/pwm.service';
 
 abstract class PeopleSearchBaseComponent {
     inputDebounce: number;
@@ -45,7 +45,7 @@ abstract class PeopleSearchBaseComponent {
                 protected configService: IConfigService,
                 protected peopleService: IPeopleService,
                 protected promiseService: PromiseService,
-                protected pwmService: PwmService) {}
+                protected pwmService: IPwmService) {}
 
     gotoOrgchart(): void {
         this.gotoState('orgchart.index');

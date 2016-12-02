@@ -23,7 +23,7 @@
 
 import { IHttpService, IPromise, IQService } from 'angular';
 import Person from '../models/person.model';
-import PwmService from './pwm.service';
+import IPwmService from './pwm.service';
 import OrgChartData from '../models/orgchart-data.model';
 import SearchResult from '../models/search-result.model';
 
@@ -39,7 +39,7 @@ export interface IPeopleService {
 
 export default class PeopleService implements IPeopleService {
     static $inject = ['$http', '$q', 'PwmService' ];
-    constructor(private $http: IHttpService, private $q: IQService, private pwmService: PwmService) {}
+    constructor(private $http: IHttpService, private $q: IQService, private pwmService: IPwmService) {}
 
     autoComplete(query: string): IPromise<Person[]> {
         return this.search(query, { 'includeDisplayName': true })

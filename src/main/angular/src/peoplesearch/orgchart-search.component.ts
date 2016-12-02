@@ -27,7 +27,7 @@ import { IPeopleService } from '../services/people.service';
 import Person from '../models/person.model';
 import OrgChartData from '../models/orgchart-data.model';
 import {IConfigService} from '../services/config.service';
-import PwmService from '../services/pwm.service';
+import IPwmService from '../services/pwm.service';
 
 @Component({
     stylesheetUrl: require('peoplesearch/orgchart-search.component.scss'),
@@ -48,7 +48,7 @@ export default class OrgChartSearchComponent {
                 private $stateParams: angular.ui.IStateParamsService,
                 private configService: IConfigService,
                 private peopleService: IPeopleService,
-                private pwmService: PwmService) {
+                private pwmService: IPwmService) {
     }
 
     $onInit(): void {

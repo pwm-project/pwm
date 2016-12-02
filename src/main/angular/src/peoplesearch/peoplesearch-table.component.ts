@@ -28,7 +28,7 @@ import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import { IQService, IScope } from 'angular';
 import SearchResult from '../models/search-result.model';
 import PromiseService from '../services/promise.service';
-import PwmService from '../services/pwm.service';
+import IPwmService from '../services/pwm.service';
 
 @Component({
     stylesheetUrl: require('peoplesearch/peoplesearch-table.component.scss'),
@@ -56,7 +56,7 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
                 configService: IConfigService,
                 peopleService: IPeopleService,
                 promiseService: PromiseService,
-                pwmService: PwmService) {
+                pwmService: IPwmService) {
         super($q, $scope, $state, $stateParams, $translate, configService, peopleService, promiseService, pwmService);
     }
 

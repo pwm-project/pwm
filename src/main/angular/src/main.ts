@@ -58,6 +58,8 @@ module('app', [
     .service('ConfigService', ConfigService)
     .factory('translationsLoader', TranslationsLoaderFactory);
 
-// Attach to the page document
-bootstrap(document, ['app'], { strictDi: true });
+// Attach to the page document, wait for PWM to load first
+window['PWM_GLOBAL'].startupFunctions.push(() => {
+    bootstrap(document, ['app'], { strictDi: true });
+});
 

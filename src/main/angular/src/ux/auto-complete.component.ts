@@ -23,7 +23,6 @@
 
 import { Component } from '../component';
 import { IAttributes, IAugmentedJQuery, IDocumentService, IPromise, IScope } from 'angular';
-import PwmService from '../services/pwm.service';
 
 @Component({
     bindings: {

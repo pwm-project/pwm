@@ -30,7 +30,7 @@ import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import Person from '../models/person.model';
 import PromiseService from '../services/promise.service';
 import SearchResult from '../models/search-result.model';
-import PwmService from '../services/pwm.service';
+import IPwmService from '../services/pwm.service';
 
 export enum PeopleSearchCardsSize {
     Small = 0,
@@ -68,7 +68,7 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
                 configService: IConfigService,
                 peopleService: IPeopleService,
                 promiseService: PromiseService,
-                pwmService: PwmService) {
+                pwmService: IPwmService) {
         super($q, $scope, $state, $stateParams, $translate, configService, peopleService, promiseService, pwmService);
     }
 

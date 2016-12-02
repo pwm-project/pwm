@@ -22,7 +22,7 @@
 
 
 import { IHttpService, IPromise, IQService } from 'angular';
-import PwmService from './pwm.service';
+import IPwmService from './pwm.service';
 
 const COLUMN_CONFIG = 'peoplesearch_search_columns';
 const PHOTO_ENABLED = 'peoplesearch_enablePhoto';
@@ -40,7 +40,7 @@ export default class ConfigService implements IConfigService {
     static $inject = ['$http', '$q', 'PwmService' ];
     constructor(private $http: IHttpService,
                 private $q: IQService,
-                private pwmService: PwmService) {
+                private pwmService: IPwmService) {
     }
 
     getColumnConfig(): IPromise<any> { return this.getValue(COLUMN_CONFIG); }
