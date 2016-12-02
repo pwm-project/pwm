@@ -30,7 +30,7 @@ import password.pwm.config.StoredValue;
 import password.pwm.config.UserPermission;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 
 import java.util.List;
 import java.util.Locale;

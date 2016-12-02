@@ -33,7 +33,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -156,7 +156,7 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
     )
             throws ChaiUnavailableException, ChaiOperationException
     {
-        final boolean ignoreCache = Helper.enumArrayContainsValue(flags, Flag.ignoreCache);
+        final boolean ignoreCache = JavaHelper.enumArrayContainsValue(flags, Flag.ignoreCache);
         if (user == null || attributes == null || attributes.isEmpty()) {
             return Collections.emptyMap();
         }

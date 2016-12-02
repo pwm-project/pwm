@@ -44,6 +44,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;

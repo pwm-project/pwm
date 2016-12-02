@@ -41,7 +41,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;

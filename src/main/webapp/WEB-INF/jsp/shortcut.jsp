@@ -27,7 +27,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.http.servlet.ShortcutServlet" %>
-<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"

@@ -40,8 +40,8 @@ import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -154,7 +154,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(peopleSearchAction);
+                    JavaHelper.unhandledSwitchStatement(peopleSearchAction);
             }
         }
 

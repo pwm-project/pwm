@@ -29,9 +29,9 @@ import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 

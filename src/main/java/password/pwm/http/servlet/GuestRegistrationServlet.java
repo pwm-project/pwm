@@ -58,6 +58,7 @@ import password.pwm.util.FormMap;
 import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
@@ -170,7 +171,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
             }
         }
 

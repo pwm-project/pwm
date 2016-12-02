@@ -25,7 +25,7 @@ package password.pwm.config.value;
 import password.pwm.PwmConstants;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;

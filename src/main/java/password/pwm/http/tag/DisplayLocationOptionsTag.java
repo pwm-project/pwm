@@ -23,7 +23,7 @@
 package password.pwm.http.tag;
 
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;

@@ -37,7 +37,7 @@ import password.pwm.svc.wordlist.StoredWordlistDataBean;
 import password.pwm.svc.wordlist.Wordlist;
 import password.pwm.svc.wordlist.WordlistConfiguration;
 import password.pwm.svc.wordlist.WordlistType;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -112,7 +112,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(processAction);
+                    JavaHelper.unhandledSwitchStatement(processAction);
             }
             return;
         }

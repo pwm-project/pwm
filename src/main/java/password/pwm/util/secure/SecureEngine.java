@@ -27,8 +27,8 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.crypto.Cipher;
@@ -257,7 +257,7 @@ public class SecureEngine {
                 byteBuffer.clear();
             }
 
-            return Helper.byteArrayToHexString(messageDigest.digest());
+            return JavaHelper.byteArrayToHexString(messageDigest.digest());
 
         } catch (NoSuchAlgorithmException | IOException e) {
             final String errorMsg = "unexpected error during file hash operation: " + e.getMessage();
@@ -284,7 +284,7 @@ public class SecureEngine {
             final PwmHashAlgorithm algorithm
     )
             throws PwmUnrecoverableException {
-        return Helper.byteArrayToHexString(computeHashToBytes(is, algorithm));
+        return JavaHelper.byteArrayToHexString(computeHashToBytes(is, algorithm));
     }
 
     static byte[] computeHmacToBytes(

@@ -70,8 +70,8 @@ import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenService;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -232,7 +232,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
             }
         }
 
@@ -797,7 +797,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
             // add a delay to prevent continuous checks
             final long delayMs = Long.parseLong(pwmRequest.getConfig().readAppProperty(AppProperty.HELPDESK_VERIFICATION_INVALID_DELAY_MS));
             while (TimeDuration.fromCurrent(startTime).isShorterThan(delayMs)) {
-                Helper.pause(100);
+                JavaHelper.pause(100);
             }
 
             final HelpdeskVerificationResponseBean responseBean = new HelpdeskVerificationResponseBean(passed, verificationStateBean.toClientString(pwmRequest.getPwmApplication()));
@@ -984,7 +984,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         // add a delay to prevent continuous checks
         final long delayMs = Long.parseLong(pwmRequest.getConfig().readAppProperty(AppProperty.HELPDESK_VERIFICATION_INVALID_DELAY_MS));
         while (TimeDuration.fromCurrent(startTime).isShorterThan(delayMs)) {
-            Helper.pause(100);
+            JavaHelper.pause(100);
         }
 
         final HelpdeskVerificationResponseBean responseBean = new HelpdeskVerificationResponseBean(passed, verificationStateBean.toClientString(pwmRequest.getPwmApplication()));
@@ -1228,7 +1228,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         // add a delay to prevent continuous checks
         final long delayMs = Long.parseLong(pwmRequest.getConfig().readAppProperty(AppProperty.HELPDESK_VERIFICATION_INVALID_DELAY_MS));
         while (TimeDuration.fromCurrent(startTime).isShorterThan(delayMs)) {
-            Helper.pause(100);
+            JavaHelper.pause(100);
         }
 
         final HelpdeskVerificationResponseBean responseBean = new HelpdeskVerificationResponseBean(passed, verificationStateBean.toClientString(pwmRequest.getPwmApplication()));

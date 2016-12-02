@@ -35,8 +35,8 @@ import password.pwm.http.PwmRequest;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserStatusReader;
-import password.pwm.util.Helper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
@@ -250,8 +250,8 @@ public class MacroMachine {
         }
 
         if (replaceStr != null && replaceStr.length() > 0) {
-            final boolean sensitive = Helper.enumArrayContainsValue(macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.SensitiveValue);
-            final boolean debugOnlyLogging = Helper.enumArrayContainsValue(macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.OnlyDebugLogging);
+            final boolean sensitive = JavaHelper.enumArrayContainsValue(macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.SensitiveValue);
+            final boolean debugOnlyLogging = JavaHelper.enumArrayContainsValue(macroImplementation.flags(), MacroImplementation.MacroDefinitionFlag.OnlyDebugLogging);
             if (!debugOnlyLogging || (pwmApplication != null && pwmApplication.getConfig().isDevDebugMode())) {
                 LOGGER.trace(sessionLabel, "replaced macro " + matchedStr + " with value: "
                         + (sensitive ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT : replaceStr));

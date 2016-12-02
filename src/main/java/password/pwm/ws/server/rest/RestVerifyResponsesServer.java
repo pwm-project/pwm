@@ -36,7 +36,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestRequestBean;

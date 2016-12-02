@@ -38,6 +38,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpSession;

@@ -25,7 +25,7 @@ package password.pwm.svc.cache;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;

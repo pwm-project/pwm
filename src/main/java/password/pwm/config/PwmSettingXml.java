@@ -28,7 +28,7 @@ import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.stream.StreamSource;
@@ -70,7 +70,7 @@ public class PwmSettingXml {
                 final Thread t = new Thread("PwmSettingXml static cache clear thread") {
                     @Override
                     public void run() {
-                        Helper.pause(30 * 1000);
+                        JavaHelper.pause(30 * 1000);
                         xmlDocCache = null;
                     }
                 };

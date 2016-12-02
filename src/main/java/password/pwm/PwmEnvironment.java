@@ -27,8 +27,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -75,7 +75,7 @@ public class PwmEnvironment {
         ;
 
         public static ApplicationParameter forString(final String input) {
-            return Helper.readEnumFromString(ApplicationParameter.class, null, input);
+            return JavaHelper.readEnumFromString(ApplicationParameter.class, null, input);
         }
     }
 
@@ -89,7 +89,7 @@ public class PwmEnvironment {
         ;
 
         public static ApplicationFlag forString(final String input) {
-            return Helper.readEnumFromString(ApplicationFlag.class, null, input);
+            return JavaHelper.readEnumFromString(ApplicationFlag.class, null, input);
         }
     }
 
@@ -482,7 +482,7 @@ public class PwmEnvironment {
                 LOGGER.debug("can't establish application file lock after "
                         + TimeDuration.fromCurrent(startTime).asCompactString()
                         + ", will retry;");
-                Helper.pause(attemptInterval);
+                JavaHelper.pause(attemptInterval);
             }
         }
 

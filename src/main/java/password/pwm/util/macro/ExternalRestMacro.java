@@ -29,7 +29,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.error.PwmException;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.client.rest.RestClientHelper;
 

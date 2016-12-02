@@ -29,9 +29,9 @@ import password.pwm.config.value.ValueFactory;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
-import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -1269,7 +1269,7 @@ public enum PwmSetting {
                     if (propertyElement.getAttributeValue("key") == null) {
                         throw new IllegalStateException("property element is missing 'key' attribute for value " + this.getKey());
                     }
-                    final PwmSettingProperty property = Helper.readEnumFromString(PwmSettingProperty.class, null, propertyElement.getAttributeValue("key"));
+                    final PwmSettingProperty property = JavaHelper.readEnumFromString(PwmSettingProperty.class, null, propertyElement.getAttributeValue("key"));
                     if (property == null) {
                         throw new IllegalStateException("property element has unknown 'key' attribute for value " + this.getKey());
                     }
@@ -1310,12 +1310,12 @@ public enum PwmSetting {
         final List<LDAPPermissionInfo> returnObj = new ArrayList<>();
         if (permissionElements != null) {
             for (final Element permissionElement : permissionElements) {
-                final LDAPPermissionInfo.Actor actor = Helper.readEnumFromString(
+                final LDAPPermissionInfo.Actor actor = JavaHelper.readEnumFromString(
                         LDAPPermissionInfo.Actor.class,
                         null,
                         permissionElement.getAttributeValue(PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACTOR)
                 );
-                final LDAPPermissionInfo.Access type = Helper.readEnumFromString(
+                final LDAPPermissionInfo.Access type = JavaHelper.readEnumFromString(
                         LDAPPermissionInfo.Access.class,
                         null,
                         permissionElement.getAttributeValue(PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACCESS)

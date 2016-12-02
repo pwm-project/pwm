@@ -22,6 +22,8 @@
 
 package password.pwm.util;
 
+import password.pwm.util.java.JavaHelper;
+
 import java.util.concurrent.TimeUnit;
 
 public class TransactionSizeCalculator {
@@ -46,7 +48,7 @@ public class TransactionSizeCalculator {
     }
 
     public void pause() {
-        Helper.pause(Math.min(lastDuration,settings.getDurationGoal().getTotalMilliseconds() * 2));
+        JavaHelper.pause(Math.min(lastDuration,settings.getDurationGoal().getTotalMilliseconds() * 2));
     }
 
     public void recordLastTransactionDuration(final TimeDuration duration)

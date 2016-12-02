@@ -66,12 +66,12 @@ import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.Percent;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.X509Utils;
+import password.pwm.util.secure.X509Utils;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.bean.HealthData;
@@ -238,7 +238,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
             }
         }
 
@@ -389,7 +389,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             break;
 
             default:
-                Helper.unhandledSwitchStatement(configGuideBean.getStep());
+                JavaHelper.unhandledSwitchStatement(configGuideBean.getStep());
         }
 
         final HealthData jsonOutput = new HealthData();

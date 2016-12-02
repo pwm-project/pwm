@@ -47,7 +47,8 @@ import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.PwmService;
 import password.pwm.util.ClosableIterator;
 import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -272,9 +273,9 @@ public class ReportService implements PwmService {
                 final TimeDuration totalUpdateTime = TimeDuration.fromCurrent(startUpdateTime);
                 if (settings.isAutoCalcRest()) {
                     avgTracker.addSample(totalUpdateTime.getTotalMilliseconds());
-                    Helper.pause(avgTracker.avgAsLong());
+                    JavaHelper.pause(avgTracker.avgAsLong());
                 } else {
-                    Helper.pause(settings.getRestTime().getTotalMilliseconds());
+                    JavaHelper.pause(settings.getRestTime().getTotalMilliseconds());
                 }
             }
             if (cancelFlag) {
@@ -801,7 +802,7 @@ public class ReportService implements PwmService {
                 status = STATUS.CLOSED;
                 return;
             }
-            final long secondsUntilNextDredge = settings.getJobOffsetSeconds() + TimeDuration.fromCurrent(Helper.nextZuluZeroTime()).getTotalSeconds();
+            final long secondsUntilNextDredge = settings.getJobOffsetSeconds() + TimeDuration.fromCurrent(JavaHelper.nextZuluZeroTime()).getTotalSeconds();
             executorService.scheduleAtFixedRate(new DredgeTask(), secondsUntilNextDredge, TimeDuration.DAY.getTotalSeconds(), TimeUnit.SECONDS);
             executorService.scheduleAtFixedRate(new RolloverTask(), secondsUntilNextDredge + 1, TimeDuration.DAY.getTotalSeconds(), TimeUnit.SECONDS);
             executorService.submit(new RolloverTask());

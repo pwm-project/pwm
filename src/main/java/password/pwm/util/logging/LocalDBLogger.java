@@ -28,9 +28,10 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
-import password.pwm.util.FileSystemUtility;
+import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
@@ -372,7 +373,7 @@ public class LocalDBLogger implements PwmService {
                         LOGGER.warn("discarded event after waiting max buffer wait time of " + settings.getMaxBufferWaitTime().asCompactString());
                         return;
                     }
-                    Helper.pause(100);
+                    JavaHelper.pause(100);
                 }
             }
         }
@@ -423,7 +424,7 @@ public class LocalDBLogger implements PwmService {
                         final Date startTime = new Date();
                         localDBListQueue.removeLast(cleanupCount);
                         final TimeDuration purgeTime = TimeDuration.fromCurrent(startTime);
-                        Helper.pause(Math.max(Math.min(purgeTime.getMilliseconds(),20),2000));
+                        JavaHelper.pause(Math.max(Math.min(purgeTime.getMilliseconds(),20),2000));
                     }
                 }
             } catch (Exception e) {

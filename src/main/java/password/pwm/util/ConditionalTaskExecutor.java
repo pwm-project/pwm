@@ -25,6 +25,7 @@ package password.pwm.util;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 /**
  * Executes a predefined task if a conditional has occurred.  Both the task and the conditional must be supplied by the caller.
@@ -38,13 +39,13 @@ public class ConditionalTaskExecutor {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ConditionalTaskExecutor.class);
 
     private Runnable task;
-    private Conditional conditional;
+    private Predicate predicate;
 
     /**
      * Execute the task if the conditional has been met.  Exceptions when running the task will be logged but not returned.
      */
     public void conditionallyExecuteTask() {
-        if (conditional.conditionHasOccurred()) {
+        if (predicate.test(null)) {
             try {
                 task.run();
             } catch (Throwable t) {
@@ -54,35 +55,32 @@ public class ConditionalTaskExecutor {
         }
     }
 
-    public ConditionalTaskExecutor(final Runnable task, final Conditional conditional) {
+    public ConditionalTaskExecutor(final Runnable task, final Predicate predicate) {
         this.task = task;
-        this.conditional = conditional;
+        this.predicate = predicate;
     }
 
-    interface Conditional {
-        boolean conditionHasOccurred();
-    }
 
-    public static class TimeDurationConditional implements Conditional {
+    public static class TimeDurationPredicate implements Predicate {
         private final TimeDuration timeDuration;
         private long nextExecuteTimestamp;
 
-        public TimeDurationConditional(final TimeDuration timeDuration) {
+        public TimeDurationPredicate(final TimeDuration timeDuration) {
             this.timeDuration = timeDuration;
             nextExecuteTimestamp = System.currentTimeMillis() + timeDuration.getTotalMilliseconds();
         }
 
-        public TimeDurationConditional(final long value, final TimeUnit unit) {
+        public TimeDurationPredicate(final long value, final TimeUnit unit) {
             this(new TimeDuration(value, unit));
         }
 
-        public TimeDurationConditional setNextTimeFromNow(final long value, final TimeUnit unit) {
+        public TimeDurationPredicate setNextTimeFromNow(final long value, final TimeUnit unit) {
             nextExecuteTimestamp = System.currentTimeMillis() + unit.toMillis(value);
             return this;
         }
 
         @Override
-        public boolean conditionHasOccurred() {
+        public boolean test(final Object o) {
             if (nextExecuteTimestamp <= System.currentTimeMillis()) {
                 nextExecuteTimestamp = System.currentTimeMillis() + timeDuration.getTotalMilliseconds();
                 return true;

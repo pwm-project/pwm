@@ -27,9 +27,9 @@ import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -72,7 +72,7 @@ class Populator {
             new TransactionSizeCalculator.SettingsBuilder()
                     .setDurationGoal(new TimeDuration(600, TimeUnit.MILLISECONDS))
                     .setMinTransactions(10)
-                    .setMaxTransactions(50 * 1000)
+                    .setMaxTransactions(350 * 1000)
                     .createSettings()
     );
 
@@ -241,7 +241,7 @@ class Populator {
         sb.append(" total words in ").append(new TimeDuration(overallStats.getElapsedSeconds() * 1000).asCompactString());
         {
             final StoredWordlistDataBean storedWordlistDataBean = new StoredWordlistDataBean.Builder()
-                    .setSha1hash(Helper.binaryArrayToHex(checksumInputStream.closeAndFinalChecksum()))
+                    .setSha1hash(JavaHelper.binaryArrayToHex(checksumInputStream.closeAndFinalChecksum()))
                     .setSize(wordlistSize)
                     .setStoreDate(new Date())
                     .setSource(source)
@@ -259,7 +259,7 @@ class Populator {
         final int maxWaitMs = 1000 * 30;
         final Date startWaitTime = new Date();
         while (isRunning() && TimeDuration.fromCurrent(startWaitTime).isShorterThan(maxWaitMs)) {
-            Helper.pause(1000);
+            JavaHelper.pause(1000);
         }
         if (isRunning() && TimeDuration.fromCurrent(startWaitTime).isShorterThan(maxWaitMs)) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "unable to abort in progress population"));

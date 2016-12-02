@@ -54,6 +54,7 @@ import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.util.Helper;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -154,7 +155,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(processAction);
+                    JavaHelper.unhandledSwitchStatement(processAction);
             }
             return;
         }

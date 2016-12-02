@@ -37,7 +37,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Message;
-import password.pwm.util.X509Utils;
+import password.pwm.util.secure.X509Utils;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;

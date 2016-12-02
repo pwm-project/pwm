@@ -78,7 +78,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordCharCounter;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PostChangePasswordAction;

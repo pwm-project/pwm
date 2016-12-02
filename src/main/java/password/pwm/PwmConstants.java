@@ -24,7 +24,7 @@ package password.pwm;
 
 import org.apache.commons.csv.CSVFormat;
 import password.pwm.bean.SessionLabel;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmHashAlgorithm;
 

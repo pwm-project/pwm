@@ -24,7 +24,7 @@ package password.pwm.config;
 
 import org.jdom2.Attribute;
 import org.jdom2.Element;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 
 public enum PwmSettingTemplate {
     NOVL(Type.LDAP_VENDOR),
@@ -54,7 +54,7 @@ public enum PwmSettingTemplate {
     }
 
     public static PwmSettingTemplate templateForString(final String input, final Type type) {
-        final PwmSettingTemplate template = Helper.readEnumFromString(PwmSettingTemplate.class, type.getDefaultValue(), input);
+        final PwmSettingTemplate template = JavaHelper.readEnumFromString(PwmSettingTemplate.class, type.getDefaultValue(), input);
         return template == null || template.getType() != type ? type.getDefaultValue() : template;
     }
 

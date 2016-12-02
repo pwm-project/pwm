@@ -22,7 +22,7 @@
 
 package password.pwm.ldap.schema;
 
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;

@@ -42,9 +42,9 @@ import password.pwm.ldap.UserSearchEngine;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 
@@ -397,7 +397,7 @@ public class FormUtility {
     )
             throws PwmUnrecoverableException
     {
-        final boolean includeNulls = Helper.enumArrayContainsValue(flags, Flag.ReturnEmptyValues);
+        final boolean includeNulls = JavaHelper.enumArrayContainsValue(flags, Flag.ReturnEmptyValues);
         final List<String> formFieldNames = FormConfiguration.convertToListOfNames(formFields);
         LOGGER.trace(sessionLabel, "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection(formFieldNames));
         final Map<String,List<String>> dataFromLdap = new LinkedHashMap<>();

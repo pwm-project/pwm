@@ -4,7 +4,7 @@
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
-<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.*" %>
 <%--
   ~ Password Management Servlets (PWM)

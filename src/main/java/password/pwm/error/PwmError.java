@@ -24,8 +24,8 @@ package password.pwm.error;
 
 import com.novell.ldapchai.exception.ChaiError;
 import password.pwm.config.Configuration;
-import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 
 import java.util.Locale;
 
@@ -199,8 +199,8 @@ public enum PwmError {
     PwmError(final int errorCode, final String resourceKey, final ChaiError[] chaiErrorCode, final ErrorFlag...errorFlags) {
         this.resourceKey = resourceKey;
         this.errorCode = errorCode;
-        this.errorIsPermanent = Helper.enumArrayContainsValue(errorFlags, ErrorFlag.Permanent);
-        this.forceLogout = Helper.enumArrayContainsValue(errorFlags, ErrorFlag.ForceLogout);
+        this.errorIsPermanent = JavaHelper.enumArrayContainsValue(errorFlags, ErrorFlag.Permanent);
+        this.forceLogout = JavaHelper.enumArrayContainsValue(errorFlags, ErrorFlag.ForceLogout);
         this.chaiErrorCode = chaiErrorCode;
 
     }

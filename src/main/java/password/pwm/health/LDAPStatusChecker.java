@@ -55,10 +55,10 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserStatusReader;
-import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.server.rest.bean.HealthData;
@@ -182,7 +182,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 return returnRecords;
             } catch (Throwable e) {
                 final String msgString = e.getMessage();
-                LOGGER.trace(PwmConstants.HEALTH_SESSION_LABEL, "unexpected error while testing test user (during object creation): message=" + msgString + " debug info: " + Helper.readHostileExceptionMessage(e));
+                LOGGER.trace(PwmConstants.HEALTH_SESSION_LABEL, "unexpected error while testing test user (during object creation): message=" + msgString + " debug info: " + JavaHelper.readHostileExceptionMessage(e));
                 returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnexpected,
                         PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
                         msgString
@@ -269,7 +269,7 @@ public class LDAPStatusChecker implements HealthChecker {
                     }
                 }
             } catch (Exception e) {
-                final String msg = "error setting test user password: " + Helper.readHostileExceptionMessage(e);
+                final String msg = "error setting test user password: " + JavaHelper.readHostileExceptionMessage(e);
                 LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL, msg, e);
                 returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnexpected,
                         PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug(ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE),
@@ -709,7 +709,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 break;
 
                 default:
-                    Helper.unhandledSwitchStatement(userPermission.getType());
+                    JavaHelper.unhandledSwitchStatement(userPermission.getType());
             }
         }
         return returnList;

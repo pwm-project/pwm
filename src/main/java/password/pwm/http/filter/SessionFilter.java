@@ -43,7 +43,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.Helper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 

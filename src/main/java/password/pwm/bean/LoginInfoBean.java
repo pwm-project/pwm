@@ -28,7 +28,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.util.BasicAuthInfo;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
 
 import java.io.Serializable;

@@ -42,7 +42,8 @@ import password.pwm.http.client.PwmHttpClient;
 import password.pwm.svc.PwmService;
 import password.pwm.util.AlertHandler;
 import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -299,7 +300,7 @@ public class StatisticsManager implements PwmService {
             final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
             daemonTimer = new Timer(threadName, true);
             daemonTimer.schedule(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS);
-            daemonTimer.schedule(new NightlyTask(), Helper.nextZuluZeroTime());
+            daemonTimer.schedule(new NightlyTask(), JavaHelper.nextZuluZeroTime());
         }
 
         if (pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING) {
@@ -389,7 +390,7 @@ public class StatisticsManager implements PwmService {
         public void run() {
             writeDbValues();
             resetDailyStats();
-            daemonTimer.schedule(new NightlyTask(), Helper.nextZuluZeroTime());
+            daemonTimer.schedule(new NightlyTask(), JavaHelper.nextZuluZeroTime());
         }
     }
 

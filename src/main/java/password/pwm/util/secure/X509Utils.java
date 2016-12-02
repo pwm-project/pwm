@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.util.secure;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
@@ -30,9 +30,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmURL;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmHashAlgorithm;
-import password.pwm.util.secure.SecureEngine;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
@@ -275,7 +275,7 @@ public abstract class X509Utils {
             returnMap.put(CertDebugInfoKey.sha1Hash.toString(), SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()), PwmHashAlgorithm.SHA1));
             returnMap.put(CertDebugInfoKey.sha512Hash.toString(), SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()),
                     PwmHashAlgorithm.SHA512));
-            if (Helper.enumArrayContainsValue(flags, DebugInfoFlag.IncludeCertificateDetail)) {
+            if (JavaHelper.enumArrayContainsValue(flags, DebugInfoFlag.IncludeCertificateDetail)) {
                 returnMap.put(CertDebugInfoKey.detail.toString(),X509Utils.makeDetailText(cert));
             }
         } catch (PwmUnrecoverableException | CertificateEncodingException e) {

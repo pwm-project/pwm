@@ -27,6 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;

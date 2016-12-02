@@ -29,8 +29,8 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.ldap.UserSearchEngine;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.ws.server.rest.RestChallengesServer;
@@ -51,7 +51,7 @@ public class ExportResponsesCommand extends AbstractCliCommand {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName());
-        Helper.pause(2000);
+        JavaHelper.pause(2000);
 
         final long startTime = System.currentTimeMillis();
         final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, SessionLabel.SYSTEM_LABEL);

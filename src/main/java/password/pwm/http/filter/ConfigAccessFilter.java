@@ -44,7 +44,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.svc.intruder.RecordType;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;

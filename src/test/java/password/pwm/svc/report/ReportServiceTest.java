@@ -9,7 +9,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import password.pwm.config.Configuration;
 import password.pwm.svc.report.ReportService.RecordIterator;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 
 import java.io.OutputStream;
 import java.io.StringWriter;

@@ -21,8 +21,8 @@
   --%>
 
 <%@ page import="password.pwm.i18n.Admin" %>
-<%@ page import="password.pwm.util.JsonUtil" %>
-<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.java.JsonUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.util.logging.LocalDBLogger" %>
 <%@ page import="password.pwm.util.logging.PwmLogEvent" %>
 <%@ page import="password.pwm.util.logging.PwmLogLevel" %>

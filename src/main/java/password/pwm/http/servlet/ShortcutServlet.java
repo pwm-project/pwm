@@ -36,7 +36,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ShortcutsBean;
 import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -109,7 +109,7 @@ public class ShortcutServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
             }
         }
 

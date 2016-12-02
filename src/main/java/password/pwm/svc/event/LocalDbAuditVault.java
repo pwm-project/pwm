@@ -27,7 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.Percent;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;

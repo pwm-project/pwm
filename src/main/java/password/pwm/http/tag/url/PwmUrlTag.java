@@ -31,7 +31,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.resource.ResourceFileServlet;
 import password.pwm.http.tag.PwmAbstractTag;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

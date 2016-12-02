@@ -3,7 +3,7 @@
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.i18n.Display" %>
-<%@ page import="password.pwm.util.FileSystemUtility" %>
+<%@ page import="password.pwm.util.java.FileSystemUtility" %>
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
 <%--

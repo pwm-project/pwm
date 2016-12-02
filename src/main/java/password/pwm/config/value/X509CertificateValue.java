@@ -27,7 +27,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.X509Utils;
+import password.pwm.util.secure.X509Utils;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;

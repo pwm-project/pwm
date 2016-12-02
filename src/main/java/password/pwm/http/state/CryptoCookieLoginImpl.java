@@ -40,7 +40,7 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 

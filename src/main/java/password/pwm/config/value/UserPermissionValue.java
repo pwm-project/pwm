@@ -31,7 +31,7 @@ import password.pwm.config.UserPermission;
 import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;

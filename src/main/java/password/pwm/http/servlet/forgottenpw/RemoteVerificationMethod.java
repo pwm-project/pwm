@@ -39,7 +39,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.http.client.PwmHttpClientResponse;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.secure.PwmRandom;

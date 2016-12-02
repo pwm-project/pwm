@@ -22,6 +22,8 @@
 
 package password.pwm.util;
 
+import password.pwm.util.java.JavaHelper;
+
 /**
  * Sleep for a percentage of time.  The percentage is determined by the
  * loadFactor, which should be a value from 0-100.  The loadFactor is applied as
@@ -73,7 +75,7 @@ public class Sleeper {
 
         final long beginSleepTime = System.currentTimeMillis();
         while (sleepTime < desiredTotalSleepTime) {
-            sleepTime += Helper.pause(STANDARD_SLEEP_TIME);
+            sleepTime += JavaHelper.pause(STANDARD_SLEEP_TIME);
 
             final long currentSleepTime = System.currentTimeMillis() - beginSleepTime;
             if (currentSleepTime > MAX_SLEEP_TIME) {

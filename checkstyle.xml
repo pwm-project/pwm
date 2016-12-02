@@ -178,6 +178,9 @@
         <module name="IllegalImport"/>
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
+        <module name="ImportControl">
+            <property name="file" value="import-control.xml"/>
+        </module>
 
 
         <!-- Checks for Size Violations.                    -->

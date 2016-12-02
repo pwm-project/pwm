@@ -34,7 +34,7 @@ import password.pwm.http.servlet.newuser.NewUserServlet;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 

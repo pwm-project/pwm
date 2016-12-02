@@ -85,8 +85,8 @@ import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.util.CaptchaUtility;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.RandomPasswordGenerator;
@@ -264,7 +264,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                     break;
 
                 default:
-                    Helper.unhandledSwitchStatement(processAction);
+                    JavaHelper.unhandledSwitchStatement(processAction);
             }
         } else {
             pwmApplication.getSessionStateService().clearBean(pwmRequest, ForgottenPasswordBean.class);

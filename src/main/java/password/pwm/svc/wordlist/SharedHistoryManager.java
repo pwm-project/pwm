@@ -34,6 +34,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
 import password.pwm.util.Sleeper;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -277,7 +278,7 @@ public class SharedHistoryManager implements PwmService {
             hashedAnswer = md.digest(hashedAnswer);
         }
 
-        return Helper.binaryArrayToHex(hashedAnswer);
+        return JavaHelper.binaryArrayToHex(hashedAnswer);
     }
 
     // -------------------------- INNER CLASSES --------------------------

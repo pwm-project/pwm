@@ -37,8 +37,8 @@ import jetbrains.exodus.env.TransactionalExecutable;
 import jetbrains.exodus.management.Statistics;
 import org.jetbrains.annotations.NotNull;
 import password.pwm.util.ConditionalTaskExecutor;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -94,7 +94,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
         public void run() {
             outputStats();
         }
-    },new ConditionalTaskExecutor.TimeDurationConditional(STATS_OUTPUT_INTERVAL).setNextTimeFromNow(1, TimeUnit.MINUTES));
+    },new ConditionalTaskExecutor.TimeDurationPredicate(STATS_OUTPUT_INTERVAL).setNextTimeFromNow(1, TimeUnit.MINUTES));
 
     private BindMachine bindMachine = new BindMachine(BindMachine.DEFAULT_ENABLE_COMPRESSION, BindMachine.DEFAULT_MIN_COMPRESSION_LENGTH);
 

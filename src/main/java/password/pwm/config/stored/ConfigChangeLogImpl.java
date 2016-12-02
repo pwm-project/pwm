@@ -26,7 +26,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.i18n.Config;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.util.Collection;

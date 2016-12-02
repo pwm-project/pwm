@@ -35,7 +35,7 @@ import password.pwm.http.PwmURL;
 import password.pwm.svc.report.ReportColumnFilter;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.reports.ReportUtils;
 import password.pwm.ws.server.RestResultBean;
@@ -136,7 +136,7 @@ public class AdminServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
             }
         }
 

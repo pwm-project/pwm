@@ -53,7 +53,7 @@ import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.TimeDuration;

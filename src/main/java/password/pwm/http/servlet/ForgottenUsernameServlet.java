@@ -48,7 +48,7 @@ import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.CaptchaUtility;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -113,7 +113,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
             }
         }
 

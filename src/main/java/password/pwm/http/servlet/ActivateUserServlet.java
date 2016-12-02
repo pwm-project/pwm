@@ -67,8 +67,8 @@ import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.util.CaptchaUtility;
-import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
@@ -191,7 +191,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                     break;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
 
             }
         }

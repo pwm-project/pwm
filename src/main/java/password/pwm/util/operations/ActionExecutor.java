@@ -38,7 +38,7 @@ import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.http.client.PwmHttpClientRequest;
 import password.pwm.http.client.PwmHttpClientResponse;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
@@ -87,7 +87,7 @@ public class ActionExecutor {
                 break;
 
             default:
-                Helper.unhandledSwitchStatement(actionConfiguration.getType());
+                JavaHelper.unhandledSwitchStatement(actionConfiguration.getType());
         }
 
         LOGGER.info(pwmSession, "action " + actionConfiguration.getName() + " completed successfully");

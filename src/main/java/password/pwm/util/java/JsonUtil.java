@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.util.java;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -33,6 +33,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
@@ -71,11 +72,11 @@ public class JsonUtil {
 
         final GsonBuilder gsonBuilder = registerTypeAdapters(new GsonBuilder());
 
-        if (!Helper.enumArrayContainsValue(flags, Flag.HtmlEscape)) {
+        if (!JavaHelper.enumArrayContainsValue(flags, Flag.HtmlEscape)) {
             gsonBuilder.disableHtmlEscaping();
         }
 
-        if (Helper.enumArrayContainsValue(flags, Flag.PrettyPrint)) {
+        if (JavaHelper.enumArrayContainsValue(flags, Flag.PrettyPrint)) {
             gsonBuilder.setPrettyPrinting();
         }
 

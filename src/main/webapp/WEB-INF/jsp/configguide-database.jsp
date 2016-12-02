@@ -1,6 +1,6 @@
 <%@ page import="password.pwm.config.value.FileValue" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
-<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.Locale" %>
 <%--
   ~ Password Management Servlets (PWM)

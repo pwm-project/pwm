@@ -34,7 +34,7 @@ import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;

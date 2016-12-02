@@ -45,9 +45,10 @@ import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
@@ -239,7 +240,7 @@ public class AuditService implements PwmService {
                 break;
 
             default:
-                Helper.unhandledSwitchStatement(record.getEventCode().getType());
+                JavaHelper.unhandledSwitchStatement(record.getEventCode().getType());
 
         }
     }

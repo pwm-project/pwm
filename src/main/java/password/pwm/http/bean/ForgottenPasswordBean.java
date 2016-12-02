@@ -47,9 +47,6 @@ public class ForgottenPasswordBean extends PwmSessionBean {
     @SerializedName("u")
     private UserIdentity userIdentity;
 
-    //@SerializedName("t")
-    //private ResponseSet responseSet;
-
     @SerializedName("pc")
     private ChallengeSet presentableChallengeSet;
 
@@ -91,18 +88,6 @@ public class ForgottenPasswordBean extends PwmSessionBean {
     {
         return progress;
     }
-
-    /*
-    public ResponseSet getResponseSet()
-    {
-        return responseSet;
-    }
-
-    public void setResponseSet(final ResponseSet responseSet)
-    {
-        this.responseSet = responseSet;
-    }
-    */
 
     public ChallengeSet getPresentableChallengeSet()
     {

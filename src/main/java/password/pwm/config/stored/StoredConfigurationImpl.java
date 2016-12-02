@@ -53,11 +53,11 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.BCrypt;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.XmlUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -373,7 +373,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         if (settingElement != null) {
             try {
                 final String strValue = (String) ValueFactory.fromXmlValues(pwmSetting, settingElement, null).toNativeObject();
-                return Helper.readEnumFromString(PwmSettingTemplate.class, null, strValue);
+                return JavaHelper.readEnumFromString(PwmSettingTemplate.class, null, strValue);
             } catch (PwmException e) {
                 LOGGER.error("error reading template", e);
             }

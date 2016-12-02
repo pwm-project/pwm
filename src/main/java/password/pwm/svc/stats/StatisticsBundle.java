@@ -22,7 +22,7 @@
 
 package password.pwm.svc.stats;
 
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;

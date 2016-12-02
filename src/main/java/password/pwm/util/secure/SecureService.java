@@ -29,8 +29,8 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
@@ -57,12 +57,12 @@ public class SecureService implements PwmService {
         pwmSecurityKey = config.getSecurityKey();
         {
             final String defaultBlockAlgString = config.readAppProperty(AppProperty.SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG);
-            defaultBlockAlgorithm = Helper.readEnumFromString(PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, defaultBlockAlgString);
+            defaultBlockAlgorithm = JavaHelper.readEnumFromString(PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, defaultBlockAlgString);
             LOGGER.debug("using default ephemeral block algorithm: "+ defaultBlockAlgorithm.getLabel());
         }
         {
             final String defaultHashAlgString = config.readAppProperty(AppProperty.SECURITY_DEFAULT_EPHEMERAL_HASH_ALG);
-            defaultHashAlgorithm = Helper.readEnumFromString(PwmHashAlgorithm.class, PwmHashAlgorithm.SHA512, defaultHashAlgString);
+            defaultHashAlgorithm = JavaHelper.readEnumFromString(PwmHashAlgorithm.class, PwmHashAlgorithm.SHA512, defaultHashAlgString);
             LOGGER.debug("using default ephemeral hash algorithm: "+ defaultHashAlgString.toString());
         }
     }

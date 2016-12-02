@@ -30,6 +30,7 @@ import password.pwm.config.PwmSettingTemplate;
 import password.pwm.error.PwmError;
 import password.pwm.health.HealthMessage;
 import password.pwm.i18n.Message;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.rest.bean.HealthRecord;
 

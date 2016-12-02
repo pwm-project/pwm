@@ -1,7 +1,6 @@
 package password.pwm.health;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
@@ -10,8 +9,8 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientConfiguration;
-import password.pwm.util.FileSystemUtility;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
@@ -83,7 +82,10 @@ public class ApplianceStatusChecker implements HealthChecker {
 
     private String getApplianceAccessToken() throws IOException {
         if (applianceAccessToken == null) {
-            applianceAccessToken = StringUtils.trim(FileUtils.readFileToString(new File(TOKEN_FILE)));
+            final String fileInput = FileUtils.readFileToString(new File(TOKEN_FILE));
+            if (fileInput != null) {
+                applianceAccessToken = fileInput.trim();
+            }
         }
 
         return applianceAccessToken;

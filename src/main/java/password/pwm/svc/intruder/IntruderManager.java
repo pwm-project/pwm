@@ -57,7 +57,8 @@ import password.pwm.util.ClosableIterator;
 import password.pwm.util.DataStore;
 import password.pwm.util.DataStoreFactory;
 import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
@@ -281,7 +282,7 @@ public class IntruderManager implements Serializable, PwmService {
                     throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_TOKEN_DEST);
 
                 default:
-                    Helper.unhandledSwitchStatement(recordType);
+                    JavaHelper.unhandledSwitchStatement(recordType);
             }
             throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_USER);
         }
@@ -393,7 +394,7 @@ public class IntruderManager implements Serializable, PwmService {
             delayPenalty += PwmRandom.getInstance().nextInt((int)Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_DELAY_MAX_JITTER_MS))); // add some randomness;
             delayPenalty = delayPenalty > Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS)) ? Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS)) : delayPenalty;
             LOGGER.trace(sessionLabel, "delaying response " + delayPenalty + "ms due to intruder record: " + JsonUtil.serialize(intruderRecord));
-            Helper.pause(delayPenalty);
+            JavaHelper.pause(delayPenalty);
         }
     }
 

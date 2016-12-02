@@ -45,9 +45,9 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -369,7 +369,7 @@ public class UserSearchEngine {
                 } else {
                     errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected error during ldap search ("
                             + "profile=" + ldapProfile.getIdentifier() + ")"
-                            + ", error: " + Helper.readHostileExceptionMessage(t));
+                            + ", error: " + JavaHelper.readHostileExceptionMessage(t));
                 }
                 LOGGER.error(sessionLabel, "error during user search: " + errorInformation.toDebugStr());
                 throw new PwmUnrecoverableException(errorInformation);

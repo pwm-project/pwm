@@ -44,8 +44,8 @@ import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -142,7 +142,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(oAuthUseCaseCase);
+                    JavaHelper.unhandledSwitchStatement(oAuthUseCaseCase);
             }
 
         }
@@ -178,7 +178,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
                         return;
 
                     default:
-                        Helper.unhandledSwitchStatement(oAuthUseCaseCase);
+                        JavaHelper.unhandledSwitchStatement(oAuthUseCaseCase);
                 }
             } catch (PwmUnrecoverableException e) {
                 final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
@@ -301,7 +301,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
                 return OAuthSettings.forForgottenPassword(profile);
 
             default:
-                Helper.unhandledSwitchStatement(oAuthUseCase);
+                JavaHelper.unhandledSwitchStatement(oAuthUseCase);
 
         }
 

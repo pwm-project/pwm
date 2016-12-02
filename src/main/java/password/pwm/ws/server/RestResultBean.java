@@ -28,7 +28,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 
 import javax.ws.rs.core.Response;
 import java.io.Serializable;

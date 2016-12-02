@@ -29,7 +29,7 @@ import org.apache.http.util.EntityUtils;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.client.PwmHttpClient;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Properties;

@@ -39,8 +39,8 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.i18n.Message;
-import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.localdb.LocalDBUtility;
@@ -114,7 +114,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(processAction);
+                    JavaHelper.unhandledSwitchStatement(processAction);
 
 
             }

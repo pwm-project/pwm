@@ -42,8 +42,8 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.ClosableIterator;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -285,7 +285,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             connection.setAutoCommit(true);
             return connection;
         } catch (Throwable e) {
-            final String errorMsg = "error connecting to database: " + Helper.readHostileExceptionMessage(e);
+            final String errorMsg = "error connecting to database: " + JavaHelper.readHostileExceptionMessage(e);
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg);
             if (e instanceof IOException) {
                 LOGGER.error(errorInformation);

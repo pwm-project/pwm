@@ -31,7 +31,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -129,7 +130,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
 
         pwmRequest.setResponseError(errorInformation);
 
-        if (Helper.enumArrayContainsValue(flags, Flag.ForceLogout)) {
+        if (JavaHelper.enumArrayContainsValue(flags, Flag.ForceLogout)) {
             LOGGER.debug(pwmRequest, "forcing logout due to error " + errorInformation.toDebugStr());
             pwmRequest.getPwmSession().unauthenticateUser(pwmRequest);
         }

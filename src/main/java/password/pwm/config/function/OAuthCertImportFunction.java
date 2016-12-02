@@ -28,7 +28,7 @@ import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 
 import java.net.URI;
 
@@ -53,7 +53,7 @@ public class OAuthCertImportFunction extends AbstractUriCertImportFunction {
                 break;
 
             default:
-                Helper.unhandledSwitchStatement(pwmSetting);
+                JavaHelper.unhandledSwitchStatement(pwmSetting);
                 return null;
         }
 

@@ -55,8 +55,8 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.TimeDuration;
@@ -198,7 +198,7 @@ public class ChangePasswordServlet extends AbstractPwmServlet {
                     break;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
             }
         }
 

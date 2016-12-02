@@ -40,6 +40,7 @@ import password.pwm.health.HealthTopic;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.i18n.Display;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;

@@ -24,7 +24,7 @@ package password.pwm.http.tag;
 
 import password.pwm.http.JspUtility;
 import password.pwm.http.PwmRequest;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.jsp.tagext.TagSupport;

@@ -1,6 +1,6 @@
 <%@ page import="password.pwm.PwmEnvironment" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org

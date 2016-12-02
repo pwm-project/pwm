@@ -40,10 +40,10 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.WorkQueueProcessor;
 import password.pwm.util.localdb.LocalDB;
@@ -285,7 +285,7 @@ public class EmailQueueManager implements PwmService {
                 errorInformation = new ErrorInformation(
                         PwmError.ERROR_EMAIL_SEND_FAILURE,
                         errorMsg,
-                        new String[]{ emailItemToDebugString(emailItemBean), Helper.readHostileExceptionMessage(e)}
+                        new String[]{ emailItemToDebugString(emailItemBean), JavaHelper.readHostileExceptionMessage(e)}
                 );
             }
 

@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.util.java;
 
 import net.iharder.Base64;
 import org.apache.commons.codec.binary.Base32;
@@ -165,10 +165,10 @@ public abstract class StringUtil {
         private static int asBase64UtilOptions(final Base64Options... options) {
             int b64UtilOptions = 0;
 
-            if (Helper.enumArrayContainsValue(options, Base64Options.GZIP)) {
+            if (JavaHelper.enumArrayContainsValue(options, Base64Options.GZIP)) {
                 b64UtilOptions = b64UtilOptions | Base64.GZIP;
             }
-            if (Helper.enumArrayContainsValue(options, Base64Options.URL_SAFE)) {
+            if (JavaHelper.enumArrayContainsValue(options, Base64Options.URL_SAFE)) {
                 b64UtilOptions = b64UtilOptions | Base64.URL_SAFE;
             }
             return b64UtilOptions;
@@ -350,5 +350,9 @@ public abstract class StringUtil {
 
     public static boolean isEmpty(final CharSequence input) {
         return StringUtils.isEmpty(input);
+    }
+
+    public static String defaultString(final String input, final String defaultStr) {
+        return StringUtils.defaultString(input, defaultStr);
     }
 }

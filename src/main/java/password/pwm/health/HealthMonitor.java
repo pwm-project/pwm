@@ -43,6 +43,7 @@ import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 public class HealthMonitor implements PwmService {
@@ -144,7 +145,7 @@ public class HealthMonitor implements PwmService {
                 final ScheduledFuture updateTask = executorService.schedule(new ImmediateUpdater(), 0, TimeUnit.NANOSECONDS);
                 final Date beginWaitTime = new Date();
                 while (!updateTask.isDone() && TimeDuration.fromCurrent(beginWaitTime).isShorterThan(settings.getMaximumForceCheckWait())) {
-                    Helper.pause(500);
+                    JavaHelper.pause(500);
                 }
             }
         }

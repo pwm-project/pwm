@@ -899,7 +899,7 @@ LocalDBStoredQueue implements Queue<String>, Deque<String>
                             }
                         }
                     },
-                    new ConditionalTaskExecutor.TimeDurationConditional(30, TimeUnit.SECONDS)
+                    new ConditionalTaskExecutor.TimeDurationPredicate(30, TimeUnit.SECONDS)
             );
 
             // trim the top.

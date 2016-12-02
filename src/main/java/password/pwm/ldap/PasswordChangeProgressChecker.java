@@ -31,7 +31,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.PasswordSyncCheckMode;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.Percent;
 import password.pwm.util.ProgressInfo;

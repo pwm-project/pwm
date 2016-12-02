@@ -24,7 +24,7 @@ package password.pwm.util.localdb;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 
 import java.io.File;
 import java.io.Serializable;
@@ -53,7 +53,7 @@ public class Memory_LocalDB implements LocalDBProvider {
         final long currentFreeMem = Runtime.getRuntime().freeMemory();
         if (currentFreeMem < MIN_FREE_MEMORY) {
             System.gc();
-            Helper.pause(100);
+            JavaHelper.pause(100);
             System.gc();
             if (currentFreeMem < MIN_FREE_MEMORY) {
                 throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"out of memory, unable to add new records"));

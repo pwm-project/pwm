@@ -65,10 +65,10 @@ import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.ldap.LdapBrowser;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
@@ -251,7 +251,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
                     return;
 
                 default:
-                    Helper.unhandledSwitchStatement(action);
+                    JavaHelper.unhandledSwitchStatement(action);
             }
         }
 

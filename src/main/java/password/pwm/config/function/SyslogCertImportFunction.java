@@ -37,7 +37,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Message;
 import password.pwm.svc.event.SyslogAuditService;
-import password.pwm.util.X509Utils;
+import password.pwm.util.secure.X509Utils;
 
 import java.security.cert.X509Certificate;
 import java.util.Arrays;

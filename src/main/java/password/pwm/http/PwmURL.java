@@ -24,7 +24,7 @@ package password.pwm.http;
 
 import password.pwm.PwmConstants;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;

@@ -48,6 +48,9 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.PasswordUtility;
@@ -490,7 +493,7 @@ public class PwmPasswordRuleValidator {
                 break;
 
             default:
-                Helper.unhandledSwitchStatement(complexityLevel);
+                JavaHelper.unhandledSwitchStatement(complexityLevel);
         }
 
         switch (complexityLevel) {
@@ -509,7 +512,7 @@ public class PwmPasswordRuleValidator {
                 break;
 
             default:
-                Helper.unhandledSwitchStatement(complexityLevel);
+                JavaHelper.unhandledSwitchStatement(complexityLevel);
         }
 
         if (charCounter.getUpperCharCount() < 1) {

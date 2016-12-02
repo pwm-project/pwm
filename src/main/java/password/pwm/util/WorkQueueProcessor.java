@@ -28,6 +28,9 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
@@ -117,7 +120,7 @@ public class WorkQueueProcessor<W extends Serializable> {
             logger.debug("attempting to flush queue prior to shutdown, items in queue=" + queueSize());
         }
         while (localWorkerThread.isRunning() && TimeDuration.fromCurrent(shutdownStartTime).isLongerThan(settings.getMaxShutdownWaitTime())) {
-            Helper.pause(CLOSE_RETRY_CYCLE_INTERVAL.getTotalMilliseconds());
+            JavaHelper.pause(CLOSE_RETRY_CYCLE_INTERVAL.getTotalMilliseconds());
         }
 
         if (!queue.isEmpty()) {
@@ -142,7 +145,7 @@ public class WorkQueueProcessor<W extends Serializable> {
                             + ", item=" + itemProcessor.convertToDebugString(workItem);
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
                 }
-                Helper.pause(SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.getTotalMilliseconds());
+                JavaHelper.pause(SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL.getTotalMilliseconds());
             }
 
             eldestItem = itemWrapper.getDate();
@@ -186,7 +189,7 @@ public class WorkQueueProcessor<W extends Serializable> {
                     waitForWork();
                 }
             } catch (Throwable t) {
-                logger.error("unexpected error processing work item queue: " + Helper.readHostileExceptionMessage(t), t);
+                logger.error("unexpected error processing work item queue: " + JavaHelper.readHostileExceptionMessage(t), t);
             }
 
             logger.trace("worker thread beginning shutdown...");
@@ -200,7 +203,7 @@ public class WorkQueueProcessor<W extends Serializable> {
                         processNextItem();
                     }
                 } catch (Throwable t) {
-                    logger.error("unexpected error processing work item queue: " + Helper.readHostileExceptionMessage(t), t);
+                    logger.error("unexpected error processing work item queue: " + JavaHelper.readHostileExceptionMessage(t), t);
                 }
             }
 

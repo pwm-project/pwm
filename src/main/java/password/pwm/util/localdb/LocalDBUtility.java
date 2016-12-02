@@ -35,6 +35,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.ProgressInfo;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
@@ -114,8 +115,7 @@ public class LocalDBUtility {
         },30 * 1000, 30 * 1000);
 
 
-        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(new GZIPOutputStream(outputStream, GZIP_BUFFER_SIZE));
-        try {
+        try (CSVPrinter csvPrinter = Helper.makeCsvPrinter(new GZIPOutputStream(outputStream, GZIP_BUFFER_SIZE))) {
             csvPrinter.printComment(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " LocalDB export on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
             for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
                 if (loopDB.isBackup()) {
@@ -138,7 +138,6 @@ public class LocalDBUtility {
         } catch (IOException e) {
             writeStringToOut(debugOutput,"IO error during localDB export: " + e.getMessage());
         } finally {
-            IOUtils.closeQuietly(csvPrinter);
             statTimer.cancel();
         }
 
@@ -241,7 +240,7 @@ public class LocalDBUtility {
                 importLineCounter++;
                 eventRateMeter.markEvents(1);
                 final String dbName_recordStr = record.get(0);
-                final LocalDB.DB db = Helper.readEnumFromString(LocalDB.DB.class, null, dbName_recordStr);
+                final LocalDB.DB db = JavaHelper.readEnumFromString(LocalDB.DB.class, null, dbName_recordStr);
                 final String key = record.get(1);
                 final String value = record.get(2);
                 if (db == null) {

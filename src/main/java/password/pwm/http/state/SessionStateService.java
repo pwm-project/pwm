@@ -32,7 +32,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Date;
@@ -94,7 +94,7 @@ public class SessionStateService implements PwmService {
                             break;
 
                         default:
-                            Helper.unhandledSwitchStatement(loginSessionMode);
+                            JavaHelper.unhandledSwitchStatement(loginSessionMode);
                     }
                 }
                 sessionLoginProvider.init(pwmApplication);

@@ -74,8 +74,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -636,7 +636,7 @@ public class NMASCrOperator implements CrOperator {
                 Date lastLogTime = new Date();
                 while (!done && TimeDuration.fromCurrent(startTime).isShorterThan(maxThreadIdleTime)) {
                     LOGGER.trace("attempt to read return code, but isNmasDone=false, will await completion");
-                    Helper.pause(10);
+                    JavaHelper.pause(10);
                     if (completeOnUnsupportedFailure) {
                         done = unsupportedCallbackHasOccurred || this.isNmasDone();
                     } else {

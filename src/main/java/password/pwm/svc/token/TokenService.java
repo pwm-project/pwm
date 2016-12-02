@@ -55,7 +55,8 @@ import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
@@ -173,7 +174,7 @@ public class TokenService implements PwmService {
                     break;
 
                 default:
-                    Helper.unhandledSwitchStatement(storageMethod);
+                    JavaHelper.unhandledSwitchStatement(storageMethod);
             }
             serviceInfo = new ServiceInfo(Collections.singletonList(usedStorageMethod));
         } catch (PwmException e) {

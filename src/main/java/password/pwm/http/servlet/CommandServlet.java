@@ -36,7 +36,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AbstractPwmFilter;
 import password.pwm.http.filter.AuthenticationFilter;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;

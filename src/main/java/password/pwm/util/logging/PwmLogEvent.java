@@ -25,8 +25,8 @@ package password.pwm.util.logging;
 import net.iharder.Base64;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 
 import java.io.IOException;
 import java.io.PrintWriter;

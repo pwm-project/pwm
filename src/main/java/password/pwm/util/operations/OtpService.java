@@ -42,8 +42,8 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -183,7 +183,7 @@ public class OtpService implements PwmService {
                 break;
 
             default:
-                Helper.unhandledSwitchStatement(settings.getOtpType());
+                JavaHelper.unhandledSwitchStatement(settings.getOtpType());
         }
         final List<String> rawRecoveryCodes;
         if (settings.getOtpStorageFormat().supportsRecoveryCodes()) {

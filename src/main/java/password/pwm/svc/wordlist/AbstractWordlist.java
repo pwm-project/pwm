@@ -42,7 +42,8 @@ import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -459,7 +460,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
                     final int maxWaitMs = 1000 * 30;
                     final Date startWaitTime = new Date();
                     while (populator.isRunning() && TimeDuration.fromCurrent(startWaitTime).isShorterThan(maxWaitMs)) {
-                        Helper.pause(1000);
+                        JavaHelper.pause(1000);
                     }
                     if (populator.isRunning() && TimeDuration.fromCurrent(startWaitTime).isShorterThan(maxWaitMs)) {
                         throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "unable to abort populator"));
@@ -501,12 +502,8 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
         protected String getBuiltInWordlistHash() throws IOException, PwmUnrecoverableException {
 
-            InputStream inputStream = null;
-            try {
-                inputStream = getBuiltInWordlist();
+            try (InputStream inputStream = getBuiltInWordlist()) {
                 return SecureEngine.hash(inputStream, CHECKSUM_HASH_ALG);
-            } finally {
-                IOUtils.closeQuietly(inputStream);
             }
         }
 
@@ -536,12 +533,12 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
                 inputStream = autoImportInputStream();
                 final ChecksumInputStream checksumInputStream = new ChecksumInputStream(CHECKSUM_HASH_ALG, inputStream);
                 IOUtils.copy(checksumInputStream, new NullOutputStream());
-                final String hash = Helper.binaryArrayToHex(checksumInputStream.closeAndFinalChecksum());
+                final String hash = JavaHelper.binaryArrayToHex(checksumInputStream.closeAndFinalChecksum());
                 LOGGER.debug("completed read of auto-import wordlist url hash, value=" + hash + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
                 autoImportError = null;
                 return hash;
             } catch (Exception e) {
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error reading from remote wordlist auto-import url: " + Helper.readHostileExceptionMessage(e));
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error reading from remote wordlist auto-import url: " + JavaHelper.readHostileExceptionMessage(e));
                 LOGGER.error(errorInformation);
                 autoImportError = errorInformation;
             } finally {

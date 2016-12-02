@@ -24,7 +24,7 @@ package password.pwm.util.localdb;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.util.FileSystemUtility;
+import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;

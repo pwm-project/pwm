@@ -23,7 +23,7 @@
 package password.pwm.manual;
 
 import junit.framework.TestCase;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.localdb.LocalDBStoredQueue;
@@ -150,7 +150,7 @@ public class LocalDBStoredQueueTest extends TestCase {
         populatedQueue(SIZE, storedQueue);
         assertEquals(SIZE, storedQueue.size());
         for (int i = 0; i < SIZE; ++i) {
-            Helper.pause(PwmRandom.getInstance().nextInt(1000));
+            JavaHelper.pause(PwmRandom.getInstance().nextInt(1000));
             assertEquals(SIZE - i, storedQueue.size());
             storedQueue.remove();
         }

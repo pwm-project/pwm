@@ -26,8 +26,8 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
-import password.pwm.util.Helper;
 import password.pwm.util.cli.CliParameters;
+import password.pwm.util.java.JavaHelper;
 
 import java.util.Collections;
 
@@ -66,7 +66,7 @@ public class TokenInfoCommand extends AbstractCliCommand {
         }
 
         pwmApplication.shutdown();
-        Helper.pause(1000);
+        JavaHelper.pause(1000);
     }
 
     @Override

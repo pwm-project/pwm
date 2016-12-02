@@ -34,8 +34,8 @@ import password.pwm.http.PwmSession;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 
 import java.io.IOException;
 import java.util.Date;
@@ -205,7 +205,7 @@ public class PwmLogger {
                     break;
 
                 default:
-                    Helper.unhandledSwitchStatement(level);
+                    JavaHelper.unhandledSwitchStatement(level);
             }
         } else {
             System.err.println(logEvent.toLogString());

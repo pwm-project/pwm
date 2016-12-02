@@ -26,7 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmSessionWrapper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.java.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
