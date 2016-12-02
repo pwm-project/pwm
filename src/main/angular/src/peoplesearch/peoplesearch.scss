@@ -65,15 +65,19 @@ a {
     margin-bottom: 10px;
   }
 
-  .search-info {
-    border: 1px solid #dae1e1;
-    border-radius: 3px;
-    color: #808080;
-    display: inline-block;
-    font-size: 14px;
-    margin: 0 auto 10px;
-    padding: 5px;
-    text-align: center;
+  .search-info-container {
+    min-height: 38px;
+
+    .search-info {
+      border: 1px solid #dae1e1;
+      border-radius: 3px;
+      color: #808080;
+      display: inline-block;
+      font-size: 14px;
+      margin: 0 auto 10px;
+      padding: 5px;
+      text-align: center;
+    }
   }
 }
 
