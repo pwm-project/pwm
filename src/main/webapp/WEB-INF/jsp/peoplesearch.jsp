@@ -24,9 +24,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
-<jsp:include page="/WEB-INF/jsp/fragment/header.jsp">
-    <jsp:param name="baseHref" value="${pageContext.request.contextPath}/private/peoplesearch/" />
-</jsp:include>
+<%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper" class="peoplesearch-wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">

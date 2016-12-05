@@ -56,7 +56,7 @@
 
             <pwm:if test="<%=PwmIfTest.peopleSearchEnabled%>">
                 <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PEOPLE_SEARCH%>">
-                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>">
+                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>/#/search">
                         <div class="tile">
                             <div class="tile-content">
                                 <div class="tile-image search-image"></div>
@@ -70,7 +70,7 @@
 
             <pwm:if test="<%=PwmIfTest.orgChartEnabled%>">
                 <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PEOPLE_SEARCH%>">
-                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>/orgchart">
+                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>/#/orgchart">
                         <div class="tile">
                             <div class="tile-content">
                                 <div class="tile-image orgchart-image"></div>
