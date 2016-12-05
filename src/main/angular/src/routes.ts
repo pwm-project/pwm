@@ -27,17 +27,11 @@ import { IQService } from 'angular';
 export default [
     '$stateProvider',
     '$urlRouterProvider',
-    '$locationProvider',
     (
         $stateProvider: angular.ui.IStateProvider,
-        $urlRouterProvider: angular.ui.IUrlRouterProvider,
-        $locationProvider: angular.ILocationProvider
+        $urlRouterProvider: angular.ui.IUrlRouterProvider
     ) => {
         $urlRouterProvider.otherwise('/search/cards');
-        $locationProvider.html5Mode({
-            enabled: true,
-            requireBase: false
-        });
 
         $stateProvider.state('search', {
             url: '/search?query',
