@@ -112,7 +112,7 @@ export default class PeopleService implements IPeopleService {
 
                     return this.$q.resolve(new OrgChartData(manager, children, self));
                 },
-                this.handleHttpError);
+                this.handleHttpError.bind(this));
     }
 
     getPerson(id: string): IPromise<Person> {
@@ -135,7 +135,7 @@ export default class PeopleService implements IPeopleService {
                 let person: Person = new Person(response.data['data']);
                 return this.$q.resolve(person);
             },
-            this.handleHttpError);
+            this.handleHttpError.bind(this));
 
         promise['_httpTimeout'] = httpTimeout;
 
@@ -164,7 +164,7 @@ export default class PeopleService implements IPeopleService {
 
                 return this.$q.resolve(searchResult);
             },
-            this.handleHttpError);
+            this.handleHttpError.bind(this));
 
         promise['_httpTimeout'] = httpTimeout;
 

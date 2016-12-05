@@ -30,6 +30,8 @@ export interface IPwmService {
     startupFunctions: any[];
 }
 
+const DEFAULT_AJAX_TYPING_WAIT = 700;
+
 export default class PwmService implements IPwmService {
     PWM_GLOBAL: any;
     PWM_MAIN: any;
@@ -67,10 +69,10 @@ export default class PwmService implements IPwmService {
 
     get ajaxTypingWait(): number {
         if (this.PWM_GLOBAL) {
-            return this.PWM_GLOBAL['client.ajaxTypingWait'] || 700;
+            return this.PWM_GLOBAL['client.ajaxTypingWait'] || DEFAULT_AJAX_TYPING_WAIT;
         }
 
-        return 700;
+        return DEFAULT_AJAX_TYPING_WAIT;
     }
 
     get localeStrings(): any {

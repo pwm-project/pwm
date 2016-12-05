@@ -30,15 +30,6 @@ export default [
     'PwmService',
     ($q: IQService, pwmService: IPwmService) => {
         return function () {
-            // TODO - fix below line to correctly work. Apparently PWM hasn't loaded yet
-            // return this.$q.resolve(pwmService.localeStrings['Display']);
-            var deferred = $q.defer();
-
-            pwmService.startupFunctions.push(() => {
-                deferred.resolve(pwmService.localeStrings['Display']);
-            });
-
-            // resolve with translation data
-            return deferred.promise;
+            return $q.resolve(pwmService.localeStrings['Display']);
         };
     }];
