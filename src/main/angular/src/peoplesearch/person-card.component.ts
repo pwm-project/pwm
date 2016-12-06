@@ -21,7 +21,7 @@
  */
 
 
-import { IAugmentedJQuery } from 'angular';
+import { isString, IAugmentedJQuery } from 'angular';
 import { Component } from '../component';
 import Person from '../models/person.model';
 import { IPeopleService } from '../services/people.service';
@@ -31,6 +31,7 @@ import { IPeopleService } from '../services/people.service';
         directReports: '<',
         disableFocus: '<',
         person: '<',
+        showImage: '<',
         size: '@',
         showDirectReportCount: '<'
     },
@@ -44,6 +45,7 @@ export default class PersonCardComponent {
     private directReports: Person[];
     private size: string;
     private showDirectReportCount: boolean;
+    private showImage: boolean;
 
     static $inject = ['$element', 'PeopleService'];
     constructor(private $element: IAugmentedJQuery, private peopleService: IPeopleService) {
@@ -64,12 +66,13 @@ export default class PersonCardComponent {
 
             if (this.showDirectReportCount) {
                 this.peopleService.getNumberOfDirectReports(this.person.userKey)
-                    .then((numDirectReports) => {
-                        this.person.numDirectReports = numDirectReports;
-                    })
-                    .catch(() => {
-                        // TODO: error handling
-                    });
+                    .then(
+                        (numDirectReports) => {
+                            this.person.numDirectReports = numDirectReports;
+                        },
+                        (error) => {
+                            // TODO: handle error. NOOP is fine for now because it won't try to display the result
+                        });
             }
         }
     }
@@ -79,11 +82,19 @@ export default class PersonCardComponent {
     }
 
     getAvatarStyle(): any {
+        if (!this.showImage) {
+            return { 'background-image': 'url()' };
+        }
+
         if (this.person && this.person.photoURL) {
             return { 'background-image': 'url(' + this.person.photoURL + ')' };
         }
 
         return {};
+    }
+
+    isSmall(): boolean {
+        return this.size === 'small';
     }
 
     private onKeyDown(event: KeyboardEvent): void {

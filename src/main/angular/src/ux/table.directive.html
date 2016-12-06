@@ -1,29 +1,30 @@
 <ng-transclude></ng-transclude>
 
-<div class="table-configuration">
-    <mf-icon-button icon="settings" ng-click="table.toggleConfigurationVisibility($event)"></mf-icon-button>
-    <ul ng-if="table.showConfiguration" ng-click="$event.stopPropagation()">
-        <li ng-repeat="column in table.columns">
-            <label class="label">
-                <input name="column-visibile" type="checkbox" ng-model="column.visible" aria-label="Toggle column visibility"/>
-                {{column.label}}
-            </label>
-        </li>
-    </ul>
-</div>
-
 <table st-table="rowCollection" class="table table-striped">
     <thead>
         <tr>
             <th ng-repeat="column in table.getVisibleColumns()">
                 <div class="column-header">
                     <span class="label" ng-bind="column.label" ng-click="table.sortOnColumn(column)"></span>
-                    <mf-icon icon="chevron-down"
+                    <mf-icon icon="down_thick"
                              ng-if="table.sortColumn === column && table.reverseSort"
                              ng-click="table.toggleSortOrder()"></mf-icon>
-                    <mf-icon icon="chevron-up"
+                    <mf-icon icon="up_thick"
                              ng-if="table.sortColumn === column && !table.reverseSort"
                              ng-click="table.toggleSortOrder()"></mf-icon>
+                </div>
+            </th>
+            <th class="table-configuration-column">
+                <div class="table-configuration">
+                    <mf-icon-button icon="configure_thin" ng-click="table.toggleConfigurationVisibility($event)"></mf-icon-button>
+                    <ul ng-if="table.showConfiguration" ng-click="$event.stopPropagation()">
+                        <li ng-repeat="column in table.columns">
+                            <label class="label">
+                                <input name="column-visibile" type="checkbox" ng-model="column.visible" aria-label="Toggle column visibility"/>
+                                {{column.label}}
+                            </label>
+                        </li>
+                    </ul>
                 </div>
             </th>
         </tr>
@@ -32,6 +33,7 @@
         <tr ng-repeat="item in table.getItems()" ng-click="table.clickItem(item, $event)">
             <td ng-repeat="column in table.getVisibleColumns()"
                 ng-bind="table.getValue(item, column.valueExpression)"></td>
+            <td></td>
         </tr>
     </tbody>
 </table>

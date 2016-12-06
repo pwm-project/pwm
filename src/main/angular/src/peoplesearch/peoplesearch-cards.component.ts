@@ -23,11 +23,14 @@
 
 import { Component } from '../component';
 import ElementSizeService from '../ux/element-size.service';
-import { IAugmentedJQuery, IQService, IScope } from 'angular';
+import { isString, IAugmentedJQuery, IQService, IScope } from 'angular';
+import IConfigService from '../services/config.service';
 import IPeopleService from '../services/people.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import Person from '../models/person.model';
+import PromiseService from '../services/promise.service';
 import SearchResult from '../models/search-result.model';
+import IPwmService from '../services/pwm.service';
 
 export enum PeopleSearchCardsSize {
     Small = 0,
@@ -40,6 +43,8 @@ export enum PeopleSearchCardsSize {
     templateUrl: require('peoplesearch/peoplesearch-cards.component.html')
 })
 export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponent {
+    photosEnabled: boolean;
+
     static $inject = [
         '$element',
         '$q',
@@ -48,7 +53,10 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
         '$stateParams',
         '$translate',
         'MfElementSizeService',
-        'PeopleService'
+        'ConfigService',
+        'PeopleService',
+        'PromiseService',
+        'PwmService'
     ];
     constructor(private $element: IAugmentedJQuery,
                 $q: IQService,
@@ -57,8 +65,11 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
                 private elementSizeService: ElementSizeService,
-                peopleService: IPeopleService) {
-        super($q, $scope, $state, $stateParams, $translate, peopleService);
+                configService: IConfigService,
+                peopleService: IPeopleService,
+                promiseService: PromiseService,
+                pwmService: IPwmService) {
+        super($q, $scope, $state, $stateParams, $translate, configService, peopleService, promiseService, pwmService);
     }
 
     $onDestroy(): void {
@@ -69,6 +80,10 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
         this.initialize();
         this.fetchData();
 
+        this.configService.photosEnabled().then((photosEnabled: boolean) => {
+            this.photosEnabled = photosEnabled;
+        });
+
         this.elementSizeService.watchWidth(this.$element, PeopleSearchCardsSize);
     }
 
@@ -77,13 +92,18 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
     }
 
     fetchData() {
-        let searchResult = this.fetchSearchData();
-        if (searchResult) {
-            searchResult.then(this.onSearchResult.bind(this));
+        let searchResultPromise = this.fetchSearchData();
+        if (searchResultPromise) {
+            searchResultPromise.then(this.onSearchResult.bind(this));
         }
     }
 
     private onSearchResult(searchResult: SearchResult): void {
+        // Aborted request
+        if (!searchResult) {
+            return;
+        }
+
         this.searchResult = new SearchResult({
             sizeExceeded: searchResult.sizeExceeded,
             searchResults: []
@@ -91,18 +111,33 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
 
         let self = this;
 
-        searchResult.people.forEach(
+        this.pendingRequests = searchResult.people.map(
             (person: Person) => {
-                this.peopleService
-                    .getPerson(person.userKey)
+                // Store this promise because it is abortable
+                let promise = this.peopleService.getPerson(person.userKey);
+
+                promise
                     .then((person: Person) => {
+                        // Aborted request
+                        if (!person) {
+                            return;
+                        }
+
                         // searchResult may be overwritten by ESC->[LETTER] typed in after a search
                         // has started but before all calls to peopleService.getPerson have resolved
                         if (self.searchResult) {
                             self.searchResult.people.push(person);
                         }
+                    },
+                    (error) => {
+                        self.setErrorMessage(error);
+                    })
+                    .finally(() => {
+                        self.removePendingRequest(promise);
                     });
-            },
-            this);
+
+                return promise;
+            }
+        );
     }
 }

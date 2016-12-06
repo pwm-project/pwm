@@ -23,9 +23,11 @@
 
 import { Component } from '../component';
 import { isArray, isString, IPromise, IQService, IScope } from 'angular';
+import { IConfigService } from '../services/config.service';
 import { IPeopleService } from '../services/people.service';
-import Person from '../models/person.model';
 import OrgChartData from '../models/orgchart-data.model';
+import Person from '../models/person.model';
+import IPwmService from '../services/pwm.service';
 
 @Component({
     stylesheetUrl: require('peoplesearch/orgchart-search.component.scss'),
@@ -33,20 +35,30 @@ import OrgChartData from '../models/orgchart-data.model';
 })
 export default class OrgChartSearchComponent {
     directReports: Person[];
+    inputDebounce: number;
     managementChain: Person[];
     person: Person;
+    photosEnabled: boolean;
     query: string;
 
-    static $inject = [ '$q', '$scope', '$state', '$stateParams', 'PeopleService' ];
+    static $inject = [ '$q', '$scope', '$state', '$stateParams', 'ConfigService', 'PeopleService', 'PwmService' ];
     constructor(private $q: IQService,
                 private $scope: IScope,
                 private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
-                private peopleService: IPeopleService) {
+                private configService: IConfigService,
+                private peopleService: IPeopleService,
+                private pwmService: IPwmService) {
     }
 
     $onInit(): void {
         const self = this;
+
+        this.inputDebounce = this.pwmService.ajaxTypingWait;
+        this.configService.photosEnabled().then(
+            (photosEnabled: boolean) => {
+                this.photosEnabled = photosEnabled;
+            });
 
         // Read query from state parameters
         const queryParameter = this.$stateParams['query'];
@@ -62,24 +74,33 @@ export default class OrgChartSearchComponent {
 
         this.fetchOrgChartData(personId)
             .then((orgChartData: OrgChartData) => {
+                if (!orgChartData) {
+                    return;
+                }
+
                 // Override personId in case it was undefined
                 personId = orgChartData.self.userKey;
 
-                self.$q.all({
-                    directReports: self.peopleService.getDirectReports(personId),
-                    managementChain: self.peopleService.getManagementChain(personId),
-                    person: self.peopleService.getPerson(personId)
-                })
-                .then((data) => {
-                    self.$scope.$evalAsync(() => {
-                        self.directReports = data['directReports'];
-                        self.managementChain = data['managementChain'];
-                        self.person = data['person'];
-                    });
-                })
-                .catch(() => {
-                    // TODO: error handling
-                });
+                self.$q
+                    .all({
+                        directReports: self.peopleService.getDirectReports(personId),
+                        managementChain: self.peopleService.getManagementChain(personId),
+                        person: self.peopleService.getPerson(personId)
+                    })
+                    .then(
+                        (data) => {
+                            self.$scope.$evalAsync(() => {
+                                self.directReports = data['directReports'];
+                                self.managementChain = data['managementChain'];
+                                self.person = data['person'];
+                            });
+                        },
+                        (error) => {
+                            // TODO: handle error
+                        });
+            },
+            (error) => {
+                // TODO: handle error
             });
     }
 

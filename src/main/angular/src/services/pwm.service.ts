@@ -23,7 +23,16 @@
 
 import { ILogService, IWindowService } from 'angular';
 
-export default class PwmService {
+export interface IPwmService {
+    getServerUrl(processAction: string, additionalParameters?: any): string;
+    ajaxTypingWait: number;
+    localeStrings: any;
+    startupFunctions: any[];
+}
+
+const DEFAULT_AJAX_TYPING_WAIT = 700;
+
+export default class PwmService implements IPwmService {
     PWM_GLOBAL: any;
     PWM_MAIN: any;
 
@@ -56,6 +65,14 @@ export default class PwmService {
         url = this.addPwmFormIdToUrl(url);
 
         return url;
+    }
+
+    get ajaxTypingWait(): number {
+        if (this.PWM_GLOBAL) {
+            return this.PWM_GLOBAL['client.ajaxTypingWait'] || DEFAULT_AJAX_TYPING_WAIT;
+        }
+
+        return DEFAULT_AJAX_TYPING_WAIT;
     }
 
     get localeStrings(): any {
