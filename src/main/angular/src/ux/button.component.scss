@@ -39,9 +39,16 @@ mf-button {
 
     &:focus,
     &:hover {
-      border-color: #28a9e1;
       color: #0088ce;
       outline: none;
+    }
+
+    &:focus {
+      border-color: #28a9e1;
+    }
+
+    &:hover {
+      border-color: #dae1e1;
     }
   }
 }

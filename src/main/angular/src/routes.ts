@@ -21,20 +21,17 @@
  */
 
 
+import { IConfigService } from './services/config.service';
+import { IQService } from 'angular';
+
 export default [
     '$stateProvider',
     '$urlRouterProvider',
-    '$locationProvider',
     (
         $stateProvider: angular.ui.IStateProvider,
-        $urlRouterProvider: angular.ui.IUrlRouterProvider,
-        $locationProvider: angular.ILocationProvider
+        $urlRouterProvider: angular.ui.IUrlRouterProvider
     ) => {
         $urlRouterProvider.otherwise('/search/cards');
-        $locationProvider.html5Mode({
-            enabled: true,
-            requireBase: false
-        });
 
         $stateProvider.state('search', {
             url: '/search?query',
@@ -51,7 +48,31 @@ export default [
             url: '/details/{personId}',
             component: 'personDetailsDialogComponent'
         });
-        $stateProvider.state('orgchart', { url: '/orgchart?query', abstract: true, template: '<ui-view/>' });
+        $stateProvider.state('orgchart', { url: '/orgchart?query',
+            abstract: true,
+            template: '<ui-view/>',
+            resolve: {
+                enabled: [
+                    '$q',
+                    'ConfigService',
+                    ($q: IQService, configService: IConfigService) => {
+                        let deferred = $q.defer();
+
+                        configService
+                            .orgChartEnabled()
+                            .then((orgChartEnabled: boolean) => {
+                                if (!orgChartEnabled) {
+                                    deferred.reject('OrgChart disabled');
+                                }
+                                else {
+                                    deferred.resolve();
+                                }
+                            });
+
+                        return deferred.promise;
+                    }]
+            }
+        });
         $stateProvider.state('orgchart.index', { url: '', component: 'orgChartSearch' });
         $stateProvider.state('orgchart.search', { url: '/{personId}', component: 'orgChartSearch' });
         $stateProvider.state('orgchart.search.details', { url: '/details', component: 'personDetailsDialogComponent' });

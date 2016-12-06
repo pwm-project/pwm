@@ -25,19 +25,32 @@ import { IPeopleService } from '../services/people.service';
 import { isArray, isString, IPromise, IQService, IScope } from 'angular';
 import Person from '../models/person.model';
 import SearchResult from '../models/search-result.model';
+import { IConfigService } from '../services/config.service';
+import PromiseService from '../services/promise.service';
+import IPwmService from '../services/pwm.service';
 
 abstract class PeopleSearchBaseComponent {
-    loading: boolean;
-    query: string;
-    searchMessage: (string | IPromise<string>);
+    errorMessage: string;
+    inputDebounce: number;
+    orgChartEnabled: boolean;
+    protected pendingRequests: IPromise<any>[] = [];
+    searchMessage: string;
     searchResult: SearchResult;
+    query: string;
 
     constructor(protected $q: IQService,
-                          protected $scope: IScope,
-                          protected $state: angular.ui.IStateService,
-                          protected $stateParams: angular.ui.IStateParamsService,
-                          protected $translate: angular.translate.ITranslateService,
-                          protected peopleService: IPeopleService) {}
+                protected $scope: IScope,
+                protected $state: angular.ui.IStateService,
+                protected $stateParams: angular.ui.IStateParamsService,
+                protected $translate: angular.translate.ITranslateService,
+                protected configService: IConfigService,
+                protected peopleService: IPeopleService,
+                protected promiseService: PromiseService,
+                protected pwmService: IPwmService) {}
+
+    getMessage(): string {
+        return this.errorMessage || this.searchMessage;
+    }
 
     gotoOrgchart(): void {
         this.gotoState('orgchart.index');
@@ -61,7 +74,8 @@ abstract class PeopleSearchBaseComponent {
         }
 
         this.query = value;
-        this.setSearchMessage(null);
+        this.clearSearchMessage();
+        this.clearErrorMessage();
         this.fetchData();
     }
 
@@ -69,28 +83,56 @@ abstract class PeopleSearchBaseComponent {
         this.$state.go('.details', { personId: person.userKey, query: this.query });
     }
 
-    protected setSearchMessage(message: (string | IPromise<string>)) {
-        if (!message) {
+    get loading(): boolean {
+        return !!this.pendingRequests.length;
+    }
+
+    protected abortPendingRequests() {
+        for (let index = 0; index < this.pendingRequests.length; index++) {
+            let pendingRequest = this.pendingRequests[index];
+            this.promiseService.abort(pendingRequest);
+        }
+
+        this.pendingRequests = [];
+    }
+
+    protected removePendingRequest(promise: IPromise<any>) {
+        let index = this.pendingRequests.indexOf(promise);
+
+        if (index > -1) {
+            this.pendingRequests.splice(index, 1);
+        }
+    }
+
+    protected setErrorMessage(message: string) {
+        this.errorMessage = message;
+    }
+
+    protected clearErrorMessage() {
+        this.errorMessage = null;
+    }
+
+    // If message is a string it will be translated. If it is a promise it will assign the string from the resolved
+    // promise
+    protected setSearchMessage(translationKey: string) {
+        if (!translationKey) {
             this.clearSearchMessage();
             return;
         }
 
-        if (typeof message === 'string') {
-            this.searchMessage = message;
-        }
-        else {
-            const self = this;
-
-            message.then((translation: string) => {
-                self.searchMessage = translation;
-            });
-        }
+        const self = this;
+        this.$translate(translationKey.toString())
+            .then((translation: string) => {
+            self.searchMessage = translation;
+        });
     }
 
     protected clearSearch(): void {
         this.query = null;
         this.searchResult = null;
+        this.clearErrorMessage();
         this.clearSearchMessage();
+        this.abortPendingRequests();
     }
 
     protected clearSearchMessage(): void  {
@@ -100,37 +142,60 @@ abstract class PeopleSearchBaseComponent {
     abstract fetchData(): void;
 
     protected fetchSearchData(): IPromise<SearchResult> {
-        const self = this;
+        this.abortPendingRequests();
+        this.searchResult = null;
 
         if (!this.query) {
             this.clearSearch();
             return null;
         }
 
-        this.loading = true;
+        const self = this;
 
-        return this.peopleService
-            .search(this.query)
-            .then((searchResult: SearchResult) => {
-                self.clearSearchMessage();
+        let promise = this.peopleService.search(this.query);
 
-                // Too many results returned
-                if (searchResult.sizeExceeded) {
-                    self.setSearchMessage(self.$translate('Display_SearchResultsExceeded'));
-                }
-                // No results returned. Not an else if statement so that the more important message is presented
-                if (!searchResult.people.length) {
-                    self.setSearchMessage(self.$translate('Display_SearchResultsNone'));
-                }
+        this.pendingRequests.push(promise);
 
-                return this.$q.resolve(searchResult);
-            })
+        return promise
+            .then(
+                (searchResult: SearchResult) => {
+                    self.clearErrorMessage();
+                    self.clearSearchMessage();
+
+                    // Aborted request
+                    if (!searchResult) {
+                        return;
+                    }
+
+                    // Too many results returned
+                    if (searchResult.sizeExceeded) {
+                        self.setSearchMessage('Display_SearchResultsExceeded');
+                    }
+
+                    // No results returned. Not an else if statement so that the more important message is presented
+                    if (!searchResult.people.length) {
+                        self.setSearchMessage('Display_SearchResultsNone');
+                    }
+
+                    return this.$q.resolve(searchResult);
+                },
+                (error) => {
+                    self.setErrorMessage(error);
+                    self.clearSearchMessage();
+                })
             .finally(() => {
-                self.loading = false;
+                self.removePendingRequest(promise);
             });
     }
 
     protected initialize(): void {
+        this.inputDebounce = this.pwmService.ajaxTypingWait;
+
+        // Determine whether org-chart should appear
+        this.configService.orgChartEnabled().then((orgChartEnabled: boolean) => {
+            this.orgChartEnabled = orgChartEnabled;
+        });
+
         // Read query from state parameters
         const queryParameter = this.$stateParams['query'];
 

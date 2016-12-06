@@ -21,66 +21,17 @@
  */
 
 
-body, html {
-  height: 100%;
-}
+import { IAngularEvent, IRootScopeService } from 'angular';
+import { IStateService } from 'angular-ui-router';
 
-body {
-  > ui-view {
-    box-sizing: border-box;
-    display: block;
-    height: 100%;
-    overflow: hidden;
-    padding: 5px;
-    width: 100%;
-  }
-}
-
-a {
-  color: #0088ce;
-  cursor: pointer;
-  font-weight: normal;
-  text-decoration: none;
-
-  &:focus {
-    outline: 1px solid #28a9e1;
-  }
-
-  &:hover {
-    background-color: #f6f9f8;
-  }
-}
-
-.people-search-component {
-  display: flex;
-  flex-flow: column nowrap;
-  height: 100%;
-
-  > ui-view {
-    height: 100%;
-    overflow: auto;
-  }
-
-  mf-app-bar {
-    margin-bottom: 10px;
-  }
-
-  .search-info-container {
-    min-height: 38px;
-
-    .search-info {
-      border: 1px solid #dae1e1;
-      border-radius: 3px;
-      color: #808080;
-      display: inline-block;
-      font-size: 14px;
-      margin: 0 auto 10px;
-      padding: 5px;
-      text-align: center;
+export default [
+    '$transitions',
+    '$state',
+    ($transitions, $state: IStateService) => {
+        $transitions.onError({}, (transition) => {
+            if (transition._error === 'OrgChart disabled') {
+                $state.go('search.cards');
+            }
+        });
     }
-  }
-}
-
-.highlight {
-  color: #28a9e1;
-}
+];

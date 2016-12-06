@@ -27,6 +27,8 @@ import IPeopleService from '../services/people.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import { IQService, IScope } from 'angular';
 import SearchResult from '../models/search-result.model';
+import PromiseService from '../services/promise.service';
+import IPwmService from '../services/pwm.service';
 
 @Component({
     stylesheetUrl: require('peoplesearch/peoplesearch-table.component.scss'),
@@ -35,15 +37,27 @@ import SearchResult from '../models/search-result.model';
 export default class PeopleSearchTableComponent extends PeopleSearchBaseComponent {
     columnConfiguration: any;
 
-    static $inject = [ '$q', '$scope', '$state', '$stateParams', '$translate', 'ConfigService', 'PeopleService' ];
+    static $inject = [
+        '$q',
+        '$scope',
+        '$state',
+        '$stateParams',
+        '$translate',
+        'ConfigService',
+        'PeopleService',
+        'PromiseService',
+        'PwmService'
+    ];
     constructor($q: IQService,
                 $scope: IScope,
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
-                private configService: IConfigService,
-                peopleService: IPeopleService) {
-        super($q, $scope, $state, $stateParams, $translate, peopleService);
+                configService: IConfigService,
+                peopleService: IPeopleService,
+                promiseService: PromiseService,
+                pwmService: IPwmService) {
+        super($q, $scope, $state, $stateParams, $translate, configService, peopleService, promiseService, pwmService);
     }
 
     $onInit(): void {
@@ -53,9 +67,13 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         let self = this;
 
         // The table columns are dynamic and configured via a service
-        this.configService.getColumnConfiguration().then((columnConfiguration: any) => {
-            self.columnConfiguration = columnConfiguration;
-        });
+        this.configService.getColumnConfig().then(
+            (columnConfiguration: any) => {
+                self.columnConfiguration = columnConfiguration;
+            },
+            (error) => {
+                self.setErrorMessage(error);
+            });
     }
 
     gotoCardsView() {

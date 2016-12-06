@@ -1,12 +1,12 @@
-<mf-icon class="search-icon" icon="magnify"></mf-icon>
+<mf-icon class="search-icon" icon="search_thick"></mf-icon>
 <input type="text"
        ng-blur="$ctrl.onBlur({ $event: $event })"
        ng-focus="$ctrl.onFocus({ $event: $event })"
        ng-keydown="$ctrl.onKeyDown({ $event: $event })"
        ng-model="$ctrl.searchText"
-       ng-model-options="{ debounce: 300 }"
+       ng-model-options="{ debounce: $ctrl.inputDebounce }"
        ng-attr-placeholder="{{ ('Placeholder_Search' | translate) }}"
        title="Search Box"
        autocomplete="off" />
-<mf-icon-button class="clear-input" icon="close" ng-click="$ctrl.clearSearchText()"></mf-icon-button>
+<mf-icon-button class="clear-input" icon="close_thick" ng-click="$ctrl.clearSearchText()"></mf-icon-button>
 <!-- loader graphic -->

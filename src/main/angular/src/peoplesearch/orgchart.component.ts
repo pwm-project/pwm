@@ -38,7 +38,8 @@ export enum OrgChartSize {
     bindings: {
         directReports: '<',
         managementChain: '<',
-        person: '<'
+        person: '<',
+        showImages: '<'
     },
     stylesheetUrl: require('peoplesearch/orgchart.component.scss'),
     templateUrl: require('peoplesearch/orgchart.component.html')
@@ -49,14 +50,6 @@ export default class OrgChartComponent {
     isExtraLargeLayout: boolean;
     managementChain: Person[];
     person: Person;
-
-    emptyPerson: Person = new Person({
-        displayNames: [
-            'No Managers'
-        ],
-        photoURL: null,
-        userKey: null
-    });
 
     private elementSize: OrgChartSize = OrgChartSize.ExtraSmall;
     private maxVisibleManagers: number;
@@ -132,10 +125,6 @@ export default class OrgChartComponent {
         return this.managementChain && !!this.managementChain.length;
     }
 
-    isPersonOrphan(): boolean {
-        return !(this.hasDirectReports() || this.hasManagementChain());
-    }
-
     onClickPerson(): void {
         if (this.person) {
             this.$state.go('orgchart.search.details', { personId: this.person.userKey });
@@ -154,7 +143,9 @@ export default class OrgChartComponent {
 
     private onResize(newValue: number): void {
         this.isExtraLargeLayout = (newValue >= OrgChartSize.ExtraLarge);
-
+        if (!this.isExtraLargeLayout) {
+            this.resetManagerList();
+        }
         this.maxVisibleManagers = Math.floor(
          (newValue - 115 /* left margin */) / 125 /* card width + right margin */);
     }

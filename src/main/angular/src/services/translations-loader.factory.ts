@@ -23,20 +23,13 @@
 
 import 'angular-translate';
 import { IQService } from 'angular';
-import PwmService from './pwm.service';
+import IPwmService from './pwm.service';
 
 export default [
     '$q',
     'PwmService',
-    ($q: IQService, pwmService: PwmService) => {
+    ($q: IQService, pwmService: IPwmService) => {
         return function () {
-            var deferred = $q.defer();
-
-            pwmService.startupFunctions.push(() => {
-                deferred.resolve(pwmService.localeStrings['Display']);
-            });
-
-            // resolve with translation data
-            return deferred.promise;
+            return $q.resolve(pwmService.localeStrings['Display']);
         };
     }];
