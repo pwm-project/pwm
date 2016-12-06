@@ -21,7 +21,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.otp;
+package password.pwm.util.operations.otp;
 
 import javax.crypto.Mac;
 import java.io.ByteArrayInputStream;

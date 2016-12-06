@@ -37,7 +37,6 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.otp.OTPUserRecord;
 
 /**
  *

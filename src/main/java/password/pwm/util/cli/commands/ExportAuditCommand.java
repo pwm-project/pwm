@@ -25,7 +25,7 @@ package password.pwm.util.cli.commands;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.svc.event.AuditService;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.JavaHelper;
 

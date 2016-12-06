@@ -40,7 +40,6 @@ import password.pwm.http.PwmSession;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.otp.OTPUserRecord;
 
 /**
  *

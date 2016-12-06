@@ -1,6 +1,6 @@
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.bean.ChangePasswordBean" %>
-<%@ page import="password.pwm.util.TimeDuration" %>
+<%@ page import="password.pwm.util.java.TimeDuration" %>
 <%@ page import="java.util.Date" %>
 <%--
   ~ Password Management Servlets (PWM)

@@ -47,20 +47,20 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.TimeDuration;
+import password.pwm.util.localdb.WorkQueueProcessor;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.TimeDuration;
-import password.pwm.util.WorkQueueProcessor;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -543,7 +543,7 @@ public class SmsQueueManager implements PwmService {
         return workQueueProcessor.queueSize();
     }
 
-    public Date eldestItem() {
+    public Instant eldestItem() {
         return workQueueProcessor.eldestItem();
     }
 

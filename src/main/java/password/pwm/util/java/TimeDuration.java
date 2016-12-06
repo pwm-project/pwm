@@ -20,10 +20,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.util.java;
 
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Display;
+import password.pwm.util.LocaleHelper;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -364,6 +365,14 @@ public class TimeDuration implements Comparable, Serializable {
 
     public Date getDateAfter(final Date specifiedDate) {
         return new Date(specifiedDate.getTime() + ms);
+    }
+
+    public Instant getInstantAfter(final Instant specifiedDate) {
+        return specifiedDate.minusMillis(ms);
+    }
+
+    public Instant getInstantAfterNow() {
+        return Instant.now().minusMillis(ms);
     }
 
     public Date getDateBeforeNow() {

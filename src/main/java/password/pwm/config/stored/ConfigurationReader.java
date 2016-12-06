@@ -34,9 +34,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.FileSystemUtility;
-import password.pwm.util.Helper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
@@ -223,7 +222,7 @@ public class ConfigurationReader {
                 final String configFileName = configFile.getName();
                 final String backupFilePath = backupDirectory.getAbsolutePath() + File.separatorChar + configFileName + "-backup";
                 final File backupFile = new File(backupFilePath);
-                Helper.rotateBackups(backupFile, backupRotations);
+                FileSystemUtility.rotateBackups(backupFile, backupRotations);
                 storedConfiguration.toXml(new FileOutputStream(backupFile, false));
             }
         } finally {

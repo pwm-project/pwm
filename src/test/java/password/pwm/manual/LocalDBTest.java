@@ -24,7 +24,7 @@ package password.pwm.manual;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBFactory;

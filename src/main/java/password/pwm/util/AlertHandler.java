@@ -33,6 +33,7 @@ import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.i18n.Display;
 import password.pwm.svc.report.ReportSummaryData;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 

@@ -22,28 +22,21 @@
 
 package password.pwm.util;
 
-import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiOperationException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.FormNonce;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
 import password.pwm.http.state.SessionStateService;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -54,9 +47,7 @@ import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.TreeSet;
 import java.util.concurrent.Executors;
@@ -78,106 +69,6 @@ public class Helper {
     private Helper() {
     }
 
-
-    /**
-     * Writes a Map of form values to ldap onto the supplied user object.
-     * The map key must be a string of attribute names.
-     * <p/>
-     * Any ldap operation exceptions are not reported (but logged).
-     *
-     * @param pwmSession       for looking up session info
-     * @param theUser          User to write to
-     * @param formValues       A map with {@link password.pwm.config.FormConfiguration} keys and String values.
-     * @throws ChaiUnavailableException if the directory is unavailable
-     * @throws PwmOperationalException if their is an unexpected ldap problem
-     */
-    public static void writeFormValuesToLdap(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final ChaiUser theUser,
-            final Map<FormConfiguration,String> formValues,
-            final boolean expandMacros
-    )
-            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
-    {
-        final Map<String,String> tempMap = new HashMap<>();
-
-        for (final FormConfiguration formItem : formValues.keySet()) {
-            if (!formItem.isReadonly()) {
-                tempMap.put(formItem.getName(),formValues.get(formItem));
-            }
-        }
-
-        final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
-        writeMapToLdap(theUser, tempMap, macroMachine, expandMacros);
-    }
-
-    /**
-     * Writes a Map of values to ldap onto the supplied user object.
-     * The map key must be a string of attribute names.
-     * <p/>
-     * Any ldap operation exceptions are not reported (but logged).
-     *
-     * @param theUser          User to write to
-     * @param valueMap       A map with String keys and String values.
-     * @throws ChaiUnavailableException if the directory is unavailable
-     * @throws PwmOperationalException if their is an unexpected ldap problem
-     */
-    public static void writeMapToLdap(
-            final ChaiUser theUser,
-            final Map<String,String> valueMap,
-            final MacroMachine macroMachine,
-            final boolean expandMacros
-    )
-            throws PwmOperationalException, ChaiUnavailableException
-    {
-        final Map<String,String> currentValues;
-        try {
-            currentValues = theUser.readStringAttributes(valueMap.keySet());
-        } catch (ChaiOperationException e) {
-            final String errorMsg = "error reading existing values on user " + theUser.getEntryDN() + " prior to replacing values, error: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            final PwmOperationalException newException = new PwmOperationalException(errorInformation);
-            newException.initCause(e);
-            throw newException;
-        }
-
-        for (final String attrName : valueMap.keySet()) {
-            String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
-            if (expandMacros) {
-                attrValue = macroMachine.expandMacros(attrValue);
-            }
-            if (!attrValue.equals(currentValues.get(attrName))) {
-                if (attrValue.length() > 0) {
-                    try {
-                        theUser.writeStringAttribute(attrName, attrValue);
-                        LOGGER.info("set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
-                    } catch (ChaiOperationException e) {
-                        final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-                        final PwmOperationalException newException = new PwmOperationalException(errorInformation);
-                        newException.initCause(e);
-                        throw newException;
-                    }
-                } else {
-                    if (currentValues.get(attrName) != null && currentValues.get(attrName).length() > 0) {
-                        try {
-                            theUser.deleteAttribute(attrName, null);
-                            LOGGER.info("deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
-                        } catch (ChaiOperationException e) {
-                            final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-                            final PwmOperationalException newException = new PwmOperationalException(errorInformation);
-                            newException.initCause(e);
-                            throw newException;
-                        }
-                    }
-                }
-            } else {
-                LOGGER.debug("skipping attribute modify for attribute '" + attrName + "', no change in value");
-            }
-        }
-    }
 
     public static String formatDiskSize(final long diskSize) {
         final float COUNT = 1000;
@@ -220,34 +111,6 @@ public class Helper {
                 value
         );
         return pwmRequest.getPwmApplication().getSecureService().encryptObjectToString(formID);
-    }
-
-
-
-
-    public static void rotateBackups(final File inputFile, final int maxRotate) {
-        if (maxRotate < 1) {
-            return;
-        }
-        for (int i = maxRotate; i >= 0; i--) {
-            final File thisFile = (i == 0) ? inputFile : new File(inputFile.getAbsolutePath() + "-" + i);
-            final File youngerFile = (i <= 1) ? inputFile : new File(inputFile.getAbsolutePath() + "-" + (i - 1));
-
-            if (i == maxRotate) {
-                if (thisFile.exists()) {
-                    LOGGER.debug("deleting old backup file: " + thisFile.getAbsolutePath());
-                    if (!thisFile.delete()) {
-                        LOGGER.error("unable to delete old backup file: " + thisFile.getAbsolutePath());
-                    }
-                }
-            } else if (i == 0 || youngerFile.exists()) {
-                final File destFile = new File(inputFile.getAbsolutePath() + "-" + (i + 1));
-                LOGGER.debug("backup file " + thisFile.getAbsolutePath() + " renamed to " + destFile.getAbsolutePath());
-                if (!thisFile.renameTo(destFile)) {
-                    LOGGER.debug("unable to rename file " + thisFile.getAbsolutePath() + " to " + destFile.getAbsolutePath());
-                }
-            }
-        }
     }
 
 

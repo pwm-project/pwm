@@ -39,25 +39,28 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmSession;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.secure.X509Utils;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.secure.X509Utils;
 
 import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -168,6 +171,106 @@ public class LdapOperationsHelper {
             GUIDHelper.processError(errorMsg,throwExceptionOnError);
         }
         return existingValue;
+    }
+
+    /**
+     * Writes a Map of form values to ldap onto the supplied user object.
+     * The map key must be a string of attribute names.
+     * <p/>
+     * Any ldap operation exceptions are not reported (but logged).
+     *
+     * @param pwmSession       for looking up session info
+     * @param theUser          User to write to
+     * @param formValues       A map with {@link password.pwm.config.FormConfiguration} keys and String values.
+     * @throws ChaiUnavailableException if the directory is unavailable
+     * @throws PwmOperationalException if their is an unexpected ldap problem
+     */
+    public static void writeFormValuesToLdap(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final ChaiUser theUser,
+            final Map<FormConfiguration,String> formValues,
+            final boolean expandMacros
+    )
+            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
+    {
+        final Map<String,String> tempMap = new HashMap<>();
+
+        for (final FormConfiguration formItem : formValues.keySet()) {
+            if (!formItem.isReadonly()) {
+                tempMap.put(formItem.getName(),formValues.get(formItem));
+            }
+        }
+
+        final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
+        writeMapToLdap(theUser, tempMap, macroMachine, expandMacros);
+    }
+
+    /**
+     * Writes a Map of values to ldap onto the supplied user object.
+     * The map key must be a string of attribute names.
+     * <p/>
+     * Any ldap operation exceptions are not reported (but logged).
+     *
+     * @param theUser          User to write to
+     * @param valueMap       A map with String keys and String values.
+     * @throws ChaiUnavailableException if the directory is unavailable
+     * @throws PwmOperationalException if their is an unexpected ldap problem
+     */
+    public static void writeMapToLdap(
+            final ChaiUser theUser,
+            final Map<String,String> valueMap,
+            final MacroMachine macroMachine,
+            final boolean expandMacros
+    )
+            throws PwmOperationalException, ChaiUnavailableException
+    {
+        final Map<String,String> currentValues;
+        try {
+            currentValues = theUser.readStringAttributes(valueMap.keySet());
+        } catch (ChaiOperationException e) {
+            final String errorMsg = "error reading existing values on user " + theUser.getEntryDN() + " prior to replacing values, error: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+            newException.initCause(e);
+            throw newException;
+        }
+
+        for (final String attrName : valueMap.keySet()) {
+            String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
+            if (expandMacros) {
+                attrValue = macroMachine.expandMacros(attrValue);
+            }
+            if (!attrValue.equals(currentValues.get(attrName))) {
+                if (attrValue.length() > 0) {
+                    try {
+                        theUser.writeStringAttribute(attrName, attrValue);
+                        LOGGER.info("set attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + attrValue + ")");
+                    } catch (ChaiOperationException e) {
+                        final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                        final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+                        newException.initCause(e);
+                        throw newException;
+                    }
+                } else {
+                    if (currentValues.get(attrName) != null && currentValues.get(attrName).length() > 0) {
+                        try {
+                            theUser.deleteAttribute(attrName, null);
+                            LOGGER.info("deleted attribute value on user " + theUser.getEntryDN() + " (" + attrName + ")");
+                        } catch (ChaiOperationException e) {
+                            final String errorMsg = "error removing '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                            final PwmOperationalException newException = new PwmOperationalException(errorInformation);
+                            newException.initCause(e);
+                            throw newException;
+                        }
+                    }
+                }
+            } else {
+                LOGGER.debug("skipping attribute modify for attribute '" + attrName + "', no change in value");
+            }
+        }
     }
 
     private static class GUIDHelper {

@@ -62,7 +62,6 @@ export default class PwmService implements IPwmService {
     getServerUrl(processAction: string, additionalParameters?: any): string {
         let url: string = this.urlContext + '/private/peoplesearch?processAction=' + processAction;
         url = this.addParameters(url, additionalParameters);
-        url = this.addPwmFormIdToUrl(url);
 
         return url;
     }
@@ -89,14 +88,6 @@ export default class PwmService implements IPwmService {
         }
 
         return [];
-    }
-
-    private addPwmFormIdToUrl(url: string): string {
-        if (!this.PWM_MAIN) {
-            return url;
-        }
-
-        return this.PWM_MAIN.addPwmFormIDtoURL(url);
     }
 
 

@@ -74,10 +74,8 @@
     <allow pkg="javax.net"/>
     <allow pkg="javax.crypto"/>
     <allow pkg="javax.mail"/>
-    <allow pkg="org.bouncycastle"/>
     <allow pkg="org.xeustechnologies"/>
     <allow pkg="net.glxn"/>
-    <allow pkg="java.sql"/>
 
     <!--servlet -->
     <subpackage name="http.servlet">
@@ -101,6 +99,11 @@
     <subpackage name="util.operations.cr">
         <allow pkg="com.novell.ldap"/>
         <allow pkg="com.novell.security.nmas"/>
+    </subpackage>
+
+    <!-- database -->
+    <subpackage name="util.db">
+        <allow pkg="java.sql"/>
     </subpackage>
 
     <subpackage name="util.java">

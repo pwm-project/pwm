@@ -56,7 +56,7 @@ import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.wordlist.WordlistManager;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.cr.CrOperator;
 import password.pwm.util.operations.cr.DbCrOperator;

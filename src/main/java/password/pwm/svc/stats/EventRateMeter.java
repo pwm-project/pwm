@@ -22,7 +22,7 @@
 
 package password.pwm.svc.stats;
 
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

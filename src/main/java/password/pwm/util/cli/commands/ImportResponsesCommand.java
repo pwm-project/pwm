@@ -32,7 +32,7 @@ import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.ws.server.rest.RestChallengesServer;
 

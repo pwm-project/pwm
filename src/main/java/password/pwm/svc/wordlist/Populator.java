@@ -27,7 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;

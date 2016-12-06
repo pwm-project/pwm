@@ -43,7 +43,7 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistManager;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.VersionChecker;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.logging.PwmLogger;

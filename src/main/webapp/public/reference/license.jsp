@@ -1,5 +1,5 @@
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.util.XmlUtil" %>
+<%@ page import="password.pwm.util.java.XmlUtil" %>
 <%@ page import="org.jdom2.Document" %>
 <%@ page import="org.jdom2.Element" %>
 <%@ page import="java.util.List" %>

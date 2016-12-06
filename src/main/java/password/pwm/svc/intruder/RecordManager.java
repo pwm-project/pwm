@@ -23,7 +23,7 @@
 package password.pwm.svc.intruder;
 
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.ClosableIterator;
+import password.pwm.util.java.ClosableIterator;
 
 public interface RecordManager {
     boolean checkSubject( String subject);

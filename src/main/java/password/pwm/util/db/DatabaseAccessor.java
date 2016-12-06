@@ -23,7 +23,7 @@
 package password.pwm.util.db;
 
 import password.pwm.PwmAboutProperty;
-import password.pwm.util.ClosableIterator;
+import password.pwm.util.java.ClosableIterator;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

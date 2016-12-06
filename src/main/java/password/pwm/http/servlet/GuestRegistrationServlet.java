@@ -49,13 +49,13 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.GuestRegistrationBean;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.FormMap;
-import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.java.JavaHelper;
@@ -233,7 +233,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             final Date expirationDate = readExpirationFromRequest(pwmRequest);
 
             // Update user attributes
-            Helper.writeFormValuesToLdap(pwmApplication, pwmSession, theGuest, formValues, false);
+            LdapOperationsHelper.writeFormValuesToLdap(pwmApplication, pwmSession, theGuest, formValues, false);
 
             // Write expirationDate
             if (expirationDate != null) {

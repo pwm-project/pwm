@@ -23,6 +23,7 @@
 package password.pwm.util;
 
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 
 import java.util.concurrent.TimeUnit;
 

@@ -31,7 +31,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.ws.server.rest.RestChallengesServer;
 

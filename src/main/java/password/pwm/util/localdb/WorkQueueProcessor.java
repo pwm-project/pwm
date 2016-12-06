@@ -20,14 +20,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.util.localdb;
 
 import com.google.gson.annotations.SerializedName;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.Helper;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -35,7 +36,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -61,7 +62,7 @@ public class WorkQueueProcessor<W extends Serializable> {
     private volatile WorkerThread workerThread;
 
     private IDGenerator idGenerator = new IDGenerator();
-    private Date eldestItem = null;
+    private Instant eldestItem = null;
 
     public enum ProcessResult {
         SUCCESS,
@@ -114,7 +115,7 @@ public class WorkQueueProcessor<W extends Serializable> {
         workerThread = null;
 
         localWorkerThread.flushQueueAndClose();
-        final Date shutdownStartTime = new Date();
+        final Instant shutdownStartTime = Instant.now();
 
         if (queueSize() > 0) {
             logger.debug("attempting to flush queue prior to shutdown, items in queue=" + queueSize());
@@ -134,11 +135,11 @@ public class WorkQueueProcessor<W extends Serializable> {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
         }
 
-        final ItemWrapper<W> itemWrapper = new ItemWrapper<>(new Date(), workItem, idGenerator.nextID());
+        final ItemWrapper<W> itemWrapper = new ItemWrapper<>(Instant.now(), workItem, idGenerator.nextID());
         final String asString = JsonUtil.serialize(itemWrapper);
 
         if (settings.getMaxEvents() > 0) {
-            final Date startTime = new Date();
+            final Instant startTime = Instant.now();
             while (!queue.offerLast(asString)) {
                 if (TimeDuration.fromCurrent(startTime).isLongerThan(settings.getMaxSubmitWaitTime())) {
                     final String errorMsg = "unable to submit item to worker queue after " + settings.getMaxSubmitWaitTime().asCompactString()
@@ -159,7 +160,7 @@ public class WorkQueueProcessor<W extends Serializable> {
         return queue.size();
     }
 
-    public Date eldestItem() {
+    public Instant eldestItem() {
         return eldestItem;
     }
 
@@ -178,7 +179,7 @@ public class WorkQueueProcessor<W extends Serializable> {
         private final AtomicBoolean shutdownFlag = new AtomicBoolean(false);
         private final AtomicBoolean notifyWorkFlag = new AtomicBoolean(true);
 
-        private Date retryWakeupTime;
+        private Instant retryWakeupTime;
 
         @Override
         public void run() {
@@ -198,7 +199,7 @@ public class WorkQueueProcessor<W extends Serializable> {
                 logger.trace("processing remaining " + queue.size() + " items");
 
                 try {
-                    final Date shutdownStartTime = new Date();
+                    final Instant shutdownStartTime = Instant.now();
                     while (retryWakeupTime == null && !queue.isEmpty() && TimeDuration.fromCurrent(shutdownStartTime).isLongerThan(settings.getMaxShutdownWaitTime())) {
                         processNextItem();
                     }
@@ -225,8 +226,8 @@ public class WorkQueueProcessor<W extends Serializable> {
         private void waitForWork() {
             if (!shutdownFlag.get()) {
                 if (retryWakeupTime != null) {
-                    while (retryWakeupTime.after(new Date()) && !shutdownFlag.get()) {
-                        LockSupport.parkUntil(this, retryWakeupTime.getTime());
+                    while (retryWakeupTime.isAfter(Instant.now()) && !shutdownFlag.get()) {
+                        LockSupport.parkUntil(this, retryWakeupTime.toEpochMilli());
                     }
                     retryWakeupTime = null;
                 } else {
@@ -254,13 +255,13 @@ public class WorkQueueProcessor<W extends Serializable> {
             try {
                 itemWrapper = JsonUtil.<ItemWrapper<W>>deserialize(nextStrValue, ItemWrapper.class);
                 if (TimeDuration.fromCurrent(itemWrapper.getDate()).isLongerThan(settings.getRetryDiscardAge())) {
-                    logger.warn("discarding queued item due to age, item=" + makeDebugText(itemWrapper));
                     removeQueueTop();
+                    logger.warn("discarding queued item due to age, item=" + makeDebugText(itemWrapper));
                     return;
                 }
             } catch (Throwable e) {
-                logger.warn("discarding stored record due to parsing error: " + e.getMessage() + ", record=" + nextStrValue);
                 removeQueueTop();
+                logger.warn("discarding stored record due to parsing error: " + e.getMessage() + ", record=" + nextStrValue);
                 return;
             }
 
@@ -268,25 +269,25 @@ public class WorkQueueProcessor<W extends Serializable> {
             try {
                 processResult = itemProcessor.process(itemWrapper.getWorkItem());
                 if (processResult == null) {
-                    logger.warn("itemProcessor.process() returned null, removing; item=" + makeDebugText(itemWrapper));
                     removeQueueTop();
+                    logger.warn("itemProcessor.process() returned null, removing; item=" + makeDebugText(itemWrapper));
                 } else {
                     switch (processResult) {
                         case FAILED: {
-                            logger.error("discarding item after process failure, item=" + makeDebugText(itemWrapper));
                             removeQueueTop();
+                            logger.error("discarding item after process failure, item=" + makeDebugText(itemWrapper));
                         }
                         break;
 
                         case RETRY: {
-                            retryWakeupTime = new Date(System.currentTimeMillis() + settings.getRetryInterval().getTotalMilliseconds());
+                            retryWakeupTime = Instant.ofEpochMilli(System.currentTimeMillis() + settings.getRetryInterval().getTotalMilliseconds());
                             logger.debug("will retry item after failure, item=" + makeDebugText(itemWrapper));
                         }
                         break;
 
                         case SUCCESS: {
-                            logger.trace("successfully processed item=" + makeDebugText(itemWrapper));
                             removeQueueTop();
+                            logger.trace("successfully processed item=" + makeDebugText(itemWrapper));
                         }
                         break;
 
@@ -299,8 +300,8 @@ public class WorkQueueProcessor<W extends Serializable> {
                     }
                 }
             } catch(Throwable e) {
-                logger.error("unexpected error while processing work queue: " + e.getMessage());
                 removeQueueTop();
+                logger.error("unexpected error while processing work queue: " + e.getMessage());
             }
 
         }
@@ -313,7 +314,7 @@ public class WorkQueueProcessor<W extends Serializable> {
 
     private static class ItemWrapper<W extends Serializable> implements Serializable {
         @SerializedName("t")
-        private final Date timestamp;
+        private final Instant timestamp;
 
         @SerializedName("m")
         private final String item;
@@ -324,14 +325,14 @@ public class WorkQueueProcessor<W extends Serializable> {
         @SerializedName("i")
         private final String id;
 
-        ItemWrapper(final Date submitDate, final W workItem, final String itemId) {
+        ItemWrapper(final Instant submitDate, final W workItem, final String itemId) {
             this.timestamp = submitDate;
             this.item = JsonUtil.serialize(workItem);
             this.className = workItem.getClass().getName();
             this.id = itemId;
         }
 
-        Date getDate() {
+        Instant getDate() {
             return timestamp;
         }
 
@@ -351,7 +352,7 @@ public class WorkQueueProcessor<W extends Serializable> {
 
         String toDebugString(final ItemProcessor<W> itemProcessor) throws PwmOperationalException {
             final Map<String,String> debugOutput = new LinkedHashMap<>();
-            debugOutput.put("date", PwmConstants.DEFAULT_DATETIME_FORMAT.format(getDate()));
+            debugOutput.put("date", getDate().toString());
             debugOutput.put("id", getId());
             debugOutput.put("item", itemProcessor.convertToDebugString(getWorkItem()));
             return StringUtil.mapToString(debugOutput,"=",",");

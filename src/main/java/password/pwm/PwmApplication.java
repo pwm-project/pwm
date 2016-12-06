@@ -60,7 +60,7 @@ import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.VersionChecker;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.db.DatabaseAccessorImpl;
@@ -213,7 +213,7 @@ public class PwmApplication {
 
         LOGGER.info("initializing, application mode=" + getApplicationMode()
                 + ", applicationPath=" + (pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath().getAbsolutePath())
-                + ", pwmEnvironment.getConfigFile()=" + (pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath())
+                + ", configFile=" + (pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath())
         );
 
         if (!pwmEnvironment.isInternalRuntimeInstance()) {

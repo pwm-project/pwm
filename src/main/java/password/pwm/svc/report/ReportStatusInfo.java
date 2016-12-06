@@ -24,7 +24,7 @@ package password.pwm.svc.report;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.svc.stats.EventRateMeter;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.util.Date;

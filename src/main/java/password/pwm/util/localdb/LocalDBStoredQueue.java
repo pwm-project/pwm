@@ -23,7 +23,7 @@
 package password.pwm.util.localdb;
 
 import password.pwm.PwmApplication;
-import password.pwm.util.ConditionalTaskExecutor;
+import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.logging.PwmLogger;
 
 import java.math.BigInteger;

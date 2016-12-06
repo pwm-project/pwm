@@ -22,6 +22,9 @@
 
 package password.pwm.util;
 
+import password.pwm.util.java.Percent;
+import password.pwm.util.java.TimeDuration;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;

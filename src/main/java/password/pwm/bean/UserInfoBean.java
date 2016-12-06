@@ -25,7 +25,7 @@ package password.pwm.bean;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.ProfileType;
 import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.util.otp.OTPUserRecord;
+import password.pwm.util.operations.otp.OTPUserRecord;
 
 import java.io.Serializable;
 import java.util.Collections;

@@ -38,6 +38,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.i18n.PwmLocaleBundle;
+import password.pwm.util.java.Percent;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -181,7 +182,7 @@ public class LocaleHelper {
 
     public static Locale localeResolver(final Locale desiredLocale, final Collection<Locale> localePool) {
         if (desiredLocale == null || localePool == null || localePool.isEmpty()) {
-            return null;
+            return PwmConstants.DEFAULT_LOCALE;
         }
 
         for (final Locale loopLocale : localePool) {
@@ -213,10 +214,10 @@ public class LocaleHelper {
         }
 
         if (localePool.contains(new Locale(""))) {
-            return new Locale("");
+            return PwmConstants.DEFAULT_LOCALE;
         }
 
-        return null;
+        return PwmConstants.DEFAULT_LOCALE;
     }
 
     public static String resolveStringKeyLocaleMap(final Locale desiredLocale, final Map<String,String> inputMap) {

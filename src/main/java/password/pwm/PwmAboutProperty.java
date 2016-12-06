@@ -139,12 +139,12 @@ public enum PwmAboutProperty {
 
         if (pwmApplication.getEmailQueue() != null) {
             aboutMap.put(app_emailQueueSize,       Integer.toString(pwmApplication.getEmailQueue().queueSize()));
-            aboutMap.put(app_emailQueueOldestTime, dateFormatForInfoBean(pwmApplication.getEmailQueue().eldestItem()));
+            aboutMap.put(app_emailQueueOldestTime, dateFormatForInfoBean(Date.from(pwmApplication.getEmailQueue().eldestItem())));
         }
 
         if (pwmApplication.getSmsQueue() != null) {
             aboutMap.put(app_smsQueueSize,         Integer.toString(pwmApplication.getSmsQueue().queueSize()));
-            aboutMap.put(app_smsQueueOldestTime,   dateFormatForInfoBean(pwmApplication.getSmsQueue().eldestItem()));
+            aboutMap.put(app_smsQueueOldestTime,   dateFormatForInfoBean(Date.from(pwmApplication.getSmsQueue().eldestItem())));
         }
 
         if (pwmApplication.getAuditManager() != null) {

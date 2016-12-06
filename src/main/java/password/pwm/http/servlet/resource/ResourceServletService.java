@@ -31,7 +31,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EventRateMeter;
-import password.pwm.util.Percent;
+import password.pwm.util.java.Percent;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletContext;

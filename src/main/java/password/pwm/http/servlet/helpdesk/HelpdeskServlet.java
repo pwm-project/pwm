@@ -73,12 +73,12 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.OtpService;
-import password.pwm.util.otp.OTPUserRecord;
+import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.util.secure.SecureService;
 import password.pwm.ws.server.RestResultBean;
 

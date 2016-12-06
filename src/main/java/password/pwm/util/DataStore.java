@@ -23,6 +23,7 @@
 package password.pwm.util;
 
 import password.pwm.error.PwmDataStoreException;
+import password.pwm.util.java.ClosableIterator;
 
 public interface DataStore {
     enum Status {

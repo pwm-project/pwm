@@ -24,7 +24,7 @@ package password.pwm.health;
 
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;

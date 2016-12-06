@@ -95,7 +95,7 @@ import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.cr.NMASCrOperator;
-import password.pwm.util.otp.OTPUserRecord;
+import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.ws.client.rest.RestTokenDataClient;
 import password.pwm.ws.client.rest.naaf.PwmNAAFVerificationMethod;
 

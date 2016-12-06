@@ -52,6 +52,8 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand {
         final FileOutputStream fos = new FileOutputStream(outputFile);
         keyStore.store(fos,password.toCharArray());
         fos.close();
+
+        out("successfully exported java keystore to " + outputFile.getAbsolutePath());
     }
 
     @Override

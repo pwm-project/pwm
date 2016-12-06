@@ -44,15 +44,15 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.otp.DbOtpOperator;
 import password.pwm.util.operations.otp.LdapOtpOperator;
 import password.pwm.util.operations.otp.LocalDbOtpOperator;
+import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.util.operations.otp.OtpOperator;
-import password.pwm.util.otp.OTPUserRecord;
-import password.pwm.util.otp.PasscodeGenerator;
+import password.pwm.util.operations.otp.PasscodeGenerator;
 import password.pwm.util.secure.PwmRandom;
 
 import javax.crypto.Mac;

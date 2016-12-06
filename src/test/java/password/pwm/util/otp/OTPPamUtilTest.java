@@ -23,6 +23,7 @@
 package password.pwm.util.otp;
 
 import org.junit.*;
+import password.pwm.util.operations.otp.OTPPamUtil;
 
 import java.util.List;
 

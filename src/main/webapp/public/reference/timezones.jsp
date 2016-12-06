@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.util.TimeDuration" %>
+<%@ page import="password.pwm.util.java.TimeDuration" %>
 <%@ page import="java.util.TimeZone" %>
 <%--
   ~ Password Management Servlets (PWM)

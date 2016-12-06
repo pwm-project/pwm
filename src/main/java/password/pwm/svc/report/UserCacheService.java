@@ -33,7 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.PwmService;
-import password.pwm.util.ClosableIterator;
+import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;

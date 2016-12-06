@@ -22,7 +22,7 @@
 
 package password.pwm.util.localdb;
 
-import password.pwm.util.ClosableIterator;
+import password.pwm.util.java.ClosableIterator;
 
 import java.io.File;
 import java.io.Serializable;

@@ -20,10 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util;
+package password.pwm.util.java;
 
 import java.util.Iterator;
 
-public interface ClosableIterator<K> extends Iterator<K> {
+public interface ClosableIterator<K> extends Iterator<K>, AutoCloseable {
     void close();
 }

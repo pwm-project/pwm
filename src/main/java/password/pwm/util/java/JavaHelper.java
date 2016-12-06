@@ -22,8 +22,12 @@
 
 package password.pwm.util.java;
 
+import org.apache.commons.io.IOUtils;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
@@ -33,6 +37,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+import java.util.function.Predicate;
 
 public class JavaHelper {
 
@@ -182,5 +187,24 @@ public class JavaHelper {
         final UnsupportedOperationException exception = new UnsupportedOperationException(errorMsg);
         LOGGER.warn(errorMsg, exception);
         throw exception;
+    }
+
+    public static long copyWhilePredicate(final InputStream input, final OutputStream output, final Predicate predicate)
+            throws IOException
+    {
+        final int bufferSize = 4 * 1024;
+        final byte[] buffer = new byte[bufferSize];
+        long bytesCopied;
+        long totalCopied = 0;
+        do {
+            bytesCopied = IOUtils.copyLarge(input, output, 0 , bufferSize, buffer);
+            if (bytesCopied > 0) {
+                totalCopied += bytesCopied;
+            }
+            if (!predicate.test(null)) {
+                return totalCopied;
+            }
+        } while (bytesCopied > 0);
+        return totalCopied;
     }
 }

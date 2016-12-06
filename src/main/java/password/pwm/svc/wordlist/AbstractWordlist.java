@@ -44,7 +44,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -316,7 +316,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             return null;
         }
 
-        if (!inputUrl.startsWith("http:") && !inputUrl.startsWith("https:")) {
+        if (!inputUrl.startsWith("http:") && !inputUrl.startsWith("https:") && !inputUrl.startsWith("file:")) {
             LOGGER.debug("assuming configured auto-import url is a file url; derived url is " + inputUrl);
             return "file:" + inputUrl;
         }

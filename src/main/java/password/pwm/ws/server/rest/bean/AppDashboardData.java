@@ -29,7 +29,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Display;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.util.ArrayList;

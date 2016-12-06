@@ -23,7 +23,7 @@
 package password.pwm.util.localdb;
 
 import password.pwm.error.PwmDataStoreException;
-import password.pwm.util.ClosableIterator;
+import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.DataStore;
 
 import java.util.Map;

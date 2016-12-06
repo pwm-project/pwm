@@ -50,6 +50,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.event.AuditEvent;
@@ -59,7 +60,6 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
-import password.pwm.util.Helper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -409,7 +409,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
         pwmRequest.getPwmSession().getSessionManager().getChaiProvider();
 
-        Helper.writeFormValuesToLdap(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), theUser, formMap, false);
+        LdapOperationsHelper.writeFormValuesToLdap(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), theUser, formMap, false);
 
         final UserIdentity userIdentity = uiBean.getUserIdentity();
 

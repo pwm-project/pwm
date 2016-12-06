@@ -129,6 +129,31 @@ public class FileSystemUtility {
         return -1;
     }
 
+    public static void rotateBackups(final File inputFile, final int maxRotate) {
+        if (maxRotate < 1) {
+            return;
+        }
+        for (int i = maxRotate; i >= 0; i--) {
+            final File thisFile = (i == 0) ? inputFile : new File(inputFile.getAbsolutePath() + "-" + i);
+            final File youngerFile = (i <= 1) ? inputFile : new File(inputFile.getAbsolutePath() + "-" + (i - 1));
+
+            if (i == maxRotate) {
+                if (thisFile.exists()) {
+                    LOGGER.debug("deleting old backup file: " + thisFile.getAbsolutePath());
+                    if (!thisFile.delete()) {
+                        LOGGER.error("unable to delete old backup file: " + thisFile.getAbsolutePath());
+                    }
+                }
+            } else if (i == 0 || youngerFile.exists()) {
+                final File destFile = new File(inputFile.getAbsolutePath() + "-" + (i + 1));
+                LOGGER.debug("backup file " + thisFile.getAbsolutePath() + " renamed to " + destFile.getAbsolutePath());
+                if (!thisFile.renameTo(destFile)) {
+                    LOGGER.debug("unable to rename file " + thisFile.getAbsolutePath() + " to " + destFile.getAbsolutePath());
+                }
+            }
+        }
+    }
+
     public static class FileSummaryInformation implements Serializable {
         private final String filename;
         private final String filepath;

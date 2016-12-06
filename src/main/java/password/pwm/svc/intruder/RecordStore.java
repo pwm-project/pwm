@@ -24,8 +24,8 @@ package password.pwm.svc.intruder;
 
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.ClosableIterator;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.ClosableIterator;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
 
 interface RecordStore {

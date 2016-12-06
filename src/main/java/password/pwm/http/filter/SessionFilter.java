@@ -44,7 +44,7 @@ import password.pwm.http.PwmURL;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.Helper;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -249,6 +249,14 @@ public class SessionFilter extends AbstractPwmFilter {
         if (!pwmRequest.getMethod().isIdempotent() && pwmRequest.hasParameter(PwmConstants.PARAM_FORM_ID)) {
             LOGGER.debug(pwmRequest,"session is unvalidated but can not be validated during a " + pwmRequest.getMethod().toString() + " request, will allow");
             return ProcessStatus.Continue;
+        }
+
+        {
+            final String acceptEncodingHeader = pwmRequest.getHttpServletRequest().getHeader(PwmConstants.HttpHeader.Accept.getHttpName());
+            if (acceptEncodingHeader != null && acceptEncodingHeader.contains("json")) {
+                LOGGER.debug(pwmRequest, "session is unvalidated but can not be validated during a json request, will allow");
+                return ProcessStatus.Continue;
+            }
         }
 
         if (pwmRequest.getURL().isCommandServletURL()) {

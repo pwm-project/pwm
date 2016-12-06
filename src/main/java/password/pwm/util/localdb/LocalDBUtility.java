@@ -33,7 +33,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.util.Helper;
 import password.pwm.util.ProgressInfo;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;

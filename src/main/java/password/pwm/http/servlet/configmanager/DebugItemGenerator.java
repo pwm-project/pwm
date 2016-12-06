@@ -41,7 +41,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogEvent;

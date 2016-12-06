@@ -30,7 +30,6 @@ package password.pwm.util.operations.otp;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.util.otp.OTPUserRecord;
 
 /**
  *

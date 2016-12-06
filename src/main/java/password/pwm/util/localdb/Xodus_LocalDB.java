@@ -36,10 +36,10 @@ import jetbrains.exodus.env.TransactionalComputable;
 import jetbrains.exodus.env.TransactionalExecutable;
 import jetbrains.exodus.management.Statistics;
 import org.jetbrains.annotations.NotNull;
-import password.pwm.util.ConditionalTaskExecutor;
+import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayOutputStream;
