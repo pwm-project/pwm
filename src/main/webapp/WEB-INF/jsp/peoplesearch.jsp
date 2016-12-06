@@ -39,9 +39,9 @@
 </div>
 
 <%-- TODO: change these to the 'min' versions (i.e. angular.min.js) --%>
-<pwm:script-ref url="/public/resources/angular/angular.js" />
-<pwm:script-ref url="/public/resources/angular-ui-router/release/angular-ui-router.js" />
-<pwm:script-ref url="/public/resources/angular-translate/dist/angular-translate.js" />
+<pwm:script-ref url="/public/resources/angular/angular.min.js" />
+<pwm:script-ref url="/public/resources/angular-ui-router/release/angular-ui-router.min.js" />
+<pwm:script-ref url="/public/resources/angular-translate/dist/angular-translate.min.js" />
 
 <%@ include file="fragment/footer.jsp" %>
 <pwm:script-ref url="/public/resources/js/peoplesearch.js" />
