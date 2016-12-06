@@ -61,6 +61,7 @@
                         <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
+                    <p><%=method.getDescription(pwmRequest.getConfig(),pwmRequest.getLocale())%></p>
                 </td>
             </tr>
             <% } %>

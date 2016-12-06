@@ -799,6 +799,18 @@
             <value>{"to":"@User:Email@","from":"Delete Account Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Deletion Notice","bodyPlain":"Your account has been deleted at your request.","bodyHtml":""}</value>
         </default>
     </setting>
+    <setting hidden="false" key="email.helpdesk.unlock" level="1">
+        <flag>MacroSupport</flag>
+        <default>
+            <value>{"to":"@User:Email@","from":"Unlock Account Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Unlock Notice","bodyPlain":"Your account has been unlocked by the helpdesk.","bodyHtml":""}</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="email.unlock" level="1">
+        <flag>MacroSupport</flag>
+        <default>
+            <value>{"to":"@User:Email@","from":"Unlock Account Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Unlock Notice","bodyPlain":"Your account has been unlocked.","bodyHtml":""}</value>
+        </default>
+    </setting>
     <setting hidden="false" key="email.smtp.advancedSettings" level="2">
         <regex>^[a-zA-Z0-9.]+=.+$</regex>
         <default/>

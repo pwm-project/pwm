@@ -922,6 +922,8 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             final UserInfoBean userInfoBean = readUserInfoBean(pwmRequest, forgottenPasswordBean);
             pwmApplication.getAuditManager().submit(AuditEvent.UNLOCK_PASSWORD, userInfoBean, pwmSession);
 
+            sendUnlockNoticeEmail(pwmRequest, forgottenPasswordBean);
+
             pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_UnlockAccount);
         } catch (ChaiOperationException e) {
             final String errorMsg = "unable to unlock user " + userIdentity + " error: " + e.getMessage();
@@ -1785,6 +1787,39 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
         }
 
         return responseSet;
+    }
+
+    private static void sendUnlockNoticeEmail(
+            final PwmRequest pwmRequest,
+            final ForgottenPasswordBean forgottenPasswordBean
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final Configuration config = pwmRequest.getConfig();
+        final Locale locale = pwmRequest.getLocale();
+        final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UNLOCK, locale);
+
+        if (configuredEmailSetting == null) {
+            LOGGER.debug(pwmRequest, "skipping send unlock notice email for '" + userIdentity + "' no email configured");
+            return;
+        }
+
+        final UserInfoBean userInfoBean = readUserInfoBean(pwmRequest, forgottenPasswordBean);
+        final MacroMachine macroMachine = new MacroMachine(
+                pwmApplication,
+                pwmRequest.getSessionLabel(),
+                userInfoBean,
+                null,
+                LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity)
+        );
+
+        pwmApplication.getEmailQueue().submitEmail(
+                configuredEmailSetting,
+                userInfoBean,
+                macroMachine
+        );
     }
 }
 
