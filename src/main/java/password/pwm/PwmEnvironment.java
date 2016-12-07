@@ -71,6 +71,9 @@ public class PwmEnvironment {
         AutoExportHttpsKeyStoreAlias,
         AutoWriteTomcatConfSourceFile,
         AutoWriteTomcatConfOutputFile,
+        AppliancePort,
+        ApplianceHostnameFile,
+        ApplianceTokenFile,
 
         ;
 
