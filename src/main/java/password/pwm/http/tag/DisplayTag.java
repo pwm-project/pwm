@@ -159,7 +159,7 @@ public class DisplayTag extends PwmAbstractTag {
     private String figureDisplayMessage(final Locale locale, final Configuration config, final Class bundleClass) {
         try {
             return LocaleHelper.getLocalizedMessage(
-                    locale == null ? PwmConstants.DEFAULT_LOCALE : null,
+                    locale == null ? PwmConstants.DEFAULT_LOCALE : locale,
                     key,
                     config,
                     bundleClass,
