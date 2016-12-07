@@ -88,10 +88,6 @@
             <param-value>https://pwm.localdomain.local:8443</param-value>
         </init-param>
         <init-param>
-            <param-name>renew</param-name>
-            <param-value>false</param-value>
-        </init-param>
-        <init-param>
             <param-name>gateway</param-name>
             <param-value>false</param-value>
         </init-param>
