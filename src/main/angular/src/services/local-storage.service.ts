@@ -21,7 +21,7 @@
  */
 
 
-import { IWindowService } from 'angular';
+import { ILogService, IWindowService } from 'angular';
 
 const PWM_PREFIX = 'PWM_';
 const KEYS = {
@@ -31,20 +31,34 @@ const KEYS = {
 
 export default class LocalStorageService {
     keys: any = KEYS;
+    private localStorageEnabled: boolean = true;
 
-    static $inject = [ '$window' ];
-    constructor(private $window: IWindowService) {}
+    static $inject = [ '$log', '$window' ];
+    constructor($log: ILogService, private $window: IWindowService) {
+        if (!$window.localStorage.getItem) {
+            this.localStorageEnabled = false;
+            $log.info('Local Storage API not enabled. Using NOOP implementation.');
+        }
+    }
 
     getItem(key: string): any {
-        return this.$window.localStorage[this.prepKey(key)];
+        if (this.localStorageEnabled) {
+            return this.$window.localStorage[this.prepKey(key)];
+        }
+
+        return null;
     }
 
     setItem(key: string, value: any): void {
-        this.$window.localStorage[this.prepKey(key)] = value;
+        if (this.localStorageEnabled) {
+            this.$window.localStorage[this.prepKey(key)] = value;
+        }
     }
 
     removeItem(key: string): any {
-        return this.$window.localStorage.removeItem(this.prepKey(key));
+        if (this.localStorageEnabled) {
+            return this.$window.localStorage.removeItem(this.prepKey(key));
+        }
     }
 
     private prepKey(key: string) {
