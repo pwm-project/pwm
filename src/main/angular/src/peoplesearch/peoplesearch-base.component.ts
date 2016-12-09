@@ -41,6 +41,7 @@ abstract class PeopleSearchBaseComponent {
     searchResult: SearchResult;
     query: string;
     searchTextLocalStorageKey: string;
+    searchViewLocalStorageKey: string;
 
     constructor(protected $q: IQService,
                 protected $scope: IScope,
@@ -53,6 +54,7 @@ abstract class PeopleSearchBaseComponent {
                 protected promiseService: PromiseService,
                 protected pwmService: IPwmService) {
         this.searchTextLocalStorageKey = this.localStorageService.keys.SEARCH_TEXT;
+        this.searchViewLocalStorageKey = this.localStorageService.keys.SEARCH_VIEW;
     }
 
     getMessage(): string {
@@ -206,6 +208,8 @@ abstract class PeopleSearchBaseComponent {
         });
 
         this.query = this.getSearchText();
+
+        this.storeSearchView(this.$state.current.name);
     }
 
     private getSearchText(): string {
@@ -223,6 +227,15 @@ abstract class PeopleSearchBaseComponent {
 
     protected storeSearchText(): void {
         this.localStorageService.setItem(this.searchTextLocalStorageKey, this.query || '');
+    }
+
+    protected toggleView(state: string): void {
+        this.storeSearchText();
+        this.gotoState(state);
+    }
+
+    private storeSearchView(state) {
+        this.localStorageService.setItem(this.searchViewLocalStorageKey, state);
     }
 }
 

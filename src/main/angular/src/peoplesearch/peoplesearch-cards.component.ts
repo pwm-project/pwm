@@ -100,8 +100,7 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
     }
 
     gotoTableView() {
-        this.storeSearchText();
-        this.gotoState('search.table');
+        this.toggleView('search.table');
     }
 
     fetchData() {

@@ -25,7 +25,8 @@ import { IWindowService } from 'angular';
 
 const PWM_PREFIX = 'PWM_';
 const KEYS = {
-    SEARCH_TEXT: 'searchText'
+    SEARCH_TEXT: 'searchText',
+    SEARCH_VIEW: 'searchView'
 };
 
 export default class LocalStorageService {
