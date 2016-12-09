@@ -30,6 +30,7 @@ import PeopleSearchTableComponent from './peoplesearch-table.component';
 import PeopleSearchCardsComponent from './peoplesearch-cards.component';
 import PersonCardComponent from './person-card.component';
 import PersonDetailsDialogComponent from './person-details-dialog.component';
+import LocalStorageService from '../services/local-storage.service';
 import PromiseService from '../services/promise.service';
 import uxModule from '../ux/ux.module';
 
@@ -49,6 +50,7 @@ module(moduleName, [
     .component('peopleSearchTable', PeopleSearchTableComponent)
     .component('peopleSearchCards', PeopleSearchCardsComponent)
     .component('personDetailsDialogComponent', PersonDetailsDialogComponent)
-    .service('PromiseService', PromiseService);
+    .service('PromiseService', PromiseService)
+    .service('LocalStorageService', LocalStorageService);
 
 export default moduleName;

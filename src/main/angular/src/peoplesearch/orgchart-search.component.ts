@@ -22,12 +22,13 @@
 
 
 import { Component } from '../component';
-import { isArray, isString, IPromise, IQService, IScope } from 'angular';
 import { IConfigService } from '../services/config.service';
 import { IPeopleService } from '../services/people.service';
+import IPwmService from '../services/pwm.service';
+import { isArray, isString, IPromise, IQService, IScope } from 'angular';
+import LocalStorageService from '../services/local-storage.service';
 import OrgChartData from '../models/orgchart-data.model';
 import Person from '../models/person.model';
-import IPwmService from '../services/pwm.service';
 
 @Component({
     stylesheetUrl: require('peoplesearch/orgchart-search.component.scss'),
@@ -40,15 +41,26 @@ export default class OrgChartSearchComponent {
     person: Person;
     photosEnabled: boolean;
     query: string;
+    searchTextLocalStorageKey: string;
 
-    static $inject = [ '$q', '$scope', '$state', '$stateParams', 'ConfigService', 'PeopleService', 'PwmService' ];
+    static $inject = [ '$q',
+        '$scope',
+        '$state',
+        '$stateParams',
+        'ConfigService',
+        'LocalStorageService',
+        'PeopleService',
+        'PwmService'
+    ];
     constructor(private $q: IQService,
                 private $scope: IScope,
                 private $state: angular.ui.IStateService,
                 private $stateParams: angular.ui.IStateParamsService,
                 private configService: IConfigService,
+                private localStorageService: LocalStorageService,
                 private peopleService: IPeopleService,
                 private pwmService: IPwmService) {
+        this.searchTextLocalStorageKey = this.localStorageService.keys.SEARCH_TEXT;
     }
 
     $onInit(): void {
@@ -60,15 +72,7 @@ export default class OrgChartSearchComponent {
                 this.photosEnabled = photosEnabled;
             });
 
-        // Read query from state parameters
-        const queryParameter = this.$stateParams['query'];
-        // If multiple query parameters are defined, use the first one
-        if (isArray(queryParameter)) {
-            this.query = queryParameter[0].trim();
-        }
-        else if (isString(queryParameter)) {
-            this.query = queryParameter.trim();
-        }
+        this.query = this.getSearchText();
 
         let personId: string = this.$stateParams['personId'];
 
@@ -118,9 +122,27 @@ export default class OrgChartSearchComponent {
 
     onSearchTextChange(value: string): void {
         this.query = value;
+        this.storeSearchText();
     }
 
     private fetchOrgChartData(personId): IPromise<OrgChartData> {
         return this.peopleService.getOrgChartData(personId);
+    }
+
+    private getSearchText(): string {
+        let param: string = this.$stateParams['query'];
+        // If multiple query parameters are defined, use the first one
+        if (isArray(param)) {
+            param = param[0].trim();
+        }
+        else if (isString(param)) {
+            param = param.trim();
+        }
+
+        return param || this.localStorageService.getItem(this.searchTextLocalStorageKey);
+    }
+
+    protected storeSearchText(): void {
+        this.localStorageService.setItem(this.searchTextLocalStorageKey, this.query || '');
     }
 }

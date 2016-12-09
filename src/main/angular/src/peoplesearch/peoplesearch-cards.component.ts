@@ -23,14 +23,15 @@
 
 import { Component } from '../component';
 import ElementSizeService from '../ux/element-size.service';
-import { isString, IAugmentedJQuery, IQService, IScope } from 'angular';
 import IConfigService from '../services/config.service';
 import IPeopleService from '../services/people.service';
+import IPwmService from '../services/pwm.service';
+import { isString, IAugmentedJQuery, IQService, IScope } from 'angular';
+import LocalStorageService from '../services/local-storage.service';
 import PeopleSearchBaseComponent from './peoplesearch-base.component';
 import Person from '../models/person.model';
 import PromiseService from '../services/promise.service';
 import SearchResult from '../models/search-result.model';
-import IPwmService from '../services/pwm.service';
 
 export enum PeopleSearchCardsSize {
     Small = 0,
@@ -52,8 +53,9 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
         '$state',
         '$stateParams',
         '$translate',
-        'MfElementSizeService',
         'ConfigService',
+        'LocalStorageService',
+        'MfElementSizeService',
         'PeopleService',
         'PromiseService',
         'PwmService'
@@ -64,12 +66,22 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
                 $state: angular.ui.IStateService,
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
-                private elementSizeService: ElementSizeService,
                 configService: IConfigService,
+                localStorageService: LocalStorageService,
+                private elementSizeService: ElementSizeService,
                 peopleService: IPeopleService,
                 promiseService: PromiseService,
                 pwmService: IPwmService) {
-        super($q, $scope, $state, $stateParams, $translate, configService, peopleService, promiseService, pwmService);
+        super($q,
+            $scope,
+            $state,
+            $stateParams,
+            $translate,
+            configService,
+            localStorageService,
+            peopleService,
+            promiseService,
+            pwmService);
     }
 
     $onDestroy(): void {
@@ -88,6 +100,7 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
     }
 
     gotoTableView() {
+        this.storeSearchText();
         this.gotoState('search.table');
     }
 
