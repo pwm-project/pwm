@@ -21,13 +21,16 @@
  */
 
 
-import { IPeopleService } from '../services/people.service';
 import { isArray, isString, IPromise, IQService, IScope } from 'angular';
-import Person from '../models/person.model';
-import SearchResult from '../models/search-result.model';
 import { IConfigService } from '../services/config.service';
-import PromiseService from '../services/promise.service';
+import { IPeopleService } from '../services/people.service';
 import IPwmService from '../services/pwm.service';
+import LocalStorageService from '../services/local-storage.service';
+import Person from '../models/person.model';
+import PromiseService from '../services/promise.service';
+import SearchResult from '../models/search-result.model';
+
+const SEARCH_TEXT_LOCAL_STORAGE_KEY = 'searchText';
 
 abstract class PeopleSearchBaseComponent {
     errorMessage: string;
@@ -37,6 +40,8 @@ abstract class PeopleSearchBaseComponent {
     searchMessage: string;
     searchResult: SearchResult;
     query: string;
+    searchTextLocalStorageKey: string;
+    searchViewLocalStorageKey: string;
 
     constructor(protected $q: IQService,
                 protected $scope: IScope,
@@ -44,9 +49,13 @@ abstract class PeopleSearchBaseComponent {
                 protected $stateParams: angular.ui.IStateParamsService,
                 protected $translate: angular.translate.ITranslateService,
                 protected configService: IConfigService,
+                protected localStorageService: LocalStorageService,
                 protected peopleService: IPeopleService,
                 protected promiseService: PromiseService,
-                protected pwmService: IPwmService) {}
+                protected pwmService: IPwmService) {
+        this.searchTextLocalStorageKey = this.localStorageService.keys.SEARCH_TEXT;
+        this.searchViewLocalStorageKey = this.localStorageService.keys.SEARCH_VIEW;
+    }
 
     getMessage(): string {
         return this.errorMessage || this.searchMessage;
@@ -74,6 +83,8 @@ abstract class PeopleSearchBaseComponent {
         }
 
         this.query = value;
+
+        this.storeSearchText();
         this.clearSearchMessage();
         this.clearErrorMessage();
         this.fetchData();
@@ -196,16 +207,35 @@ abstract class PeopleSearchBaseComponent {
             this.orgChartEnabled = orgChartEnabled;
         });
 
-        // Read query from state parameters
-        const queryParameter = this.$stateParams['query'];
+        this.query = this.getSearchText();
 
+        this.storeSearchView(this.$state.current.name);
+    }
+
+    private getSearchText(): string {
+        let param: string = this.$stateParams['query'];
         // If multiple query parameters are defined, use the first one
-        if (isArray(queryParameter)) {
-            this.query = queryParameter[0].trim();
+        if (isArray(param)) {
+            param = param[0].trim();
         }
-        else if (isString(queryParameter)) {
-            this.query = queryParameter.trim();
+        else if (isString(param)) {
+            param = param.trim();
         }
+
+        return param || this.localStorageService.getItem(this.searchTextLocalStorageKey);
+    }
+
+    protected storeSearchText(): void {
+        this.localStorageService.setItem(this.searchTextLocalStorageKey, this.query || '');
+    }
+
+    protected toggleView(state: string): void {
+        this.storeSearchText();
+        this.gotoState(state);
+    }
+
+    private storeSearchView(state) {
+        this.localStorageService.setItem(this.searchViewLocalStorageKey, state);
     }
 }
 

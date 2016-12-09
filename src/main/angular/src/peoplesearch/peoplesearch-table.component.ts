@@ -24,11 +24,12 @@
 import { Component } from '../component';
 import { IConfigService } from '../services/config.service';
 import IPeopleService from '../services/people.service';
-import PeopleSearchBaseComponent from './peoplesearch-base.component';
-import { IQService, IScope } from 'angular';
-import SearchResult from '../models/search-result.model';
-import PromiseService from '../services/promise.service';
 import IPwmService from '../services/pwm.service';
+import { IQService, IScope } from 'angular';
+import LocalStorageService from '../services/local-storage.service';
+import PeopleSearchBaseComponent from './peoplesearch-base.component';
+import PromiseService from '../services/promise.service';
+import SearchResult from '../models/search-result.model';
 
 @Component({
     stylesheetUrl: require('peoplesearch/peoplesearch-table.component.scss'),
@@ -44,6 +45,7 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
         '$stateParams',
         '$translate',
         'ConfigService',
+        'LocalStorageService',
         'PeopleService',
         'PromiseService',
         'PwmService'
@@ -54,10 +56,20 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
                 $stateParams: angular.ui.IStateParamsService,
                 $translate: angular.translate.ITranslateService,
                 configService: IConfigService,
+                localStorageService: LocalStorageService,
                 peopleService: IPeopleService,
                 promiseService: PromiseService,
                 pwmService: IPwmService) {
-        super($q, $scope, $state, $stateParams, $translate, configService, peopleService, promiseService, pwmService);
+        super($q,
+            $scope,
+            $state,
+            $stateParams,
+            $translate,
+            configService,
+            localStorageService,
+            peopleService,
+            promiseService,
+            pwmService);
     }
 
     $onInit(): void {
@@ -77,7 +89,7 @@ export default class PeopleSearchTableComponent extends PeopleSearchBaseComponen
     }
 
     gotoCardsView() {
-        this.gotoState('search.cards');
+        this.toggleView('search.cards');
     }
 
     fetchData() {

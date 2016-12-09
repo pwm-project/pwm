@@ -23,6 +23,7 @@
 
 import { IConfigService } from './services/config.service';
 import { IQService } from 'angular';
+import LocalStorageService from './services/local-storage.service';
 
 export default [
     '$stateProvider',
@@ -31,7 +32,21 @@ export default [
         $stateProvider: angular.ui.IStateProvider,
         $urlRouterProvider: angular.ui.IUrlRouterProvider
     ) => {
-        $urlRouterProvider.otherwise('/search/cards');
+        $urlRouterProvider.otherwise(
+            ($injector: angular.auto.IInjectorService, $location: angular.ILocationService) => {
+                let $state: angular.ui.IStateService = <angular.ui.IStateService>$injector.get('$state');
+                let localStorageService: LocalStorageService =
+                    <LocalStorageService>$injector.get('LocalStorageService');
+
+                let storedView = localStorageService.getItem(localStorageService.keys.SEARCH_VIEW);
+
+                if (storedView) {
+                    $state.go(storedView);
+                }
+                else {
+                    $location.url('search/cards');
+                }
+            });
 
         $stateProvider.state('search', {
             url: '/search?query',
