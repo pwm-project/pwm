@@ -42,7 +42,7 @@ people-search-cards {
   &.large {
     > .people-search-component-content {
       > .person-card-list {
-        text-align: start;
+        text-align: left;
         margin: 0;
 
         > person-card {
@@ -76,6 +76,8 @@ people-search-cards {
     &.large {
       > .people-search-component-content {
         .person-card-list {
+          text-align: right;
+
           > person-card {
             margin-right: auto;
             margin-left: 5px;

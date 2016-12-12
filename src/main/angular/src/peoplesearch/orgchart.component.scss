@@ -58,7 +58,7 @@ org-chart {
   // (L) Wide enough to show main person offset to the right. Manager should now be locked in place (instead of centered)
   &.large {
     > .org-chart-section {
-      text-align: start;
+      text-align: left;
 
       > person-card {
         &[size="large"] {
@@ -79,7 +79,7 @@ org-chart {
         .manager {
           display: block;
           margin-left: 135px;
-          text-align: start;
+          text-align: left;
         }
       }
     }
@@ -229,7 +229,7 @@ org-chart {
       line-height: 14px;
       margin: 0;
       padding: 15px 0 5px 0;
-      text-align: start;
+      text-align: left;
     }
 
     > person-card {
@@ -268,6 +268,12 @@ org-chart {
 [dir="rtl"] {
   // (XS) Default display
   org-chart {
+    > .org-chart-section {
+      > h3 {
+        text-align: right;
+      }
+    }
+
     // (S) Too wide for full width person-card in direct reports
     &.small {
       > .org-chart-section {
@@ -283,6 +289,8 @@ org-chart {
     // (L) Wide enough to show main person offset to the right. Manager should now be locked in place (instead of centered)
     &.large {
       > .org-chart-section {
+        text-align: right;
+
         > person-card {
           &[size="large"] {
             margin: 0 128px 0 0;
@@ -301,6 +309,7 @@ org-chart {
           }
 
           .manager {
+            text-align: right;
             margin-left: auto;
             margin-right: 135px;
           }
