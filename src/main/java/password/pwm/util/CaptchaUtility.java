@@ -289,7 +289,7 @@ public class CaptchaUtility {
         final long maxIntruderCount = pwmRequest.getConfig().readSettingAsLong(PwmSetting.CAPTCHA_INTRUDER_COUNT_TRIGGER);
 
         if (maxIntruderCount == 0) {
-            return false;
+            return true;
         }
 
         final int currentSessionAttempts = pwmRequest.getPwmSession().getSessionStateBean().getIntruderAttempts();
