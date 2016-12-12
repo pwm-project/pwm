@@ -39,9 +39,12 @@ import password.pwm.ws.server.rest.RestAppDataServer;
 
 import javax.servlet.jsp.JspPage;
 import javax.servlet.jsp.PageContext;
-
 import java.awt.ComponentOrientation;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 public enum PwmValue {
 
@@ -49,7 +52,7 @@ public enum PwmValue {
     homeURL(new HomeUrlOutput()),
     passwordFieldType(new PasswordFieldTypeOutput()),
     responseFieldType(new ResponseFieldTypeOutput()),
-    customJavascript(new CustomJavascriptOutput()),
+    customJavascript(new CustomJavascriptOutput(), Flag.DoNotEscape),
     currentJspFilename(new CurrentJspFilenameOutput()),
     instanceID(new InstanceIDOutput()),
     headerMenuNotice(new HeaderMenuNoticeOutput()),
@@ -65,17 +68,28 @@ public enum PwmValue {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmValueTag.class);
 
-    private ValueOutput valueOutput;
+    private final ValueOutput valueOutput;
+    private final Flag[] flags;
 
-    PwmValue(final ValueOutput valueOutput)
+    enum Flag {
+        DoNotEscape,
+    }
+
+    PwmValue(final ValueOutput valueOutput, final Flag... flags)
     {
         this.valueOutput = valueOutput;
+        this.flags = flags;
     }
 
     public ValueOutput getValueOutput() {
         return valueOutput;
     }
 
+    public Set<Flag> getFlags() {
+        return flags == null
+                ? Collections.emptySet()
+                : Collections.unmodifiableSet(new HashSet<>(Arrays.asList(flags)));
+    }
 
     static class CspNonceOutput implements ValueOutput {
         @Override

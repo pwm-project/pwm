@@ -63,10 +63,12 @@ public class PwmValueTag extends TagSupport {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmRequest pwmRequest = PwmRequest.forRequest(req, (HttpServletResponse) pageContext.getResponse());
             try {
-                // final VALUE value = Helper.readEnumFromString(VALUE.class, null, getName());
                 final PwmValue value = getName();
                 final String output = calcValue(pwmRequest, pageContext, value);
-                pageContext.getOut().write(StringUtil.escapeHtml(output));
+                final String escapedOutput = value.getFlags().contains(PwmValue.Flag.DoNotEscape)
+                        ? output
+                        : StringUtil.escapeHtml(output);
+                pageContext.getOut().write(escapedOutput);
 
             } catch (IllegalArgumentException e) {
                 LOGGER.error("can't output requested value name '" + getName() + "'");
