@@ -43,7 +43,7 @@ person-card {
   height: $person-card-height;
   padding: $person-card-spacing;
   position: relative;
-  text-align: start;
+  text-align: left;
   vertical-align: top;
   width: $person-card-width;
 
@@ -217,6 +217,8 @@ person-card {
 
 [dir="rtl"] {
   person-card {
+    text-align: right;
+
     &[size="large"] {
       > .person-card-content {
         > .avatar {
