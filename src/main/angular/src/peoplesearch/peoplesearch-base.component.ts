@@ -65,7 +65,7 @@ abstract class PeopleSearchBaseComponent {
         this.gotoState('orgchart.index');
     }
 
-    gotoState(state: string): void {
+    private gotoState(state: string): void {
         this.$state.go(state, { query: this.query });
     }
 
@@ -170,6 +170,7 @@ abstract class PeopleSearchBaseComponent {
         return promise
             .then(
                 (searchResult: SearchResult) => {
+                    console.log('Search result', searchResult);
                     self.clearErrorMessage();
                     self.clearSearchMessage();
 
@@ -208,8 +209,6 @@ abstract class PeopleSearchBaseComponent {
         });
 
         this.query = this.getSearchText();
-
-        this.storeSearchView(this.$state.current.name);
     }
 
     private getSearchText(): string {
@@ -230,11 +229,12 @@ abstract class PeopleSearchBaseComponent {
     }
 
     protected toggleView(state: string): void {
+        this.storeSearchView(state);
         this.storeSearchText();
         this.gotoState(state);
     }
 
-    private storeSearchView(state) {
+    private storeSearchView(state: string) {
         this.localStorageService.setItem(this.searchViewLocalStorageKey, state);
     }
 }

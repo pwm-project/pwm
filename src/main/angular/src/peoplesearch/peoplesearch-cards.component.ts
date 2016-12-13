@@ -130,6 +130,7 @@ export default class PeopleSearchCardsComponent extends PeopleSearchBaseComponen
 
                 promise
                     .then((person: Person) => {
+                        console.log('Person received', person);
                         // Aborted request
                         if (!person) {
                             return;
