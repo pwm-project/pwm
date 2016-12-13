@@ -51,6 +51,7 @@
 
     > .person-details-content {
       padding: 10px;
+
       > table {
         border: none;
         border-collapse: collapse;
@@ -63,12 +64,12 @@
             border: none;
             font-size: 12px;
             height: 19px;
-            text-align: start;
+            text-align: left;
 
             &:first-child {
               color: #949494;
               width: 100px;
-              text-align: end;
+              text-align: right;
               padding: 3px 0;
             }
 
@@ -102,6 +103,26 @@
               > li {
                 margin: 0;
                 padding: 0;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+[dir="rtl"] {
+  .person-details {
+    .mf-dialog-content {
+      > .person-details-content {
+        > table {
+          tr {
+            td {
+              text-align: right;
+
+              &:first-child {
+                text-align: left;
               }
             }
           }

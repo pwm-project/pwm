@@ -52,8 +52,6 @@ a {
 }
 
 .people-search-component {
-  display: flex;
-  flex-flow: column nowrap;
   height: 100%;
 
   > ui-view {
