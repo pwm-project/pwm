@@ -22,8 +22,6 @@
 
 package password.pwm.util.db;
 
-import org.xeustechnologies.jcl.JarClassLoader;
-import org.xeustechnologies.jcl.JclObjectFactory;
 import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -31,7 +29,6 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
-import password.pwm.config.value.FileValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -44,14 +41,10 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.PasswordData;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -60,6 +53,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -92,6 +86,8 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
     private ErrorInformation lastError;
     private PwmApplication pwmApplication;
 
+    private JDBCDriverLoader.DriverLoader jdbcDriverLoader;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public DatabaseAccessorImpl()
@@ -113,37 +109,6 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         init(config);
     }
 
-    public void init(final Configuration config) throws PwmException {
-        final Map<FileValue.FileInformation, FileValue.FileContent> fileValue = config.readSettingAsFile(
-                PwmSetting.DATABASE_JDBC_DRIVER);
-        final byte[] jdbcDriverBytes;
-        if (fileValue != null && !fileValue.isEmpty()) {
-            final FileValue.FileInformation fileInformation1 = fileValue.keySet().iterator().next();
-            final FileValue.FileContent fileContent = fileValue.get(fileInformation1);
-            jdbcDriverBytes = fileContent.getContents();
-        } else {
-            jdbcDriverBytes = null;
-        }
-
-        this.dbConfiguration = new DBConfiguration(
-                config.readSettingAsString(PwmSetting.DATABASE_CLASS),
-                config.readSettingAsString(PwmSetting.DATABASE_URL),
-                config.readSettingAsString(PwmSetting.DATABASE_USERNAME),
-                config.readSettingAsPassword(PwmSetting.DATABASE_PASSWORD),
-                config.readSettingAsString(PwmSetting.DATABASE_COLUMN_TYPE_KEY),
-                config.readSettingAsString(PwmSetting.DATABASE_COLUMN_TYPE_VALUE),
-                jdbcDriverBytes
-        );
-
-        this.instanceID = pwmApplication == null ? null : pwmApplication.getInstanceID();
-        this.traceLogging = config.readSettingAsBoolean(PwmSetting.DATABASE_DEBUG_TRACE);
-
-        if (this.dbConfiguration.isEmpty()) {
-            status = PwmService.STATUS.CLOSED;
-            LOGGER.debug("skipping database connection open, no connection parameters configured");
-        }
-    }
-
     public void close()
     {
         status = PwmService.STATUS.CLOSED;
@@ -162,6 +127,23 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         }
 
         connection = null;
+
+        if (jdbcDriverLoader != null) {
+            jdbcDriverLoader.unloadDriver();
+            jdbcDriverLoader = null;
+        }
+    }
+
+    private void init(final Configuration config) throws PwmException {
+
+        this.dbConfiguration = DBConfiguration.fromConfiguration(config);
+        this.instanceID = pwmApplication == null ? null : pwmApplication.getInstanceID();
+        this.traceLogging = config.readSettingAsBoolean(PwmSetting.DATABASE_DEBUG_TRACE);
+
+        if (!dbConfiguration.isEnabled()) {
+            status = PwmService.STATUS.CLOSED;
+            LOGGER.debug("skipping database connection open, no connection parameters configured");
+        }
     }
 
     public List<HealthRecord> healthCheck() {
@@ -213,6 +195,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             throws DatabaseException
     {
         status = PwmService.STATUS.OPENING;
+        final Instant startTime = Instant.now();
         LOGGER.debug("opening connection to database " + this.dbConfiguration.getConnectionString());
 
         connection = openDB(dbConfiguration);
@@ -228,47 +211,19 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             final String errorMsg = "error writing engine start time value: " + e.getMessage();
             throw new DatabaseException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg));
         }
+
+        LOGGER.debug("successfully connected to remote database (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
     }
 
     private Connection openDB(final DBConfiguration dbConfiguration) throws DatabaseException {
         final String connectionURL = dbConfiguration.getConnectionString();
-        final String jdbcClassName = dbConfiguration.getDriverClassname();
+
+        final JDBCDriverLoader.DriverWrapper wrapper = JDBCDriverLoader.loadDriver(pwmApplication, dbConfiguration);
+        driver = wrapper.getDriver();
+        jdbcDriverLoader = wrapper.getDriverLoader();
 
         try {
-            final byte[] jdbcDriverBytes = dbConfiguration.getJdbcDriver();
-            if (jdbcDriverBytes != null) {
-                LOGGER.debug("loading JDBC database driver stored in configuration");
-                final JarClassLoader jarClassLoader = new JarClassLoader();
-                jarClassLoader.add(new ByteArrayInputStream(jdbcDriverBytes));
-                final JclObjectFactory jclObjectFactory = JclObjectFactory.getInstance();
-
-                //Create object of loaded class
-                driver = (Driver)jclObjectFactory.create(jarClassLoader, jdbcClassName);
-
-                LOGGER.debug("successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration");
-            }
-        } catch (Throwable e) {
-            final String errorMsg = "error registering JDBC database driver stored in configuration: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg);
-            LOGGER.error(errorMsg,e);
-            throw new DatabaseException(errorInformation);
-        }
-
-        if (driver == null) {
-            try {
-                LOGGER.debug("loading JDBC database driver from classpath: " + jdbcClassName);
-                driver = (Driver) Class.forName(jdbcClassName).newInstance();
-
-                LOGGER.debug("successfully loaded JDBC database driver from classpath: " + jdbcClassName);
-            } catch (Throwable e) {
-                final String errorMsg = e.getClass().getName() + " error loading JDBC database driver from classpath: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg);
-                throw new DatabaseException(errorInformation);
-            }
-        }
-
-        try {
-            LOGGER.debug("opening connection to database " + connectionURL);
+            LOGGER.debug("initiating connecting to database " + connectionURL);
             final Properties connectionProperties = new Properties();
             if (dbConfiguration.getUsername() != null && !dbConfiguration.getUsername().isEmpty()) {
                 connectionProperties.setProperty("user", dbConfiguration.getUsername());
@@ -280,18 +235,14 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
 
 
             final Map<PwmAboutProperty,String> debugProps = getConnectionDebugProperties(connection);;
-            LOGGER.debug("successfully opened connection to database " + connectionURL + ", properties: " + JsonUtil.serializeMap(debugProps));
+            LOGGER.debug("connected to database " + connectionURL + ", properties: " + JsonUtil.serializeMap(debugProps));
 
             connection.setAutoCommit(true);
             return connection;
         } catch (Throwable e) {
             final String errorMsg = "error connecting to database: " + JavaHelper.readHostileExceptionMessage(e);
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg);
-            if (e instanceof IOException) {
-                LOGGER.error(errorInformation);
-            } else {
-                LOGGER.error(errorMsg, e);
-            }
+            LOGGER.error(errorInformation);
             throw new DatabaseException(errorInformation);
         }
     }
@@ -732,83 +683,12 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         }
     }
 
-    public static class DBConfiguration implements Serializable {
-        private final String driverClassname;
-        private final String connectionString;
-        private final String username;
-        private final PasswordData password;
-        private final String columnTypeKey;
-        private final String columnTypeValue;
-        private final byte[] jdbcDriver;
-
-        public DBConfiguration(
-                final String driverClassname,
-                final String connectionString,
-                final String username,
-                final PasswordData password,
-                final String columnTypeKey,
-                final String columnTypeValue,
-                final byte[] jdbcDriver
-        ) {
-            this.driverClassname = driverClassname;
-            this.connectionString = connectionString;
-            this.username = username;
-            this.password = password;
-            this.columnTypeKey = columnTypeKey;
-            this.columnTypeValue = columnTypeValue;
-            this.jdbcDriver = jdbcDriver;
-        }
-
-        public String getDriverClassname() {
-            return driverClassname;
-        }
-
-        public String getConnectionString() {
-            return connectionString;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public PasswordData getPassword() {
-            return password;
-        }
-
-        public String getColumnTypeKey() {
-            return columnTypeKey;
-        }
-
-        public String getColumnTypeValue() {
-            return columnTypeValue;
-        }
-
-
-        public byte[] getJdbcDriver()
-        {
-            return jdbcDriver;
-        }
-
-        public boolean isEmpty() {
-            if (driverClassname == null || driverClassname.length() < 1) {
-                if (connectionString == null || connectionString.length() < 1) {
-                    if (username == null || username.length() < 1) {
-                        if (password == null) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-    }
-
     public ServiceInfo serviceInfo()
     {
         if (status() == STATUS.OPEN) {
             return new ServiceInfo(Collections.singletonList(DataStorageMethod.DB));
         } else {
-            return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+            return new ServiceInfo(Collections.emptyList());
         }
     }
 
@@ -825,6 +705,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             }
         }
     }
+
 
     @Override
     public Map<PwmAboutProperty,String> getConnectionDebugProperties() {

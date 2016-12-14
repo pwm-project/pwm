@@ -593,13 +593,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         final PasswordData userPassword = newUserForm.getNewUserPassword();
 
         // set up the user creation attributes
-        final Map<String, String> createAttributes = new LinkedHashMap<>();
-        for (final String formKey : newUserForm.getFormData().keySet()) {
-            final String value = newUserForm.getFormData().get(formKey);
-            if (value != null && !value.isEmpty()) {
-                createAttributes.put(formKey, value);
-            }
-        }
+        final Map<String, String> createAttributes = NewUserFormUtils.getLdapDataFromNewUserForm(getNewUserProfile(pwmRequest), newUserForm);
 
         // read the creation object classes from configuration
         final Set<String> createObjectClasses = new LinkedHashSet<>(
@@ -1084,11 +1078,11 @@ public class NewUserServlet extends AbstractPwmServlet {
         return profile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
     }
 
-    public static class NewUserTokenData {
+    static class NewUserTokenData {
         private String profileID;
         private NewUserBean.NewUserForm formData;
 
-        public NewUserTokenData(final String profileID, final NewUserBean.NewUserForm formData) {
+        NewUserTokenData(final String profileID, final NewUserBean.NewUserForm formData) {
             this.profileID = profileID;
             this.formData = formData;
         }
@@ -1102,7 +1096,7 @@ public class NewUserServlet extends AbstractPwmServlet {
         return pwmRequest.getConfig().getNewUserProfiles().get(profileID);
     }
 
-    void forwardToFormPage(final PwmRequest pwmRequest, final NewUserBean newUserBean)
+    private void forwardToFormPage(final PwmRequest pwmRequest, final NewUserBean newUserBean)
             throws ServletException, PwmUnrecoverableException, IOException
     {
         final List<FormConfiguration> formConfiguration = getFormDefinition(pwmRequest);
@@ -1116,4 +1110,5 @@ public class NewUserServlet extends AbstractPwmServlet {
 
         pwmRequest.forwardToJsp(PwmConstants.JspUrl.NEW_USER);
     }
+
 }

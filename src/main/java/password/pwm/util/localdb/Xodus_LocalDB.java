@@ -36,6 +36,8 @@ import jetbrains.exodus.env.TransactionalComputable;
 import jetbrains.exodus.env.TransactionalExecutable;
 import jetbrains.exodus.management.Statistics;
 import org.jetbrains.annotations.NotNull;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -223,7 +225,11 @@ public class Xodus_LocalDB implements LocalDBProvider {
         }
 
         private void doNext() {
-            checkStatus(false);
+            try {
+                checkStatus(false);
+            } catch (LocalDBException e) {
+                throw new IllegalStateException(e);
+            }
             try {
                 if (closed) {
                     return;
@@ -382,13 +388,13 @@ public class Xodus_LocalDB implements LocalDBProvider {
     }
 
 
-    private void checkStatus(final boolean writeOperation) {
+    private void checkStatus(final boolean writeOperation) throws LocalDBException {
         if (status != LocalDB.Status.OPEN) {
-            throw new IllegalStateException("cannot perform operation, this instance is not open");
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE, "cannot perform operation, localdb instance is not open"));
         }
 
         if (writeOperation && readOnly) {
-            throw new IllegalStateException("cannot perform operation, localdb is in read-only mode");
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE, "cannot perform operation, localdb is in read-only mode"));
         }
 
         outputLogExecutor.conditionallyExecuteTask();

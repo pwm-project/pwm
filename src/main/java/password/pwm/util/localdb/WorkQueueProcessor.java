@@ -28,10 +28,10 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.Helper;
-import password.pwm.util.java.TimeDuration;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
@@ -216,6 +216,9 @@ public class WorkQueueProcessor<W extends Serializable> {
             shutdownFlag.set(true);
             logger.trace("shutdown flag set");
             notifyWorkPending();
+
+            // rest until not running for up to 3 seconds....
+            JavaHelper.pause(3000, 50, o -> !running.get());
         }
 
         void notifyWorkPending() {
@@ -300,8 +303,10 @@ public class WorkQueueProcessor<W extends Serializable> {
                     }
                 }
             } catch(Throwable e) {
-                removeQueueTop();
-                logger.error("unexpected error while processing work queue: " + e.getMessage());
+                if (!shutdownFlag.get()) {
+                    removeQueueTop();
+                    logger.error("unexpected error while processing work queue: " + e.getMessage());
+                }
             }
 
         }

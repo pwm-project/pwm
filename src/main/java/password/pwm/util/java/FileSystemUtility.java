@@ -28,6 +28,7 @@ import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -187,6 +188,31 @@ public class FileSystemUtility {
 
         public String getSha1sum() {
             return sha1sum;
+        }
+    }
+
+    public static void deleteDirectoryContents(final File path) throws IOException {
+        deleteDirectoryContents(path, false);
+    }
+
+    public static void deleteDirectoryContents(final File path, final boolean deleteThisLevel)
+            throws IOException
+    {
+        if (!path.exists()) {
+            throw new FileNotFoundException(path.getAbsolutePath());
+        }
+
+        if (path.isDirectory()){
+            for (final File f : path.listFiles()){
+                deleteDirectoryContents(f, true);
+            }
+        }
+
+        if (deleteThisLevel) {
+            LOGGER.debug("deleting temporary file " + path.getAbsolutePath());
+            if (!path.delete()) {
+                throw new IOException("unable to delete path " + path.getAbsolutePath());
+            }
         }
     }
 }

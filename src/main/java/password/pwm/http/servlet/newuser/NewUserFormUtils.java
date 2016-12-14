@@ -35,6 +35,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.NewUserBean;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
@@ -146,5 +147,18 @@ class NewUserFormUtils {
         );
         payloadMap.put(NewUserServlet.FIELD_PASSWORD1, encryptedPassword);
         return payloadMap;
+    }
+
+    static Map<String,String> getLdapDataFromNewUserForm(final NewUserProfile newUserProfile, final NewUserBean.NewUserForm newUserForm) {
+        final Map<String,String> ldapData = new LinkedHashMap<>();
+        final List<FormConfiguration> formConfigurations = newUserProfile.readSettingAsForm(PwmSetting.NEWUSER_FORM);
+        for (final FormConfiguration formConfiguration : formConfigurations) {
+            final String attrName = formConfiguration.getName();
+            final String value = newUserForm.getFormData().get(attrName);
+            if (!StringUtil.isEmpty(value)) {
+                ldapData.put(attrName, value);
+            }
+        }
+        return ldapData;
     }
 }

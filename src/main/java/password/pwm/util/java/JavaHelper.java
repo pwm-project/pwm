@@ -32,10 +32,14 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.function.Predicate;
 
@@ -94,6 +98,23 @@ public class JavaHelper {
         return System.currentTimeMillis() - startTime;
     }
 
+    public static long pause(
+            final long sleepTimeMS,
+            final long predicateCheckIntervalMS,
+            final Predicate predicate
+    ) {
+        final long startTime = System.currentTimeMillis();
+        final long pauseTime = Math.max(sleepTimeMS, predicateCheckIntervalMS);
+        while ((System.currentTimeMillis() - startTime) < sleepTimeMS) {
+            JavaHelper.pause(pauseTime);
+            if (predicate.test(null)) {
+                break;
+            }
+        }
+
+        return System.currentTimeMillis() - startTime;
+    }
+
     public static String binaryArrayToHex(final byte[] buf) {
         final char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
         final char[] chars = new char[2 * buf.length];
@@ -113,6 +134,17 @@ public class JavaHelper {
         return nextZuluMidnight.getTime();
     }
 
+    public static <E extends Enum<E>> List<E> readEnumListFromStringCollection(final Class<E> enumClass, final Collection<String> inputs ) {
+        final List<E> returnList = new ArrayList<E>();
+        for (final String input : inputs) {
+            final E item = readEnumFromString(enumClass, null, input);
+            if (item != null) {
+                returnList.add(item);
+            }
+        }
+        return Collections.unmodifiableList(returnList);
+    }
+
     public static <E extends Enum<E>> E readEnumFromString(final Class<E> enumClass, final E defaultValue, final String input) {
         if (input == null) {
             return defaultValue;
@@ -130,7 +162,7 @@ public class JavaHelper {
             /* noop */
             //LOGGER.trace("input=" + input + " does not exist in enumClass=" + enumClass.getSimpleName());
         } catch (Throwable e) {
-            LOGGER.warn("unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName());
+            LOGGER.warn("unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName() + ", error: " + e.getMessage());
         }
 
         return defaultValue;

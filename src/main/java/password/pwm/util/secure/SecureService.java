@@ -148,6 +148,14 @@ public class SecureService implements PwmService {
     }
 
     public String hash(
+            final byte[] input
+    )
+            throws PwmUnrecoverableException
+    {
+        return SecureEngine.hash(input, defaultHashAlgorithm);
+    }
+
+    public String hash(
             final File file
     )
             throws IOException, PwmUnrecoverableException

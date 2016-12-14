@@ -384,7 +384,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             break;
 
             case DATABASE: {
-                records.addAll(DatabaseStatusChecker.checkNewDatabaseStatus(tempConfiguration));
+                records.addAll(DatabaseStatusChecker.checkNewDatabaseStatus(pwmRequest.getPwmApplication(), tempConfiguration));
             }
             break;
 

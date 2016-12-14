@@ -23,6 +23,7 @@
 package password.pwm.health;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmEnvironment;
 import password.pwm.config.Configuration;
 import password.pwm.error.PwmException;
 import password.pwm.util.db.DatabaseAccessorImpl;
@@ -41,18 +42,21 @@ public class DatabaseStatusChecker implements HealthChecker {
         return Collections.emptyList();
     }
 
-    public static List<HealthRecord> checkNewDatabaseStatus(final Configuration config) {
-        return checkDatabaseStatus(config);
+    public static List<HealthRecord> checkNewDatabaseStatus(final PwmApplication pwmApplication, final Configuration config) {
+        return checkDatabaseStatus(pwmApplication, config);
     }
 
-    private static List<HealthRecord> checkDatabaseStatus(final Configuration config)
+    private static List<HealthRecord> checkDatabaseStatus(final PwmApplication pwmApplication, final Configuration config)
     {
         if (!config.hasDbConfigured()) {
             return Collections.singletonList(new HealthRecord(HealthStatus.INFO,HealthTopic.Database,"Database not configured"));
         }
         final DatabaseAccessorImpl impl = new DatabaseAccessorImpl();
         try {
-            impl.init(config);
+
+            final PwmEnvironment runtimeEnvironment = pwmApplication.getPwmEnvironment().makeRuntimeInstance(config);
+            final PwmApplication runtimeInstance = new PwmApplication(runtimeEnvironment);
+            impl.init(runtimeInstance);
             impl.get(DatabaseTable.PWM_META, "test");
             return impl.healthCheck();
         } catch (PwmException e) {

@@ -68,6 +68,7 @@ public enum     AppProperty {
     CONFIG_GUIDE_IDLE_TIMEOUT                       ("configGuide.idleTimeoutSeconds"),
     CONFIG_MANAGER_ZIPDEBUG_MAXLOGLINES             ("configManager.zipDebug.maxLogLines"),
     CONFIG_MANAGER_ZIPDEBUG_MAXLOGSECONDS           ("configManager.zipDebug.maxLogSeconds"),
+    DB_JDBC_LOAD_STRATEGY                           ("db.jdbcLoadStrategy"),
     FORM_EMAIL_REGEX                                ("form.email.regexTest"),
     HTTP_RESOURCES_MAX_CACHE_ITEMS                  ("http.resources.maxCacheItems"),
     HTTP_RESOURCES_MAX_CACHE_BYTES                  ("http.resources.maxCacheBytes"),

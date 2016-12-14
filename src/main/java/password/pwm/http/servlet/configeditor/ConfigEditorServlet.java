@@ -660,7 +660,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final Date startTime = new Date();
         LOGGER.debug(pwmRequest, "beginning restDatabaseHealthCheck");
         final Configuration config = new Configuration(configManagerBean.getStoredConfiguration());
-        final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus(config);
+        final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus(pwmRequest.getPwmApplication(), config);
         final HealthData healthData = HealthRecord.asHealthDataBean(config, pwmRequest.getLocale(), healthRecords);
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(healthData);

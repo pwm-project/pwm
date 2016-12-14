@@ -211,6 +211,18 @@ public class PwmApplication {
             pwmEnvironment.waitForFileLock();
         }
 
+        // clear temp dir
+        if (!pwmEnvironment.isInternalRuntimeInstance()) {
+            final File tempFileDirectory = getTempDirectory();
+            try {
+                FileSystemUtility.deleteDirectoryContents(tempFileDirectory);
+            } catch (Exception e) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_STARTUP_ERROR,
+                        "unable to clear temp file directory '"+ tempFileDirectory.getAbsolutePath() + "', error: " + e.getMessage()
+                ));
+            }
+        }
+
         LOGGER.info("initializing, application mode=" + getApplicationMode()
                 + ", applicationPath=" + (pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath().getAbsolutePath())
                 + ", configFile=" + (pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath())
@@ -317,7 +329,7 @@ public class PwmApplication {
             final Map<PwmAboutProperty,String> infoMap = PwmAboutProperty.makeInfoBean(this);
             LOGGER.trace("application info: " + JsonUtil.serializeMap(infoMap));
         } catch (Exception e) {
-            LOGGER.error("error generating about application bean: " + e.getMessage());
+            LOGGER.error("error generating about application bean: " + e.getMessage(), e);
         }
 
         try {
@@ -740,6 +752,31 @@ public class PwmApplication {
                 LOGGER.error("error removing bogus appAttribute value for key " + appAttribute.getKey() + ", error: " + localDB);
             }
         }
+    }
+
+    public File getTempDirectory() throws PwmUnrecoverableException {
+        if (pwmEnvironment.getApplicationPath() == null) {
+            final ErrorInformation errorInformation = new ErrorInformation(
+                    PwmError.ERROR_STARTUP_ERROR,
+                    "unable to establish temp work directory: application path unavailable"
+            );
+            throw new PwmUnrecoverableException(errorInformation);
+        }
+        final File tempDirectory = new File(pwmEnvironment.getApplicationPath() + File.separator + "temp");
+        if (!tempDirectory.exists()) {
+            LOGGER.trace("preparing to create temporary directory " + tempDirectory.getAbsolutePath());
+            if (tempDirectory.mkdir()) {
+                LOGGER.debug("created " + tempDirectory.getAbsolutePath());
+            } else {
+                LOGGER.debug("unable to create temporary directory " + tempDirectory.getAbsolutePath());
+                final ErrorInformation errorInformation = new ErrorInformation(
+                        PwmError.ERROR_STARTUP_ERROR,
+                        "unable to establish create temp work directory " + tempDirectory.getAbsolutePath()
+                );
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+        }
+        return tempDirectory;
     }
 }
 

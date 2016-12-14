@@ -191,7 +191,7 @@ public class ReportService implements PwmService {
     {
         final Boolean cleanFlag = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG, Boolean.class);
         if (cleanFlag != null && cleanFlag) {
-            LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL, "did not shut down cleanly");
+            LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL, "did not shut down cleanly");
             reportStatus = new ReportStatusInfo(settings.getSettingsHash());
             reportStatus.setTotal(userCacheService.size());
         } else {
