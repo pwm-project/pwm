@@ -2,7 +2,7 @@
 <input type="text"
        ng-blur="$ctrl.onBlur({ $event: $event })"
        ng-focus="$ctrl.onFocus({ $event: $event })"
-       ng-keydown="$ctrl.onKeyDown({ $event: $event })"
+       ng-keydown="$ctrl.onInputKeyDown($event)"
        ng-model="$ctrl.searchText"
        ng-model-options="{ debounce: $ctrl.inputDebounce }"
        ng-attr-placeholder="{{ ('Placeholder_Search' | translate) }}"

@@ -170,7 +170,6 @@ abstract class PeopleSearchBaseComponent {
         return promise
             .then(
                 (searchResult: SearchResult) => {
-                    console.log('Search result', searchResult);
                     self.clearErrorMessage();
                     self.clearSearchMessage();
 

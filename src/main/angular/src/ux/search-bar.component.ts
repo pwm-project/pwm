@@ -42,6 +42,7 @@ export default class SearchBarComponent {
     autoFocus: boolean;
     inputDebounce: number;
     focused: boolean;
+    onKeyDown: Function;
     onSearchTextChange: Function;
     searchText: string;
 
@@ -54,7 +55,7 @@ export default class SearchBarComponent {
     $onInit(): void {
         this.autoFocus = this.autoFocus !== undefined;
 
-        var self = this;
+        const self = this;
 
         this.$scope.$watch('$ctrl.searchText', (newValue: string, oldValue: string) => {
             if (newValue === oldValue) {
@@ -65,7 +66,7 @@ export default class SearchBarComponent {
         });
     }
 
-    $postLink() {
+    $postLink(): void {
         const self = this;
         if (this.autoFocus) {
             this.$scope.$evalAsync(() => {
@@ -80,7 +81,15 @@ export default class SearchBarComponent {
         this.focusInput();
     }
 
-    focusInput() {
+    focusInput(): void {
         this.$element.find('input')[0].focus();
+    }
+
+    onInputKeyDown(event): void {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+        }
+
+        this.onKeyDown({ $event: event });
     }
 }
