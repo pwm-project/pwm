@@ -24,7 +24,6 @@ package password.pwm.svc.intruder;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -53,15 +52,16 @@ import password.pwm.svc.event.SystemAuditRecord;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.DataStore;
 import password.pwm.util.DataStoreFactory;
 import password.pwm.util.Helper;
+import password.pwm.util.LocaleHelper;
+import password.pwm.util.db.DatabaseDataStore;
+import password.pwm.util.db.DatabaseTable;
+import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.db.DatabaseDataStore;
-import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
 import password.pwm.util.logging.PwmLogger;
@@ -75,6 +75,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -571,8 +572,9 @@ public class IntruderManager implements Serializable, PwmService {
             final UserIdentity userIdentity
     )
     {
+        final Locale locale = LocaleHelper.getLocaleForSessionID(pwmApplication, sessionLabel.getSessionID());
         final Configuration config = pwmApplication.getConfig();
-        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_INTRUDERNOTICE, PwmConstants.DEFAULT_LOCALE);
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_INTRUDERNOTICE, locale);
 
         if (configuredEmailSetting == null) {
             return;
@@ -581,7 +583,7 @@ public class IntruderManager implements Serializable, PwmService {
         try {
             final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, null);
             final UserInfoBean userInfoBean = userStatusReader.populateUserInfoBean(
-                    PwmConstants.DEFAULT_LOCALE,
+                    locale,
                     userIdentity
             );
 

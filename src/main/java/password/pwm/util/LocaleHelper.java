@@ -22,8 +22,10 @@
 
 package password.pwm.util;
 
+import org.apache.commons.lang3.StringUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.config.ChallengeItemConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -48,6 +50,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -571,5 +574,21 @@ public class LocaleHelper {
             }
         }
         return returnObj;
+    }
+
+    public static Locale getLocaleForSessionID(final PwmApplication pwmApplication, final String sessionID) {
+        if (pwmApplication != null && StringUtils.isNotBlank(sessionID)) {
+            final Iterator<SessionStateInfoBean> sessionInfoIterator = pwmApplication.getSessionTrackService().getSessionInfoIterator();
+            while (sessionInfoIterator.hasNext()) {
+                final SessionStateInfoBean sessionStateInfoBean = sessionInfoIterator.next();
+                if (StringUtils.equals(sessionStateInfoBean.getLabel(), sessionID)) {
+                    if (sessionStateInfoBean.getLocale() != null) {
+                        return sessionStateInfoBean.getLocale();
+                    }
+                }
+            }
+        }
+
+        return PwmConstants.DEFAULT_LOCALE;
     }
 }
