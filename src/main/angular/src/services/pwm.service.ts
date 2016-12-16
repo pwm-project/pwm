@@ -60,7 +60,7 @@ export default class PwmService implements IPwmService {
     }
 
     getServerUrl(processAction: string, additionalParameters?: any): string {
-        let url: string = this.urlContext + '/private/peoplesearch?processAction=' + processAction;
+        let url: string = window.location.pathname + '?processAction=' + processAction;
         url = this.addParameters(url, additionalParameters);
 
         return url;

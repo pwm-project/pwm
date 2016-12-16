@@ -116,7 +116,7 @@ public class OAuthMachine {
 
         if (userIdentity != null) {
             final String parametersValue = figureUsernameGrantParam(pwmRequest, userIdentity);
-            if (StringUtil.isEmpty(parametersValue)) {
+            if (!StringUtil.isEmpty(parametersValue)) {
                 urlParams.put("parameters", parametersValue);
             }
         }
