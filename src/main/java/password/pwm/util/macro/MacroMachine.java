@@ -164,12 +164,15 @@ public class MacroMachine {
 
         final Set<MacroImplementation.Scope> scopes = effectiveScopes(macroRequestInfo);
         final Map<Pattern,MacroImplementation> macroImplementations = new LinkedHashMap<>();
-        for (final MacroImplementation.Scope scope : scopes) {
-            macroImplementations.putAll(BUILTIN_MACROS.get(scope));
-        }
+        //First the User macros
         if (scopes.contains(MacroImplementation.Scope.User)) {
             macroImplementations.putAll(makeExternalImplementations(pwmApplication));
         }
+        //last the buitin macros for Encrypt/Encode to work properly
+        for (final MacroImplementation.Scope scope : scopes) {
+            macroImplementations.putAll(BUILTIN_MACROS.get(scope));
+        }
+
 
         String workingString = input;
         final String previousString = workingString;

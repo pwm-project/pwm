@@ -58,8 +58,7 @@ public abstract class StandardMacros {
     static {
         final Map<Class<? extends MacroImplementation>, MacroImplementation.Scope> defaultMacros = new LinkedHashMap<>();
 
-        // wrapper macros
-        defaultMacros.put(EncodingMacro.class, MacroImplementation.Scope.System);
+       
 
         // system macros
         defaultMacros.put(CurrentTimeMacro.class, MacroImplementation.Scope.System);
@@ -82,6 +81,9 @@ public abstract class StandardMacros {
         defaultMacros.put(UserEmailMacro.class, MacroImplementation.Scope.User);
         defaultMacros.put(UserPasswordMacro.class, MacroImplementation.Scope.User);
         defaultMacros.put(UserLdapProfileMacro.class, MacroImplementation.Scope.User);
+        
+        // wrapper macros: must be at the end to allow Macro in Macro during parsing
+        defaultMacros.put(EncodingMacro.class, MacroImplementation.Scope.System);
         STANDARD_MACROS = Collections.unmodifiableMap(defaultMacros);
     }
 
