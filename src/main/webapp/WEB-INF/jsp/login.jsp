@@ -125,7 +125,7 @@
 <pwm:if test="<%=PwmIfTest.forwardUrlDefined%>">
     <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 </pwm:if>
-<% if (!CaptchaUtility.checkIfCaptchaConfigEnabled(JspUtility.getPwmRequest(pageContext))) { %>
+<% if (!CaptchaUtility.captchaEnabledForRequest(JspUtility.getPwmRequest(pageContext))) { %>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){

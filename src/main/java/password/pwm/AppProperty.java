@@ -232,6 +232,7 @@ public enum     AppProperty {
     REPORTING_LDAP_SEARCH_TIMEOUT                   ("reporting.ldap.searchTimeoutMs"),
     SECURITY_STRIP_INLINE_JAVASCRIPT                ("security.html.stripInlineJavascript"),
     SECURITY_HTTP_STRIP_HEADER_REGEX                ("security.http.stripHeaderRegex"),
+    SECURITY_HTTP_PERFORM_CSRF_HEADER_CHECKS        ("security.http.performCsrfHeaderChecks"),
     SECURITY_HTTP_PROMISCUOUS_ENABLE                ("security.http.promiscuousEnable"),
     SECURITY_HTTPSSERVER_SELF_FUTURESECONDS         ("security.httpsServer.selfCert.futureSeconds"),
     SECURITY_HTTPSSERVER_SELF_ALG                   ("security.httpsServer.selfCert.alg"),

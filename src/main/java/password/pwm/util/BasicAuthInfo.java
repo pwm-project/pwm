@@ -26,6 +26,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -54,7 +55,7 @@ public class BasicAuthInfo implements Serializable {
             final PwmApplication pwmApplication,
             final PwmRequest pwmRequest
     ) {
-        final String authHeader = pwmRequest.readHeaderValueAsString(PwmConstants.HttpHeader.Authorization);
+        final String authHeader = pwmRequest.readHeaderValueAsString(HttpHeader.Authorization);
 
         if (authHeader != null) {
             if (authHeader.contains(PwmConstants.HTTP_BASIC_AUTH_PREFIX)) {

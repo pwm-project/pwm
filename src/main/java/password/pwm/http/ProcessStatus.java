@@ -20,16 +20,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.svc.cache;
+package password.pwm.http;
 
-import password.pwm.error.PwmUnrecoverableException;
-
-import java.time.Instant;
-
-public interface CacheStore {
-    void store(CacheKey cacheKey, Instant expirationDate, String data) throws PwmUnrecoverableException;
-    
-    String read(CacheKey cacheKey) throws PwmUnrecoverableException;
-    
-    CacheStoreInfo getCacheStoreInfo();
+public enum ProcessStatus {
+    Continue,
+    Halt,
 }

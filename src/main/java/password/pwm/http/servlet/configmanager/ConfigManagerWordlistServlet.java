@@ -30,6 +30,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.i18n.Message;
@@ -117,7 +118,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet {
             return;
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_WORDLISTS);
+        pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_WORDLISTS);
     }
 
     void restUploadWordlist(final PwmRequest pwmRequest)

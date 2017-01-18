@@ -54,6 +54,24 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         ForceLogout,
     }
 
+    public enum RedirectType {
+        Permanent_301(HttpServletResponse.SC_MOVED_PERMANENTLY),
+        Found_302(HttpServletResponse.SC_FOUND),
+        Other_303(303),
+
+        ;
+
+        private final int code;
+
+        RedirectType(final int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
+    }
+
     public PwmResponse(
             final HttpServletResponse response,
             final PwmRequest pwmRequest,
@@ -64,7 +82,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     }
 
     public void forwardToJsp(
-            final PwmConstants.JspUrl jspURL
+            final JspUrl jspURL
     )
             throws ServletException, IOException, PwmUnrecoverableException
     {
@@ -114,7 +132,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         }
 
         try {
-            forwardToJsp(PwmConstants.JspUrl.SUCCESS);
+            forwardToJsp(JspUrl.SUCCESS);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unexpected error sending user to success page: " + e.toString());
         }
@@ -139,7 +157,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
         } else if (pwmRequest.isHtmlRequest()) {
             try {
-                forwardToJsp(PwmConstants.JspUrl.ERROR);
+                forwardToJsp(JspUrl.ERROR);
             } catch (PwmUnrecoverableException e) {
                 LOGGER.error("unexpected error sending user to error page: " + e.toString());
             }
@@ -181,15 +199,24 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     }
 
     public void markAsDownload(final PwmConstants.ContentTypeValue contentType, final String filename) {
-        this.setHeader(PwmConstants.HttpHeader.ContentDisposition,"attachment; fileName=" + filename);
+        this.setHeader(HttpHeader.ContentDisposition,"attachment; fileName=" + filename);
         this.setContentType(contentType);
     }
 
     public void sendRedirect(final String url)
             throws IOException
     {
+        sendRedirect(url, RedirectType.Found_302);
+    }
+
+    public void sendRedirect(final String url, final RedirectType redirectType)
+            throws IOException
+    {
         preCommitActions();
-        super.sendRedirect(url);
+
+        final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
+        resp.setStatus(redirectType.getCode()); // http "other" redirect
+        resp.setHeader(HttpHeader.Location.getHttpName(), url);
     }
 
     private void preCommitActions() {

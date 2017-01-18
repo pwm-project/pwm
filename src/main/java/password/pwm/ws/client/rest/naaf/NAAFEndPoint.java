@@ -24,10 +24,10 @@ package password.pwm.ws.client.rest.naaf;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmURL;
 import password.pwm.http.client.PwmHttpClient;
@@ -154,9 +154,9 @@ public class NAAFEndPoint {
             throws PwmUnrecoverableException
     {
         final Map<String,String> headers = new HashMap<>();
-        headers.put(PwmConstants.HttpHeader.Content_Type.getHttpName(), "application/json");
+        headers.put(HttpHeader.Content_Type.getHttpName(), "application/json");
         if (locale != null) {
-            headers.put(PwmConstants.HttpHeader.Accept_Language.getHttpName(), locale.toLanguageTag());
+            headers.put(HttpHeader.Accept_Language.getHttpName(), locale.toLanguageTag());
         }
 
         final PwmHttpClientRequest pwmHttpClientRequest = new PwmHttpClientRequest(

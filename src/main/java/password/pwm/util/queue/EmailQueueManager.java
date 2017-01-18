@@ -138,12 +138,12 @@ public class EmailQueueManager implements PwmService {
         if (status() == STATUS.OPEN) {
             return new ServiceInfo(Collections.singletonList(DataStorageMethod.LOCALDB));
         } else {
-            return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+            return new ServiceInfo(Collections.emptyList());
         }
     }
 
     public int queueSize() {
-        return workQueueProcessor.queueSize();
+        return workQueueProcessor == null ? 0 : workQueueProcessor.queueSize();
     }
 
     public Instant eldestItem() {
@@ -306,7 +306,7 @@ public class EmailQueueManager implements PwmService {
         }
     }
 
-    public List<Message> convertEmailItemToMessages(final EmailItemBean emailItemBean, final Configuration config)
+    List<Message> convertEmailItemToMessages(final EmailItemBean emailItemBean, final Configuration config)
             throws MessagingException
     {
         final List<Message> messages = new ArrayList<>();

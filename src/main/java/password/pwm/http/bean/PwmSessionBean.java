@@ -23,6 +23,7 @@
 package password.pwm.http.bean;
 
 import password.pwm.config.option.SessionBeanMode;
+import password.pwm.error.ErrorInformation;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -36,6 +37,7 @@ public abstract class PwmSessionBean implements Serializable {
 
     private String guid;
     private Date timestamp;
+    private ErrorInformation lastError;
 
     public String getGuid() {
         return guid;
@@ -51,6 +53,14 @@ public abstract class PwmSessionBean implements Serializable {
 
     public void setTimestamp(final Date timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public ErrorInformation getLastError() {
+        return lastError;
+    }
+
+    public void setLastError(final ErrorInformation lastError) {
+        this.lastError = lastError;
     }
 
     public abstract Type getType();

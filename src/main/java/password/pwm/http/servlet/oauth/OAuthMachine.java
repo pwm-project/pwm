@@ -38,6 +38,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.http.client.PwmHttpClient;
@@ -236,7 +237,7 @@ public class OAuthMachine {
         final String requestBody = PwmURL.appendAndEncodeUrlParameters("", requestParams);
         LOGGER.trace(pwmRequest, "beginning " + debugText + " request to " + requestUrl + ", body: \n" + requestBody);
         final HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(PwmConstants.HttpHeader.Authorization.getHttpName(),
+        httpPost.setHeader(HttpHeader.Authorization.getHttpName(),
                 new BasicAuthInfo(settings.getClientID(), settings.getSecret()).toAuthHeader());
         final StringEntity bodyEntity = new StringEntity(requestBody);
         bodyEntity.setContentType(PwmConstants.ContentTypeValue.form.getHeaderValue());

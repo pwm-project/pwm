@@ -142,7 +142,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return pwmApplication.getConfig();
     }
 
-    public void forwardToJsp(final PwmConstants.JspUrl jspURL)
+    public void forwardToJsp(final JspUrl jspURL)
             throws ServletException, IOException, PwmUnrecoverableException
     {
         this.getPwmResponse().forwardToJsp(jspURL);

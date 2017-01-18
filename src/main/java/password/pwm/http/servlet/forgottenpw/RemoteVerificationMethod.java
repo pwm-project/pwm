@@ -35,6 +35,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientRequest;
@@ -129,8 +130,8 @@ public class RemoteVerificationMethod implements VerificationMethodSystem {
         lastResponse = null;
 
         final Map<String, String> headers = new LinkedHashMap<>();
-        headers.put(PwmConstants.HttpHeader.Content_Type.getHttpName(), PwmConstants.ContentTypeValue.json.getHeaderValue());
-        headers.put(PwmConstants.HttpHeader.Accept_Language.getHttpName(), locale.toLanguageTag());
+        headers.put(HttpHeader.Content_Type.getHttpName(), PwmConstants.ContentTypeValue.json.getHeaderValue());
+        headers.put(HttpHeader.Accept_Language.getHttpName(), locale.toLanguageTag());
 
         final RemoteVerificationRequestBean remoteVerificationRequestBean = new RemoteVerificationRequestBean();
         remoteVerificationRequestBean.setResponseSessionID(this.remoteSessionID);

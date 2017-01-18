@@ -45,6 +45,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.GuestRegistrationBean;
@@ -567,10 +568,10 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         calculateFutureDateFlags(pwmRequest, guestRegistrationBean);
         if (Page.search == guestRegistrationBean.getCurrentPage()) {
             pwmRequest.addFormInfoToRequestAttr(PwmSetting.GUEST_UPDATE_FORM, false, false);
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.GUEST_UPDATE_SEARCH);
+            pwmRequest.forwardToJsp(JspUrl.GUEST_UPDATE_SEARCH);
         } else {
             pwmRequest.addFormInfoToRequestAttr(PwmSetting.GUEST_FORM, false, false);
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.GUEST_REGISTRATION);
+            pwmRequest.forwardToJsp(JspUrl.GUEST_REGISTRATION);
         }
     }
 
@@ -589,7 +590,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
         }
 
         pwmRequest.addFormInfoToRequestAttr(guestUpdateForm, formValueMap, false, false);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.GUEST_UPDATE);
+        pwmRequest.forwardToJsp(JspUrl.GUEST_UPDATE);
     }
 
     private static void checkConfiguration(final Configuration configuration)

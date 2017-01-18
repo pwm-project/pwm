@@ -355,4 +355,8 @@ public abstract class StringUtil {
     public static String defaultString(final String input, final String defaultStr) {
         return StringUtils.defaultString(input, defaultStr);
     }
+
+    public static boolean equals(final String input1, final String input2) {
+        return StringUtils.equals(input1, input2);
+    }
 }

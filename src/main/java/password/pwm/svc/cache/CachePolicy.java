@@ -22,21 +22,23 @@
 
 package password.pwm.svc.cache;
 
+import password.pwm.util.java.TimeDuration;
+
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 
 public class CachePolicy implements Serializable {
-    private Date expiration;
+    private Instant expiration;
     
     CachePolicy() {
     }
     
-    public Date getExpiration()
+    public Instant getExpiration()
     {
         return expiration;
     }
 
-    public static CachePolicy makePolicy(final Date date) {
+    public static CachePolicy makePolicy(final Instant date) {
         final CachePolicy policy = new CachePolicy();
         policy.expiration = date;
         return policy;
@@ -44,8 +46,12 @@ public class CachePolicy implements Serializable {
 
     public static CachePolicy makePolicyWithExpirationMS(final long expirationMs) {
         final CachePolicy policy = new CachePolicy();
-        final Date expirationDate = new Date(System.currentTimeMillis() + expirationMs);
-        policy.expiration = expirationDate;
+        policy.expiration = Instant.ofEpochMilli(System.currentTimeMillis() + expirationMs);
         return policy;
     }
+
+    public static CachePolicy makePolicyWithExpiration(final TimeDuration timeDuration) {
+        return makePolicyWithExpirationMS(timeDuration.getTotalMilliseconds());
+    }
+
 }

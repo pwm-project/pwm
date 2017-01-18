@@ -32,10 +32,11 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.filter.AbstractPwmFilter;
 import password.pwm.http.filter.AuthenticationFilter;
+import password.pwm.http.ProcessStatus;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -140,7 +141,7 @@ public class CommandServlet extends AbstractPwmServlet {
     {
         pwmRequest.validatePwmFormID();
         if (!pwmRequest.getPwmResponse().isCommitted()) {
-            pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate");
+            pwmRequest.getPwmResponse().setHeader(HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate");
             pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.plain);
         }
     }
@@ -157,7 +158,7 @@ public class CommandServlet extends AbstractPwmServlet {
         final Configuration config = pwmApplication.getConfig();
 
         if (pwmRequest.isAuthenticated()) {
-            if (AuthenticationFilter.forceRequiredRedirects(pwmRequest) == AbstractPwmFilter.ProcessStatus.Halt) {
+            if (AuthenticationFilter.forceRequiredRedirects(pwmRequest) == ProcessStatus.Halt) {
                 return;
             }
 
@@ -183,7 +184,7 @@ public class CommandServlet extends AbstractPwmServlet {
         pwmSession.getSessionStateBean().setPageLeaveNoticeTime(pageLeaveNoticeTime);
         LOGGER.debug("pageLeaveNotice indicated at " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(pageLeaveNoticeTime) + ", referer=" + referrer);
         if (!pwmRequest.getPwmResponse().isCommitted()) {
-            pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate");
+            pwmRequest.getPwmResponse().setHeader(HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate");
             pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.plain);
         }
     }
@@ -248,7 +249,7 @@ public class CommandServlet extends AbstractPwmServlet {
                 return;
             }
 
-            if (AuthenticationFilter.forceRequiredRedirects(pwmRequest) == AbstractPwmFilter.ProcessStatus.Continue) {
+            if (AuthenticationFilter.forceRequiredRedirects(pwmRequest) == ProcessStatus.Continue) {
                 redirectToForwardURL(pwmRequest);
             }
         }

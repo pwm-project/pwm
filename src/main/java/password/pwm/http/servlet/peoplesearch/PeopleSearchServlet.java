@@ -34,6 +34,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
@@ -162,7 +163,7 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
             pwmRequest.setFlag(PwmRequestFlag.HIDE_IDLE, true);
             pwmRequest.setFlag(PwmRequestFlag.NO_IDLE_TIMEOUT, true);
         }
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.PEOPLE_SEARCH);
+        pwmRequest.forwardToJsp(JspUrl.PEOPLE_SEARCH);
     }
 
     private void restLoadClientData(

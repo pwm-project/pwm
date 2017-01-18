@@ -35,6 +35,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
+import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
@@ -252,7 +255,7 @@ public class SessionFilter extends AbstractPwmFilter {
         }
 
         {
-            final String acceptEncodingHeader = pwmRequest.getHttpServletRequest().getHeader(PwmConstants.HttpHeader.Accept.getHttpName());
+            final String acceptEncodingHeader = pwmRequest.getHttpServletRequest().getHeader(HttpHeader.Accept.getHttpName());
             if (acceptEncodingHeader != null && acceptEncodingHeader.contains("json")) {
                 LOGGER.debug(pwmRequest, "session is unvalidated but can not be validated during a json request, will allow");
                 return ProcessStatus.Continue;
@@ -273,10 +276,10 @@ public class SessionFilter extends AbstractPwmFilter {
 
             LOGGER.trace(pwmRequest, "session has not been validated, redirecting with verification key to " + returnURL);
 
-            pwmResponse.setHeader(PwmConstants.HttpHeader.Connection, "close");  // better chance of detecting un-sticky sessions this way
+            pwmResponse.setHeader(HttpHeader.Connection, "close");  // better chance of detecting un-sticky sessions this way
             if (mode == SessionVerificationMode.VERIFY_AND_CACHE) {
                 req.setAttribute("Location", returnURL);
-                pwmResponse.forwardToJsp(PwmConstants.JspUrl.INIT);
+                pwmResponse.forwardToJsp(JspUrl.INIT);
             } else {
                 pwmResponse.sendRedirect(returnURL);
             }

@@ -20,20 +20,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.bean.LocalSessionStateBean" %>
-<%@ page import="password.pwm.config.FormConfiguration" %>
-<%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="java.util.List" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmRequest pwmRequest = PwmRequest.forRequest(request, response); %>
-<% final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean(); %>
-<% final ForgottenPasswordBean recoverBean = JspUtility.getSessionBean(pageContext, ForgottenPasswordBean.class); %>
-<% final List<FormConfiguration> requiredAttrParams = recoverBean.getAttributeForm(); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <%--
@@ -52,14 +44,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
         <form name="responseForm" action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" autocomplete="off">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
-            <% // loop through required attributes (challenge.requiredAttributes), if any are configured
-                for (final FormConfiguration paramConfig : requiredAttrParams) {
-            %>
-            <h2><label for="attribute-<%= paramConfig.getName()%>"><%= paramConfig.getLabel(ssBean.getLocale()) %>
-            </label></h2>
-            <input type="<pwm:value name="<%=PwmValue.responseFieldType%>"/>" name="<%= paramConfig.getName()%>" class="inputfield passwordfield" maxlength="255"
-                    <pwm:autofocus/> id="attribute-<%= paramConfig.getName()%>" required="required" />
-            <% } %>
+            <jsp:include page="fragment/form.jsp"/>
 
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="checkAttributes"/>

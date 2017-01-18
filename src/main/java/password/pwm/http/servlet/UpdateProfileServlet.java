@@ -46,6 +46,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.UpdateProfileBean;
@@ -239,14 +240,16 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
                 final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(pwmRequest.getPwmApplication());
                 final String expandedText = macroMachine.expandMacros(updateProfileAgreementText);
                 pwmRequest.setAttribute(PwmRequest.Attribute.AgreementText, expandedText);
-                pwmRequest.forwardToJsp(PwmConstants.JspUrl.UPDATE_ATTRIBUTES_AGREEMENT);
+                pwmRequest.forwardToJsp(JspUrl.UPDATE_ATTRIBUTES_AGREEMENT);
                 return;
             }
         }
 
         //make sure there is form data in the bean.
-        if (updateProfileBean.getFormData() == null) {
-            updateProfileBean.setFormData(formDataFromLdap(pwmRequest, updateAttributesProfile));
+        if (!updateProfileBean.isFormLdapLoaded()) {
+            updateProfileBean.getFormData().clear();
+            updateProfileBean.getFormData().putAll((formDataFromLdap(pwmRequest, updateAttributesProfile)));
+            updateProfileBean.setFormLdapLoaded(true);
             forwardToForm(pwmRequest, updateAttributesProfile, updateProfileBean);
             return;
         }
@@ -286,7 +289,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
 
                     if (!updateProfileBean.getTokenVerificationProgress().getPassedTokens().contains(tokenChannel)) {
                         updateProfileBean.getTokenVerificationProgress().setPhase(tokenChannel);
-                        pwmRequest.forwardToJsp(PwmConstants.JspUrl.UPDATE_ATTRIBUTES_ENTER_CODE);
+                        pwmRequest.forwardToJsp(JspUrl.UPDATE_ATTRIBUTES_ENTER_CODE);
                         return;
                     }
                 }
@@ -502,7 +505,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         final List<FormConfiguration> form = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<FormConfiguration,String> formValueMap = formMapFromBean(updateAttributesProfile, updateProfileBean);
         pwmRequest.addFormInfoToRequestAttr(form, formValueMap, false, false);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.UPDATE_ATTRIBUTES);
+        pwmRequest.forwardToJsp(JspUrl.UPDATE_ATTRIBUTES);
     }
 
     static void forwardToConfirmForm(final PwmRequest pwmRequest, final UpdateAttributesProfile updateAttributesProfile, final UpdateProfileBean updateProfileBean)
@@ -511,7 +514,7 @@ public class UpdateProfileServlet extends AbstractPwmServlet {
         final List<FormConfiguration> form = updateAttributesProfile.readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<FormConfiguration,String> formValueMap = formMapFromBean(updateAttributesProfile, updateProfileBean);
         pwmRequest.addFormInfoToRequestAttr(form, formValueMap, true, false);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.UPDATE_ATTRIBUTES_CONFIRM);
+        pwmRequest.forwardToJsp(JspUrl.UPDATE_ATTRIBUTES_CONFIRM);
     }
 
     static Map<FormConfiguration, String> formMapFromBean(final UpdateAttributesProfile updateAttributesProfile, final UpdateProfileBean updateProfileBean) throws PwmUnrecoverableException {

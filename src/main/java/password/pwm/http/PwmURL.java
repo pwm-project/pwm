@@ -55,6 +55,40 @@ public class PwmURL {
         this(URI.create(req.getRequestURL().toString()), req.getContextPath());
     }
 
+    /**
+     * Compare two uri strings for equality of 'base'.  Specifically, the schema, host and port
+     * are compared for equality.
+     * @param uri1
+     * @param uri2
+     * @return
+     */
+    public static boolean compareUriBase(final String uri1, final String uri2) {
+        if (uri1 == null && uri2 == null) {
+            return true;
+        }
+
+        if (uri1 == null || uri2 == null) {
+            return false;
+        }
+
+        final URI parsedUri1 = URI.create(uri1);
+        final URI parsedUri2 = URI.create(uri2);
+
+        if (!StringUtil.equals(parsedUri1.getScheme(), parsedUri2.getScheme())) {
+            return false;
+        }
+
+        if (!StringUtil.equals(parsedUri1.getHost(), parsedUri2.getHost())) {
+            return false;
+        }
+
+        if (parsedUri1.getPort() != parsedUri2.getPort()) {
+            return false;
+        }
+
+        return true;
+    }
+
     public boolean isLoginServlet() {
         return isPwmServletURL(PwmServletDefinition.Login);
     }
@@ -267,5 +301,18 @@ public class PwmURL {
             }
         }
         return "";
+    }
+
+    public String determinePwmServletPath() {
+        final String requestPath = this.uri.getPath();
+        for (final PwmServletDefinition servletDefinition : PwmServletDefinition.values()) {
+            for (final String pattern : servletDefinition.urlPatterns()) {
+                final String testPath = contextPath + pattern;
+                if (requestPath.startsWith(testPath)) {
+                    return testPath;
+                }
+            }
+        }
+        return requestPath;
     }
 }

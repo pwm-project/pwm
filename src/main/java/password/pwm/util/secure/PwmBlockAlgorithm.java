@@ -67,7 +67,7 @@ public enum PwmBlockAlgorithm {
             null,
             "PWM.GCM1".getBytes(PwmConstants.DEFAULT_CHARSET),
             "AES128+GCM"
-    )
+    ),
 
     ;
 

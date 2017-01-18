@@ -442,24 +442,24 @@ PWM_PS.initPeopleSearchPage = function() {
                     console.log('error reading username field from sessionStorage: ' + e);
                 }
 
-//                PWM_MAIN.addEventHandler('username', "keyup, input", function () {
-//                    try {
-//                        var fieldUsername = PWM_MAIN.getObject('username').value;
-//                        PWM_MAIN.Preferences.writeSessionStorage("peoplesearch_field_username", fieldUsername);
-//                    } catch (e) {
-//                        console.log('error writing username field from sessionStorage: ' + e);
-//                    }
-//
-//                    PWM_PS.processPeopleSearch();
-//                });
-//                if (PWM_MAIN.getObject('username')) {
-//                    if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
-//                        PWM_PS.processPeopleSearch();
-//                    }
-//                }
+                PWM_MAIN.addEventHandler('username', "keyup, input", function () {
+                   try {
+                        var fieldUsername = PWM_MAIN.getObject('username').value;
+                        PWM_MAIN.Preferences.writeSessionStorage("peoplesearch_field_username", fieldUsername);
+                    } catch (e) {
+                        console.log('error writing username field from sessionStorage: ' + e);
+                    }
+
+                    PWM_PS.processPeopleSearch();
+                });
+                if (PWM_MAIN.getObject('username')) {
+                    if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
+                        PWM_PS.processPeopleSearch();
+                    }
+                }
             });
         },{method:"GET"});
     }
 };
 
-PWM_PS.initPeopleSearchPage();
+//PWM_PS.initPeopleSearchPage();

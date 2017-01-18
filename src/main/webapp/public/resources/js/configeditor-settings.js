@@ -1861,7 +1861,7 @@ EmailTableHandler.drawRowHtml = function(settingKey, localeName) {
     var localeLabel = localeName == '' ? 'Default Locale' : PWM_GLOBAL['localeInfo'][localeName] + " (" + localeName + ")";
     var idPrefix = "setting-" + localeName + "-" + settingKey;
     var htmlBody = '';
-    htmlBody += '<table class="noborder"><tr ><td class="noborder">';
+    htmlBody += '<table class="noborder" style=""><tr ><td class="noborder" style="max-width: 440px">';
     htmlBody += '<table>';
     if (PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]) > 1) {
         htmlBody += '<tr><td colspan="5" class="title" style="font-size:100%; font-weight:normal">' + localeLabel + '</td></tr>';
@@ -2753,7 +2753,7 @@ SelectValueHandler.init = function(settingKey) {
 
     if (allowUserInput) {
         htmlBody += '<button class="btn" id="button_selectOverride_' + settingKey + '">'
-        + '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Set Value</button>';
+        + '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Value</button>';
 
     }
 

@@ -895,8 +895,13 @@ PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo, options) {
         var prefs = PWM_MAIN.Preferences.readSessionStorage('helpExpanded',{});
         var expandHelp = settingKey in prefs;
         htmlBody += '<div class="pane-help" id="pane-help-' + settingKey + '" style="display:' + (expandHelp ? 'inherit' : 'none') + '">'
-            + settingInfo['description'] + '</div>';
+            + settingInfo['description'];
+        if (settingInfo['placeholder']) {
+            htmlBody += '<p><span style="font-weight:bold">Example: </span><code>' + settingInfo['placeholder'] + '</code></p>';
+        }
+        htmlBody += '</div>';
     }
+
 
     htmlBody += '<div class="pane-settingValue noborder" id="table_setting_' + settingKey + '">'
         + '</div>' // close setting;

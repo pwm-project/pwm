@@ -133,9 +133,14 @@ html {
     padding:4px;
 }
 
-#header-title {
+.configeditor-header #header-title {
     padding-left: 20px;
     padding-right: 20px;
+}
+
+.configguide-header #header-title {
+    margin-top: 20px;
+    font-size: 20px;
 }
 
 .headerIcon {

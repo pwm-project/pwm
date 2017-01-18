@@ -30,7 +30,12 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.svc.cache.CacheKey;
+import password.pwm.svc.cache.CachePolicy;
+import password.pwm.svc.cache.CacheService;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.util.StringTokenizer;
@@ -79,14 +84,27 @@ public class UserIdentity implements Serializable, Comparable {
     public String toObfuscatedKey(final PwmApplication pwmApplication)
             throws PwmUnrecoverableException
     {
-        final String cachedValue = obfuscatedValue;
-        if (cachedValue != null) {
+        // use local cache first.
+        if (!StringUtil.isEmpty(obfuscatedValue)) {
+            return obfuscatedValue;
+        }
+
+        // check app cache.  This is used primarily so that keys are static over some meaningful lifetime, allowing browser caching based on keys.
+        final CacheService cacheService = pwmApplication.getCacheService();
+        final CacheKey cacheKey = CacheKey.makeCacheKey(this.getClass(), null, "userKey" + "|" + this.toDelimitedKey());
+        final String cachedValue = cacheService.get(cacheKey);
+
+        if (!StringUtil.isEmpty(cachedValue)) {
+            obfuscatedValue = cachedValue;
             return cachedValue;
         }
+
+        // generate key
         try {
             final String jsonValue = JsonUtil.serialize(this);
             final String localValue = CRYPO_HEADER + pwmApplication.getSecureService().encryptToString(jsonValue);
             this.obfuscatedValue = localValue;
+            cacheService.put(cacheKey, CachePolicy.makePolicyWithExpiration(TimeDuration.DAY), localValue);
             return localValue;
         } catch (Exception e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error making obfuscated user key: " + e.getMessage()));

@@ -35,7 +35,7 @@
     <div id="header-balance-div">
         <br/><%-- balance div for ie 6 --%>
     </div>
-    <div id="header-right-logo" style="position: absolute">
+    <div id="header-right-logo">
     </div>
     <div id="header-center">
         <div id="header-center-left">

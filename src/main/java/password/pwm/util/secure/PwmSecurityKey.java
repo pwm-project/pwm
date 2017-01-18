@@ -81,7 +81,7 @@ public class PwmSecurityKey {
             }
 
             case AES_256: {
-                return shaBasedKey("AES", PwmHashAlgorithm.SHA256, 32);
+                return shaBasedKey("AES", PwmHashAlgorithm.SHA256, 16);
             }
 
             case HMAC_256: {

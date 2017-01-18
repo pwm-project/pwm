@@ -57,6 +57,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -346,7 +347,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                 final String errorMsg = "unknown verification method requested";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,errorMsg);
                 pwmRequest.setResponseError(errorInformation);
-                pwmRequest.forwardToJsp(PwmConstants.JspUrl.RECOVER_PASSWORD_METHOD_CHOICE);
+                pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_METHOD_CHOICE);
                 return;
             }
         }
@@ -362,7 +363,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             pwmRequest.setResponseError(errorInformation);
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.RECOVER_PASSWORD_METHOD_CHOICE);
+        pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_METHOD_CHOICE);
     }
 
     private void processSearch(final PwmRequest pwmRequest)
@@ -893,7 +894,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                 try {
                     final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
                     if (theUser.isPasswordLocked()) {
-                        pwmRequest.forwardToJsp(PwmConstants.JspUrl.RECOVER_PASSWORD_ACTION_CHOICE);
+                        pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_ACTION_CHOICE);
                         return;
                     }
                 } catch (ChaiOperationException e) {
@@ -1583,20 +1584,21 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             }
 
             case ATTRIBUTES: {
-                pwmRequest.forwardToJsp(PwmConstants.JspUrl.RECOVER_PASSWORD_ATTRIBUTES);
+                pwmRequest.addFormInfoToRequestAttr(forgottenPasswordBean.getAttributeForm(), Collections.emptyMap(), false, false);
+                pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_ATTRIBUTES);
             }
             break;
 
             case CHALLENGE_RESPONSES: {
                 pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordChallengeSet, forgottenPasswordBean.getPresentableChallengeSet());
-                pwmRequest.forwardToJsp(PwmConstants.JspUrl.RECOVER_PASSWORD_RESPONSES);
+                pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_RESPONSES);
             }
             break;
 
             case OTP: {
                 final UserInfoBean userInfoBean = readUserInfoBean(pwmRequest, forgottenPasswordBean);
                 pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordUserInfo, userInfoBean);
-                pwmRequest.forwardToJsp(PwmConstants.JspUrl.RECOVER_PASSWORD_ENTER_OTP);
+                pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_ENTER_OTP);
             }
             break;
 
@@ -1607,7 +1609,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                 }
 
                 if (progress.getTokenSendChoice() == MessageSendMethod.CHOICE_SMS_EMAIL) {
-                    pwmRequest.forwardToJsp(PwmConstants.JspUrl.RECOVER_PASSWORD_TOKEN_CHOICE);
+                    pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_TOKEN_CHOICE);
                     return;
                 }
 
@@ -1619,7 +1621,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
                 }
 
                 if (!progress.getSatisfiedMethods().contains(IdentityVerificationMethod.TOKEN)) {
-                    pwmRequest.forwardToJsp(PwmConstants.JspUrl.RECOVER_PASSWORD_ENTER_TOKEN);
+                    pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_ENTER_TOKEN);
                     return;
                 }
             }
@@ -1646,7 +1648,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
 
                 pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordPrompts, new ArrayList<>(prompts));
                 pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordInstructions, displayInstructions);
-                pwmRequest.forwardToJsp(PwmConstants.JspUrl.RECOVER_PASSWORD_REMOTE);
+                pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_REMOTE);
             }
             break;
 
@@ -1672,7 +1674,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
 
                 pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordPrompts, new ArrayList<>(prompts));
                 pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordInstructions, displayInstructions);
-                pwmRequest.forwardToJsp(PwmConstants.JspUrl.RECOVER_PASSWORD_NAAF);
+                pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_NAAF);
             }
             break;
 
@@ -1724,7 +1726,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             throws ServletException, PwmUnrecoverableException, IOException
     {
         pwmRequest.addFormInfoToRequestAttr(PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM,false,false);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.RECOVER_PASSWORD_SEARCH);
+        pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_SEARCH);
     }
 
 

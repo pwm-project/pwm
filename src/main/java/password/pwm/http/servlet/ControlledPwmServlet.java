@@ -22,6 +22,7 @@
 
 package password.pwm.http.servlet;
 
+import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
@@ -32,8 +33,10 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmSessionWrapper;
+import password.pwm.http.ProcessStatus;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
@@ -46,6 +49,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 
 public abstract class ControlledPwmServlet extends HttpServlet implements PwmServlet {
@@ -245,14 +250,13 @@ public abstract class ControlledPwmServlet extends HttpServlet implements PwmSer
     }
 
 
-    protected abstract void processAction(PwmRequest request)
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException;
-
     protected abstract ProcessAction readProcessAction(PwmRequest request)
             throws PwmUnrecoverableException;
 
     public interface ProcessAction {
         Collection<HttpMethod> permittedMethods();
+
+        Class<? extends ProcessActionHandler> getHandlerClass();
     }
 
     public String servletUriRemainder(final PwmRequest pwmRequest, final String command) throws PwmUnrecoverableException {
@@ -276,6 +280,84 @@ public abstract class ControlledPwmServlet extends HttpServlet implements PwmSer
             }
         }
         throw new IllegalStateException("unable to determine PwmServletDefinition for class " + this.getClass().getName());
+    }
+
+    interface ProcessActionHandler {
+        ProcessStatus processAction(PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException, ChaiUnavailableException;
+    }
+
+    ProcessStatus dispatchMethod(
+            final PwmRequest pwmRequest
+    )
+            throws PwmUnrecoverableException
+    {
+
+        final ProcessAction action = readProcessAction(pwmRequest);
+        if (action == null) {
+            return ProcessStatus.Continue;
+        }
+        final ProcessActionHandler processActionHandler;
+        try {
+            final Class<? extends ProcessActionHandler> theClass = action.getHandlerClass();
+            if (theClass.getEnclosingClass() == null) {
+                processActionHandler = theClass.newInstance();
+            } else {
+                final Constructor constructor = theClass.getDeclaredConstructor(this.getClass());
+                processActionHandler = (ProcessActionHandler) constructor.newInstance(this);
+            }
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            e.printStackTrace();
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "XXX"));
+        }
+        try {
+            return processActionHandler.processAction(pwmRequest);
+        } catch (ChaiException e) {
+            throw PwmUnrecoverableException.fromChaiException(e);
+        } catch (ServletException | IOException e) {
+            e.printStackTrace();
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "XXX"));
+        }
+    }
+
+    protected void processAction(final PwmRequest pwmRequest)
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+    {
+        preProcessCheck(pwmRequest);
+
+        final ProcessAction action = readProcessAction(pwmRequest);
+        if (action != null) {
+            final ProcessStatus status = dispatchMethod(pwmRequest);
+            if (status == ProcessStatus.Halt) {
+                if (!pwmRequest.getPwmResponse().isCommitted()) {
+                    final String msg = "processing complete, handler returned halt but response is not committed";
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, msg);
+                    LOGGER.error(pwmRequest, msg, new IllegalStateException(msg));
+                    throw new PwmUnrecoverableException(errorInformation);
+                }
+                return;
+            }
+
+            final String servletUrl = pwmRequest.getURL().determinePwmServletPath();
+            LOGGER.debug(pwmRequest, "this request is not idempotent, redirecting to self with no action");
+            sendOtherRedirect(pwmRequest, servletUrl);
+
+            return;
+        }
+
+        nextStep(pwmRequest);
+    }
+
+    abstract void nextStep(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException;
+
+    abstract void preProcessCheck(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException;
+
+    void sendOtherRedirect(final PwmRequest pwmRequest, final String location) throws IOException, PwmUnrecoverableException {
+        final String protocol = pwmRequest.getHttpServletRequest().getProtocol();
+        if (protocol != null && protocol.startsWith("HTTP/1.0")) {
+            pwmRequest.sendRedirect(location);
+        } else {
+            pwmRequest.getPwmResponse().sendRedirect(location, PwmResponse.RedirectType.Other_303);
+        }
     }
 }
 

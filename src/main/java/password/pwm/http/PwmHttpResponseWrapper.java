@@ -26,9 +26,8 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.Validator;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.Cookie;
@@ -67,27 +66,13 @@ public class PwmHttpResponseWrapper {
                     return httpServletRequest.getRequestURI();
 
                 case PwmServlet:
-                    return determinePwmServletPath(httpServletRequest);
+                    return new PwmURL(httpServletRequest).determinePwmServletPath();
 
                 default:
                     throw new IllegalStateException("undefined CookiePath type: " + this);
             }
 
         }
-    }
-
-    private static String determinePwmServletPath(final HttpServletRequest httpServletRequest) {
-        final String context = httpServletRequest.getContextPath();
-        final String requestPath = httpServletRequest.getRequestURI();
-        for (final PwmServletDefinition servletDefinition : PwmServletDefinition.values()) {
-            for (final String pattern : servletDefinition.urlPatterns()) {
-                final String testPath = context + pattern;
-                if (requestPath.startsWith(testPath)) {
-                    return testPath;
-                }
-            }
-        }
-        return requestPath;
     }
 
     public enum Flag {
@@ -121,7 +106,7 @@ public class PwmHttpResponseWrapper {
         return this.httpServletResponse.isCommitted();
     }
 
-    public void setHeader(final PwmConstants.HttpHeader headerName, final String value) {
+    public void setHeader(final HttpHeader headerName, final String value) {
         this.httpServletResponse.setHeader(
                 Validator.sanitizeHeaderValue(configuration, headerName.getHttpName()),
                 Validator.sanitizeHeaderValue(configuration, value)

@@ -525,6 +525,10 @@ div.progress-container > div {
     position: relative;
 }
 
+#header-right-logo {
+    position: absolute;
+}
+
 #header-warning-backdrop {
     bottom: 0;
     left: 0;

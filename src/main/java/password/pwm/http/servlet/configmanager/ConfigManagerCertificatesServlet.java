@@ -34,6 +34,7 @@ import password.pwm.config.stored.StoredConfigurationImpl;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.util.secure.X509Utils;
@@ -98,7 +99,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet {
             return;
         }
         pwmRequest.setAttribute(PwmRequest.Attribute.ConfigHasCertificates, !certificateDebugDataItems.isEmpty());
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_CERTIFICATES);
+        pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_CERTIFICATES);
     }
 
     List<CertificateDebugDataItem> makeCertificateDebugData(final Configuration configuration) throws PwmUnrecoverableException {

@@ -34,7 +34,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.IdleTimeoutCalculator;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
@@ -66,6 +68,7 @@ import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -119,7 +122,7 @@ public class RequestInitializationFilter implements Filter {
 
                 LOGGER.error("unable to satisfy incoming request, application is not available");
                 resp.setStatus(500);
-                final String url = PwmConstants.JspUrl.APP_UNAVAILABLE.getPath();
+                final String url = JspUrl.APP_UNAVAILABLE.getPath();
                 servletRequest.getServletContext().getRequestDispatcher(url).forward(servletRequest, servletResponse);
             } else {
                 initializeServletRequest(req, resp, filterChain);
@@ -151,7 +154,7 @@ public class RequestInitializationFilter implements Filter {
                     e2.getMessage();
                 }
                 req.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(),errorInformation);
-                final String url = PwmConstants.JspUrl.APP_UNAVAILABLE.getPath();
+                final String url = JspUrl.APP_UNAVAILABLE.getPath();
                 req.getServletContext().getRequestDispatcher(url).forward(req, resp);
             }
             return;
@@ -197,7 +200,7 @@ public class RequestInitializationFilter implements Filter {
                     e2.getMessage();
                 }
                 req.setAttribute(PwmRequest.Attribute.PwmErrorInfo.toString(),errorInformation);
-                final String url = PwmConstants.JspUrl.APP_UNAVAILABLE.getPath();
+                final String url = JspUrl.APP_UNAVAILABLE.getPath();
                 req.getServletContext().getRequestDispatcher(url).forward(req, resp);
             }
             return;
@@ -309,34 +312,34 @@ public class RequestInitializationFilter implements Filter {
         if (sendNoise) {
             final int noiseLength = Integer.parseInt(config.readAppProperty(AppProperty.HTTP_HEADER_NOISE_LENGTH));
             resp.setHeader(
-                    PwmConstants.HttpHeader.XNoise,
+                    HttpHeader.XNoise,
                     PwmRandom.getInstance().alphaNumericString(PwmRandom.getInstance().nextInt(noiseLength)+11)
             );
         }
 
         if (includeXVersion) {
-            resp.setHeader(PwmConstants.HttpHeader.XVersion, PwmConstants.SERVLET_VERSION);
+            resp.setHeader(HttpHeader.XVersion, PwmConstants.SERVLET_VERSION);
         }
 
         if (includeXContentTypeOptions) {
-            resp.setHeader(PwmConstants.HttpHeader.XContentTypeOptions, "nosniff");
+            resp.setHeader(HttpHeader.XContentTypeOptions, "nosniff");
         }
 
         if (includeXXSSProtection) {
-            resp.setHeader(PwmConstants.HttpHeader.XXSSProtection, "1");
+            resp.setHeader(HttpHeader.XXSSProtection, "1");
         }
 
         if (includeXInstance) {
-            resp.setHeader(PwmConstants.HttpHeader.XInstance, String.valueOf(pwmApplication.getInstanceID()));
+            resp.setHeader(HttpHeader.XInstance, String.valueOf(pwmApplication.getInstanceID()));
         }
 
         if (includeXSessionID && pwmSession != null) {
-            resp.setHeader(PwmConstants.HttpHeader.XSessionID, pwmSession.getSessionStateBean().getSessionID());
+            resp.setHeader(HttpHeader.XSessionID, pwmSession.getSessionStateBean().getSessionID());
         }
 
         if (serverHeader != null && !serverHeader.isEmpty()) {
             final String value = MacroMachine.forNonUserSpecific(pwmApplication, null).expandMacros(serverHeader);
-            resp.setHeader(PwmConstants.HttpHeader.Server, value);
+            resp.setHeader(HttpHeader.Server, value);
         }
 
 
@@ -351,25 +354,25 @@ public class RequestInitializationFilter implements Filter {
         final boolean includeContentLanguage = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_CONTENT_LANGUAGE));
 
         if (includeXFrameDeny) {
-            resp.setHeader(PwmConstants.HttpHeader.XFrameOptions, "DENY");
+            resp.setHeader(HttpHeader.XFrameOptions, "DENY");
         }
 
         if (includeXAmb) {
-            resp.setHeader(PwmConstants.HttpHeader.XAmb, PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
+            resp.setHeader(HttpHeader.XAmb, PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
         }
 
         if (includeContentLanguage) {
-            resp.setHeader(PwmConstants.HttpHeader.Content_Language, pwmRequest.getLocale().toLanguageTag());
+            resp.setHeader(HttpHeader.Content_Language, pwmRequest.getLocale().toLanguageTag());
         }
 
-        resp.setHeader(PwmConstants.HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate, proxy-revalidate");
+        resp.setHeader(HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate, proxy-revalidate");
 
         if (pwmSession != null) {
             final String contentPolicy = config.readSettingAsString(PwmSetting.SECURITY_CSP_HEADER);
             if (contentPolicy != null && !contentPolicy.isEmpty()) {
                 final String nonce = pwmRequest.getCspNonce();
                 final String expandedPolicy = contentPolicy.replace("%NONCE%", nonce);
-                resp.setHeader(PwmConstants.HttpHeader.ContentSecurityPolicy, expandedPolicy);
+                resp.setHeader(HttpHeader.ContentSecurityPolicy, expandedPolicy);
             }
         }
     }
@@ -454,7 +457,6 @@ public class RequestInitializationFilter implements Filter {
 
         // set idle timeout (may get overridden by module-specific values elsewhere
         if (!pwmURL.isResourceURL() && !pwmURL.isCommandServletURL() && !pwmURL.isWebServiceURL()){
-            final int sessionIdleSeconds = (int) pwmRequest.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
             final TimeDuration maxIdleTimeout = IdleTimeoutCalculator.figureMaxIdleTimeout(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
             pwmRequest.getHttpServletRequest().getSession().setMaxInactiveInterval((int) maxIdleTimeout.getTotalSeconds());
         }
@@ -573,6 +575,62 @@ public class RequestInitializationFilter implements Filter {
             }
         }
 
+        //  csrf cross-site request forgery checks
+        final boolean performCsrfHeaderChecks = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.SECURITY_HTTP_PERFORM_CSRF_HEADER_CHECKS));
+        if (
+                performCsrfHeaderChecks
+                        && !pwmRequest.getMethod().isIdempotent()
+                        && !pwmRequest.getURL().isWebServiceURL()
+                )
+        {
+            final String originValue = pwmRequest.readHeaderValueAsString(HttpHeader.Origin);
+            final String referrerValue = pwmRequest.readHeaderValueAsString(HttpHeader.Referer);
+            final String siteUrl = pwmRequest.getPwmApplication().getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL);
+
+            final String targetValue = pwmRequest.getHttpServletRequest().getRequestURL().toString();
+            if (StringUtil.isEmpty(targetValue)) {
+                final String msg = "malformed request instance, missing target uri value";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION, msg);
+                LOGGER.debug(pwmRequest, errorInformation.toDebugStr() + " [" + makeHeaderDebugStr(pwmRequest) + "]");
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+
+            final boolean originHeaderEvaluated;
+            if (!StringUtil.isEmpty(originValue)) {
+                if (!PwmURL.compareUriBase(originValue, targetValue)) {
+                    final String msg = "cross-origin request not permitted: origin header does not match incoming target url"
+                            + " [" + makeHeaderDebugStr(pwmRequest) + "]";
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION, msg);
+                    LOGGER.debug(pwmRequest, errorInformation.toDebugStr());
+                    throw new PwmUnrecoverableException(errorInformation);
+                }
+                originHeaderEvaluated = true;
+            } else {
+                originHeaderEvaluated = false;
+            }
+
+            final boolean referrerHeaderEvaluated;
+            if (!StringUtil.isEmpty(referrerValue)) {
+                if (!PwmURL.compareUriBase(referrerValue, targetValue) && !PwmURL.compareUriBase(referrerValue, siteUrl)) {
+                    final String msg = "cross-origin request not permitted: referrer header does not match incoming target url"
+                            + " [" + makeHeaderDebugStr(pwmRequest) + "]";
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION, msg);
+                    LOGGER.debug(pwmRequest, errorInformation.toDebugStr());
+                    throw new PwmUnrecoverableException(errorInformation);
+                }
+                referrerHeaderEvaluated = true;
+            } else {
+                referrerHeaderEvaluated = false;
+            }
+
+            if (!referrerHeaderEvaluated && !originHeaderEvaluated && !PwmURL.compareUriBase(originValue, siteUrl)) {
+                final String msg = "neither referer nor origin header request are present on non-idempotent request";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION, msg);
+                LOGGER.debug(pwmRequest, errorInformation.toDebugStr() + " [" + makeHeaderDebugStr(pwmRequest) + "]");
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+        }
+
         // check trial
         if (PwmConstants.TRIAL_MODE) {
             final String currentAuthString = pwmRequest.getPwmApplication().getStatisticsManager().getStatBundleForKey(StatisticsManager.KEY_CURRENT).getStatistic(Statistic.AUTHENTICATIONS);
@@ -599,4 +657,15 @@ public class RequestInitializationFilter implements Filter {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_USERAUTHENTICATED,"idle timeout exceeded"));
         }
     }
+
+    private static String makeHeaderDebugStr(final PwmRequest pwmRequest) {
+        final Map<String,String> values = new LinkedHashMap<>();
+        for (final HttpHeader header : new HttpHeader[]{HttpHeader.Referer, HttpHeader.Origin}) {
+            values.put(header.getHttpName(), pwmRequest.readHeaderValueAsString(header));
+        }
+        values.put("target", pwmRequest.getHttpServletRequest().getRequestURL().toString());
+        values.put("siteUrl", pwmRequest.getPwmApplication().getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL));
+        return StringUtil.mapToString(values);
+    }
+
 }

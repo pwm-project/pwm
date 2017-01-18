@@ -56,6 +56,7 @@ import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.health.LDAPStatusChecker;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -65,12 +66,12 @@ import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.ldap.LdapBrowser;
+import password.pwm.util.PasswordData;
+import password.pwm.util.Validator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.queue.SmsQueueManager;
@@ -97,6 +98,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 @WebServlet(
         name = "ConfigEditorServlet",
@@ -256,7 +258,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         }
 
         if (!pwmRequest.getPwmResponse().isCommitted()) {
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_EDITOR);
+            pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_EDITOR);
         }
     }
 
@@ -601,28 +603,38 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
         final Locale locale = pwmRequest.getLocale();
         final RestResultBean restResultBean = new RestResultBean();
         final String searchTerm = valueMap.get("search");
+        final StoredConfigurationImpl storedConfiguration = configManagerBean.getStoredConfiguration();
 
         if (searchTerm != null && !searchTerm.isEmpty()) {
             final ArrayList<StoredConfigurationImpl.ConfigRecordID> searchResults = new ArrayList<>(configManagerBean.getStoredConfiguration().search(searchTerm, locale));
-            final TreeMap<String, Map<String, SearchResultItem>> returnData = new TreeMap<>();
+            final ConcurrentHashMap<String, Map<String, SearchResultItem>> returnData = new ConcurrentHashMap<>();
 
-            searchResults.stream().filter(recordID -> recordID.getRecordType() == StoredConfigurationImpl.ConfigRecordID.RecordType.SETTING).forEach(recordID -> {
-                final PwmSetting setting = (PwmSetting) recordID.getRecordID();
-                final SearchResultItem item = new SearchResultItem(
-                        setting.getCategory().toString(),
-                        configManagerBean.getStoredConfiguration().readSetting(setting, recordID.getProfileID()).toDebugString(pwmRequest.getLocale()),
-                        setting.getCategory().toMenuLocationDebug(recordID.getProfileID(), locale),
-                        configManagerBean.getStoredConfiguration().isDefaultValue(setting, recordID.getProfileID()),
-                        recordID.getProfileID()
-                );
+            searchResults
+                    .parallelStream()
+                    .filter(recordID -> recordID.getRecordType() == StoredConfigurationImpl.ConfigRecordID.RecordType.SETTING)
+                    .forEach(recordID -> {
+                        final PwmSetting setting = (PwmSetting) recordID.getRecordID();
+                        final SearchResultItem item = new SearchResultItem(
+                                setting.getCategory().toString(),
+                                storedConfiguration.readSetting(setting, recordID.getProfileID()).toDebugString(locale),
+                                setting.getCategory().toMenuLocationDebug(recordID.getProfileID(), locale),
+                                storedConfiguration.isDefaultValue(setting, recordID.getProfileID()),
+                                recordID.getProfileID()
+                        );
+                        final String returnCategory = item.getNavigation();
 
-                final String returnCategory = item.getNavigation();
-                if (!returnData.containsKey(returnCategory)) {
-                    returnData.put(returnCategory, new LinkedHashMap<>());
-                }
 
-                returnData.get(returnCategory).put(setting.getKey(), item);
-            });
+                        if (!returnData.containsKey(returnCategory)) {
+                            returnData.put(returnCategory, new ConcurrentHashMap<>());
+                        }
+
+                        returnData.get(returnCategory).put(setting.getKey(), item);
+                    });
+
+            final TreeMap<String, Map<String, SearchResultItem>> outputMap = new TreeMap<>();
+            for (final String key : returnData.keySet()) {
+                outputMap.put(key, new TreeMap<>(returnData.get(key)));
+            }
 
             restResultBean.setData(returnData);
             LOGGER.trace(pwmRequest, "finished search operation with " + returnData.size() + " results in " + TimeDuration.fromCurrent(startTime).asCompactString());
@@ -632,7 +644,6 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
 
         pwmRequest.outputJsonResult(restResultBean);
     }
-
 
     private void restLdapHealthCheck(
             final PwmRequest pwmRequest,

@@ -908,28 +908,47 @@ PWM_MAIN.showEula = function(requireAgreement, agreeFunction) {
         agreeFunction();
         return;
     }
-    var eulaLocation = PWM_GLOBAL['url-resources'] + '/text/eula.html';
-    PWM_GLOBAL['dialog_agreeAction'] = agreeFunction ? agreeFunction : function(){};
-    var bodyText = '<iframe style="width:100%; height:450px: overflow:auto" src="' + eulaLocation + '">';
-    bodyText += '</iframe>';
-    bodyText += '<div style="width: 100%; text-align: center">';
-    bodyText += '</div>';
 
-    var dialogOptions = {};
-    dialogOptions['text'] = bodyText;
-    dialogOptions['title'] = 'End User License Agreement';
-    dialogOptions['dialogClass'] = 'wide';
+    var displayEula = function (data) {
+        PWM_GLOBAL['dialog_agreeAction'] = agreeFunction ? agreeFunction : function(){};
 
-    if (requireAgreement) {
-        dialogOptions['showCancel'] = true;
-        dialogOptions['okLabel'] = PWM_MAIN.showString('Button_Agree');
-        dialogOptions['okAction'] = function() {
-            PWM_GLOBAL['eulaAgreed']=true;
-            agreeFunction();
+        var bodyText = '<div style="height: 400px; overflow: auto"><pre>' + data + '</pre></div>';
+
+        var dialogOptions = {};
+        dialogOptions['text'] = bodyText;
+        dialogOptions['title'] = 'End User License Agreement';
+        dialogOptions['dialogClass'] = 'wide';
+
+        if (requireAgreement) {
+            dialogOptions['showCancel'] = true;
+            dialogOptions['okLabel'] = PWM_MAIN.showString('Button_Agree');
+            dialogOptions['okAction'] = function() {
+                PWM_GLOBAL['eulaAgreed']=true;
+                agreeFunction();
+            };
+        }
+
+        PWM_MAIN.showDialog(dialogOptions);
+    };
+
+    var eulaLocation = PWM_GLOBAL['url-resources'] + '/text/eula.txt';
+
+    require(["dojo/request/xhr"], function (xhr) {
+        var loadFunction = function (data) {
+                displayEula(data);
+            };
+        var postOptions = {
+            method: 'GET'
         };
-    }
 
-    PWM_MAIN.showDialog(dialogOptions);
+        var errorFunction = function(e) {
+            alert('error loading eula text:' + e);
+        };
+
+        xhr(eulaLocation, postOptions).then(loadFunction, errorFunction, function(evt){});
+    });
+
+
 };
 
 PWM_MAIN.showConfirmDialog = function(options) {

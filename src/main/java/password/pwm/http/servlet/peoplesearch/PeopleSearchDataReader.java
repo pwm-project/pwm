@@ -51,8 +51,8 @@ import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -126,6 +126,7 @@ public class PeopleSearchDataReader {
             final String cachedOutput = pwmRequest.getPwmApplication().getCacheService().get(cacheKey);
             if (cachedOutput != null) {
                 StatisticsManager.incrementStat(pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS);
+                LOGGER.trace(pwmRequest, "completed makeOrgChartData of " + userIdentity.toDisplayString() + " from cache");
                 return JsonUtil.deserialize(cachedOutput, OrgChartDataBean.class);
             } else {
                 StatisticsManager.incrementStat(pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES);
@@ -165,6 +166,7 @@ public class PeopleSearchDataReader {
         }
 
         final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
+        storeDataInCache(pwmRequest.getPwmApplication(), cacheKey, orgChartData);
         LOGGER.trace(pwmRequest, "completed makeOrgChartData in " + totalTime.asCompactString() + " with " + childCount + " children" );
         return orgChartData;
     }

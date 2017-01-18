@@ -34,7 +34,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
 import password.pwm.http.servlet.AbstractPwmServlet;
@@ -121,7 +123,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
             return;
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_LOCALDB);
+        pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_LOCALDB);
     }
 
     private void doExportLocalDB(final PwmRequest pwmRequest)
@@ -129,9 +131,9 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
     {
         final PwmResponse resp = pwmRequest.getPwmResponse();
         final Date startTime = new Date();
-        resp.setHeader(PwmConstants.HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak");
+        resp.setHeader(HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak");
         resp.setContentType(PwmConstants.ContentTypeValue.octetstream);
-        resp.setHeader(PwmConstants.HttpHeader.ContentTransferEncoding, "binary");
+        resp.setHeader(HttpHeader.ContentTransferEncoding, "binary");
         final LocalDBUtility localDBUtility = new LocalDBUtility(pwmRequest.getPwmApplication().getLocalDB());
         try {
             final int bufferSize = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_DOWNLOAD_BUFFER_SIZE));

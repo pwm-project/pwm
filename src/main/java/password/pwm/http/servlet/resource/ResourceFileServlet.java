@@ -29,9 +29,9 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.filter.RequestInitializationFilter;
 import password.pwm.http.servlet.PwmServlet;
 import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.svc.stats.Statistic;
@@ -170,7 +170,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         }
 
         // Get content type by file name and set default GZIP support and content disposition.
-        String contentType = getServletContext().getMimeType(file.getName());
+        String contentType = getMimeType(file.getName());
         boolean acceptsGzip = false;
 
         // If content type is unknown, then set the default value.
@@ -184,19 +184,17 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         // the browser and expand content type with the one and right character encoding.
         if (resourceConfiguration.isEnableGzip()) {
             if (contentType.startsWith("text") || contentType.contains("javascript")) {
-                final String acceptEncoding = pwmRequest.readHeaderValueAsString(PwmConstants.HttpHeader.Accept_Encoding);
+                final String acceptEncoding = pwmRequest.readHeaderValueAsString(HttpHeader.Accept_Encoding);
                 acceptsGzip = acceptEncoding != null && accepts(acceptEncoding, "gzip");
                 contentType += ";charset=UTF-8";
             }
         }
 
-        RequestInitializationFilter.addPwmResponseHeaders(pwmRequest);
-
         final HttpServletResponse response = pwmRequest.getPwmResponse().getHttpServletResponse();
         final String eTagValue = resourceConfiguration.getNonceValue();
 
         {   // reply back with etag.
-            final String ifNoneMatchValue = pwmRequest.readHeaderValueAsString(PwmConstants.HttpHeader.If_None_Match);
+            final String ifNoneMatchValue = pwmRequest.readHeaderValueAsString(HttpHeader.If_None_Match);
             if (ifNoneMatchValue != null && ifNoneMatchValue.equals(eTagValue)) {
                 response.reset();
                 response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
@@ -208,7 +206,6 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
         }
 
         // Initialize response.
-        response.reset();
         addExpirationHeaders(resourceConfiguration, response);
         response.setHeader("ETag", resourceConfiguration.getNonceValue());
         response.setContentType(contentType);
@@ -593,6 +590,19 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
 
     private void addExpirationHeaders(final ResourceServletConfiguration resourceServletConfiguration, final HttpServletResponse httpResponse) {
         httpResponse.setDateHeader("Expires", System.currentTimeMillis() + (resourceServletConfiguration.getCacheExpireSeconds() * 1000));
-        httpResponse.setHeader("Cache-Control", "private, max-age=" + resourceServletConfiguration.getCacheExpireSeconds() + ")");
+        httpResponse.setHeader("Cache-Control", "public, max-age=" + resourceServletConfiguration.getCacheExpireSeconds());
+        httpResponse.setHeader("Vary", "Accept-Encoding");
+
+
+    }
+
+    private String getMimeType(final String filename) {
+        final String contentType = getServletContext().getMimeType(filename);
+        if (contentType == null) {
+            if (filename.endsWith(".woff2")) {
+                return "font/woff2";
+            }
+        }
+        return contentType;
     }
 }

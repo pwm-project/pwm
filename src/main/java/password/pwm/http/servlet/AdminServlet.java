@@ -30,6 +30,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.svc.report.ReportColumnFilter;
@@ -148,7 +149,7 @@ public class AdminServlet extends AbstractPwmServlet {
     )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.ADMIN_LOGVIEW_WINDOW);
+        pwmRequest.forwardToJsp(JspUrl.ADMIN_LOGVIEW_WINDOW);
     }
 
     private void downloadAuditLogCsv(
@@ -264,25 +265,25 @@ public class AdminServlet extends AbstractPwmServlet {
 
 
     public enum Page {
-        dashboard(PwmConstants.JspUrl.ADMIN_DASHBOARD,"/dashboard"),
-        analysis(PwmConstants.JspUrl.ADMIN_ANALYSIS,"/analysis"),
-        activity(PwmConstants.JspUrl.ADMIN_ACTIVITY,"/activity"),
-        tokenLookup(PwmConstants.JspUrl.ADMIN_TOKEN_LOOKUP,"/tokens"),
-        viewLog(PwmConstants.JspUrl.ADMIN_LOGVIEW,"/logs"),
-        urlReference(PwmConstants.JspUrl.ADMIN_URLREFERENCE,"/urls"),
-        debugUser(PwmConstants.JspUrl.ADMIN_DEBUG,"/debug"),
+        dashboard(JspUrl.ADMIN_DASHBOARD,"/dashboard"),
+        analysis(JspUrl.ADMIN_ANALYSIS,"/analysis"),
+        activity(JspUrl.ADMIN_ACTIVITY,"/activity"),
+        tokenLookup(JspUrl.ADMIN_TOKEN_LOOKUP,"/tokens"),
+        viewLog(JspUrl.ADMIN_LOGVIEW,"/logs"),
+        urlReference(JspUrl.ADMIN_URLREFERENCE,"/urls"),
+        debugUser(JspUrl.ADMIN_DEBUG,"/debug"),
 
         ;
 
-        private final PwmConstants.JspUrl jspURL;
+        private final JspUrl jspURL;
         private final String urlSuffix;
 
-        Page(final PwmConstants.JspUrl jspURL, final String urlSuffix) {
+        Page(final JspUrl jspURL, final String urlSuffix) {
             this.jspURL = jspURL;
             this.urlSuffix = urlSuffix;
         }
 
-        public PwmConstants.JspUrl getJspURL() {
+        public JspUrl getJspURL() {
             return jspURL;
         }
 

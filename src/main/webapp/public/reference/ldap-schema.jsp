@@ -38,7 +38,7 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Localization Report"/>
+        <jsp:param name="pwm.PageName" value="LDAP Schema Definition"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="reference-nav.jsp"%>

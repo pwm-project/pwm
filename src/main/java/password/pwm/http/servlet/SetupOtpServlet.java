@@ -40,6 +40,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupOtpBean;
@@ -199,7 +200,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
         if (otpBean.isHasPreExistingOtp()) {
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_OTP_SECRET_EXISTING);
+            pwmRequest.forwardToJsp(JspUrl.SETUP_OTP_SECRET_EXISTING);
             return;
         }
 
@@ -246,14 +247,14 @@ public class SetupOtpServlet extends AbstractPwmServlet {
 
         if (otpBean.isCodeSeen()) {
             if (otpBean.isWritten()) {
-                pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_OTP_SECRET_SUCCESS);
+                pwmRequest.forwardToJsp(JspUrl.SETUP_OTP_SECRET_SUCCESS);
             } else {
-                pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_OTP_SECRET_TEST);
+                pwmRequest.forwardToJsp(JspUrl.SETUP_OTP_SECRET_TEST);
             }
         } else {
             final String qrCodeValue = makeQrCodeDataImageUrl(pwmRequest, otpBean.getOtpUserRecord());
             pwmRequest.setAttribute(PwmRequest.Attribute.SetupOtp_QrCodeValue, qrCodeValue);
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_OTP_SECRET);
+            pwmRequest.forwardToJsp(JspUrl.SETUP_OTP_SECRET);
         }
     }
 

@@ -42,11 +42,6 @@ import java.io.IOException;
 public abstract class AbstractPwmFilter implements Filter {
     private static final PwmLogger LOGGER = PwmLogger.forClass(AbstractPwmFilter.class);
 
-    public enum ProcessStatus {
-        Continue,
-        Halt,
-    }
-
     @Override
     public void init(final FilterConfig filterConfig)
             throws ServletException

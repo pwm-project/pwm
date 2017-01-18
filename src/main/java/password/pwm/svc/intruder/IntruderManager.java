@@ -333,6 +333,23 @@ public class IntruderManager implements Serializable, PwmService {
         final RecordManager manager = recordManagers.get(recordType);
         manager.markSubject(subject);
 
+        if (recordType == RecordType.USER_ID) {
+            final UserIdentity userIdentity = UserIdentity.fromKey(subject, pwmApplication);
+            final UserAuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createUserAuditRecord(
+                    AuditEvent.INTRUDER_USER_ATTEMPT,
+                    userIdentity,
+                    sessionLabel
+            );
+            pwmApplication.getAuditManager().submit(auditRecord);
+        } else { // send intruder attempt audit event
+            final Map<String,Object> messageObj = new LinkedHashMap<>();
+            messageObj.put("type", recordType);
+            messageObj.put("subject", subject);
+            final String message = JsonUtil.serializeMap(messageObj);
+            final SystemAuditRecord auditRecord = new AuditRecordFactory(pwmApplication).createSystemAuditRecord(AuditEvent.INTRUDER_ATTEMPT,message);
+            pwmApplication.getAuditManager().submit(auditRecord);
+        }
+
         try {
             check(recordType, subject);
         } catch (PwmUnrecoverableException e) {

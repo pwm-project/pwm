@@ -31,7 +31,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -42,6 +41,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
@@ -494,7 +494,7 @@ public class SmsQueueManager implements PwmService {
                 if ("HTTP".equalsIgnoreCase(gatewayAuthMethod) && gatewayUser != null && gatewayPass != null) {
                     LOGGER.debug("Using Basic Authentication");
                     final BasicAuthInfo ba = new BasicAuthInfo(gatewayUser, gatewayPass);
-                    httpRequest.addHeader(PwmConstants.HttpHeader.Authorization.getHttpName(), ba.toAuthHeader());
+                    httpRequest.addHeader(HttpHeader.Authorization.getHttpName(), ba.toAuthHeader());
                 }
 
                 final HttpClient httpClient = PwmHttpClient.getHttpClient(config);

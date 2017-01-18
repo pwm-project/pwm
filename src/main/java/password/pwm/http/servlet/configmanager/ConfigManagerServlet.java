@@ -36,7 +36,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
@@ -161,7 +163,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         }
 
         initRequestAttributes(pwmRequest);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_MODE_CONFIGURATION);
+        pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_MODE_CONFIGURATION);
     }
 
     void initRequestAttributes(final PwmRequest pwmRequest)
@@ -309,7 +311,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         try {
             final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
             final OutputStream responseWriter = resp.getOutputStream();
-            resp.setHeader(PwmConstants.HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
+            resp.setHeader(HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
             resp.setContentType(PwmConstants.ContentTypeValue.xml);
             storedConfiguration.toXml(responseWriter);
             responseWriter.close();
@@ -322,7 +324,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
             throws IOException, ServletException
     {
         final PwmResponse resp = pwmRequest.getPwmResponse();
-        resp.setHeader(PwmConstants.HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip");
+        resp.setHeader(HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip");
         resp.setContentType(PwmConstants.ContentTypeValue.zip);
 
         final String pathPrefix = PwmConstants.PWM_APP_NAME + "-Support" + "/";
@@ -362,7 +364,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
         final LinkedHashMap<String,Object> outputMap = new LinkedHashMap<>(storedConfiguration.toOutputMap(pwmRequest.getLocale()));
         pwmRequest.setAttribute(PwmRequest.Attribute.ConfigurationSummaryOutput,outputMap);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_EDITOR_SUMMARY);
+        pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_EDITOR_SUMMARY);
     }
 
     private void showPermissions(final PwmRequest pwmRequest)
@@ -371,7 +373,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
         final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);
         final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(storedConfiguration);
         pwmRequest.setAttribute(PwmRequest.Attribute.LdapPermissionItems,ldapPermissionCalculator);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_PERMISSIONS);
+        pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_PERMISSIONS);
     }
 
 

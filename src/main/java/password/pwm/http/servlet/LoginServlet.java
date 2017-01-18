@@ -30,6 +30,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.LoginServletBean;
@@ -253,7 +254,7 @@ public class LoginServlet extends AbstractPwmServlet {
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmConstants.JspUrl url = passwordOnly ? PwmConstants.JspUrl.LOGIN_PW_ONLY : PwmConstants.JspUrl.LOGIN;
+        final JspUrl url = passwordOnly ? JspUrl.LOGIN_PW_ONLY : JspUrl.LOGIN;
         pwmRequest.forwardToJsp(url);
     }
 

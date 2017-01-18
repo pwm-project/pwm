@@ -44,6 +44,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupResponsesBean;
@@ -249,12 +250,12 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
         pwmRequest.setAttribute(PwmRequest.Attribute.SetupResponses_ResponseInfo, pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean());
 
         if (setupResponsesBean.isHasExistingResponses() && !pwmRequest.getPwmSession().getUserInfoBean().isRequiresResponseConfig()) {
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_RESPONSES_EXISTING);
+            pwmRequest.forwardToJsp(JspUrl.SETUP_RESPONSES_EXISTING);
             return;
         }
 
         if (!setupResponsesBean.isResponsesSatisfied()) {
-            pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_RESPONSES);
+            pwmRequest.forwardToJsp(JspUrl.SETUP_RESPONSES);
             return;
         }
 
@@ -264,14 +265,14 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
             {
                 setupResponsesBean.setHelpdeskResponsesSatisfied(true);
             } else {
-                pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_RESPONSES_HELPDESK);
+                pwmRequest.forwardToJsp(JspUrl.SETUP_RESPONSES_HELPDESK);
                 return;
             }
         }
 
         if (pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_SHOW_CONFIRMATION)) {
             if (!setupResponsesBean.isConfirmed()) {
-                pwmRequest.forwardToJsp(PwmConstants.JspUrl.SETUP_RESPONSES_CONFIRM);
+                pwmRequest.forwardToJsp(JspUrl.SETUP_RESPONSES_CONFIRM);
                 return;
             }
         }

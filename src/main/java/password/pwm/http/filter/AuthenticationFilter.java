@@ -37,6 +37,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmHttpResponseWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -272,7 +274,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.BASIC_AUTH_FORCE)) {
             final String displayMessage = LocaleHelper.getLocalizedMessage(Display.Title_Application, pwmRequest);
-            pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.WWW_Authenticate,"Basic realm=\"" + displayMessage + "\"");
+            pwmRequest.getPwmResponse().setHeader(HttpHeader.WWW_Authenticate,"Basic realm=\"" + displayMessage + "\"");
             pwmRequest.getPwmResponse().setStatus(401);
             return;
         }

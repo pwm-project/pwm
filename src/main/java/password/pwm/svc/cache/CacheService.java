@@ -35,8 +35,8 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 public class CacheService implements PwmService {
@@ -47,7 +47,7 @@ public class CacheService implements PwmService {
 
     private STATUS status = STATUS.NEW;
 
-    private Date lastTraceOutput;
+    private Instant lastTraceOutput;
 
     @Override
     public STATUS status() {
@@ -116,7 +116,7 @@ public class CacheService implements PwmService {
         if (payload == null) {
             throw new NullPointerException("payload can not be null");
         }
-        final Date expirationDate = cachePolicy.getExpiration();
+        final Instant expirationDate = cachePolicy.getExpiration();
         memoryCacheStore.store(cacheKey, expirationDate, payload);
         if (localDBCacheStore != null) {
             localDBCacheStore.store(cacheKey, expirationDate, payload);
@@ -150,7 +150,7 @@ public class CacheService implements PwmService {
 
     private void outputTraceInfo() {
         if (lastTraceOutput == null || TimeDuration.fromCurrent(lastTraceOutput).isLongerThan(30 * 1000)) {
-            lastTraceOutput = new Date();
+            lastTraceOutput = Instant.now();
         } else {
             return;
         }

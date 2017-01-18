@@ -31,8 +31,8 @@ import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -64,7 +64,7 @@ public class LocalDBCacheStore implements CacheStore {
     }
 
     @Override
-    public void store(final CacheKey cacheKey, final Date expirationDate, final String data)
+    public void store(final CacheKey cacheKey, final Instant expirationDate, final String data)
             throws PwmUnrecoverableException
     {
         ticks++;
@@ -97,7 +97,7 @@ public class LocalDBCacheStore implements CacheStore {
             try {
                 final ValueWrapper valueWrapper = JsonUtil.deserialize(storedValue, ValueWrapper.class);
                 if (cacheKey.equals(valueWrapper.getCacheKey())) {
-                    if (valueWrapper.getExpirationDate().after(new Date())) {
+                    if (valueWrapper.getExpirationDate().isAfter(Instant.now())) {
                         hitCount++;
                         return valueWrapper.getPayload();
                     }
@@ -132,12 +132,12 @@ public class LocalDBCacheStore implements CacheStore {
 
     private static class ValueWrapper implements Serializable {
         final CacheKey cacheKey;
-        final Date expirationDate;
+        final Instant expirationDate;
         final String payload;
 
         private ValueWrapper(
                 final CacheKey cacheKey,
-                final Date expirationDate,
+                final Instant expirationDate,
                 final String payload
         )
         {
@@ -151,7 +151,7 @@ public class LocalDBCacheStore implements CacheStore {
             return cacheKey;
         }
 
-        public Date getExpirationDate() {
+        public Instant getExpirationDate() {
             return expirationDate;
         }
 
@@ -176,7 +176,7 @@ public class LocalDBCacheStore implements CacheStore {
                         final String strValue = localDB.get(DB, key);
                         if (strValue != null) {
                             final ValueWrapper valueWrapper = JsonUtil.deserialize(strValue, ValueWrapper.class);
-                            if (valueWrapper.expirationDate.before(new Date())) {
+                            if (valueWrapper.expirationDate.isBefore(Instant.now())) {
                                 keep = true;
                             }
                         }

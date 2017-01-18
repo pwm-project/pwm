@@ -22,22 +22,36 @@
 
 package password.pwm.http.bean;
 
+import com.google.gson.annotations.SerializedName;
 import password.pwm.bean.TokenVerificationProgress;
 import password.pwm.config.option.SessionBeanMode;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+
 public class UpdateProfileBean extends PwmSessionBean {
 
+    @SerializedName("a")
     private boolean agreementPassed;
+
+    @SerializedName("p")
     private boolean confirmationPassed;
+
+    @SerializedName("s")
     private boolean formSubmitted;
 
-    private Map<String,String> formData;
+    @SerializedName("l")
+    private boolean formLdapLoaded;
+
+    @SerializedName("f")
+    private Map<String,String> formData = new LinkedHashMap<>();
+
+    @SerializedName("vp")
     private final TokenVerificationProgress tokenVerificationProgress = new TokenVerificationProgress();
 
     public Type getType() {
@@ -52,12 +66,16 @@ public class UpdateProfileBean extends PwmSessionBean {
         this.agreementPassed = agreementPassed;
     }
 
-    public Map<String, String> getFormData() {
-        return formData;
+    public boolean isFormLdapLoaded() {
+        return formLdapLoaded;
     }
 
-    public void setFormData(final Map<String, String> formData) {
-        this.formData = formData;
+    public void setFormLdapLoaded(final boolean formLdapLoaded) {
+        this.formLdapLoaded = formLdapLoaded;
+    }
+
+    public Map<String, String> getFormData() {
+        return formData;
     }
 
     public boolean isConfirmationPassed() {

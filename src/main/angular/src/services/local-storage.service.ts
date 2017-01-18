@@ -35,7 +35,7 @@ export default class LocalStorageService {
 
     static $inject = [ '$log', '$window' ];
     constructor($log: ILogService, private $window: IWindowService) {
-        if (!$window.localStorage.getItem) {
+        if (!$window.sessionStorage.getItem) {
             this.localStorageEnabled = false;
             $log.info('Local Storage API not enabled. Using NOOP implementation.');
         }
@@ -43,7 +43,7 @@ export default class LocalStorageService {
 
     getItem(key: string): any {
         if (this.localStorageEnabled) {
-            return this.$window.localStorage[this.prepKey(key)];
+            return this.$window.sessionStorage[this.prepKey(key)];
         }
 
         return null;
@@ -51,13 +51,13 @@ export default class LocalStorageService {
 
     setItem(key: string, value: any): void {
         if (this.localStorageEnabled) {
-            this.$window.localStorage[this.prepKey(key)] = value;
+            this.$window.sessionStorage[this.prepKey(key)] = value;
         }
     }
 
     removeItem(key: string): any {
         if (this.localStorageEnabled) {
-            return this.$window.localStorage.removeItem(this.prepKey(key));
+            return this.$window.sessionStorage.removeItem(this.prepKey(key));
         }
     }
 

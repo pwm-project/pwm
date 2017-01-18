@@ -24,9 +24,9 @@ package password.pwm.http.filter;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmURL;
 import password.pwm.util.logging.PwmLogger;
 
@@ -66,7 +66,7 @@ public class GZIPFilter implements Filter {
     public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain)
             throws IOException, ServletException
     {
-        final String acceptEncoding = ((HttpServletRequest)servletRequest).getHeader(PwmConstants.HttpHeader.Accept_Encoding.getHttpName());
+        final String acceptEncoding = ((HttpServletRequest)servletRequest).getHeader(HttpHeader.Accept_Encoding.getHttpName());
         if (acceptEncoding != null && acceptEncoding.contains("gzip") && isEnabled(servletRequest)) {
             final GZIPHttpServletResponseWrapper gzipResponse = new GZIPHttpServletResponseWrapper((HttpServletResponse)servletResponse);
             gzipResponse.addHeader("Content-Encoding", "gzip");

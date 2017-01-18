@@ -32,6 +32,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -210,8 +211,10 @@ public class FileSystemUtility {
 
         if (deleteThisLevel) {
             LOGGER.debug("deleting temporary file " + path.getAbsolutePath());
-            if (!path.delete()) {
-                throw new IOException("unable to delete path " + path.getAbsolutePath());
+            try {
+                Files.delete(path.toPath());
+            } catch (IOException e) {
+                LOGGER.warn("error deleting temporary file '" + path.getAbsolutePath() + "', error: " + e.getMessage());
             }
         }
     }

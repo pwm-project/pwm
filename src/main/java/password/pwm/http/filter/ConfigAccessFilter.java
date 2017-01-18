@@ -39,6 +39,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.HttpHeader;
+import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
@@ -198,7 +201,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                     LOGGER.trace(pwmRequest, "configuration password is not correct");
                     pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                     pwmApplication.getIntruderManager().mark(RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmSession.getLabel());
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_WRONGPASSWORD);
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PASSWORD_ONLY_BAD);
                     pwmRequest.setResponseError(errorInformation);
                     updateLoginHistory(pwmRequest,pwmRequest.getUserInfoIfLoggedIn(), false);
                 }
@@ -255,7 +258,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
 
         pwmRequest.setAttribute(PwmRequest.Attribute.ConfigLoginHistory, configLoginHistory);
         pwmRequest.setAttribute(PwmRequest.Attribute.ConfigPasswordRememberTime,time);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.CONFIG_MANAGER_LOGIN);
+        pwmRequest.forwardToJsp(JspUrl.CONFIG_MANAGER_LOGIN);
 
     }
 
@@ -356,7 +359,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
     }
 
     private void checkUserAgent(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        final String userAgentString = pwmRequest.readHeaderValueAsString(PwmConstants.HttpHeader.UserAgent);
+        final String userAgentString = pwmRequest.readHeaderValueAsString(HttpHeader.UserAgent);
         if (userAgentString == null || userAgentString.isEmpty()) {
             return;
         }

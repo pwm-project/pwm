@@ -31,6 +31,7 @@ import password.pwm.config.ShortcutItem;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ShortcutsBean;
@@ -121,7 +122,7 @@ public class ShortcutServlet extends AbstractPwmServlet {
         final ArrayList<ShortcutItem> shortcutItems = new ArrayList<>();
         shortcutItems.addAll(shortcutsBean.getVisibleItems().values());
         pwmRequest.setAttribute(PwmRequest.Attribute.ShortcutItems, shortcutItems);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.SHORTCUT);
+        pwmRequest.forwardToJsp(JspUrl.SHORTCUT);
     }
 
     /**
@@ -199,6 +200,6 @@ public class ShortcutServlet extends AbstractPwmServlet {
         }
 
         LOGGER.error(pwmSession, "unknown/unexpected link requested to " + link);
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.SHORTCUT);
+        pwmRequest.forwardToJsp(JspUrl.SHORTCUT);
     }
 }

@@ -31,6 +31,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.logging.PwmLogger;
 
@@ -75,7 +76,7 @@ public class AccountInformationServlet extends AbstractPwmServlet {
             LOGGER.error(pwmRequest, "error reading user form data: " + e.getMessage());
         }
 
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.ACCOUNT_INFORMATION);
+        pwmRequest.forwardToJsp(JspUrl.ACCOUNT_INFORMATION);
     }
 
     @Override

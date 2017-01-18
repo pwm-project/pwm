@@ -71,12 +71,12 @@ public abstract class PwmHttpRequestWrapper {
     }
 
     public boolean isJsonRequest() {
-        final String acceptHeader = this.readHeaderValueAsString(PwmConstants.HttpHeader.Accept);
+        final String acceptHeader = this.readHeaderValueAsString(HttpHeader.Accept);
         return acceptHeader.contains(PwmConstants.AcceptValue.json.getHeaderValue());
     }
 
     public boolean isHtmlRequest() {
-        final String acceptHeader = this.readHeaderValueAsString(PwmConstants.HttpHeader.Accept);
+        final String acceptHeader = this.readHeaderValueAsString(HttpHeader.Accept);
         return acceptHeader.contains(PwmConstants.AcceptValue.html.getHeaderValue()) || acceptHeader.contains("*/*");
     }
 
@@ -275,7 +275,7 @@ public abstract class PwmHttpRequestWrapper {
         return resultSet;
     }
 
-    public String readHeaderValueAsString(final PwmConstants.HttpHeader headerName) {
+    public String readHeaderValueAsString(final HttpHeader headerName) {
         return readHeaderValueAsString(headerName.getHttpName());
     }
 

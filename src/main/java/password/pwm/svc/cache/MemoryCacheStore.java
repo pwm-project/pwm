@@ -26,7 +26,7 @@ import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 
 class MemoryCacheStore implements CacheStore {
@@ -43,7 +43,7 @@ class MemoryCacheStore implements CacheStore {
     }
 
     @Override
-    public void store(final CacheKey cacheKey, final Date expirationDate, final String data)
+    public void store(final CacheKey cacheKey, final Instant expirationDate, final String data)
             throws PwmUnrecoverableException {
         storeCount++;
         memoryStore.put(cacheKey.getHash(), new ValueWrapper(cacheKey, expirationDate, data));
@@ -57,7 +57,7 @@ class MemoryCacheStore implements CacheStore {
         final ValueWrapper valueWrapper = memoryStore.get(cacheKey.getHash());
         if (valueWrapper != null) {
             if (cacheKey.equals(valueWrapper.getCacheKey())) {
-                if (valueWrapper.getExpirationDate().after(new Date())) {
+                if (valueWrapper.getExpirationDate().isAfter(Instant.now())) {
                     hitCount++;
                     return valueWrapper.payload;
                 }
@@ -80,12 +80,12 @@ class MemoryCacheStore implements CacheStore {
 
     private static class ValueWrapper implements Serializable {
         final CacheKey cacheKey;
-        final Date expirationDate;
+        final Instant expirationDate;
         final String payload;
 
         private ValueWrapper(
                 final CacheKey cacheKey,
-                final Date expirationDate,
+                final Instant expirationDate,
                 final String payload
         )
         {
@@ -99,7 +99,7 @@ class MemoryCacheStore implements CacheStore {
             return cacheKey;
         }
 
-        public Date getExpirationDate() {
+        public Instant getExpirationDate() {
             return expirationDate;
         }
 

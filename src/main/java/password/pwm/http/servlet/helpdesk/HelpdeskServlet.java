@@ -51,6 +51,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.JspUrl;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -237,7 +238,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         }
 
         pwmRequest.setAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled, !helpdeskProfile.readRequiredVerificationMethods().isEmpty());
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.HELPDESK_SEARCH);
+        pwmRequest.forwardToJsp(JspUrl.HELPDESK_SEARCH);
     }
 
     private void restClientData(final PwmRequest pwmRequest, final HelpdeskProfile helpdeskProfile)
@@ -512,7 +513,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
 
         StatisticsManager.incrementStat(pwmRequest, Statistic.HELPDESK_USER_LOOKUP);
         pwmRequest.setAttribute(PwmRequest.Attribute.HelpdeskVerificationEnabled, !helpdeskProfile.readOptionalVerificationMethods().isEmpty());
-        pwmRequest.forwardToJsp(PwmConstants.JspUrl.HELPDESK_DETAIL);
+        pwmRequest.forwardToJsp(JspUrl.HELPDESK_DETAIL);
     }
 
     private void restSearchRequest(

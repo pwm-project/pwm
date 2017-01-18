@@ -162,6 +162,7 @@ public enum PwmError {
     ERROR_ENVIRONMENT_ERROR(        5083, "Error_EnvironmentError",         null, ErrorFlag.Permanent),
     ERROR_APPLICATION_NOT_RUNNING(  5084, "Error_ApplicationNotRunning",    null, ErrorFlag.Permanent),
     ERROR_EMAIL_SEND_FAILURE(       5085, "Error_EmailSendFailure",         null, ErrorFlag.Permanent),
+    ERROR_PASSWORD_ONLY_BAD(        5089, "Error_PasswordOnlyBad",          null),
 
     ERROR_REMOTE_ERROR_VALUE(       6000, "Error_RemoteErrorValue",         null, ErrorFlag.Permanent),
 
