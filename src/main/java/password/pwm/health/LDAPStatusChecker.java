@@ -57,8 +57,8 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
-import password.pwm.util.java.TimeDuration;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.server.rest.bean.HealthData;
@@ -68,10 +68,10 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -111,12 +111,12 @@ public class LDAPStatusChecker implements HealthChecker {
         for (final LdapProfile ldapProfile : pwmApplication.getLdapConnectionService().getLastLdapFailure().keySet()) {
             final ErrorInformation errorInfo = pwmApplication.getLdapConnectionService().getLastLdapFailure().get(ldapProfile);
             if (errorInfo != null) {
-                final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate().getTime());
+                final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate());
 
                 final long cautionDurationMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTH_LDAP_CAUTION_DURATION_MS));
                 if (errorAge.isShorterThan(cautionDurationMS)) {
                     final String ageString = errorAge.asLongString();
-                    final String errorDate = PwmConstants.DEFAULT_DATETIME_FORMAT.format(errorInfo.getDate());
+                    final String errorDate = JavaHelper.toIsoDate(errorInfo.getDate());
                     final String errorMsg = errorInfo.toDebugStr();
                     returnRecords.add(HealthRecord.forMessage(
                             HealthMessage.LDAP_RecentlyUnreachable,
@@ -227,7 +227,7 @@ public class LDAPStatusChecker implements HealthChecker {
                     boolean doPasswordChange = true;
                     final int minLifetimeSeconds = passwordPolicy.getRuleHelper().readIntValue(PwmPasswordRule.MinimumLifetime);
                     if (minLifetimeSeconds > 0) {
-                        final Date pwdLastModified = PasswordUtility.determinePwdLastModified(
+                        final Instant pwdLastModified = PasswordUtility.determinePwdLastModified(
                                 pwmApplication,
                                 PwmConstants.HEALTH_SESSION_LABEL,
                                 userIdentity

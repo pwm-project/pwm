@@ -71,9 +71,9 @@ import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenService;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -86,6 +86,7 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -585,7 +586,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         LOGGER.trace(pwmRequest, "beginning to assemble detail data report for user " + userIdentity);
         final Locale actorLocale = pwmRequest.getLocale();
         final ChaiUser theUser = getChaiUser(pwmRequest, helpdeskProfile, userIdentity);
@@ -618,7 +619,8 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         }
 
         try {
-            detailInfo.setLastLoginTime(theUser.readLastLoginTime());
+            final Date lastLoginTime = theUser.readLastLoginTime();
+            detailInfo.setLastLoginTime(lastLoginTime == null ? null : lastLoginTime.toInstant());
         } catch (Exception e) {
             LOGGER.error(pwmRequest, "unexpected error reading last login time for user '" + userIdentity + "', " + e.getMessage());
         }
@@ -734,7 +736,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
     )
             throws IOException, PwmUnrecoverableException, ServletException, ChaiUnavailableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
         final HelpdeskVerificationRequestBean helpdeskVerificationRequestBean = JsonUtil.deserialize(
                 pwmRequest.readRequestBodyAsString(),
@@ -815,7 +817,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
     )
             throws IOException, PwmUnrecoverableException, ServletException, ChaiUnavailableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final Configuration config = pwmRequest.getConfig();
         final Map<String,String> bodyParams = pwmRequest.readBodyAsJsonStringMap();
         MessageSendMethod tokenSendMethod = helpdeskProfile.readSettingAsEnum(PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class);
@@ -926,7 +928,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
     )
             throws IOException, PwmUnrecoverableException, ServletException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final HelpdeskVerificationRequestBean helpdeskVerificationRequestBean = JsonUtil.deserialize(
                 pwmRequest.readRequestBodyAsString(),
                 HelpdeskVerificationRequestBean.class
@@ -1157,7 +1159,7 @@ public class HelpdeskServlet extends AbstractPwmServlet {
     private void restValidateAttributes(final PwmRequest pwmRequest, final HelpdeskProfile helpdeskProfile)
             throws IOException, PwmUnrecoverableException, ServletException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final String bodyString = pwmRequest.readRequestBodyAsString();
         final HelpdeskVerificationRequestBean helpdeskVerificationRequestBean = JsonUtil.deserialize(
                 bodyString,

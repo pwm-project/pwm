@@ -27,7 +27,7 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.svc.event.UserAuditRecord;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +39,7 @@ public class HelpdeskDetailInfoBean implements Serializable {
     private boolean accountEnabled;
     private boolean accountExpired;
 
-    private Date lastLoginTime;
+    private Instant lastLoginTime;
     private List<UserAuditRecord> userHistory;
     private Map<FormConfiguration, List<String>> searchDetails;
     private String passwordSetDelta;
@@ -76,11 +76,11 @@ public class HelpdeskDetailInfoBean implements Serializable {
         this.accountEnabled = accountEnabled;
     }
 
-    public Date getLastLoginTime() {
+    public Instant getLastLoginTime() {
         return lastLoginTime;
     }
 
-    public void setLastLoginTime(final Date lastLoginTime) {
+    public void setLastLoginTime(final Instant lastLoginTime) {
         this.lastLoginTime = lastLoginTime;
     }
 

@@ -36,10 +36,11 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.Helper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LDAPPermissionCalculator;
+import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -59,6 +60,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -110,7 +112,7 @@ public class DebugItemGenerator {
 
         for (final Class<? extends DebugItemGenerator.Generator> serviceClass : DEBUG_ZIP_ITEM_GENERATORS) {
             try {
-                final Date startTime = new Date();
+                final Instant startTime = Instant.now();
                 LOGGER.trace(pwmRequest, "beginning output of item " + serviceClass.getSimpleName());
                 final Object newInstance = serviceClass.newInstance();
                 final DebugItemGenerator.Generator newGeneratorItem = (DebugItemGenerator.Generator)newInstance;
@@ -120,11 +122,11 @@ public class DebugItemGenerator {
                 zipOutput.flush();
                 final String finishMsg = "completed output of " + newGeneratorItem.getFilename() + " in " + TimeDuration.fromCurrent(startTime).asCompactString();
                 LOGGER.trace(pwmRequest, finishMsg);
-                debugGeneratorLogFile.printRecord(PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()),finishMsg);
+                debugGeneratorLogFile.printRecord(JavaHelper.toIsoDate(new Date()),finishMsg);
             } catch (Exception e) {
                 final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
                 LOGGER.error(pwmRequest, errorMsg);
-                debugGeneratorLogFile.printRecord(PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()),errorMsg);
+                debugGeneratorLogFile.printRecord(JavaHelper.toIsoDate(new Date()),errorMsg);
                 final Writer stackTraceOutput = new StringWriter();
                 e.printStackTrace(new PrintWriter(stackTraceOutput));
                 debugGeneratorLogFile.printRecord(stackTraceOutput);
@@ -175,7 +177,7 @@ public class DebugItemGenerator {
             writer.write("Configuration Debug Output for "
                     + PwmConstants.PWM_APP_NAME + " "
                     + PwmConstants.SERVLET_VERSION + "\n");
-            writer.write("Timestamp: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(storedConfiguration.modifyTime()) + "\n");
+            writer.write("Timestamp: " + JavaHelper.toIsoDate(storedConfiguration.modifyTime()) + "\n");
             writer.write("This file is encoded using " + PwmConstants.DEFAULT_CHARSET.displayName() + "\n");
 
             writer.write("\n");
@@ -231,7 +233,7 @@ public class DebugItemGenerator {
                 outputProps.put(aboutProperty.toString().replace("_","."), infoBean.get(aboutProperty));
             }
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store(baos, PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            outputProps.store(baos, JavaHelper.toIsoDate(new Date()));
             outputStream.write(baos.toByteArray());
         }
     }
@@ -253,7 +255,7 @@ public class DebugItemGenerator {
                 outputProps.put(key, envProps.get(key));
             }
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store(baos,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            outputProps.store(baos,JavaHelper.toIsoDate(new Date()));
             outputStream.write(baos.toByteArray());
         }
     }
@@ -276,7 +278,7 @@ public class DebugItemGenerator {
             }
 
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            outputProps.store(baos,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            outputProps.store(baos,JavaHelper.toIsoDate(new Date()));
             outputStream.write(baos.toByteArray());
         }
     }
@@ -414,7 +416,7 @@ public class DebugItemGenerator {
                     final List<String> dataRow = new ArrayList<>();
                     dataRow.add(fileSummaryInformation.getFilepath());
                     dataRow.add(fileSummaryInformation.getFilename());
-                    dataRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(fileSummaryInformation.getModified()));
+                    dataRow.add(JavaHelper.toIsoDate(fileSummaryInformation.getModified()));
                     dataRow.add(String.valueOf(fileSummaryInformation.getSize()));
                     dataRow.add(fileSummaryInformation.getSha1sum());
                     csvPrinter.printRecord(dataRow);
@@ -557,8 +559,8 @@ public class DebugItemGenerator {
                 final SessionStateInfoBean info = debugInfos.next();
                 final List<String> dataRow = new ArrayList<>();
                 dataRow.add(info.getLabel());
-                dataRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(info.getCreateTime()));
-                dataRow.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(info.getLastTime()));
+                dataRow.add(JavaHelper.toIsoDate(info.getCreateTime()));
+                dataRow.add(JavaHelper.toIsoDate(info.getLastTime()));
                 dataRow.add(info.getIdle());
                 dataRow.add(info.getSrcAddress());
                 dataRow.add(info.getSrcHost());

@@ -65,7 +65,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -431,8 +431,8 @@ public class RequestInitializationFilter implements Filter {
 
         // mark if first request
         if (ssBean.getSessionCreationTime() == null) {
-            ssBean.setSessionCreationTime(new Date());
-            ssBean.setSessionLastAccessedTime(new Date());
+            ssBean.setSessionCreationTime(Instant.now());
+            ssBean.setSessionLastAccessedTime(Instant.now());
         }
 
         // mark session ip address

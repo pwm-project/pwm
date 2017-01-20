@@ -44,7 +44,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 class CryptoCookieLoginImpl implements SessionLoginProvider {
@@ -67,7 +67,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider {
     public void saveLoginSessionState(final PwmRequest pwmRequest) {
         try {
             final LoginInfoBean loginInfoBean = pwmRequest.getPwmSession().getLoginInfoBean();
-            loginInfoBean.setReqTime(new Date());
+            loginInfoBean.setReqTime(Instant.now());
 
             pwmRequest.getPwmResponse().writeEncryptedCookie(
                     cookieName,

@@ -165,6 +165,7 @@ public class ResourceServletService implements PwmService {
 
         final Instant startTime = Instant.now();
         final ChecksumOutputStream checksumOs = new ChecksumOutputStream(PwmHashAlgorithm.MD5, new NullOutputStream());
+
         if (pwmApplication.getPwmEnvironment().getContextManager() != null) {
             try {
                 final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
@@ -174,9 +175,9 @@ public class ResourceServletService implements PwmService {
                         final File resourcePath = new File(basePath.getAbsolutePath() + File.separator + "public" + File.separator + "resources");
                         if (resourcePath.exists()) {
                             final List<FileSystemUtility.FileSummaryInformation> fileSummaryInformations = new ArrayList<>();
-                            fileSummaryInformations.addAll(FileSystemUtility.readFileInformation(webInfPath));
+                            fileSummaryInformations.addAll(FileSystemUtility.readFileInformation(resourcePath));
                             for (final FileSystemUtility.FileSummaryInformation fileSummaryInformation : fileSummaryInformations) {
-                                checksumOs.write(fileSummaryInformation.getSha1sum().getBytes(PwmConstants.DEFAULT_CHARSET));
+                                checksumOs.write((fileSummaryInformation.getSha1sum()).getBytes(PwmConstants.DEFAULT_CHARSET));
                             }
                         }
                     }
@@ -208,6 +209,7 @@ public class ResourceServletService implements PwmService {
                 }
             }
         }
+
 
         final String nonce = JavaHelper.byteArrayToHexString(checksumOs.getInProgressChecksum()).toLowerCase();
         LOGGER.debug("completed generation of nonce '" + nonce + "' in " + TimeDuration.fromCurrent(startTime).asCompactString());

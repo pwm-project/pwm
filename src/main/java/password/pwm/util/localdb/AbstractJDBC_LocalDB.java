@@ -36,9 +36,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -81,7 +81,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             LOGGER.trace("table " + db + " appears to exist");
         } catch (final LocalDBException e) { // assume error was due to table missing;
             {
-                final Date startTime = new Date();
+                final Instant startTime = Instant.now();
                 final StringBuilder sqlString = new StringBuilder();
                 sqlString.append("CREATE table ").append(db.toString()).append(" (").append("\n");
                 sqlString.append("  " + KEY_COLUMN + " VARCHAR(").append(WIDTH_KEY).append(") NOT NULL PRIMARY KEY,").append("\n");
@@ -103,7 +103,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             }
 
             {
-                final Date startTime = new Date();
+                final Instant startTime = Instant.now();
                 final String indexName = db.toString() + "_IDX";
                 final StringBuilder sqlString = new StringBuilder();
                 sqlString.append("CREATE index ").append(indexName);
@@ -400,7 +400,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             throws LocalDBException
     {
         preCheck(true);
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final StringBuilder sqlText = new StringBuilder();
         sqlText.append("DROP TABLE ").append(db.toString());
 

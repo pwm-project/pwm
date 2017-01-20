@@ -33,9 +33,9 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.math.BigInteger;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -49,7 +49,7 @@ public class ReportSummaryData {
 
     private String epoch;
 
-    private Date meanCacheTime;
+    private Instant meanCacheTime;
     private int totalUsers;
     private int hasResponses;
     private int hasResponseSetTime;
@@ -124,7 +124,7 @@ public class ReportSummaryData {
         return responseFormatType;
     }
 
-    public Date getMeanCacheTime()
+    public Instant getMeanCacheTime()
     {
         return meanCacheTime;
     }
@@ -266,7 +266,7 @@ public class ReportSummaryData {
 
     }
 
-    private void updateMeanTime(final Date newTime, final boolean adding) {
+    private void updateMeanTime(final Instant newTime, final boolean adding) {
         if (meanCacheTime == null) {
             if (adding) {
                 meanCacheTime = newTime;
@@ -274,26 +274,26 @@ public class ReportSummaryData {
             return;
         }
 
-        final BigInteger currentMillis = BigInteger.valueOf(meanCacheTime.getTime());
-        final BigInteger newMillis = BigInteger.valueOf(newTime.getTime());
+        final BigInteger currentMillis = BigInteger.valueOf(meanCacheTime.toEpochMilli());
+        final BigInteger newMillis = BigInteger.valueOf(newTime.toEpochMilli());
         final BigInteger combinedMillis = currentMillis.add(newMillis);
         final BigInteger halvedMillis = combinedMillis.divide(new BigInteger("2"));
-        meanCacheTime = new Date(halvedMillis.longValue());
+        meanCacheTime = Instant.ofEpochMilli(halvedMillis.longValue());
     }
 
-    private int calcTimeWindow(final Date eventDate, final long timeWindow, final boolean adding) {
+    private int calcTimeWindow(final Instant eventDate, final long timeWindow, final boolean adding) {
         if (eventDate == null) {
             return 0;
         }
         
         final TimeDuration timeBoundary = new TimeDuration(0,timeWindow);
-        final TimeDuration eventDifference = new TimeDuration(System.currentTimeMillis(), eventDate);
+        final TimeDuration eventDifference = TimeDuration.fromCurrent(eventDate);
 
-        if (timeWindow >= 0 && eventDate.after(new Date()) && eventDifference.isShorterThan(timeBoundary)) {
+        if (timeWindow >= 0 && eventDate.isAfter(Instant.now()) && eventDifference.isShorterThan(timeBoundary)) {
                 return adding ? 1 : -1;
         }
 
-        if (timeWindow < 0 && eventDate.before(new Date()) && eventDifference.isShorterThan(timeBoundary)) {
+        if (timeWindow < 0 && eventDate.isBefore(Instant.now()) && eventDifference.isShorterThan(timeBoundary)) {
             return adding ? 1 : -1;
         } 
 

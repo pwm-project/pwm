@@ -53,8 +53,8 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
@@ -147,7 +147,7 @@ public class SessionFilter extends AbstractPwmFilter {
         }
 
         // mark last request time.
-        ssBean.setSessionLastAccessedTime(new Date());
+        ssBean.setSessionLastAccessedTime(Instant.now());
 
 
         // check the page leave notice
@@ -225,7 +225,7 @@ public class SessionFilter extends AbstractPwmFilter {
         }
 
         // update last request time.
-        ssBean.setSessionLastAccessedTime(new Date());
+        ssBean.setSessionLastAccessedTime(Instant.now());
 
         if (pwmApplication.getStatisticsManager() != null) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.HTTP_REQUESTS);
@@ -348,7 +348,7 @@ public class SessionFilter extends AbstractPwmFilter {
             return false;
         }
 
-        final Date currentPageLeaveNotice = pwmSession.getSessionStateBean().getPageLeaveNoticeTime();
+        final Instant currentPageLeaveNotice = pwmSession.getSessionStateBean().getPageLeaveNoticeTime();
         pwmSession.getSessionStateBean().setPageLeaveNoticeTime(null);
         if (currentPageLeaveNotice == null) {
             return false;

@@ -24,13 +24,14 @@ package password.pwm;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
-import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.db.DatabaseAccessor;
+import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
@@ -210,11 +211,16 @@ public enum PwmAboutProperty {
     }
 
     private static String dateFormatForInfoBean(final Date date) {
+        return dateFormatForInfoBean(date == null ? null : date.toInstant());
+    }
+
+    private static String dateFormatForInfoBean(final Instant date) {
         if (date != null) {
-            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(date);
+            return date.toString();
         } else {
             return LocaleHelper.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, Display.Value_NotApplicable, null);
         }
 
     }
+
 }

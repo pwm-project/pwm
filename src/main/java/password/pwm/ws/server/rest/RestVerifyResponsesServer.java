@@ -53,7 +53,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.net.URISyntaxException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,7 +100,7 @@ public class RestVerifyResponsesServer extends AbstractRestServer {
             final JsonPutChallengesInput jsonInput
     )
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final RestRequestBean restRequestBean;
         try {
             final ServicePermissions servicePermissions = new ServicePermissions();

@@ -38,7 +38,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -139,7 +139,7 @@ public class PwmLogger {
     private void doLogEvent(final PwmLogLevel level, final SessionLabel sessionLabel, final Object message, final Throwable e)
     {
         final String topic = log4jLogger.getName();
-        final PwmLogEvent logEvent = PwmLogEvent.createPwmLogEvent(new Date(), topic, message.toString(), sessionLabel,
+        final PwmLogEvent logEvent = PwmLogEvent.createPwmLogEvent(Instant.now(), topic, message.toString(), sessionLabel,
                 e, level);
         doLogEvent(logEvent);
     }

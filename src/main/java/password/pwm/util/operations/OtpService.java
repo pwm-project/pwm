@@ -26,7 +26,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.codec.binary.Base32;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -308,7 +307,7 @@ public class OtpService implements PwmService {
                 + (otpConfig == null
                 ? ", no otp record found"
                 : ", recordType=" + otpConfig.getType() + ", identifier=" + otpConfig.getIdentifier() + ", timestamp="
-                + PwmConstants.DEFAULT_DATETIME_FORMAT.format(otpConfig.getTimestamp()))
+                + JavaHelper.toIsoDate(otpConfig.getTimestamp()))
         );
         return otpConfig;
     }

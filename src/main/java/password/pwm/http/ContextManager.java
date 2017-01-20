@@ -36,6 +36,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
@@ -393,7 +394,7 @@ public class ContextManager implements Serializable {
     }
 
     static void outputError(final String outputText) {
-        final String msg = PwmConstants.PWM_APP_NAME + " " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()) + " " + outputText;
+        final String msg = PwmConstants.PWM_APP_NAME + " " + JavaHelper.toIsoDate(new Date()) + " " + outputText;
         System.out.println(msg);
         System.out.println(msg);
     }

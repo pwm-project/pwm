@@ -30,8 +30,8 @@ import password.pwm.http.tag.PasswordRequirementsTag;
 import password.pwm.util.macro.MacroMachine;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -42,8 +42,8 @@ public class PublicUserInfoBean implements Serializable {
     public String ldapProfile;
     public String userID;
     public String userEmailAddress;
-    public Date passwordExpirationTime;
-    public Date passwordLastModifiedTime;
+    public Instant passwordExpirationTime;
+    public Instant passwordLastModifiedTime;
     public boolean requiresNewPassword;
     public boolean requiresResponseConfig;
     public boolean requiresUpdateProfile;

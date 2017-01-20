@@ -23,7 +23,7 @@
 package password.pwm.svc.event;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 
 /**
  * UserAuditRecord data
@@ -36,7 +36,7 @@ public class UserAuditRecord extends AuditRecord implements Serializable {
     protected String sourceHost;
 
     protected UserAuditRecord(
-            final Date timestamp,
+            final Instant timestamp,
             final AuditEvent eventCode,
             final String perpetratorID,
             final String perpetratorDN,

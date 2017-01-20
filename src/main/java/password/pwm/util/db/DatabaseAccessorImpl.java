@@ -172,7 +172,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         }
 
         if (lastError != null) {
-            final TimeDuration errorAge = TimeDuration.fromCurrent(lastError.getDate().getTime());
+            final TimeDuration errorAge = TimeDuration.fromCurrent(lastError.getDate());
 
             if (errorAge.isShorterThan(TimeDuration.HOUR)) {
                 final String msg = "Database server was recently unavailable ("
@@ -206,7 +206,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         status = PwmService.STATUS.OPEN;
 
         try {
-            put(DatabaseTable.PWM_META, KEY_ENGINE_START_PREFIX + instanceID, PwmConstants.DEFAULT_DATETIME_FORMAT.format(new java.util.Date()));
+            put(DatabaseTable.PWM_META, KEY_ENGINE_START_PREFIX + instanceID, JavaHelper.toIsoDate(new java.util.Date()));
         } catch (DatabaseException e) {
             final String errorMsg = "error writing engine start time value: " + e.getMessage();
             throw new DatabaseException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg));

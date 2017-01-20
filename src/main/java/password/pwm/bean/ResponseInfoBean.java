@@ -27,7 +27,7 @@ import com.novell.ldapchai.cr.Challenge;
 import password.pwm.config.option.DataStorageMethod;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Map;
 
@@ -40,7 +40,7 @@ public class ResponseInfoBean implements Serializable {
     private final DataStorageMethod dataStorageMethod;
     private final Answer.FormatType formatType;
 
-    private Date timestamp;
+    private Instant timestamp;
 
     public ResponseInfoBean(
             final Map<Challenge,String> crMap,
@@ -80,11 +80,11 @@ public class ResponseInfoBean implements Serializable {
         return helpdeskCrMap;
     }
 
-    public Date getTimestamp() {
+    public Instant getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(final Date timestamp) {
+    public void setTimestamp(final Instant timestamp) {
         this.timestamp = timestamp;
     }
 

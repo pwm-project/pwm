@@ -29,7 +29,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Iterator;
 
 public interface AuditVault {
@@ -40,7 +40,7 @@ public interface AuditVault {
 
     int size();
 
-    Date oldestRecord();
+    Instant oldestRecord();
 
     Iterator<AuditRecord> readVault();
 

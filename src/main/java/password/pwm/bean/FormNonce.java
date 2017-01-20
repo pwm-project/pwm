@@ -25,7 +25,7 @@ package password.pwm.bean;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 
 public class FormNonce implements Serializable {
 
@@ -33,7 +33,7 @@ public class FormNonce implements Serializable {
     private final String sessionGUID;
 
     @SerializedName("t")
-    private final Date timestamp;
+    private final Instant timestamp;
 
     @SerializedName("c")
     private final int reqCounter;
@@ -41,7 +41,7 @@ public class FormNonce implements Serializable {
     @SerializedName("p")
     private final String payload;
 
-    public FormNonce(final String sessionGUID, final Date timestamp, final int reqCounter, final String payload) {
+    public FormNonce(final String sessionGUID, final Instant timestamp, final int reqCounter, final String payload) {
         this.sessionGUID = sessionGUID;
         this.timestamp = timestamp;
         this.reqCounter = reqCounter;
@@ -52,7 +52,7 @@ public class FormNonce implements Serializable {
         return sessionGUID;
     }
 
-    public Date getTimestamp() {
+    public Instant getTimestamp() {
         return timestamp;
     }
 

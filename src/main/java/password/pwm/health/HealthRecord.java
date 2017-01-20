@@ -26,8 +26,8 @@ import password.pwm.config.Configuration;
 import password.pwm.ws.server.rest.bean.HealthData;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -162,7 +162,7 @@ public class HealthRecord implements Serializable,Comparable<HealthRecord> {
         final List<password.pwm.ws.server.rest.bean.HealthRecord> healthRecordBeans = password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords(
                 profileRecords, locale, configuration);
         final HealthData healthData = new HealthData();
-        healthData.timestamp = new Date();
+        healthData.timestamp = Instant.now();
         healthData.overall = HealthMonitor.getMostSevereHealthStatus(profileRecords).toString();
         healthData.records = healthRecordBeans;
         return healthData;

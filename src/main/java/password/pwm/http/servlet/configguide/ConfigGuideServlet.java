@@ -66,13 +66,13 @@ import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
+import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.secure.X509Utils;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.X509Utils;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.bean.HealthData;
 
@@ -88,10 +88,10 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.URI;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -395,7 +395,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
         final HealthData jsonOutput = new HealthData();
         jsonOutput.records = password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords(records,
                 pwmRequest.getLocale(), tempConfiguration);
-        jsonOutput.timestamp = new Date();
+        jsonOutput.timestamp = Instant.now();
         jsonOutput.overall = HealthMonitor.getMostSevereHealthStatus(records).toString();
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(jsonOutput);
@@ -442,7 +442,7 @@ public class ConfigGuideServlet extends AbstractPwmServlet {
             storedConfiguration.resetSetting(PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, null);
         }
 
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(PwmHttpRequestWrapper.Flag.BypassValidation);
         final String profile = inputMap.get("profile");
         final String dn = inputMap.containsKey("dn") ? inputMap.get("dn") : "";

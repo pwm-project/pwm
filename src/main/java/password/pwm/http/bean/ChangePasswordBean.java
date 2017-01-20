@@ -25,9 +25,9 @@ package password.pwm.http.bean;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -47,7 +47,7 @@ public class ChangePasswordBean extends PwmSessionBean {
     private boolean warnPassed;
 
     private PasswordChangeProgressChecker.ProgressTracker changeProgressTracker;
-    private Date changePasswordMaxCompletion;
+    private Instant changePasswordMaxCompletion;
 
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -102,12 +102,12 @@ public class ChangePasswordBean extends PwmSessionBean {
         this.changeProgressTracker = changeProgressTracker;
     }
 
-    public Date getChangePasswordMaxCompletion()
+    public Instant getChangePasswordMaxCompletion()
     {
         return changePasswordMaxCompletion;
     }
 
-    public void setChangePasswordMaxCompletion(final Date changePasswordMaxCompletion)
+    public void setChangePasswordMaxCompletion(final Instant changePasswordMaxCompletion)
     {
         this.changePasswordMaxCompletion = changePasswordMaxCompletion;
     }

@@ -39,6 +39,7 @@
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -46,7 +47,6 @@
     final PwmRequest userinfo_pwmRequest = PwmRequest.forRequest(request, response);
     final UserInfoBean uiBean = userinfo_pwmRequest.getPwmSession().getUserInfoBean();
     final LocalSessionStateBean ssBean = userinfo_pwmRequest.getPwmSession().getSessionStateBean();
-    final DateFormat dateFormatter = PwmConstants.DEFAULT_DATETIME_FORMAT;
     final Set<ViewStatusFields> viewStatusFields = userinfo_pwmRequest.getConfig().readSettingAsOptionList(PwmSetting.ACCOUNT_INFORMATION_VIEW_STATUS_VALUES,ViewStatusFields.class);
     List<UserAuditRecord> auditRecords = Collections.emptyList();
     try {
@@ -150,7 +150,7 @@
             </td>
             <% } else { %>
             <td class="timestamp" id="AccountExpirationTime">
-                <%= dateFormatter.format(uiBean.getAccountExpirationTime()) %>
+                <%= JavaHelper.toIsoDate(uiBean.getAccountExpirationTime()) %>
             </td>
             <% } %>
             </td>
@@ -207,7 +207,7 @@
             </td>
             <% } else { %>
             <td class="timestamp"  id="PasswordSetTime">
-                <%= dateFormatter.format(uiBean.getPasswordLastModifiedTime()) %>
+                <%= JavaHelper.toIsoDate(uiBean.getPasswordLastModifiedTime()) %>
             </td>
             <% } %>
         </tr>
@@ -234,7 +234,7 @@
             </td>
             <% } else { %>
             <td class="timestamp" id="PasswordExpirationTime">
-                <%= dateFormatter.format(uiBean.getPasswordExpirationTime()) %>
+                <%= JavaHelper.toIsoDate(uiBean.getPasswordExpirationTime()) %>
             </td>
             <% } %>
         </tr>
@@ -261,7 +261,7 @@
             </td>
             <% } else { %>
             <td class="timestamp" id="ResponsesTimestamp">
-                <%= dateFormatter.format(responseInfoBean.getTimestamp()) %>
+                <%= JavaHelper.toIsoDate(responseInfoBean.getTimestamp()) %>
             </td>
             <% } %>
         </tr>
@@ -288,7 +288,7 @@
                 </td>
                 <% } else { %>
                 <td class="timestamp" id="OPT_Timestamp">
-                    <%= dateFormatter.format(uiBean.getOtpUserRecord().getTimestamp()) %>
+                    <%= JavaHelper.toIsoDate(uiBean.getOtpUserRecord().getTimestamp()) %>
                 </td>
                 <% } %>
             </tr>
@@ -387,7 +387,7 @@
             <tr>
                 <td class="key" style="width:50%">
                             <span class="timestamp">
-                            <%= dateFormatter.format(record.getTimestamp()) %>
+                            <%= JavaHelper.toIsoDate(record.getTimestamp()) %>
                             </span>
                 </td>
                 <td>

@@ -36,8 +36,8 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -147,7 +147,7 @@ public class LdapConnectionService implements PwmService {
         return Collections.unmodifiableMap(lastLdapErrors);
     }
 
-    public Date getLastLdapFailureTime(final LdapProfile ldapProfile) {
+    public Instant getLastLdapFailureTime(final LdapProfile ldapProfile) {
         final ErrorInformation errorInformation = lastLdapErrors.get(ldapProfile);
         if (errorInformation != null) {
             return errorInformation.getDate();

@@ -22,8 +22,7 @@
 
 package password.pwm.util.logging;
 
-import net.iharder.Base64;
-import password.pwm.PwmConstants;
+import com.google.gson.annotations.SerializedName;
 import password.pwm.bean.SessionLabel;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -32,9 +31,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.Instant;
 
 public class PwmLogEvent implements Serializable, Comparable {
 // -------------------------- ENUMERATIONS --------------------------
@@ -54,19 +51,37 @@ public class PwmLogEvent implements Serializable, Comparable {
     // ------------------------------ FIELDS ------------------------------
 
     private final PwmLogLevel level;
+
+    @SerializedName("t")
     private final String topic;
+
+    @SerializedName("m")
     private final String message;
+
+    @SerializedName("s")
     private final String source; //aka network address/host
+
+    @SerializedName("a")
     private final String actor; //aka principal
+
+    @SerializedName("b")
     private final String label; //aka session id
+
+    @SerializedName("e")
     private final Throwable throwable;
-    private final Date date;
+
+    @SerializedName("d")
+    private final Instant date;
 
 // -------------------------- STATIC METHODS --------------------------
 
     public static PwmLogEvent fromEncodedString(final String encodedString)
             throws ClassNotFoundException, IOException
     {
+        final PwmLogEvent pwmLogEvent = JsonUtil.deserialize(encodedString, PwmLogEvent.class);
+        return pwmLogEvent;
+
+        /*
         final Map<String, String> srcMap = JsonUtil.deserializeStringMap(encodedString);
 
         if (srcMap == null) {
@@ -94,13 +109,14 @@ public class PwmLogEvent implements Serializable, Comparable {
             level = PwmLogLevel.valueOf(srcMap.get(KEY_LEVEL));
         }
 
-        return createPwmLogEvent(date, topic, message, source, actor, label, throwable, level);
+        */
+        //return createPwmLogEvent(date, topic, message, source, actor, label, throwable, level);
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
     private PwmLogEvent(
-            final Date date,
+            final Instant date,
             final String topic,
             final String message,
             final String source,
@@ -164,7 +180,7 @@ public class PwmLogEvent implements Serializable, Comparable {
     }
 
     public static PwmLogEvent createPwmLogEvent(
-            final Date date,
+            final Instant date,
             final String topic,
             final String message,
             final String source,
@@ -178,7 +194,7 @@ public class PwmLogEvent implements Serializable, Comparable {
     }
 
     public static PwmLogEvent createPwmLogEvent(
-            final Date date,
+            final Instant date,
             final String topic,
             final String message,
             final SessionLabel sessionLabel,
@@ -200,7 +216,7 @@ public class PwmLogEvent implements Serializable, Comparable {
         return actor;
     }
 
-    public Date getDate()
+    public Instant getDate()
     {
         return date;
     }
@@ -286,6 +302,8 @@ public class PwmLogEvent implements Serializable, Comparable {
     public String toEncodedString()
             throws IOException
     {
+        return JsonUtil.serialize(this);
+        /*
         final Map<String, String> tempMap = new HashMap<>();
         tempMap.put(KEY_VERSION, VERSION);
         tempMap.put(KEY_TOPIC, topic);
@@ -304,6 +322,7 @@ public class PwmLogEvent implements Serializable, Comparable {
         }
 
         return JsonUtil.serializeMap(tempMap);
+        */
     }
 
     private String getDebugLabel()
@@ -334,7 +353,7 @@ public class PwmLogEvent implements Serializable, Comparable {
     {
         final StringBuilder sb = new StringBuilder();
         if (includeTimeStamp) {
-            sb.append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(this.date));
+            sb.append(this.getDate().toString());
             sb.append(", ");
         }
         sb.append(StringUtil.padEndToLength(getLevel().toString(),5,' '));

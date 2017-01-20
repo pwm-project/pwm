@@ -79,10 +79,10 @@ import password.pwm.ws.client.rest.RestTokenDataClient;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -646,12 +646,12 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         final Map<String,String> tokenMapData = new HashMap<>();
 
         try {
-            final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(
+            final Instant userLastPasswordChange = PasswordUtility.determinePwdLastModified(
                     pwmApplication,
                     pwmSession.getLabel(),
                     activateUserBean.getUserIdentity());
             if (userLastPasswordChange != null) {
-                tokenMapData.put(PwmConstants.TOKEN_KEY_PWD_CHG_DATE, PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange));
+                tokenMapData.put(PwmConstants.TOKEN_KEY_PWD_CHG_DATE, JavaHelper.toIsoDate(userLastPasswordChange));
             }
         } catch (ChaiUnavailableException e) {
             LOGGER.error(pwmSession.getLabel(), "unexpected error reading user's last password change time");

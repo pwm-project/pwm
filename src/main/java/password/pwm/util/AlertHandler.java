@@ -33,12 +33,13 @@ import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.i18n.Display;
 import password.pwm.svc.report.ReportSummaryData;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -141,7 +142,7 @@ public abstract class AlertHandler {
             final Map<String,String> metadata = new LinkedHashMap<>();
             metadata.put("Instance ID", pwmApplication.getInstanceID());
             metadata.put("Site URL", pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL));
-            metadata.put("Timestamp",PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            metadata.put("Timestamp", JavaHelper.toIsoDate(Instant.now()));
             metadata.put("Up Time", TimeDuration.fromCurrent(pwmApplication.getStartupTime()).asLongString());
 
             for (final String key : metadata.keySet()) {

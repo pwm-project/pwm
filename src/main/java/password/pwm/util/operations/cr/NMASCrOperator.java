@@ -74,9 +74,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.PasswordData;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -100,6 +100,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.Provider;
 import java.security.Security;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -631,7 +632,7 @@ public class NMASCrOperator implements CrOperator {
             }
 
             public int awaitRetCode() {
-                final Date startTime = new Date();
+                final Instant startTime = Instant.now();
                 boolean done = this.isNmasDone();
                 Date lastLogTime = new Date();
                 while (!done && TimeDuration.fromCurrent(startTime).isShorterThan(maxThreadIdleTime)) {

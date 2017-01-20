@@ -55,10 +55,10 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.Validator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -66,9 +66,9 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -300,13 +300,13 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
     /**
      * Handle requests for ajax feedback of user supplied responses.
      */
-    protected static void restValidateResponses(
+    private static void restValidateResponses(
             final PwmRequest pwmRequest,
             final SetupResponsesBean setupResponsesBean
     )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final String responseModeParam = pwmRequest.readParameterAsString("responseMode");
@@ -322,7 +322,7 @@ public class SetupResponsesServlet extends AbstractPwmServlet {
             final Map<Challenge, String> responseMap = readResponsesFromJsonRequest(pwmRequest, setupData);
             final int minRandomRequiredSetup = setupData.getMinRandomSetup();
             pwmApplication.getCrService().validateResponses(setupData.getChallengeSet(), responseMap, minRandomRequiredSetup);
-            generateResponseInfoBean(pwmRequest, setupData.getChallengeSet(), responseMap, Collections.<Challenge,String>emptyMap());
+            generateResponseInfoBean(pwmRequest, setupData.getChallengeSet(), responseMap, Collections.emptyMap());
         } catch (PwmDataValidationException e) {
             success = false;
             userMessage = e.getErrorInformation().toUserStr(pwmSession, pwmApplication);

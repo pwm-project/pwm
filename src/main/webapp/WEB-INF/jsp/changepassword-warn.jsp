@@ -25,6 +25,7 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="java.text.DateFormat" %>
+<%@ page import="java.sql.Date" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -44,8 +45,8 @@
         <p>
             <% if (uiBean.getPasswordExpirationTime() != null) { %>
             <pwm:display key="Display_PasswordWarn"
-                         value1="<%= dateFormatter.format(uiBean.getPasswordExpirationTime()) %>"
-                         value2="<%= timeFormatter.format(uiBean.getPasswordExpirationTime()) %>"/>
+                         value1="<%= dateFormatter.format(Date.from(uiBean.getPasswordExpirationTime())) %>"
+                         value2="<%= timeFormatter.format(Date.from(uiBean.getPasswordExpirationTime())) %>"/>
             <% } else { %>
             <pwm:display key="Display_PasswordNoExpire"/>
             <% } %>

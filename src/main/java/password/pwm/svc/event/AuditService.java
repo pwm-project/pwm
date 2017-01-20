@@ -45,9 +45,9 @@ import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -56,9 +56,9 @@ import password.pwm.util.macro.MacroMachine;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -69,7 +69,7 @@ public class AuditService implements PwmService {
 
     private STATUS status = STATUS.NEW;
     private AuditSettings settings;
-    private ServiceInfo serviceInfo = new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+    private ServiceInfo serviceInfo = new ServiceInfo(Collections.emptyList());
 
     private SyslogAuditService syslogManager;
     private ErrorInformation lastError;
@@ -279,7 +279,7 @@ public class AuditService implements PwmService {
         return auditVault.size();
     }
 
-    public Date eldestVaultRecord() {
+    public Instant eldestVaultRecord() {
         if (status != STATUS.OPEN || auditVault == null) {
             return null;
         }
@@ -361,7 +361,7 @@ public class AuditService implements PwmService {
         final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
 
         csvPrinter.printComment(" " + PwmConstants.PWM_APP_NAME + " audit record output ");
-        csvPrinter.printComment(" " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+        csvPrinter.printComment(" " + JavaHelper.toIsoDate(Instant.now()));
 
         if (includeHeader) {
             final List<String> headers = new ArrayList<>();
@@ -388,7 +388,7 @@ public class AuditService implements PwmService {
             final List<String> lineOutput = new ArrayList<>();
             lineOutput.add(loopRecord.getEventCode().getType().toString());
             lineOutput.add(loopRecord.getEventCode().toString());
-            lineOutput.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(loopRecord.getTimestamp()));
+            lineOutput.add(JavaHelper.toIsoDate(loopRecord.getTimestamp()));
             lineOutput.add(loopRecord.getGuid());
             lineOutput.add(loopRecord.getMessage() == null ? "" : loopRecord.getMessage());
             if (loopRecord instanceof SystemAuditRecord) {

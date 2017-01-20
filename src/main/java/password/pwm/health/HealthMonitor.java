@@ -22,7 +22,17 @@
 
 package password.pwm.health;
 
+import password.pwm.PwmApplication;
+import password.pwm.config.option.DataStorageMethod;
+import password.pwm.error.PwmException;
+import password.pwm.svc.PwmService;
+import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
+
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,15 +46,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import password.pwm.PwmApplication;
-import password.pwm.config.option.DataStorageMethod;
-import password.pwm.error.PwmException;
-import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
-import password.pwm.util.java.TimeDuration;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.logging.PwmLogger;
 
 public class HealthMonitor implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(HealthMonitor.class);
@@ -69,8 +70,8 @@ public class HealthMonitor implements PwmService {
     private ScheduledExecutorService executorService;
     private HealthMonitorSettings settings;
 
-    private volatile Date lastHealthCheckTime = new Date(0);
-    private volatile Date lastRequestedUpdateTime = new Date(0);
+    private volatile Instant lastHealthCheckTime = Instant.now();
+    private volatile Instant lastRequestedUpdateTime = Instant.now();
 
     private Map<HealthMonitorFlag, Serializable> healthProperties = new HashMap<>();
 
@@ -95,7 +96,7 @@ public class HealthMonitor implements PwmService {
     public HealthMonitor() {
     }
 
-    public Date getLastHealthCheckTime() {
+    public Instant getLastHealthCheckTime() {
         return lastHealthCheckTime;
     }
 
@@ -137,7 +138,7 @@ public class HealthMonitor implements PwmService {
     }
 
     public Set<HealthRecord> getHealthRecords(final CheckTimeliness timeliness) {
-        lastRequestedUpdateTime = new Date();
+        lastRequestedUpdateTime = Instant.now();
 
         {
             final boolean recordsAreStale = TimeDuration.fromCurrent(lastHealthCheckTime).isLongerThan(settings.getMaximumRecordAge());
@@ -180,7 +181,7 @@ public class HealthMonitor implements PwmService {
             return;
         }
 
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         LOGGER.trace("beginning background health check process");
         final List<HealthRecord> tempResults = new ArrayList<>();
         for (final HealthChecker loopChecker : HEALTH_CHECKERS) {
@@ -205,7 +206,7 @@ public class HealthMonitor implements PwmService {
         }
         healthRecords.clear();
         healthRecords.addAll(tempResults);
-        lastHealthCheckTime = new Date();
+        lastHealthCheckTime = Instant.now();
         LOGGER.trace("health check process completed (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
     }
 

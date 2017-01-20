@@ -64,8 +64,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -207,7 +207,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
             return;
         }
 
-        final Date authTime = pwmRequest.getPwmSession().getLoginInfoBean().getAuthTime();
+        final Instant authTime = pwmRequest.getPwmSession().getLoginInfoBean().getAuthTime();
         final String userGuid = pwmRequest.getPwmSession().getUserInfoBean().getUserGuid();
         final AuthRecord authRecord = new AuthRecord(authTime, userGuid);
 
@@ -220,15 +220,15 @@ public class AuthenticationFilter extends AbstractPwmFilter {
     }
 
     public static class AuthRecord implements Serializable {
-        private Date date;
+        private Instant date;
         private String guid;
 
-        public AuthRecord(final Date date, final String guid) {
+        public AuthRecord(final Instant date, final String guid) {
             this.date = date;
             this.guid = guid;
         }
 
-        public Date getDate() {
+        public Instant getDate() {
             return date;
         }
 

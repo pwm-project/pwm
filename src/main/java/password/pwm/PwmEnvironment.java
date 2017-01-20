@@ -39,6 +39,7 @@ import java.io.RandomAccessFile;
 import java.io.StringWriter;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -475,7 +476,7 @@ public class PwmEnvironment {
         final int maxWaitSeconds = this.getFlags().contains(ApplicationFlag.CommandLineInstance)
                 ? 1
                 : Integer.parseInt(getConfig().readAppProperty(AppProperty.APPLICATION_FILELOCK_WAIT_SECONDS));
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final int attemptInterval = 5021; //ms
 
         while (!this.isFileLocked() && TimeDuration.fromCurrent(startTime).isShorterThan(maxWaitSeconds, TimeUnit.SECONDS)) {
@@ -534,7 +535,7 @@ public class PwmEnvironment {
         void writeLockFileContents(final RandomAccessFile file) {
             try {
                 final Properties props = new Properties();
-                props.put("timestamp", PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+                props.put("timestamp", JavaHelper.toIsoDate(new Date()));
                 props.put("applicationPath",PwmEnvironment.this.getApplicationPath() == null ? "n/a" : PwmEnvironment.this.getApplicationPath().getAbsolutePath());
                 props.put("configurationFile", PwmEnvironment.this.getConfigurationFile() == null ? "n/a" : PwmEnvironment.this.getConfigurationFile().getAbsolutePath());
                 final String comment = PwmConstants.PWM_APP_NAME + " file lock";

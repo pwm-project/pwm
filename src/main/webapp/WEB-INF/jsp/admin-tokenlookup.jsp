@@ -3,6 +3,7 @@
 <%@ page import="password.pwm.error.PwmOperationalException" %>
 <%@ page import="password.pwm.i18n.Admin" %>
 <%@ page import="password.pwm.svc.token.TokenPayload" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="java.util.Iterator" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -104,7 +105,7 @@
                     Issue Date
                 </td>
                 <td>
-                    <span class="timestamp"><%= PwmConstants.DEFAULT_DATETIME_FORMAT.format(tokenPayload.getDate()) %></span>
+                    <span class="timestamp"><%= JavaHelper.toIsoDate(tokenPayload.getDate()) %></span>
                 </td>
             </tr>
             <tr>

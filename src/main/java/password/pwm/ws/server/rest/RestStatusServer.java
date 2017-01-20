@@ -48,7 +48,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URISyntaxException;
-import java.util.Date;
+import java.time.Instant;
 
 @Path("/status")
 public class RestStatusServer extends AbstractRestServer {
@@ -65,7 +65,7 @@ public class RestStatusServer extends AbstractRestServer {
     public Response doGetStatusData(
             @QueryParam("username") final String username
     ) {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final RestRequestBean restRequestBean;
         try {
             final ServicePermissions servicePermissions = new ServicePermissions();

@@ -1,11 +1,16 @@
 <%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.i18n.PwmLocaleBundle" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
-<%@ page import="java.util.*" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Date" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Locale" %>
+<%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -63,7 +68,7 @@
         <%=PwmConstants.PWM_APP_NAME%> &nbsp; <%=PwmConstants.SERVLET_VERSION%>
       </div>
       <div>
-        Current Time: <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></span>
+        Current Time: <span class="timestamp"><%=JavaHelper.toIsoDate(new Date())%></span>
         <br/>
         <br/>
         <br/>

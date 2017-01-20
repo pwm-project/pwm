@@ -27,6 +27,7 @@
 <%@ page import="password.pwm.util.logging.PwmLogEvent" %>
 <%@ page import="password.pwm.util.logging.PwmLogLevel" %>
 <%@ page import="java.util.Date" %>
+<%@ page import="java.time.Instant" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -53,7 +54,7 @@
 </pwm:script>
 <% } else { %>
 <div style="width: 100%; text-align:center; background-color: #eeeeee" id="headerDiv">
-    <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></span>
+    <span class="timestamp"><%=Instant.now().toString()%></span>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <select name="level" style="width: auto;" id="select-level">
         <% for (final PwmLogLevel level : PwmLogLevel.values()) { %>
@@ -78,7 +79,7 @@
 %>
 <pre><% while (searchResults.hasNext()) { %>
     <% final PwmLogEvent logEvent = searchResults.next(); %>
-    <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(logEvent.getDate())%></span>, <%=StringUtil.escapeHtml(logEvent.toLogString(false)) %><%="\n"%>
+    <span class="timestamp"><%=logEvent.getDate().toString()%></span>, <%=StringUtil.escapeHtml(logEvent.toLogString(false)) %><%="\n"%>
     <% } %></pre>
 <% } %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

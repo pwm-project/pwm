@@ -62,6 +62,7 @@ import password.pwm.util.VersionChecker;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -86,9 +87,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.KeyStore;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -122,6 +123,7 @@ public class PwmApplication {
         SEEDLIST_METADATA("seedlist.metadata"),
         HTTPS_SELF_CERT("https.selfCert"),
         CONFIG_LOGIN_HISTORY("config.loginHistory"),
+        LOCALDB_LOGGER_STORAGE_FORMAT("localdb.logger.storage.format"),
 
         ;
 
@@ -143,8 +145,8 @@ public class PwmApplication {
     private LocalDB localDB;
     private LocalDBLogger localDBLogger;
 
-    private final Date startupTime = new Date();
-    private Date installTime = new Date();
+    private final Instant startupTime = Instant.now();
+    private Instant installTime = Instant.now();
     private ErrorInformation lastLocalDBFailure = null;
 
     private final PwmEnvironment pwmEnvironment;
@@ -168,7 +170,7 @@ public class PwmApplication {
     private void initialize()
             throws PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
         // initialize log4j
         if (!pwmEnvironment.isInternalRuntimeInstance() && !pwmEnvironment.getFlags().contains(PwmEnvironment.ApplicationFlag.CommandLineInstance)) {
@@ -247,7 +249,7 @@ public class PwmApplication {
 
         // read the pwm installation date
         installTime = fetchInstallDate(startupTime);
-        LOGGER.debug("this application instance first installed on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(installTime));
+        LOGGER.debug("this application instance first installed on " + JavaHelper.toIsoDate(installTime));
 
         LOGGER.debug("application environment flags: " + JsonUtil.serializeCollection(pwmEnvironment.getFlags()));
         LOGGER.debug("application environment parameters: " + JsonUtil.serializeMap(pwmEnvironment.getParameters()));
@@ -276,7 +278,7 @@ public class PwmApplication {
     }
 
     private void postInitTasks() {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
         LOGGER.debug("loaded configuration: " + pwmEnvironment.getConfig().toDebugString());
 
@@ -525,20 +527,20 @@ public class PwmApplication {
         return (DatabaseAccessorImpl)pwmServiceManager.getService(DatabaseAccessorImpl.class);
     }
 
-    private Date fetchInstallDate(final Date startupTime) {
+    private Instant fetchInstallDate(final Instant startupTime) {
         if (localDB != null) {
             try {
                 final String storedDateStr = readAppAttribute(AppAttribute.INSTALL_DATE,String.class);
                 if (storedDateStr == null || storedDateStr.length() < 1) {
-                    writeAppAttribute(AppAttribute.INSTALL_DATE, String.valueOf(startupTime.getTime()));
+                    writeAppAttribute(AppAttribute.INSTALL_DATE, String.valueOf(startupTime.toEpochMilli()));
                 } else {
-                    return new Date(Long.parseLong(storedDateStr));
+                    return Instant.ofEpochMilli(Long.parseLong(storedDateStr));
                 }
             } catch (Exception e) {
                 LOGGER.error("error retrieving installation date from localDB: " + e.getMessage());
             }
         }
-        return new Date();
+        return Instant.now();
     }
 
     private String fetchInstanceID(final LocalDB localDB, final PwmApplication pwmApplication) {
@@ -658,11 +660,11 @@ public class PwmApplication {
         LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " closed for bidness, cya!");
     }
 
-    public Date getStartupTime() {
+    public Instant getStartupTime() {
         return startupTime;
     }
 
-    public Date getInstallTime() {
+    public Instant getInstallTime() {
         return installTime;
     }
 

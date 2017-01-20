@@ -27,16 +27,16 @@ import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.Helper;
+import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -48,7 +48,7 @@ public class LocalDbAuditVault implements AuditVault {
 
     private LocalDBStoredQueue auditDB;
     private Settings settings;
-    private Date oldestRecord;
+    private Instant oldestRecord;
 
     private int maxBulkRemovals = 105;
 
@@ -95,7 +95,7 @@ public class LocalDbAuditVault implements AuditVault {
     }
 
     @Override
-    public Date oldestRecord() {
+    public Instant oldestRecord() {
         return oldestRecord;
     }
 

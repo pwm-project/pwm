@@ -1,7 +1,7 @@
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.bean.ChangePasswordBean" %>
 <%@ page import="password.pwm.util.java.TimeDuration" %>
-<%@ page import="java.util.Date" %>
+<%@ page import="java.time.Instant" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -39,7 +39,7 @@
     try {
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
         final ChangePasswordBean changePasswordBean = JspUtility.getSessionBean(pageContext, ChangePasswordBean.class);
-        final Date maxCompleteTime = changePasswordBean.getChangePasswordMaxCompletion();
+        final Instant maxCompleteTime = changePasswordBean.getChangePasswordMaxCompletion();
         maxWaitSeconds = maxCompleteTime == null ? 30 : TimeDuration.fromCurrent(maxCompleteTime).getTotalSeconds();
         checkIntervalSeconds = Long.parseLong(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS));
     } catch (PwmException e) {

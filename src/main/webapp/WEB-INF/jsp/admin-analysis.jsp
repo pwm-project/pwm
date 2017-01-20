@@ -4,6 +4,7 @@
 <%@ page import="password.pwm.svc.stats.Statistic" %>
 <%@ page import="password.pwm.svc.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.svc.stats.StatisticsManager" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
@@ -34,7 +35,6 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final Locale locale = JspUtility.locale(request);
-    final DateFormat dateFormat = PwmConstants.DEFAULT_DATETIME_FORMAT;
 
     StatisticsManager statsManager = null;
     String statsPeriodSelect = "";
@@ -171,10 +171,10 @@
                                         <select name="statsPeriodSelect"
                                                 style="width: 350px;" data-dojo-props="maxHeight: -1">
                                             <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                since installation - <%= dateFormat.format(analysis_pwmRequest.getPwmApplication().getInstallTime()) %>
+                                                since installation - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %>
                                             </option>
                                             <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                since startup - <%= dateFormat.format(analysis_pwmRequest.getPwmApplication().getStartupTime()) %>
+                                                since startup - <%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %>
                                             </option>
                                             <% final Map<StatisticsManager.DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
                                             <% for (final StatisticsManager.DailyKey key : availableKeys.keySet()) { %>

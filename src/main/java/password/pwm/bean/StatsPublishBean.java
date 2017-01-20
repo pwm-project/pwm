@@ -23,13 +23,13 @@
 package password.pwm.bean;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 public class StatsPublishBean implements Serializable {
     private String instanceID;
-    private Date timestamp;
+    private Instant timestamp;
     private Map<String,String> totalStatistics;
     private List<String> configuredSettings;
     private String versionBuild;
@@ -48,7 +48,7 @@ public class StatsPublishBean implements Serializable {
 
     public StatsPublishBean(
             final String instanceID,
-            final Date timestamp,
+            final Instant timestamp,
             final Map<String, String> totalStatistics,
             final List<String> configuredSettings,
             final String versionBuild,
@@ -68,7 +68,7 @@ public class StatsPublishBean implements Serializable {
         return instanceID;
     }
 
-    public Date getTimestamp() {
+    public Instant getTimestamp() {
         return timestamp;
     }
 

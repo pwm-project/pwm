@@ -23,7 +23,6 @@
 package password.pwm.util.secure;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -268,8 +267,8 @@ public abstract class X509Utils {
         returnMap.put(CertDebugInfoKey.subject.toString(), cert.getSubjectDN().toString());
         returnMap.put(CertDebugInfoKey.serial.toString(), X509Utils.hexSerial(cert));
         returnMap.put(CertDebugInfoKey.issuer.toString(), cert.getIssuerDN().toString());
-        returnMap.put(CertDebugInfoKey.issueDate.toString(), PwmConstants.DEFAULT_DATETIME_FORMAT.format(cert.getNotBefore()));
-        returnMap.put(CertDebugInfoKey.expireDate.toString(), PwmConstants.DEFAULT_DATETIME_FORMAT.format(cert.getNotAfter()));
+        returnMap.put(CertDebugInfoKey.issueDate.toString(), JavaHelper.toIsoDate(cert.getNotBefore()));
+        returnMap.put(CertDebugInfoKey.expireDate.toString(), JavaHelper.toIsoDate(cert.getNotAfter()));
         try {
             returnMap.put(CertDebugInfoKey.md5Hash.toString(), SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()), PwmHashAlgorithm.MD5));
             returnMap.put(CertDebugInfoKey.sha1Hash.toString(), SecureEngine.hash(new ByteArrayInputStream(cert.getEncoded()), PwmHashAlgorithm.SHA1));

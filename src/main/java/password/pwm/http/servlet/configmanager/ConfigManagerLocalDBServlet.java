@@ -41,8 +41,8 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.i18n.Message;
-import password.pwm.util.java.TimeDuration;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.localdb.LocalDBUtility;
@@ -58,9 +58,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 
 @WebServlet(
         name = "ConfigManagerLocalDBServlet",
@@ -130,7 +130,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet {
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final PwmResponse resp = pwmRequest.getPwmResponse();
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         resp.setHeader(HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak");
         resp.setContentType(PwmConstants.ContentTypeValue.octetstream);
         resp.setHeader(HttpHeader.ContentTransferEncoding, "binary");

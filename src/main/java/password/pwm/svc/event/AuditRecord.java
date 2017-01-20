@@ -25,13 +25,13 @@ package password.pwm.svc.event;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 
 public abstract class AuditRecord implements Serializable {
     protected AuditEvent.Type type;
     protected AuditEvent eventCode;
     protected String guid;
-    protected Date timestamp = new Date();
+    protected Instant timestamp = Instant.now();
     protected String message;
     protected String narrative;
     protected final String xdasTaxonomy;
@@ -39,7 +39,7 @@ public abstract class AuditRecord implements Serializable {
 
 
     protected AuditRecord(
-            final Date timestamp,
+            final Instant timestamp,
             final AuditEvent eventCode,
             final String message
     ) {
@@ -55,7 +55,7 @@ public abstract class AuditRecord implements Serializable {
 
 
     protected AuditRecord(final AuditEvent eventCode, final String message) {
-        this(new Date(), eventCode, message);
+        this(Instant.now(), eventCode, message);
     }
 
     public AuditEvent.Type getType() {
@@ -66,7 +66,7 @@ public abstract class AuditRecord implements Serializable {
         return eventCode;
     }
 
-    public Date getTimestamp() {
+    public Instant getTimestamp() {
         return timestamp;
     }
 

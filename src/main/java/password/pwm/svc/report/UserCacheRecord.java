@@ -28,7 +28,7 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.option.DataStorageMethod;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 
 public class UserCacheRecord implements Serializable {
     public String userDN;
@@ -40,22 +40,22 @@ public class UserCacheRecord implements Serializable {
 
     public String summaryEpoch;
 
-    public Date cacheTimestamp = new Date();
+    public Instant cacheTimestamp = Instant.now();
 
     public PasswordStatus passwordStatus;
-    public Date passwordExpirationTime;
-    public Date passwordChangeTime;
-    public Date lastLoginTime;
-    public Date accountExpirationTime;
+    public Instant passwordExpirationTime;
+    public Instant passwordChangeTime;
+    public Instant lastLoginTime;
+    public Instant accountExpirationTime;
 
     public boolean hasResponses;
     public boolean hasHelpdeskResponses;
-    public Date responseSetTime;
+    public Instant responseSetTime;
     public DataStorageMethod responseStorageMethod;
     public Answer.FormatType responseFormatType;
 
     public boolean hasOtpSecret;
-    public Date otpSecretSetTime;
+    public Instant otpSecretSetTime;
 
     public boolean requiresPasswordUpdate;
     public boolean requiresResponseUpdate;
@@ -119,11 +119,11 @@ public class UserCacheRecord implements Serializable {
         this.userGUID = userGUID;
     }
 
-    public Date getCacheTimestamp() {
+    public Instant getCacheTimestamp() {
         return cacheTimestamp;
     }
 
-    public void setCacheTimestamp(final Date cacheTimestamp) {
+    public void setCacheTimestamp(final Instant cacheTimestamp) {
         this.cacheTimestamp = cacheTimestamp;
     }
 
@@ -135,35 +135,35 @@ public class UserCacheRecord implements Serializable {
         this.passwordStatus = passwordStatus;
     }
 
-    public Date getPasswordExpirationTime() {
+    public Instant getPasswordExpirationTime() {
         return passwordExpirationTime;
     }
 
-    public void setPasswordExpirationTime(final Date passwordExpirationTime) {
+    public void setPasswordExpirationTime(final Instant passwordExpirationTime) {
         this.passwordExpirationTime = passwordExpirationTime;
     }
 
-    public Date getPasswordChangeTime() {
+    public Instant getPasswordChangeTime() {
         return passwordChangeTime;
     }
 
-    public void setPasswordChangeTime(final Date passwordChangeTime) {
+    public void setPasswordChangeTime(final Instant passwordChangeTime) {
         this.passwordChangeTime = passwordChangeTime;
     }
 
-    public Date getResponseSetTime() {
+    public Instant getResponseSetTime() {
         return responseSetTime;
     }
 
-    public void setResponseSetTime(final Date responseSetTime) {
+    public void setResponseSetTime(final Instant responseSetTime) {
         this.responseSetTime = responseSetTime;
     }
 
-    public Date getLastLoginTime() {
+    public Instant getLastLoginTime() {
         return lastLoginTime;
     }
 
-    public void setLastLoginTime(final Date lastLoginTime) {
+    public void setLastLoginTime(final Instant lastLoginTime) {
         this.lastLoginTime = lastLoginTime;
     }
 
@@ -239,21 +239,21 @@ public class UserCacheRecord implements Serializable {
         this.hasOtpSecret = hasOtpSecret;
     }
 
-    public Date getOtpSecretSetTime()
+    public Instant getOtpSecretSetTime()
     {
         return otpSecretSetTime;
     }
 
-    public void setOtpSecretSetTime(final Date otpSecretSetTime)
+    public void setOtpSecretSetTime(final Instant otpSecretSetTime)
     {
         this.otpSecretSetTime = otpSecretSetTime;
     }
 
-    public Date getAccountExpirationTime() {
+    public Instant getAccountExpirationTime() {
         return accountExpirationTime;
     }
 
-    public void setAccountExpirationTime(final Date accountExpirationTime) {
+    public void setAccountExpirationTime(final Instant accountExpirationTime) {
         this.accountExpirationTime = accountExpirationTime;
     }
 
@@ -288,11 +288,11 @@ public class UserCacheRecord implements Serializable {
         this.setRequiresPasswordUpdate(userInfoBean.isRequiresNewPassword());
         this.setRequiresResponseUpdate(userInfoBean.isRequiresResponseConfig());
         this.setRequiresProfileUpdate(userInfoBean.isRequiresUpdateProfile());
-        this.setCacheTimestamp(new Date());
+        this.setCacheTimestamp(Instant.now());
 
         this.setHasOtpSecret(userInfoBean.getOtpUserRecord() != null);
         this.setOtpSecretSetTime(userInfoBean.getOtpUserRecord() != null && userInfoBean.getOtpUserRecord().getTimestamp() != null
-                        ? userInfoBean.getOtpUserRecord().getTimestamp()
+                        ? userInfoBean.getOtpUserRecord().getTimestamp().toInstant()
                         : null
         );
 

@@ -38,8 +38,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -59,7 +59,7 @@ import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Date;
+import java.time.Instant;
 
 @Path("/checkpassword")
 public class RestCheckPasswordServer extends AbstractRestServer {
@@ -132,7 +132,7 @@ public class RestCheckPasswordServer extends AbstractRestServer {
     public Response doOperation(final JsonInput jsonInput)
             throws PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final RestRequestBean restRequestBean;
         try {
             final ServicePermissions servicePermissions = new ServicePermissions();

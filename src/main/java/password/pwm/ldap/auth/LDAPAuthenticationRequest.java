@@ -54,6 +54,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
@@ -459,7 +460,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest {
         if (oracleDS_PrePasswordAllowChangeTime != null && !oracleDS_PrePasswordAllowChangeTime.isEmpty()) {
             final Date date = OracleDSEntries.convertZuluToDate(oracleDS_PrePasswordAllowChangeTime);
             if (new Date().before(date)) {
-                final String errorMsg = "change not permitted until " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(
+                final String errorMsg = "change not permitted until " + JavaHelper.toIsoDate(
                         date);
                 throw new PwmUnrecoverableException(
                         new ErrorInformation(PwmError.PASSWORD_TOO_SOON, errorMsg));

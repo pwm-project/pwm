@@ -28,10 +28,10 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.Helper;
-import password.pwm.util.java.TimeDuration;
+import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
@@ -39,6 +39,7 @@ import password.pwm.util.localdb.LocalDBStoredQueue;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -76,6 +77,8 @@ public class LocalDBLogger implements PwmService {
     private volatile STATUS status = STATUS.NEW;
     private boolean hasShownReadError = false;
 
+    private static final String STORAGE_FORMAT_VERSION = "2";
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public LocalDBLogger(final PwmApplication pwmApplication, final LocalDB localDB, final LocalDBLoggerSettings settings)
@@ -99,6 +102,17 @@ public class LocalDBLogger implements PwmService {
         }
 
         eventQueue = new ArrayBlockingQueue<>(settings.getMaxBufferSize(), true);
+
+        {
+            final String currentFormat = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, String.class);
+            if (!STORAGE_FORMAT_VERSION.equals(currentFormat)) {
+                LOGGER.warn("localdb logger is using outdated format, clearing existing records (existing='"
+                        + currentFormat + "', current='" + STORAGE_FORMAT_VERSION + "')");
+
+                localDBListQueue.clear();
+                pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.LOCALDB_LOGGER_STORAGE_FORMAT, STORAGE_FORMAT_VERSION);
+            }
+        }
 
         status = STATUS.OPEN;
 
@@ -124,7 +138,7 @@ public class LocalDBLogger implements PwmService {
     }
 
 
-    public Date getTailDate() {
+    public Instant getTailDate() {
         final PwmLogEvent loopEvent;
         if (localDBListQueue.isEmpty()) {
             return null;
@@ -132,7 +146,7 @@ public class LocalDBLogger implements PwmService {
         try {
             loopEvent = readEvent(localDBListQueue.getLast());
             if (loopEvent != null) {
-                final Date tailDate = loopEvent.getDate();
+                final Instant tailDate = loopEvent.getDate();
                 if (tailDate != null) {
                     return tailDate;
                 }
@@ -148,7 +162,7 @@ public class LocalDBLogger implements PwmService {
     private String debugStats() {
         final StringBuilder sb = new StringBuilder();
         sb.append("events=").append(localDBListQueue.size());
-        final Date tailAge = getTailDate();
+        final Instant tailAge = getTailDate();
         sb.append(", tailAge=").append(tailAge == null ? "n/a" : TimeDuration.fromCurrent(tailAge).asCompactString());
         sb.append(", maxEvents=").append(settings.getMaxEvents());
         sb.append(", maxAge=").append(settings.getMaxAge().asCompactString());
@@ -199,7 +213,7 @@ public class LocalDBLogger implements PwmService {
         }
 
         // purge the tail if it is missing or has invalid timestamp
-        final Date tailTimestamp = getTailDate();
+        final Instant tailTimestamp = getTailDate();
         if (tailTimestamp == null) {
             return 1;
         }
@@ -367,7 +381,7 @@ public class LocalDBLogger implements PwmService {
     public void writeEvent(final PwmLogEvent event) {
         if (status == STATUS.OPEN) {
             if (settings.getMaxEvents() > 0) {
-                final Date startTime = new Date();
+                final Instant startTime = Instant.now();
                 while (!eventQueue.offer(event)) {
                     if (TimeDuration.fromCurrent(startTime).isLongerThan(settings.getMaxBufferWaitTime())) {
                         LOGGER.warn("discarded event after waiting max buffer wait time of " + settings.getMaxBufferWaitTime().asCompactString());
@@ -421,7 +435,7 @@ public class LocalDBLogger implements PwmService {
                     cleanupCount = determineTailRemovalCount();
                     if (cleanupCount > 0) {
                         cleanOnWriteFlag.set(true);
-                        final Date startTime = new Date();
+                        final Instant startTime = Instant.now();
                         localDBListQueue.removeLast(cleanupCount);
                         final TimeDuration purgeTime = TimeDuration.fromCurrent(startTime);
                         JavaHelper.pause(Math.max(Math.min(purgeTime.getMilliseconds(),20),2000));
@@ -536,11 +550,13 @@ public class LocalDBLogger implements PwmService {
             healthRecords.add(HealthRecord.forMessage(HealthMessage.LocalDBLogger_HighRecordCount,numberFormat.format(eventCount),numberFormat.format(settings.getMaxEvents())));
         }
 
-        final Date tailDate = getTailDate();
-        final TimeDuration timeDuration = TimeDuration.fromCurrent(tailDate);
-        final TimeDuration maxTimeDuration = settings.getMaxAge().add(TimeDuration.HOUR);
-        if (timeDuration.isLongerThan(maxTimeDuration)) { // older than max age + 1h
-            healthRecords.add(HealthRecord.forMessage(HealthMessage.LocalDBLogger_OldRecordPresent, timeDuration.asCompactString(), maxTimeDuration.asCompactString()));
+        final Instant tailDate = getTailDate();
+        if (tailDate != null) {
+            final TimeDuration timeDuration = TimeDuration.fromCurrent(tailDate);
+            final TimeDuration maxTimeDuration = settings.getMaxAge().add(TimeDuration.HOUR);
+            if (timeDuration.isLongerThan(maxTimeDuration)) { // older than max age + 1h
+                healthRecords.add(HealthRecord.forMessage(HealthMessage.LocalDBLogger_OldRecordPresent, timeDuration.asCompactString(), maxTimeDuration.asCompactString()));
+            }
         }
 
         return healthRecords;

@@ -10,12 +10,12 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 
 public class AuditRecordFactory {
@@ -77,7 +77,7 @@ public class AuditRecordFactory {
         final AuditUserDefinition perpAuditUserDefintition = userIdentityToUserDefinition(perpetrator);
 
         final HelpdeskAuditRecord record = new HelpdeskAuditRecord(
-                new Date(),
+                Instant.now(),
                 eventCode,
                 perpAuditUserDefintition.getUserID(),
                 perpAuditUserDefintition.getUserDN(),
@@ -104,7 +104,7 @@ public class AuditRecordFactory {
         final AuditUserDefinition perpAuditUserDefintition = userIdentityToUserDefinition(perpetrator);
 
         final UserAuditRecord record = new UserAuditRecord(
-                new Date(),
+                Instant.now(),
                 eventCode,
                 perpAuditUserDefintition.getUserID(),
                 perpAuditUserDefintition.getUserDN(),

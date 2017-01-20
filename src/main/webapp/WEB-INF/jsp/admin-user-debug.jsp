@@ -24,6 +24,7 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 <% final PwmRequest debug_pwmRequest = JspUtility.getPwmRequest(pageContext); %>
 <% final PwmSession debug_pwmSession = debug_pwmRequest.getPwmSession(); %>
 <!DOCTYPE html>
@@ -53,7 +54,7 @@
             </tr>
             <tr>
                 <td class="key">Session Creation Time</td>
-                <td><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(debug_pwmSession.getSessionStateBean().getSessionCreationTime())%></td>
+                <td><%=JavaHelper.toIsoDate(debug_pwmSession.getSessionStateBean().getSessionCreationTime())%></td>
             </tr>
             <tr>
                 <td class="key">Session ForwardURL</td>

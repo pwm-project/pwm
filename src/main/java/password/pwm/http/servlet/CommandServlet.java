@@ -33,17 +33,17 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AuthenticationFilter;
-import password.pwm.http.ProcessStatus;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 
 /**
@@ -180,9 +180,9 @@ public class CommandServlet extends AbstractPwmServlet {
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final String referrer = pwmRequest.getHttpServletRequest().getHeader("Referer");
-        final Date pageLeaveNoticeTime = new Date();
+        final Instant pageLeaveNoticeTime = Instant.now();
         pwmSession.getSessionStateBean().setPageLeaveNoticeTime(pageLeaveNoticeTime);
-        LOGGER.debug("pageLeaveNotice indicated at " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(pageLeaveNoticeTime) + ", referer=" + referrer);
+        LOGGER.debug("pageLeaveNotice indicated at " + pageLeaveNoticeTime.toString() + ", referer=" + referrer);
         if (!pwmRequest.getPwmResponse().isCommitted()) {
             pwmRequest.getPwmResponse().setHeader(HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate");
             pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.plain);

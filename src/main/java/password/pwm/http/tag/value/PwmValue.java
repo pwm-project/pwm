@@ -128,7 +128,7 @@ public enum PwmValue {
     static class ResponseFieldTypeOutput implements ValueOutput {
         @Override
         public String valueOutput(final PwmRequest pwmRequest, final PageContext pageContext) throws ChaiUnavailableException, PwmUnrecoverableException {
-            final boolean maskPasswordFields = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_MASK_PASSWORD_FIELDS);
+            final boolean maskPasswordFields = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_MASK_RESPONSE_FIELDS);
             return maskPasswordFields ? "password" : "text";
         }
     }

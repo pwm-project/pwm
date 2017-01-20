@@ -28,6 +28,7 @@ import jetbrains.exodus.bindings.StringBinding;
 import jetbrains.exodus.env.Cursor;
 import jetbrains.exodus.env.Environment;
 import jetbrains.exodus.env.EnvironmentConfig;
+import jetbrains.exodus.env.EnvironmentStatistics;
 import jetbrains.exodus.env.Environments;
 import jetbrains.exodus.env.Store;
 import jetbrains.exodus.env.StoreConfig;
@@ -35,6 +36,7 @@ import jetbrains.exodus.env.Transaction;
 import jetbrains.exodus.env.TransactionalComputable;
 import jetbrains.exodus.env.TransactionalExecutable;
 import jetbrains.exodus.management.Statistics;
+import jetbrains.exodus.management.StatisticsItem;
 import org.jetbrains.annotations.NotNull;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -48,6 +50,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -112,7 +115,7 @@ public class Xodus_LocalDB implements LocalDBProvider {
         this.fileLocation = dbDirectory;
 
         LOGGER.trace("begin environment open");
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
         final EnvironmentConfig environmentConfig = new EnvironmentConfig();
         environmentConfig.setLogDurableWrite(true);
@@ -408,8 +411,12 @@ public class Xodus_LocalDB implements LocalDBProvider {
     public Map<String, Serializable> debugInfo() {
         final Statistics statistics = environment.getStatistics();
         final Map<String,Serializable> outputStats = new LinkedHashMap<>();
-        for (final String name : statistics.getItemNames()) {
-            outputStats.put(name, String.valueOf(statistics.getStatisticsItem(name).getTotal()));
+        for (final EnvironmentStatistics.Type type : EnvironmentStatistics.Type.values()) {
+            final String name = type.name();
+            final StatisticsItem item = statistics.getStatisticsItem(name);
+            if (item != null) {
+                outputStats.put(name, String.valueOf(item.getTotal()));
+            }
         }
         return outputStats;
     }

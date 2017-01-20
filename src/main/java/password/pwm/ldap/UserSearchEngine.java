@@ -52,11 +52,11 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -240,7 +240,7 @@ public class UserSearchEngine {
         for (final LdapProfile ldapProfile : ldapProfiles) {
             if (returnMap.size() < maxResults) {
                 boolean skipProfile = false;
-                final Date lastLdapFailure = pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfile);
+                final Instant lastLdapFailure = pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfile);
                 if (ldapProfiles.size() > 1 && lastLdapFailure != null && TimeDuration.fromCurrent(lastLdapFailure).isShorterThan(profileRetryDelayMS)) {
                     LOGGER.info("skipping user search on ldap profile " + ldapProfile.getIdentifier() + " due to recent unreachable status (" + TimeDuration.fromCurrent(lastLdapFailure).asCompactString() + ")");
                     skipProfile = true;
@@ -405,7 +405,7 @@ public class UserSearchEngine {
                 + " filter=" + searchHelper.toString() + " maxCount=" + searchHelper.getMaxResults();
         LOGGER.debug(sessionLabel, "performing ldap search for user; " + debugInfo);
 
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final Map<String, Map<String,String>> results;
         try {
             results = chaiProvider.search(context, searchHelper);

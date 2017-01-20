@@ -632,12 +632,12 @@
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>
-            <version>2.25</version>
+            <version>2.26-b01</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-jackson</artifactId>
-            <version>2.25</version>
+            <version>2.26-b01</version>
         </dependency>
         <dependency>
             <groupId>org.jasig.cas.client</groupId>
@@ -702,7 +702,7 @@
         <dependency>
             <groupId>org.jetbrains.xodus</groupId>
             <artifactId>xodus-environment</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -752,7 +752,7 @@
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>angular</artifactId>
-            <version>1.5.9</version>
+            <version>1.6.1</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>
@@ -762,7 +762,7 @@
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>angular-translate</artifactId>
-            <version>2.13.0</version>
+            <version>2.13.1</version>
         </dependency>
     </dependencies>
 

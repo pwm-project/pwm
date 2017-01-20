@@ -86,11 +86,11 @@ import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.util.CaptchaUtility;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
@@ -103,11 +103,11 @@ import password.pwm.ws.client.rest.naaf.PwmNAAFVerificationMethod;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -1111,7 +1111,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
 
 
         try {
-            final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(
+            final Instant userLastPasswordChange = PasswordUtility.determinePwdLastModified(
                     pwmRequest.getPwmApplication(),
                     pwmRequest.getSessionLabel(),
                     userIdentity

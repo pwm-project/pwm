@@ -62,8 +62,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.secure.X509Utils;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.X509Utils;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -78,7 +78,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Date;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -198,7 +198,7 @@ public class PwmHttpClient {
 
     PwmHttpClientResponse makeRequestImpl(final PwmHttpClientRequest clientRequest)
             throws IOException, URISyntaxException, PwmUnrecoverableException {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final int counter = classCounter++;
 
         LOGGER.trace(sessionLabel, "preparing to send (id=" + counter + ") " + clientRequest.toDebugString());

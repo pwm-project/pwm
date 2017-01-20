@@ -28,8 +28,8 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.util.operations.otp.OTPUserRecord;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,10 +70,10 @@ public class UserInfoBean implements Serializable {
     private ResponseInfoBean responseInfoBean = null;
     private OTPUserRecord otpUserRecord = null;
 
-    private Date passwordExpirationTime;
-    private Date passwordLastModifiedTime;
-    private Date lastLdapLoginTime;
-    private Date accountExpirationTime;
+    private Instant passwordExpirationTime;
+    private Instant passwordLastModifiedTime;
+    private Instant lastLdapLoginTime;
+    private Instant accountExpirationTime;
 
     private boolean requiresNewPassword;
     private boolean requiresResponseConfig;
@@ -98,11 +98,11 @@ public class UserInfoBean implements Serializable {
         this.cachedAttributeValues = cachedAttributeValues;
     }
 
-    public Date getLastLdapLoginTime() {
+    public Instant getLastLdapLoginTime() {
         return lastLdapLoginTime;
     }
 
-    public void setLastLdapLoginTime(final Date lastLdapLoginTime) {
+    public void setLastLdapLoginTime(final Instant lastLdapLoginTime) {
         this.lastLdapLoginTime = lastLdapLoginTime;
     }
 
@@ -130,11 +130,11 @@ public class UserInfoBean implements Serializable {
         this.userIdentity = userIdentity;
     }
 
-    public Date getPasswordExpirationTime() {
+    public Instant getPasswordExpirationTime() {
         return passwordExpirationTime;
     }
 
-    public void setPasswordExpirationTime(final Date passwordExpirationTime) {
+    public void setPasswordExpirationTime(final Instant passwordExpirationTime) {
         this.passwordExpirationTime = passwordExpirationTime;
     }
 
@@ -186,11 +186,11 @@ public class UserInfoBean implements Serializable {
         this.requiresUpdateProfile = requiresUpdateProfile;
     }
 
-    public Date getPasswordLastModifiedTime() {
+    public Instant getPasswordLastModifiedTime() {
         return passwordLastModifiedTime;
     }
 
-    public void setPasswordLastModifiedTime(final Date passwordLastModifiedTime) {
+    public void setPasswordLastModifiedTime(final Instant passwordLastModifiedTime) {
         this.passwordLastModifiedTime = passwordLastModifiedTime;
     }
 
@@ -236,11 +236,11 @@ public class UserInfoBean implements Serializable {
         this.otpUserRecord = otpUserRecord;
     }
 
-    public Date getAccountExpirationTime() {
+    public Instant getAccountExpirationTime() {
         return accountExpirationTime;
     }
 
-    public void setAccountExpirationTime(final Date accountExpirationTime) {
+    public void setAccountExpirationTime(final Instant accountExpirationTime) {
         this.accountExpirationTime = accountExpirationTime;
     }
 

@@ -22,7 +22,7 @@
 
 package password.pwm.svc.event;
 
-import java.util.Date;
+import java.time.Instant;
 
 public class HelpdeskAuditRecord extends UserAuditRecord {
     protected String targetID;
@@ -30,7 +30,7 @@ public class HelpdeskAuditRecord extends UserAuditRecord {
     protected String targetLdapProfile;
 
     HelpdeskAuditRecord(
-            final Date timestamp,
+            final Instant timestamp,
             final AuditEvent eventCode,
             final String perpetratorID,
             final String perpetratorDN,

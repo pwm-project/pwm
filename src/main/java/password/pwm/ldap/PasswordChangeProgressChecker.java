@@ -31,10 +31,10 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.PasswordSyncCheckMode;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.LocaleHelper;
-import password.pwm.util.java.Percent;
 import password.pwm.util.ProgressInfo;
+import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -43,9 +43,9 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -95,7 +95,7 @@ public class PasswordChangeProgressChecker {
         public static final PasswordChangeProgress COMPLETE = new PasswordChangeProgress(
                 true,
                 Percent.ONE_HUNDRED.asBigDecimal(2),
-                Collections.<ProgressRecord>emptyList(),
+                Collections.emptyList(),
                 "",
                 ""
         );
@@ -140,16 +140,16 @@ public class PasswordChangeProgressChecker {
     }
 
     public static class ProgressTracker implements Serializable {
-        private Date beginTime = new Date();
-        private Date lastReplicaCheckTime;
+        private Instant beginTime = Instant.now();
+        private Instant lastReplicaCheckTime;
         private final Map<String,ProgressRecord> itemCompletions = new HashMap<>();
 
-        public Date getBeginTime()
+        public Instant getBeginTime()
         {
             return beginTime;
         }
 
-        public Date getLastReplicaCheckTime()
+        public Instant getLastReplicaCheckTime()
         {
             return lastReplicaCheckTime;
         }
@@ -170,17 +170,17 @@ public class PasswordChangeProgressChecker {
         final Map<String,ProgressRecord> newItemProgress = new LinkedHashMap<>();
         newItemProgress.putAll(tracker.itemCompletions);
 
-        if (tracker.beginTime == null || new Date().after(maxCompletionTime(tracker))) {
+        if (tracker.beginTime == null || Instant.now().isAfter(maxCompletionTime(tracker))) {
             return PasswordChangeProgress.COMPLETE;
         }
 
         newItemProgress.putAll(figureItemProgresses(tracker));
-        final Date estimatedCompletion = figureEstimatedCompletion(tracker, newItemProgress.values());
+        final Instant estimatedCompletion = figureEstimatedCompletion(tracker, newItemProgress.values());
         final long elapsedMs = TimeDuration.fromCurrent(tracker.beginTime).getTotalMilliseconds();
         final long remainingMs = TimeDuration.fromCurrent(estimatedCompletion).getTotalMilliseconds();
 
         final Percent percentage;
-        if (new Date().after(estimatedCompletion)) {
+        if (Instant.now().isAfter(estimatedCompletion)) {
             percentage = Percent.ONE_HUNDRED;
         } else {
             final long totalMs = new TimeDuration(tracker.beginTime,estimatedCompletion).getTotalMilliseconds();
@@ -231,33 +231,33 @@ public class PasswordChangeProgressChecker {
         return returnValue;
     }
 
-    public Date maxCompletionTime(final ProgressTracker tracker) {
+    public Instant maxCompletionTime(final ProgressTracker tracker) {
         final TimeDuration maxWait = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME) * 1000);
-        return new Date(tracker.beginTime.getTime() + maxWait.getTotalMilliseconds());
+        return Instant.ofEpochMilli(tracker.beginTime.toEpochMilli() + maxWait.getTotalMilliseconds());
     }
 
-    private Date minCompletionTime(final ProgressTracker tracker) {
+    private Instant minCompletionTime(final ProgressTracker tracker) {
         final TimeDuration minWait = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME) * 1000);
-        return new Date(tracker.beginTime.getTime() + minWait.getTotalMilliseconds());
+        return Instant.ofEpochMilli(tracker.beginTime.toEpochMilli() + minWait.getTotalMilliseconds());
     }
 
-    private Date figureEstimatedCompletion(
+    private Instant figureEstimatedCompletion(
             final ProgressTracker tracker,
             final Collection<ProgressRecord> progressRecords
     ) {
-        final Date minCompletionTime = minCompletionTime(tracker);
-        final Date maxCompletionTime = maxCompletionTime(tracker);
+        final Instant minCompletionTime = minCompletionTime(tracker);
+        final Instant maxCompletionTime = maxCompletionTime(tracker);
 
-        final Date estimatedCompletion;
+        final Instant estimatedCompletion;
         {
             final BigDecimal pctComplete = figureAverageProgress(progressRecords);
             LOGGER.trace(pwmSession, "percent complete: " + pctComplete);
             final ProgressInfo progressInfo = new ProgressInfo(tracker.beginTime, 100, pctComplete.longValue());
-            final Date actualEstimate = progressInfo.estimatedCompletion();
+            final Instant actualEstimate = progressInfo.estimatedCompletion();
 
-            if (actualEstimate.before(minCompletionTime)) {
+            if (actualEstimate.isBefore(minCompletionTime)) {
                 estimatedCompletion = minCompletionTime;
-            } else if (actualEstimate.after(maxCompletionTime)) {
+            } else if (actualEstimate.isAfter(maxCompletionTime)) {
                 estimatedCompletion = maxCompletionTime;
             } else {
                 estimatedCompletion = actualEstimate;
@@ -317,20 +317,20 @@ public class PasswordChangeProgressChecker {
             return null;
         }
 
-        tracker.lastReplicaCheckTime = new Date();
+        tracker.lastReplicaCheckTime = Instant.now();
         LOGGER.trace(pwmSession, "beginning password replication time check for " + userIdentity.toDelimitedKey());
 
         try {
-            final Map<String,Date> checkResults = PasswordUtility.readIndividualReplicaLastPasswordTimes(pwmApplication,
+            final Map<String,Instant> checkResults = PasswordUtility.readIndividualReplicaLastPasswordTimes(pwmApplication,
                     pwmSession, userIdentity);
             if (checkResults.size() <= 1) {
                 LOGGER.trace("only one replica returned data, marking as complete");
                 return completedReplicationRecord;
             } else {
-                final HashSet<Date> tempHashSet = new HashSet<>();
+                final HashSet<Instant> tempHashSet = new HashSet<>();
                 int duplicateValues = 0;
                 for (final String replicaUrl : checkResults.keySet()) {
-                    final Date date = checkResults.get(replicaUrl);
+                    final Instant date = checkResults.get(replicaUrl);
                     if (tempHashSet.contains(date)) {
                         duplicateValues++;
                     } else {

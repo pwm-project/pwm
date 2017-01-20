@@ -22,13 +22,13 @@
 
 package password.pwm.bean.pub;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Locale;
 
 public class SessionStateInfoBean implements PublishedBean {
     private String label;
-    private Date createTime;
-    private Date lastTime;
+    private Instant createTime;
+    private Instant lastTime;
     private String idle;
     private Locale locale;
     private String ldapProfile;
@@ -47,19 +47,19 @@ public class SessionStateInfoBean implements PublishedBean {
         this.label = label;
     }
 
-    public Date getCreateTime() {
+    public Instant getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(final Date createTime) {
+    public void setCreateTime(final Instant createTime) {
         this.createTime = createTime;
     }
 
-    public Date getLastTime() {
+    public Instant getLastTime() {
         return lastTime;
     }
 
-    public void setLastTime(final Date lastTime) {
+    public void setLastTime(final Instant lastTime) {
         this.lastTime = lastTime;
     }
 

@@ -24,26 +24,36 @@ package password.pwm.manual;
 
 import junit.framework.TestCase;
 import password.pwm.AppProperty;
-import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.svc.stats.EventRateMeter;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
 import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
-import password.pwm.util.logging.*;
+import password.pwm.util.logging.LocalDBLogger;
+import password.pwm.util.logging.LocalDBLoggerSettings;
+import password.pwm.util.logging.PwmLogEvent;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.File;
 import java.io.Serializable;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
-import java.util.*;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -100,7 +110,7 @@ public class LocalDBLoggerTest extends TestCase {
     }
 
     private void out(String output) {
-        System.out.println(PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())+ " " + output);
+        System.out.println(JavaHelper.toIsoDate(new Date())+ " " + output);
     }
 
     public void testBulkAddEvents() throws InterruptedException {
@@ -154,7 +164,7 @@ public class LocalDBLoggerTest extends TestCase {
         for (int i = 0; i < count; i++) {
             final String description = randomValueMaker.next();
             PwmLogEvent event = PwmLogEvent.createPwmLogEvent(
-                    new Date(),
+                    Instant.now(),
                     LocalDBLogger.class.getName(),
                     description, "", "", null, null, PwmLogLevel.TRACE);
             events.add(event);

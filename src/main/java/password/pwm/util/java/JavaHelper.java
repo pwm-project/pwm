@@ -23,6 +23,7 @@
 package password.pwm.util.java;
 
 import org.apache.commons.io.IOUtils;
+import password.pwm.PwmConstants;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -238,5 +240,13 @@ public class JavaHelper {
             }
         } while (bytesCopied > 0);
         return totalCopied;
+    }
+
+    public static String toIsoDate(final Instant instant) {
+        return instant == null ? "" : instant.toString();
+    }
+
+    public static String toIsoDate(final Date date) {
+        return date == null ? "" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(date);
     }
 }

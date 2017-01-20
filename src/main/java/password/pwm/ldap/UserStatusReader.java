@@ -28,7 +28,6 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
@@ -53,9 +52,10 @@ import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmPasswordRuleValidator;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.CrService;
@@ -64,6 +64,7 @@ import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.otp.OTPUserRecord;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -145,14 +146,14 @@ public class UserStatusReader {
             Date ldapPasswordExpirationTime = theUser.readPasswordExpirationDate();
             if (ldapPasswordExpirationTime != null && ldapPasswordExpirationTime.getTime() < 0) {
                 // If ldapPasswordExpirationTime is less than 0, this may indicate an extremely late date, past the epoch.
-                LOGGER.debug(sessionLabel, "ignoring past-dated password expiration time: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(ldapPasswordExpirationTime));
+                LOGGER.debug(sessionLabel, "ignoring past-dated password expiration time: " + JavaHelper.toIsoDate(ldapPasswordExpirationTime));
                 ldapPasswordExpirationTime = null;
             }
 
             if (ldapPasswordExpirationTime != null) {
                 final TimeDuration expirationInterval = TimeDuration.fromCurrent(ldapPasswordExpirationTime);
                 LOGGER.trace(sessionLabel, "read password expiration time: "
-                                + PwmConstants.DEFAULT_DATETIME_FORMAT.format(ldapPasswordExpirationTime)
+                                + JavaHelper.toIsoDate(ldapPasswordExpirationTime)
                                 + ", " + expirationInterval.asCompactString() + " from now"
                 );
                 final long diff = ldapPasswordExpirationTime.getTime() - System.currentTimeMillis();
@@ -367,7 +368,7 @@ public class UserStatusReader {
                 // If ldapPasswordExpirationTime is less than 0, this may indicate an extremely late date, past the epoch.
                 ldapPasswordExpirationTime = null;
             }
-            uiBean.setPasswordExpirationTime(ldapPasswordExpirationTime);
+            uiBean.setPasswordExpirationTime(ldapPasswordExpirationTime == null ? null : ldapPasswordExpirationTime.toInstant());
         } catch (Exception e) {
             LOGGER.warn(sessionLabel, "error reading password expiration time: " + e.getMessage());
         }
@@ -382,18 +383,20 @@ public class UserStatusReader {
         uiBean.setRequiresUpdateProfile(checkIfProfileUpdateNeeded(config, uiBean, userDataReader, userLocale));
 
         // fetch last password modification time;
-        final Date pwdLastModifedDate = PasswordUtility.determinePwdLastModified(pwmApplication, sessionLabel, userIdentity);
+        final Instant pwdLastModifedDate = PasswordUtility.determinePwdLastModified(pwmApplication, sessionLabel, userIdentity);
         uiBean.setPasswordLastModifiedTime(pwdLastModifedDate);
 
         // read user last login time:
         try {
-            uiBean.setLastLdapLoginTime(theUser.readLastLoginTime());
+            final Date lastLoginTime = theUser.readLastLoginTime();
+            uiBean.setLastLdapLoginTime(lastLoginTime == null ? null : lastLoginTime.toInstant());
         } catch (ChaiOperationException e) {
             LOGGER.warn(sessionLabel, "error reading user's last ldap login time: " + e.getMessage());
         }
 
         try {
-            uiBean.setAccountExpirationTime(theUser.readAccountExpirationDate());
+            final Date accountExpireDate = theUser.readAccountExpirationDate();
+            uiBean.setAccountExpirationTime(accountExpireDate == null ? null : accountExpireDate.toInstant());
         } catch (Exception e) {
             LOGGER.error(sessionLabel, "error reading account expired date for user '" + userIdentity + "', " + e.getMessage());
         }

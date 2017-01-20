@@ -33,8 +33,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class FileSystemUtility {
@@ -74,7 +74,7 @@ public class FileSystemUtility {
         return new FileSummaryInformation(
                 file.getName(),
                 file.getParentFile().getAbsolutePath(),
-                new Date(file.lastModified()),
+                Instant.ofEpochMilli(file.lastModified()),
                 file.length(),
                 SecureEngine.hash(file, PwmHashAlgorithm.SHA1)
         );
@@ -159,11 +159,11 @@ public class FileSystemUtility {
     public static class FileSummaryInformation implements Serializable {
         private final String filename;
         private final String filepath;
-        private final Date modified;
+        private final Instant modified;
         private final long size;
         private final String sha1sum;
 
-        public FileSummaryInformation(final String filename, final String filepath, final Date modified, final long size, final String sha1sum) {
+        public FileSummaryInformation(final String filename, final String filepath, final Instant modified, final long size, final String sha1sum) {
             this.filename = filename;
             this.filepath = filepath;
             this.modified = modified;
@@ -179,7 +179,7 @@ public class FileSystemUtility {
             return filepath;
         }
 
-        public Date getModified() {
+        public Instant getModified() {
             return modified;
         }
 

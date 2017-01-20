@@ -177,7 +177,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
             final Date lastModifyTime = configurationReader.getStoredConfiguration().modifyTime();
             final String output = lastModifyTime == null
                     ? LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable,pwmRequest)
-                    : PwmConstants.DEFAULT_DATETIME_FORMAT.format(lastModifyTime);
+                    : JavaHelper.toIsoDate(lastModifyTime);
             pwmRequest.setAttribute(PwmRequest.Attribute.ConfigLastModified, output);
         }
         pwmRequest.setAttribute(PwmRequest.Attribute.ConfigHasPassword, LocaleHelper.booleanString(configurationReader.getStoredConfiguration().hasPassword(), pwmRequest.getLocale(), pwmRequest.getConfig()));

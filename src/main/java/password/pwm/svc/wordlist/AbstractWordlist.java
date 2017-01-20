@@ -55,9 +55,9 @@ import password.pwm.util.secure.SecureEngine;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -195,7 +195,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
         final Set<String> testWords = chunkWord(testWord, this.wordlistConfiguration.getCheckSize());
 
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         try {
             boolean result = false;
             for (final String t : testWords) {
@@ -269,7 +269,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             final HealthRecord healthRecord = HealthRecord.forMessage(HealthMessage.Wordlist_AutoImportFailure,
                     this.getWordlistFileSetting().toMenuLocationDebug(null, PwmConstants.DEFAULT_LOCALE),
                     autoImportError.getDetailedErrorMsg(),
-                    PwmConstants.DEFAULT_DATETIME_FORMAT.format(autoImportError.getDate())
+                    JavaHelper.toIsoDate(autoImportError.getDate())
             );
             returnList.add(healthRecord);
         }
@@ -458,7 +458,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
                     populator.cancel();
 
                     final int maxWaitMs = 1000 * 30;
-                    final Date startWaitTime = new Date();
+                    final Instant startWaitTime = Instant.now();
                     while (populator.isRunning() && TimeDuration.fromCurrent(startWaitTime).isShorterThan(maxWaitMs)) {
                         JavaHelper.pause(1000);
                     }
@@ -528,7 +528,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         String readImportUrlHash() {
             InputStream inputStream = null;
             try {
-                final Date startTime = new Date();
+                final Instant startTime = Instant.now();
                 LOGGER.debug("beginning read of auto-import wordlist url hash checksum from '" + wordlistConfiguration.getAutoImportUrl() + "'");
                 inputStream = autoImportInputStream();
                 final ChecksumInputStream checksumInputStream = new ChecksumInputStream(CHECKSUM_HASH_ALG, inputStream);

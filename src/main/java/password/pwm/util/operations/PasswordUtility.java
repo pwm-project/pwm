@@ -38,7 +38,6 @@ import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.PasswordStatus;
@@ -78,16 +77,18 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.PasswordCharCounter;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmPasswordRuleValidator;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -573,14 +574,14 @@ public class PasswordUtility {
         }
     }
 
-    public static Map<String,Date> readIndividualReplicaLastPasswordTimes(
+    public static Map<String,Instant> readIndividualReplicaLastPasswordTimes(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
-        final Map<String,Date> returnValue = new LinkedHashMap<>();
+        final Map<String,Instant> returnValue = new LinkedHashMap<>();
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
         final Collection<ChaiConfiguration> perReplicaConfigs = ChaiUtility.splitConfigurationPerReplica(
                 chaiProvider.getChaiConfiguration(),
@@ -591,7 +592,7 @@ public class PasswordUtility {
             ChaiProvider loopProvider = null;
             try {
                 loopProvider = ChaiProviderFactory.createProvider(loopConfiguration);
-                final Date lastModifiedDate = determinePwdLastModified(pwmApplication, sessionLabel, userIdentity);
+                final Instant lastModifiedDate = determinePwdLastModified(pwmApplication, sessionLabel, userIdentity);
                 returnValue.put(loopReplicaUrl, lastModifiedDate);
             } catch (ChaiUnavailableException e) {
                 LOGGER.error(sessionLabel, "unreachable server during replica password sync check");
@@ -1037,7 +1038,7 @@ public class PasswordUtility {
         pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, userInfoBean, macroMachine);
     }
 
-    public static Date determinePwdLastModified(
+    public static Instant determinePwdLastModified(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
@@ -1048,7 +1049,7 @@ public class PasswordUtility {
         return determinePwdLastModified(pwmApplication, sessionLabel, theUser, userIdentity);
     }
 
-    private static Date determinePwdLastModified(
+    private static Instant determinePwdLastModified(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final ChaiUser theUser,
@@ -1060,8 +1061,8 @@ public class PasswordUtility {
         try {
             final Date chaiReadDate = theUser.readPasswordModificationDate();
             if (chaiReadDate != null) {
-                LOGGER.trace(sessionLabel, "read last user password change timestamp (via chai) as: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(chaiReadDate));
-                return chaiReadDate;
+                LOGGER.trace(sessionLabel, "read last user password change timestamp (via chai) as: " + JavaHelper.toIsoDate(chaiReadDate));
+                return chaiReadDate.toInstant();
             }
         } catch (ChaiOperationException e) {
             LOGGER.error(sessionLabel, "unexpected error reading password last modified timestamp: " + e.getMessage());
@@ -1072,8 +1073,8 @@ public class PasswordUtility {
         if (pwmLastSetAttr != null && pwmLastSetAttr.length() > 0) {
             try {
                 final Date pwmPwdLastModified = theUser.readDateAttribute(pwmLastSetAttr);
-                LOGGER.trace(sessionLabel, "read pwmPasswordChangeTime as: " + (pwmPwdLastModified == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmPwdLastModified)));
-                return pwmPwdLastModified;
+                LOGGER.trace(sessionLabel, "read pwmPasswordChangeTime as: " + (pwmPwdLastModified == null ? "n/a" : JavaHelper.toIsoDate(pwmPwdLastModified)));
+                return pwmPwdLastModified == null ? null : pwmPwdLastModified.toInstant();
             } catch (ChaiOperationException e) {
                 LOGGER.error(sessionLabel, "error parsing password last modified PWM password value for user " + theUser.getEntryDN() + "; error: " + e.getMessage());
             }
@@ -1087,7 +1088,7 @@ public class PasswordUtility {
             final ChaiUser chaiUser,
             final SessionLabel sessionLabel,
             final PwmPasswordPolicy passwordPolicy,
-            final Date lastModified,
+            final Instant lastModified,
             final PasswordStatus passwordStatus
     )
             throws PwmOperationalException, PwmUnrecoverableException
@@ -1100,8 +1101,8 @@ public class PasswordUtility {
                 if (oracleDS_PrePasswordAllowChangeTime != null && !oracleDS_PrePasswordAllowChangeTime.isEmpty()) {
                     final Date date = OracleDSEntries.convertZuluToDate(oracleDS_PrePasswordAllowChangeTime);
                     if (new Date().before(date)) {
-                        LOGGER.debug("discovered oracleds allowed change time is set to: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(date) + ", won't permit password change");
-                        final String errorMsg = "change not permitted until " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(date);
+                        LOGGER.debug("discovered oracleds allowed change time is set to: " + JavaHelper.toIsoDate(date) + ", won't permit password change");
+                        final String errorMsg = "change not permitted until " + JavaHelper.toIsoDate(date);
                         final ErrorInformation errorInformation = new ErrorInformation(PwmError.PASSWORD_TOO_SOON, errorMsg);
                         throw new PwmUnrecoverableException(errorInformation);
                     }
@@ -1118,7 +1119,7 @@ public class PasswordUtility {
             return;
         }
 
-        if (lastModified == null || lastModified.after(new Date())) {
+        if (lastModified == null || lastModified.isAfter(Instant.now())) {
             LOGGER.debug(sessionLabel, "skipping minimum lifetime check, password last set time is unknown");
             return;
         }
@@ -1135,7 +1136,7 @@ public class PasswordUtility {
         }
 
         final Date allowedChangeDate = new Date(System.currentTimeMillis() + (minimumLifetime * 1000));
-        final String errorMsg = "last password change is too recent, password cannot be changed until after " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(allowedChangeDate);
+        final String errorMsg = "last password change is too recent, password cannot be changed until after " + JavaHelper.toIsoDate(allowedChangeDate);
         final ErrorInformation errorInformation = new ErrorInformation(PwmError.PASSWORD_TOO_SOON,errorMsg);
         throw new PwmOperationalException(errorInformation);
     }

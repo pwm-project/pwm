@@ -63,9 +63,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URLConnection;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -119,7 +119,7 @@ public class PeopleSearchDataReader {
     )
             throws PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
         final CacheKey cacheKey = makeCacheKey(OrgChartDataBean.class.getSimpleName(), userIdentity.toDelimitedKey());
         { // if value is cached then return;
@@ -176,7 +176,7 @@ public class PeopleSearchDataReader {
     )
             throws PwmUnrecoverableException, IOException, ServletException, PwmOperationalException, ChaiUnavailableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getPwmApplication());
 
         final CacheKey cacheKey = makeCacheKey(UserDetailBean.class.getSimpleName(), userIdentity.toDelimitedKey());
@@ -629,7 +629,7 @@ public class PeopleSearchDataReader {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
         if (username == null || username.length() < 1) {
             return new SearchResultBean();

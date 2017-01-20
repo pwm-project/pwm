@@ -45,11 +45,11 @@ import password.pwm.i18n.Display;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.Helper;
+import password.pwm.util.LocaleHelper;
+import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -60,6 +60,7 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -98,7 +99,7 @@ public class ReportService implements PwmService {
     public void clear()
             throws LocalDBException, PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         LOGGER.info(PwmConstants.REPORTING_SESSION_LABEL,"clearing cached report data");
         if (userCacheService != null) {
             userCacheService.clear();
@@ -646,27 +647,27 @@ public class ReportService implements PwmService {
         }
         if (columnFilter.isAccountExpirationTimeVisible()) {
             csvRow.add(userCacheRecord.getAccountExpirationTime() == null ? naField :
-                    PwmConstants.DEFAULT_DATETIME_FORMAT.format(userCacheRecord.getAccountExpirationTime()));
+                    JavaHelper.toIsoDate(userCacheRecord.getAccountExpirationTime()));
         }
 
         if (columnFilter.isPasswordExpirationTimeVisible()) {
             csvRow.add(userCacheRecord.getPasswordExpirationTime() == null ? naField :
-                    PwmConstants.DEFAULT_DATETIME_FORMAT.format(userCacheRecord.getPasswordExpirationTime()));
+                    JavaHelper.toIsoDate(userCacheRecord.getPasswordExpirationTime()));
         }
 
         if (columnFilter.isPasswordChangeTimeVisible()) {
             csvRow.add(userCacheRecord.getPasswordChangeTime() == null ? naField :
-                    PwmConstants.DEFAULT_DATETIME_FORMAT.format(userCacheRecord.getPasswordChangeTime()));
+                    JavaHelper.toIsoDate(userCacheRecord.getPasswordChangeTime()));
         }
 
         if (columnFilter.isResponseSetTimeVisible()) {
             csvRow.add(userCacheRecord.getResponseSetTime() == null ? naField :
-                    PwmConstants.DEFAULT_DATETIME_FORMAT.format(userCacheRecord.getResponseSetTime()));
+                    JavaHelper.toIsoDate(userCacheRecord.getResponseSetTime()));
         }
 
         if (columnFilter.isLastLoginTimeVisible()) {
             csvRow.add(userCacheRecord.getLastLoginTime() == null ? naField :
-                    PwmConstants.DEFAULT_DATETIME_FORMAT.format(userCacheRecord.getLastLoginTime()));
+                    JavaHelper.toIsoDate(userCacheRecord.getLastLoginTime()));
         }
 
         if (columnFilter.isHasResponsesVisible()) {
@@ -710,7 +711,7 @@ public class ReportService implements PwmService {
 
         if (columnFilter.isCacheTimestampVisible()) {
             csvRow.add(userCacheRecord.getCacheTimestamp() == null ? naField :
-                    PwmConstants.DEFAULT_DATETIME_FORMAT.format(userCacheRecord.getCacheTimestamp()));
+                    JavaHelper.toIsoDate(userCacheRecord.getCacheTimestamp()));
         }
 
         csvPrinter.printRecord(csvRow);

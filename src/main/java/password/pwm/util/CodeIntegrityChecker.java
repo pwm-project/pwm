@@ -30,6 +30,7 @@ import password.pwm.config.PwmSettingTemplate;
 import password.pwm.error.PwmError;
 import password.pwm.health.HealthMessage;
 import password.pwm.i18n.Message;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.rest.bean.HealthRecord;
@@ -129,7 +130,7 @@ public class CodeIntegrityChecker {
     public String asPrettyJsonOutput() {
         final Map<String,Object> outputMap = new LinkedHashMap<>();
         outputMap.put("information",
-                PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " IntegrityCheck " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(
+                PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " IntegrityCheck " + JavaHelper.toIsoDate(
                         new Date()));
         {
             final Set<HealthRecord> healthBeans = new LinkedHashSet<>();

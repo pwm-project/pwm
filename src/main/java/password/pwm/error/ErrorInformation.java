@@ -27,8 +27,8 @@ import password.pwm.config.Configuration;
 import password.pwm.http.PwmSession;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -43,7 +43,7 @@ public class ErrorInformation implements Serializable {
     private final String detailedErrorMsg;
     private final String userStrOverride;
     private final String[] fieldValues;
-    private final Date date = new Date();
+    private final Instant date = Instant.now();
 
     // private constructor used for gson de-serialization
     private ErrorInformation() {
@@ -148,7 +148,7 @@ public class ErrorInformation implements Serializable {
         return this.getError().getLocalizedMessage(userLocale, config, fieldValues);
     }
 
-    public Date getDate() {
+    public Instant getDate() {
         return date;
     }
 

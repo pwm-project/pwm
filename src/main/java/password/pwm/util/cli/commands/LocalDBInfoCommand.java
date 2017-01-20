@@ -22,21 +22,21 @@
 
 package password.pwm.util.cli.commands;
 
-import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.Helper;
+import password.pwm.util.cli.CliParameters;
+import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.cli.CliParameters;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBUtility;
 
 import java.text.NumberFormat;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 
 public class LocalDBInfoCommand extends AbstractCliCommand {
     public void doCommand() throws Exception {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final LocalDB localDB = cliEnvironment.getLocalDB();
         final long localDBdiskSpace = FileSystemUtility.getFileDirectorySize(localDB.getFileLocation());
         out("beginning LocalDBInfo");

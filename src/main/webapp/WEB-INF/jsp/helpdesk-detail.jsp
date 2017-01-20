@@ -36,6 +36,7 @@
 <%@ page import="password.pwm.http.tag.PasswordRequirementsTag" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.svc.event.UserAuditRecord" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.util.java.TimeDuration" %>
 <%@ page import="password.pwm.util.macro.MacroMachine" %>
@@ -44,6 +45,7 @@
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Set" %>
+<%@ page import="java.time.Instant" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -202,7 +204,7 @@
                                     </td>
                                     <% } else { %>
                                     <td class="timestamp">
-                                        <%= dateFormatter.format(searchedUserInfo.getAccountExpirationTime()) %>
+                                        <%= JavaHelper.toIsoDate(searchedUserInfo.getAccountExpirationTime()) %>
                                     </td>
                                     <% } %>
                                     </td>
@@ -219,7 +221,7 @@
                                     </td>
                                     <% } else { %>
                                     <td class="timestamp">
-                                        <%= dateFormatter.format(helpdeskDetailInfoBean.getLastLoginTime()) %>
+                                        <%= JavaHelper.toIsoDate(helpdeskDetailInfoBean.getLastLoginTime()) %>
                                     </td>
                                     <% } %>
                                 </tr>
@@ -277,7 +279,7 @@
                                     </td>
                                     <% } else { %>
                                     <td class="timestamp">
-                                        <%= dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) %>
+                                        <%= JavaHelper.toIsoDate(searchedUserInfo.getPasswordLastModifiedTime()) %>
                                     </td>
                                     <% } %>
                                 </tr>
@@ -303,7 +305,7 @@
                                     </td>
                                     <% } else { %>
                                     <td class="timestamp">
-                                        <%= dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) %>
+                                        <%= JavaHelper.toIsoDate(searchedUserInfo.getPasswordExpirationTime()) %>
                                     </td>
                                     <% } %>
                                 </tr>
@@ -363,7 +365,7 @@
                                     </td>
                                     <% } else { %>
                                     <td class="timestamp">
-                                        <%= dateFormatter.format(responseInfoBean.getTimestamp()) %>
+                                        <%= JavaHelper.toIsoDate(responseInfoBean.getTimestamp()) %>
                                     </td>
                                     <% } %>
                                 </tr>
@@ -390,7 +392,7 @@
                                         </td>
                                         <% } else { %>
                                         <td class="timestamp">
-                                            <%= dateFormatter.format(searchedUserInfo.getOtpUserRecord().getTimestamp()) %>
+                                            <%= JavaHelper.toIsoDate(searchedUserInfo.getOtpUserRecord().getTimestamp()) %>
                                         </td>
                                         <% } %>
                                     </tr>
@@ -415,7 +417,7 @@
                                     <% for (final UserAuditRecord record : helpdeskDetailInfoBean.getUserHistory()) { %>
                                     <tr>
                                         <td class="key timestamp" style="width:50%">
-                                            <%= dateFormatter.format(record.getTimestamp()) %>
+                                            <%= JavaHelper.toIsoDate(record.getTimestamp()) %>
                                         </td>
                                         <td>
                                             <%= record.getEventCode().getLocalizedString(pwmRequest.getConfig(), pwmRequest.getLocale()) %>
@@ -515,7 +517,7 @@
                         <% } %>
                     </div>
                     <br/>
-                    <div class="footnote"><div class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></div></div>
+                    <div class="footnote"><div class="timestamp"><%=JavaHelper.toIsoDate(Instant.now())%></div></div>
                 </td>
                 <td class="noborder" style="width: 200px; max-width:200px; text-align: left; vertical-align: top">
                     <div class="noborder" style="margin-top: 25px; margin-left: 5px">

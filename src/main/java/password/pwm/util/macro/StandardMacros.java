@@ -32,6 +32,7 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserDataReader;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -41,6 +42,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -260,7 +262,7 @@ public abstract class StandardMacros {
                 return "";
             }
 
-            final Date pwdExpirationTime = userInfoBean.getPasswordExpirationTime();
+            final Instant pwdExpirationTime = userInfoBean.getPasswordExpirationTime();
             if (pwdExpirationTime == null) {
                 return "";
             }
@@ -275,7 +277,7 @@ public abstract class StandardMacros {
                 }
             }
 
-            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwdExpirationTime);
+            return JavaHelper.toIsoDate(pwdExpirationTime);
         }
     }
 
@@ -296,12 +298,12 @@ public abstract class StandardMacros {
                 return "";
             }
 
-            final Date pwdExpirationTime = userInfoBean.getPasswordExpirationTime();
+            final Instant pwdExpirationTime = userInfoBean.getPasswordExpirationTime();
             if (pwdExpirationTime == null) {
                 return "";
             }
 
-            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwdExpirationTime);
+            return JavaHelper.toIsoDate(pwdExpirationTime);
         }
     }
 
@@ -323,7 +325,7 @@ public abstract class StandardMacros {
                 return "";
             }
 
-            final Date pwdExpirationTime = userInfoBean.getPasswordExpirationTime();
+            final Instant pwdExpirationTime = userInfoBean.getPasswordExpirationTime();
             final TimeDuration timeUntilExpiration = TimeDuration.fromCurrent(pwdExpirationTime);
             final long daysUntilExpiration = timeUntilExpiration.getDays();
 

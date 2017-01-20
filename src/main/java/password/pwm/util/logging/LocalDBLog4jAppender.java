@@ -27,7 +27,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
 
-import java.util.Date;
+import java.time.Instant;
 
 public class LocalDBLog4jAppender extends AppenderSkeleton {
 
@@ -43,7 +43,7 @@ public class LocalDBLog4jAppender extends AppenderSkeleton {
         final Object message = loggingEvent.getMessage();
         final ThrowableInformation throwableInformation = loggingEvent.getThrowableInformation();
         final Level level = loggingEvent.getLevel();
-        final Date timeStamp = new Date(loggingEvent.getTimeStamp());
+        final Instant timeStamp = Instant.ofEpochMilli(loggingEvent.getTimeStamp());
         final String sourceLogger = loggingEvent.getLogger().getName();
 
         if (localDBLogger != null) {

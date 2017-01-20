@@ -23,7 +23,6 @@
 package password.pwm.util.cli.commands;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.util.cli.CliParameters;
@@ -57,7 +56,7 @@ public class TokenInfoCommand extends AbstractCliCommand {
         } else {
             out("  name: " + tokenPayload.getName());
             out("  user: " + tokenPayload.getUserIdentity());
-            out("issued: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(tokenPayload.getDate()));
+            out("issued: " + JavaHelper.toIsoDate(tokenPayload.getDate()));
             for (final String key : tokenPayload.getData().keySet()) {
                 final String value = tokenPayload.getData().get(key);
                 out("  payload key: " + key);

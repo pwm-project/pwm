@@ -46,8 +46,8 @@ import password.pwm.util.logging.PwmLogger;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringReader;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -309,12 +309,18 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
         }
 
         public static StoredEvent fromAuditRecord(final UserAuditRecord auditRecord) {
-            return new StoredEvent(auditRecord.getEventCode(),auditRecord.getTimestamp().getTime(),auditRecord.getMessage(),auditRecord.getSourceAddress(),auditRecord.getSourceHost());
+            return new StoredEvent(
+                    auditRecord.getEventCode(),
+                    auditRecord.getTimestamp().toEpochMilli(),
+                    auditRecord.getMessage(),
+                    auditRecord.getSourceAddress(),
+                    auditRecord.getSourceHost()
+            );
         }
 
         public UserAuditRecord asAuditRecord(final UserInfoBean userInfoBean) {
             return new UserAuditRecord(
-                    new Date(this.getTimestamp()),
+                    Instant.ofEpochMilli(this.getTimestamp()),
                     this.getAuditEvent(),
                     null,
                     null,

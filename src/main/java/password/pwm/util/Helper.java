@@ -44,8 +44,8 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
@@ -106,7 +106,7 @@ public class Helper {
         final String value = sessionStateService.getSessionStateInfo(pwmRequest);
         final FormNonce formID = new FormNonce(
                 pwmRequest.getPwmSession().getLoginInfoBean().getGuid(),
-                new Date(),
+                Instant.now(),
                 pwmRequest.getPwmSession().getLoginInfoBean().getReqCounter(),
                 value
         );

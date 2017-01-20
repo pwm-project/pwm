@@ -28,14 +28,14 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.DataStore;
+import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 class DataStoreRecordStore implements RecordStore {
@@ -45,7 +45,7 @@ class DataStoreRecordStore implements RecordStore {
     private final IntruderManager intruderManager;
     private final DataStore dataStore;
 
-    private Date eldestRecord = new Date(0);
+    private Instant eldestRecord = Instant.now();
 
     DataStoreRecordStore(final DataStore dataStore, final IntruderManager intruderManager) {
         this.dataStore = dataStore;
@@ -142,7 +142,7 @@ class DataStoreRecordStore implements RecordStore {
         if (TimeDuration.fromCurrent(eldestRecord).isShorterThan(maxRecordAge)) {
             return;
         }
-        eldestRecord = new Date();
+        eldestRecord = Instant.now();
 
         final long startTime = System.currentTimeMillis();
         final int recordsExamined = 0;

@@ -65,6 +65,7 @@ import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.SecureEngine;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -625,13 +626,13 @@ public class TokenService implements PwmService {
         // check if password-last-modified is same as when tried to read it before.
         if (tokenPayload.getUserIdentity() != null && tokenPayload.getData() != null && tokenPayload.getData().containsKey(PwmConstants.TOKEN_KEY_PWD_CHG_DATE)) {
             try {
-                final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(
+                final Instant userLastPasswordChange = PasswordUtility.determinePwdLastModified(
                         pwmApplication,
                         pwmSession.getLabel(),
                         tokenPayload.getUserIdentity());
                 final String dateStringInToken = tokenPayload.getData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
                 if (userLastPasswordChange != null && dateStringInToken != null) {
-                    final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);
+                    final String userChangeString = JavaHelper.toIsoDate(userLastPasswordChange);
                     if (!dateStringInToken.equalsIgnoreCase(userChangeString)) {
                         final String errorString = "user password has changed since token issued, token rejected";
                         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED, errorString);

@@ -48,6 +48,7 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -116,7 +117,7 @@ public class LocalDBUtility {
 
 
         try (CSVPrinter csvPrinter = Helper.makeCsvPrinter(new GZIPOutputStream(outputStream, GZIP_BUFFER_SIZE))) {
-            csvPrinter.printComment(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " LocalDB export on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            csvPrinter.printComment(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " LocalDB export on " + JavaHelper.toIsoDate(new Date()));
             for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
                 if (loopDB.isBackup()) {
                     csvPrinter.printComment("Export of " + loopDB.toString());
@@ -134,7 +135,7 @@ public class LocalDBUtility {
                     csvPrinter.flush();
                 }
             }
-            csvPrinter.printComment("export completed at " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            csvPrinter.printComment("export completed at " + JavaHelper.toIsoDate(new Date()));
         } catch (IOException e) {
             writeStringToOut(debugOutput,"IO error during localDB export: " + e.getMessage());
         } finally {
@@ -149,7 +150,7 @@ public class LocalDBUtility {
             return;
         }
 
-        final String msg = PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()) + " " + string + "\n";
+        final String msg = JavaHelper.toIsoDate(new Date()) + " " + string + "\n";
 
         try {
             out.append(msg);
@@ -197,7 +198,7 @@ public class LocalDBUtility {
 
         writeStringToOut(out, "beginning localdb import...");
 
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
                 new TransactionSizeCalculator.SettingsBuilder()
                         .setDurationGoal(new TimeDuration(100, TimeUnit.MILLISECONDS))
@@ -208,7 +209,7 @@ public class LocalDBUtility {
 
         final Map<LocalDB.DB,Map<String,String>> transactionMap = new HashMap<>();
         for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
-            transactionMap.put(loopDB,new TreeMap<String, String>());
+            transactionMap.put(loopDB,new TreeMap<>());
         }
 
         final CountingInputStream countingInputStream = new CountingInputStream(inputStream);

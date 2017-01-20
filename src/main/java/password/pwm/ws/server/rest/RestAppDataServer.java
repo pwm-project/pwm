@@ -482,7 +482,7 @@ public class RestAppDataServer extends AbstractRestServer {
     {
         final StringBuilder inputString = new StringBuilder();
         inputString.append(PwmConstants.BUILD_NUMBER);
-        inputString.append(pwmApplication.getStartupTime().getTime());
+        inputString.append(pwmApplication.getStartupTime().toEpochMilli());
         inputString.append(httpServletRequest.getSession().getMaxInactiveInterval());
         inputString.append(pwmApplication.getInstanceNonce());
 

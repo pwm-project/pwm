@@ -23,20 +23,20 @@
 package password.pwm.ws.server.rest.bean;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 public class HealthData implements Serializable {
-    public Date timestamp;
+    public Instant timestamp;
     public String overall;
     public List<HealthRecord> records;
 
-    public Date getTimestamp()
+    public Instant getTimestamp()
     {
         return timestamp;
     }
 
-    public void setTimestamp(final Date timestamp)
+    public void setTimestamp(final Instant timestamp)
     {
         this.timestamp = timestamp;
     }

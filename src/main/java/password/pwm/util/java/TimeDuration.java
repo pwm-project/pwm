@@ -121,6 +121,17 @@ public class TimeDuration implements Comparable, Serializable {
      * Create a new TimeDuration using the absolute difference as the time
      * period between the two supplied timestamps
      *
+     * @param instant1 timestamp in Instant format
+     * @param instant2 timestamp in Instant format
+     */
+    public TimeDuration(final Instant instant1, final Instant instant2) {
+        this(instant1.toEpochMilli(), instant2.toEpochMilli());
+    }
+
+    /**
+     * Create a new TimeDuration using the absolute difference as the time
+     * period between the two supplied timestamps
+     *
      * @param date1 timestamp in Date format
      * @param date2 timestamp in Date format
      */

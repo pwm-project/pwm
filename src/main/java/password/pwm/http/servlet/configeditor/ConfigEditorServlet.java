@@ -84,10 +84,10 @@ import javax.servlet.annotation.WebServlet;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -597,7 +597,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
     )
             throws IOException, PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final String bodyData = pwmRequest.readRequestBodyAsString();
         final Map<String, String> valueMap = JsonUtil.deserializeStringMap(bodyData);
         final Locale locale = pwmRequest.getLocale();
@@ -651,7 +651,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
     )
             throws IOException, PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         LOGGER.debug(pwmRequest, "beginning restLdapHealthCheck");
         final String profileID = pwmRequest.readParameterAsString("profile");
         final Configuration config = new Configuration(configManagerBean.getStoredConfiguration());
@@ -668,7 +668,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         LOGGER.debug(pwmRequest, "beginning restDatabaseHealthCheck");
         final Configuration config = new Configuration(configManagerBean.getStoredConfiguration());
         final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus(pwmRequest.getPwmApplication(), config);
@@ -684,7 +684,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         LOGGER.debug(pwmRequest, "beginning restSmsHealthCheck");
 
         final List<HealthRecord> returnRecords = new ArrayList<>();
@@ -806,7 +806,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
     )
             throws IOException, PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
         final ArrayList<NavTreeItem> navigationData = new ArrayList<>();
         final Map<String,Object> inputParameters = pwmRequest.readBodyAsJsonMap(false);
@@ -949,7 +949,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
     private void restBrowseLdap(final PwmRequest pwmRequest, final ConfigManagerBean configManagerBean)
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
         final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap(PwmHttpRequestWrapper.Flag.BypassValidation);
         final String profile = inputMap.get("profile");
         final String dn = inputMap.containsKey("dn") ? inputMap.get("dn") : "";

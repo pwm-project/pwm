@@ -28,6 +28,7 @@ import password.pwm.PwmEnvironment;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
@@ -86,7 +87,7 @@ public abstract class InternalMacros {
         {
             final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
             if (userInfoBean != null && userInfoBean.getResponseInfoBean() != null && userInfoBean.getResponseInfoBean().getTimestamp() != null) {
-                return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getResponseInfoBean().getTimestamp());
+                return JavaHelper.toIsoDate(userInfoBean.getResponseInfoBean().getTimestamp());
             }
             return "";
         }

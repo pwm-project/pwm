@@ -21,6 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.i18n.Admin" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.util.java.JsonUtil" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.util.logging.LocalDBLogger" %>
@@ -284,7 +285,7 @@
             history. This history is stored in the LocalDB cache of the debug log. For a
             permanent log
             record of events, see the application server's log file.  The LocalDB contains <%=numberFormat.format(localDBLogger.getStoredEventCount())%> events. The oldest event is from
-            <span class="timestamp"><%= PwmConstants.DEFAULT_DATETIME_FORMAT.format(ContextManager.getPwmApplication(session).getLocalDBLogger().getTailDate()) %></span>.
+            <span class="timestamp"><%= JavaHelper.toIsoDate(ContextManager.getPwmApplication(session).getLocalDBLogger().getTailDate()) %></span>.
         </p><p>
         The LocalDB is configured to capture events of level
         <b><%=ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL)%>

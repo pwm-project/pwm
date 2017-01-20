@@ -1,8 +1,7 @@
 <%@ page import="password.pwm.http.filter.ConfigAccessFilter" %>
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.util.LocaleHelper" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.http.tag.value.PwmValue" %>
+<%@ page import="password.pwm.util.java.JavaHelper" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -82,7 +81,7 @@
             <% for (final ConfigAccessFilter.ConfigLoginEvent event : configLoginHistory.successEvents()) { %>
             <tr>
                 <td><%=event.getUserIdentity()%></td>
-                <td><span  class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(event.getDate())%></span></td>
+                <td><span  class="timestamp"><%=JavaHelper.toIsoDate(event.getDate())%></span></td>
                 <td><%=event.getNetworkAddress()%></td>
             </tr>
             <% } %>
@@ -100,7 +99,7 @@
             <% for (final ConfigAccessFilter.ConfigLoginEvent event : configLoginHistory.failedEvents()) { %>
             <tr>
                 <td><%=event.getUserIdentity()%></td>
-                <td><span  class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(event.getDate())%></span></td>
+                <td><span  class="timestamp"><%=JavaHelper.toIsoDate(event.getDate())%></span></td>
                 <td><%=event.getNetworkAddress()%></td>
             </tr>
             <% } %>

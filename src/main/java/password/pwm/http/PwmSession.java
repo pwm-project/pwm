@@ -48,6 +48,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -103,7 +104,7 @@ public class PwmSession implements Serializable {
             this.getSessionStateBean().setSessionID(nextID);
         }
 
-        this.sessionStateBean.setSessionLastAccessedTime(new Date());
+        this.sessionStateBean.setSessionLastAccessedTime(Instant.now());
 
         if (pwmApplication.getStatisticsManager() != null) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.HTTP_SESSIONS);

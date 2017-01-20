@@ -57,6 +57,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -286,7 +287,7 @@ public class StatisticsManager implements PwmService {
         }
 
         try {
-            localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_TEMP, PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_TEMP, JavaHelper.toIsoDate(new Date()));
         } catch (IllegalStateException e) {
             LOGGER.error("unable to write to localDB, will remain closed, error: " + e.getMessage());
             status = STATUS.CLOSED;
@@ -305,7 +306,7 @@ public class StatisticsManager implements PwmService {
 
         if (pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING) {
             if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PUBLISH_STATS_ENABLE)) {
-                long lastPublishTimestamp = pwmApplication.getInstallTime().getTime();
+                long lastPublishTimestamp = pwmApplication.getInstallTime().toEpochMilli();
                 {
                     final String lastPublishDateStr = localDB.get(LocalDB.DB.PWM_STATS,KEY_CLOUD_PUBLISH_TIMESTAMP);
                     if (lastPublishDateStr != null && lastPublishDateStr.length() > 0) {
@@ -510,7 +511,7 @@ public class StatisticsManager implements PwmService {
             final Map<String,String> otherData = new HashMap<>();
             otherData.put(StatsPublishBean.KEYS.SITE_URL.toString(),config.readSettingAsString(PwmSetting.PWM_SITE_URL));
             otherData.put(StatsPublishBean.KEYS.SITE_DESCRIPTION.toString(),config.readSettingAsString(PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION));
-            otherData.put(StatsPublishBean.KEYS.INSTALL_DATE.toString(),PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmApplication.getInstallTime()));
+            otherData.put(StatsPublishBean.KEYS.INSTALL_DATE.toString(), JavaHelper.toIsoDate(pwmApplication.getInstallTime()));
 
             try {
                 otherData.put(StatsPublishBean.KEYS.LDAP_VENDOR.toString(),pwmApplication.getProxyChaiProvider(config.getDefaultLdapProfile().getIdentifier()).getDirectoryVendor().toString());
@@ -520,7 +521,7 @@ public class StatisticsManager implements PwmService {
 
             statsPublishData = new StatsPublishBean(
                     pwmApplication.getInstanceID(),
-                    new Date(),
+                    Instant.now(),
                     statData,
                     configuredSettings,
                     PwmConstants.BUILD_NUMBER,
@@ -551,7 +552,7 @@ public class StatisticsManager implements PwmService {
             throws IOException
     {
         LOGGER.trace("beginning output stats to csv process");
-        final Date startTime = new Date();
+        final Instant startTime = Instant.now();
 
         final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
         final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);

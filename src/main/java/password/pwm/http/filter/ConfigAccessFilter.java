@@ -47,6 +47,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.svc.intruder.RecordType;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -171,7 +172,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                                 if (persistentLoginValue.equals(persistentLoginInfo.getPassword())) {
                                     persistentLoginAccepted = true;
                                     LOGGER.debug(pwmRequest, "accepting persistent config login from cookie (expires "
-                                                    + PwmConstants.DEFAULT_DATETIME_FORMAT.format(persistentLoginInfo.getExpireDate())
+                                                    + JavaHelper.toIsoDate(persistentLoginInfo.getExpireDate())
                                                     + ")"
                                     );
                                 }
@@ -225,7 +226,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                             persistentSeconds
                     );
                     LOGGER.debug(pwmRequest, "set persistent config login cookie (expires "
-                                    + PwmConstants.DEFAULT_DATETIME_FORMAT.format(expirationDate)
+                                    + JavaHelper.toIsoDate(expirationDate)
                                     + ")"
                     );
                 }
