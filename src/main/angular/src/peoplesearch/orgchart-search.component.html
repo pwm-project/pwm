@@ -3,6 +3,7 @@
     <mf-auto-complete search-text="$ctrl.query"
                       on-search-text-change="$ctrl.onSearchTextChange(value)"
                       search="$ctrl.autoCompleteSearch(query)"
+                      input-debounce="$ctrl.inputDebounce"
                       item-selected="$ctrl.onAutoCompleteItemSelected(person)"
                       item="person">
         <content-template>

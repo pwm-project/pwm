@@ -61,12 +61,12 @@ export default class OrgChartSearchComponent {
                 private peopleService: IPeopleService,
                 private pwmService: IPwmService) {
         this.searchTextLocalStorageKey = this.localStorageService.keys.SEARCH_TEXT;
+        this.inputDebounce = this.pwmService.ajaxTypingWait;
     }
 
     $onInit(): void {
         const self = this;
 
-        this.inputDebounce = this.pwmService.ajaxTypingWait;
         this.configService.photosEnabled().then(
             (photosEnabled: boolean) => {
                 this.photosEnabled = photosEnabled;

@@ -55,6 +55,8 @@ abstract class PeopleSearchBaseComponent {
                 protected pwmService: IPwmService) {
         this.searchTextLocalStorageKey = this.localStorageService.keys.SEARCH_TEXT;
         this.searchViewLocalStorageKey = this.localStorageService.keys.SEARCH_VIEW;
+
+        this.inputDebounce = this.pwmService.ajaxTypingWait;
     }
 
     getMessage(): string {
@@ -200,8 +202,6 @@ abstract class PeopleSearchBaseComponent {
     }
 
     protected initialize(): void {
-        this.inputDebounce = this.pwmService.ajaxTypingWait;
-
         // Determine whether org-chart should appear
         this.configService.orgChartEnabled().then((orgChartEnabled: boolean) => {
             this.orgChartEnabled = orgChartEnabled;
