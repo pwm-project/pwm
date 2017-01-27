@@ -85,19 +85,25 @@ export default class OrgChartSearchComponent {
                 // Override personId in case it was undefined
                 personId = orgChartData.self.userKey;
 
-                self.$q
-                    .all({
-                        directReports: self.peopleService.getDirectReports(personId),
-                        managementChain: self.peopleService.getManagementChain(personId),
-                        person: self.peopleService.getPerson(personId)
-                    })
-                    .then(
-                        (data) => {
-                            self.$scope.$evalAsync(() => {
-                                self.directReports = data['directReports'];
-                                self.managementChain = data['managementChain'];
-                                self.person = data['person'];
-                            });
+                self.peopleService.getPerson(personId)
+                    .then((person: Person) => {
+                            self.person = person;
+                        },
+                        (error) => {
+                            // TODO: handle error
+                        });
+
+                self.peopleService.getManagementChain(personId)
+                    .then((managementChain: Person[]) => {
+                            self.managementChain = managementChain;
+                        },
+                        (error) => {
+                            // TODO: handle error
+                        });
+
+                self.peopleService.getDirectReports(personId)
+                    .then((directReports: Person[]) => {
+                            self.directReports = directReports;
                         },
                         (error) => {
                             // TODO: handle error
