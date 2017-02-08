@@ -591,9 +591,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet {
     private void addExpirationHeaders(final ResourceServletConfiguration resourceServletConfiguration, final HttpServletResponse httpResponse) {
         httpResponse.setDateHeader("Expires", System.currentTimeMillis() + (resourceServletConfiguration.getCacheExpireSeconds() * 1000));
         httpResponse.setHeader("Cache-Control", "public, max-age=" + resourceServletConfiguration.getCacheExpireSeconds());
-        httpResponse.setHeader("Vary", "Accept-Encoding");
-
-
+        httpResponse.setHeader("Vary", "Accept-Encoding, ");
     }
 
     private String getMimeType(final String filename) {

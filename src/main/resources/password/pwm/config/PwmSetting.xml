@@ -68,12 +68,12 @@
     </setting>
     <setting hidden="false" key="pwm.versionCheck.enable" level="1" required="true">
         <default>
-            <value>true</value>
+            <value>false</value>
         </default>
     </setting>
     <setting hidden="false" key="pwm.publishStats.enable" level="1" required="true">
         <default>
-            <value>true</value>
+            <value>false</value>
         </default>
     </setting>
     <setting hidden="false" key="pwm.publishStats.siteDescription" level="1">
@@ -1506,7 +1506,7 @@
     <setting hidden="false" key="security.cspHeader" level="2">
         <default>
             <!--<value><![CDATA[]]></value>-->
-            <value><![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-inline' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/csp-report]]></value>
+            <value><![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'self' 'unsafe-eval' 'unsafe-inline' 'nonce-%NONCE%' ; frame-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; report-uri /sspr/public/command/csp-report]]></value>
             <!-- 'unsafe-inline' on script-src is included for backward compatibility of CSP Level1 browsers.  CSP2 and future ignore it when the nonce is specified -->
         </default>
     </setting>
@@ -3470,20 +3470,6 @@
             <value>2592000</value>
         </default>
     </setting>
-    <setting hidden="false" key="reporting.minCacheAge" level="1">
-        <default>
-            <value>0</value>
-        </default>
-    </setting>
-    <setting hidden="false" key="reporting.reportRestTimeMS" level="1">
-        <default>
-            <value>-1</value>
-        </default>
-        <properties>
-            <property key="Minimum">-1</property>
-            <property key="Maximum">10000</property>
-        </properties>
-    </setting>
     <setting hidden="false" key="reporting.ldap.maxQuerySize" level="2">
         <default>
             <value>100000</value>
@@ -3511,6 +3497,16 @@
             <value>90</value>
         </default>
         <regex>^-?[0-9]{1,2}$</regex>
+    </setting>
+    <setting hidden="false" key="reporting.job.intensity" level="2">
+        <default>
+            <value>LOW</value>
+        </default>
+        <options>
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+        </options>
     </setting>
     <setting hidden="false" key="http.proxy.url" level="1">
         <default>

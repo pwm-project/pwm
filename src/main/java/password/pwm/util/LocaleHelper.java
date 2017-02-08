@@ -103,7 +103,14 @@ public class LocaleHelper {
         return getLocalizedMessage(locale,key,config,bundleClass,null);
     }
 
-    public static String getLocalizedMessage(final Locale locale, final String key, final Configuration config, final Class bundleClass, final String[] values) {
+    public static String getLocalizedMessage(
+            final Locale locale,
+            final String key,
+            final Configuration config,
+            final Class bundleClass,
+            final String[] values
+    )
+    {
         String returnValue = null;
         if (config != null) {
             final Map<Locale,String> configuredBundle = config.readLocalizedBundle(bundleClass.getName(),key);
@@ -124,7 +131,9 @@ public class LocaleHelper {
                 returnValue = bundle.getString(key);
             } catch (MissingResourceException e) {
                 final String errorMsg = "missing key '" + key + "' for " + bundleClass.getName();
-                LOGGER.warn(errorMsg);
+                if (config.isDevDebugMode()) {
+                    LOGGER.warn(errorMsg);
+                }
                 returnValue = key;
             }
         }

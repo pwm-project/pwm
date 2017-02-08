@@ -44,7 +44,8 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.logging.LocalDBLogger;
+import password.pwm.util.logging.LocalDBSearchQuery;
+import password.pwm.util.logging.LocalDBSearchResults;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
@@ -441,7 +442,7 @@ public class DebugItemGenerator {
 
             final int maxCount = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MANAGER_ZIPDEBUG_MAXLOGLINES));
             final int maxSeconds = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MANAGER_ZIPDEBUG_MAXLOGSECONDS));
-            final LocalDBLogger.SearchParameters searchParameters = new LocalDBLogger.SearchParameters(
+            final LocalDBSearchQuery searchParameters = new LocalDBSearchQuery(
                     PwmLogLevel.TRACE,
                     maxCount,
                     null,
@@ -449,7 +450,7 @@ public class DebugItemGenerator {
                     (maxSeconds * 1000),
                     null
             );
-            final LocalDBLogger.SearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents(
+            final LocalDBSearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents(
                     searchParameters);
             int counter = 0;
             while (searchResults.hasNext()) {

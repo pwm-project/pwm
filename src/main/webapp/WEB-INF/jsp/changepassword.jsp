@@ -67,22 +67,22 @@
                             &nbsp;&nbsp;
                             <div class="pwm-icon pwm-icon-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden"></div>
                             <pwm:if test="<%=PwmIfTest.showRandomPasswordGenerator%>">
-                            &nbsp;&nbsp;
-                            <div class="pwm-icon pwm-icon-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" ></div>
+                                &nbsp;&nbsp;
+                                <div class="pwm-icon pwm-icon-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" ></div>
                             </pwm:if>
                         </div>
                         <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password1" id="password1" class="changepasswordfield passwordfield" <pwm:autofocus/>/>
                     </td>
                     <td class="noborder" style="width:15%">
                         <pwm:if test="<%=PwmIfTest.showStrengthMeter%>">
-                        <div id="strengthBox" style="visibility:hidden;">
-                            <div id="strengthLabel" style="padding-top:40px;">
-                                <pwm:display key="Display_StrengthMeter"/>
+                            <div id="strengthBox" style="visibility:hidden;">
+                                <div id="strengthLabel" style="padding-top:40px;">
+                                    <pwm:display key="Display_StrengthMeter"/>
+                                </div>
+                                <div class="progress-container" style="margin-bottom:10px">
+                                    <div id="strengthBar" style="width: 0">&nbsp;</div>
+                                </div>
                             </div>
-                            <div class="progress-container" style="margin-bottom:10px">
-                                <div id="strengthBar" style="width: 0">&nbsp;</div>
-                            </div>
-                        </div>
                         </pwm:if>
                     </td>
                     <td class="noborder" style="width:10%">&nbsp;</td>
@@ -106,34 +106,34 @@
             </table>
 
             <input type="hidden" name="processAction" value="change"/>
-            <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
-        </form>
+            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 
-        <div class="buttonbar" style="width:100%">
-            <button type="submit" name="change" class="btn" id="password_button" form="changePasswordForm">
-                <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
-                <pwm:display key="Button_ChangePassword"/>
-            </button>
-            <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
-                <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" style="display: inline;">
-                    <input type="hidden" name="processAction" value="reset"/>
-                    <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
-                    <button type="submit" name="change" class="btn">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
-                        <pwm:display key="Button_Cancel"/>
-                    </button>
-                </form>
-            <% } %>
-        </div>
+            <div class="buttonbar" style="width:100%">
+                <button type="submit" name="change" class="btn" id="password_button" form="changePasswordForm">
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                    <pwm:display key="Button_ChangePassword"/>
+                </button>
+                <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
+                <button type="submit" name="change" class="btn" form="form-reset">
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                    <pwm:display key="Button_Cancel"/>
+                </button>
+                <% } %>
+            </div>
+        </form>
+        <form id="form-reset" name="form-reset" action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" >
+            <input type="hidden" name="processAction" value="reset"/>
+            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+        </form>
     </div>
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_CHANGEPW.startupChangePasswordPage();
-    });
-</script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_CHANGEPW.startupChangePasswordPage();
+        });
+    </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/changepassword.js"/>
 <%@ include file="fragment/footer.jsp" %>

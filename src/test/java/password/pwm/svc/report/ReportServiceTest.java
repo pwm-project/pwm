@@ -29,14 +29,14 @@ public class ReportServiceTest {
     private static final Type USER_CACHE_RECORD_LIST_TYPE = new TypeToken<ArrayList<UserCacheRecord>>(){}.getType();
 
     private Configuration configuration;
-    private ReportService reportService;
+    private ReportCsvUtility reportService;
 
     @Before
     public void setUp() throws Exception {
         configuration = mock(Configuration.class);
 
         // Call the real ReportService.outputToCsv() method, but mock the ReportService.iterator() method so it loads the user records from a json file.
-        reportService = mock(ReportService.class);
+        reportService = mock(ReportCsvUtility.class);
         doCallRealMethod().when(reportService).outputToCsv(any(OutputStream.class), anyBoolean(), any(Locale.class), any(Configuration.class), any(ReportColumnFilter.class));
         doAnswer(new Answer<RecordIterator<UserCacheRecord>>() {
             @Override

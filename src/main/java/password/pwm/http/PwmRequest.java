@@ -303,6 +303,9 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         CaptchaIframeUrl,
         CaptchaPublicKey,
 
+        ChangePassword_MaxWaitSeconds,
+        ChangePassword_CheckIntervalSeconds,
+
         ForgottenPasswordChallengeSet,
         ForgottenPasswordOptionalPageView,
         ForgottenPasswordPrompts,

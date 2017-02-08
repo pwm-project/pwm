@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.http.servlet.AdminServlet" %>
+<%@ page import="password.pwm.http.servlet.admin.AdminServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.JspUtility" %>

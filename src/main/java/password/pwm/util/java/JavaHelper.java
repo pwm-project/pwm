@@ -43,6 +43,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 public class JavaHelper {
@@ -249,4 +251,20 @@ public class JavaHelper {
     public static String toIsoDate(final Date date) {
         return date == null ? "" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(date);
     }
+
+    public static boolean closeAndWaitExecutor(final ExecutorService executor, final TimeDuration timeDuration)
+    {
+        if (executor == null) {
+            return true;
+        }
+
+        executor.shutdown();
+        try {
+            return executor.awaitTermination(timeDuration.getTotalMilliseconds(), TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            LOGGER.warn("unexpected error shutting down executor service " + executor.getClass().toString() + " error: " + e.getMessage());
+        }
+        return false;
+    }
+
 }

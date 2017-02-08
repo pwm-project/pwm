@@ -33,19 +33,8 @@
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<%
-    long maxWaitSeconds = 30;
-    long checkIntervalSeconds = 3;
-    try {
-        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-        final ChangePasswordBean changePasswordBean = JspUtility.getSessionBean(pageContext, ChangePasswordBean.class);
-        final Instant maxCompleteTime = changePasswordBean.getChangePasswordMaxCompletion();
-        maxWaitSeconds = maxCompleteTime == null ? 30 : TimeDuration.fromCurrent(maxCompleteTime).getTotalSeconds();
-        checkIntervalSeconds = Long.parseLong(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS));
-    } catch (PwmException e) {
-        JspUtility.logError(pageContext,"error during page setup: " + e.getMessage());
-    }
-%>
+<% long maxWaitSeconds = (Long)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ChangePassword_MaxWaitSeconds); %>
+<% long checkIntervalSeconds = (Long)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ChangePassword_CheckIntervalSeconds); %>
 <meta http-equiv="refresh" content="<%=maxWaitSeconds%>;url='ChangePassword?processAction=complete&pwmFormID=<pwm:FormID/>">
 <noscript>
     <meta http-equiv="refresh" content="<%=checkIntervalSeconds%>;url='ChangePassword?processAction=complete&pwmFormID=<pwm:FormID/>">
@@ -65,7 +54,7 @@
         </div>
         <div style="text-align: center; width: 100%; padding-top: 50px">
             <%--
-            <div>Elapsed Time: <span id="elapsedSeconds"></span></div>
+            <div>Elapsed Time: <span id="elapsedSeconds"></span></div>7
             <div>Estimated Time Remaining: <span id="estimatedRemainingSeconds"></span></div>
             --%>
         </div>

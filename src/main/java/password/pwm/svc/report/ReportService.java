@@ -25,14 +25,12 @@ package password.pwm.svc.report;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
@@ -41,37 +39,37 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
-import password.pwm.i18n.Display;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.PwmService;
+import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.util.Helper;
-import password.pwm.util.LocaleHelper;
+import password.pwm.util.TransactionSizeCalculator;
+import password.pwm.util.java.BlockingThreadPool;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ReportService implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ReportService.class);
@@ -88,6 +86,11 @@ public class ReportService implements PwmService {
     private UserCacheService userCacheService;
     private ReportSettings settings = new ReportSettings();
 
+    private Queue<String> dnQueue;
+
+    private final EventRateMeter eventRateMeter = new EventRateMeter(TimeDuration.MINUTE);
+
+
     public ReportService() {
     }
 
@@ -96,19 +99,12 @@ public class ReportService implements PwmService {
         return status;
     }
 
-    public void clear()
-            throws LocalDBException, PwmUnrecoverableException
-    {
-        final Instant startTime = Instant.now();
-        LOGGER.info(PwmConstants.REPORTING_SESSION_LABEL,"clearing cached report data");
-        if (userCacheService != null) {
-            userCacheService.clear();
-        }
-        summaryData = ReportSummaryData.newSummaryData(settings.getTrackDays());
-        reportStatus = new ReportStatusInfo(settings.getSettingsHash());
-        saveTempData();
-        LOGGER.info(PwmConstants.REPORTING_SESSION_LABEL,"finished clearing report " + TimeDuration.fromCurrent(startTime).asCompactString());
+    public enum ReportCommand {
+        Start,
+        Stop,
+        Clear,
     }
+
 
     @Override
     public void init(final PwmApplication pwmApplication)
@@ -132,7 +128,7 @@ public class ReportService implements PwmService {
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) {
             LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"reporting module is not enabled, will remain closed");
             status = STATUS.CLOSED;
-            clear();
+            executeCommand(ReportCommand.Clear);
             return;
         }
 
@@ -147,6 +143,8 @@ public class ReportService implements PwmService {
 
         settings = ReportSettings.readSettingsFromConfig(pwmApplication.getConfig());
         summaryData = ReportSummaryData.newSummaryData(settings.getTrackDays());
+
+        dnQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.REPORT_QUEUE);
 
         executorService = Executors.newSingleThreadScheduledExecutor(
                 Helper.makePwmThreadFactory(
@@ -166,55 +164,27 @@ public class ReportService implements PwmService {
     @Override
     public void close()
     {
-        status = STATUS.CLOSED;
-        saveTempData();
-        pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG, "true");
+        cancelFlag = true;
+
+        JavaHelper.closeAndWaitExecutor(executorService, TimeDuration.SECONDS_10);
+
         if (userCacheService != null) {
             userCacheService.close();
         }
-        if (executorService != null) {
-            executorService.shutdown();
-        }
+
+        status = STATUS.CLOSED;
         executorService = null;
+        saveTempData();
     }
 
     private void saveTempData() {
         try {
-            final String jsonInfo = JsonUtil.serialize(reportStatus);
-            pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_STATUS,jsonInfo);
+            pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_STATUS, reportStatus);
         } catch (Exception e) {
             LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL,"error writing cached report dredge info into memory: " + e.getMessage());
         }
     }
 
-    private void initTempData()
-            throws LocalDBException, PwmUnrecoverableException
-    {
-        final Boolean cleanFlag = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG, Boolean.class);
-        if (cleanFlag != null && cleanFlag) {
-            LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL, "did not shut down cleanly");
-            reportStatus = new ReportStatusInfo(settings.getSettingsHash());
-            reportStatus.setTotal(userCacheService.size());
-        } else {
-            try {
-                reportStatus = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_STATUS, ReportStatusInfo.class);
-            } catch (Exception e) {
-                LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL,"error loading cached report status info into memory: " + e.getMessage());
-            }
-        }
-
-        reportStatus = reportStatus == null ? new ReportStatusInfo(settings.getSettingsHash()) : reportStatus; //safety
-
-        final String currentSettingCache = settings.getSettingsHash();
-        if (reportStatus.getSettingsHash() != null && !reportStatus.getSettingsHash().equals(currentSettingCache)) {
-            LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL,"configuration has changed, will clear cached report data");
-            clear();
-        }
-
-        reportStatus.setInProgress(false);
-
-        pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG, false);
-    }
 
     @Override
     public List<HealthRecord> healthCheck()
@@ -228,175 +198,69 @@ public class ReportService implements PwmService {
         return new ServiceInfo(Collections.singletonList(DataStorageMethod.LDAP));
     }
 
-    public void scheduleImmediateUpdate() {
-        if (!reportStatus.isInProgress()) {
-            executorService.submit(new DredgeTask());
-            LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,"submitted new ldap dredge task to executorService");
+    public void executeCommand(final ReportCommand reportCommand) {
+        switch (reportCommand) {
+            case Start:
+            {
+                if (reportStatus.getCurrentProcess() != ReportStatusInfo.ReportEngineProcess.ReadData
+                        && reportStatus.getCurrentProcess() != ReportStatusInfo.ReportEngineProcess.SearchLDAP
+                        )
+                {
+                    executorService.submit(new ReadLDAPTask());
+                    LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,"submitted new ldap dredge task to executorService");
+                }
+            }
+            break;
+
+            case Stop:
+            {
+                cancelFlag = true;
+                clearWorkQueue();
+            }
+            break;
+
+            case Clear:
+            {
+                cancelFlag = true;
+                executorService.execute(new ClearTask());
+            }
+            break;
+
+            default:
+                JavaHelper.unhandledSwitchStatement(reportCommand);
         }
     }
 
-    public void cancelUpdate() {
-        cancelFlag = true;
+    PwmApplication getPwmApplication() {
+        return pwmApplication;
     }
 
-    private void updateCacheFromLdap()
-            throws ChaiUnavailableException, ChaiOperationException, PwmOperationalException, PwmUnrecoverableException
-    {
-        LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL, "beginning process to updating user cache records from ldap");
-        if (status != STATUS.OPEN) {
-            return;
-        }
+    public BigDecimal getEventRate() {
+        return eventRateMeter.readEventRate();
+    }
+
+    public int getTotalRecords() {
+        return userCacheService.size();
+    }
+
+    private void clearWorkQueue() {
+        reportStatus.setCount(0);
+        reportStatus.setJobDuration(TimeDuration.ZERO);
+        dnQueue.clear();
+    }
+
+    private void resetJobStatus() {
         cancelFlag = false;
-        reportStatus = new ReportStatusInfo(settings.getSettingsHash());
-        reportStatus.setInProgress(true);
-        reportStatus.setStartDate(new Date());
-        try {
-            final Queue<UserIdentity> allUsers = new LinkedList<>(getListOfUsers());
-            reportStatus.setTotal(allUsers.size());
-            while (status == STATUS.OPEN && !allUsers.isEmpty() && !cancelFlag) {
-                final Date startUpdateTime = new Date();
-                final UserIdentity userIdentity = allUsers.poll();
-                try {
-                    if (updateCachedRecordFromLdap(userIdentity)) {
-                        reportStatus.setUpdated(reportStatus.getUpdated() + 1);
-                    }
-                } catch (Exception e) {
-                    String errorMsg = "error while updating report cache for " + userIdentity.toString() + ", cause: ";
-                    errorMsg += e instanceof PwmException ? ((PwmException) e).getErrorInformation().toDebugStr() : e.getMessage();
-                    final ErrorInformation errorInformation;
-                    errorInformation = new ErrorInformation(PwmError.ERROR_REPORTING_ERROR,errorMsg);
-                    LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL,errorInformation.toDebugStr());
-                    reportStatus.setLastError(errorInformation);
-                    reportStatus.setErrors(reportStatus.getErrors() + 1);
-                }
-                reportStatus.setCount(reportStatus.getCount() + 1);
-                reportStatus.getEventRateMeter().markEvents(1);
-                final TimeDuration totalUpdateTime = TimeDuration.fromCurrent(startUpdateTime);
-                if (settings.isAutoCalcRest()) {
-                    avgTracker.addSample(totalUpdateTime.getTotalMilliseconds());
-                    JavaHelper.pause(avgTracker.avgAsLong());
-                } else {
-                    JavaHelper.pause(settings.getRestTime().getTotalMilliseconds());
-                }
-            }
-            if (cancelFlag) {
-                reportStatus.setLastError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"report cancelled by operator"));
-            }
-        } finally {
-            reportStatus.setFinishDate(new Date());
-            reportStatus.setInProgress(false);
-        }
-        LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"update user cache process completed: " + JsonUtil.serialize(reportStatus));
+        eventRateMeter.reset();
+
+        reportStatus.setLastError(null);
+        reportStatus.setErrors(0);
+
+        reportStatus.setFinishDate(null);
+
+        pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_STATUS, null);
     }
 
-    private void updateRestingCacheData() {
-        final long startTime = System.currentTimeMillis();
-        int examinedRecords = 0;
-        ClosableIterator<UserCacheRecord> iterator = null;
-        try {
-            LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL, "checking size of stored cache records");
-            final int totalRecords = userCacheService.size();
-            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL, "beginning cache review process of " + totalRecords + " records");
-            iterator = iterator();
-            Date lastLogOutputTime = new Date();
-            while (iterator.hasNext() && status == STATUS.OPEN) {
-                final UserCacheRecord record = iterator.next(); // (purge routine is embedded in next();
-
-                if (summaryData != null && record != null) {
-                    summaryData.update(record);
-                }
-
-                examinedRecords++;
-
-                if (TimeDuration.fromCurrent(lastLogOutputTime).isLongerThan(30, TimeUnit.SECONDS)) {
-                    final TimeDuration progressDuration = TimeDuration.fromCurrent(startTime);
-                    LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,"cache review process in progress, examined "
-                            + examinedRecords + " records in " + progressDuration.asCompactString());
-                    lastLogOutputTime = new Date();
-                }
-            }
-            final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
-            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,
-                    "completed cache review process of " + examinedRecords + " cached report records in " + totalTime.asCompactString());
-        } finally {
-            if (iterator != null) {
-                iterator.close();
-            }
-        }
-    }
-
-    private boolean updateCachedRecordFromLdap(final UserIdentity userIdentity)
-            throws ChaiUnavailableException, PwmUnrecoverableException, LocalDBException
-    {
-        if (status != STATUS.OPEN) {
-            return false;
-        }
-
-        final UserCacheService.StorageKey storageKey = UserCacheService.StorageKey.fromUserIdentity(pwmApplication,
-                userIdentity);
-        return updateCachedRecordFromLdap(userIdentity, null, storageKey);
-    }
-
-    private boolean updateCachedRecordFromLdap(
-            final UserIdentity userIdentity,
-            final UserInfoBean userInfoBean,
-            final UserCacheService.StorageKey storageKey
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException, LocalDBException
-    {
-        final UserCacheRecord userCacheRecord = userCacheService.readStorageKey(storageKey);
-        TimeDuration cacheAge = null;
-        if (userCacheRecord != null && userCacheRecord.getCacheTimestamp() != null) {
-            cacheAge = TimeDuration.fromCurrent(userCacheRecord.getCacheTimestamp());
-        }
-
-        boolean updateCache = false;
-        if (userInfoBean != null) {
-            updateCache = true;
-        } else {
-            if (cacheAge == null) {
-                LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,"stored cache for " + userIdentity + " is missing cache storage timestamp, will update");
-                updateCache = true;
-            } else if (cacheAge.isLongerThan(settings.getMinCacheAge())) {
-                LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,"stored cache for " + userIdentity + " is " + cacheAge.asCompactString() + " old, will update");
-                updateCache = true;
-            }
-        }
-
-        if (updateCache) {
-            if (userCacheRecord != null) {
-                if (summaryData != null && summaryData.getEpoch() != null && summaryData.getEpoch().equals(userCacheRecord.getSummaryEpoch())) {
-                    summaryData.remove(userCacheRecord);
-                }
-            }
-            final UserInfoBean newUserBean;
-            if (userInfoBean != null) {
-                newUserBean = userInfoBean;
-            } else {
-                newUserBean = new UserInfoBean();
-                final UserStatusReader.Settings readerSettings = new UserStatusReader.Settings();
-                final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
-                final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication,PwmConstants.REPORTING_SESSION_LABEL,readerSettings);
-                userStatusReader.populateUserInfoBean(
-                        newUserBean,
-                        PwmConstants.DEFAULT_LOCALE,
-                        userIdentity,
-                        chaiProvider
-                );
-            }
-            final UserCacheRecord newUserCacheRecord = userCacheService.updateUserCache(newUserBean);
-
-            if (summaryData != null && summaryData.getEpoch() != null && newUserCacheRecord != null) {
-                if (!summaryData.getEpoch().equals(newUserCacheRecord.getSummaryEpoch())) {
-                    newUserCacheRecord.setSummaryEpoch(summaryData.getEpoch());
-                    userCacheService.store(newUserCacheRecord);
-                }
-                summaryData.update(newUserCacheRecord);
-            }
-        }
-
-        return updateCache;
-    }
 
 
     public ReportStatusInfo getReportStatusInfo()
@@ -404,38 +268,6 @@ public class ReportService implements PwmService {
         return reportStatus;
     }
 
-    private List<UserIdentity> getListOfUsers()
-            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
-    {
-        return readAllUsersFromLdap(pwmApplication, settings.getSearchFilter(), settings.getMaxSearchSize());
-    }
-
-    private static List<UserIdentity> readAllUsersFromLdap(
-            final PwmApplication pwmApplication,
-            final String searchFilter,
-            final int maxResults
-    )
-            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
-    {
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication,null);
-        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setEnableValueEscaping(false);
-        searchConfiguration.setSearchTimeout(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT)));
-
-        if (searchFilter == null) {
-            searchConfiguration.setUsername("*");
-        } else {
-            searchConfiguration.setFilter(searchFilter);
-        }
-
-        LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"beginning UserReportService user search using parameters: " + (JsonUtil.serialize(searchConfiguration)));
-
-        final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(searchConfiguration, maxResults, Collections.<String>emptyList());
-        LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"user search found " + searchResults.size() + " users for reporting");
-        final List<UserIdentity> returnList = new ArrayList<>(searchResults.keySet());
-        Collections.shuffle(returnList);
-        return returnList;
-    }
 
     public interface RecordIterator<K> extends ClosableIterator<UserCacheRecord> {
     }
@@ -489,236 +321,13 @@ public class ReportService implements PwmService {
         };
     }
 
-    public void outputSummaryToCsv(final OutputStream outputStream, final Locale locale)
-            throws IOException
-    {
-        final List<ReportSummaryData.PresentationRow> outputList = summaryData.asPresentableCollection(pwmApplication.getConfig(),locale);
-        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
-
-        for (final ReportSummaryData.PresentationRow presentationRow : outputList) {
-            final List<String> headerRow = new ArrayList<>();
-            headerRow.add(presentationRow.getLabel());
-            headerRow.add(presentationRow.getCount());
-            headerRow.add(presentationRow.getPct());
-            csvPrinter.printRecord(headerRow);
-        }
-
-        csvPrinter.close();
-    }
-
-    public void outputToCsv(final OutputStream outputStream, final boolean includeHeader, final Locale locale)
-    throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
-    {
-        final Configuration config = pwmApplication.getConfig();
-        final ReportColumnFilter columnFilter = new ReportColumnFilter();
-
-        outputToCsv(outputStream, includeHeader, locale, config, columnFilter);
-    }
-
-    public void outputToCsv(final OutputStream outputStream, final boolean includeHeader, final Locale locale, final ReportColumnFilter columnFilter)
-    throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
-    {
-        final Configuration config = pwmApplication.getConfig();
-        outputToCsv(outputStream, includeHeader, locale, config, columnFilter);
-    }
-
-    public void outputToCsv(final OutputStream outputStream, final boolean includeHeader, final Locale locale, final Configuration config, final ReportColumnFilter columnFilter)
-            throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
-    {
-        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
-        final Class localeClass = password.pwm.i18n.Admin.class;
-        if (includeHeader) {
-            final List<String> headerRow = new ArrayList<>();
-
-            if (columnFilter.isUsernameVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_Username", config, localeClass));
-            }
-            if (columnFilter.isUserDnVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_UserDN", config, localeClass));
-            }
-            if (columnFilter.isLdapProfileVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_LDAP_Profile", config, localeClass));
-            }
-            if (columnFilter.isEmailVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_Email", config, localeClass));
-            }
-            if (columnFilter.isUserGuidVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_UserGuid", config, localeClass));
-            }
-            if (columnFilter.isAccountExpirationTimeVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_AccountExpireTime", config, localeClass));
-            }
-            if (columnFilter.isPasswordExpirationTimeVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdExpireTime", config, localeClass));
-            }
-            if (columnFilter.isPasswordChangeTimeVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdChangeTime", config, localeClass));
-            }
-            if (columnFilter.isResponseSetTimeVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseSaveTime", config, localeClass));
-            }
-            if (columnFilter.isLastLoginTimeVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_LastLogin", config, localeClass));
-            }
-            if (columnFilter.isHasResponsesVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_HasResponses", config, localeClass));
-            }
-            if (columnFilter.isHasHelpdeskResponsesVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_HasHelpdeskResponses", config, localeClass));
-            }
-            if (columnFilter.isResponseStorageMethodVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseStorageMethod", config, localeClass));
-            }
-            if (columnFilter.isResponseFormatTypeVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseFormatType", config, localeClass));
-            }
-            if (columnFilter.isPasswordStatusExpiredVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdExpired", config, localeClass));
-            }
-            if (columnFilter.isPasswordStatusPreExpiredVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdPreExpired", config, localeClass));
-            }
-            if (columnFilter.isPasswordStatusViolatesPolicyVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdViolatesPolicy", config, localeClass));
-            }
-            if (columnFilter.isPasswordStatusWarnPeriodVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdWarnPeriod", config, localeClass));
-            }
-            if (columnFilter.isRequiresPasswordUpdateVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresPasswordUpdate", config, localeClass));
-            }
-            if (columnFilter.isRequiresResponseUpdateVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresResponseUpdate", config, localeClass));
-            }
-            if (columnFilter.isRequiresProfileUpdateVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresProfileUpdate", config, localeClass));
-            }
-            if (columnFilter.isCacheTimestampVisible()) {
-                headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RecordCacheTime", config, localeClass));
-            }
-
-
-            csvPrinter.printRecord(headerRow);
-        }
-
-        ClosableIterator<UserCacheRecord> cacheBeanIterator = null;
-        try {
-            cacheBeanIterator = this.iterator();
-            while (cacheBeanIterator.hasNext()) {
-                final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
-                outputRecordRow(config, locale, userCacheRecord, csvPrinter, columnFilter);
-            }
-        } finally {
-            if (cacheBeanIterator != null) {
-                cacheBeanIterator.close();
-            }
-        }
-
-        csvPrinter.flush();
-    }
-
-    private void outputRecordRow(
-            final Configuration config,
-            final Locale locale,
-            final UserCacheRecord userCacheRecord,
-            final CSVPrinter csvPrinter,
-            final ReportColumnFilter columnFilter
-    )
-            throws IOException
-    {
-        final String trueField = Display.getLocalizedMessage(locale, Display.Value_True, config);
-        final String falseField = Display.getLocalizedMessage(locale, Display.Value_False, config);
-        final String naField = Display.getLocalizedMessage(locale, Display.Value_NotApplicable, config);
-        final List<String> csvRow = new ArrayList<>();
-        if (columnFilter.isUsernameVisible()) {
-            csvRow.add(userCacheRecord.getUsername());
-        }
-        if (columnFilter.isUserDnVisible()) {
-            csvRow.add(userCacheRecord.getUserDN());
-        }
-        if (columnFilter.isLdapProfileVisible()) {
-            csvRow.add(userCacheRecord.getLdapProfile());
-        }
-        if (columnFilter.isEmailVisible()) {
-            csvRow.add(userCacheRecord.getEmail());
-        }
-        if (columnFilter.isUserGuidVisible()) {
-            csvRow.add(userCacheRecord.getUserGUID());
-        }
-        if (columnFilter.isAccountExpirationTimeVisible()) {
-            csvRow.add(userCacheRecord.getAccountExpirationTime() == null ? naField :
-                    JavaHelper.toIsoDate(userCacheRecord.getAccountExpirationTime()));
-        }
-
-        if (columnFilter.isPasswordExpirationTimeVisible()) {
-            csvRow.add(userCacheRecord.getPasswordExpirationTime() == null ? naField :
-                    JavaHelper.toIsoDate(userCacheRecord.getPasswordExpirationTime()));
-        }
-
-        if (columnFilter.isPasswordChangeTimeVisible()) {
-            csvRow.add(userCacheRecord.getPasswordChangeTime() == null ? naField :
-                    JavaHelper.toIsoDate(userCacheRecord.getPasswordChangeTime()));
-        }
-
-        if (columnFilter.isResponseSetTimeVisible()) {
-            csvRow.add(userCacheRecord.getResponseSetTime() == null ? naField :
-                    JavaHelper.toIsoDate(userCacheRecord.getResponseSetTime()));
-        }
-
-        if (columnFilter.isLastLoginTimeVisible()) {
-            csvRow.add(userCacheRecord.getLastLoginTime() == null ? naField :
-                    JavaHelper.toIsoDate(userCacheRecord.getLastLoginTime()));
-        }
-
-        if (columnFilter.isHasResponsesVisible()) {
-            csvRow.add(userCacheRecord.isHasResponses() ? trueField : falseField);
-        }
-        if (columnFilter.isHasHelpdeskResponsesVisible()) {
-            csvRow.add(userCacheRecord.isHasHelpdeskResponses() ? trueField : falseField);
-        }
-
-        if (columnFilter.isResponseStorageMethodVisible()) {
-            csvRow.add(userCacheRecord.getResponseStorageMethod() == null ? naField :
-                    userCacheRecord.getResponseStorageMethod().toString());
-        }
-
-        if (columnFilter.isResponseFormatTypeVisible()) {
-            csvRow.add(userCacheRecord.getResponseFormatType() == null ? naField :
-                    userCacheRecord.getResponseFormatType().toString());
-        }
-
-        if (columnFilter.isPasswordStatusExpiredVisible()) {
-            csvRow.add(userCacheRecord.getPasswordStatus().isExpired() ? trueField : falseField);
-        }
-        if (columnFilter.isPasswordStatusPreExpiredVisible()) {
-            csvRow.add(userCacheRecord.getPasswordStatus().isPreExpired() ? trueField : falseField);
-        }
-        if (columnFilter.isPasswordStatusViolatesPolicyVisible()) {
-            csvRow.add(userCacheRecord.getPasswordStatus().isViolatesPolicy() ? trueField : falseField);
-        }
-        if (columnFilter.isPasswordStatusWarnPeriodVisible()) {
-            csvRow.add(userCacheRecord.getPasswordStatus().isWarnPeriod() ? trueField : falseField);
-        }
-        if (columnFilter.isRequiresPasswordUpdateVisible()) {
-            csvRow.add(userCacheRecord.isRequiresPasswordUpdate() ? trueField : falseField);
-        }
-        if (columnFilter.isRequiresResponseUpdateVisible()) {
-            csvRow.add(userCacheRecord.isRequiresResponseUpdate() ? trueField : falseField);
-        }
-        if (columnFilter.isRequiresProfileUpdateVisible()) {
-            csvRow.add(userCacheRecord.isRequiresProfileUpdate() ? trueField : falseField);
-        }
-
-        if (columnFilter.isCacheTimestampVisible()) {
-            csvRow.add(userCacheRecord.getCacheTimestamp() == null ? naField :
-                    JavaHelper.toIsoDate(userCacheRecord.getCacheTimestamp()));
-        }
-
-        csvPrinter.printRecord(csvRow);
-    }
 
     public ReportSummaryData getSummaryData() {
         return summaryData;
+    }
+
+    public int getWorkQueueSize() {
+        return dnQueue.size();
     }
 
     public static class AvgTracker {
@@ -755,27 +364,236 @@ public class ReportService implements PwmService {
         }
     }
 
-    private class DredgeTask implements Runnable {
+    private class ReadLDAPTask implements Runnable {
         @Override
         public void run()
         {
-            reportStatus.setCurrentProcess(ReportStatusInfo.ReportEngineProcess.DredgeTask);
+            reportStatus.setCurrentProcess(ReportStatusInfo.ReportEngineProcess.SearchLDAP);
             try {
-                updateCacheFromLdap();
+                readUserListFromLdap();
+                executorService.execute(new ProcessWorkQueueTask());
             } catch (Exception e) {
                 if (e instanceof PwmException) {
                     if (((PwmException) e).getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE) {
                         if (executorService != null) {
-                            LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL, "directory unavailable error during background DredgeTask, will retry; error: " + e.getMessage());
-                            executorService.schedule(new DredgeTask(), 10, TimeUnit.MINUTES);
+                            LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL, "directory unavailable error during background SearchLDAP, will retry; error: " + e.getMessage());
+                            executorService.schedule(new ReadLDAPTask(), 10, TimeUnit.MINUTES);
                         }
                     } else {
-                        LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL, "error during background DredgeTask: " + e.getMessage());
+                        LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL, "error during background ReadData: " + e.getMessage());
                     }
                 }
             } finally {
                 reportStatus.setCurrentProcess(ReportStatusInfo.ReportEngineProcess.None);
             }
+        }
+
+        private void readUserListFromLdap()
+                throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+        {
+            final Instant startTime = Instant.now();
+            LOGGER.trace("beginning ldap search process");
+
+            resetJobStatus();
+            clearWorkQueue();
+
+            final Queue<UserIdentity> memQueue;
+            {
+                final List<UserIdentity> userIdentities = readAllUsersFromLdap(pwmApplication, settings.getSearchFilter(), settings.getMaxSearchSize());
+                Collections.shuffle(userIdentities);
+                memQueue = new LinkedList<>(userIdentities);
+            }
+
+            LOGGER.trace("completed ldap search process, transferring search results to work queue");
+
+            final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
+                    new TransactionSizeCalculator.SettingsBuilder()
+                            .setDurationGoal(TimeDuration.SECOND)
+                            .setMinTransactions(10)
+                            .setMaxTransactions(100 * 1000)
+                            .createSettings()
+            );
+
+            while (status == STATUS.OPEN && !cancelFlag && !memQueue.isEmpty()) {
+                final Instant loopStart = Instant.now();
+                final List<String> bufferList = new ArrayList<>();
+                final int loopCount = transactionCalculator.getTransactionSize();
+                for (int i = 0; i < loopCount && !memQueue.isEmpty(); i++) {
+                    bufferList.add(memQueue.poll().toDelimitedKey());
+                }
+                dnQueue.addAll(bufferList);
+                transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(loopStart));
+            }
+            LOGGER.trace("completed transfer of ldap search results to work queue in " + TimeDuration.fromCurrent(startTime).asCompactString());
+        }
+
+        private List<UserIdentity> readAllUsersFromLdap(
+                final PwmApplication pwmApplication,
+                final String searchFilter,
+                final int maxResults
+        )
+                throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+        {
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication,null);
+            final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+            searchConfiguration.setEnableValueEscaping(false);
+            searchConfiguration.setSearchTimeout(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT)));
+
+            if (searchFilter == null) {
+                searchConfiguration.setUsername("*");
+            } else {
+                searchConfiguration.setFilter(searchFilter);
+            }
+
+            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"beginning UserReportService user search using parameters: " + (JsonUtil.serialize(searchConfiguration)));
+
+            final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(searchConfiguration, maxResults, Collections.<String>emptyList());
+            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"user search found " + searchResults.size() + " users for reporting");
+            return new ArrayList<>(searchResults.keySet());
+        }
+    }
+
+    private class ProcessWorkQueueTask implements Runnable {
+        @Override
+        public void run()
+        {
+            reportStatus.setCurrentProcess(ReportStatusInfo.ReportEngineProcess.ReadData);
+            try {
+                processWorkQueue();
+            } catch (Exception e) {
+                if (e instanceof PwmException) {
+                    if (((PwmException) e).getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE) {
+                        if (executorService != null) {
+                            LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL, "directory unavailable error during background ReadData, will retry; error: " + e.getMessage());
+                            executorService.schedule(new ProcessWorkQueueTask(), 10, TimeUnit.MINUTES);
+                        }
+                    } else {
+                        LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL, "error during background ReadData: " + e.getMessage());
+                    }
+                }
+            } finally {
+                reportStatus.setCurrentProcess(ReportStatusInfo.ReportEngineProcess.None);
+            }
+        }
+
+        private void processWorkQueue()
+                throws ChaiUnavailableException, ChaiOperationException, PwmOperationalException, PwmUnrecoverableException
+        {
+            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL, "beginning process to updating user cache records from ldap");
+            if (status != STATUS.OPEN) {
+                return;
+            }
+
+            if (dnQueue.isEmpty()) {
+                return;
+            }
+
+            resetJobStatus();
+
+            final int threadCount = settings.getReportJobIntensity() == ReportSettings.JobIntensity.HIGH
+                    ? settings.getReportJobThreads()
+                    : 1;
+
+            final boolean pauseBetweenIterations = settings.getReportJobIntensity() == ReportSettings.JobIntensity.LOW;
+
+            final Lock updateTimeLock = new ReentrantLock();
+
+            try {
+                LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL, "about to begin ldap processing with thread count of " + threadCount);
+                final BlockingThreadPool threadService = new BlockingThreadPool(threadCount, "reporting-thread");
+                while (status == STATUS.OPEN && !dnQueue.isEmpty() && !cancelFlag) {
+                    final UserIdentity userIdentity = UserIdentity.fromDelimitedKey(dnQueue.poll());
+                    if (pwmApplication.getConfig().isDevDebugMode()) {
+                        LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL, "submit " + Instant.now().toString()
+                                + " size=" + threadService.getQueue().size());
+                    }
+                    threadService.blockingSubmit(() -> {
+                        if (pwmApplication.getConfig().isDevDebugMode()) {
+                            LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL, "start " + Instant.now().toString()
+                                    + " size=" + threadService.getQueue().size());
+                        }
+                        try {
+                            final Instant startUpdateTime = Instant.now();
+                            updateCachedRecordFromLdap(userIdentity);
+                            reportStatus.setCount(reportStatus.getCount() + 1);
+                            eventRateMeter.markEvents(1);
+                            final TimeDuration totalUpdateTime = TimeDuration.fromCurrent(startUpdateTime);
+                            avgTracker.addSample(totalUpdateTime.getTotalMilliseconds());
+
+                            try {
+                                updateTimeLock.lock();
+                                final TimeDuration scaledTime = new TimeDuration(totalUpdateTime.getTotalMilliseconds() / threadCount);
+                                reportStatus.setJobDuration(reportStatus.getJobDuration().add(scaledTime));
+                            } finally {
+                                updateTimeLock.unlock();
+                            }
+
+                            if (pauseBetweenIterations) {
+                                JavaHelper.pause(avgTracker.avgAsLong());
+                            }
+                        } catch (Exception e) {
+                            String errorMsg = "error while updating report cache for " + userIdentity.toString() + ", cause: ";
+                            errorMsg += e instanceof PwmException ? ((PwmException) e).getErrorInformation().toDebugStr() : e.getMessage();
+                            final ErrorInformation errorInformation;
+                            errorInformation = new ErrorInformation(PwmError.ERROR_REPORTING_ERROR,errorMsg);
+                            LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL,errorInformation.toDebugStr(), e);
+                            reportStatus.setLastError(errorInformation);
+                            reportStatus.setErrors(reportStatus.getErrors() + 1);
+                        }
+                        if (pwmApplication.getConfig().isDevDebugMode()) {
+                            LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL, "finish " + Instant.now().toString()
+                                    + " size=" + threadService.getQueue().size());
+                        }
+                    });
+                }
+                if (pwmApplication.getConfig().isDevDebugMode()) {
+                    LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL, "exit " + Instant.now().toString()
+                            + " size=" + threadService.getQueue().size());
+                }
+
+                JavaHelper.closeAndWaitExecutor(threadService, TimeDuration.SECONDS_10);
+
+                if (cancelFlag) {
+                    reportStatus.setLastError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"report cancelled by operator"));
+                }
+            } finally {
+                reportStatus.setFinishDate(Instant.now());
+                saveTempData();
+            }
+            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"update user cache process completed: " + JsonUtil.serialize(reportStatus));
+        }
+
+
+
+        private void updateCachedRecordFromLdap(final UserIdentity userIdentity)
+                throws ChaiUnavailableException, PwmUnrecoverableException, LocalDBException
+        {
+            if (status != STATUS.OPEN) {
+                return;
+            }
+
+            final UserCacheService.StorageKey storageKey = UserCacheService.StorageKey.fromUserIdentity(pwmApplication, userIdentity);
+            final UserCacheRecord userCacheRecord = userCacheService.readStorageKey(storageKey);
+
+            if (userCacheRecord != null) {
+                summaryData.remove(userCacheRecord);
+            }
+            final UserInfoBean userInfoBean = new UserInfoBean();
+            final UserStatusReader.Settings readerSettings = new UserStatusReader.Settings();
+            final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
+            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication,PwmConstants.REPORTING_SESSION_LABEL,readerSettings);
+            userStatusReader.populateUserInfoBean(
+                    userInfoBean,
+                    PwmConstants.DEFAULT_LOCALE,
+                    userIdentity,
+                    chaiProvider
+            );
+            final UserCacheRecord newUserCacheRecord = userCacheService.updateUserCache(userInfoBean);
+
+            userCacheService.store(newUserCacheRecord);
+            summaryData.update(newUserCacheRecord);
+
+            LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,"stored cache for " + userIdentity);
         }
     }
 
@@ -791,6 +609,37 @@ public class ReportService implements PwmService {
                 reportStatus.setCurrentProcess(ReportStatusInfo.ReportEngineProcess.None);
             }
         }
+
+        private void updateRestingCacheData() {
+            final long startTime = System.currentTimeMillis();
+            int examinedRecords = 0;
+
+            try (ClosableIterator<UserCacheRecord> iterator = iterator()) {
+                final int totalRecords = userCacheService.size();
+                LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL, "beginning cache review process of " + totalRecords + " records");
+                Instant lastLogOutputTime = Instant.now();
+
+                while (!cancelFlag && iterator.hasNext() && status == STATUS.OPEN) {
+                    final UserCacheRecord record = iterator.next(); // (purge routine is embedded in next();
+
+                    if (summaryData != null && record != null) {
+                        summaryData.update(record);
+                    }
+
+                    examinedRecords++;
+
+                    if (TimeDuration.fromCurrent(lastLogOutputTime).isLongerThan(30, TimeUnit.SECONDS)) {
+                        final TimeDuration progressDuration = TimeDuration.fromCurrent(startTime);
+                        LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,"cache review process in progress, examined " + examinedRecords
+                                + " in " + progressDuration.asCompactString());
+                        lastLogOutputTime = Instant.now();
+                    }
+                }
+                final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
+                LOGGER.info(PwmConstants.REPORTING_SESSION_LABEL,
+                        "completed cache review process of " + examinedRecords + " cached report records in " + totalTime.asCompactString());
+            }
+        }
     }
 
     private class InitializationTask implements Runnable {
@@ -804,9 +653,61 @@ public class ReportService implements PwmService {
                 return;
             }
             final long secondsUntilNextDredge = settings.getJobOffsetSeconds() + TimeDuration.fromCurrent(JavaHelper.nextZuluZeroTime()).getTotalSeconds();
-            executorService.scheduleAtFixedRate(new DredgeTask(), secondsUntilNextDredge, TimeDuration.DAY.getTotalSeconds(), TimeUnit.SECONDS);
+            executorService.scheduleAtFixedRate(new ReadLDAPTask(), secondsUntilNextDredge, TimeDuration.DAY.getTotalSeconds(), TimeUnit.SECONDS);
             executorService.scheduleAtFixedRate(new RolloverTask(), secondsUntilNextDredge + 1, TimeDuration.DAY.getTotalSeconds(), TimeUnit.SECONDS);
             executorService.submit(new RolloverTask());
+            executorService.submit(new ProcessWorkQueueTask());
+        }
+
+
+        private void initTempData()
+                throws LocalDBException, PwmUnrecoverableException
+        {
+            try {
+                reportStatus = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_STATUS, ReportStatusInfo.class);
+            } catch (Exception e) {
+                LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL,"error loading cached report status info into memory: " + e.getMessage());
+            }
+
+            boolean clearFlag = false;
+            if (reportStatus == null) {
+                clearFlag = true;
+                LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"report service did not close cleanly, will clear data.");
+            } else {
+                final String currentSettingCache = settings.getSettingsHash();
+                if (reportStatus.getSettingsHash() != null && !reportStatus.getSettingsHash().equals(currentSettingCache)) {
+                    LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL, "configuration has changed, will clear cached report data");
+                    clearFlag = true;
+                }
+            }
+
+            if (clearFlag) {
+                reportStatus = new ReportStatusInfo(settings.getSettingsHash());
+                executeCommand(ReportCommand.Clear);
+            }
+        }
+    }
+
+    private class ClearTask implements Runnable {
+        @Override
+        public void run() {
+            try {
+                doClear();
+            } catch (LocalDBException | PwmUnrecoverableException e) {
+                LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL, "error during clear operation: " + e.getMessage());
+            }
+        }
+
+        private void doClear() throws LocalDBException, PwmUnrecoverableException {
+            final Instant startTime = Instant.now();
+            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"clearing cached report data");
+            clearWorkQueue();
+            if (userCacheService != null) {
+                userCacheService.clear();
+            }
+            summaryData = ReportSummaryData.newSummaryData(settings.getTrackDays());
+            reportStatus = new ReportStatusInfo(settings.getSettingsHash());
+            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"finished clearing report " + TimeDuration.fromCurrent(startTime).asCompactString());
         }
     }
 }

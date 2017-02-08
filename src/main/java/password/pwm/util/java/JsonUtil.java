@@ -187,7 +187,7 @@ public class JsonUtil {
             try {
                 return GSON_DATE_FORMAT.parse(jsonElement.getAsString());
             } catch (ParseException e) {
-                LOGGER.error("unable to parse stored json Date.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage());
+                LOGGER.debug("unable to parse stored json Date.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage());
                 throw new JsonParseException(e);
             }
         }
@@ -219,7 +219,7 @@ public class JsonUtil {
             try {
                 return Instant.parse(jsonElement.getAsString());
             } catch (Exception e) {
-                LOGGER.error("unable to parse stored json Instant.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage());
+                LOGGER.debug("unable to parse stored json Instant.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage());
                 throw new JsonParseException(e);
             }
         }
@@ -230,7 +230,7 @@ public class JsonUtil {
             try {
                 return StringUtil.base64Decode(json.getAsString());
             } catch (IOException e) {
-                final String errorMsg = "io stream error while deserializing byte array: " + e.getMessage();
+                final String errorMsg = "io stream error while de-serializing byte array: " + e.getMessage();
                 LOGGER.error(errorMsg);
                 throw new JsonParseException(errorMsg, e);
             }

@@ -115,7 +115,7 @@ public class PwmApplication {
         LAST_LDAP_ERROR("lastLdapError"),
         TOKEN_COUNTER("tokenCounter"),
         REPORT_STATUS("reporting.status"),
-        REPORT_CLEAN_FLAG("reporting.cleanFlag"),
+        // REPORT_CLEAN_FLAG("reporting.cleanFlag"), deprecated
         SMS_ITEM_COUNTER("smsQueue.itemCount"),
         EMAIL_ITEM_COUNTER("itemQueue.itemCount"),
         LOCALDB_IMPORT_STATUS("localDB.import.status"),

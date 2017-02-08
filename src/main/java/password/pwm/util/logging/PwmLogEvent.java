@@ -78,39 +78,7 @@ public class PwmLogEvent implements Serializable, Comparable {
     public static PwmLogEvent fromEncodedString(final String encodedString)
             throws ClassNotFoundException, IOException
     {
-        final PwmLogEvent pwmLogEvent = JsonUtil.deserialize(encodedString, PwmLogEvent.class);
-        return pwmLogEvent;
-
-        /*
-        final Map<String, String> srcMap = JsonUtil.deserializeStringMap(encodedString);
-
-        if (srcMap == null) {
-            return null;
-        }
-
-        final String topic = srcMap.get(KEY_TOPIC);
-        final String message = srcMap.get(KEY_MESSAGE);
-        final String source = srcMap.get(KEY_SOURCE);
-        final String actor = srcMap.get(KEY_ACTOR);
-        final String label = srcMap.get(KEY_LABEL);
-
-        Date date = null;
-        if (srcMap.containsKey(KEY_DATE)) {
-            date = new Date(Long.valueOf(srcMap.get(KEY_DATE)));
-        }
-
-        Throwable throwable = null;
-        if (srcMap.containsKey(KEY_THROWABLE)) {
-            throwable = (Throwable) Base64.decodeToObject(srcMap.get(KEY_THROWABLE));
-        }
-
-        PwmLogLevel level = null;
-        if (srcMap.containsKey(KEY_LEVEL)) {
-            level = PwmLogLevel.valueOf(srcMap.get(KEY_LEVEL));
-        }
-
-        */
-        //return createPwmLogEvent(date, topic, message, source, actor, label, throwable, level);
+        return JsonUtil.deserialize(encodedString, PwmLogEvent.class);
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------

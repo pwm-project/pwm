@@ -23,29 +23,38 @@
 package password.pwm.svc.report;
 
 import password.pwm.error.ErrorInformation;
-import password.pwm.svc.stats.EventRateMeter;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 
 public class ReportStatusInfo implements Serializable {
-    private Date startDate;
-    private Date finishDate;
-    private boolean inProgress;
+    private TimeDuration jobDuration = TimeDuration.ZERO;
+    private Instant finishDate;
     private int count;
-    private int updated;
-    private int total;
-    private EventRateMeter eventRateMeter = new EventRateMeter(TimeDuration.MINUTE);
     private int errors;
     private ErrorInformation lastError;
     private String settingsHash;
     private ReportEngineProcess currentProcess = ReportEngineProcess.None;
 
     public enum ReportEngineProcess {
-        RollOver,
-        DredgeTask,
-        None,
+        RollOver("Initializing"),
+        ReadData("Process LDAP Records"),
+        None("Idle"),
+        SearchLDAP("Searching LDAP"),
+        Clear("Clearing Records"),
+
+        ;
+
+        private final String label;
+
+        ReportEngineProcess(final String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
     }
 
 
@@ -57,28 +66,20 @@ public class ReportStatusInfo implements Serializable {
         return settingsHash;
     }
 
-    public Date getStartDate() {
-        return startDate;
+    public TimeDuration getJobDuration() {
+        return jobDuration;
     }
 
-    public void setStartDate(final Date startDate) {
-        this.startDate = startDate;
+    public void setJobDuration(final TimeDuration jobDuration) {
+        this.jobDuration = jobDuration;
     }
 
-    public Date getFinishDate() {
+    public Instant getFinishDate() {
         return finishDate;
     }
 
-    public void setFinishDate(final Date finishDate) {
+    public void setFinishDate(final Instant finishDate) {
         this.finishDate = finishDate;
-    }
-
-    public boolean isInProgress() {
-        return inProgress;
-    }
-
-    public void setInProgress(final boolean inProgress) {
-        this.inProgress = inProgress;
     }
 
     public int getCount() {
@@ -89,29 +90,6 @@ public class ReportStatusInfo implements Serializable {
         this.count = count;
     }
 
-    public int getUpdated() {
-        return updated;
-    }
-
-    public void setUpdated(final int updated) {
-        this.updated = updated;
-    }
-
-    public int getTotal() {
-        return total;
-    }
-
-    public void setTotal(final int total) {
-        this.total = total;
-    }
-
-    public EventRateMeter getEventRateMeter() {
-        return eventRateMeter;
-    }
-
-    public void setEventRateMeter(final EventRateMeter eventRateMeter) {
-        this.eventRateMeter = eventRateMeter;
-    }
 
     public int getErrors() {
         return errors;

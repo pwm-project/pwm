@@ -269,9 +269,9 @@
                 PWM_MAIN.addEventHandler('button-refreshReportDataGrid','click',function(){
                     PWM_ADMIN.refreshReportDataGrid();
                 });
-                PWM_MAIN.addEventHandler('reportStartButton','click',function(){ PWM_ADMIN.reportAction('start') });
-                PWM_MAIN.addEventHandler('reportStopButton','click',function(){ PWM_ADMIN.reportAction('stop') });
-                PWM_MAIN.addEventHandler('reportClearButton','click',function(){ PWM_ADMIN.reportAction('clear') });
+                PWM_MAIN.addEventHandler('reportStartButton','click',function(){ PWM_ADMIN.reportAction('Start') });
+                PWM_MAIN.addEventHandler('reportStopButton','click',function(){ PWM_ADMIN.reportAction('Stop') });
+                PWM_MAIN.addEventHandler('reportClearButton','click',function(){ PWM_ADMIN.reportAction('Clear') });
                 PWM_MAIN.addEventHandler('statsChartSelect','change',function(){ refreshChart() })
 
             });

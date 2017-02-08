@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet;
+package password.pwm.http.servlet.admin;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
@@ -33,10 +33,14 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
+import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.svc.report.ReportColumnFilter;
+import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.reports.ReportUtils;
 import password.pwm.ws.server.RestResultBean;
@@ -48,6 +52,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 
 @WebServlet(
         name = "AdminServlet",
@@ -68,6 +73,9 @@ public class AdminServlet extends AbstractPwmServlet {
         downloadUserSummaryCsv(HttpMethod.POST),
         downloadStatisticsLogCsv(HttpMethod.POST),
         clearIntruderTable(HttpMethod.POST),
+        reportCommand(HttpMethod.POST),
+        reportStatus(HttpMethod.GET),
+        reportSummary(HttpMethod.GET),
 
         ;
 
@@ -136,6 +144,18 @@ public class AdminServlet extends AbstractPwmServlet {
                     processClearIntruderTable(pwmRequest);
                     return;
 
+                case reportCommand:
+                    processReportCommand(pwmRequest);
+                    return;
+
+                case reportSummary:
+                    processReportSummary(pwmRequest);
+                    return;
+
+                case reportStatus:
+                    processReportStatus(pwmRequest);
+                    return;
+
                 default:
                     JavaHelper.unhandledSwitchStatement(action);
             }
@@ -185,9 +205,9 @@ public class AdminServlet extends AbstractPwmServlet {
         try {
             final String selectedColumns = pwmRequest.readParameterAsString("selectedColumns", "");
 
-            final ReportService userReport = pwmApplication.getReportService();
             final ReportColumnFilter columnFilter = ReportUtils.toReportColumnFilter(selectedColumns);
-            userReport.outputToCsv(outputStream, true, pwmRequest.getLocale(), columnFilter);
+            final ReportCsvUtility reportCsvUtility = new ReportCsvUtility(pwmApplication);
+            reportCsvUtility.outputToCsv(outputStream, true, pwmRequest.getLocale(), columnFilter);
         } catch (Exception e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
             pwmRequest.respondWithError(errorInformation);
@@ -207,8 +227,8 @@ public class AdminServlet extends AbstractPwmServlet {
 
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try {
-            final ReportService userReport = pwmApplication.getReportService();
-            userReport.outputSummaryToCsv(outputStream, pwmRequest.getLocale());
+            final ReportCsvUtility reportCsvUtility = new ReportCsvUtility(pwmApplication);
+            reportCsvUtility.outputSummaryToCsv(outputStream, pwmRequest.getLocale());
         } catch (Exception e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
             pwmRequest.respondWithError(errorInformation);
@@ -251,6 +271,52 @@ public class AdminServlet extends AbstractPwmServlet {
         final RestResultBean restResultBean = new RestResultBean();
         pwmRequest.outputJsonResult(restResultBean);
     }
+
+    private void processReportCommand(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException {
+        final ReportService.ReportCommand reportCommand = JavaHelper.readEnumFromString(
+                ReportService.ReportCommand.class,
+                null,
+                pwmRequest.readParameterAsString("command")
+        );
+
+        LOGGER.trace(pwmRequest, "issuing command '" + reportCommand + "' to report engine");
+        pwmRequest.getPwmApplication().getReportService().executeCommand(reportCommand);
+
+        final RestResultBean restResultBean = new RestResultBean();
+        pwmRequest.outputJsonResult(restResultBean);
+    }
+
+    private void processReportStatus(final PwmRequest pwmRequest)
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException {
+        try {
+            final ReportStatusBean returnMap = ReportStatusBean.makeReportStatusData(
+                    pwmRequest.getPwmApplication().getReportService(),
+                    pwmRequest.getPwmSession().getSessionStateBean().getLocale()
+            );
+            final RestResultBean restResultBean = new RestResultBean();
+            restResultBean.setData(returnMap);
+            pwmRequest.outputJsonResult(restResultBean);
+        } catch (LocalDBException e) {
+            throw new PwmUnrecoverableException(e.getErrorInformation());
+        }
+    }
+
+    private void processReportSummary(final PwmRequest pwmRequest)
+
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final LinkedHashMap<String,Object> returnMap = new LinkedHashMap<>();
+        returnMap.put("raw",pwmApplication.getReportService().getSummaryData());
+        returnMap.put("presentable", pwmApplication.getReportService().getSummaryData().asPresentableCollection(
+                pwmApplication.getConfig(),
+                pwmRequest.getPwmSession().getSessionStateBean().getLocale()
+        ));
+
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(returnMap);
+        pwmRequest.outputJsonResult(restResultBean);
+    }
+
 
 
 

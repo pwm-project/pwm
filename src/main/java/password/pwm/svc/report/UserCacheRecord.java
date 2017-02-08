@@ -38,8 +38,6 @@ public class UserCacheRecord implements Serializable {
     public String username;
     public String email;
 
-    public String summaryEpoch;
-
     public Instant cacheTimestamp = Instant.now();
 
     public PasswordStatus passwordStatus;
@@ -60,16 +58,6 @@ public class UserCacheRecord implements Serializable {
     public boolean requiresPasswordUpdate;
     public boolean requiresResponseUpdate;
     public boolean requiresProfileUpdate;
-
-    public String getSummaryEpoch()
-    {
-        return summaryEpoch;
-    }
-
-    public void setSummaryEpoch(final String summaryEpoch)
-    {
-        this.summaryEpoch = summaryEpoch;
-    }
 
     public String getUserDN()
     {

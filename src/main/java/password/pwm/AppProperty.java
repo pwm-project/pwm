@@ -230,6 +230,7 @@ public enum     AppProperty {
     RECAPTCHA_CLIENT_IFRAME_URL                     ("recaptcha.clientIframeUrl"),
     RECAPTCHA_VALIDATE_URL                          ("recaptcha.validateUrl"),
     REPORTING_LDAP_SEARCH_TIMEOUT                   ("reporting.ldap.searchTimeoutMs"),
+    REPORTING_LDAP_SEARCH_THREADS                   ("reporting.ldap.searchThreads"),
     SECURITY_STRIP_INLINE_JAVASCRIPT                ("security.html.stripInlineJavascript"),
     SECURITY_HTTP_STRIP_HEADER_REGEX                ("security.http.stripHeaderRegex"),
     SECURITY_HTTP_PERFORM_CSRF_HEADER_CHECKS        ("security.http.performCsrfHeaderChecks"),

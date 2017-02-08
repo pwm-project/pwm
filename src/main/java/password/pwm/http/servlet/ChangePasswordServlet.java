@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -47,10 +48,10 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ChangePasswordBean;
-import password.pwm.http.ProcessStatus;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -70,6 +71,7 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -450,7 +452,7 @@ public class ChangePasswordServlet extends ControlledPwmServlet {
                     pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_PasswordChange);
                 }
             } else {
-                pwmRequest.forwardToJsp(JspUrl.PASSWORD_CHANGE_WAIT);
+                forwardToWaitPage(pwmRequest);
             }
             return ProcessStatus.Halt;
         }
@@ -507,7 +509,7 @@ public class ChangePasswordServlet extends ControlledPwmServlet {
         }
 
         if (changePasswordBean.getChangeProgressTracker() != null) {
-            pwmRequest.forwardToJsp(JspUrl.PASSWORD_CHANGE_WAIT);
+            forwardToWaitPage(pwmRequest);
             return;
         }
 
@@ -693,6 +695,24 @@ public class ChangePasswordServlet extends ControlledPwmServlet {
     {
         pwmRequest.addFormInfoToRequestAttr(PwmSetting.PASSWORD_REQUIRE_FORM,false,false);
         pwmRequest.forwardToJsp(JspUrl.PASSWORD_FORM);
+    }
+
+    private void forwardToWaitPage(final PwmRequest pwmRequest)
+            throws PwmUnrecoverableException, ServletException, IOException {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final ChangePasswordBean changePasswordBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ChangePasswordBean.class);
+        final Instant maxCompleteTime = changePasswordBean.getChangePasswordMaxCompletion();
+        pwmRequest.setAttribute(
+                PwmRequest.Attribute.ChangePassword_MaxWaitSeconds,
+                maxCompleteTime == null ? 30 : TimeDuration.fromCurrent(maxCompleteTime).getTotalSeconds()
+        );
+
+        pwmRequest.setAttribute(
+                PwmRequest.Attribute.ChangePassword_CheckIntervalSeconds,
+                Long.parseLong(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS))
+        );
+
+        pwmRequest.forwardToJsp(JspUrl.PASSWORD_CHANGE_WAIT);
     }
 
     @Override

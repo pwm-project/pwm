@@ -22,14 +22,18 @@
 
 package password.pwm.util.java;
 
+import com.novell.ldapchai.util.StringHelper;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Display;
 import password.pwm.util.LocaleHelper;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -46,14 +50,16 @@ public class TimeDuration implements Comparable, Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     public static final TimeDuration ZERO = new TimeDuration(0);
-    public static final TimeDuration MILLISECOND = new TimeDuration(1);
-    public static final TimeDuration SECOND = new TimeDuration(1000);
-    public static final TimeDuration MINUTE = new TimeDuration(1000 * 60);
-    public static final TimeDuration HOUR = new TimeDuration(1000 * 60 * 60);
-    public static final TimeDuration DAY = new TimeDuration(1000 * 60 * 60 * 24);
+    public static final TimeDuration MILLISECOND = new TimeDuration(1, TimeUnit.MILLISECONDS);
+    public static final TimeDuration SECOND = new TimeDuration(1, TimeUnit.SECONDS);
+    public static final TimeDuration SECONDS_10 = new TimeDuration(30, TimeUnit.SECONDS);
+    public static final TimeDuration SECONDS_30 = new TimeDuration(30, TimeUnit.SECONDS);
+    public static final TimeDuration MINUTE = new TimeDuration(1, TimeUnit.MINUTES);
+    public static final TimeDuration HOUR = new TimeDuration(1, TimeUnit.HOURS);
+    public static final TimeDuration DAY = new TimeDuration(1, TimeUnit.DAYS);
 
-    private long ms;
-    private TimeDetail cachedTimeDetail;
+    private final long ms;
+    private transient TimeDetail cachedTimeDetail;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -299,7 +305,7 @@ public class TimeDuration implements Comparable, Serializable {
     }
 
     public long getMilliseconds() {
-        return getTimeDetail().milliseconds;
+        return ms;
     }
 
     public String asLongString() {
@@ -308,52 +314,53 @@ public class TimeDuration implements Comparable, Serializable {
 
     public String asLongString(final Locale locale) {
         final TimeDetail timeDetail = getTimeDetail();
-        final StringBuilder sb = new StringBuilder();
+        final List<String> segments = new ArrayList<>();
 
         //output number of days
         if (timeDetail.days > 0) {
+            final StringBuilder sb = new StringBuilder();
             sb.append(timeDetail.days);
             sb.append(" ");
             sb.append(timeDetail.days == 1 ? LocaleHelper.getLocalizedMessage(locale, Display.Display_Day, null) : LocaleHelper.getLocalizedMessage(locale,Display.Display_Days,null));
+            segments.add(sb.toString());
         }
 
         //output number of hours
         if (timeDetail.hours > 0) {
-            if (sb.length() > 0) {
-                sb.append(", ");
-            }
+            final StringBuilder sb = new StringBuilder();
             sb.append(timeDetail.hours);
             sb.append(" ");
             sb.append(timeDetail.hours == 1 ? LocaleHelper.getLocalizedMessage(locale,Display.Display_Hour,null) : LocaleHelper.getLocalizedMessage(locale,Display.Display_Hours,null));
+            segments.add(sb.toString());
         }
 
         //output number of minutes
         if (timeDetail.minutes > 0) {
-            if (sb.length() > 0) {
-                sb.append(", ");
-            }
+            final StringBuilder sb = new StringBuilder();
             sb.append(timeDetail.minutes);
             sb.append(" ");
             sb.append(timeDetail.minutes == 1 ? LocaleHelper.getLocalizedMessage(locale,Display.Display_Minute,null) : LocaleHelper.getLocalizedMessage(locale,Display.Display_Minutes,null));
+            segments.add(sb.toString());
         }
 
-        //seconds
-        if (timeDetail.seconds > 0 || sb.toString().isEmpty()) {
-            if (sb.length() > 0) {
-                sb.append(", ");
-            }
+        //seconds & ms
+        if (timeDetail.seconds > 0 || segments.isEmpty()) {
+            final StringBuilder sb = new StringBuilder();
             if (sb.length() == 0) {
                 if (ms < 5000) {
-                    sb.append(new BigDecimal(ms).movePointLeft(3).stripTrailingZeros());
+                    final BigDecimal msDecimal = new BigDecimal(ms).movePointLeft(3);
 
-                    if (ms > 1000) {
-                        sb.deleteCharAt(sb.length()-1);
-                    }
+                    final DecimalFormat formatter;
 
                     if (ms > 2000) {
-                        sb.deleteCharAt(sb.length()-1);
+                        formatter = new DecimalFormat("#.#");
+                    } else if (ms > 1000) {
+                        formatter = new DecimalFormat("#.##");
+                    } else {
+                        formatter = new DecimalFormat("#.###");
                     }
 
+                    sb.append(formatter.format(msDecimal));
                 } else {
                     sb.append(timeDetail.seconds);
                 }
@@ -365,9 +372,10 @@ public class TimeDuration implements Comparable, Serializable {
                     ? LocaleHelper.getLocalizedMessage(locale,Display.Display_Second,null)
                     : LocaleHelper.getLocalizedMessage(locale,Display.Display_Seconds,null)
             );
+            segments.add(sb.toString());
         }
 
-        return sb.toString();
+        return StringHelper.stringCollectionToString(segments, ", ");
     }
 
     public Date getDateAfterNow() {

@@ -136,6 +136,8 @@ public interface LocalDB {
         SYSLOG_QUEUE(true),
         CACHE(false),
 
+        REPORT_QUEUE(false),
+
         ;
 
         private final boolean backup;

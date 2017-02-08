@@ -29,7 +29,6 @@ import password.pwm.i18n.Admin;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.logging.PwmLogger;
 
 import java.math.BigInteger;
 import java.text.NumberFormat;
@@ -43,11 +42,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class ReportSummaryData {
-    private static final PwmLogger LOGGER = PwmLogger.forClass(ReportSummaryData.class);
-
-    private static final long MS_DAY = 24 * 60 * 60 * 1000;
-
-    private String epoch;
+    private static final long MS_DAY = TimeDuration.DAY.getTotalMilliseconds();
 
     private Instant meanCacheTime;
     private int totalUsers;
@@ -76,15 +71,9 @@ public class ReportSummaryData {
     private ReportSummaryData() {
     }
 
-    public String getEpoch()
-    {
-        return epoch;
-    }
-
     public static ReportSummaryData newSummaryData(final List<Integer> trackedDays) {
         final ReportSummaryData reportSummaryData = new ReportSummaryData();
-        reportSummaryData.epoch = Long.toHexString(System.currentTimeMillis());
-        
+
         if (trackedDays != null) {
             for (final int day : trackedDays) {
                 reportSummaryData.pwExpireDays.put(day, 0);

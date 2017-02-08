@@ -25,6 +25,7 @@ package password.pwm.http.servlet;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.servlet.admin.AdminServlet;
 import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.http.servlet.configguide.ConfigGuideServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerCertificatesServlet;
@@ -55,7 +56,7 @@ public enum PwmServletDefinition {
     GuestRegistration(password.pwm.http.servlet.GuestRegistrationServlet.class),
     SelfDelete(DeleteAccountServlet.class),
 
-    Admin(password.pwm.http.servlet.AdminServlet.class),
+    Admin(AdminServlet.class),
     ConfigGuide(ConfigGuideServlet.class),
     ConfigEditor(ConfigEditorServlet.class),
     ConfigManager(ConfigManagerServlet.class),

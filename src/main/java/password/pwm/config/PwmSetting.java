@@ -43,7 +43,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -675,8 +674,6 @@ public enum PwmSetting {
             "challenge.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.CHALLENGE),
     QUERY_MATCH_CHECK_RESPONSES(
             "command.checkResponses.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.CHALLENGE),
-    CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME(
-            "challenge.enforceMinimumPasswordLifetime", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHALLENGE),
 
     // challenge policy profile
     CHALLENGE_PROFILE_LIST(
@@ -714,6 +711,8 @@ public enum PwmSetting {
             "response.hashMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS),
     FORGOTTEN_USER_POST_ACTIONS(
             "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY_SETTINGS),
+    CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME(
+            "challenge.enforceMinimumPasswordLifetime", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS),
 
     // recovery profile
     RECOVERY_PROFILE_LIST(
@@ -1038,14 +1037,12 @@ public enum PwmSetting {
             "reporting.ldap.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.REPORTING),
     REPORTING_MAX_CACHE_AGE(
             "reporting.maxCacheAge", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING),
-    REPORTING_MIN_CACHE_AGE(
-            "reporting.minCacheAge", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING),
-    REPORTING_REST_TIME_MS(
-            "reporting.reportRestTimeMS", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING),
     REPORTING_MAX_QUERY_SIZE(
             "reporting.ldap.maxQuerySize", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING),
     REPORTING_JOB_TIME_OFFSET(
             "reporting.job.timeOffset", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING),
+    REPORTING_JOB_INTENSITY(
+            "reporting.job.intensity", PwmSettingSyntax.SELECT, PwmSettingCategory.REPORTING),
     REPORTING_SUMMARY_DAY_VALUES(
             "reporting.summary.dayValues", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REPORTING),
 
@@ -1331,22 +1328,14 @@ public enum PwmSetting {
 
     public String getLabel(final Locale locale) {
         final String key = "Setting_Label_" + this.getKey();
-        try {
-            return LocaleHelper.getLocalizedMessage(locale, key, null, password.pwm.i18n.PwmSetting.class);
-        } catch (MissingResourceException e) {
-            return "MISSING_SETTING_LABEL-" + key;
-        }
+        return LocaleHelper.getLocalizedMessage(locale, key, null, password.pwm.i18n.PwmSetting.class);
     }
 
     public String getDescription(final Locale locale) {
         final String key = "Setting_Description_" + this.getKey();
-        try {
-            final String storedText = LocaleHelper.getLocalizedMessage(locale, key, null, password.pwm.i18n.PwmSetting.class);
-            final MacroMachine macroMachine = MacroMachine.forStatic();
-            return macroMachine.expandMacros(storedText);
-        } catch (MissingResourceException e) {
-            return "MISSING_DESCRIPTION_LABEL-" + key;
-        }
+        final String storedText = LocaleHelper.getLocalizedMessage(locale, key, null, password.pwm.i18n.PwmSetting.class);
+        final MacroMachine macroMachine = MacroMachine.forStatic();
+        return macroMachine.expandMacros(storedText);
     }
 
     public String getExample(final PwmSettingTemplateSet template) {

@@ -30,6 +30,8 @@
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.LinkedHashMap" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.util.logging.LocalDBSearchQuery" %>
+<%@ page import="password.pwm.util.logging.LocalDBSearchResults" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -183,9 +185,9 @@
             } catch (Exception e) {
             }
 
-            LocalDBLogger.SearchResults searchResults = null;
+            LocalDBSearchResults searchResults = null;
             try {
-                final LocalDBLogger.SearchParameters searchParameters = new LocalDBLogger.SearchParameters(logLevel, eventCount, username, text, maxTime, logType);
+                final LocalDBSearchQuery searchParameters = new LocalDBSearchQuery(logLevel, eventCount, username, text, maxTime, logType);
                 searchResults = localDBLogger.readStoredEvents(searchParameters);
             } catch (Exception e) {
                 out.write("<p>Unexpected error while searching: " + e.getMessage()+"</p>");

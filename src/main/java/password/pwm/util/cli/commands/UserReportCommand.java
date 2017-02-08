@@ -26,6 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
+import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
 import password.pwm.util.cli.CliParameters;
 
@@ -67,7 +68,8 @@ public class UserReportCommand extends AbstractCliCommand {
             }
             return;
         }
-        userReport.outputToCsv(outputFileStream, true, PwmConstants.DEFAULT_LOCALE);
+        final ReportCsvUtility reportCsvUtility = new ReportCsvUtility(pwmApplication);
+        reportCsvUtility.outputToCsv(outputFileStream, true, PwmConstants.DEFAULT_LOCALE);
 
         try { outputFileStream.close(); } catch (Exception e) { /* nothing */ }
         out("report output complete.");

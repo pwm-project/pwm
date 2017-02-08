@@ -191,7 +191,9 @@ public class HealthMonitor implements PwmService {
                     tempResults.addAll(loopResults);
                 }
             } catch (Exception e) {
-                LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
+                if (status == STATUS.OPEN) {
+                    LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
+                }
             }
         }
         for (final PwmService service : pwmApplication.getPwmServices()) {
@@ -201,7 +203,9 @@ public class HealthMonitor implements PwmService {
                     tempResults.addAll(loopResults);
                 }
             } catch (Exception e) {
-                LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
+                if (status == STATUS.OPEN) {
+                    LOGGER.warn("unexpected error during healthCheck: " + e.getMessage(), e);
+                }
             }
         }
         healthRecords.clear();

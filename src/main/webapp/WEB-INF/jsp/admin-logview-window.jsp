@@ -28,6 +28,8 @@
 <%@ page import="password.pwm.util.logging.PwmLogLevel" %>
 <%@ page import="java.util.Date" %>
 <%@ page import="java.time.Instant" %>
+<%@ page import="password.pwm.util.logging.LocalDBSearchQuery" %>
+<%@ page import="password.pwm.util.logging.LocalDBSearchResults" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -74,8 +76,8 @@
     final LocalDBLogger.EventType logType = LocalDBLogger.EventType.Both;
     final int eventCount = 1000;
     final long maxTime = 10000;
-    final LocalDBLogger.SearchParameters searchParameters = new LocalDBLogger.SearchParameters(logLevel, eventCount, "", "", maxTime, logType);
-    final LocalDBLogger.SearchResults searchResults = localDBLogger.readStoredEvents(searchParameters);
+    final LocalDBSearchQuery searchParameters = new LocalDBSearchQuery(logLevel, eventCount, "", "", maxTime, logType);
+    final LocalDBSearchResults searchResults = localDBLogger.readStoredEvents(searchParameters);
 %>
 <pre><% while (searchResults.hasNext()) { %>
     <% final PwmLogEvent logEvent = searchResults.next(); %>

@@ -28,6 +28,9 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 public class EventRateMeter implements Serializable {
+
+    private final TimeDuration maxDuration;
+
     private MovingAverage movingAverage;
     private double remainder = 0;
 
@@ -35,7 +38,13 @@ public class EventRateMeter implements Serializable {
         if (maxDuration == null) {
             throw new NullPointerException("maxDuration cannot be null");
         }
+        this.maxDuration = maxDuration;
+        reset();
+    }
+
+    public void reset() {
         movingAverage = new MovingAverage(maxDuration.getTotalMilliseconds());
+        remainder = 0;
     }
 
     public synchronized void markEvents(final int eventCount) {
