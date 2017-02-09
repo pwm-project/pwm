@@ -237,9 +237,11 @@ public class PeopleSearchServlet extends AbstractPwmServlet {
             }
         }
 
+        final boolean noChildren = pwmRequest.readParameterAsBoolean("noChildren");
+
         try {
             final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader(pwmRequest);
-            final OrgChartDataBean orgChartData = peopleSearchDataReader.makeOrgChartData(userIdentity);
+            final OrgChartDataBean orgChartData = peopleSearchDataReader.makeOrgChartData(userIdentity, noChildren);
 
             addExpiresHeadersToResponse(pwmRequest);
             pwmRequest.outputJsonResult(new RestResultBean(orgChartData));

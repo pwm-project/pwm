@@ -752,7 +752,7 @@
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>angular</artifactId>
-            <version>1.6.1</version>
+            <version>1.5.11</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>

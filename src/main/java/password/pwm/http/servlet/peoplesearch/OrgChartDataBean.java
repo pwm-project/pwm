@@ -23,12 +23,13 @@
 package password.pwm.http.servlet.peoplesearch;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 class OrgChartDataBean implements Serializable {
     private OrgChartReferenceBean parent;
     private OrgChartReferenceBean self;
-    private List<OrgChartReferenceBean> children;
+    private List<OrgChartReferenceBean> children = Collections.emptyList();
 
     public OrgChartReferenceBean getParent() {
         return parent;

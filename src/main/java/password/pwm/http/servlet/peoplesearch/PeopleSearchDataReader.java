@@ -114,14 +114,15 @@ public class PeopleSearchDataReader {
     }
 
     public OrgChartDataBean makeOrgChartData(
-            final UserIdentity userIdentity
+            final UserIdentity userIdentity,
+            final boolean noChildren
 
     )
             throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
 
-        final CacheKey cacheKey = makeCacheKey(OrgChartDataBean.class.getSimpleName(), userIdentity.toDelimitedKey());
+        final CacheKey cacheKey = makeCacheKey(OrgChartDataBean.class.getSimpleName(), userIdentity.toDelimitedKey() + "|" + noChildren);
         { // if value is cached then return;
             final String cachedOutput = pwmRequest.getPwmApplication().getCacheService().get(cacheKey);
             if (cachedOutput != null) {
@@ -147,7 +148,7 @@ public class PeopleSearchDataReader {
         }
 
         int childCount = 0;
-        { // make children reference
+        if (!noChildren) { // make children reference
             final Map<String,OrgChartReferenceBean> sortedChildren = new TreeMap<>();
             final List<UserIdentity> childIdentities = readUserDNAttributeValues(userIdentity, config.getOrgChartChildAttr());
             for (final UserIdentity  childIdentity : childIdentities) {

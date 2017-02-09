@@ -132,7 +132,7 @@ export default class OrgChartSearchComponent {
     }
 
     private fetchOrgChartData(personId): IPromise<OrgChartData> {
-        return this.peopleService.getOrgChartData(personId);
+        return this.peopleService.getOrgChartData(personId, true);
     }
 
     private getSearchText(): string {

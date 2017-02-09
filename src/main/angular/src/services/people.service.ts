@@ -32,7 +32,7 @@ export interface IPeopleService {
     getDirectReports(personId: string): IPromise<Person[]>;
     getNumberOfDirectReports(personId: string): IPromise<number>;
     getManagementChain(personId: string): IPromise<Person[]>;
-    getOrgChartData(personId: string): IPromise<OrgChartData>;
+    getOrgChartData(personId: string, skipChildren: boolean): IPromise<OrgChartData>;
     getPerson(id: string): IPromise<Person>;
     search(query: string): IPromise<SearchResult>;
 }
@@ -58,7 +58,7 @@ export default class PeopleService implements IPeopleService {
     }
 
     getDirectReports(id: string): IPromise<Person[]> {
-        return this.getOrgChartData(id).then((orgChartData: OrgChartData) => {
+        return this.getOrgChartData(id, false).then((orgChartData: OrgChartData) => {
             let people: Person[] = [];
 
             for (let directReport of orgChartData.children) {
@@ -82,7 +82,7 @@ export default class PeopleService implements IPeopleService {
     }
 
     private getManagerRecursive(id: string, people: Person[]): IPromise<Person[]> {
-        return this.getOrgChartData(id)
+        return this.getOrgChartData(id, true)
             .then((orgChartData: OrgChartData) => {
                 if (orgChartData.manager) {
                     people.push(orgChartData.manager);
@@ -94,9 +94,15 @@ export default class PeopleService implements IPeopleService {
             });
     }
 
-    getOrgChartData(personId: string): angular.IPromise<OrgChartData> {
+    getOrgChartData(personId: string, noChildren: boolean): angular.IPromise<OrgChartData> {
         return this.$http
-            .get(this.pwmService.getServerUrl('orgChartData'), { cache: true, params: { userKey: personId } })
+            .get(this.pwmService.getServerUrl('orgChartData'), {
+                cache: true,
+                params: {
+                    userKey: personId,
+                    noChildren: noChildren
+                }
+            })
             .then(
                 (response) => {
                     if (response.data['error']) {
