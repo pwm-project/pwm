@@ -25,7 +25,6 @@ package password.pwm.http;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
 import password.pwm.util.Validator;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -36,7 +35,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.URI;
 import java.util.Arrays;
 
 public class PwmHttpResponseWrapper {
@@ -158,14 +156,6 @@ public class PwmHttpResponseWrapper {
             final String configValue = configuration.readAppProperty(AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG);
             if (configValue == null || "auto".equalsIgnoreCase(configValue)) {
                 secureFlag = this.httpServletRequest.isSecure();
-                if (!secureFlag) {
-                    final String siteURLstring = configuration.readSettingAsString(PwmSetting.PWM_SITE_URL);
-                    if (siteURLstring != null && !siteURLstring.isEmpty()) {
-                        if ("https".equals(URI.create(siteURLstring).getScheme())) {
-                            secureFlag = true;
-                        }
-                    }
-                }
             } else {
                 secureFlag = Boolean.parseBoolean(configValue);
             }
