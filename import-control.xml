@@ -76,6 +76,7 @@
     <allow pkg="javax.mail"/>
     <allow pkg="org.xeustechnologies"/>
     <allow pkg="net.glxn"/>
+    <allow pkg="org.webjars"/>
 
     <!--servlet -->
     <subpackage name="http.servlet">

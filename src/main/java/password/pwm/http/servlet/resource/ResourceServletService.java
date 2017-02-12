@@ -191,14 +191,6 @@ public class ResourceServletService implements PwmService {
             JavaHelper.copyWhilePredicate(fileResource.getInputStream(), checksumOs, o -> true);
         }
 
-        if (getResourceServletConfiguration().getWebJarUriMappings() != null) {
-            for (final String key : getResourceServletConfiguration().getWebJarUriMappings().keySet()) {
-                final String value = getResourceServletConfiguration().getWebJarUriMappings().get(key);
-                checksumOs.write(key.getBytes(PwmConstants.DEFAULT_CHARSET));
-                checksumOs.write(value.getBytes(PwmConstants.DEFAULT_CHARSET));
-            }
-        }
-
         if (getResourceServletConfiguration().getZipResources() != null) {
             for (final String key : getResourceServletConfiguration().getZipResources().keySet()) {
                 final ZipFile value = getResourceServletConfiguration().getZipResources().get(key);
@@ -209,7 +201,6 @@ public class ResourceServletService implements PwmService {
                 }
             }
         }
-
 
         final String nonce = JavaHelper.byteArrayToHexString(checksumOs.getInProgressChecksum()).toLowerCase();
         LOGGER.debug("completed generation of nonce '" + nonce + "' in " + TimeDuration.fromCurrent(startTime).asCompactString());

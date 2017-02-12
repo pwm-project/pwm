@@ -38,7 +38,7 @@
 }
 */
 
-@import url("font/font-awesome/css/font-awesome.css");
+@import url("webjars/font-awesome/css/font-awesome.css");
 
 .pwm-icon {
   display: inline-block;
