@@ -282,7 +282,7 @@ public abstract class ControlledPwmServlet extends HttpServlet implements PwmSer
         throw new IllegalStateException("unable to determine PwmServletDefinition for class " + this.getClass().getName());
     }
 
-    interface ProcessActionHandler {
+    public interface ProcessActionHandler {
         ProcessStatus processAction(PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException, ChaiUnavailableException;
     }
 
@@ -347,9 +347,9 @@ public abstract class ControlledPwmServlet extends HttpServlet implements PwmSer
         nextStep(pwmRequest);
     }
 
-    abstract void nextStep(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException;
+    public abstract void nextStep(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException;
 
-    abstract void preProcessCheck(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException;
+    public abstract void preProcessCheck(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException;
 
     void sendOtherRedirect(final PwmRequest pwmRequest, final String location) throws IOException, PwmUnrecoverableException {
         final String protocol = pwmRequest.getHttpServletRequest().getProtocol();

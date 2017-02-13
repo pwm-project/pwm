@@ -121,9 +121,9 @@ public class LogoutServlet extends ControlledPwmServlet {
         }
     }
 
-     void nextStep(
-            final PwmRequest pwmRequest
-    )
+     public void nextStep(
+             final PwmRequest pwmRequest
+     )
             throws PwmUnrecoverableException, IOException
     {
         final String nextUrl;
@@ -255,7 +255,7 @@ public class LogoutServlet extends ControlledPwmServlet {
     }
 
     @Override
-    void preProcessCheck(final PwmRequest pwmRequest) {
+    public void preProcessCheck(final PwmRequest pwmRequest) {
         // no checks required, this is a public module.
     }
 }

@@ -43,7 +43,7 @@
     </pwm:if>
         <pwm:if test="<%=PwmIfTest.endUserFunctionalityAvaiable%>">
             <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.CHANGE_PASSWORD%>">
-                <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ChangePassword.servletUrl()%>'/>">
+                <a id="button_ChangePassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivateChangePassword.servletUrl()%>'/>">
                     <div class="tile">
                         <div class="tile-content">
                             <div class="tile-image password-image"></div>
@@ -56,7 +56,7 @@
 
             <pwm:if test="<%=PwmIfTest.peopleSearchEnabled%>">
                 <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PEOPLE_SEARCH%>">
-                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>/#/search">
+                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivatePeopleSearch.servletUrl()%>'/>#/search">
                         <div class="tile">
                             <div class="tile-content">
                                 <div class="tile-image search-image"></div>
@@ -70,7 +70,7 @@
 
             <pwm:if test="<%=PwmIfTest.orgChartEnabled%>">
                 <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PEOPLE_SEARCH%>">
-                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PeopleSearch.servletUrl()%>'/>/#/orgchart">
+                    <a id="button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PrivatePeopleSearch.servletUrl()%>'/>#/orgchart">
                         <div class="tile">
                             <div class="tile-content">
                                 <div class="tile-image orgchart-image"></div>

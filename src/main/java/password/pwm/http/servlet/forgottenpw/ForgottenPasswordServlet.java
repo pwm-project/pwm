@@ -982,7 +982,7 @@ public class ForgottenPasswordServlet extends AbstractPwmServlet {
             pwmSession.getUserInfoBean().setRequiresNewPassword(true);
 
             // redirect user to change password screen.
-            pwmRequest.sendRedirect(PwmServletDefinition.ChangePassword.servletUrlName());
+            pwmRequest.sendRedirect(PwmServletDefinition.PrivateChangePassword.servletUrlName());
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn(pwmSession,
                     "unexpected error authenticating during forgotten password recovery process user: " + e.getMessage());

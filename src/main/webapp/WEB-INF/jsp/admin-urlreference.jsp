@@ -61,7 +61,7 @@
             </tr>
             <tr>
                 <td class="key">Public People Search </td>
-                <td><a href="<pwm:context/><%=PwmConstants.URL_PREFIX_PUBLIC%>/<%=PwmServletDefinition.PeopleSearch.servletUrlName()%>"><pwm:context/><%=PwmConstants.URL_PREFIX_PUBLIC%>/<%=PwmServletDefinition.PeopleSearch.servletUrlName()%></a></td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.PublicPeopleSearch.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.PublicPeopleSearch.servletUrl()%></a></td>
             </tr>
         </table>
         <br/>
@@ -80,7 +80,7 @@
             </tr>
             <tr>
                 <td class="key">Change Password</td>
-                <td><a href="<pwm:context/><%=PwmServletDefinition.ChangePassword.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.ChangePassword.servletUrl()%></a></td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.PrivateChangePassword.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.PrivateChangePassword.servletUrl()%></a></td>
             </tr>
             <tr>
                 <td class="key">Setup Responses</td>
@@ -96,7 +96,7 @@
             </tr>
             <tr>
                 <td class="key">People Search</td>
-                <td><a href="<pwm:context/><%=PwmServletDefinition.PeopleSearch.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.PeopleSearch.servletUrl()%></a></td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.PrivatePeopleSearch.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.PrivatePeopleSearch.servletUrl()%></a></td>
             </tr>
             <tr>
                 <td class="key">Administration</td>

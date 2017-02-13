@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.http.servlet;
+package password.pwm.http.servlet.changepw;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
@@ -52,6 +52,7 @@ import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ChangePasswordBean;
+import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -69,7 +70,6 @@ import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
@@ -84,16 +84,7 @@ import java.util.Map;
  * @author Jason D. Rivard.
  */
 
-@WebServlet(
-        name="ChangePasswordServlet",
-        urlPatterns={
-                PwmConstants.URL_PREFIX_PRIVATE + "/changepassword",
-                PwmConstants.URL_PREFIX_PUBLIC + "/changepassword",
-                PwmConstants.URL_PREFIX_PRIVATE + "/ChangePassword",
-                PwmConstants.URL_PREFIX_PUBLIC + "/ChangePassword"
-        }
-)
-public class ChangePasswordServlet extends ControlledPwmServlet {
+public abstract class ChangePasswordServlet extends ControlledPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ChangePasswordServlet.class);
 
@@ -492,7 +483,7 @@ public class ChangePasswordServlet extends ControlledPwmServlet {
         pwmApplication.getAuditManager().submit(AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfoBean(), pwmSession);
     }
 
-    void nextStep(
+    public void nextStep(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException, ChaiUnavailableException, ServletException
@@ -716,7 +707,7 @@ public class ChangePasswordServlet extends ControlledPwmServlet {
     }
 
     @Override
-    void preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
+    public void preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final ChangePasswordBean changePasswordBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ChangePasswordBean.class);

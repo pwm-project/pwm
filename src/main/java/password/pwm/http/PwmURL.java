@@ -169,7 +169,8 @@ public class PwmURL {
     }
 
     public boolean isChangePasswordURL() {
-        return isPwmServletURL(PwmServletDefinition.ChangePassword);
+        return isPwmServletURL(PwmServletDefinition.PrivateChangePassword)
+                || isPwmServletURL(PwmServletDefinition.PublicChangePassword);
     }
 
     public boolean isSetupResponsesURL() {

@@ -91,7 +91,14 @@ public class IdleTimeoutCalculator {
             }
         }
 
-        if (pwmURL.isPwmServletURL(PwmServletDefinition.PeopleSearch) && pwmURL.isPrivateUrl()) {
+        if (
+                (
+                        pwmURL.isPwmServletURL(PwmServletDefinition.PrivatePeopleSearch)
+                                || pwmURL.isPwmServletURL(PwmServletDefinition.PublicPeopleSearch)
+                )
+                        && pwmURL.isPrivateUrl()
+                )
+        {
             if (config.readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) {
                 final long peopleSearchIdleTimeout = config.readSettingAsLong(PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS);
                 if (peopleSearchIdleTimeout > 0) {

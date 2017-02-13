@@ -105,6 +105,7 @@ public enum Statistic {
     REST_VERIFYCHALLENGES               (Type.INCREMENTOR, "RestVerifyChallenges", null),
     INTRUDER_ATTEMPTS                   (Type.INCREMENTOR, "IntruderAttempts", null),
     FOREIGN_SESSIONS_ACCEPTED           (Type.INCREMENTOR, "ForeignSessionsAccepted", null),
+    OBSOLETE_URL_REQUESTS               (Type.INCREMENTOR, "ObsoleteUrlRequests", null),
 
     AVG_PASSWORD_SYNC_TIME              (Type.AVERAGE, "AvgPasswordSyncTime", null),
     AVG_AUTHENTICATION_TIME             (Type.AVERAGE, "AvgAuthenticationTime", null),

@@ -47,7 +47,6 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -57,20 +56,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet(
-        name="PeopleSearchServlet",
-        urlPatterns = {
-                PwmConstants.URL_PREFIX_PRIVATE + "/peoplesearch",
-                PwmConstants.URL_PREFIX_PUBLIC + "/peoplesearch",
-                PwmConstants.URL_PREFIX_PRIVATE + "/peoplesearch/*",
-                PwmConstants.URL_PREFIX_PUBLIC + "/peoplesearch/*",
-                PwmConstants.URL_PREFIX_PRIVATE + "/PeopleSearch",
-                PwmConstants.URL_PREFIX_PUBLIC + "/PeopleSearch",
-                PwmConstants.URL_PREFIX_PRIVATE + "/PeopleSearch/*",
-                PwmConstants.URL_PREFIX_PUBLIC + "/PeopleSearch/*",
-        }
-)
-public class PeopleSearchServlet extends AbstractPwmServlet {
+public abstract class PeopleSearchServlet extends AbstractPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(PeopleSearchServlet.class);
 

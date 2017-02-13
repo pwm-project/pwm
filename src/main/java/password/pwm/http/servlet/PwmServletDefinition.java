@@ -26,6 +26,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.admin.AdminServlet;
+import password.pwm.http.servlet.changepw.PrivateChangePasswordServlet;
+import password.pwm.http.servlet.changepw.PublicChangePasswordServlet;
 import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.http.servlet.configguide.ConfigGuideServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerCertificatesServlet;
@@ -34,6 +36,8 @@ import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.http.servlet.configmanager.ConfigManagerWordlistServlet;
 import password.pwm.http.servlet.newuser.NewUserServlet;
 import password.pwm.http.servlet.oauth.OAuthConsumerServlet;
+import password.pwm.http.servlet.peoplesearch.PrivatePeopleSearchServlet;
+import password.pwm.http.servlet.peoplesearch.PublicPeopleSearchServlet;
 
 import javax.servlet.annotation.WebServlet;
 import java.lang.annotation.Annotation;
@@ -43,16 +47,18 @@ public enum PwmServletDefinition {
     Logout(password.pwm.http.servlet.LogoutServlet.class),
     OAuthConsumer(OAuthConsumerServlet.class),
     Command(password.pwm.http.servlet.CommandServlet.class),
+    PublicPeopleSearch(PublicPeopleSearchServlet.class),
+    PublicChangePassword(PublicChangePasswordServlet.class),
     //Resource(password.pwm.http.servlet.ResourceFileServlet.class),
 
     AccountInformation(AccountInformationServlet.class),
-    ChangePassword(password.pwm.http.servlet.ChangePasswordServlet.class),
+    PrivateChangePassword(PrivateChangePasswordServlet.class),
     SetupResponses(password.pwm.http.servlet.SetupResponsesServlet.class),
     UpdateProfile(password.pwm.http.servlet.UpdateProfileServlet.class),
     SetupOtp(password.pwm.http.servlet.SetupOtpServlet.class),
     Helpdesk(password.pwm.http.servlet.helpdesk.HelpdeskServlet.class),
     Shortcuts(password.pwm.http.servlet.ShortcutServlet.class),
-    PeopleSearch(password.pwm.http.servlet.peoplesearch.PeopleSearchServlet.class),
+    PrivatePeopleSearch(PrivatePeopleSearchServlet.class),
     GuestRegistration(password.pwm.http.servlet.GuestRegistrationServlet.class),
     SelfDelete(DeleteAccountServlet.class),
 

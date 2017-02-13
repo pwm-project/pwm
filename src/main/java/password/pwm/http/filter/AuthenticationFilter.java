@@ -359,7 +359,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
                         pwmRequest.getContextPath()
                                 + PwmConstants.URL_PREFIX_PUBLIC
                                 + "/"
-                                + PwmServletDefinition.ChangePassword.servletUrlName());
+                                + PwmServletDefinition.PrivateChangePassword.servletUrlName());
                 return ProcessStatus.Halt;
             } else {
                 return ProcessStatus.Continue;
@@ -409,7 +409,7 @@ public class AuthenticationFilter extends AbstractPwmFilter {
         if (uiBean.isRequiresNewPassword() && !pwmSession.getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipNewPw)) {
             if (!pwmURL.isChangePasswordURL()) {
                 LOGGER.debug(pwmRequest, "user password requires changing, redirecting to change password servlet");
-                pwmRequest.sendRedirect(PwmServletDefinition.ChangePassword);
+                pwmRequest.sendRedirect(PwmServletDefinition.PrivateChangePassword);
                 return ProcessStatus.Halt;
             } else {
                 return ProcessStatus.Continue;

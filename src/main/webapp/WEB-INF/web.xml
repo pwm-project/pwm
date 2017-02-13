@@ -125,6 +125,10 @@
         <filter-class>password.pwm.http.filter.RequestInitializationFilter</filter-class>
     </filter>
     <filter>
+        <filter-name>ObsoleteUrlFilter</filter-name>
+        <filter-class>password.pwm.http.filter.ObsoleteUrlFilter</filter-class>
+    </filter>
+    <filter>
         <filter-name>ApplicationModeFilter</filter-name>
         <filter-class>password.pwm.http.filter.ApplicationModeFilter</filter-class>
     </filter>
@@ -153,6 +157,10 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
     <filter-mapping>
+        <filter-name>ObsoleteUrlFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
         <filter-name>ApplicationModeFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
@@ -163,6 +171,7 @@
     <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>/private/*</url-pattern>
+        <url-pattern>/public/changepassword</url-pattern>
         <url-pattern>/public/ChangePassword</url-pattern>
     </filter-mapping>
     <filter-mapping>

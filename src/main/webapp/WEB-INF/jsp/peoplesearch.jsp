@@ -38,13 +38,13 @@
     <div class="push"></div>
 </div>
 
-<pwm:script-ref url="/public/resources/angular/angular.min.js" />
-<pwm:script-ref url="/public/resources/angular-ui-router/release/angular-ui-router.min.js" />
-<pwm:script-ref url="/public/resources/angular-translate/dist/angular-translate.min.js" />
+<pwm:script-ref url="/public/resources/webjars/angular/angular.min.js" />
+<pwm:script-ref url="/public/resources/webjars/angular-ui-router/release/angular-ui-router.min.js" />
+<pwm:script-ref url="/public/resources/webjars/angular-translate/dist/angular-translate.min.js" />
 
 <%@ include file="fragment/footer.jsp" %>
-<pwm:script-ref url="/public/resources/js/peoplesearch.js" />
-<pwm:script-ref url="/public/resources/app/peoplesearch.ng.js" />
+<pwm:script-ref url="/public/resourcess/js/peoplesearch.js" />
+<pwm:script-ref url="/public/resourcess/app/peoplesearch.ng.js" />
 
 </body>
 </html>

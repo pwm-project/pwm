@@ -281,7 +281,7 @@ public class CommandServlet extends AbstractPwmServlet {
 
             final PwmSession pwmSession = pwmRequest.getPwmSession();
             if (pwmSession.getUserInfoBean().isRequiresNewPassword() && !pwmSession.getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipNewPw)) {
-                pwmRequest.sendRedirect(PwmServletDefinition.ChangePassword.servletUrlName());
+                pwmRequest.sendRedirect(PwmServletDefinition.PrivateChangePassword.servletUrlName());
             } else {
                 redirectToForwardURL(pwmRequest);
             }

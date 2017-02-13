@@ -150,9 +150,9 @@ public class PwmHttpResponseWrapper {
         if (this.getHttpServletResponse().isCommitted()) {
             LOGGER.warn("attempt to write cookie '" + cookieName + "' after response is committed");
         }
-        boolean secureFlag;
-        {
 
+        final boolean secureFlag;
+        {
             final String configValue = configuration.readAppProperty(AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG);
             if (configValue == null || "auto".equalsIgnoreCase(configValue)) {
                 secureFlag = this.httpServletRequest.isSecure();
