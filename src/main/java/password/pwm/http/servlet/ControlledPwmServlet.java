@@ -121,9 +121,9 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         nextStep(pwmRequest);
     }
 
-    public abstract void nextStep(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException;
+    abstract void nextStep(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException;
 
-    public abstract void preProcessCheck(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException;
+    abstract void preProcessCheck(PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException;
 
     void sendOtherRedirect(final PwmRequest pwmRequest, final String location) throws IOException, PwmUnrecoverableException {
         final String protocol = pwmRequest.getHttpServletRequest().getProtocol();

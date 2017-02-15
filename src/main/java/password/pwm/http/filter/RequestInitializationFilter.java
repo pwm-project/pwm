@@ -408,6 +408,12 @@ public class RequestInitializationFilter implements Filter {
         if (useXForwardedFor) {
             try {
                 userIP = pwmRequest.readHeaderValueAsString(PwmConstants.HTTP_HEADER_X_FORWARDED_FOR);
+                if (userIP != null) {
+                    final int commaIndex = userIP.indexOf(',');
+                    if (commaIndex > -1) {
+                        userIP = userIP.substring(0, commaIndex);
+                    }
+                }
             } catch (Exception e) {
                 //ip address not in header (no X-Forwarded-For)
             }

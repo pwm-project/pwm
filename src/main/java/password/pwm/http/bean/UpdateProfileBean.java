@@ -52,7 +52,7 @@ public class UpdateProfileBean extends PwmSessionBean {
     private Map<String,String> formData = new LinkedHashMap<>();
 
     @SerializedName("vp")
-    private final TokenVerificationProgress tokenVerificationProgress = new TokenVerificationProgress();
+    private TokenVerificationProgress tokenVerificationProgress = new TokenVerificationProgress();
 
     public Type getType() {
         return Type.AUTHENTICATED;
@@ -101,5 +101,9 @@ public class UpdateProfileBean extends PwmSessionBean {
 
     public TokenVerificationProgress getTokenVerificationProgress() {
         return tokenVerificationProgress;
+    }
+
+    public void clearTokenVerificationProgress() {
+        tokenVerificationProgress = new TokenVerificationProgress();
     }
 }
