@@ -29,10 +29,10 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
-import password.pwm.http.ProcessStatus;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -63,25 +63,16 @@ public class LogoutServlet extends ControlledPwmServlet {
     private static final String PARAM_PUBLIC_ONLY = "publicOnly";
 
     private enum LogoutAction implements ControlledPwmServlet.ProcessAction {
-        showLogout(ShowLogoutHandler.class),
-        showTimeout(ShowTimeoutHandler.class),
+        showLogout,
+        showTimeout,
 
         ;
 
-        private final Class<? extends ProcessActionHandler> handlerClass;
 
-        LogoutAction(final Class<? extends ProcessActionHandler> handlerClass) {
-            this.handlerClass = handlerClass;
-        }
-
-        public Class<? extends ProcessActionHandler> getHandlerClass() {
-            return handlerClass;
-        }
-
+        @Override
         public Collection<HttpMethod> permittedMethods() {
             return Collections.singletonList(HttpMethod.GET);
         }
-
     }
 
     protected LogoutAction readProcessAction(final PwmRequest request)
@@ -94,36 +85,34 @@ public class LogoutServlet extends ControlledPwmServlet {
     }
 
 
-    class ShowLogoutHandler implements ProcessActionHandler {
-        public ProcessStatus processAction(
-                final PwmRequest pwmRequest
-        )
-                throws ServletException, PwmUnrecoverableException, IOException
-        {
-            final Optional<String> nextUrl = readAndValidateNextUrlParameter(pwmRequest);
-            if (nextUrl.isPresent()) {
-                pwmRequest.setAttribute(PwmRequest.Attribute.NextUrl, nextUrl.get());
-            }
-            pwmRequest.forwardToJsp(JspUrl.LOGOUT);
-            return ProcessStatus.Halt;
+    @ActionHandler(action = "showLogout")
+    public ProcessStatus processLogoutAction(
+            final PwmRequest pwmRequest
+    )
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final Optional<String> nextUrl = readAndValidateNextUrlParameter(pwmRequest);
+        if (nextUrl.isPresent()) {
+            pwmRequest.setAttribute(PwmRequest.Attribute.NextUrl, nextUrl.get());
         }
+        pwmRequest.forwardToJsp(JspUrl.LOGOUT);
+        return ProcessStatus.Halt;
     }
 
 
-    class ShowTimeoutHandler implements ProcessActionHandler {
-        public ProcessStatus processAction(
-                final PwmRequest pwmRequest
-        )
-                throws ServletException, PwmUnrecoverableException, IOException
-        {
-            pwmRequest.forwardToJsp(JspUrl.LOGOUT_PUBLIC);
-            return ProcessStatus.Halt;
-        }
+    @ActionHandler(action = "showTimeout")
+    public ProcessStatus processTimeoutAction(
+            final PwmRequest pwmRequest
+    )
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        pwmRequest.forwardToJsp(JspUrl.LOGOUT_PUBLIC);
+        return ProcessStatus.Halt;
     }
 
-     public void nextStep(
-             final PwmRequest pwmRequest
-     )
+    public void nextStep(
+            final PwmRequest pwmRequest
+    )
             throws PwmUnrecoverableException, IOException
     {
         final String nextUrl;

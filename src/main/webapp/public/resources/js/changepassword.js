@@ -333,6 +333,14 @@ PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
 };
 
 PWM_CHANGEPW.startupChangePasswordPage=function() {
+
+    PWM_MAIN.addEventHandler('button-reset', 'click', function(e){
+        console.log('intercepted reset button');
+        PWM_MAIN.cancelEvent(e);
+        var resetForm = PWM_MAIN.getObject('form-reset');
+        PWM_MAIN.handleFormSubmit(resetForm );
+    });
+
     //PWM_MAIN.getObject('password2').disabled = true;
     PWM_CHANGEPW.markStrength(0);
 

@@ -29,14 +29,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    PwmRequest activity_pwmRequest = null;
-    try {
-        activity_pwmRequest = PwmRequest.forRequest(request, response);
-    } catch (PwmException e) {
-        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
-    }
-%>
+<% final PwmRequest activity_pwmRequest = JspUtility.getPwmRequest(pageContext); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
@@ -86,14 +79,20 @@
 
                 </div>
             </div>
+
+
+            <div data-dojo-type="dijit/layout/TabContainer" title="<pwm:display key="Title_Intruders" bundle="Admin"/>" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
             <% for (final RecordType recordType : RecordType.values()) { %>
             <% final String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getConfig(), Admin.class); %>
-            <div id="Intruders<%=titleName%>" data-dojo-type="dijit/layout/ContentPane" title="Intruders<br/><%=titleName%>" class="tabContent">
+            <div id="Intruders<%=titleName%>" data-dojo-type="dijit/layout/ContentPane" title="<%=titleName%>" class="tabContent">
                 <div id="<%=recordType%>_Grid" class="analysisGrid">
                 </div>
             </div>
             <% } %>
-            <div id="AuditUser" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditUsers" bundle="Admin"/>" class="tabContent">
+            </div>
+
+            <div data-dojo-type="dijit/layout/TabContainer" title="<pwm:display key="Title_Audit" bundle="Admin"/>" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+            <div id="AuditUser" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_AuditUsers" bundle="Admin"/>" class="tabContent">
                 <div id="auditUserGrid" class="analysisGrid">
                 </div>
                 <div style="text-align: center">
@@ -114,7 +113,7 @@
                     </form>
                 </div>
             </div>
-            <div id="AuditHelpdesk" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditHelpdesk" bundle="Admin"/>" class="tabContent">
+            <div id="AuditHelpdesk" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_AuditHelpdesk" bundle="Admin"/>" class="tabContent">
                 <div id="auditHelpdeskGrid" class="analysisGrid">
                 </div>
                 <div style="text-align: center">
@@ -135,7 +134,7 @@
                     </form>
                 </div>
             </div>
-            <div id="AuditSystem" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditSystem" bundle="Admin"/>" class="tabContent">
+            <div id="AuditSystem" data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_AuditSystem" bundle="Admin"/>" class="tabContent">
                 <div id="auditSystemGrid" class="analysisGrid">
                 </div>
                 <div style="text-align: center">
@@ -155,6 +154,7 @@
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
                 </div>
+            </div>
             </div>
         </div>
         <br/>

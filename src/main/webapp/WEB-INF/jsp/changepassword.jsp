@@ -114,7 +114,7 @@
                     <pwm:display key="Button_ChangePassword"/>
                 </button>
                 <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
-                <button type="submit" name="change" class="btn" form="form-reset">
+                <button id="button-reset" type="submit" name="change" class="btn" form="form-reset">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Cancel"/>
                 </button>

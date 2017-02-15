@@ -22,242 +22,29 @@
 
 package password.pwm.http.servlet;
 
-import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
-import password.pwm.http.HttpMethod;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
-import password.pwm.http.PwmSession;
-import password.pwm.http.PwmSessionWrapper;
-import password.pwm.http.ProcessStatus;
-import password.pwm.svc.stats.Statistic;
-import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.reflect.Constructor;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 
-public abstract class ControlledPwmServlet extends HttpServlet implements PwmServlet {
+public abstract class ControlledPwmServlet extends AbstractPwmServlet implements PwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(AbstractPwmServlet.class);
-
-    public void doGet(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws ServletException, IOException {
-        this.handleRequest(req, resp, HttpMethod.GET);
-    }
-
-    public void doPost(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws ServletException, IOException {
-        this.handleRequest(req, resp, HttpMethod.POST);
-    }
-
-    private void handleRequest(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final HttpMethod method
-    )
-            throws ServletException, IOException {
-        try {
-            final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
-
-            if (!method.isIdempotent() && !pwmRequest.getURL().isCommandServletURL()) {
-                Validator.validatePwmFormID(pwmRequest);
-
-                try {
-                    Validator.validatePwmRequestCounter(pwmRequest);
-                } catch (PwmOperationalException e) {
-                    if (e.getError() == PwmError.ERROR_INCORRECT_REQ_SEQUENCE) {
-                        final ErrorInformation errorInformation = e.getErrorInformation();
-                        final PwmSession pwmSession = PwmSessionWrapper.readPwmSession(req);
-                        LOGGER.error(pwmSession, errorInformation.toDebugStr());
-                        pwmRequest.respondWithError(errorInformation, false);
-                        return;
-                    }
-                    throw e;
-                }
-            }
-
-            // check for incorrect method type.
-            final ProcessAction processAction = readProcessAction(pwmRequest);
-            if (processAction != null) {
-                if (!processAction.permittedMethods().contains(method)) {
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,
-                            "incorrect request method " + method.toString() + " on request to " + pwmRequest.getURLwithQueryString());
-                    LOGGER.error(pwmRequest.getPwmSession(), errorInformation.toDebugStr());
-                    pwmRequest.respondWithError(errorInformation, false);
-                    return;
-                }
-            }
-
-            this.processAction(pwmRequest);
-        } catch (Exception e) {
-            final PwmRequest pwmRequest;
-            try {
-                pwmRequest = PwmRequest.forRequest(req, resp);
-            } catch (Exception e2) {
-                try {
-                    LOGGER.fatal(
-                            "exception occurred, but exception handler unable to load request instance; error=" + e.getMessage(),
-                            e);
-                } catch (Exception e3) {
-                    e3.printStackTrace();
-                }
-                throw new ServletException(e);
-            }
-
-            final PwmApplication pwmApplication;
-            try {
-                pwmApplication = ContextManager.getPwmApplication(this.getServletContext());
-            } catch (Exception e2) {
-                try {
-                    LOGGER.fatal(
-                            "exception occurred, but exception handler unable to load Application instance; error=" + e.getMessage(),
-                            e);
-                } catch (Exception e3) {
-                    e3.printStackTrace();
-                }
-                throw new ServletException(e);
-            }
-
-            final PwmSession pwmSession;
-            try {
-                pwmSession = PwmSessionWrapper.readPwmSession(req);
-            } catch (Exception e2) {
-                try {
-                    LOGGER.fatal(
-                            "exception occurred, but exception handler unable to load Session wrapper instance; error=" + e.getMessage(),
-                            e);
-                } catch (Exception e3) {
-                    e3.printStackTrace();
-                }
-                throw new ServletException(e);
-            }
-
-            final PwmUnrecoverableException pue = convertToPwmUnrecoverableException(e);
-
-            if (processUnrecoverableException(req, resp, pwmApplication, pwmSession, pue)) {
-                return;
-            }
-
-            outputUnrecoverableException(pwmRequest, pue);
-        }
-    }
-
-    private PwmUnrecoverableException convertToPwmUnrecoverableException(
-            final Throwable e
-    ) {
-        if (e instanceof PwmUnrecoverableException) {
-            return (PwmUnrecoverableException) e;
-        }
-
-        if (e instanceof PwmException) {
-            return new PwmUnrecoverableException(((PwmException) e).getErrorInformation());
-        }
-
-        if (e instanceof ChaiUnavailableException) {
-            final String errorMsg = "unable to contact ldap directory: " + e.getMessage();
-            return new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, errorMsg));
-        }
-
-        final StringWriter errorStack = new StringWriter();
-        e.printStackTrace(new PrintWriter(errorStack));
-        final String errorMsg = "unexpected error processing request: " + e.getMessage() + "\n" + errorStack.toString();
-        return new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
-    }
-
-
-    private boolean processUnrecoverableException(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final PwmUnrecoverableException e
-    )
-            throws IOException {
-        switch (e.getError()) {
-            case ERROR_DIRECTORY_UNAVAILABLE:
-                LOGGER.fatal(pwmSession, e.getErrorInformation().toDebugStr());
-                try {
-                    pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                } catch (Throwable e1) {
-                    //noop
-                }
-                break;
-
-
-            case ERROR_PASSWORD_REQUIRED:
-                LOGGER.warn(
-                        "attempt to access functionality requiring password authentication, but password not yet supplied by actor, forwarding to password Login page");
-                //store the original requested url
-                try {
-                    LOGGER.debug(pwmSession, "user is authenticated without a password, redirecting to login page");
-                    LoginServlet.redirectToLoginServlet(PwmRequest.forRequest(req, resp));
-                    return true;
-                } catch (Throwable e1) {
-                    LOGGER.error("error while marking pre-login url:" + e1.getMessage());
-                }
-                break;
-
-
-            case ERROR_UNKNOWN:
-            default:
-                LOGGER.fatal(e.getErrorInformation().toDebugStr());
-                try { // try to update stats
-                    if (pwmSession != null) {
-                        pwmApplication.getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
-                    }
-                } catch (Throwable e1) {
-                    //noop
-                }
-                break;
-        }
-        return false;
-    }
-
-    private void outputUnrecoverableException(
-            final PwmRequest pwmRequest,
-            final PwmUnrecoverableException e
-    )
-            throws IOException, ServletException {
-        if (pwmRequest.isJsonRequest()) {
-            final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
-            pwmRequest.outputJsonResult(restResultBean);
-        } else {
-            pwmRequest.respondWithError(e.getErrorInformation());
-        }
-    }
-
-
-    protected abstract ProcessAction readProcessAction(PwmRequest request)
-            throws PwmUnrecoverableException;
-
-    public interface ProcessAction {
-        Collection<HttpMethod> permittedMethods();
-
-        Class<? extends ProcessActionHandler> getHandlerClass();
-    }
 
     public String servletUriRemainder(final PwmRequest pwmRequest, final String command) throws PwmUnrecoverableException {
         String uri = pwmRequest.getURLwithoutQueryString();
@@ -282,10 +69,6 @@ public abstract class ControlledPwmServlet extends HttpServlet implements PwmSer
         throw new IllegalStateException("unable to determine PwmServletDefinition for class " + this.getClass().getName());
     }
 
-    public interface ProcessActionHandler {
-        ProcessStatus processAction(PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException, ChaiUnavailableException;
-    }
-
     ProcessStatus dispatchMethod(
             final PwmRequest pwmRequest
     )
@@ -296,27 +79,18 @@ public abstract class ControlledPwmServlet extends HttpServlet implements PwmSer
         if (action == null) {
             return ProcessStatus.Continue;
         }
-        final ProcessActionHandler processActionHandler;
         try {
-            final Class<? extends ProcessActionHandler> theClass = action.getHandlerClass();
-            if (theClass.getEnclosingClass() == null) {
-                processActionHandler = theClass.newInstance();
-            } else {
-                final Constructor constructor = theClass.getDeclaredConstructor(this.getClass());
-                processActionHandler = (ProcessActionHandler) constructor.newInstance(this);
+            final Method interestedMethod = discoverMethodForAction(this.getClass(), action);
+            if (interestedMethod != null) {
+                interestedMethod.setAccessible(true);
+                return (ProcessStatus)interestedMethod.invoke(this, pwmRequest);
             }
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            e.printStackTrace();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "XXX"));
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            final String msg = "unable to discover/invoke action handler for '" + action + "', error: " + e.getMessage();
+            LOGGER.error(msg,e);
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, msg));
         }
-        try {
-            return processActionHandler.processAction(pwmRequest);
-        } catch (ChaiException e) {
-            throw PwmUnrecoverableException.fromChaiException(e);
-        } catch (ServletException | IOException e) {
-            e.printStackTrace();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "XXX"));
-        }
+        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "missing handler for action " + action));
     }
 
     protected void processAction(final PwmRequest pwmRequest)
@@ -329,10 +103,10 @@ public abstract class ControlledPwmServlet extends HttpServlet implements PwmSer
             final ProcessStatus status = dispatchMethod(pwmRequest);
             if (status == ProcessStatus.Halt) {
                 if (!pwmRequest.getPwmResponse().isCommitted()) {
-                    final String msg = "processing complete, handler returned halt but response is not committed";
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, msg);
-                    LOGGER.error(pwmRequest, msg, new IllegalStateException(msg));
-                    throw new PwmUnrecoverableException(errorInformation);
+                    if (pwmRequest.getConfig().isDevDebugMode()) {
+                        final String msg = "processing complete, handler returned halt but response is not committed";
+                        LOGGER.error(pwmRequest, msg, new IllegalStateException(msg));
+                    }
                 }
                 return;
             }
@@ -358,6 +132,40 @@ public abstract class ControlledPwmServlet extends HttpServlet implements PwmSer
         } else {
             pwmRequest.getPwmResponse().sendRedirect(location, PwmResponse.RedirectType.Other_303);
         }
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface ActionHandler {
+        String action();
+    }
+
+    private static Method discoverMethodForAction(final Class clazz, final ProcessAction action) {
+        Method interestedMethod = null;
+        final Collection<Method> methods = getAllMethods(clazz);
+        for (final Method method : methods) {
+            if (method.getAnnotation(ActionHandler.class) != null) {
+                final String actionName = method.getAnnotation(ActionHandler.class).action();
+                if (action.toString().equals(actionName)) {
+                    interestedMethod = method;
+                    break;
+                }
+            }
+        }
+        return interestedMethod;
+    }
+
+    private static Collection<Method> getAllMethods(final Class clazz) {
+        final LinkedHashSet<Method> methods = new LinkedHashSet<>();
+
+        // add local methods;
+        methods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+
+        final Class superClass = clazz.getSuperclass();
+        if (superClass != null) {
+            methods.addAll(getAllMethods(superClass));
+        }
+
+        return Collections.unmodifiableSet(methods);
     }
 }
 
