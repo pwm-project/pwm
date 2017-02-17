@@ -125,13 +125,6 @@ public class ReportService implements PwmService {
             return;
         }
 
-        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) {
-            LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"reporting module is not enabled, will remain closed");
-            status = STATUS.CLOSED;
-            executeCommand(ReportCommand.Clear);
-            return;
-        }
-
         try {
             userCacheService = new UserCacheService();
             userCacheService.init(pwmApplication);
@@ -206,7 +199,8 @@ public class ReportService implements PwmService {
                         && reportStatus.getCurrentProcess() != ReportStatusInfo.ReportEngineProcess.SearchLDAP
                         )
                 {
-                    executorService.submit(new ReadLDAPTask());
+                    executorService.execute(new ClearTask());
+                    executorService.execute(new ReadLDAPTask());
                     LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,"submitted new ldap dredge task to executorService");
                 }
             }
@@ -611,7 +605,7 @@ public class ReportService implements PwmService {
         }
 
         private void updateRestingCacheData() {
-            final long startTime = System.currentTimeMillis();
+            final Instant startTime = Instant.now();
             int examinedRecords = 0;
 
             try (ClosableIterator<UserCacheRecord> iterator = iterator()) {
@@ -630,15 +624,25 @@ public class ReportService implements PwmService {
 
                     if (TimeDuration.fromCurrent(lastLogOutputTime).isLongerThan(30, TimeUnit.SECONDS)) {
                         final TimeDuration progressDuration = TimeDuration.fromCurrent(startTime);
-                        LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,"cache review process in progress, examined " + examinedRecords
+                        LOGGER.trace(PwmConstants.REPORTING_SESSION_LABEL,
+                                "cache review process in progress, examined " + examinedRecords
                                 + " in " + progressDuration.asCompactString());
                         lastLogOutputTime = Instant.now();
                     }
                 }
                 final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
                 LOGGER.info(PwmConstants.REPORTING_SESSION_LABEL,
-                        "completed cache review process of " + examinedRecords + " cached report records in " + totalTime.asCompactString());
+                        "completed cache review process of " + examinedRecords
+                                + " cached report records in " + totalTime.asCompactString());
             }
+        }
+    }
+
+    private class DailyJobExecuteTask implements Runnable {
+        @Override
+        public void run() {
+            executorService.execute(new ClearTask());
+            executorService.execute(new ReadLDAPTask());
         }
     }
 
@@ -652,9 +656,14 @@ public class ReportService implements PwmService {
                 status = STATUS.CLOSED;
                 return;
             }
-            final long secondsUntilNextDredge = settings.getJobOffsetSeconds() + TimeDuration.fromCurrent(JavaHelper.nextZuluZeroTime()).getTotalSeconds();
-            executorService.scheduleAtFixedRate(new ReadLDAPTask(), secondsUntilNextDredge, TimeDuration.DAY.getTotalSeconds(), TimeUnit.SECONDS);
-            executorService.scheduleAtFixedRate(new RolloverTask(), secondsUntilNextDredge + 1, TimeDuration.DAY.getTotalSeconds(), TimeUnit.SECONDS);
+
+            final boolean reportingEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE);
+            if (reportingEnabled) {
+                final Instant nextZuluZeroTime = JavaHelper.nextZuluZeroTime();
+                final long secondsUntilNextDredge = settings.getJobOffsetSeconds() + TimeDuration.fromCurrent(nextZuluZeroTime).getTotalSeconds();
+                executorService.scheduleAtFixedRate(new DailyJobExecuteTask(), secondsUntilNextDredge, TimeDuration.DAY.getTotalSeconds(), TimeUnit.SECONDS);
+                LOGGER.debug("scheduled daily execution, next task will be at " + nextZuluZeroTime.toString());
+            }
             executorService.submit(new RolloverTask());
             executorService.submit(new ProcessWorkQueueTask());
         }

@@ -43,6 +43,7 @@ import java.util.TreeMap;
 
 public class ReportSummaryData {
     private static final long MS_DAY = TimeDuration.DAY.getTotalMilliseconds();
+    private static BigInteger TWO = new BigInteger("2");
 
     private Instant meanCacheTime;
     private int totalUsers;
@@ -84,7 +85,7 @@ public class ReportSummaryData {
                 reportSummaryData.loginDays.put(day, 0);
             }
         }
-        
+
         return reportSummaryData;
     }
 
@@ -266,7 +267,7 @@ public class ReportSummaryData {
         final BigInteger currentMillis = BigInteger.valueOf(meanCacheTime.toEpochMilli());
         final BigInteger newMillis = BigInteger.valueOf(newTime.toEpochMilli());
         final BigInteger combinedMillis = currentMillis.add(newMillis);
-        final BigInteger halvedMillis = combinedMillis.divide(new BigInteger("2"));
+        final BigInteger halvedMillis = combinedMillis.divide(TWO);
         meanCacheTime = Instant.ofEpochMilli(halvedMillis.longValue());
     }
 
@@ -274,17 +275,17 @@ public class ReportSummaryData {
         if (eventDate == null) {
             return 0;
         }
-        
+
         final TimeDuration timeBoundary = new TimeDuration(0,timeWindow);
         final TimeDuration eventDifference = TimeDuration.fromCurrent(eventDate);
 
         if (timeWindow >= 0 && eventDate.isAfter(Instant.now()) && eventDifference.isShorterThan(timeBoundary)) {
-                return adding ? 1 : -1;
+            return adding ? 1 : -1;
         }
 
         if (timeWindow < 0 && eventDate.isBefore(Instant.now()) && eventDifference.isShorterThan(timeBoundary)) {
             return adding ? 1 : -1;
-        } 
+        }
 
         return 0;
     }

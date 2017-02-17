@@ -301,7 +301,7 @@ public class StatisticsManager implements PwmService {
             final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
             daemonTimer = new Timer(threadName, true);
             daemonTimer.schedule(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS);
-            daemonTimer.schedule(new NightlyTask(), JavaHelper.nextZuluZeroTime());
+            daemonTimer.schedule(new NightlyTask(), Date.from(JavaHelper.nextZuluZeroTime()));
         }
 
         if (pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING) {
@@ -391,7 +391,7 @@ public class StatisticsManager implements PwmService {
         public void run() {
             writeDbValues();
             resetDailyStats();
-            daemonTimer.schedule(new NightlyTask(), JavaHelper.nextZuluZeroTime());
+            daemonTimer.schedule(new NightlyTask(), Date.from(JavaHelper.nextZuluZeroTime()));
         }
     }
 

@@ -64,7 +64,6 @@
         <%@ include file="fragment/admin-nav.jsp" %>
         <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true" id="analysis-topLevelTab">
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
-                <% if (analysis_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) { %>
                 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_ReportEngineStatus" bundle="Admin"/>" class="tabContent">
                     <table style="width:450px" id="statusTable">
                         <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
@@ -153,12 +152,6 @@
                         </script>
                     </pwm:script>
                 </div>
-                <% } else { %>
-                <div>
-                    <%= PwmError.ERROR_SERVICE_NOT_AVAILABLE.getLocalizedMessage(analysis_pwmRequest.getLocale(),
-                            analysis_pwmRequest.getConfig()) %>
-                </div>
-                <% } %>
             </div>
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_EventStatistics" bundle="Admin"/>">
                 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_RawStatistics" bundle="Admin"/>" class="tabContent">
@@ -255,11 +248,15 @@
                 dojoParser.parse('centerbody');
                 ready(function(){
                     registry.byId('statsChartSelect').set('value','<%=Statistic.PASSWORD_CHANGES%>');
+
                     setTimeout(function(){
                         refreshChart();
                     },5*1000);
-                    PWM_ADMIN.refreshReportDataSummary(5 * 1000);
-                    PWM_ADMIN.refreshReportDataStatus(5 * 1000);
+
+                    PWM_ADMIN.refreshReportDataSummary();
+                    PWM_ADMIN.refreshReportDataStatus();
+                    setInterval(function () { PWM_ADMIN.refreshReportDataSummary() }, 5 * 1000);
+                    setInterval(function () { PWM_ADMIN.refreshReportDataStatus() }, 5 * 1000);
                 });
 
                 <% for (final Statistic loopStat : Statistic.sortedValues(locale)) { %>

@@ -217,11 +217,7 @@ PWM_ADMIN.refreshReportDataGrid=function() {
 };
 
 
-PWM_ADMIN.refreshReportDataStatus=function(refreshTime) {
-    var doRefresh = refreshTime
-        ? function(){setTimeout(function(){PWM_ADMIN.refreshReportDataStatus(refreshTime);},refreshTime);}
-        : function(){};
-
+PWM_ADMIN.refreshReportDataStatus=function() {
     var url = PWM_GLOBAL['url-context'] + "/private/admin";
     url = PWM_MAIN.addParamToUrl(url, 'processAction','reportStatus');
     var loadFunction = function(data) {
@@ -242,7 +238,6 @@ PWM_ADMIN.refreshReportDataStatus=function(refreshTime) {
         PWM_MAIN.getObject("reportStartButton").disabled = !PWM_MAIN.JSLibrary.arrayContains(availableCommands,'Start');
         PWM_MAIN.getObject("reportStopButton").disabled = !PWM_MAIN.JSLibrary.arrayContains(availableCommands,'Stop');
         PWM_MAIN.getObject("reportClearButton").disabled = !PWM_MAIN.JSLibrary.arrayContains(availableCommands,'Clear');
-        doRefresh();
     };
     var errorFunction = function (error) {
         console.log('error during report status update: ' + error);
@@ -250,12 +245,7 @@ PWM_ADMIN.refreshReportDataStatus=function(refreshTime) {
     PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET',errorFunction:errorFunction});
 };
 
-PWM_ADMIN.refreshReportDataSummary=function(refreshTime) {
-    var doRefresh = refreshTime
-        ? function(){setTimeout(function(){PWM_ADMIN.refreshReportDataSummary(refreshTime);},refreshTime);}
-        : function(){};
-
-
+PWM_ADMIN.refreshReportDataSummary=function() {
     var url = PWM_GLOBAL['url-context'] + "/private/admin";
     url = PWM_MAIN.addParamToUrl(url, 'processAction','reportSummary');
 
@@ -268,7 +258,6 @@ PWM_ADMIN.refreshReportDataSummary=function(refreshTime) {
             }
             PWM_MAIN.getObject('summaryTable').innerHTML = htmlTable;
         }
-        doRefresh();
     };
     var errorFunction = function (error) {
         console.log('error during report status update: ' + error);
