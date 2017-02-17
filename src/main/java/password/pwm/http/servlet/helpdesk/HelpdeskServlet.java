@@ -547,6 +547,8 @@ public class HelpdeskServlet extends AbstractPwmServlet {
         searchConfiguration.setUsername(username);
         searchConfiguration.setEnableValueEscaping(false);
         searchConfiguration.setFilter(getSearchFilter(pwmRequest.getConfig(),helpdeskProfile));
+        searchConfiguration.setEnableSplitWhitespace(true);
+
 
         if (!useProxy) {
             final UserIdentity loggedInUser = pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity();

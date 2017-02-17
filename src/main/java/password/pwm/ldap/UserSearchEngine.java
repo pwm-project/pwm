@@ -297,7 +297,9 @@ public class UserSearchEngine {
                     ? StringUtil.escapeLdapFilter(searchConfiguration.getUsername())
                     : searchConfiguration.getUsername();
 
-            if (searchConfiguration.getUsername().split("\\s").length > 1) { // split on all whitespace chars
+            if (searchConfiguration.isEnableSplitWhitespace()
+                    && (searchConfiguration.getUsername().split("\\s").length > 1))
+            { // split on all whitespace chars
                 final StringBuilder multiSearchFilter = new StringBuilder();
                 multiSearchFilter.append("(&");
                 for (final String queryPart : searchConfiguration.getUsername().split(" ")) {
@@ -466,6 +468,7 @@ public class UserSearchEngine {
 
         private boolean enableValueEscaping = true;
         private boolean enableContextValidation = true;
+        private boolean enableSplitWhitespace = false;
 
         public String getFilter() {
             return filter;
@@ -529,6 +532,14 @@ public class UserSearchEngine {
 
         public void setEnableContextValidation(final boolean enableContextValidation) {
             this.enableContextValidation = enableContextValidation;
+        }
+
+        public boolean isEnableSplitWhitespace() {
+            return enableSplitWhitespace;
+        }
+
+        public void setEnableSplitWhitespace(final boolean enableSplitWhitespace) {
+            this.enableSplitWhitespace = enableSplitWhitespace;
         }
 
         private void validate() {

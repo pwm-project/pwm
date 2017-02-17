@@ -645,6 +645,9 @@ public class PeopleSearchDataReader {
         searchConfiguration.setUsername(username);
         searchConfiguration.setEnableValueEscaping(false);
         searchConfiguration.setFilter(getSearchFilter(pwmRequest.getConfig()));
+        searchConfiguration.setEnableSplitWhitespace(true);
+
+
         if (!useProxy) {
             searchConfiguration.setLdapProfile(pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID());
             searchConfiguration.setChaiProvider(pwmRequest.getPwmSession().getSessionManager().getChaiProvider());
