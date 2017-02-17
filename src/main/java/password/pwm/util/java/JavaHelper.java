@@ -129,13 +129,13 @@ public class JavaHelper {
         return new String(chars);
     }
 
-    public static Date nextZuluZeroTime() {
+    public static Instant nextZuluZeroTime() {
         final Calendar nextZuluMidnight = GregorianCalendar.getInstance(TimeZone.getTimeZone("Zulu"));
         nextZuluMidnight.set(Calendar.HOUR_OF_DAY,0);
         nextZuluMidnight.set(Calendar.MINUTE,0);
         nextZuluMidnight.set(Calendar.SECOND, 0);
         nextZuluMidnight.add(Calendar.HOUR, 24);
-        return nextZuluMidnight.getTime();
+        return nextZuluMidnight.getTime().toInstant();
     }
 
     public static <E extends Enum<E>> List<E> readEnumListFromStringCollection(final Class<E> enumClass, final Collection<String> inputs ) {

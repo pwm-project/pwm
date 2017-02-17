@@ -392,11 +392,6 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmApplication.getConfig();
 
-        if (changePasswordBean.getLastError() != null) {
-            pwmRequest.setResponseError(changePasswordBean.getLastError());
-            changePasswordBean.setLastError(null);
-        }
-
         if (changePasswordBean.getChangeProgressTracker() != null) {
             forwardToWaitPage(pwmRequest);
             return;
@@ -633,11 +628,5 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
         } catch (ChaiException e) {
             throw PwmUnrecoverableException.fromChaiException(e);
         }
-    }
-
-    private void setLastError(final PwmRequest pwmRequest, final ErrorInformation errorInformation) throws PwmUnrecoverableException {
-        final ChangePasswordBean changePasswordBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ChangePasswordBean.class);
-        changePasswordBean.setLastError(errorInformation);
-        pwmRequest.setResponseError(errorInformation);
     }
 }

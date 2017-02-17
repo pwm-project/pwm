@@ -241,7 +241,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
                 errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT);
             }
             LOGGER.debug(pwmSession, errorInformation.toDebugStr());
-            pwmRequest.setResponseError(errorInformation);
+            setLastError(pwmRequest, errorInformation);
         }
 
         return ProcessStatus.Continue;
@@ -341,7 +341,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
             readFormParametersFromRequest(pwmRequest, updateAttributesProfile, updateProfileBean);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmRequest, e.getMessage());
-            pwmRequest.setResponseError(e.getErrorInformation());
+            setLastError(pwmRequest, e.getErrorInformation());
         }
 
         updateProfileBean.setFormSubmitted(true);
@@ -349,7 +349,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         return ProcessStatus.Continue;
     }
 
-    void nextStep(
+    protected void nextStep(
             final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
@@ -396,7 +396,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
             verifyFormAttributes(pwmRequest, formValues, true);
         } catch (PwmException e) {
             LOGGER.error(pwmSession, e.getMessage());
-            pwmRequest.setResponseError(e.getErrorInformation());
+            setLastError(pwmRequest, e.getErrorInformation());
             forwardToForm(pwmRequest, updateAttributesProfile, updateProfileBean);
             return;
         }
@@ -432,18 +432,18 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
             return;
         } catch (PwmException e) {
             LOGGER.error(pwmSession, e.getMessage());
-            pwmRequest.setResponseError(e.getErrorInformation());
+            setLastError(pwmRequest, e.getErrorInformation());
         } catch (ChaiException e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UPDATE_ATTRS_FAILURE,e.toString());
             LOGGER.error(pwmSession, errorInformation.toDebugStr());
-            pwmRequest.setResponseError(errorInformation);
+            setLastError(pwmRequest, errorInformation);
         }
 
         forwardToForm(pwmRequest, updateAttributesProfile, updateProfileBean);
     }
 
     @Override
-    void preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
+    public void preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
         if (!pwmRequest.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
             pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "Setting " + PwmSetting.UPDATE_PROFILE_ENABLE.toMenuLocationDebug(null,null) + " is not enabled."));
             return;

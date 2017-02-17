@@ -121,6 +121,10 @@ public class SessionStateService implements PwmService {
     }
 
     public <E extends PwmSessionBean> E getBean(final PwmRequest pwmRequest, final Class<E> theClass) throws PwmUnrecoverableException {
+        if (theClass == null) {
+            return null;
+        }
+
         if (beanSupportsMode(theClass, SessionBeanMode.CRYPTCOOKIE)) {
             return sessionBeanProvider.getSessionBean(pwmRequest, theClass);
         }
