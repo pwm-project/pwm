@@ -38,13 +38,15 @@
         <jsp:param name="pwm.PageName" value="<%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%>"/>
     </jsp:include>
     <% if ((Boolean)JspUtility.getAttribute(pageContext, PwmRequest.Attribute.ConfigHasCertificates)) { %>
-    <div id="centerbody" class="wide">
+    <div id="centerbody">
+        <div id="page-content-title"><%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%></div>
         <%@ include file="fragment/configmanager-nav.jsp" %>
         <div id="certDebugGrid" class="grid">
         </div>
     </div>
     <% } else { %>
     <div id="centerbody">
+        <div id="page-content-title"><%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%></div>
         <%@ include file="fragment/configmanager-nav.jsp" %>
         <p>No certificates are present in the active configuration.</p>
     </div>
