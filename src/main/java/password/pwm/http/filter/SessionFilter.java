@@ -167,12 +167,6 @@ public class SessionFilter extends AbstractPwmFilter {
         //check the sso override flag
         handleSsoOverrideParam(pwmRequest);
 
-        // make sure connection is secure.
-        if (config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS) && !pwmRequest.getHttpServletRequest().isSecure()) {
-            pwmRequest.respondWithError(PwmError.ERROR_SECURE_REQUEST_REQUIRED.toInfo());
-            return ProcessStatus.Halt;
-        }
-
         //check for session verification failure
         if (!ssBean.isSessionVerified()) {
             // ignore resource requests

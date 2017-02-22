@@ -1415,11 +1415,6 @@
             <value><![CDATA[(?s)(?i)<.*href.*]]></value>
         </default>
     </setting>
-    <setting hidden="false" key="pwm.requireHTTPS" level="1" required="true">
-        <default>
-            <value>false</value>
-        </default>
-    </setting>
     <setting hidden="false" key="basicAuth.enable" level="2" required="true">
         <default>
             <value>true</value>

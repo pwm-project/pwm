@@ -102,7 +102,11 @@ public class Helper {
 
 
     public static String buildPwmFormID(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        final SessionStateService sessionStateService = pwmRequest.getPwmApplication().getSessionStateService();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        if (pwmApplication == null) {
+            return "";
+        }
+        final SessionStateService sessionStateService = pwmApplication.getSessionStateService();
         final String value = sessionStateService.getSessionStateInfo(pwmRequest);
         final FormNonce formID = new FormNonce(
                 pwmRequest.getPwmSession().getLoginInfoBean().getGuid(),

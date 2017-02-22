@@ -362,6 +362,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
 
         if (forgottenPasswordBean.getUserIdentity() == null) {
             pwmRequest.sendRedirectToContinue();
+            return ProcessStatus.Halt;
         }
 
         return ProcessStatus.Continue;

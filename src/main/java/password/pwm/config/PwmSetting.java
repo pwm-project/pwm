@@ -513,8 +513,6 @@ public enum PwmSetting {
             "enableSessionVerification", PwmSettingSyntax.SELECT, PwmSettingCategory.WEB_SECURITY),
     DISALLOWED_HTTP_INPUTS(
             "disallowedInputs", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY),
-    REQUIRE_HTTPS(
-            "pwm.requireHTTPS", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     USE_X_FORWARDED_FOR_HEADER(
             "useXForwardedForHeader", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     MULTI_IP_SESSION_ALLOWED(
