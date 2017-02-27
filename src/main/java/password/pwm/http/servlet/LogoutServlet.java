@@ -244,7 +244,8 @@ public class LogoutServlet extends ControlledPwmServlet {
     }
 
     @Override
-    public void preProcessCheck(final PwmRequest pwmRequest) {
+    public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) {
         // no checks required, this is a public module.
+        return ProcessStatus.Continue;
     }
 }

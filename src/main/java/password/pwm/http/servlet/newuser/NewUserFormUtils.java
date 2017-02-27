@@ -80,7 +80,7 @@ class NewUserFormUtils {
         return new NewUserBean.NewUserForm(FormUtility.asStringMap(userFormValues), passwordData1, passwordData2);
     }
 
-    static NewUserServlet.NewUserTokenData fromTokenPayload(
+    static NewUserTokenData fromTokenPayload(
             final PwmRequest pwmRequest,
             final TokenPayload tokenPayload
     )
@@ -130,7 +130,7 @@ class NewUserFormUtils {
             passwordData = null;
         }
         final NewUserBean.NewUserForm newUserForm = new NewUserBean.NewUserForm(FormUtility.asStringMap(userFormValues), passwordData, passwordData);
-        return new NewUserServlet.NewUserTokenData(newUserProfile.getIdentifier(), newUserForm);
+        return new NewUserTokenData(newUserProfile.getIdentifier(), newUserForm);
     }
 
     static Map<String, String> toTokenPayload(

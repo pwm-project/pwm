@@ -190,7 +190,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
     }
 
     @Override
-    public void preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
+    public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
@@ -200,12 +200,12 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
 
         if (!config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
             pwmRequest.respondWithError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
-            return;
+            return ProcessStatus.Halt;
         }
 
         if (pwmSession.isAuthenticated()) {
             pwmRequest.respondWithError(PwmError.ERROR_USERAUTHENTICATED.toInfo());
-            return;
+            return ProcessStatus.Halt;
         }
 
         if (forgottenPasswordBean.getUserIdentity() != null) {
@@ -213,6 +213,8 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         }
 
         checkForLocaleSwitch(pwmRequest, forgottenPasswordBean);
+
+        return ProcessStatus.Continue;
     }
 
     /*

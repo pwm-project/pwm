@@ -443,17 +443,19 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
     }
 
     @Override
-    public void preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
+    public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
         if (!pwmRequest.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
             pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "Setting " + PwmSetting.UPDATE_PROFILE_ENABLE.toMenuLocationDebug(null,null) + " is not enabled."));
-            return;
+            return ProcessStatus.Halt;
         }
 
         final UpdateAttributesProfile updateAttributesProfile = getProfile(pwmRequest);
         if (updateAttributesProfile == null) {
             pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_NO_PROFILE_ASSIGNED));
-            return;
+            return ProcessStatus.Halt;
         }
+
+        return ProcessStatus.Continue;
     }
 
 

@@ -598,7 +598,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
     }
 
     @Override
-    public void preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
+    public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final ChangePasswordBean changePasswordBean = pwmApplication.getSessionStateService().getBean(pwmRequest, ChangePasswordBean.class);
@@ -609,7 +609,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
 
         if (!pwmRequest.isAuthenticated()) {
             pwmRequest.respondWithError(PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo());
-            return;
+            return ProcessStatus.Halt;
+
         }
 
         if (determineIfCurrentPasswordRequired(pwmApplication, pwmSession)) {
@@ -618,7 +619,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
 
         if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.CHANGE_PASSWORD)) {
             pwmRequest.respondWithError(PwmError.ERROR_UNAUTHORIZED.toInfo());
-            return;
+            return ProcessStatus.Halt;
         }
 
         try {
@@ -628,5 +629,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
         } catch (ChaiException e) {
             throw PwmUnrecoverableException.fromChaiException(e);
         }
+
+        return ProcessStatus.Continue;
     }
 }

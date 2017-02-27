@@ -126,14 +126,14 @@ public class SetupResponsesServlet extends ControlledPwmServlet {
     }
 
     @Override
-    public void preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
+    public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final SetupResponsesBean setupResponsesBean = getSetupResponseBean(pwmRequest);
 
         if (!pwmSession.isAuthenticated()) {
             pwmRequest.respondWithError(PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo());
-            return;
+            return ProcessStatus.Halt;
         }
 
         if (pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD) {
@@ -165,6 +165,8 @@ public class SetupResponsesServlet extends ControlledPwmServlet {
             LOGGER.debug(pwmSession, errorInformation);
             throw new PwmUnrecoverableException(errorInformation);
         }
+
+        return ProcessStatus.Continue;
     }
 
     @ActionHandler(action = "confirmResponses")
