@@ -118,14 +118,9 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         }
     }
 
-    protected UpdateProfileAction readProcessAction(final PwmRequest request)
-            throws PwmUnrecoverableException
-    {
-        try {
-            return UpdateProfileAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    @Override
+    public Class<? extends ProcessAction> getProcessActionsClass() {
+        return UpdateProfileAction.class;
     }
 
     private static UpdateAttributesProfile getProfile(final PwmRequest pwmRequest) {
@@ -135,61 +130,6 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
     private static UpdateProfileBean getBean(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
         return pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, UpdateProfileBean.class);
     }
-
-    /*
-    protected void processAction(final PwmRequest pwmRequest)
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
-    {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final UpdateProfileBean updateProfileBean = getBean(pwmRequest);
-        final UpdateAttributesProfile updateAttributesProfile = getProfile(pwmRequest);
-
-        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
-            pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "Setting " + PwmSetting.UPDATE_PROFILE_ENABLE.toMenuLocationDebug(null,null) + " is not enabled."));
-            return;
-        }
-
-        if (updateAttributesProfile == null) {
-            pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_NO_PROFILE_ASSIGNED));
-            return;
-        }
-
-        final UpdateProfileAction action = readProcessAction(pwmRequest);
-        if (action != null) {
-            pwmRequest.validatePwmFormID();
-            switch(action) {
-                case updateProfile:
-                    handleUpdateRequest(pwmRequest, updateAttributesProfile, updateProfileBean);
-                    break;
-
-                case agree:
-                    handleAgreeRequest(pwmRequest, updateProfileBean);
-                    break;
-
-                case confirm:
-                    updateProfileBean.setConfirmationPassed(true);
-                    break;
-
-                case unConfirm:
-                    handleUnconfirm(updateProfileBean);
-                    break;
-
-                case validate:
-                    restValidateForm(pwmRequest, updateAttributesProfile, updateProfileBean);
-                    return;
-
-                case enterCode:
-                    handleEnterCodeRequest(pwmRequest, updateProfileBean);
-                    break;
-
-                default:
-                    JavaHelper.unhandledSwitchStatement(action);
-            }
-        }
-
-        nextStep(pwmRequest);
-    }
-    */
 
     @ActionHandler(action = "enterCode")
     ProcessStatus handleEnterCodeRequest(

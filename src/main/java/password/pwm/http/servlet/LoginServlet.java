@@ -31,6 +31,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.LoginServletBean;
@@ -39,7 +40,6 @@ import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -67,8 +67,7 @@ import java.util.Map;
                 PwmConstants.URL_PREFIX_PRIVATE + "/Login"
         }
 )
-public class LoginServlet extends AbstractPwmServlet {
-// ------------------------------ FIELDS ------------------------------
+public class LoginServlet extends ControlledPwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(LoginServlet.class.getName());
 
@@ -92,76 +91,58 @@ public class LoginServlet extends AbstractPwmServlet {
         }
     }
 
-    protected LoginServletAction readProcessAction(final PwmRequest request)
-            throws PwmUnrecoverableException
-    {
-        try {
-            return LoginServletAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    @Override
+    public Class<? extends ProcessAction> getProcessActionsClass() {
+        return LoginServletAction.class;
     }
 
-
-    public void processAction(
-            final PwmRequest pwmRequest
-    )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
-    {
-        final boolean passwordOnly = pwmRequest.isAuthenticated() &&
+    private boolean passwordOnly(final PwmRequest pwmRequest) {
+        return pwmRequest.isAuthenticated() &&
                 pwmRequest.getPwmSession().getLoginInfoBean().getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD;
 
-        final LoginServletAction action = readProcessAction(pwmRequest);
+    }
 
-        if (action != null) {
-            switch (action) {
-                case login:
-                    processLogin(pwmRequest, passwordOnly);
-                    break;
-
-                case restLogin:
-                    processRestLogin(pwmRequest, passwordOnly);
-                    break;
-
-                case receiveUrl:
-                    processReceiveUrl(pwmRequest);
-                    break;
-
-                default:
-                    JavaHelper.unhandledSwitchStatement(action);
-            }
-
-            return;
-        }
-
+    @Override
+    protected void nextStep(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException {
+        final boolean passwordOnly = passwordOnly(pwmRequest);
         forwardToJSP(pwmRequest, passwordOnly);
     }
 
-    private void processLogin(final PwmRequest pwmRequest, final boolean passwordOnly)
+    @Override
+    public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
+        return ProcessStatus.Continue;
+    }
+
+    @ActionHandler(action = "login")
+    private ProcessStatus processLogin(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, ServletException, IOException, ChaiUnavailableException
     {
+        final boolean passwordOnly = passwordOnly(pwmRequest);
         final Map<String,String> valueMap = pwmRequest.readParametersAsMap();
         try {
             handleLoginRequest(pwmRequest, valueMap, passwordOnly);
         } catch (PwmOperationalException e) {
             pwmRequest.setResponseError(e.getErrorInformation());
             forwardToJSP(pwmRequest, passwordOnly);
-            return;
+            return ProcessStatus.Halt;
         }
 
         // login has succeeded
         pwmRequest.sendRedirect(determinePostLoginUrl(pwmRequest));
+        return ProcessStatus.Halt;
     }
 
-    private void processRestLogin(final PwmRequest pwmRequest, final boolean passwordOnly)
+    @ActionHandler(action = "restLogin")
+    private ProcessStatus processRestLogin(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, ServletException, IOException, ChaiUnavailableException
     {
+        final boolean passwordOnly = passwordOnly(pwmRequest);
         final Map<String, String> valueMap = pwmRequest.readBodyAsJsonStringMap();
 
         if (valueMap == null || valueMap.isEmpty()) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"missing json request body");
             pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
-            return;
+            return ProcessStatus.Halt;
         }
 
         try {
@@ -170,7 +151,7 @@ public class LoginServlet extends AbstractPwmServlet {
             final ErrorInformation errorInformation = e.getErrorInformation();
             LOGGER.trace(pwmRequest, "returning rest login error to client: " + errorInformation.toDebugStr());
             pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
-            return;
+            return ProcessStatus.Halt;
         }
 
         pwmRequest.readParametersAsMap();
@@ -182,9 +163,11 @@ public class LoginServlet extends AbstractPwmServlet {
         restResultBean.setData(resultMap);
         LOGGER.debug(pwmRequest, "rest login succeeded");
         pwmRequest.outputJsonResult(restResultBean);
+        return ProcessStatus.Halt;
     }
 
-    private void processReceiveUrl(final PwmRequest pwmRequest)
+    @ActionHandler(action = "receiveUrl")
+    private ProcessStatus processReceiveUrl(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, IOException
     {
         final String encryptedNextUrl = pwmRequest.readParameterAsString(PwmConstants.PARAM_POST_LOGIN_URL);
@@ -198,6 +181,7 @@ public class LoginServlet extends AbstractPwmServlet {
         }
 
         pwmRequest.sendRedirect(PwmServletDefinition.Login);
+        return ProcessStatus.Halt;
     }
 
     private void handleLoginRequest(

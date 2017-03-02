@@ -31,7 +31,6 @@ import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.svc.stats.EventRateMeter;
-import password.pwm.util.Helper;
 import password.pwm.util.ProgressInfo;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
@@ -116,7 +115,7 @@ public class LocalDBUtility {
         },30 * 1000, 30 * 1000);
 
 
-        try (CSVPrinter csvPrinter = Helper.makeCsvPrinter(new GZIPOutputStream(outputStream, GZIP_BUFFER_SIZE))) {
+        try (CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(new GZIPOutputStream(outputStream, GZIP_BUFFER_SIZE))) {
             csvPrinter.printComment(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " LocalDB export on " + JavaHelper.toIsoDate(new Date()));
             for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
                 if (loopDB.isBackup()) {

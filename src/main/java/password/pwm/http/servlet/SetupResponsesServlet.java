@@ -111,14 +111,9 @@ public class SetupResponsesServlet extends ControlledPwmServlet {
         }
     }
 
-    protected SetupResponsesAction readProcessAction(final PwmRequest request)
-            throws PwmUnrecoverableException
-    {
-        try {
-            return SetupResponsesAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    @Override
+    public Class<? extends ProcessAction> getProcessActionsClass() {
+        return SetupResponsesAction.class;
     }
 
     private SetupResponsesBean getSetupResponseBean(final PwmRequest pwmRequest) throws PwmUnrecoverableException {

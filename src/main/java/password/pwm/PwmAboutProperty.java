@@ -24,10 +24,10 @@ package password.pwm;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
-import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
@@ -160,8 +160,8 @@ public enum PwmAboutProperty {
             aboutMap.put(app_localDbLogSize,       Integer.toString(pwmApplication.getLocalDBLogger().getStoredEventCount()));
             aboutMap.put(app_localDbLogOldestTime, dateFormatForInfoBean(pwmApplication.getLocalDBLogger().getTailDate()));
 
-            aboutMap.put(app_localDbStorageSize,   Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(pwmApplication.getLocalDB().getFileLocation())));
-            aboutMap.put(app_localDbFreeSpace,     Helper.formatDiskSize(FileSystemUtility.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())));
+            aboutMap.put(app_localDbStorageSize,   StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(pwmApplication.getLocalDB().getFileLocation())));
+            aboutMap.put(app_localDbFreeSpace,     StringUtil.formatDiskSize(FileSystemUtility.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())));
         }
 
 

@@ -44,7 +44,6 @@ import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -358,7 +357,7 @@ public class AuditService implements PwmService {
     {
         final Configuration config = null;
 
-        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(outputStream);
 
         csvPrinter.printComment(" " + PwmConstants.PWM_APP_NAME + " audit record output ");
         csvPrinter.printComment(" " + JavaHelper.toIsoDate(Instant.now()));

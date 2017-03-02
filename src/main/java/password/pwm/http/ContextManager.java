@@ -35,7 +35,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
@@ -205,7 +204,7 @@ public class ContextManager implements Serializable {
             handleStartupError("unable to initialize application: ", e);
         }
 
-        final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
+        final String threadName = JavaHelper.makeThreadName(pwmApplication, this.getClass()) + " timer";
         taskMaster = new Timer(threadName, true);
         taskMaster.schedule(new RestartFlagWatcher(), 1031, 1031);
 

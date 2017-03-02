@@ -540,6 +540,12 @@
             <version>1.58</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.10</version>
+            <scope>test</scope>
+        </dependency>
 
         <!-- container dependencies -->
         <dependency>

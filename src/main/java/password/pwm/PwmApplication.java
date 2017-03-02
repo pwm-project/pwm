@@ -56,7 +56,6 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistManager;
 import password.pwm.svc.wordlist.SharedHistoryManager;
 import password.pwm.svc.wordlist.WordlistManager;
-import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.VersionChecker;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
@@ -272,7 +271,7 @@ public class PwmApplication {
                 }
             };
             postInitThread.setDaemon(true);
-            postInitThread.setName(Helper.makeThreadName(this, PwmApplication.class));
+            postInitThread.setName(JavaHelper.makeThreadName(this, PwmApplication.class));
             postInitThread.start();
         }
     }
@@ -779,6 +778,21 @@ public class PwmApplication {
             }
         }
         return tempDirectory;
+    }
+
+    public boolean determineIfDetailErrorMsgShown() {
+        final PwmApplicationMode mode = this.getApplicationMode();
+        if (mode == PwmApplicationMode.CONFIGURATION || mode == PwmApplicationMode.NEW) {
+            return true;
+        }
+        if (mode == PwmApplicationMode.RUNNING) {
+            if (this.getConfig() != null) {
+                if (this.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
 

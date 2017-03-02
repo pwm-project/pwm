@@ -24,7 +24,7 @@ package password.pwm.svc.cache;
 
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -60,7 +60,7 @@ public class LocalDBCacheStore implements CacheStore {
         } catch (LocalDBException e) {
             LOGGER.error("error while clearing LocalDB CACHE DB during init: " + e.getMessage());
         }
-        timer = new Timer(Helper.makeThreadName(pwmApplication,LocalDBCacheStore.class),true);
+        timer = new Timer(JavaHelper.makeThreadName(pwmApplication,LocalDBCacheStore.class),true);
     }
 
     @Override

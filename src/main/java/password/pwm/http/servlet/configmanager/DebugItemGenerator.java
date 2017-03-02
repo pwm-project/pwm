@@ -36,7 +36,6 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
@@ -109,7 +108,7 @@ public class DebugItemGenerator {
         final String DEBUG_FILENAME = "zipDebugGeneration.csv";
 
         final ByteArrayOutputStream debugGeneratorLogBaos = new ByteArrayOutputStream();
-        final CSVPrinter debugGeneratorLogFile = Helper.makeCsvPrinter(debugGeneratorLogBaos);
+        final CSVPrinter debugGeneratorLogFile = JavaHelper.makeCsvPrinter(debugGeneratorLogBaos);
 
         for (final Class<? extends DebugItemGenerator.Generator> serviceClass : DEBUG_ZIP_ITEM_GENERATORS) {
             try {
@@ -248,7 +247,7 @@ public class DebugItemGenerator {
         @Override
         public void outputItem(final PwmApplication pwmApplication, final PwmRequest pwmRequest, final OutputStream outputStream) throws Exception
         {
-            final Properties outputProps = Helper.newSortedProperties();
+            final Properties outputProps = JavaHelper.newSortedProperties();
 
             // java threads
             final Map<String,String> envProps = System.getenv();
@@ -272,7 +271,7 @@ public class DebugItemGenerator {
         {
 
             final Configuration config = pwmRequest.getConfig();
-            final Properties outputProps = Helper.newSortedProperties();
+            final Properties outputProps = JavaHelper.newSortedProperties();
 
             for (final AppProperty appProperty : AppProperty.values()) {
                 outputProps.setProperty(appProperty.getKey(), config.readAppProperty(appProperty));
@@ -403,7 +402,7 @@ public class DebugItemGenerator {
             }
 
             {
-                final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+                final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(outputStream);
                 {
                     final List<String> headerRow = new ArrayList<>();
                     headerRow.add("Filepath");
@@ -482,7 +481,7 @@ public class DebugItemGenerator {
             final StoredConfigurationImpl storedConfiguration = ConfigManagerServlet.readCurrentConfiguration(pwmRequest);
             final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(storedConfiguration);
 
-            final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+            final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(outputStream);
             {
                 final List<String> headerRow = new ArrayList<>();
                 headerRow.add("Attribute");
@@ -538,7 +537,7 @@ public class DebugItemGenerator {
         ) throws Exception {
 
 
-            final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+            final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(outputStream);
             {
                 final List<String> headerRow = new ArrayList<>();
                 headerRow.add("Label");

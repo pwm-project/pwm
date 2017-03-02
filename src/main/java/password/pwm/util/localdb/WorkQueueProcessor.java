@@ -27,7 +27,6 @@ import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.Helper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -103,7 +102,7 @@ public class WorkQueueProcessor<W extends Serializable> {
 
         this.workerThread = new WorkerThread();
         workerThread.setDaemon(true);
-        workerThread.setName(Helper.makeThreadName(pwmApplication, sourceClass) + "-worker-");
+        workerThread.setName(JavaHelper.makeThreadName(pwmApplication, sourceClass) + "-worker-");
         workerThread.start();
     }
 

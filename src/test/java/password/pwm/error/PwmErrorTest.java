@@ -42,6 +42,7 @@ public class PwmErrorTest extends TestCase {
         }
     }
 
+    @Test
     public void testLocalizedMessage() {
         for (final PwmError pwmError : PwmError.values()) {
             pwmError.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, null);

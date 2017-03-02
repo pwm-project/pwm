@@ -53,7 +53,6 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
-import password.pwm.util.Helper;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
@@ -384,7 +383,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet {
     {
         pwmRequest.getPwmResponse().markAsDownload(PwmConstants.ContentTypeValue.csv, PwmConstants.DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV);
 
-        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(pwmRequest.getPwmResponse().getOutputStream());
+        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(pwmRequest.getPwmResponse().getOutputStream());
         try {
 
             final StoredConfigurationImpl storedConfiguration = readCurrentConfiguration(pwmRequest);

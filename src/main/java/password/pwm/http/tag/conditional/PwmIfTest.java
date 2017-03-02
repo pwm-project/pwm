@@ -37,7 +37,6 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.peoplesearch.PeopleSearchConfiguration;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
 
 public enum PwmIfTest {
     authenticated(new AuthenticatedTest()),
@@ -269,7 +268,7 @@ public enum PwmIfTest {
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return Helper.determineIfDetailErrorMsgShown(pwmRequest.getPwmApplication());
+            return pwmRequest.getPwmApplication().determineIfDetailErrorMsgShown();
         }
     }
 

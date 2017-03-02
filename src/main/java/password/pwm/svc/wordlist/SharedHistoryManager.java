@@ -31,7 +31,6 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
 import password.pwm.util.java.Sleeper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.java.JavaHelper;
@@ -217,7 +216,7 @@ public class SharedHistoryManager implements PwmService {
             frequencyMs = frequencyMs < MIN_CLEANER_FREQUENCY ? MIN_CLEANER_FREQUENCY : frequencyMs;
 
             LOGGER.debug("scheduling cleaner task to run once every " + new TimeDuration(frequencyMs).asCompactString());
-            final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
+            final String threadName = JavaHelper.makeThreadName(pwmApplication, this.getClass()) + " timer";
             cleanerTimer = new Timer(threadName, true);
             cleanerTimer.schedule(new CleanerTask(), 1000, frequencyMs);
         }
@@ -417,7 +416,7 @@ public class SharedHistoryManager implements PwmService {
                 LOGGER.debug("starting up in background thread");
                 init(pwmApplication, settings.maxAgeMs);
             }
-        }, Helper.makeThreadName(pwmApplication, this.getClass()) + " initializer").start();
+        }, JavaHelper.makeThreadName(pwmApplication, this.getClass()) + " initializer").start();
     }
 
     private static class Settings {

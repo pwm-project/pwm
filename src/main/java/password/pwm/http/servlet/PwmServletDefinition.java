@@ -27,6 +27,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.bean.LoginServletBean;
+import password.pwm.http.bean.NewUserBean;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.http.servlet.admin.AdminServlet;
@@ -74,7 +75,7 @@ public enum PwmServletDefinition {
     ConfigManager_LocalDB(ConfigManagerLocalDBServlet.class, null),
     ConfigManager_Certificates(ConfigManagerCertificatesServlet.class, null),
 
-    NewUser(NewUserServlet.class, null),
+    NewUser(NewUserServlet.class, NewUserBean.class),
     ActivateUser(password.pwm.http.servlet.ActivateUserServlet.class, null),
     ForgottenPassword(password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet.class, ForgottenPasswordBean.class),
     ForgottenUsername(password.pwm.http.servlet.ForgottenUsernameServlet.class, null),

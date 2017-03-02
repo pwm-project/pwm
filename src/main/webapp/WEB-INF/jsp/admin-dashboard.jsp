@@ -30,7 +30,6 @@
 <%@ page import="password.pwm.svc.PwmService" %>
 <%@ page import="password.pwm.svc.sessiontrack.SessionTrackService" %>
 <%@ page import="password.pwm.svc.stats.Statistic" %>
-<%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.java.FileSystemUtility" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
@@ -482,7 +481,7 @@
                                         ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                                         : dashboard_pwmApplication.getLocalDB().getFileLocation() == null
                                         ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                        : Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(
+                                        : StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(
                                         dashboard_pwmApplication.getLocalDB().getFileLocation()))
                                 %>
                             </td>
@@ -510,7 +509,7 @@
                                         ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                                         : dashboard_pwmApplication.getLocalDB().getFileLocation() == null
                                         ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                                        : Helper.formatDiskSize(FileSystemUtility.diskSpaceRemaining(dashboard_pwmApplication.getLocalDB().getFileLocation())) %>
+                                        : StringUtil.formatDiskSize(FileSystemUtility.diskSpaceRemaining(dashboard_pwmApplication.getLocalDB().getFileLocation())) %>
                             </td>
                         </tr>
                         <tr>

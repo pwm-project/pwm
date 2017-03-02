@@ -28,9 +28,9 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -113,14 +113,14 @@ public class LocalDBLogger implements PwmService {
         status = STATUS.OPEN;
 
         cleanerService = Executors.newSingleThreadScheduledExecutor(
-                Helper.makePwmThreadFactory(
-                        Helper.makeThreadName(pwmApplication, this.getClass()) + "-cleaner-",
+                JavaHelper.makePwmThreadFactory(
+                        JavaHelper.makeThreadName(pwmApplication, this.getClass()) + "-cleaner-",
                         true
                 ));
 
         writerService = Executors.newSingleThreadScheduledExecutor(
-                Helper.makePwmThreadFactory(
-                        Helper.makeThreadName(pwmApplication, this.getClass()) + "-writer-",
+                JavaHelper.makePwmThreadFactory(
+                        JavaHelper.makeThreadName(pwmApplication, this.getClass()) + "-writer-",
                         true
                 ));
 
@@ -162,7 +162,7 @@ public class LocalDBLogger implements PwmService {
         sb.append(", tailAge=").append(tailAge == null ? "n/a" : TimeDuration.fromCurrent(tailAge).asCompactString());
         sb.append(", maxEvents=").append(settings.getMaxEvents());
         sb.append(", maxAge=").append(settings.getMaxAge().asCompactString());
-        sb.append(", localDBSize=").append(Helper.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
+        sb.append(", localDBSize=").append(StringUtil.formatDiskSize(FileSystemUtility.getFileDirectorySize(localDB.getFileLocation())));
         return sb.toString();
     }
 

@@ -29,7 +29,6 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
-import password.pwm.util.Helper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -64,7 +63,7 @@ public class ErrorMessageTag extends PwmAbstractTag {
             final ErrorInformation error = (ErrorInformation)pwmRequest.getAttribute(PwmRequest.Attribute.PwmErrorInfo);
 
             if (error != null) {
-                final boolean showErrorDetail = Helper.determineIfDetailErrorMsgShown(pwmApplication);
+                final boolean showErrorDetail = pwmApplication.determineIfDetailErrorMsgShown();
 
                 String outputMsg;
                 if (showErrorDetail) {

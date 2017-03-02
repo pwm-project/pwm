@@ -41,7 +41,6 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.http.client.PwmHttpClientConfiguration;
 import password.pwm.svc.PwmService;
-import password.pwm.util.Helper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -104,8 +103,8 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         }
 
         executorService = Executors.newSingleThreadScheduledExecutor(
-                Helper.makePwmThreadFactory(
-                        Helper.makeThreadName(pwmApplication,this.getClass()) + "-",
+                JavaHelper.makePwmThreadFactory(
+                        JavaHelper.makeThreadName(pwmApplication,this.getClass()) + "-",
                         true
                 ));
     }
@@ -355,7 +354,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
                         }
                         populator = null;
                     }
-                }, Helper.makeThreadName(pwmApplication, WordlistManager.class));
+                }, JavaHelper.makeThreadName(pwmApplication, WordlistManager.class));
                 t.setDaemon(true);
                 t.start();
             }

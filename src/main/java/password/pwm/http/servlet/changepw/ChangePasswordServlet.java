@@ -29,7 +29,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
@@ -113,15 +112,11 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
         }
     }
 
-    protected ChangePasswordAction readProcessAction(final PwmRequest request)
-            throws PwmUnrecoverableException
-    {
-        try {
-            return ChangePasswordAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    @Override
+    public Class<? extends ProcessAction> getProcessActionsClass() {
+        return ChangePasswordServlet.ChangePasswordAction.class;
     }
+
 
     @ActionHandler(action = "reset")
     ProcessStatus processResetAction(final PwmRequest pwmRequest) throws ServletException, PwmUnrecoverableException, IOException {

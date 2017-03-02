@@ -43,7 +43,6 @@ import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EventRateMeter;
-import password.pwm.util.Helper;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.BlockingThreadPool;
 import password.pwm.util.java.ClosableIterator;
@@ -140,8 +139,8 @@ public class ReportService implements PwmService {
         dnQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.REPORT_QUEUE);
 
         executorService = Executors.newSingleThreadScheduledExecutor(
-                Helper.makePwmThreadFactory(
-                        Helper.makeThreadName(pwmApplication,this.getClass()) + "-",
+                JavaHelper.makePwmThreadFactory(
+                        JavaHelper.makeThreadName(pwmApplication,this.getClass()) + "-",
                         true
                 ));
 

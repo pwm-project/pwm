@@ -120,22 +120,15 @@ public class NewUserServlet extends ControlledPwmServlet {
         }
     }
 
-    protected NewUserAction readProcessAction(final PwmRequest request)
-            throws PwmUnrecoverableException
-    {
-        try {
-            return NewUserAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    @Override
+    public Class<? extends ProcessAction> getProcessActionsClass() {
+        return NewUserAction.class;
     }
 
 
     private static NewUserBean getNewUserBean(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
         return pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, NewUserBean.class);
     }
-
-
 
     @Override
     public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
@@ -154,7 +147,7 @@ public class NewUserServlet extends ControlledPwmServlet {
             return ProcessStatus.Halt;
         }
 
-        final NewUserAction action = this.readProcessAction(pwmRequest);
+        final ProcessAction action = this.readProcessAction(pwmRequest);
 
         // convert a url command like /public/newuser/12321321 to redirect with a process action.
         if (action == null) {

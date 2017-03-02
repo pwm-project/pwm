@@ -169,6 +169,11 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         }
     }
 
+    @Override
+    public Class<? extends ProcessAction> getProcessActionsClass() {
+        return ForgottenPasswordAction.class;
+    }
+
     public enum ActionChoice {
         unlock,
         resetPassword,
@@ -177,16 +182,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
     public enum TokenChoice {
         email,
         sms,
-    }
-
-    protected ForgottenPasswordAction readProcessAction(final PwmRequest request)
-            throws PwmUnrecoverableException
-    {
-        try {
-            return ForgottenPasswordAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
     }
 
     @Override

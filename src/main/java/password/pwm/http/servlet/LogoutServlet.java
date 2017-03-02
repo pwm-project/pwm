@@ -75,15 +75,10 @@ public class LogoutServlet extends ControlledPwmServlet {
         }
     }
 
-    protected LogoutAction readProcessAction(final PwmRequest request)
-            throws PwmUnrecoverableException {
-        try {
-            return LogoutAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    @Override
+    public Class<? extends ProcessAction> getProcessActionsClass() {
+        return LogoutAction.class;
     }
-
 
     @ActionHandler(action = "showLogout")
     public ProcessStatus processLogoutAction(

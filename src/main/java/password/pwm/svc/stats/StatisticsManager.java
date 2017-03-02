@@ -41,7 +41,6 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.client.PwmHttpClient;
 import password.pwm.svc.PwmService;
 import password.pwm.util.AlertHandler;
-import password.pwm.util.Helper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -298,7 +297,7 @@ public class StatisticsManager implements PwmService {
         localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString());
 
         { // setup a timer to roll over at 0 Zula and one to write current stats every 10 seconds
-            final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
+            final String threadName = JavaHelper.makeThreadName(pwmApplication, this.getClass()) + " timer";
             daemonTimer = new Timer(threadName, true);
             daemonTimer.schedule(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS);
             daemonTimer.schedule(new NightlyTask(), Date.from(JavaHelper.nextZuluZeroTime()));
@@ -555,7 +554,7 @@ public class StatisticsManager implements PwmService {
         final Instant startTime = Instant.now();
 
         final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
-        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(outputStream);
 
         if (includeHeader) {
             final List<String> headers = new ArrayList<>();

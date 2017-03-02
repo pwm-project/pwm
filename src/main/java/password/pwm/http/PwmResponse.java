@@ -30,7 +30,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
-import password.pwm.util.Helper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -162,7 +161,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
                 LOGGER.error("unexpected error sending user to error page: " + e.toString());
             }
         } else {
-            final boolean showDetail = Helper.determineIfDetailErrorMsgShown(pwmRequest.getPwmApplication());
+            final boolean showDetail = pwmRequest.getPwmApplication().determineIfDetailErrorMsgShown();
             final String errorStatusText = showDetail
                     ? errorInformation.toDebugStr()
                     : errorInformation.toUserStr(pwmRequest.getPwmSession(),pwmRequest.getPwmApplication());

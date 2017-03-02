@@ -23,6 +23,7 @@
 package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -30,6 +31,7 @@ import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
 import password.pwm.http.bean.PwmSessionBean;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -38,10 +40,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 
 public abstract class ControlledPwmServlet extends AbstractPwmServlet implements PwmServlet {
 
@@ -68,6 +67,22 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             }
         }
         throw new IllegalStateException("unable to determine PwmServletDefinition for class " + this.getClass().getName());
+    }
+
+    public abstract Class<? extends ProcessAction> getProcessActionsClass();
+
+    protected ProcessAction readProcessAction(final PwmRequest request)
+            throws PwmUnrecoverableException
+    {
+        try {
+            final String inputParameter = request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST);
+            final Class processStatusClass = getProcessActionsClass();
+            final Enum answer = JavaHelper.readEnumFromString(processStatusClass, null, inputParameter);
+            return (ProcessAction)answer;
+        } catch (Exception e) {
+            LOGGER.error("error",e);
+        }
+        return null;
     }
 
     private ProcessStatus dispatchMethod(
@@ -156,9 +171,9 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         String action();
     }
 
-    private static Method discoverMethodForAction(final Class clazz, final ProcessAction action) {
+    public static Method discoverMethodForAction(final Class clazz, final ProcessAction action) {
         Method interestedMethod = null;
-        final Collection<Method> methods = getAllMethods(clazz);
+        final Collection<Method> methods = JavaHelper.getAllMethodsForClass(clazz);
         for (final Method method : methods) {
             if (method.getAnnotation(ActionHandler.class) != null) {
                 final String actionName = method.getAnnotation(ActionHandler.class).action();
@@ -171,25 +186,13 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         return interestedMethod;
     }
 
-    private static Collection<Method> getAllMethods(final Class clazz) {
-        final LinkedHashSet<Method> methods = new LinkedHashSet<>();
-
-        // add local methods;
-        methods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
-
-        final Class superClass = clazz.getSuperclass();
-        if (superClass != null) {
-            methods.addAll(getAllMethods(superClass));
-        }
-
-        return Collections.unmodifiableSet(methods);
-    }
-
     protected void setLastError(final PwmRequest pwmRequest, final ErrorInformation errorInformation) throws PwmUnrecoverableException {
         final Class<? extends PwmSessionBean> beanClass = this.getServletDefinition().getPwmSessionBeanClass();
-        final PwmSessionBean pwmSessionBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, beanClass);
-        pwmSessionBean.setLastError(errorInformation);
-        pwmRequest.setResponseError(errorInformation);
+        if (beanClass != null) {
+            final PwmSessionBean pwmSessionBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, beanClass);
+            pwmSessionBean.setLastError(errorInformation);
+            pwmRequest.setResponseError(errorInformation);
+        }
     }
 
     private void examineLastError(final PwmRequest pwmRequest) throws PwmUnrecoverableException {

@@ -25,7 +25,7 @@ package password.pwm.util.localdb;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.java.FileSystemUtility;
-import password.pwm.util.Helper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -144,16 +144,16 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
     private void reclaimAllSpace(final Connection dbConnection) {
         final java.util.Date startTime = new java.util.Date();
         final long startSize = FileSystemUtility.getFileDirectorySize(dbDirectory);
-        LOGGER.debug("beginning reclaim space in all tables startSize=" + Helper.formatDiskSize(startSize));
+        LOGGER.debug("beginning reclaim space in all tables startSize=" + StringUtil.formatDiskSize(startSize));
         for (final LocalDB.DB db : LocalDB.DB.values()) {
             reclaimSpace(dbConnection,db);
         }
         final long completeSize = FileSystemUtility.getFileDirectorySize(dbDirectory);
         final long sizeDifference = startSize - completeSize;
         LOGGER.debug("completed reclaim space in all tables; duration=" + TimeDuration.fromCurrent(startTime).asCompactString()
-                + ", startSize=" + Helper.formatDiskSize(startSize)
-                + ", completeSize=" + Helper.formatDiskSize(completeSize)
-                + ", sizeDifference=" + Helper.formatDiskSize(sizeDifference)
+                + ", startSize=" + StringUtil.formatDiskSize(startSize)
+                + ", completeSize=" + StringUtil.formatDiskSize(completeSize)
+                + ", sizeDifference=" + StringUtil.formatDiskSize(sizeDifference)
         );
     }
 

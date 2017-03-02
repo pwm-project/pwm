@@ -50,7 +50,6 @@ import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.intruder.RecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -108,7 +107,7 @@ public class SessionAuthenticator {
             postFailureSequence(e, username, userIdentity);
 
             if (readHiddenErrorTypes().contains(e.getError())) {
-                if (Helper.determineIfDetailErrorMsgShown(pwmApplication)) {
+                if (pwmApplication.determineIfDetailErrorMsgShown()) {
                     LOGGER.debug(pwmSession, "allowing error " + e.getError() + " to be returned though it is configured as a hidden type; "
                             + "app is currently permitting detailed error messages");
                 } else {

@@ -22,16 +22,18 @@
 
 package password.pwm.util.java;
 
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -40,10 +42,16 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.GregorianCalendar;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
@@ -150,18 +158,16 @@ public class JavaHelper {
     }
 
     public static <E extends Enum<E>> E readEnumFromString(final Class<E> enumClass, final E defaultValue, final String input) {
-        if (input == null) {
+        if (StringUtil.isEmpty(input)) {
+            return defaultValue;
+        }
+
+        if (enumClass == null || !enumClass.isEnum()) {
             return defaultValue;
         }
 
         try {
-            final Method valueOfMethod = enumClass.getMethod("valueOf", String.class);
-            try {
-                final Object result = valueOfMethod.invoke(null, input);
-                return (E) result;
-            } catch (InvocationTargetException e) {
-                throw e.getCause();
-            }
+            return Enum.valueOf(enumClass, input);
         } catch (IllegalArgumentException e) {
             /* noop */
             //LOGGER.trace("input=" + input + " does not exist in enumClass=" + enumClass.getSimpleName());
@@ -267,4 +273,57 @@ public class JavaHelper {
         return false;
     }
 
+    public static String makeThreadName(final PwmApplication pwmApplication, final Class theClass) {
+        String instanceName = "-";
+        if (pwmApplication != null && pwmApplication.getInstanceID() != null) {
+            instanceName = pwmApplication.getInstanceID();
+        }
+
+        return PwmConstants.PWM_APP_NAME + "-" + instanceName + "-" + theClass.getSimpleName();
+    }
+
+    public static Properties newSortedProperties() {
+        return new Properties() {
+            public synchronized Enumeration<Object> keys() {
+                return Collections.enumeration(new TreeSet<>(super.keySet()));
+            }
+        };
+    }
+
+    public static ThreadFactory makePwmThreadFactory(final String namePrefix, final boolean daemon) {
+        return new ThreadFactory() {
+            private final ThreadFactory realThreadFactory = Executors.defaultThreadFactory();
+
+            @Override
+            public Thread newThread(final Runnable r) {
+                final Thread t = realThreadFactory.newThread(r);
+                t.setDaemon(daemon);
+                if (namePrefix != null) {
+                    final String newName = namePrefix + t.getName();
+                    t.setName(newName);
+                }
+                return t;
+            }
+        };
+    }
+
+    public static Collection<Method> getAllMethodsForClass(final Class clazz) {
+        final LinkedHashSet<Method> methods = new LinkedHashSet<>();
+
+        // add local methods;
+        methods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+
+        final Class superClass = clazz.getSuperclass();
+        if (superClass != null) {
+            methods.addAll(getAllMethodsForClass(superClass));
+        }
+
+        return Collections.unmodifiableSet(methods);
+    }
+
+    public static CSVPrinter makeCsvPrinter(final OutputStream outputStream)
+            throws IOException
+    {
+        return new CSVPrinter(new OutputStreamWriter(outputStream,PwmConstants.DEFAULT_CHARSET), PwmConstants.DEFAULT_CSV_FORMAT);
+    }
 }

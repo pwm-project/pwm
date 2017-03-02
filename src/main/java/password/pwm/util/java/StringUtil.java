@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -155,6 +156,36 @@ public abstract class StringUtil {
 
     public static String join(final Collection inputs, final String separator) {
         return StringUtils.join(inputs == null ? new String[]{} : inputs.toArray(), separator);
+    }
+
+    public static String formatDiskSize(final long diskSize) {
+        final float COUNT = 1000;
+        if (diskSize < 1) {
+            return "n/a";
+        }
+
+        if (diskSize == 0) {
+            return "0";
+        }
+
+        final NumberFormat nf = NumberFormat.getInstance();
+        nf.setMaximumFractionDigits(2);
+
+        if (diskSize > COUNT * COUNT * COUNT) {
+            final StringBuilder sb = new StringBuilder();
+            sb.append(nf.format(diskSize / COUNT / COUNT / COUNT));
+            sb.append(" GB");
+            return sb.toString();
+        }
+
+        if (diskSize > COUNT * COUNT) {
+            final StringBuilder sb = new StringBuilder();
+            sb.append(nf.format(diskSize / COUNT / COUNT));
+            sb.append(" MB");
+            return sb.toString();
+        }
+
+        return NumberFormat.getInstance().format(diskSize) + " bytes";
     }
 
     public enum Base64Options {

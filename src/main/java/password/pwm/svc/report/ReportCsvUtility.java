@@ -30,7 +30,6 @@ import password.pwm.config.Configuration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
-import password.pwm.util.Helper;
 import password.pwm.util.LocaleHelper;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
@@ -54,7 +53,7 @@ public class ReportCsvUtility {
     public void outputSummaryToCsv(final OutputStream outputStream, final Locale locale)
             throws IOException {
         final List<ReportSummaryData.PresentationRow> outputList = reportService.getSummaryData().asPresentableCollection(pwmApplication.getConfig(), locale);
-        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(outputStream);
 
         for (final ReportSummaryData.PresentationRow presentationRow : outputList) {
             final List<String> headerRow = new ArrayList<>();
@@ -83,7 +82,7 @@ public class ReportCsvUtility {
 
     public void outputToCsv(final OutputStream outputStream, final boolean includeHeader, final Locale locale, final Configuration config, final ReportColumnFilter columnFilter)
             throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException {
-        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter(outputStream);
         final Class localeClass = password.pwm.i18n.Admin.class;
         if (includeHeader) {
             final List<String> headerRow = new ArrayList<>();
