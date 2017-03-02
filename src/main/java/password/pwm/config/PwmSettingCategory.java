@@ -113,8 +113,7 @@ public enum PwmSettingCategory {
     DATABASE_ADV                (DATABASE),
 
     REPORTING                   (SETTINGS),
-    NAAF                        (SETTINGS),
-    
+
     SSO                         (SETTINGS),
     OAUTH                       (SSO),
     HTTP_SSO                    (SSO),

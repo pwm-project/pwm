@@ -126,13 +126,15 @@ public class PwmApplication {
 
         ;
 
-        private String key;
+        private final String key;
 
-        AppAttribute(final String key) {
+        AppAttribute(final String key)
+        {
             this.key = key;
         }
 
-        public String getKey() {
+        public String getKey()
+        {
             return key;
         }
     }
@@ -264,19 +266,15 @@ public class PwmApplication {
             StatisticsManager.incrementStat(this, Statistic.PWM_STARTUPS);
             LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE);
 
-            final Thread postInitThread = new Thread() {
-                @Override
-                public void run() {
-                    postInitTasks();
-                }
-            };
+            final Thread postInitThread = new Thread(() -> postInitTasks());
             postInitThread.setDaemon(true);
             postInitThread.setName(JavaHelper.makeThreadName(this, PwmApplication.class));
             postInitThread.start();
         }
     }
 
-    private void postInitTasks() {
+    private void postInitTasks()
+    {
         final Instant startTime = Instant.now();
 
         LOGGER.debug("loaded configuration: " + pwmEnvironment.getConfig().toDebugString());
@@ -356,7 +354,8 @@ public class PwmApplication {
         LOGGER.trace("completed post init tasks in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
 
-    private static void outputKeystore(final PwmApplication pwmApplication) throws Exception {
+    private static void outputKeystore(final PwmApplication pwmApplication) throws Exception
+    {
         final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = pwmApplication.getPwmEnvironment().getParameters();
         final String keystoreFileString = applicationParams.get(PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStoreFile);
         if (keystoreFileString != null && !keystoreFileString.isEmpty()) {
@@ -416,15 +415,18 @@ public class PwmApplication {
         }
     }
 
-    public String getInstanceID() {
+    public String getInstanceID()
+    {
         return instanceID;
     }
 
-    public SharedHistoryManager getSharedHistoryManager() {
+    public SharedHistoryManager getSharedHistoryManager()
+    {
         return (SharedHistoryManager)pwmServiceManager.getService(SharedHistoryManager.class);
     }
 
-    public IntruderManager getIntruderManager() {
+    public IntruderManager getIntruderManager()
+    {
         return (IntruderManager)pwmServiceManager.getService(IntruderManager.class);
     }
 
@@ -445,11 +447,13 @@ public class PwmApplication {
         return getLdapConnectionService().getProxyChaiProvider(identifier);
     }
 
-    public LocalDBLogger getLocalDBLogger() {
+    public LocalDBLogger getLocalDBLogger()
+    {
         return localDBLogger;
     }
 
-    public HealthMonitor getHealthMonitor() {
+    public HealthMonitor getHealthMonitor()
+    {
         return (HealthMonitor)pwmServiceManager.getService(HealthMonitor.class);
     }
 

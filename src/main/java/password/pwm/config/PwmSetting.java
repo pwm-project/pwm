@@ -1103,16 +1103,6 @@ public enum PwmSetting {
             "external.remoteResponses.url", PwmSettingSyntax.STRING, PwmSettingCategory.REST_CLIENT),
 
 
-    // NAAF
-    NAAF_WS_URL(
-            "naaf.ws.url", PwmSettingSyntax.STRING, PwmSettingCategory.NAAF),
-    NAAF_WS_CERTIFICATE(
-            "naaf.ws.serverCerts", PwmSettingSyntax.X509CERT, PwmSettingCategory.NAAF),
-    NAAF_USER_IDENTIFIER(
-            "naaf.userIdentifier", PwmSettingSyntax.STRING, PwmSettingCategory.NAAF),
-    NAAF_METHODS(
-            "naaf.requiredMethods", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.NAAF),
-
     //appliance
     HTTPS_CERT(
             "https.server.cert", PwmSettingSyntax.PRIVATE_KEY, PwmSettingCategory.HTTPS_SERVER),

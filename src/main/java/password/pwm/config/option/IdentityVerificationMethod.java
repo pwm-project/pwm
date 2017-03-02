@@ -37,7 +37,6 @@ public enum IdentityVerificationMethod implements ConfigurationOption {
     TOKEN(              true,   Display.Field_VerificationMethodToken,              Display.Description_VerificationMethodToken),
     OTP(                true,   Display.Field_VerificationMethodOTP,                Display.Description_VerificationMethodOTP),
     REMOTE_RESPONSES(   false,  Display.Field_VerificationMethodRemoteResponses,    Display.Description_VerificationMethodRemoteResponses),
-    NAAF(               true,   Display.Field_VerificationMethodNAAF,               Display.Description_VerificationMethodNAAF),
     OAUTH(              true,   Display.Field_VerificationMethodOAuth,              Display.Description_VerificationMethodOAuth),
 
     ;

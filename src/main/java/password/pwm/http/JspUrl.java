@@ -57,7 +57,6 @@ public enum JspUrl {
     RECOVER_PASSWORD_TOKEN_CHOICE("forgottenpassword-tokenchoice.jsp"),
     RECOVER_PASSWORD_ENTER_TOKEN("forgottenpassword-entertoken.jsp"),
     RECOVER_PASSWORD_ENTER_OTP("forgottenpassword-enterotp.jsp"),
-    RECOVER_PASSWORD_NAAF("forgottenpassword-naaf.jsp"),
     RECOVER_PASSWORD_REMOTE("forgottenpassword-remote.jsp"),
     SELF_DELETE_AGREE("deleteaccount-agreement.jsp"),
     SELF_DELETE_CONFIRM("deleteaccount-confirm.jsp"),

@@ -3605,37 +3605,6 @@
     <setting hidden="false" key="oauth.idserver.dnAttributeName" level="2">
         <default/>
     </setting>
-    <setting hidden="false" key="naaf.ws.url" level="2">
-        <example>https://www.example.com/api/v1</example>
-        <regex>^(http|https)://.+</regex>
-        <default/>
-    </setting>
-    <setting hidden="false" key="naaf.ws.serverCerts" level="2">
-        <default/>
-        <properties>
-            <property key="Cert_ImportHandler">password.pwm.config.function.NAAFCertImportFunction</property>
-        </properties>
-    </setting>
-    <setting hidden="false" key="naaf.userIdentifier" level="2">
-        <default>
-            <value/>
-        </default>
-    </setting>
-    <setting hidden="false" key="naaf.requiredMethods" level="2">
-        <default/>
-        <options>
-            <option value="PASSWORD">Password</option>
-            <option value="LDAP_PASSWORD">LDAP Password</option>
-            <option value="SECURITY_QUESTIONS">Security Questions</option>
-            <option value="EMAIL_OTP">EMail OTP</option>
-            <option value="SMS_OTP">SMS OTP</option>
-            <option value="SMARTPHONE">Smartphone</option>
-            <option value="RADIUS">Radius</option>
-            <option value="TOTP">TOTP</option>
-            <option value="HOTP">HOTP</option>
-            <option value="VOICE">Voice</option>
-        </options>
-    </setting>
     <setting hidden="false" key="https.server.cert" level="1">
         <default/>
     </setting>
@@ -3876,8 +3845,6 @@
     <category hidden="false" key="HELPDESK_VERIFICATION">
     </category>
     <category hidden="false" key="HELPDESK_SETTINGS">
-    </category>
-    <category hidden="true" key="NAAF">
     </category>
     <category hidden="false" key="MODULES_PUBLIC">
     </category>

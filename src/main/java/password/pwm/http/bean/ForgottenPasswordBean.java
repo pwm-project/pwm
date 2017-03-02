@@ -143,7 +143,6 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         @SerializedName("i")
         private IdentityVerificationMethod inProgressVerificationMethod;
 
-        private transient VerificationMethodSystem naafRecoveryMethod;
         private transient VerificationMethodSystem remoteRecoveryMethod;
 
         public Set<IdentityVerificationMethod> getSatisfiedMethods() {
@@ -196,14 +195,6 @@ public class ForgottenPasswordBean extends PwmSessionBean {
 
         public void setInProgressVerificationMethod(final IdentityVerificationMethod inProgressVerificationMethod) {
             this.inProgressVerificationMethod = inProgressVerificationMethod;
-        }
-
-        public void setNaafRecoveryMethod(final VerificationMethodSystem naafRecoveryMethod) {
-            this.naafRecoveryMethod = naafRecoveryMethod;
-        }
-
-        public VerificationMethodSystem getNaafRecoveryMethod() {
-            return naafRecoveryMethod;
         }
 
         public VerificationMethodSystem getRemoteRecoveryMethod() {

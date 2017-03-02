@@ -100,7 +100,6 @@ import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.ws.client.rest.RestTokenDataClient;
-import password.pwm.ws.client.rest.naaf.PwmNAAFVerificationMethod;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -150,7 +149,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         actionChoice(HttpMethod.POST),
         tokenChoice(HttpMethod.POST),
         verificationChoice(HttpMethod.POST),
-        enterNaafResponse(HttpMethod.POST),
         enterRemoteResponse(HttpMethod.POST),
         oauthReturn(HttpMethod.GET),
 
@@ -211,106 +209,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
 
         return ProcessStatus.Continue;
     }
-
-    /*
-    @Override
-    public void processAction(final PwmRequest pwmRequest)
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
-    {
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-
-        final Configuration config = pwmApplication.getConfig();
-        final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean(pwmRequest);
-
-        if (!config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
-            pwmRequest.respondWithError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
-            return;
-        }
-
-        if (pwmSession.isAuthenticated()) {
-            pwmRequest.respondWithError(PwmError.ERROR_USERAUTHENTICATED.toInfo());
-            return;
-        }
-
-        if (forgottenPasswordBean.getUserIdentity() != null) {
-            pwmApplication.getIntruderManager().convenience().checkUserIdentity(forgottenPasswordBean.getUserIdentity());
-        }
-
-        checkForLocaleSwitch(pwmRequest, forgottenPasswordBean);
-
-        final ForgottenPasswordAction processAction = readProcessAction(pwmRequest);
-
-        // convert a url command like /pwm/public/ForgottenPassword/12321321 to redirect with a process action.
-        if (processAction == null) {
-            if (pwmRequest.convertURLtokenCommand()) {
-                return;
-            }
-        }
-
-        if (processAction != null) {
-
-            switch (processAction) {
-                case search:
-                    this.processSearch(pwmRequest);
-                    break;
-
-                case checkResponses:
-                    this.processCheckResponses(pwmRequest);
-                    break;
-
-                case checkAttributes:
-                    this.processCheckAttributes(pwmRequest);
-                    break;
-
-                case enterCode:
-                    this.processEnterToken(pwmRequest);
-                    break;
-
-                case enterOtp:
-                    this.processEnterOtpToken(pwmRequest);
-                    break;
-
-                case reset:
-                    this.processReset(pwmRequest);
-                    break;
-
-                case actionChoice:
-                    this.processActionChoice(pwmRequest);
-                    break;
-
-                case tokenChoice:
-                    this.processTokenChoice(pwmRequest);
-                    break;
-
-                case verificationChoice:
-                    this.processVerificationChoice(pwmRequest);
-                    break;
-
-                case enterNaafResponse:
-                    this.processEnterNaaf(pwmRequest);
-                    break;
-
-                case enterRemoteResponse:
-                    this.processEnterRemote(pwmRequest);
-                    break;
-
-                case oauthReturn:
-                    this.processOAuthReturn(pwmRequest);
-                    break;
-
-                default:
-                    JavaHelper.unhandledSwitchStatement(processAction);
-            }
-        } else {
-            pwmApplication.getSessionStateService().clearBean(pwmRequest, ForgottenPasswordBean.class);
-        }
-
-        if (!pwmRequest.getPwmResponse().isCommitted()) {
-            this.nextStep(pwmRequest);
-        }
-    }
-    */
 
     private static ForgottenPasswordBean forgottenPasswordBean(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
         return pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, ForgottenPasswordBean.class);
@@ -561,48 +459,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         return ProcessStatus.Continue;
     }
 
-    @ActionHandler(action = "enterNaafResponse")
-    private ProcessStatus processEnterNaaf(final PwmRequest pwmRequest)
-            throws PwmUnrecoverableException, IOException, ServletException
-    {
-        final String PREFIX = "naaf-";
-        final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean(pwmRequest);
-        final VerificationMethodSystem naafMethod = forgottenPasswordBean.getProgress().getNaafRecoveryMethod();
-
-        final Map<String,String> naafResponses = new LinkedHashMap<>();
-        {
-            final Map<String,String> inputMap = pwmRequest.readParametersAsMap();
-            for (final String name : inputMap.keySet()) {
-                if (name != null && name.startsWith(PREFIX)) {
-                    final String strippedName = name.substring(PREFIX.length(), name.length());
-                    final String value = inputMap.get(name);
-                    naafResponses.put(strippedName,value);
-                }
-            }
-        }
-
-        final ErrorInformation errorInformation = naafMethod.respondToPrompts(naafResponses);
-
-        if (naafMethod.getVerificationState() == VerificationMethodSystem.VerificationState.COMPLETE) {
-            forgottenPasswordBean.getProgress().getSatisfiedMethods().add(IdentityVerificationMethod.NAAF);
-        }
-
-        if (naafMethod.getVerificationState() == VerificationMethodSystem.VerificationState.FAILED) {
-            forgottenPasswordBean.getProgress().setNaafRecoveryMethod(null);
-            pwmRequest.respondWithError(errorInformation,true);
-            handleUserVerificationBadAttempt(pwmRequest, forgottenPasswordBean, errorInformation);
-            LOGGER.debug(pwmRequest, "unsuccessful NAAF verification input: " + errorInformation.toDebugStr());
-            return ProcessStatus.Continue;
-        }
-
-        if (errorInformation != null) {
-            setLastError(pwmRequest, errorInformation);
-            handleUserVerificationBadAttempt(pwmRequest, forgottenPasswordBean, errorInformation);
-        }
-
-        return ProcessStatus.Continue;
-    }
-
     @ActionHandler(action = "enterRemoteResponse")
     private ProcessStatus processEnterRemote(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, IOException, ServletException
@@ -630,7 +486,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         }
 
         if (remoteRecoveryMethod.getVerificationState() == VerificationMethodSystem.VerificationState.FAILED) {
-            forgottenPasswordBean.getProgress().setNaafRecoveryMethod(null);
+            forgottenPasswordBean.getProgress().setRemoteRecoveryMethod(null);
             pwmRequest.respondWithError(errorInformation,true);
             handleUserVerificationBadAttempt(pwmRequest, forgottenPasswordBean, errorInformation);
             LOGGER.debug(pwmRequest, "unsuccessful remote response verification input: " + errorInformation.toDebugStr());
@@ -1736,32 +1592,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordPrompts, new ArrayList<>(prompts));
                 pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordInstructions, displayInstructions);
                 pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_REMOTE);
-            }
-            break;
-
-
-            case NAAF: {
-                final UserInfoBean userInfoBean = readUserInfoBean(pwmRequest, forgottenPasswordBean);
-                final VerificationMethodSystem naafMethod;
-                if (forgottenPasswordBean.getProgress().getNaafRecoveryMethod() == null) {
-                    naafMethod = new PwmNAAFVerificationMethod();
-                    naafMethod.init(
-                            pwmRequest.getPwmApplication(),
-                            userInfoBean,
-                            pwmRequest.getSessionLabel(),
-                            pwmRequest.getLocale()
-                    );
-                    forgottenPasswordBean.getProgress().setNaafRecoveryMethod(naafMethod);
-                } else {
-                    naafMethod = forgottenPasswordBean.getProgress().getNaafRecoveryMethod();
-                }
-
-                final List<VerificationMethodSystem.UserPrompt> prompts = naafMethod.getCurrentPrompts();
-                final String displayInstructions = naafMethod.getCurrentDisplayInstructions();
-
-                pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordPrompts, new ArrayList<>(prompts));
-                pwmRequest.setAttribute(PwmRequest.Attribute.ForgottenPasswordInstructions, displayInstructions);
-                pwmRequest.forwardToJsp(JspUrl.RECOVER_PASSWORD_NAAF);
             }
             break;
 

@@ -135,9 +135,6 @@ public enum     AppProperty {
     LOCALDB_LOGWRITER_MAX_TRIM_SIZE                 ("localdb.logWriter.maxTrimSize"),
     MACRO_RANDOM_CHAR_MAX_LENGTH                    ("macro.randomChar.maxLength"),
     MACRO_LDAP_ATTR_CHAR_MAX_LENGTH                 ("macro.ldapAttr.maxLength"),
-    NAAF_ID                                         ("naaf.id"),
-    NAAF_SECRET                                     ("naaf.secret"),
-    NAAF_SALT_LENGTH                                ("naaf.salt.length"),
 
 
     /** Time intruder records exist in the intruder table before being deleted. */
