@@ -247,9 +247,11 @@ public class PwmSession implements Serializable {
         final LocalSessionStateBean ssBean = this.getSessionStateBean();
         final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
         final Locale requestedLocale = LocaleHelper.parseLocaleString(localeString);
-        if (knownLocales.contains(requestedLocale) || localeString.equalsIgnoreCase("default")) {
+        if (knownLocales.contains(requestedLocale) || "default".equalsIgnoreCase(localeString)) {
             LOGGER.debug(this, "setting session locale to '" + localeString + "'");
-            ssBean.setLocale(localeString.equalsIgnoreCase("default") ? PwmConstants.DEFAULT_LOCALE : requestedLocale);
+            ssBean.setLocale("default".equalsIgnoreCase(localeString)
+                    ? PwmConstants.DEFAULT_LOCALE
+                    : requestedLocale);
             if (this.isAuthenticated()) {
                 try {
                     final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, this.getLabel());

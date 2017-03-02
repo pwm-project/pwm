@@ -418,7 +418,7 @@
             <plugin> <!-- checks owsp vulnerability database during verify phase -->
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>1.4.3</version>
+                <version>1.4.5</version>
                 <executions>
                     <execution>
                         <goals>

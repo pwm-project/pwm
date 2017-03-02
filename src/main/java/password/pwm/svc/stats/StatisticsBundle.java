@@ -23,6 +23,7 @@
 package password.pwm.svc.stats;
 
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -66,7 +67,7 @@ public class StatisticsBundle {
 
         for (final Statistic loopStat : Statistic.values()) {
             final String value = srcMap.get(loopStat);
-            if (value != null && !value.equals("")) {
+            if (!StringUtil.isEmpty(value)) {
                 bundle.valueMap.put(loopStat, value);
             }
         }

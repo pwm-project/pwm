@@ -32,7 +32,7 @@ public class EventRateMeter implements Serializable {
     private final TimeDuration maxDuration;
 
     private MovingAverage movingAverage;
-    private double remainder = 0;
+    private double remainder;
 
     public EventRateMeter(final TimeDuration maxDuration) {
         if (maxDuration == null) {

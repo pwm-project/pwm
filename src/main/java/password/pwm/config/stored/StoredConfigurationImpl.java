@@ -103,8 +103,8 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
     private Document document = new Document(new Element(XML_ELEMENT_ROOT));
     private ChangeLog changeLog = new ChangeLog();
 
-    private boolean locked = false;
-    private boolean setting_writeLabels = true;
+    private boolean locked;
+    private final boolean setting_writeLabels = true;
     private final ReentrantReadWriteLock domModifyLock = new ReentrantReadWriteLock();
 
 // -------------------------- STATIC METHODS --------------------------
@@ -1247,7 +1247,7 @@ public class StoredConfigurationImpl implements Serializable, StoredConfiguratio
         return changeLog.changeLogAsDebugString(locale, asHtml);
     }
 
-    private PwmSecurityKey cachedKey = null;
+    private PwmSecurityKey cachedKey;
 
     public PwmSecurityKey getKey() throws PwmUnrecoverableException {
         if (cachedKey == null) {

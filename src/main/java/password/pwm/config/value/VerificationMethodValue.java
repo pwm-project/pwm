@@ -56,7 +56,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
     public static class VerificationMethodSettings implements Serializable {
         private Map<IdentityVerificationMethod,VerificationMethodSetting> methodSettings = new HashMap<>();
-        private int minOptionalRequired = 0;
+        private int minOptionalRequired;
 
         public VerificationMethodSettings() {
         }

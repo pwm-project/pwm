@@ -148,7 +148,7 @@ public class PwmApplication {
 
     private final Instant startupTime = Instant.now();
     private Instant installTime = Instant.now();
-    private ErrorInformation lastLocalDBFailure = null;
+    private ErrorInformation lastLocalDBFailure;
 
     private final PwmEnvironment pwmEnvironment;
 

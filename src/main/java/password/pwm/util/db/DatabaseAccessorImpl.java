@@ -234,7 +234,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             final Connection connection = driver.connect(connectionURL, connectionProperties);
 
 
-            final Map<PwmAboutProperty,String> debugProps = getConnectionDebugProperties(connection);;
+            final Map<PwmAboutProperty,String> debugProps = getConnectionDebugProperties(connection);
             LOGGER.debug("connected to database " + connectionURL + ", properties: " + JsonUtil.serializeMap(debugProps));
 
             connection.setAutoCommit(true);

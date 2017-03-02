@@ -96,7 +96,7 @@ public class NewUserProfile extends AbstractProfile {
         } else {
 
             final String lookupDN;
-            if (configuredNewUserPasswordDN.equalsIgnoreCase("TESTUSER") ) {
+            if ("TESTUSER".equalsIgnoreCase(configuredNewUserPasswordDN)) {
                 lookupDN = defaultLdapProfile.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
                 if (lookupDN == null || lookupDN.isEmpty()) {
                     final String errorMsg ="setting " 

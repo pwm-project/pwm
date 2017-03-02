@@ -149,7 +149,7 @@ public class ConfigurationReader {
         }
 
         final String configIsEditable = storedConfiguration.readConfigProperty(ConfigurationProperty.CONFIG_IS_EDITABLE);
-        if (PwmConstants.TRIAL_MODE || (configIsEditable != null && configIsEditable.equalsIgnoreCase("true"))) {
+        if (PwmConstants.TRIAL_MODE || (configIsEditable != null && "true".equalsIgnoreCase(configIsEditable))) {
             this.configMode = PwmApplicationMode.CONFIGURATION;
         } else {
             this.configMode = PwmApplicationMode.RUNNING;

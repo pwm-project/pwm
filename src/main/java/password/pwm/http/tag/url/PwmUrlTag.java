@@ -158,7 +158,7 @@ public class PwmUrlTag extends PwmAbstractTag {
 
             themeName = figureThemeName(pwmRequest);
 
-            if (themeName.equals("custom")) {
+            if ("custom".equals(themeName)) {
                 if (theme_url == PwmThemeURL.MOBILE_THEME_URL) {
                     themeURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.DISPLAY_CSS_CUSTOM_MOBILE_STYLE);
                 } else {

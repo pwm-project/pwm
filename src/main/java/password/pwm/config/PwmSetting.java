@@ -1315,13 +1315,13 @@ public enum PwmSetting {
     }
 
     public String getLabel(final Locale locale) {
-        final String key = "Setting_Label_" + this.getKey();
-        return LocaleHelper.getLocalizedMessage(locale, key, null, password.pwm.i18n.PwmSetting.class);
+        final String propertyKey = "Setting_Label_" + this.getKey();
+        return LocaleHelper.getLocalizedMessage(locale, propertyKey, null, password.pwm.i18n.PwmSetting.class);
     }
 
     public String getDescription(final Locale locale) {
-        final String key = "Setting_Description_" + this.getKey();
-        final String storedText = LocaleHelper.getLocalizedMessage(locale, key, null, password.pwm.i18n.PwmSetting.class);
+        final String propertyKey = "Setting_Description_" + this.getKey();
+        final String storedText = LocaleHelper.getLocalizedMessage(locale, propertyKey, null, password.pwm.i18n.PwmSetting.class);
         final MacroMachine macroMachine = MacroMachine.forStatic();
         return macroMachine.expandMacros(storedText);
     }

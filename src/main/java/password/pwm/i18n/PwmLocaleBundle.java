@@ -46,7 +46,7 @@ public enum PwmLocaleBundle {
 
     private final Class<? extends PwmDisplayBundle> theClass;
     private final boolean adminOnly;
-    private Set<String> keys = null;
+    private Set<String> keys;
 
     PwmLocaleBundle(final Class<? extends PwmDisplayBundle> theClass, final boolean adminOnly) {
         this.theClass = theClass;

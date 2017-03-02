@@ -54,7 +54,7 @@ public class PwmSettingXml {
     public static final String XML_ATTRIBUTE_TEMPLATE = "template";
 
 
-    private static Document xmlDocCache = null;
+    private static Document xmlDocCache;
 
     private static Document readXml() {
         final Document docRefCopy = xmlDocCache;

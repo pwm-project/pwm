@@ -42,7 +42,7 @@ class ReportSettings implements Serializable {
     
     private TimeDuration maxCacheAge = new TimeDuration(TimeDuration.DAY.getTotalMilliseconds() * 90);
     private String searchFilter = null;
-    private int jobOffsetSeconds = 0;
+    private int jobOffsetSeconds;
     private int maxSearchSize = 100 * 1000;
     private List<Integer> trackDays = new ArrayList<>();
     private int reportJobThreads = 1;

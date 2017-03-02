@@ -463,7 +463,7 @@ public class SmsQueueManager implements PwmService {
             LOGGER.trace("preparing to send SMS data: " + requestData);
             try {
                 final HttpRequestBase httpRequest;
-                if (gatewayMethod.equalsIgnoreCase("POST")) {
+                if ("POST".equalsIgnoreCase(gatewayMethod)) {
                     // POST request
                     httpRequest = new HttpPost(gatewayUrl);
                     if (contentType != null && contentType.length()>0) {

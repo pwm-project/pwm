@@ -298,6 +298,11 @@
         <module name="ParameterAssignment"/>
         <module name="SimplifyBooleanReturn"/>
         <module name="StringLiteralEquality"/>
+        <module name="CovariantEquals"/>
+        <module name="DefaultComesLast"/>
+        <module name="EmptyStatement"/>
+        <module name="EqualsHashCode"/>
+        <module name="EqualsAvoidNull"/>
 
         <module name="MutableException"/>
         <module name="OuterTypeFilename"/>

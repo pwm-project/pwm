@@ -36,7 +36,7 @@ class NGStorageEngineImpl implements StorageEngine {
     private final ConfigChangeLog changeLog;
 
     private final ReentrantReadWriteLock bigLock = new ReentrantReadWriteLock();
-    private boolean writeLocked = false;
+    private boolean writeLocked;
 
     NGStorageEngineImpl(
             final Map<StoredConfigReference, StoredValue> values,

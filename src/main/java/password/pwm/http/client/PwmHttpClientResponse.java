@@ -35,7 +35,9 @@ public class PwmHttpClientResponse implements Serializable {
     public PwmHttpClientResponse(final int statusCode, final String statusPhrase, final Map<String, String> headers, final String body) {
         this.statusCode = statusCode;
         this.statusPhrase = statusPhrase;
-        this.headers = headers == null ? Collections.<String,String>emptyMap() : Collections.unmodifiableMap(headers);;
+        this.headers = headers == null
+                ? Collections.emptyMap()
+                : Collections.unmodifiableMap(headers);
         this.body = body;
     }
 

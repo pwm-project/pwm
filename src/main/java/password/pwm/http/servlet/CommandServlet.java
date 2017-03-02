@@ -97,21 +97,21 @@ public class CommandServlet extends AbstractPwmServlet {
 
         LOGGER.trace(pwmSession, "received request for action " + action);
 
-        if (action.equalsIgnoreCase("idleUpdate")) {
+        if ("idleUpdate".equalsIgnoreCase(action)) {
             processIdleUpdate(pwmRequest);
-        } else if (action.equalsIgnoreCase("checkResponses") || action.equalsIgnoreCase("checkIfResponseConfigNeeded")) {
+        } else if ("checkResponses".equalsIgnoreCase(action) || "checkIfResponseConfigNeeded".equalsIgnoreCase(action)) {
             CheckCommands.processCheckResponses(pwmRequest);
-        } else if (action.equalsIgnoreCase("checkExpire")) {
+        } else if ("checkExpire".equalsIgnoreCase(action)) {
             CheckCommands.processCheckExpire(pwmRequest);
-        } else if (action.equalsIgnoreCase("checkProfile") || action.equalsIgnoreCase("checkAttributes")) {
+        } else if ("checkProfile".equalsIgnoreCase(action) || "checkAttributes".equalsIgnoreCase(action)) {
             CheckCommands.processCheckProfile(pwmRequest);
-        } else if (action.equalsIgnoreCase("checkAll")) {
+        } else if ("checkAll".equalsIgnoreCase(action)) {
             CheckCommands.processCheckAll(pwmRequest);
-        } else if (action.equalsIgnoreCase("continue")) {
+        } else if ("continue".equalsIgnoreCase(action)) {
             processContinue(pwmRequest);
-        } else if (action.equalsIgnoreCase("pageLeaveNotice")) {
+        } else if ("pageLeaveNotice".equalsIgnoreCase(action)) {
             processPageLeaveNotice(pwmRequest);
-        } else if (action.equalsIgnoreCase("csp-report")) {
+        } else if ("csp-report".equalsIgnoreCase(action)) {
             processCspReport(pwmRequest);
         } else {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unknown command sent to CommandServlet: " + action);

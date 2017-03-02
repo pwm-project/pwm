@@ -146,7 +146,7 @@ public abstract class StandardMacros {
             }
 
             final String ldapValue;
-            if (ldapAttr.equalsIgnoreCase("dn")) {
+            if ("dn".equalsIgnoreCase(ldapAttr)) {
                 ldapValue = userDataReader.getUserDN();
             } else {
                 try {

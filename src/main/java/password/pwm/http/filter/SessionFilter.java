@@ -451,7 +451,7 @@ public class SessionFilter extends AbstractPwmFilter {
 
         { // check to make sure we werent handed a non-http uri.
             final String scheme = inputURI.getScheme();
-            if (scheme != null && !scheme.isEmpty() && !scheme.equalsIgnoreCase("http") && !scheme.equals("https")) {
+            if (scheme != null && !scheme.isEmpty() && !"http".equalsIgnoreCase(scheme) && !"https".equals(scheme)) {
                 final String errorMsg = "unsupported url scheme";
                 throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_REDIRECT_ILLEGAL,errorMsg));
             }
@@ -502,7 +502,7 @@ public class SessionFilter extends AbstractPwmFilter {
                         LOGGER.trace(sessionLabel, "negative URL match for regex pattern: " + strPattern);
                     }
                 } catch (Exception e) {
-                    LOGGER.error(sessionLabel, "error while testing URL match for regex pattern: '" + loopFragment + "', error: " + e.getMessage());;
+                    LOGGER.error(sessionLabel, "error while testing URL match for regex pattern: '" + loopFragment + "', error: " + e.getMessage());
                 }
 
             } else {

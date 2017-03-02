@@ -41,9 +41,9 @@ public class MainOptions implements Serializable {
     private static final String OPT_FORCE = "-force";
 
 
-    private PwmLogLevel pwmLogLevel = null;
-    private File applicationPath = null;
-    private boolean forceFlag = false;
+    private PwmLogLevel pwmLogLevel;
+    private File applicationPath;
+    private boolean forceFlag;
     private Collection<PwmEnvironment.ApplicationFlag> applicationFlags;
     private String[] remainingArguments;
 

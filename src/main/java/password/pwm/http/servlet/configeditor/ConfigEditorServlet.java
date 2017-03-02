@@ -531,7 +531,7 @@ public class ConfigEditorServlet extends AbstractPwmServlet {
             throws IOException, PwmUnrecoverableException {
         {
             final String updateDescriptionTextCmd = pwmRequest.readParameterAsString("updateNotesText");
-            if (updateDescriptionTextCmd != null && updateDescriptionTextCmd.equalsIgnoreCase("true")) {
+            if (updateDescriptionTextCmd != null && "true".equalsIgnoreCase(updateDescriptionTextCmd)) {
                 try {
                     final String bodyString = pwmRequest.readRequestBodyAsString();
                     final String value = JsonUtil.deserialize(bodyString, String.class);
