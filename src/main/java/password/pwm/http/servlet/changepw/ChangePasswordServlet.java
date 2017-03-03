@@ -168,7 +168,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmRequest.getPwmApplication(), uiBean.getPasswordPolicy());
             pwmPasswordRuleValidator.testPassword(password1,null,uiBean,theUser);
         } catch (PwmDataValidationException e) {
-            pwmRequest.setResponseError(e.getErrorInformation());
+            setLastError(pwmRequest, e.getErrorInformation());
             LOGGER.debug(pwmRequest, "failed password validation check: " + e.getErrorInformation().toDebugStr());
             return ProcessStatus.Continue;
         }
@@ -178,7 +178,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
                 PwmPasswordRule.CaseSensitive);
         if (PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH != PasswordUtility.figureMatchStatus(caseSensitive,
                 password1, password2)) {
-            pwmRequest.setResponseError(PwmError.PASSWORD_DOESNOTMATCH.toInfo());
+            setLastError(pwmRequest, PwmError.PASSWORD_DOESNOTMATCH.toInfo());
             pwmRequest.forwardToJsp(JspUrl.PASSWORD_CHANGE);
             return ProcessStatus.Continue;
         }
@@ -187,7 +187,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet {
             executeChangePassword(pwmRequest, password1);
         } catch (PwmOperationalException e) {
             LOGGER.debug(e.getErrorInformation().toDebugStr());
-            pwmRequest.setResponseError(e.getErrorInformation());
+            setLastError(pwmRequest, e.getErrorInformation());
             return ProcessStatus.Halt;
         }
 

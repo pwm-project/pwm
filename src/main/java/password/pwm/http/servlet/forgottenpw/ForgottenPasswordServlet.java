@@ -88,6 +88,7 @@ import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.util.CaptchaUtility;
+import password.pwm.util.LocaleHelper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.RandomPasswordGenerator;
@@ -100,6 +101,7 @@ import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.ws.client.rest.RestTokenDataClient;
+import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -109,8 +111,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -151,6 +151,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         verificationChoice(HttpMethod.POST),
         enterRemoteResponse(HttpMethod.POST),
         oauthReturn(HttpMethod.GET),
+        resendToken(HttpMethod.POST),
 
         ;
 
@@ -223,6 +224,13 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             throws PwmUnrecoverableException, ServletException, IOException, ChaiUnavailableException
     {
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean(pwmRequest);
+
+        final boolean resendEnabled = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.TOKEN_RESEND_ENABLED));
+
+        if (resendEnabled) {
+            // clear token dest info in case we got here from a user 'go-back' request
+            forgottenPasswordBean.getProgress().clearTokenSentStatus();
+        }
 
         if (forgottenPasswordBean.getProgress().isAllPassed()) {
             final String choice = pwmRequest.readParameterAsString("choice");
@@ -657,6 +665,47 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
         return ProcessStatus.Continue;
     }
 
+    @ActionHandler(action = "resendToken")
+    private ProcessStatus processResendToken(final PwmRequest pwmRequest)
+            throws PwmUnrecoverableException, IOException
+    {
+        {
+            final boolean resendEnabled = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.TOKEN_RESEND_ENABLED));
+            if (!resendEnabled) {
+                final String errorMsg = "token resend is not enabled";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+        }
+
+        final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean(pwmRequest);
+
+        if (!forgottenPasswordBean.getProgress().isTokenSent()) {
+            final String errorMsg = "attempt to resend token, but initial token has not yet been sent";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg);
+            throw new PwmUnrecoverableException(errorInformation);
+        }
+
+        {
+            LOGGER.trace(pwmRequest, "preparing to send a new token to user");
+            final long delayTime = Long.parseLong(pwmRequest.getConfig().readAppProperty(AppProperty.TOKEN_RESEND_DELAY_MS));
+            JavaHelper.pause(delayTime);
+        }
+
+        {
+            final UserInfoBean userInfoBean = readUserInfoBean(pwmRequest, forgottenPasswordBean);
+            final MessageSendMethod tokenSendMethod = forgottenPasswordBean.getProgress().getTokenSendChoice();
+            initializeAndSendToken(pwmRequest, userInfoBean, tokenSendMethod);
+        }
+
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setSuccessMessage(LocaleHelper.getLocalizedMessage(Message.Success_TokenResend, pwmRequest));
+        pwmRequest.outputJsonResult(restResultBean);
+        return ProcessStatus.Halt;
+    }
+
+
+
     @ActionHandler(action = "checkAttributes")
     private ProcessStatus processCheckAttributes(final PwmRequest pwmRequest)
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
@@ -1050,7 +1099,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
     {
         final Configuration config = pwmRequest.getConfig();
         final UserIdentity userIdentity = userInfoBean.getUserIdentity();
-        final Map<String,String> tokenMapData = new HashMap<>();
+        final Map<String,String> tokenMapData = new LinkedHashMap<>();
 
 
         try {
@@ -1084,7 +1133,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
                 pwmRequest.getLocale());
 
         final String tokenDestinationAddress = outputDestrestTokenDataClient.getDisplayValue();
-        final Set<String> destinationValues = new HashSet<>();
+        final Set<String> destinationValues = new LinkedHashSet<>();
         if (outputDestrestTokenDataClient.getEmail() != null) {
             destinationValues.add(outputDestrestTokenDataClient.getEmail());
         }
@@ -1478,7 +1527,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
             final ForgottenPasswordBean.RecoveryFlags recoveryFlags,
             final ForgottenPasswordBean.Progress progress)
     {
-        final Set<IdentityVerificationMethod> result = new HashSet<>();
+        final Set<IdentityVerificationMethod> result = new LinkedHashSet<>();
         result.addAll(recoveryFlags.getOptionalAuthMethods());
         result.retainAll(progress.getSatisfiedMethods());
         return Collections.unmodifiableSet(result);
@@ -1491,11 +1540,11 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet {
     {
         final ForgottenPasswordBean.RecoveryFlags recoveryFlags = forgottenPasswordBean.getRecoveryFlags();
         final ForgottenPasswordBean.Progress progress = forgottenPasswordBean.getProgress();
-        final Set<IdentityVerificationMethod> result = new HashSet<>();
+        final Set<IdentityVerificationMethod> result = new LinkedHashSet<>();
         result.addAll(recoveryFlags.getOptionalAuthMethods());
         result.removeAll(progress.getSatisfiedMethods());
 
-        for (final IdentityVerificationMethod recoveryVerificationMethods : new HashSet<>(result)) {
+        for (final IdentityVerificationMethod recoveryVerificationMethods : new LinkedHashSet<>(result)) {
             try {
                 verifyRequirementsForAuthMethod(pwmRequest, forgottenPasswordBean, recoveryVerificationMethods);
             } catch (PwmUnrecoverableException e) {

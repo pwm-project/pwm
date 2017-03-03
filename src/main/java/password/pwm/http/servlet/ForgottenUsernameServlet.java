@@ -133,7 +133,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
         if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
             LOGGER.debug(pwmRequest, errorInfo);
-            pwmRequest.setResponseError(errorInfo);
+            setLastError(pwmRequest, errorInfo);
             forwardToFormJsp(pwmRequest);
             return;
         }
@@ -180,7 +180,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
             if (userIdentity == null) {
                 pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
-                pwmRequest.setResponseError(PwmError.ERROR_CANT_MATCH_USER.toInfo());
+                setLastError(pwmRequest, PwmError.ERROR_CANT_MATCH_USER.toInfo());
                 forwardToFormJsp(pwmRequest);
                 return;
             }
@@ -209,7 +209,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet {
                     ? new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,e.getErrorInformation().getDetailedErrorMsg(),
                     e.getErrorInformation().getFieldValues())
                     : e.getErrorInformation();
-            pwmRequest.setResponseError(errorInfo);
+            setLastError(pwmRequest, errorInfo);
             pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
             pwmApplication.getIntruderManager().convenience().markAttributes(formValues, pwmSession);
         }

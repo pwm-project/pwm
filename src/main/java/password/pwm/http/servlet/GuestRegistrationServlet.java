@@ -259,11 +259,11 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             return;
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
-            pwmRequest.setResponseError(e.getErrorInformation());
+            setLastError(pwmRequest, e.getErrorInformation());
         } catch (ChaiOperationException e) {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected error writing to ldap: " + e.getMessage());
             LOGGER.error(pwmSession, info);
-            pwmRequest.setResponseError(info);
+            setLastError(pwmRequest, info);
         }
         this.forwardToUpdateJSP(pwmRequest, guestRegistrationBean);
     }
@@ -330,7 +330,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
                     if (origAdminDn != null && origAdminDn.length() > 0) {
                         if (!pwmSession.getUserInfoBean().getUserIdentity().getUserDN().equalsIgnoreCase(origAdminDn)) {
                             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ORIG_ADMIN_ONLY);
-                            pwmRequest.setResponseError(info);
+                            setLastError(pwmRequest, info);
                             LOGGER.warn(pwmSession, info);
                             this.forwardToJSP(pwmRequest, guestRegistrationBean);
                         }
@@ -361,7 +361,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             }
         } catch (PwmOperationalException e) {
             final ErrorInformation error = e.getErrorInformation();
-            pwmRequest.setResponseError(error);
+            setLastError(pwmRequest, error);
             this.forwardToJSP(pwmRequest, guestRegistrationBean);
             return;
         }
@@ -469,12 +469,12 @@ public class GuestRegistrationServlet extends AbstractPwmServlet {
             pwmRequest.getPwmResponse().forwardToSuccessPage(Message.Success_CreateGuest);
         } catch (ChaiOperationException e) {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE, "error creating user: " + e.getMessage());
-            pwmRequest.setResponseError(info);
+            setLastError(pwmRequest, info);
             LOGGER.warn(pwmSession, info);
             this.forwardToJSP(pwmRequest, guestRegistrationBean);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
-            pwmRequest.setResponseError(e.getErrorInformation());
+            setLastError(pwmRequest, e.getErrorInformation());
             this.forwardToJSP(pwmRequest, guestRegistrationBean);
         }
     }

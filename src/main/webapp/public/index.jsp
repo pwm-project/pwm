@@ -49,7 +49,7 @@
         <a id="Button_ForgottenPassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenPassword.servletUrl()%>'/>">
             <div class="tile">
                 <div class="tile-content">
-                    <div class="tile-image pwm-icon-unlock"></div>
+                    <div class="tile-image forgotten-image"></div>
                     <div class="tile-title" title="<pwm:display key='Title_ForgottenPassword'/>"><pwm:display key="Title_ForgottenPassword"/></div>
                     <div class="tile-subtitle" title="<pwm:display key='Long_Title_ForgottenPassword'/>"><pwm:display key="Long_Title_ForgottenPassword"/></div>
                 </div>
@@ -60,7 +60,7 @@
         <a id="Button_ForgottenUsername" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenUsername.servletUrl()%>'/>">
             <div class="tile">
                 <div class="tile-content">
-                    <div class="tile-image pwm-icon-unlock"></div>
+                    <div class="tile-image forgotten-image"></div>
                     <div class="tile-title" title="<pwm:display key='Title_ForgottenUsername'/>"><pwm:display key="Title_ForgottenUsername"/></div>
                     <div class="tile-subtitle" title="<pwm:display key='Long_Title_ForgottenUsername'/>"><pwm:display key="Long_Title_ForgottenUsername"/></div>
                 </div>
@@ -71,7 +71,7 @@
         <a id="Button_ActivateUser" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ActivateUser.servletUrl()%>'/>">
             <div class="tile">
                 <div class="tile-content">
-                    <div class="tile-image pwm-icon-graduation-cap"></div>
+                    <div class="tile-image activation-image"></div>
                     <div class="tile-title" title="<pwm:display key='Title_ActivateUser'/>"><pwm:display key="Title_ActivateUser"/></div>
                     <div class="tile-subtitle" title="<pwm:display key='Long_Title_ActivateUser'/>"><pwm:display key="Long_Title_ActivateUser"/></div>
                 </div>
@@ -82,7 +82,7 @@
         <a id="Button_NewUser" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.NewUser.servletUrl()%>'/>">
             <div class="tile">
                 <div class="tile-content">
-                    <div class="tile-image pwm-icon-file-text-o"></div>
+                    <div class="tile-image newuser-image"></div>
                     <div class="tile-title" title="<pwm:display key='Title_NewUser'/>"><pwm:display key="Title_NewUser"/></div>
                     <div class="tile-subtitle" title="<pwm:display key='Long_Title_NewUser'/>"><pwm:display key="Long_Title_NewUser"/></div>
                 </div>
@@ -93,7 +93,7 @@
         <a id="Button_PeopleSearch" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.PublicPeopleSearch.servletUrl()%>'/>">
             <div class="tile">
                 <div class="tile-content">
-                    <div class="tile-image pwm-icon-search"></div>
+                    <div class="tile-image search-image"></div>
                     <div class="tile-title" title="<pwm:display key='Title_PeopleSearch'/>"><pwm:display key="Title_PeopleSearch"/></div>
                     <div class="tile-subtitle" title="<pwm:display key='Long_Title_PeopleSearch'/>"><pwm:display key="Long_Title_PeopleSearch"/></div>
                 </div>

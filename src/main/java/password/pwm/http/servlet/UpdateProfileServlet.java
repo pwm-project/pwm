@@ -400,6 +400,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
 
 
 
+
     final Map<FormConfiguration,String> readFormParametersFromRequest(
             final PwmRequest pwmRequest,
             final UpdateAttributesProfile updateAttributesProfile,
@@ -412,10 +413,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
         //read the values from the request
         final Map<FormConfiguration,String> formValueMap = FormUtility.readFormValuesFromRequest(pwmRequest, formFields, pwmRequest.getLocale());
 
-        updateProfileBean.getFormData().clear();
-        updateProfileBean.getFormData().putAll(FormUtility.asStringMap(formValueMap));
-
-        return formValueMap;
+        return updateBeanFormData(formFields, formValueMap, updateProfileBean);
     }
 
     static Map<FormConfiguration,String> readFromJsonRequest(
@@ -429,10 +427,28 @@ public class UpdateProfileServlet extends ControlledPwmServlet {
 
         final Map<FormConfiguration,String> formValueMap = FormUtility.readFormValuesFromMap(pwmRequest.readBodyAsJsonStringMap(), formFields, pwmRequest.getLocale());
 
-        updateProfileBean.getFormData().clear();
-        updateProfileBean.getFormData().putAll(FormUtility.asStringMap(formValueMap));
+        return updateBeanFormData(formFields, formValueMap, updateProfileBean);
+    }
 
-        return formValueMap;
+    static Map<FormConfiguration,String> updateBeanFormData(
+            final List<FormConfiguration> formFields,
+            final Map<FormConfiguration,String> formValueMap,
+            final UpdateProfileBean updateProfileBean
+    ) {
+        final LinkedHashMap<FormConfiguration,String> newFormValueMap = new LinkedHashMap<>();
+        for (final FormConfiguration formConfiguration : formFields) {
+            if (formConfiguration.isReadonly()) {
+                final String existingValue = updateProfileBean.getFormData().get(formConfiguration.getName());
+                newFormValueMap.put(formConfiguration, existingValue);
+            } else {
+                newFormValueMap.put(formConfiguration, formValueMap.get(formConfiguration));
+            }
+        }
+
+        updateProfileBean.getFormData().clear();
+        updateProfileBean.getFormData().putAll(FormUtility.asStringMap(newFormValueMap));
+
+        return newFormValueMap;
     }
 
 

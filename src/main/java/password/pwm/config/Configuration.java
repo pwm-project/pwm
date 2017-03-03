@@ -75,8 +75,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -411,7 +409,7 @@ public class Configuration implements Serializable, SettingReader {
 
         final PwmPasswordPolicy policy = initPasswordPolicy(profile,locale);
         if (!dataCache.cachedPasswordPolicy.containsKey(profile)) {
-            dataCache.cachedPasswordPolicy.put(profile,new HashMap<Locale,PwmPasswordPolicy>());
+            dataCache.cachedPasswordPolicy.put(profile,new LinkedHashMap<Locale,PwmPasswordPolicy>());
         }
         dataCache.cachedPasswordPolicy.get(profile).put(locale,policy);
         return policy;
@@ -776,12 +774,12 @@ public class Configuration implements Serializable, SettingReader {
     }
 
     private static class DataCache implements Serializable {
-        private final Map<String,Map<Locale,PwmPasswordPolicy>> cachedPasswordPolicy = new HashMap<>();
+        private final Map<String,Map<Locale,PwmPasswordPolicy>> cachedPasswordPolicy = new LinkedHashMap<>();
         private Map<Locale,String> localeFlagMap = null;
         private Map<String,LdapProfile> ldapProfiles;
         private final Map<PwmSetting, StoredValue> settings = new EnumMap<>(PwmSetting.class);
-        private final Map<String,Map<Locale,String>> customText = new HashMap<>();
-        private final Map<ProfileType,Map<String,Profile>> profileCache = new HashMap<>();
+        private final Map<String,Map<Locale,String>> customText = new LinkedHashMap<>();
+        private final Map<ProfileType,Map<String,Profile>> profileCache = new LinkedHashMap<>();
     }
 
     public Map<AppProperty,String> readAllNonDefaultAppProperties() {
@@ -837,7 +835,7 @@ public class Configuration implements Serializable, SettingReader {
 
     public Map<String,Profile> profileMap(final ProfileType profileType) {
         if (!dataCache.profileCache.containsKey(profileType)) {
-            dataCache.profileCache.put(profileType,new LinkedHashMap<String, Profile>());
+            dataCache.profileCache.put(profileType,new LinkedHashMap<>());
             for (final String profileID : ProfileUtility.profileIDsForCategory(this, profileType.getCategory())) {
                 final Profile newProfile = newProfileForID(profileType, profileID);
                 dataCache.profileCache.get(profileType).put(profileID, newProfile);
@@ -892,7 +890,7 @@ public class Configuration implements Serializable, SettingReader {
     }
 
     public Set<PwmSetting> nonDefaultSettings() {
-        final HashSet returnSet = new HashSet();
+        final Set returnSet = new LinkedHashSet();
         for (final StoredConfigurationImpl.SettingValueRecord valueRecord : this.storedConfiguration.modifiedSettings()) {
             returnSet.add(valueRecord.getSetting());
         }

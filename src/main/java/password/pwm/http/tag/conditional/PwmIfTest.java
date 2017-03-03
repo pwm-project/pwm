@@ -44,6 +44,7 @@ public enum PwmIfTest {
     endUserFunctionalityAvaiable(new EndUserFunctionalityTest()),
     showIcons(new BooleanAppPropertyTest(AppProperty.CLIENT_JSP_SHOW_ICONS)),
     showCancel(new BooleanPwmSettingTest(PwmSetting.DISPLAY_CANCEL_BUTTON)),
+    maskTokenInput(new BooleanPwmSettingTest(PwmSetting.DISPLAY_MASK_TOKEN_FIELDS)),
     showHome(new BooleanPwmSettingTest(PwmSetting.DISPLAY_HOME_BUTTON)),
     showLogout(new BooleanPwmSettingTest(PwmSetting.DISPLAY_LOGOUT_BUTTON)),
     showLoginOptions(new BooleanPwmSettingTest(PwmSetting.DISPLAY_LOGIN_PAGE_OPTIONS)),

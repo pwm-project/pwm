@@ -183,7 +183,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
             } catch (PwmUnrecoverableException e) {
                 final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_OAUTH_ERROR, errorMsg);
-                pwmRequest.setResponseError(errorInformation);
+                setLastError(pwmRequest, errorInformation);
                 LOGGER.error(errorInformation.toDebugStr());
             }
         }
@@ -202,7 +202,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet {
             } else {
                 errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             }
-            pwmRequest.setResponseError(errorInformation);
+            setLastError(pwmRequest, errorInformation);
             LOGGER.error(errorInformation.toDebugStr());
             return;
         }

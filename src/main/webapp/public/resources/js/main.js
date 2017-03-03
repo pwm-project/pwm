@@ -637,7 +637,7 @@ PWM_MAIN.showLocaleSelectionMenu = function(nextFunction, options) {
             if (array.indexOf(excludeLocales, localeKey) == -1) {
                 var loopDisplayName = localeData[localeKey];
                 var flagCode = PWM_GLOBAL['localeFlags'][localeKey];
-                var flagUrl = PWM_GLOBAL['url-resources'] + '/flags/png/' + flagCode + '.png';
+                var flagUrl = PWM_GLOBAL['url-resources'] + '/webjars/famfamfam-flags/dist/png/' + flagCode + '.png';
                 bodyHtml += '<tr style="cursor:pointer" id="locale-row-' + localeKey + '">';
                 bodyHtml += '<td><img src="' + flagUrl + '"/></td>';
                 bodyHtml += '<td>' + loopDisplayName + '</td>';

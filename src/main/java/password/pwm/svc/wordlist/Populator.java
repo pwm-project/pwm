@@ -133,7 +133,7 @@ class Populator {
 
         perReportStats = new PopulationStats();
         return rootWordlist.DEBUG_LABEL + ", lines/second="
-                + lps + ", line=" + overallStats.getLines() + ")"
+                + lps + ", line=" + overallStats.getLines() + ""
                 + " current zipEntry=" + zipFileReader.currentZipName();
     }
 

@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.servlet.CommandServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -39,7 +40,7 @@
               enctype="application/x-www-form-urlencoded" class="pwm-form">
             <p><pwm:SuccessMessage/></p>
             <div class="buttonbar">
-                <input type="hidden" name="processAction" value="continue"/>
+                <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=CommandServlet.CommandAction.next.toString()%>"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
                 <button type="submit" name="button" class="btn" id="submitBtn" autofocus>
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>

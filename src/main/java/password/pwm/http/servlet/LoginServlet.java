@@ -122,7 +122,7 @@ public class LoginServlet extends ControlledPwmServlet {
         try {
             handleLoginRequest(pwmRequest, valueMap, passwordOnly);
         } catch (PwmOperationalException e) {
-            pwmRequest.setResponseError(e.getErrorInformation());
+            setLastError(pwmRequest, e.getErrorInformation());
             forwardToJSP(pwmRequest, passwordOnly);
             return ProcessStatus.Halt;
         }

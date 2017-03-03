@@ -23,8 +23,16 @@
 package password.pwm.http.servlet.peoplesearch;
 
 import password.pwm.PwmConstants;
+import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.ProcessStatus;
+import password.pwm.http.PwmRequest;
 
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import java.io.IOException;
 
 @WebServlet(
         name="PublicPeopleSearchServlet",
@@ -37,4 +45,16 @@ import javax.servlet.annotation.WebServlet;
         }
 )
 public class PublicPeopleSearchServlet extends PeopleSearchServlet {
+
+        @Override
+        public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
+                if (!pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC)) {
+                        throw new PwmUnrecoverableException(new ErrorInformation(
+                                PwmError.ERROR_SERVICE_NOT_AVAILABLE,
+                                "public peoplesearch service is not enabled")
+                        );
+                }
+
+                return super.preProcessCheck(pwmRequest);
+        }
 }

@@ -1,5 +1,6 @@
-<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.PwmConstants" %>
+<%@ page import="password.pwm.http.servlet.CommandServlet" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 
 <%--
@@ -27,9 +28,9 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <pwm:if test="<%=PwmIfTest.showCancel%>">
-<pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">
-  <form id="form-hidden-cancel" action="<pwm:url addContext="true" url='<%=PwmServletDefinition.Command.servletUrl()%>'/>" method="get">
-    <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="continue"/>
-  </form>
-</pwm:if>
+  <pwm:if test="<%=PwmIfTest.forcedPageView%>" negate="true">
+    <form id="form-hidden-cancel" action="<pwm:url addContext="true" url='<%=PwmServletDefinition.Command.servletUrl()%>'/>" method="get">
+      <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=CommandServlet.CommandAction.next.toString()%>"/>
+    </form>
+  </pwm:if>
 </pwm:if>

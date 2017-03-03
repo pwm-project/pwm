@@ -34,7 +34,7 @@
         <script type="text/javascript">
             PWM_GLOBAL['startupFunctions'].push(function(){
                 PWM_MAIN.addEventHandler('button-sendReset', 'click',function() {
-                    PWM_MAIN.submitPostAction('<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>');
+                    PWM_MAIN.submitPostAction('<pwm:current-url/>', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>');
                 });
             });
         </script>

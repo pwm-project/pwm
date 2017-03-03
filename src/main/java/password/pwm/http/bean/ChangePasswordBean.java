@@ -22,6 +22,7 @@
 
 package password.pwm.http.bean;
 
+import com.google.gson.annotations.SerializedName;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 
@@ -35,18 +36,32 @@ import java.util.Set;
  * @author Jason D. Rivard
  */
 public class ChangePasswordBean extends PwmSessionBean {
-// ------------------------------ FIELDS ------------------------------
 
-    // ------------------------- PUBLIC CONSTANTS -------------------------
+    @SerializedName("ap")
     private boolean agreementPassed;
+
+    @SerializedName("cpr")
     private boolean currentPasswordRequired;
+
+    @SerializedName("cpp")
     private boolean currentPasswordPassed;
+
+    @SerializedName("fp")
     private boolean formPassed;
+
+    @SerializedName("acp")
     private boolean allChecksPassed;
+
+    @SerializedName("n")
     private boolean nextAllowedTimePassed;
+
+    @SerializedName("wp")
     private boolean warnPassed;
 
+    @SerializedName("pt")
     private PasswordChangeProgressChecker.ProgressTracker changeProgressTracker;
+
+    @SerializedName("mc")
     private Instant changePasswordMaxCompletion;
 
 

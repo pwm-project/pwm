@@ -23,6 +23,7 @@
 <%@ page import="password.pwm.Permission" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.PwmSession" %>
+<%@ page import="password.pwm.http.servlet.CommandServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <% final PwmRequest debug_pwmRequest = JspUtility.getPwmRequest(pageContext); %>
@@ -77,9 +78,7 @@
             <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
                 <input tabindex="2" type="submit" name="continue_btn" class="btn"
                        value="    <pwm:display key="Button_Continue"/>    "/>
-                <input type="hidden"
-                       name="processAction"
-                       value="continue"/>
+                <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=CommandServlet.CommandAction.next.toString()%>"/>
             </form>
         </div>
     </div>

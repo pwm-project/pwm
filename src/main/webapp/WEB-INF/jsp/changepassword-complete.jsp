@@ -1,5 +1,5 @@
+<%@ page import="password.pwm.http.servlet.CommandServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -40,11 +40,11 @@
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div class="buttonbar">
             <form action="<pwm:url url='<%=PwmServletDefinition.Command.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
-                    <input type="hidden" name="processAction" value="continue"/>
-                    <button type="submit" name="button" class="btn" id="submitBtn">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
-                        <pwm:display key="Button_Continue"/>
-                    </button>
+                <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=CommandServlet.CommandAction.next.toString()%>"/>
+                <button type="submit" name="button" class="btn" id="submitBtn">
+                    <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
+                    <pwm:display key="Button_Continue"/>
+                </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <br/>

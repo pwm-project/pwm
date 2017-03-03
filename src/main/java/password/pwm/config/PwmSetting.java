@@ -111,6 +111,8 @@ public enum PwmSetting {
             "display.maskPasswordFields", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_MASK_RESPONSE_FIELDS(
             "display.maskResponseFields", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
+    DISPLAY_MASK_TOKEN_FIELDS(
+            "display.maskTokenFields", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_CANCEL_BUTTON(
             "display.showCancelButton", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_SUCCESS_PAGES(

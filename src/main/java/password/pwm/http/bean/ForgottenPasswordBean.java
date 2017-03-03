@@ -33,7 +33,7 @@ import password.pwm.config.option.SessionBeanMode;
 
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -132,7 +132,7 @@ public class ForgottenPasswordBean extends PwmSessionBean {
         private boolean allPassed;
 
         @SerializedName("m")
-        private final Set<IdentityVerificationMethod> satisfiedMethods = new HashSet<>();
+        private final Set<IdentityVerificationMethod> satisfiedMethods = new LinkedHashSet<>();
 
         @SerializedName("c")
         private MessageSendMethod tokenSendChoice;
@@ -203,6 +203,12 @@ public class ForgottenPasswordBean extends PwmSessionBean {
 
         public void setRemoteRecoveryMethod(final VerificationMethodSystem remoteRecoveryMethod) {
             this.remoteRecoveryMethod = remoteRecoveryMethod;
+        }
+
+        public void clearTokenSentStatus() {
+            this.setTokenSent(false);
+            this.setTokenSentAddress(null);
+            this.setTokenSendChoice(null);
         }
     }
 

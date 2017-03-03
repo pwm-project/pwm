@@ -42,6 +42,10 @@ public class PwmFormIDTag extends TagSupport {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmFormIDTag.class);
 
     private static String buildPwmFormID(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        if (pwmRequest == null || pwmRequest.getPwmApplication() == null) {
+            return "";
+        }
+
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         if (pwmApplication == null) {
             return "";

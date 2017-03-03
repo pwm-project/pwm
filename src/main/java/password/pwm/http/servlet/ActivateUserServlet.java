@@ -213,7 +213,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         if (!CaptchaUtility.verifyReCaptcha(pwmRequest)) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_BAD_CAPTCHA_RESPONSE);
             LOGGER.debug(pwmRequest, errorInfo);
-            pwmRequest.setResponseError(errorInfo);
+            setLastError(pwmRequest, errorInfo);
             return;
         }
 
@@ -272,7 +272,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
         } catch (PwmOperationalException e) {
             pwmApplication.getIntruderManager().convenience().markAttributes(formValues, pwmSession);
             pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-            pwmRequest.setResponseError(e.getErrorInformation());
+            setLastError(pwmRequest, e.getErrorInformation());
             LOGGER.debug(pwmSession.getLabel(),e.getErrorInformation().toDebugStr());
         }
 
@@ -321,7 +321,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                     final Locale locale = pwmSession.getSessionStateBean().getLocale();
                     initializeToken(pwmRequest, locale, activateUserBean.getUserIdentity());
                 } catch (PwmOperationalException e) {
-                    pwmRequest.setResponseError(e.getErrorInformation());
+                    setLastError(pwmRequest, e.getErrorInformation());
                     forwardToActivateUserForm(pwmRequest);
                     return;
                 }
@@ -704,7 +704,7 @@ public class ActivateUserServlet extends AbstractPwmServlet {
                 errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT);
             }
             LOGGER.debug(pwmSession.getLabel(), errorInformation.toDebugStr());
-            pwmRequest.setResponseError(errorInformation);
+            setLastError(pwmRequest, errorInformation);
         }
 
         this.advanceToNextStage(pwmRequest);

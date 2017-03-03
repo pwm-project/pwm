@@ -51,7 +51,8 @@ public class ForgottenPasswordProfile extends AbstractProfile {
 
     public static ForgottenPasswordProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
         final Map<PwmSetting,StoredValue> valueMap = makeValueMap(storedConfiguration, identifier, PROFILE_TYPE.getCategory());
-        return new ForgottenPasswordProfile(identifier, valueMap);
+        return new
+                ForgottenPasswordProfile(identifier, valueMap);
 
     }
 

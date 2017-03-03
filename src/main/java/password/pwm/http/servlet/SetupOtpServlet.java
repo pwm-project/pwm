@@ -241,7 +241,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                     errorInformation = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET,"unexpected error saving otp secret: " + e.getMessage());
                 }
                 LOGGER.error(pwmSession, errorInformation.toDebugStr());
-                pwmRequest.setResponseError(errorInformation);
+                setLastError(pwmRequest, errorInformation);
             }
         }
 
@@ -347,7 +347,7 @@ public class SetupOtpServlet extends AbstractPwmServlet {
         try {
             service.clearOTPUserConfiguration(pwmSession, theUser);
         } catch (PwmOperationalException e) {
-            pwmRequest.setResponseError(e.getErrorInformation());
+            setLastError(pwmRequest, e.getErrorInformation());
             LOGGER.error(pwmRequest, e.getErrorInformation());
             return;
         }
@@ -385,11 +385,11 @@ public class SetupOtpServlet extends AbstractPwmServlet {
                     otpBean.setChallenge(null);
                 } else {
                     LOGGER.debug(pwmRequest, "test OTP token returned false, incorrect OTP secret provided");
-                            pwmRequest.setResponseError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
+                    setLastError(pwmRequest, new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
                 }
             } catch (PwmOperationalException e) {
                 LOGGER.error(pwmRequest, "error validating otp token: " + e.getMessage());
-                pwmRequest.setResponseError(e.getErrorInformation());
+                setLastError(pwmRequest, e.getErrorInformation());
             }
         }
 

@@ -256,6 +256,8 @@ public enum     AppProperty {
     TOKEN_REMOVAL_DELAY_MS                          ("token.removalDelayMS"),
     TOKEN_PURGE_BATCH_SIZE                          ("token.purgeBatchSize"),
     TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS                ("token.maxUniqueCreateAttempts"),
+    TOKEN_RESEND_ENABLED                            ("token.resend.enabled"),
+    TOKEN_RESEND_DELAY_MS                           ("token.resend.delayMS"),
 
     /** Regular expression to be used for matching URLs to be shortened by the URL Shortening Service Class. */
     URL_SHORTNER_URL_REGEX                          ("urlshortener.url.regex"),

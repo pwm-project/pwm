@@ -30,7 +30,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
-import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
@@ -184,24 +183,6 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             }
         }
         return interestedMethod;
-    }
-
-    protected void setLastError(final PwmRequest pwmRequest, final ErrorInformation errorInformation) throws PwmUnrecoverableException {
-        final Class<? extends PwmSessionBean> beanClass = this.getServletDefinition().getPwmSessionBeanClass();
-        if (beanClass != null) {
-            final PwmSessionBean pwmSessionBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, beanClass);
-            pwmSessionBean.setLastError(errorInformation);
-            pwmRequest.setResponseError(errorInformation);
-        }
-    }
-
-    private void examineLastError(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
-        final Class<? extends PwmSessionBean> beanClass = this.getServletDefinition().getPwmSessionBeanClass();
-        final PwmSessionBean pwmSessionBean = pwmRequest.getPwmApplication().getSessionStateService().getBean(pwmRequest, beanClass);
-        if (pwmSessionBean != null && pwmSessionBean.getLastError() != null) {
-            pwmRequest.setResponseError(pwmSessionBean.getLastError());
-            pwmSessionBean.setLastError(null);
-        }
     }
 }
 

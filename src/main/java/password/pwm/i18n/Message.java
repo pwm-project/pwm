@@ -54,6 +54,7 @@ public enum Message implements PwmDisplayBundle {
     Success_PasswordSend(null),
     Success_Action(null),
     Success_OtpSetup(null),
+    Success_TokenResend(null),
 
     EventLog_Startup(null),
     EventLog_Shutdown(null),

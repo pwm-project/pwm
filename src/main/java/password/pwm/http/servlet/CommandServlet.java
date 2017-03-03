@@ -29,10 +29,10 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
@@ -44,6 +44,8 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -67,60 +69,48 @@ import java.util.Map;
 )
 
 
-public class CommandServlet extends AbstractPwmServlet {
+public class CommandServlet extends ControlledPwmServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(CommandServlet.class);
 
     @Override
-    protected ProcessAction readProcessAction(final PwmRequest request)
-            throws PwmUnrecoverableException
-    {
-        return null;
+    public Class<? extends ProcessAction> getProcessActionsClass() {
+        return CommandAction.class;
     }
 
-    public void processAction(
-            final PwmRequest pwmRequest
-    )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
-    {
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
+    public enum CommandAction implements ProcessAction {
+        idleUpdate,
+        checkResponses,
+        checkIfResponseConfigNeeded,  //deprecated
+        checkExpire,
+        checkProfile,
+        checkAttributes, // deprecated
+        checkAll,
+        pageLeaveNotice,
+        cspReport,
+        next,
 
-        String action = pwmRequest.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST);
-        if (action.isEmpty()) {
-            final String uri = pwmRequest.getHttpServletRequest().getRequestURI();
-            if (uri != null && !uri.toLowerCase().endsWith("command") && !uri.toLowerCase().endsWith("CommandServlet")) {
-                final int lastSlash = uri.lastIndexOf("/");
-                action = uri.substring(lastSlash + 1, uri.length());
-            }
-        }
+        ;
 
-        LOGGER.trace(pwmSession, "received request for action " + action);
-
-        if ("idleUpdate".equalsIgnoreCase(action)) {
-            processIdleUpdate(pwmRequest);
-        } else if ("checkResponses".equalsIgnoreCase(action) || "checkIfResponseConfigNeeded".equalsIgnoreCase(action)) {
-            CheckCommands.processCheckResponses(pwmRequest);
-        } else if ("checkExpire".equalsIgnoreCase(action)) {
-            CheckCommands.processCheckExpire(pwmRequest);
-        } else if ("checkProfile".equalsIgnoreCase(action) || "checkAttributes".equalsIgnoreCase(action)) {
-            CheckCommands.processCheckProfile(pwmRequest);
-        } else if ("checkAll".equalsIgnoreCase(action)) {
-            CheckCommands.processCheckAll(pwmRequest);
-        } else if ("continue".equalsIgnoreCase(action)) {
-            processContinue(pwmRequest);
-        } else if ("pageLeaveNotice".equalsIgnoreCase(action)) {
-            processPageLeaveNotice(pwmRequest);
-        } else if ("csp-report".equalsIgnoreCase(action)) {
-            processCspReport(pwmRequest);
-        } else {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unknown command sent to CommandServlet: " + action);
-            LOGGER.debug(pwmSession, errorInformation);
-            pwmRequest.respondWithError(errorInformation);
+        @Override
+        public Collection<HttpMethod> permittedMethods() {
+            return Arrays.asList(HttpMethod.GET, HttpMethod.POST);
         }
     }
 
-    private static void processCspReport(
+    @Override
+    protected void nextStep(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException {
+        // no mvc pattern in this servlet
+    }
+
+    @Override
+    public ProcessStatus preProcessCheck(final PwmRequest pwmRequest) throws PwmUnrecoverableException, IOException, ServletException {
+        return ProcessStatus.Continue;
+    }
+
+    @ActionHandler(action = "cspReport")
+    private ProcessStatus processCspReport(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -132,9 +122,11 @@ public class CommandServlet extends AbstractPwmServlet {
         } catch (Exception e) {
             LOGGER.error("error processing csp report: " + e.getMessage() + ", body=" + body);
         }
+        return ProcessStatus.Halt;
     }
 
-    private static void processIdleUpdate(
+    @ActionHandler(action = "idleUpdate")
+    private ProcessStatus processIdleUpdate(
             final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
@@ -144,11 +136,11 @@ public class CommandServlet extends AbstractPwmServlet {
             pwmRequest.getPwmResponse().setHeader(HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate");
             pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.plain);
         }
+        return ProcessStatus.Halt;
     }
 
-
-
-    private static void processContinue(
+    @ActionHandler(action = "next")
+    private ProcessStatus processContinue(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException, ServletException
@@ -159,7 +151,7 @@ public class CommandServlet extends AbstractPwmServlet {
 
         if (pwmRequest.isAuthenticated()) {
             if (AuthenticationFilter.forceRequiredRedirects(pwmRequest) == ProcessStatus.Halt) {
-                return;
+                return ProcessStatus.Halt;
             }
 
             // log the user out if our finish action is currently set to log out.
@@ -167,15 +159,16 @@ public class CommandServlet extends AbstractPwmServlet {
             if (forceLogoutOnChange && pwmSession.getSessionStateBean().isPasswordModified()) {
                 LOGGER.trace(pwmSession, "logging out user; password has been modified");
                 pwmRequest.sendRedirect(PwmServletDefinition.Logout);
-                return;
+                return ProcessStatus.Halt;
             }
         }
 
         redirectToForwardURL(pwmRequest);
+        return ProcessStatus.Halt;
     }
 
-
-    private void processPageLeaveNotice(final PwmRequest pwmRequest)
+    @ActionHandler(action = "pageLeaveNotice")
+    private ProcessStatus processPageLeaveNotice(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -187,9 +180,98 @@ public class CommandServlet extends AbstractPwmServlet {
             pwmRequest.getPwmResponse().setHeader(HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate");
             pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.plain);
         }
+        return ProcessStatus.Halt;
     }
 
+    @ActionHandler(action = "checkAttributes")
+    private ProcessStatus processCheckAttributes(
+            final PwmRequest pwmRequest
+    )
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+    {
+        return processCheckProfile(pwmRequest);
+    }
 
+    @ActionHandler(action = "checkProfile")
+    private ProcessStatus processCheckProfile(
+            final PwmRequest pwmRequest
+    )
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+    {
+        if (!checkIfUserAuthenticated(pwmRequest)) {
+            return ProcessStatus.Halt;
+        }
+
+        if (pwmRequest.getPwmSession().getUserInfoBean().isRequiresUpdateProfile()) {
+            pwmRequest.sendRedirect(PwmServletDefinition.UpdateProfile);
+        } else {
+            redirectToForwardURL(pwmRequest);
+        }
+
+        return ProcessStatus.Halt;
+    }
+
+    @ActionHandler(action = "checkAll")
+    private ProcessStatus processCheckAll(
+            final PwmRequest pwmRequest
+    )
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+    {
+        if (!checkIfUserAuthenticated(pwmRequest)) {
+            return ProcessStatus.Halt;
+        }
+
+        if (AuthenticationFilter.forceRequiredRedirects(pwmRequest) == ProcessStatus.Continue) {
+            redirectToForwardURL(pwmRequest);
+        }
+        return ProcessStatus.Halt;
+    }
+
+    @ControlledPwmServlet.ActionHandler(action = "checkIfResponseConfigNeeded")
+    private ProcessStatus processCheckIfResponseConfigNeeded(
+            final PwmRequest pwmRequest
+    )
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+    {
+        return processCheckResponses(pwmRequest);
+    }
+
+    @ControlledPwmServlet.ActionHandler(action = "checkResponses")
+    private ProcessStatus processCheckResponses(
+            final PwmRequest pwmRequest
+    )
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+    {
+        if (!checkIfUserAuthenticated(pwmRequest)) {
+            return ProcessStatus.Halt;
+        }
+
+        if (pwmRequest.getPwmSession().getUserInfoBean().isRequiresResponseConfig()) {
+            pwmRequest.sendRedirect(PwmServletDefinition.SetupResponses);
+        } else {
+            redirectToForwardURL(pwmRequest);
+        }
+        return ProcessStatus.Halt;
+    }
+
+    @ControlledPwmServlet.ActionHandler(action = "checkExpire")
+    private ProcessStatus processCheckExpire(
+            final PwmRequest pwmRequest
+    )
+            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+    {
+        if (!checkIfUserAuthenticated(pwmRequest)) {
+            return ProcessStatus.Halt;
+        }
+
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        if (pwmSession.getUserInfoBean().isRequiresNewPassword() && !pwmSession.getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipNewPw)) {
+            pwmRequest.sendRedirect(PwmServletDefinition.PrivateChangePassword.servletUrlName());
+        } else {
+            redirectToForwardURL(pwmRequest);
+        }
+        return ProcessStatus.Halt;
+    }
 
     private static void redirectToForwardURL(final PwmRequest pwmRequest)
             throws IOException, PwmUnrecoverableException
@@ -221,71 +303,6 @@ public class CommandServlet extends AbstractPwmServlet {
             return false;
         }
         return true;
-    }
-
-    private static class CheckCommands {
-        private static void processCheckProfile(
-                final PwmRequest pwmRequest
-        )
-                throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
-        {
-            if (!checkIfUserAuthenticated(pwmRequest)) {
-                return;
-            }
-
-            if (pwmRequest.getPwmSession().getUserInfoBean().isRequiresUpdateProfile()) {
-                pwmRequest.sendRedirect(PwmServletDefinition.UpdateProfile);
-            } else {
-                redirectToForwardURL(pwmRequest);
-            }
-        }
-
-        private static void processCheckAll(
-                final PwmRequest pwmRequest
-        )
-                throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
-        {
-            if (!checkIfUserAuthenticated(pwmRequest)) {
-                return;
-            }
-
-            if (AuthenticationFilter.forceRequiredRedirects(pwmRequest) == ProcessStatus.Continue) {
-                redirectToForwardURL(pwmRequest);
-            }
-        }
-
-        private static void processCheckResponses(
-                final PwmRequest pwmRequest
-        )
-                throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
-        {
-            if (!checkIfUserAuthenticated(pwmRequest)) {
-                return;
-            }
-
-            if (pwmRequest.getPwmSession().getUserInfoBean().isRequiresResponseConfig()) {
-                pwmRequest.sendRedirect(PwmServletDefinition.SetupResponses);
-            } else {
-                redirectToForwardURL(pwmRequest);
-            }
-        }
-
-        private static void processCheckExpire(
-                final PwmRequest pwmRequest
-        )
-                throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
-        {
-            if (!checkIfUserAuthenticated(pwmRequest)) {
-                return;
-            }
-
-            final PwmSession pwmSession = pwmRequest.getPwmSession();
-            if (pwmSession.getUserInfoBean().isRequiresNewPassword() && !pwmSession.getLoginInfoBean().isLoginFlag(LoginInfoBean.LoginFlag.skipNewPw)) {
-                pwmRequest.sendRedirect(PwmServletDefinition.PrivateChangePassword.servletUrlName());
-            } else {
-                redirectToForwardURL(pwmRequest);
-            }
-        }
     }
 }
 

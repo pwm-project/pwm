@@ -203,8 +203,8 @@ public class ConfigAccessFilter extends AbstractPwmFilter {
                     pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                     pwmApplication.getIntruderManager().mark(RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmSession.getLabel());
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PASSWORD_ONLY_BAD);
-                    pwmRequest.setResponseError(errorInformation);
                     updateLoginHistory(pwmRequest,pwmRequest.getUserInfoIfLoggedIn(), false);
+                    throw new PwmUnrecoverableException(errorInformation);
                 }
             }
         }

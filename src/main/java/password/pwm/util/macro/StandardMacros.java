@@ -83,7 +83,9 @@ public abstract class StandardMacros {
         defaultMacros.put(UserEmailMacro.class, MacroImplementation.Scope.User);
         defaultMacros.put(UserPasswordMacro.class, MacroImplementation.Scope.User);
         defaultMacros.put(UserLdapProfileMacro.class, MacroImplementation.Scope.User);
-        
+        defaultMacros.put(OtpSetupTimeMacro.class, MacroImplementation.Scope.User);
+        defaultMacros.put(ResponseSetupTimeMacro.class, MacroImplementation.Scope.User);
+
         // wrapper macros: must be at the end to allow Macro in Macro during parsing
         defaultMacros.put(EncodingMacro.class, MacroImplementation.Scope.System);
         STANDARD_MACROS = Collections.unmodifiableMap(defaultMacros);
@@ -655,6 +657,40 @@ public abstract class StandardMacros {
             value = value.replaceAll("^@Encode:[^:]+:\\[\\[","");
             value = value.replaceAll("\\]\\]@$","");
             return encodeType.encode(value);
+        }
+    }
+
+    public static class OtpSetupTimeMacro extends InternalMacros.InternalAbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@OtpSetupTime@");
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
+        {
+            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            if (userInfoBean != null && userInfoBean.getOtpUserRecord() != null && userInfoBean.getOtpUserRecord().getTimestamp() != null) {
+                return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getOtpUserRecord().getTimestamp());
+            }
+            return "";
+        }
+    }
+
+    public static class ResponseSetupTimeMacro extends InternalMacros.InternalAbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@ResponseSetupTime@");
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo)
+        {
+            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+            if (userInfoBean != null && userInfoBean.getResponseInfoBean() != null && userInfoBean.getResponseInfoBean().getTimestamp() != null) {
+                return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getResponseInfoBean().getTimestamp());
+            }
+            return "";
         }
     }
 }

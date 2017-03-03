@@ -1,7 +1,6 @@
 <%@ page import="password.pwm.config.option.IdentityVerificationMethod" %>
-<%@ page import="java.util.HashSet" %>
+<%@ page import="java.util.LinkedHashSet" %>
 <%@ page import="java.util.Set" %>
-<%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://www.pwm-project.org
@@ -29,7 +28,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-    final Set<IdentityVerificationMethod> methods = new HashSet<IdentityVerificationMethod>((Set<IdentityVerificationMethod>) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.AvailableAuthMethods));
+    final Set<IdentityVerificationMethod> methods = new LinkedHashSet<IdentityVerificationMethod>((Set<IdentityVerificationMethod>) JspUtility.getAttribute(pageContext, PwmRequest.Attribute.AvailableAuthMethods));
 %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>

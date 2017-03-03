@@ -40,9 +40,10 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.servlet.CommandServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.Validator;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.ws.server.RestResultBean;
@@ -183,7 +184,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             throws PwmUnrecoverableException, IOException
     {
         String redirectURL = this.getContextPath() + PwmServletDefinition.Command.servletUrl();
-        redirectURL = PwmURL.appendAndEncodeUrlParameters(redirectURL, Collections.singletonMap(PwmConstants.PARAM_ACTION_REQUEST, "continue"));
+        redirectURL = PwmURL.appendAndEncodeUrlParameters(redirectURL, Collections.singletonMap(PwmConstants.PARAM_ACTION_REQUEST, CommandServlet.CommandAction.next.toString()));
         sendRedirect(redirectURL);
     }
 
@@ -413,12 +414,6 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         LOGGER.debug(pwmSession, "detected long servlet url, redirecting user to " + redirectURL);
         sendRedirect(redirectURL.toString());
         return true;
-    }
-
-
-
-    public void setResponseError(final ErrorInformation errorInformation) {
-        setAttribute(PwmRequest.Attribute.PwmErrorInfo, errorInformation);
     }
 
     public void setAttribute(final PwmRequest.Attribute name, final Serializable value) {
